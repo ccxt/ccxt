@@ -37,6 +37,9 @@ class idex extends \ccxt\async\idex {
                 'watchOrderBookLimit' => 1000, // default limit
                 'orderBookSubscriptions' => array(),
                 'token' => null,
+                'watchOrderBook' => array(
+                    'maxRetries' => 3,
+                ),
                 'fetchOrderBookSnapshotMaxAttempts' => 10,
                 'fetchOrderBookSnapshotMaxDelay' => 10000, // throw if there are no orders in 10 seconds
             ),
@@ -77,7 +80,7 @@ class idex extends \ccxt\async\idex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the idex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -153,7 +156,7 @@ class idex extends \ccxt\async\idex {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the idex api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -215,17 +218,17 @@ class idex extends \ccxt\async\idex {
         $marketId = $this->safe_string($trade, 'm');
         $symbol = $this->safe_symbol($marketId);
         $id = $this->safe_string($trade, 'i');
-        $price = $this->safe_float($trade, 'p');
-        $amount = $this->safe_float($trade, 'q');
-        $cost = $this->safe_float($trade, 'Q');
+        $price = $this->safe_string($trade, 'p');
+        $amount = $this->safe_string($trade, 'q');
+        $cost = $this->safe_string($trade, 'Q');
         $timestamp = $this->safe_integer($trade, 't');
         $side = $this->safe_string($trade, 's');
         $fee = array(
             'currency' => $this->safe_string($trade, 'a'),
-            'cost' => $this->safe_float($trade, 'f'),
+            'cost' => $this->safe_string($trade, 'f'),
         );
         $takerOrMarker = $this->safe_string($trade, 'l');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -239,7 +242,7 @@ class idex extends \ccxt\async\idex {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        );
+        ));
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -365,7 +368,7 @@ class idex extends \ccxt\async\idex {
             try {
                 $limit = $this->safe_integer($subscription, 'limit', 0);
                 // 3. Request a level-2 order book $snapshot for the $market from the REST API Order Books endpoint with $limit set to 0.
-                $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
+                $snapshot = Async\await($this->fetch_rest_order_book_safe($symbol, $limit));
                 $firstBuffered = $this->safe_value($orderbook->cache, 0);
                 $firstData = $this->safe_value($firstBuffered, 'data');
                 $firstNonce = $this->safe_integer($firstData, 'u');
@@ -422,7 +425,7 @@ class idex extends \ccxt\async\idex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the idex api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -532,7 +535,7 @@ class idex extends \ccxt\async\idex {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the idex api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $name = 'orders';
@@ -598,7 +601,7 @@ class idex extends \ccxt\async\idex {
         $marketId = $this->safe_string($order, 'm');
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($order, 't');
-        $fills = $this->safe_value($order, 'F');
+        $fills = $this->safe_value($order, 'F', array());
         $trades = array();
         for ($i = 0; $i < count($fills); $i++) {
             $trades[] = $this->parse_ws_trade($fills[$i]);
@@ -606,18 +609,10 @@ class idex extends \ccxt\async\idex {
         $id = $this->safe_string($order, 'i');
         $side = $this->safe_string($order, 's');
         $orderType = $this->safe_string($order, 'o');
-        $amount = $this->safe_float($order, 'q');
-        $filled = $this->safe_float($order, 'z');
-        $remaining = null;
-        if (($amount !== null) && ($filled !== null)) {
-            $remaining = $amount - $filled;
-        }
-        $average = $this->safe_float($order, 'v');
-        $price = $this->safe_float($order, 'price', $average);  // for market $orders
-        $cost = null;
-        if (($amount !== null) && ($price !== null)) {
-            $cost = $amount * $price;
-        }
+        $amount = $this->safe_string($order, 'q');
+        $filled = $this->safe_string($order, 'z');
+        $average = $this->safe_string($order, 'v');
+        $price = $this->safe_string($order, 'price', $average);  // for market $orders
         $rawStatus = $this->safe_string($order, 'X');
         $status = $this->parse_order_status($rawStatus);
         $fee = array(
@@ -628,10 +623,11 @@ class idex extends \ccxt\async\idex {
         for ($i = 0; $i < count($trades); $i++) {
             $lastTrade = $trades[$i];
             $fee['currency'] = $lastTrade['fee']['currency'];
-            $fee['cost'] = $this->sum($fee['cost'], $lastTrade['fee']['cost']);
+            $stringLastTradeFee = $lastTrade['fee']['cost'];
+            $fee['cost'] = Precise::string_add($fee['cost'], $stringLastTradeFee);
         }
         $lastTradeTimestamp = $this->safe_integer($lastTrade, 'timestamp');
-        $parsedOrder = array(
+        $parsedOrder = $this->safe_order(array(
             'info' => $message,
             'id' => $id,
             'clientOrderId' => null,
@@ -641,18 +637,18 @@ class idex extends \ccxt\async\idex {
             'symbol' => $symbol,
             'type' => $orderType,
             'side' => $side,
-            'price' => $price,
+            'price' => $this->parse_number($price),
             'stopPrice' => null,
             'triggerPrice' => null,
-            'amount' => $amount,
-            'cost' => $cost,
-            'average' => $average,
-            'filled' => $filled,
-            'remaining' => $remaining,
+            'amount' => $this->parse_number($amount),
+            'cost' => null,
+            'average' => $this->parse_number($average),
+            'filled' => $this->parse_number($filled),
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById ($limit);

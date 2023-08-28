@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.0.18'
+__version__ = '4.0.77'
 
 # ----------------------------------------------------------------------------
 
@@ -63,6 +63,7 @@ from ccxt.base.errors import CancelPending                            # noqa: F4
 from ccxt.base.errors import OrderImmediatelyFillable                 # noqa: F401
 from ccxt.base.errors import OrderNotFillable                         # noqa: F401
 from ccxt.base.errors import DuplicateOrderId                         # noqa: F401
+from ccxt.base.errors import ContractUnavailable                      # noqa: F401
 from ccxt.base.errors import NotSupported                             # noqa: F401
 from ccxt.base.errors import NetworkError                             # noqa: F401
 from ccxt.base.errors import DDoSProtection                           # noqa: F401
@@ -82,6 +83,7 @@ from ccxt.binance import binance                                      # noqa: F4
 from ccxt.binancecoinm import binancecoinm                            # noqa: F401
 from ccxt.binanceus import binanceus                                  # noqa: F401
 from ccxt.binanceusdm import binanceusdm                              # noqa: F401
+from ccxt.bingx import bingx                                          # noqa: F401
 from ccxt.bit2c import bit2c                                          # noqa: F401
 from ccxt.bitbank import bitbank                                      # noqa: F401
 from ccxt.bitbay import bitbay                                        # noqa: F401
@@ -189,6 +191,7 @@ exchanges = [
     'binancecoinm',
     'binanceus',
     'binanceusdm',
+    'bingx',
     'bit2c',
     'bitbank',
     'bitbay',

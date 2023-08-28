@@ -145,6 +145,7 @@ class bigone extends Exchange {
                 'fetchCurrencies' => array(
                     'webApiEnable' => true, // fetches from WEB
                     'webApiRetries' => 5,
+                    'webApiMuteFailure' => true,
                 ),
                 'defaultNetwork' => 'ERC20',
                 'defaultNetworks' => array(
@@ -152,194 +153,100 @@ class bigone extends Exchange {
                 ),
                 'networks' => array(
                     'ABBC' => 'ABBC',
-                    'ACALA' => 'Acala',
-                    'AETERNITY' => 'Aeternity',
-                    'ALGORAND' => 'Algorand',
-                    'APTOS' => 'Aptos',
-                    'ARWEAVE' => 'Arweave',
-                    'ASTAR' => 'Astar',
-                    'AVALANCHE_C' => 'Avax',
-                    'AVALANCHE_X' => 'AvaxChain',
+                    'ACA' => 'Acala',
+                    'AE' => 'Aeternity',
+                    'ALGO' => 'Algorand',
+                    'APT' => 'Aptos',
+                    'AR' => 'Arweave',
+                    'ASTR' => 'Astar',
+                    'AVAXC' => 'Avax',
+                    'AVAXX' => 'AvaxChain',
                     'BEAM' => 'Beam',
                     'BEP20' => 'BinanceSmartChain',
                     'BITCI' => 'BitciChain',
                     'BTC' => 'Bitcoin',
                     'BCH' => 'BitcoinCash',
-                    'BITCOINDIAMON' => 'BitcoinDiamond',
-                    'BITCOINGOLD' => 'BitcoinGold',
                     'BSV' => 'BitcoinSV',
-                    'BUTTRUSTSYSTEM' => 'BitTrustSystem',
-                    'BYTOM_V2' => 'BytomV2',
                     'CELO' => 'Celo',
-                    'CHAINX_V2' => 'ChainxV2',
-                    'NERVOS' => 'CKB',
-                    'CLASSZZ' => 'Classzz',
-                    'CLASSZZ_V2' => 'ClasszzV2',
-                    'CLOVER' => 'Clover',
-                    'COSMOS' => 'Cosmos',
+                    'CKKB' => 'CKB',
+                    'ATOM' => 'Cosmos',
                     'CRC20' => 'CRO',
                     'DASH' => 'Dash',
-                    'INTERNETCOMPUTER' => 'Dfinity',
-                    'DOGECOIN' => 'Dogecoin',
-                    'ECASH' => 'ECash',
+                    'DOGE' => 'Dogecoin',
+                    'XEC' => 'ECash',
                     'EOS' => 'EOS',
                     'ETH' => 'Ethereum',
                     'ETC' => 'EthereumClassic',
                     'ETHW' => 'EthereumPow',
-                    'FANTOM' => 'Fantom',
-                    'FILECOIN' => 'Filecoin',
-                    'FUSION' => 'Fusion',
+                    'FTM' => 'Fantom',
+                    'FIL' => 'Filecoin',
+                    'FSN' => 'Fusion',
                     'GRIN' => 'Grin',
-                    'GXSHARES' => 'Gxshares',
-                    'HARMONY' => 'Harmony',
+                    'ONE' => 'Harmony',
                     'HRC20' => 'Hecochain',
-                    'HEDERA' => 'Hedera',
-                    'HELIUM' => 'Helium',
-                    'HORIZEN' => 'Horizen',
+                    'HBAR' => 'Hedera',
+                    'HNT' => 'Helium',
+                    'ZEN' => 'Horizen',
                     'IOST' => 'IOST',
                     'IRIS' => 'IRIS',
-                    'KLAYTN' => 'Klaytn',
-                    'KUSAMA' => 'Kusama',
-                    'LAMDEN' => 'Lamden',
-                    'LBRY' => 'Lbry',
-                    'LIBONOMY' => 'Libonomy',
+                    'KLAY' => 'Klaytn',
+                    'KSM' => 'Kusama',
                     'LTC' => 'Litecoin',
-                    'MOBILECOIN' => 'Mobilecoin',
-                    'MONERO' => 'Monero',
-                    'MOONBEAM' => 'Moonbeam',
+                    'XMR' => 'Monero',
+                    'GLMR' => 'Moonbeam',
                     'NEAR' => 'Near',
                     'NEO' => 'Neo',
                     'NEON3' => 'NeoN3',
-                    'BITSHARES_OLD' => 'Bitshares',
-                    'BITSHARES_NEW' => 'NewBitshares',
                     'OASIS' => 'Oasis',
                     'OKC' => 'Okexchain',
-                    'ONTOLOGY' => 'Ontology',
+                    'ONT' => 'Ontology',
                     'OPTIMISM' => 'Optimism',
-                    'PARALLELFINANCE' => 'Parallel',
-                    'PLCULTIMA' => 'Plcu',
-                    'PLCULTIMA2' => 'Plcu2',
-                    'POLKADOT' => 'Polkadot',
-                    'POLYGON' => 'Polygon',
+                    'DOT' => 'Polkadot',
+                    'MATIC' => 'Polygon',
                     'QTUM' => 'Qtum',
                     'REI' => 'REI',
-                    'RIPPLE' => 'Ripple',
-                    'SONGBIRD' => 'SGB',
-                    'SHIDEN' => 'Shiden',
-                    'SIACLASSIC' => 'Sia',
-                    'SIACOIN' => 'SiaCore',
-                    'SOLANA' => 'Solana',
-                    'STELLAR' => 'Stellar',
-                    'SUPERBITCOIN' => 'SuperBitcoin',
+                    'XRP' => 'Ripple',
+                    'SGB' => 'SGB',
+                    'SDN' => 'Shiden',
+                    'SOL' => 'Solana',
+                    'XLM' => 'Stellar',
                     'TERA' => 'Tera',
-                    'TERRACLASSIC' => 'Terra',
-                    'TERRA' => 'Terra2',
-                    'TEZOS' => 'Tezos',
+                    'XTZ' => 'Tezos',
                     'TRC20' => 'Tron',
-                    'UCACOIN' => 'Ucacoin',
-                    'VANILLACASH' => 'Vcash',
-                    'VECHAIN' => 'Vechain',
-                    'VSYSTEMS' => 'VSystems',
+                    'VET' => 'Vechain',
+                    'VSYS' => 'VSystems',
                     'WAX' => 'WAX',
-                    'WAYFCOIN' => 'Wayfcoin',
-                    'ZCASH' => 'Zcash',
-                    'ZEEPIN' => 'Zeepin',
+                    'ZEC' => 'Zcash',
+                    // todo => uncomment after consensus
+                    // 'BITSHARES_OLD' => 'Bitshares',
+                    // 'BITSHARES_NEW' => 'NewBitshares',
+                    // 'MOBILECOIN' => 'Mobilecoin',
+                    // 'LBRY' => 'Lbry',
+                    // 'ZEEPIN' => 'Zeepin',
+                    // 'WAYFCOIN' => 'Wayfcoin',
+                    // 'UCACOIN' => 'Ucacoin',
+                    // 'VANILLACASH' => 'Vcash',
+                    // 'LAMDEN' => 'Lamden',
+                    // 'GXSHARES' => 'Gxshares',
+                    // 'ICP' => 'Dfinity',
+                    // 'CLOVER' => 'Clover',
+                    // 'CLASSZZ' => 'Classzz',
+                    // 'CLASSZZ_V2' => 'ClasszzV2',
+                    // 'CHAINX_V2' => 'ChainxV2',
+                    // 'BITCOINDIAMON' => 'BitcoinDiamond',
+                    // 'BITCOINGOLD' => 'BitcoinGold',
+                    // 'BUTTRUSTSYSTEM' => 'BitTrustSystem',
+                    // 'BYTOM_V2' => 'BytomV2',
+                    // 'LIBONOMY' => 'Libonomy',
+                    // 'TERRACLASSIC' => 'Terra',
+                    // 'TERRA' => 'Terra2',
+                    // 'SUPERBITCOIN' => 'SuperBitcoin',
+                    // 'SIACLASSIC' => 'Sia',
+                    // 'SIACOIN' => 'SiaCore',
+                    // 'PARALLELFINANCE' => 'Parallel',
+                    // 'PLCULTIMA' => 'Plcu',
+                    // 'PLCULTIMA2' => 'Plcu2',
                     // undetermined => XinFin, YAS, Ycash
-                ),
-                'networksById' => array(
-                    'ABBC' => 'ABBC',
-                    'Acala' => 'ACALA',
-                    'Aeternity' => 'AETERNITY',
-                    'Algorand' => 'ALGORAND',
-                    'Aptos' => 'APTOS',
-                    'Arweave' => 'ARWEAVE',
-                    'Astar' => 'ASTAR',
-                    'Avax' => 'AVALANCHE_C',
-                    'AvaxChain' => 'AVALANCHE_X',
-                    'Beam' => 'BEAM',
-                    'BinanceSmartChain' => 'BEP20',
-                    'BitciChain' => 'BITCI',
-                    'Bitcoin' => 'BTC',
-                    'BitcoinCash' => 'BCH',
-                    'BitcoinDiamond' => 'BITCOINDIAMON',
-                    'BitcoinGold' => 'BITCOINGOLD',
-                    'BitcoinSV' => 'BSV',
-                    'BitTrustSystem' => 'BUTTRUSTSYSTEM',
-                    'BytomV2' => 'BYTOM_V2',
-                    'Celo' => 'CELO',
-                    'ChainxV2' => 'CHAINX_V2',
-                    'CKB' => 'NERVOS',
-                    'Classzz' => 'CLASSZZ',
-                    'ClasszzV2' => 'CLASSZZ_V2',
-                    'Clover' => 'CLOVER',
-                    'Cosmos' => 'COSMOS',
-                    'CRO' => 'CRC20',
-                    'Dash' => 'DASH',
-                    'Dfinity' => 'INTERNETCOMPUTER',
-                    'Dogecoin' => 'DOGECOIN',
-                    'ECash' => 'ECASH',
-                    'EOS' => 'EOS',
-                    'Ethereum' => 'ETH',
-                    'EthereumClassic' => 'ETC',
-                    'EthereumPow' => 'ETHW',
-                    'Fantom' => 'FANTOM',
-                    'Filecoin' => 'FILECOIN',
-                    'Fusion' => 'FUSION',
-                    'Grin' => 'GRIN',
-                    'Gxshares' => 'GXSHARES',
-                    'Harmony' => 'HARMONY',
-                    'Hecochain' => 'HRC20',
-                    'Hedera' => 'HEDERA',
-                    'Helium' => 'HELIUM',
-                    'Horizen' => 'HORIZEN',
-                    'IOST' => 'IOST',
-                    'IRIS' => 'IRIS',
-                    'Klaytn' => 'KLAYTN',
-                    'Kusama' => 'KUSAMA',
-                    'Lamden' => 'LAMDEN',
-                    'Lbry' => 'LBRY',
-                    'Libonomy' => 'LIBONOMY',
-                    'Litecoin' => 'LTC',
-                    'Mobilecoin' => 'MOBILECOIN',
-                    'Monero' => 'MONERO',
-                    'Moonbeam' => 'MOONBEAM',
-                    'Near' => 'NEAR',
-                    'Neo' => 'NEO',
-                    'NeoN3' => 'NEON3',
-                    'Bitshares' => 'BITSHARES_OLD',
-                    'NewBitshares' => 'BITSHARES_NEW',
-                    'Oasis' => 'OASIS',
-                    'Okexchain' => 'OKC',
-                    'Ontology' => 'ONTOLOGY',
-                    'Optimism' => 'OPTIMISM',
-                    'Parallel' => 'PARALLELFINANCE',
-                    'Plcu' => 'PLCULTIMA',
-                    'Plcu2' => 'PLCULTIMA2',
-                    'Polkadot' => 'POLKADOT',
-                    'Polygon' => 'POLYGON',
-                    'Qtum' => 'QTUM',
-                    'REI' => 'REI',
-                    'Ripple' => 'RIPPLE',
-                    'SGB' => 'SONGBIRD',
-                    'Shiden' => 'SHIDEN',
-                    'Sia' => 'SIACLASSIC',
-                    'SiaCore' => 'SIACOIN',
-                    'Solana' => 'SOLANA',
-                    'Stellar' => 'STELLAR',
-                    'SuperBitcoin' => 'SUPERBITCOIN',
-                    'Tera' => 'TERA',
-                    'Terra' => 'TERRACLASSIC',
-                    'Terra2' => 'TERRA',
-                    'Tezos' => 'TEZOS',
-                    'Tron' => 'TRC20',
-                    'Ucacoin' => 'UCACOIN',
-                    'Vcash' => 'VANILLACASH',
-                    'Vechain' => 'VECHAIN',
-                    'VSystems' => 'VSYSTEMS',
-                    'WAX' => 'WAX',
-                    'Wayfcoin' => 'WAYFCOIN',
-                    'Zcash' => 'ZCASH',
-                    'Zeepin' => 'ZEEPIN',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -735,7 +642,7 @@ class bigone extends Exchange {
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -770,7 +677,7 @@ class bigone extends Exchange {
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -848,7 +755,7 @@ class bigone extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1025,7 +932,7 @@ class bigone extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1160,7 +1067,7 @@ class bigone extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $type = $this->safe_string($params, 'type', '');
@@ -1250,9 +1157,9 @@ class bigone extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1312,7 +1219,7 @@ class bigone extends Exchange {
              * @param {string} $id $order $id
              * @param {string} $symbol Not used by bigone cancelOrder ()
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
             Async\await($this->load_markets());
             $request = array( 'id' => $id );
@@ -1340,7 +1247,7 @@ class bigone extends Exchange {
              * cancel all open orders
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1370,7 +1277,7 @@ class bigone extends Exchange {
              * fetches information on an $order made by the user
              * @param {string} $symbol not used by bigone fetchOrder
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
             Async\await($this->load_markets());
             $request = array( 'id' => $id );
@@ -1388,7 +1295,7 @@ class bigone extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -1439,7 +1346,7 @@ class bigone extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
             if ($symbol === null) {
@@ -1510,7 +1417,7 @@ class bigone extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $request = array(
                 'state' => 'PENDING',
@@ -1527,7 +1434,7 @@ class bigone extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $request = array(
                 'state' => 'FILLED',
@@ -1580,7 +1487,7 @@ class bigone extends Exchange {
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1732,7 +1639,7 @@ class bigone extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $deposits for
              * @param {int} [$limit] the maximum number of $deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1784,7 +1691,7 @@ class bigone extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
              * @param {int} [$limit] the maximum number of $withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1837,7 +1744,7 @@ class bigone extends Exchange {
              * @param {string} $fromAccount account to $transfer from
              * @param {string} $toAccount account to $transfer to
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$transfer-structure $transfer structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1911,7 +1818,7 @@ class bigone extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             Async\await($this->load_markets());

@@ -203,14 +203,7 @@ class cex extends Exchange {
                     'ERC20' => 'Ethereum',
                     'BTC' => 'BTC',
                     'BEP20' => 'Binance Smart Chain',
-                    'BSC' => 'Binance Smart Chain',
                     'TRC20' => 'Tron',
-                ),
-                'networksById' => array(
-                    'Ethereum' => 'ERC20',
-                    'BTC' => 'BTC',
-                    'Binance Smart Chain' => 'BEP20',
-                    'Tron' => 'TRC20',
                 ),
             ),
         ));
@@ -480,7 +473,7 @@ class cex extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the cex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostBalance ($params));
@@ -495,7 +488,7 @@ class cex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the cex api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -616,7 +609,7 @@ class cex extends Exchange {
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the cex api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -644,7 +637,7 @@ class cex extends Exchange {
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the cex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -700,7 +693,7 @@ class cex extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the cex api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -717,7 +710,7 @@ class cex extends Exchange {
             /**
              * fetch the trading fees for multiple markets
              * @param {array} [$params] extra parameters specific to the cex api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market symbols
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$fee-structure $fee structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostGetMyfee ($params));
@@ -758,13 +751,14 @@ class cex extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://cex.io/rest-api#place-order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the cex api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             // for $market buy it requires the $amount of quote currency to spend
             if (($type === 'market') && ($side === 'buy')) {
@@ -772,7 +766,10 @@ class cex extends Exchange {
                     if ($price === null) {
                         throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                     } else {
-                        $amount = $amount * $price;
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $baseAmount = Precise::string_mul($amountString, $priceString);
+                        $amount = $this->parse_number($baseAmount);
                     }
                 }
             }
@@ -800,16 +797,16 @@ class cex extends Exchange {
             //         "complete" => false
             //     }
             //
-            $placedAmount = $this->safe_number($response, 'amount');
-            $remaining = $this->safe_number($response, 'pending');
+            $placedAmount = $this->safe_string($response, 'amount');
+            $remaining = $this->safe_string($response, 'pending');
             $timestamp = $this->safe_value($response, 'time');
             $complete = $this->safe_value($response, 'complete');
             $status = $complete ? 'closed' : 'open';
             $filled = null;
             if (($placedAmount !== null) && ($remaining !== null)) {
-                $filled = max ($placedAmount - $remaining, 0);
+                $filled = Precise::string_max(Precise::string_sub($placedAmount, $remaining), '0');
             }
-            return array(
+            return $this->safe_order(array(
                 'id' => $this->safe_string($response, 'id'),
                 'info' => $response,
                 'clientOrderId' => null,
@@ -820,7 +817,7 @@ class cex extends Exchange {
                 'side' => $this->safe_string($response, 'type'),
                 'symbol' => $market['symbol'],
                 'status' => $status,
-                'price' => $this->safe_number($response, 'price'),
+                'price' => $this->safe_string($response, 'price'),
                 'amount' => $placedAmount,
                 'cost' => null,
                 'average' => null,
@@ -828,7 +825,7 @@ class cex extends Exchange {
                 'filled' => $filled,
                 'fee' => null,
                 'trades' => null,
-            );
+            ));
         }) ();
     }
 
@@ -839,13 +836,15 @@ class cex extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol not used by cex cancelOrder ()
              * @param {array} [$params] extra parameters specific to the cex api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $request = array(
                 'id' => $id,
             );
-            return Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
+            // 'true'
+            return array_merge($this->parse_order(array()), array( 'info' => $response, 'type' => null, 'id' => $id, 'status' => 'canceled' ));
         }) ();
     }
 
@@ -856,7 +855,7 @@ class cex extends Exchange {
         if (gettype($timestamp) === 'string' && mb_strpos($timestamp, 'T') !== false) {
             // ISO8601 string
             $timestamp = $this->parse8601($timestamp);
-        } else {
+        } elseif ($timestamp !== null) {
             // either integer or string integer
             $timestamp = intval($timestamp);
         }
@@ -866,61 +865,66 @@ class cex extends Exchange {
             $quoteId = $this->safe_string($order, 'symbol2');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
+            if (($base !== null) && ($quote !== null)) {
+                $symbol = $base . '/' . $quote;
+            }
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
                 $market = $this->market($symbol);
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'amount');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->omit_zero($this->safe_string($order, 'amount'));
         // sell orders can have a negative $amount
         // https://github.com/ccxt/ccxt/issues/5338
         if ($amount !== null) {
-            $amount = abs($amount);
+            $amount = Precise::string_abs($amount);
+        } elseif ($market !== null) {
+            $amountKey = 'a:' . $market['base'] . 'cds:';
+            $amount = Precise::string_abs($this->safe_string($order, $amountKey));
         }
-        $remaining = $this->safe_number_2($order, 'pending', 'remains');
-        $filled = $amount - $remaining;
+        $remaining = $this->safe_string_2($order, 'pending', 'remains');
+        $filled = Precise::string_sub($amount, $remaining);
         $fee = null;
         $cost = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
-            $taCost = $this->safe_number($order, 'ta:' . $market['quote']);
-            $ttaCost = $this->safe_number($order, 'tta:' . $market['quote']);
-            $cost = $this->sum($taCost, $ttaCost);
+            $taCost = $this->safe_string($order, 'ta:' . $market['quote']);
+            $ttaCost = $this->safe_string($order, 'tta:' . $market['quote']);
+            $cost = Precise::string_add($taCost, $ttaCost);
             $baseFee = 'fa:' . $market['base'];
             $baseTakerFee = 'tfa:' . $market['base'];
             $quoteFee = 'fa:' . $market['quote'];
             $quoteTakerFee = 'tfa:' . $market['quote'];
-            $feeRate = $this->safe_number($order, 'tradingFeeMaker');
+            $feeRate = $this->safe_string($order, 'tradingFeeMaker');
             if (!$feeRate) {
-                $feeRate = $this->safe_number($order, 'tradingFeeTaker', $feeRate);
+                $feeRate = $this->safe_string($order, 'tradingFeeTaker', $feeRate);
             }
             if ($feeRate) {
-                $feeRate = $feeRate / 100.0; // convert to mathematically-correct percentage coefficients => 1.0 = 100%
+                $feeRate = Precise::string_div($feeRate, '100'); // convert to mathematically-correct percentage coefficients => 1.0 = 100%
             }
             if ((is_array($order) && array_key_exists($baseFee, $order)) || (is_array($order) && array_key_exists($baseTakerFee, $order))) {
                 $baseFeeCost = $this->safe_number_2($order, $baseFee, $baseTakerFee);
                 $fee = array(
                     'currency' => $market['base'],
-                    'rate' => $feeRate,
+                    'rate' => $this->parse_number($feeRate),
                     'cost' => $baseFeeCost,
                 );
             } elseif ((is_array($order) && array_key_exists($quoteFee, $order)) || (is_array($order) && array_key_exists($quoteTakerFee, $order))) {
                 $quoteFeeCost = $this->safe_number_2($order, $quoteFee, $quoteTakerFee);
                 $fee = array(
                     'currency' => $market['quote'],
-                    'rate' => $feeRate,
+                    'rate' => $this->parse_number($feeRate),
                     'cost' => $quoteFeeCost,
                 );
             }
         }
         if (!$cost) {
-            $cost = $price * $filled;
+            $cost = Precise::string_mul($price, $filled);
         }
-        $side = $order['type'];
+        $side = $this->safe_string($order, 'type');
         $trades = null;
-        $orderId = $order['id'];
+        $orderId = $this->safe_string($order, 'id');
         if (is_array($order) && array_key_exists('vtx', $order)) {
             $trades = array();
             for ($i = 0; $i < count($order['vtx']); $i++) {
@@ -947,7 +951,7 @@ class cex extends Exchange {
                     //     ds => 0 }
                     continue;
                 }
-                $tradePrice = $this->safe_number($item, 'price');
+                $tradePrice = $this->safe_string($item, 'price');
                 if ($tradePrice === null) {
                     // this represents the $order
                     //   {
@@ -1051,15 +1055,15 @@ class cex extends Exchange {
                 //     "fee_amount" => "0.03"
                 //   }
                 $tradeTimestamp = $this->parse8601($this->safe_string($item, 'time'));
-                $tradeAmount = $this->safe_number($item, 'amount');
-                $feeCost = $this->safe_number($item, 'fee_amount');
-                $absTradeAmount = ($tradeAmount < 0) ? -$tradeAmount : $tradeAmount;
+                $tradeAmount = $this->safe_string($item, 'amount');
+                $feeCost = $this->safe_string($item, 'fee_amount');
+                $absTradeAmount = Precise::string_abs($tradeAmount);
                 $tradeCost = null;
                 if ($tradeSide === 'sell') {
                     $tradeCost = $absTradeAmount;
-                    $absTradeAmount = $this->sum($feeCost, $tradeCost) / $tradePrice;
+                    $absTradeAmount = Precise::string_div(Precise::string_add($feeCost, $tradeCost), $tradePrice);
                 } else {
-                    $tradeCost = $absTradeAmount * $tradePrice;
+                    $tradeCost = Precise::string_mul($absTradeAmount, $tradePrice);
                 }
                 $trades[] = array(
                     'id' => $this->safe_string($item, 'id'),
@@ -1067,12 +1071,12 @@ class cex extends Exchange {
                     'datetime' => $this->iso8601($tradeTimestamp),
                     'order' => $orderId,
                     'symbol' => $symbol,
-                    'price' => $tradePrice,
-                    'amount' => $absTradeAmount,
-                    'cost' => $tradeCost,
+                    'price' => $this->parse_number($tradePrice),
+                    'amount' => $this->parse_number($absTradeAmount),
+                    'cost' => $this->parse_number($tradeCost),
                     'side' => $tradeSide,
                     'fee' => array(
-                        'cost' => $feeCost,
+                        'cost' => $this->parse_number($feeCost),
                         'currency' => $market['quote'],
                     ),
                     'info' => $item,
@@ -1081,7 +1085,8 @@ class cex extends Exchange {
                 );
             }
         }
-        return array(
+        return $this->safe_order(array(
+            'info' => $order,
             'id' => $orderId,
             'clientOrderId' => null,
             'datetime' => $this->iso8601($timestamp),
@@ -1102,9 +1107,8 @@ class cex extends Exchange {
             'remaining' => $remaining,
             'trades' => $trades,
             'fee' => $fee,
-            'info' => $order,
             'average' => null,
-        );
+        ));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1115,7 +1119,7 @@ class cex extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open $orders for
              * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the cex api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1142,7 +1146,7 @@ class cex extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the cex api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $method = 'privatePostArchivedOrdersPair';
@@ -1162,7 +1166,7 @@ class cex extends Exchange {
              * fetches information on an order made by the user
              * @param {string} $symbol not used by cex fetchOrder
              * @param {array} [$params] extra parameters specific to the cex api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1282,7 +1286,7 @@ class cex extends Exchange {
              * @param {int} [$since] the earliest $time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the cex api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1438,10 +1442,10 @@ class cex extends Exchange {
                 $baseAmount = $this->safe_number($order, 'a:' . $baseId . ':cds');
                 $quoteAmount = $this->safe_number($order, 'a:' . $quoteId . ':cds');
                 $fee = $this->safe_number($order, 'f:' . $quoteId . ':cds');
-                $amount = $this->safe_number($order, 'amount');
-                $price = $this->safe_number($order, 'price');
-                $remaining = $this->safe_number($order, 'remains');
-                $filled = $amount - $remaining;
+                $amount = $this->safe_string($order, 'amount');
+                $price = $this->safe_string($order, 'price');
+                $remaining = $this->safe_string($order, 'remains');
+                $filled = Precise::string_sub($amount, $remaining);
                 $orderAmount = null;
                 $cost = null;
                 $average = null;
@@ -1450,25 +1454,26 @@ class cex extends Exchange {
                     $type = 'market';
                     $orderAmount = $baseAmount;
                     $cost = $quoteAmount;
-                    $average = $orderAmount / $cost;
+                    $average = Precise::string_div($orderAmount, $cost);
                 } else {
-                    $ta = $this->safe_number($order, 'ta:' . $quoteId, 0);
-                    $tta = $this->safe_number($order, 'tta:' . $quoteId, 0);
-                    $fa = $this->safe_number($order, 'fa:' . $quoteId, 0);
-                    $tfa = $this->safe_number($order, 'tfa:' . $quoteId, 0);
+                    $ta = $this->safe_string($order, 'ta:' . $quoteId, '0');
+                    $tta = $this->safe_string($order, 'tta:' . $quoteId, '0');
+                    $fa = $this->safe_string($order, 'fa:' . $quoteId, '0');
+                    $tfa = $this->safe_string($order, 'tfa:' . $quoteId, '0');
                     if ($side === 'sell') {
-                        $cost = $this->sum($this->sum($ta, $tta), $this->sum($fa, $tfa));
+                        $cost = Precise::string_add(Precise::string_add($ta, $tta), Precise::string_add($fa, $tfa));
                     } else {
-                        $cost = $this->sum($ta, $tta) - $this->sum($fa, $tfa);
+                        $cost = Precise::string_sub(Precise::string_add($ta, $tta), Precise::string_add($fa, $tfa));
                     }
                     $type = 'limit';
                     $orderAmount = $amount;
-                    $average = $cost / $filled;
+                    $average = Precise::string_div($cost, $filled);
                 }
                 $time = $this->safe_string($order, 'time');
                 $lastTxTime = $this->safe_string($order, 'lastTxTime');
                 $timestamp = $this->parse8601($time);
-                $results[] = array(
+                $safeOrder = $this->safe_order(array(
+                    'info' => $order,
                     'id' => $this->safe_string($order, 'id'),
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
@@ -1487,8 +1492,8 @@ class cex extends Exchange {
                         'cost' => $fee,
                         'currency' => $quote,
                     ),
-                    'info' => $order,
-                );
+                ));
+                $results[] = $safeOrder;
             }
             return $results;
         }) ();
@@ -1527,7 +1532,7 @@ class cex extends Exchange {
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the cex api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);

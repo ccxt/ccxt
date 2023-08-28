@@ -154,6 +154,10 @@ class phemex(Exchange, ImplicitAPI):
                         'md/v2/kline/list': 5,  # perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
                         'md/v2/kline': 5,  # ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                         'md/v2/kline/last': 5,  # perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
+                        'md/orderbook': 5,  # ?symbol=<symbol>
+                        'md/trade': 5,  # ?symbol=<symbol>
+                        'md/spot/ticker/24hr': 5,  # ?symbol=<symbol>
+                        'exchange/public/cfg/chain-settings': 5,  # ?currency=<currency>
                     },
                 },
                 'v1': {
@@ -218,6 +222,11 @@ class phemex(Exchange, ImplicitAPI):
                         'exchange/wallets/depositList': 5,  # ?currency=<currency>&offset=<offset>&limit=<limit>
                         'exchange/wallets/v2/depositAddress': 5,  # ?currency=<currency>
                         'api-data/spots/funds': 5,  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'api-data/spots/orders': 5,  # ?symbol=<symbol>
+                        'api-data/spots/orders/by-order-id': 5,  # ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
+                        'api-data/spots/pnls': 5,
+                        'api-data/spots/trades': 5,  # ?symbol=<symbol>
+                        'api-data/spots/trades/by-order-id': 5,  # ?symbol=<symbol>&oderId=<orderID>&clOrdID=<clOrdID>
                         'assets/convert': 5,  # ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
                         # transfer
                         'assets/transfer': 5,  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
@@ -247,6 +256,7 @@ class phemex(Exchange, ImplicitAPI):
                     },
                     'put': {
                         # spot
+                        'spot/orders/create': 1,  # ?symbol=<symbol>&trigger=<trigger>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEv=<baseQtyEv>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>&text=<text>&side=<side>&qtyType=<qtyType>&ordType=<ordType>&timeInForce=<timeInForce>&execInst=<execInst>
                         'spot/orders': 1,  # ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         # swap
                         'orders/replace': 1,  # ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
@@ -543,7 +553,9 @@ class phemex(Exchange, ImplicitAPI):
         status = self.safe_string(market, 'status')
         contractSizeString = self.safe_string(market, 'contractSize', ' ')
         contractSize = None
-        if contractSizeString.find(' '):
+        if settle == 'USDT':
+            contractSize = 1
+        elif contractSizeString.find(' '):
             # "1 USD"
             # "0.005 ETH"
             parts = contractSizeString.split(' ')
@@ -961,7 +973,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1226,7 +1238,7 @@ class phemex(Exchange, ImplicitAPI):
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1296,7 +1308,7 @@ class phemex(Exchange, ImplicitAPI):
         see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       # inverse
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = None
@@ -1328,7 +1340,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1714,7 +1726,7 @@ class phemex(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         type = None
@@ -2200,13 +2212,13 @@ class phemex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the phemex api endpoint
         :param dict [params.takeProfit]: *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param dict [params.stopLoss]: *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2448,10 +2460,10 @@ class phemex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
         :param dict [params]: extra parameters specific to the phemex api endpoint
         :param str [params.posSide]: either 'Merged' or 'Long' or 'Short'
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
@@ -2509,7 +2521,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the phemex api endpoint
         :param str [params.posSide]: either 'Merged' or 'Long' or 'Short'
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -2542,7 +2554,7 @@ class phemex(Exchange, ImplicitAPI):
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -2566,7 +2578,7 @@ class phemex(Exchange, ImplicitAPI):
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -2605,7 +2617,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -2638,7 +2650,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -2674,7 +2686,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -2746,7 +2758,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -2888,7 +2900,7 @@ class phemex(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -2934,7 +2946,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -2971,7 +2983,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -3091,7 +3103,7 @@ class phemex(Exchange, ImplicitAPI):
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -3202,79 +3214,79 @@ class phemex(Exchange, ImplicitAPI):
         for i in range(0, len(positions)):
             position = positions[i]
             result.append(self.parse_position(position))
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #
-        #   {
-        #     userID: '811370',
-        #     accountID: '8113700002',
-        #     symbol: 'ETHUSD',
-        #     currency: 'USD',
-        #     side: 'Buy',
-        #     positionStatus: 'Normal',
-        #     crossMargin: False,
-        #     leverageEr: '200000000',
-        #     leverage: '2.00000000',
-        #     initMarginReqEr: '50000000',
-        #     initMarginReq: '0.50000000',
-        #     maintMarginReqEr: '1000000',
-        #     maintMarginReq: '0.01000000',
-        #     riskLimitEv: '5000000000',
-        #     riskLimit: '500000.00000000',
-        #     size: '1',
-        #     value: '22.22370000',
-        #     valueEv: '222237',
-        #     avgEntryPriceEp: '44447400',
-        #     avgEntryPrice: '4444.74000000',
-        #     posCostEv: '111202',
-        #     posCost: '11.12020000',
-        #     assignedPosBalanceEv: '111202',
-        #     assignedPosBalance: '11.12020000',
-        #     bankruptCommEv: '84',
-        #     bankruptComm: '0.00840000',
-        #     bankruptPriceEp: '22224000',
-        #     bankruptPrice: '2222.40000000',
-        #     positionMarginEv: '111118',
-        #     positionMargin: '11.11180000',
-        #     liquidationPriceEp: '22669000',
-        #     liquidationPrice: '2266.90000000',
-        #     deleveragePercentileEr: '0',
-        #     deleveragePercentile: '0E-8',
-        #     buyValueToCostEr: '50112500',
-        #     buyValueToCost: '0.50112500',
-        #     sellValueToCostEr: '50187500',
-        #     sellValueToCost: '0.50187500',
-        #     markPriceEp: '31332499',
-        #     markPrice: '3133.24990000',
-        #     markValueEv: '0',
-        #     markValue: null,
-        #     unRealisedPosLossEv: '0',
-        #     unRealisedPosLoss: null,
-        #     estimatedOrdLossEv: '0',
-        #     estimatedOrdLoss: '0E-8',
-        #     usedBalanceEv: '111202',
-        #     usedBalance: '11.12020000',
-        #     takeProfitEp: '0',
-        #     takeProfit: null,
-        #     stopLossEp: '0',
-        #     stopLoss: null,
-        #     cumClosedPnlEv: '-1546',
-        #     cumFundingFeeEv: '1605',
-        #     cumTransactFeeEv: '8438',
-        #     realisedPnlEv: '0',
-        #     realisedPnl: null,
-        #     cumRealisedPnlEv: '0',
-        #     cumRealisedPnl: null,
-        #     transactTimeNs: '1641571200001885324',
-        #     takerFeeRateEr: '0',
-        #     makerFeeRateEr: '0',
-        #     term: '6',
-        #     lastTermEndTimeNs: '1607711882505745356',
-        #     lastFundingTimeNs: '1641571200000000000',
-        #     curTermRealisedPnlEv: '-1567',
-        #     execSeq: '12112761561'
-        #   }
+        #    {
+        #        userID: '811370',
+        #        accountID: '8113700002',
+        #        symbol: 'ETHUSD',
+        #        currency: 'USD',
+        #        side: 'Buy',
+        #        positionStatus: 'Normal',
+        #        crossMargin: False,
+        #        leverageEr: '200000000',
+        #        leverage: '2.00000000',
+        #        initMarginReqEr: '50000000',
+        #        initMarginReq: '0.50000000',
+        #        maintMarginReqEr: '1000000',
+        #        maintMarginReq: '0.01000000',
+        #        riskLimitEv: '5000000000',
+        #        riskLimit: '500000.00000000',
+        #        size: '1',
+        #        value: '22.22370000',
+        #        valueEv: '222237',
+        #        avgEntryPriceEp: '44447400',
+        #        avgEntryPrice: '4444.74000000',
+        #        posCostEv: '111202',
+        #        posCost: '11.12020000',
+        #        assignedPosBalanceEv: '111202',
+        #        assignedPosBalance: '11.12020000',
+        #        bankruptCommEv: '84',
+        #        bankruptComm: '0.00840000',
+        #        bankruptPriceEp: '22224000',
+        #        bankruptPrice: '2222.40000000',
+        #        positionMarginEv: '111118',
+        #        positionMargin: '11.11180000',
+        #        liquidationPriceEp: '22669000',
+        #        liquidationPrice: '2266.90000000',
+        #        deleveragePercentileEr: '0',
+        #        deleveragePercentile: '0E-8',
+        #        buyValueToCostEr: '50112500',
+        #        buyValueToCost: '0.50112500',
+        #        sellValueToCostEr: '50187500',
+        #        sellValueToCost: '0.50187500',
+        #        markPriceEp: '31332499',
+        #        markPrice: '3133.24990000',
+        #        markValueEv: '0',
+        #        markValue: null,
+        #        unRealisedPosLossEv: '0',
+        #        unRealisedPosLoss: null,
+        #        estimatedOrdLossEv: '0',
+        #        estimatedOrdLoss: '0E-8',
+        #        usedBalanceEv: '111202',
+        #        usedBalance: '11.12020000',
+        #        takeProfitEp: '0',
+        #        takeProfit: null,
+        #        stopLossEp: '0',
+        #        stopLoss: null,
+        #        cumClosedPnlEv: '-1546',
+        #        cumFundingFeeEv: '1605',
+        #        cumTransactFeeEv: '8438',
+        #        realisedPnlEv: '0',
+        #        realisedPnl: null,
+        #        cumRealisedPnlEv: '0',
+        #        cumRealisedPnl: null,
+        #        transactTimeNs: '1641571200001885324',
+        #        takerFeeRateEr: '0',
+        #        makerFeeRateEr: '0',
+        #        term: '6',
+        #        lastTermEndTimeNs: '1607711882505745356',
+        #        lastFundingTimeNs: '1641571200000000000',
+        #        curTermRealisedPnlEv: '-1567',
+        #        execSeq: '12112761561'
+        #    }
         #
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
@@ -3311,6 +3323,7 @@ class phemex(Exchange, ImplicitAPI):
                 priceDiff = Precise.string_sub(Precise.string_div('1', markPriceString), Precise.string_div('1', entryPriceString))
         unrealizedPnl = Precise.string_mul(Precise.string_mul(priceDiff, contracts), contractSizeString)
         marginRatio = Precise.string_div(maintenanceMarginString, collateral)
+        isCross = self.safe_value(position, 'crossMargin')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -3333,10 +3346,12 @@ class phemex(Exchange, ImplicitAPI):
             'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentageString),
             'marginRatio': self.parse_number(marginRatio),
             'datetime': None,
-            'marginMode': None,
+            'marginMode': 'cross' if isCross else 'isolated',
             'side': side,
             'hedged': False,
             'percentage': None,
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         })
 
     async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -3347,7 +3362,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns dict: a `funding history structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
         """
         await self.load_markets()
         if symbol is None:
@@ -3410,7 +3425,7 @@ class phemex(Exchange, ImplicitAPI):
         fetch the current funding rate
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -3518,7 +3533,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
         :param dict [params]: parameters specific to the phemex api endpoint
-        :returns dict: A `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
+        :returns dict: A `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -3620,9 +3635,14 @@ class phemex(Exchange, ImplicitAPI):
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
+        :returns dict: a dictionary of `leverage tiers structures <https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure>`, indexed by market symbols
         """
         await self.load_markets()
+        if symbols is not None:
+            first = self.safe_value(symbols, 0)
+            market = self.market(first)
+            if market['settle'] != 'USD':
+                raise BadSymbol(self.id + ' fetchLeverageTiers() supports USD settled markets only')
         response = await self.publicGetCfgV2Products(params)
         #
         #     {
@@ -3820,7 +3840,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the phemex api endpoint
         :param str [params.bizType]: for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -3894,7 +3914,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
         await self.load_markets()
         if code is None:

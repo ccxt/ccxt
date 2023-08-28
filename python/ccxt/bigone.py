@@ -155,6 +155,7 @@ class bigone(Exchange, ImplicitAPI):
                 'fetchCurrencies': {
                     'webApiEnable': True,  # fetches from WEB
                     'webApiRetries': 5,
+                    'webApiMuteFailure': True,
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
@@ -162,194 +163,100 @@ class bigone(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'ABBC': 'ABBC',
-                    'ACALA': 'Acala',
-                    'AETERNITY': 'Aeternity',
-                    'ALGORAND': 'Algorand',
-                    'APTOS': 'Aptos',
-                    'ARWEAVE': 'Arweave',
-                    'ASTAR': 'Astar',
-                    'AVALANCHE_C': 'Avax',
-                    'AVALANCHE_X': 'AvaxChain',
+                    'ACA': 'Acala',
+                    'AE': 'Aeternity',
+                    'ALGO': 'Algorand',
+                    'APT': 'Aptos',
+                    'AR': 'Arweave',
+                    'ASTR': 'Astar',
+                    'AVAXC': 'Avax',
+                    'AVAXX': 'AvaxChain',
                     'BEAM': 'Beam',
                     'BEP20': 'BinanceSmartChain',
                     'BITCI': 'BitciChain',
                     'BTC': 'Bitcoin',
                     'BCH': 'BitcoinCash',
-                    'BITCOINDIAMON': 'BitcoinDiamond',
-                    'BITCOINGOLD': 'BitcoinGold',
                     'BSV': 'BitcoinSV',
-                    'BUTTRUSTSYSTEM': 'BitTrustSystem',
-                    'BYTOM_V2': 'BytomV2',
                     'CELO': 'Celo',
-                    'CHAINX_V2': 'ChainxV2',
-                    'NERVOS': 'CKB',
-                    'CLASSZZ': 'Classzz',
-                    'CLASSZZ_V2': 'ClasszzV2',
-                    'CLOVER': 'Clover',
-                    'COSMOS': 'Cosmos',
+                    'CKKB': 'CKB',
+                    'ATOM': 'Cosmos',
                     'CRC20': 'CRO',
                     'DASH': 'Dash',
-                    'INTERNETCOMPUTER': 'Dfinity',
-                    'DOGECOIN': 'Dogecoin',
-                    'ECASH': 'ECash',
+                    'DOGE': 'Dogecoin',
+                    'XEC': 'ECash',
                     'EOS': 'EOS',
                     'ETH': 'Ethereum',
                     'ETC': 'EthereumClassic',
                     'ETHW': 'EthereumPow',
-                    'FANTOM': 'Fantom',
-                    'FILECOIN': 'Filecoin',
-                    'FUSION': 'Fusion',
+                    'FTM': 'Fantom',
+                    'FIL': 'Filecoin',
+                    'FSN': 'Fusion',
                     'GRIN': 'Grin',
-                    'GXSHARES': 'Gxshares',
-                    'HARMONY': 'Harmony',
+                    'ONE': 'Harmony',
                     'HRC20': 'Hecochain',
-                    'HEDERA': 'Hedera',
-                    'HELIUM': 'Helium',
-                    'HORIZEN': 'Horizen',
+                    'HBAR': 'Hedera',
+                    'HNT': 'Helium',
+                    'ZEN': 'Horizen',
                     'IOST': 'IOST',
                     'IRIS': 'IRIS',
-                    'KLAYTN': 'Klaytn',
-                    'KUSAMA': 'Kusama',
-                    'LAMDEN': 'Lamden',
-                    'LBRY': 'Lbry',
-                    'LIBONOMY': 'Libonomy',
+                    'KLAY': 'Klaytn',
+                    'KSM': 'Kusama',
                     'LTC': 'Litecoin',
-                    'MOBILECOIN': 'Mobilecoin',
-                    'MONERO': 'Monero',
-                    'MOONBEAM': 'Moonbeam',
+                    'XMR': 'Monero',
+                    'GLMR': 'Moonbeam',
                     'NEAR': 'Near',
                     'NEO': 'Neo',
                     'NEON3': 'NeoN3',
-                    'BITSHARES_OLD': 'Bitshares',
-                    'BITSHARES_NEW': 'NewBitshares',
                     'OASIS': 'Oasis',
                     'OKC': 'Okexchain',
-                    'ONTOLOGY': 'Ontology',
+                    'ONT': 'Ontology',
                     'OPTIMISM': 'Optimism',
-                    'PARALLELFINANCE': 'Parallel',
-                    'PLCULTIMA': 'Plcu',
-                    'PLCULTIMA2': 'Plcu2',
-                    'POLKADOT': 'Polkadot',
-                    'POLYGON': 'Polygon',
+                    'DOT': 'Polkadot',
+                    'MATIC': 'Polygon',
                     'QTUM': 'Qtum',
                     'REI': 'REI',
-                    'RIPPLE': 'Ripple',
-                    'SONGBIRD': 'SGB',
-                    'SHIDEN': 'Shiden',
-                    'SIACLASSIC': 'Sia',
-                    'SIACOIN': 'SiaCore',
-                    'SOLANA': 'Solana',
-                    'STELLAR': 'Stellar',
-                    'SUPERBITCOIN': 'SuperBitcoin',
+                    'XRP': 'Ripple',
+                    'SGB': 'SGB',
+                    'SDN': 'Shiden',
+                    'SOL': 'Solana',
+                    'XLM': 'Stellar',
                     'TERA': 'Tera',
-                    'TERRACLASSIC': 'Terra',
-                    'TERRA': 'Terra2',
-                    'TEZOS': 'Tezos',
+                    'XTZ': 'Tezos',
                     'TRC20': 'Tron',
-                    'UCACOIN': 'Ucacoin',
-                    'VANILLACASH': 'Vcash',
-                    'VECHAIN': 'Vechain',
-                    'VSYSTEMS': 'VSystems',
+                    'VET': 'Vechain',
+                    'VSYS': 'VSystems',
                     'WAX': 'WAX',
-                    'WAYFCOIN': 'Wayfcoin',
-                    'ZCASH': 'Zcash',
-                    'ZEEPIN': 'Zeepin',
+                    'ZEC': 'Zcash',
+                    # todo: uncomment after consensus
+                    # 'BITSHARES_OLD': 'Bitshares',
+                    # 'BITSHARES_NEW': 'NewBitshares',
+                    # 'MOBILECOIN': 'Mobilecoin',
+                    # 'LBRY': 'Lbry',
+                    # 'ZEEPIN': 'Zeepin',
+                    # 'WAYFCOIN': 'Wayfcoin',
+                    # 'UCACOIN': 'Ucacoin',
+                    # 'VANILLACASH': 'Vcash',
+                    # 'LAMDEN': 'Lamden',
+                    # 'GXSHARES': 'Gxshares',
+                    # 'ICP': 'Dfinity',
+                    # 'CLOVER': 'Clover',
+                    # 'CLASSZZ': 'Classzz',
+                    # 'CLASSZZ_V2': 'ClasszzV2',
+                    # 'CHAINX_V2': 'ChainxV2',
+                    # 'BITCOINDIAMON': 'BitcoinDiamond',
+                    # 'BITCOINGOLD': 'BitcoinGold',
+                    # 'BUTTRUSTSYSTEM': 'BitTrustSystem',
+                    # 'BYTOM_V2': 'BytomV2',
+                    # 'LIBONOMY': 'Libonomy',
+                    # 'TERRACLASSIC': 'Terra',
+                    # 'TERRA': 'Terra2',
+                    # 'SUPERBITCOIN': 'SuperBitcoin',
+                    # 'SIACLASSIC': 'Sia',
+                    # 'SIACOIN': 'SiaCore',
+                    # 'PARALLELFINANCE': 'Parallel',
+                    # 'PLCULTIMA': 'Plcu',
+                    # 'PLCULTIMA2': 'Plcu2',
                     # undetermined: XinFin, YAS, Ycash
-                },
-                'networksById': {
-                    'ABBC': 'ABBC',
-                    'Acala': 'ACALA',
-                    'Aeternity': 'AETERNITY',
-                    'Algorand': 'ALGORAND',
-                    'Aptos': 'APTOS',
-                    'Arweave': 'ARWEAVE',
-                    'Astar': 'ASTAR',
-                    'Avax': 'AVALANCHE_C',
-                    'AvaxChain': 'AVALANCHE_X',
-                    'Beam': 'BEAM',
-                    'BinanceSmartChain': 'BEP20',
-                    'BitciChain': 'BITCI',
-                    'Bitcoin': 'BTC',
-                    'BitcoinCash': 'BCH',
-                    'BitcoinDiamond': 'BITCOINDIAMON',
-                    'BitcoinGold': 'BITCOINGOLD',
-                    'BitcoinSV': 'BSV',
-                    'BitTrustSystem': 'BUTTRUSTSYSTEM',
-                    'BytomV2': 'BYTOM_V2',
-                    'Celo': 'CELO',
-                    'ChainxV2': 'CHAINX_V2',
-                    'CKB': 'NERVOS',
-                    'Classzz': 'CLASSZZ',
-                    'ClasszzV2': 'CLASSZZ_V2',
-                    'Clover': 'CLOVER',
-                    'Cosmos': 'COSMOS',
-                    'CRO': 'CRC20',
-                    'Dash': 'DASH',
-                    'Dfinity': 'INTERNETCOMPUTER',
-                    'Dogecoin': 'DOGECOIN',
-                    'ECash': 'ECASH',
-                    'EOS': 'EOS',
-                    'Ethereum': 'ETH',
-                    'EthereumClassic': 'ETC',
-                    'EthereumPow': 'ETHW',
-                    'Fantom': 'FANTOM',
-                    'Filecoin': 'FILECOIN',
-                    'Fusion': 'FUSION',
-                    'Grin': 'GRIN',
-                    'Gxshares': 'GXSHARES',
-                    'Harmony': 'HARMONY',
-                    'Hecochain': 'HRC20',
-                    'Hedera': 'HEDERA',
-                    'Helium': 'HELIUM',
-                    'Horizen': 'HORIZEN',
-                    'IOST': 'IOST',
-                    'IRIS': 'IRIS',
-                    'Klaytn': 'KLAYTN',
-                    'Kusama': 'KUSAMA',
-                    'Lamden': 'LAMDEN',
-                    'Lbry': 'LBRY',
-                    'Libonomy': 'LIBONOMY',
-                    'Litecoin': 'LTC',
-                    'Mobilecoin': 'MOBILECOIN',
-                    'Monero': 'MONERO',
-                    'Moonbeam': 'MOONBEAM',
-                    'Near': 'NEAR',
-                    'Neo': 'NEO',
-                    'NeoN3': 'NEON3',
-                    'Bitshares': 'BITSHARES_OLD',
-                    'NewBitshares': 'BITSHARES_NEW',
-                    'Oasis': 'OASIS',
-                    'Okexchain': 'OKC',
-                    'Ontology': 'ONTOLOGY',
-                    'Optimism': 'OPTIMISM',
-                    'Parallel': 'PARALLELFINANCE',
-                    'Plcu': 'PLCULTIMA',
-                    'Plcu2': 'PLCULTIMA2',
-                    'Polkadot': 'POLKADOT',
-                    'Polygon': 'POLYGON',
-                    'Qtum': 'QTUM',
-                    'REI': 'REI',
-                    'Ripple': 'RIPPLE',
-                    'SGB': 'SONGBIRD',
-                    'Shiden': 'SHIDEN',
-                    'Sia': 'SIACLASSIC',
-                    'SiaCore': 'SIACOIN',
-                    'Solana': 'SOLANA',
-                    'Stellar': 'STELLAR',
-                    'SuperBitcoin': 'SUPERBITCOIN',
-                    'Tera': 'TERA',
-                    'Terra': 'TERRACLASSIC',
-                    'Terra2': 'TERRA',
-                    'Tezos': 'TEZOS',
-                    'Tron': 'TRC20',
-                    'Ucacoin': 'UCACOIN',
-                    'Vcash': 'VANILLACASH',
-                    'Vechain': 'VECHAIN',
-                    'VSystems': 'VSYSTEMS',
-                    'WAX': 'WAX',
-                    'Wayfcoin': 'WAYFCOIN',
-                    'Zcash': 'ZCASH',
-                    'Zeepin': 'ZEEPIN',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -727,7 +634,7 @@ class bigone(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -759,7 +666,7 @@ class bigone(Exchange, ImplicitAPI):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         self.load_markets()
         request = {}
@@ -829,7 +736,7 @@ class bigone(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -989,7 +896,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1113,7 +1020,7 @@ class bigone(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         self.load_markets()
         type = self.safe_string(params, 'type', '')
@@ -1197,9 +1104,9 @@ class bigone(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1252,7 +1159,7 @@ class bigone(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: Not used by bigone cancelOrder()
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         request = {'id': id}
@@ -1277,7 +1184,7 @@ class bigone(Exchange, ImplicitAPI):
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1304,7 +1211,7 @@ class bigone(Exchange, ImplicitAPI):
         fetches information on an order made by the user
         :param str symbol: not used by bigone fetchOrder
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         request = {'id': id}
@@ -1319,7 +1226,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -1365,7 +1272,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         self.load_markets()
         if symbol is None:
@@ -1430,7 +1337,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         request = {
             'state': 'PENDING',
@@ -1444,7 +1351,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         request = {
             'state': 'FILLED',
@@ -1488,7 +1395,7 @@ class bigone(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1634,7 +1541,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         self.load_markets()
         request = {
@@ -1681,7 +1588,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         self.load_markets()
         request = {
@@ -1729,7 +1636,7 @@ class bigone(Exchange, ImplicitAPI):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1797,7 +1704,7 @@ class bigone(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()

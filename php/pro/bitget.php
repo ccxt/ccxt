@@ -58,6 +58,8 @@ class bitget extends \ccxt\async\bitget {
                     'exact' => array(
                         '30001' => '\\ccxt\\BadRequest', // array("event":"error","code":30001,"msg":"instType:sp,channel:candlenull,instId:BTCUSDT doesn't exist")
                         '30015' => '\\ccxt\\AuthenticationError', // array( event => 'error', code => 30015, msg => 'Invalid sign' )
+                        '30016' => '\\ccxt\\BadRequest', // array( event => 'error', code => 30016, msg => 'Param error' )
+                        '30011' => '\\ccxt\\AuthenticationError', // array( event => 'error', code => 30011, msg => 'Invalid ACCESS_KEY' )
                     ),
                 ),
             ),
@@ -104,7 +106,7 @@ class bitget extends \ccxt\async\bitget {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -353,7 +355,7 @@ class bitget extends \ccxt\async\bitget {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -434,7 +436,8 @@ class bitget extends \ccxt\async\bitget {
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
             $checksum = $this->safe_value($this->options, 'checksum', true);
-            if ($checksum) {
+            $isSnapshot = $this->safe_string($message, 'action') === 'snapshot'; // snapshot does not have a $checksum
+            if (!$isSnapshot && $checksum) {
                 $storedAsks = $storedOrderBook['asks'];
                 $storedBids = $storedOrderBook['bids'];
                 $asksLength = count($storedAsks);
@@ -487,7 +490,7 @@ class bitget extends \ccxt\async\bitget {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -585,7 +588,7 @@ class bitget extends \ccxt\async\bitget {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
              */
             Async\await($this->load_markets());
             $market = null;
@@ -869,7 +872,7 @@ class bitget extends \ccxt\async\bitget {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             // only contracts stream provides the trade info consistently in between order updates
             // the spot stream only provides on $limit orders updates so we can't support it for spot
@@ -1021,10 +1024,10 @@ class bitget extends \ccxt\async\bitget {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
              * @param {str} [$params->type] spot or contract if not provided $this->options['defaultType'] is used
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', null, $params);
@@ -1114,8 +1117,9 @@ class bitget extends \ccxt\async\bitget {
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
         $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
             $timestamp = (string) $this->seconds();
             $auth = $timestamp . 'GET' . '/user/verify';
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
@@ -1132,8 +1136,7 @@ class bitget extends \ccxt\async\bitget {
                 ),
             );
             $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
+            $this->watch($url, $messageHash, $message, $messageHash);
         }
         return $future;
     }
@@ -1156,7 +1159,8 @@ class bitget extends \ccxt\async\bitget {
         //  array( event => 'login', code => 0 )
         //
         $messageHash = 'authenticated';
-        $client->resolve ($message, $messageHash);
+        $future = $this->safe_value($client->futures, $messageHash);
+        $future->resolve (true);
     }
 
     public function handle_error_message(Client $client, $message) {

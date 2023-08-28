@@ -68,7 +68,7 @@ class bitfinex extends \ccxt\async\bitfinex {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the bitfinex api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -86,7 +86,7 @@ class bitfinex extends \ccxt\async\bitfinex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the bitfinex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             return Async\await($this->subscribe('ticker', $symbol, $params));
         }) ();
@@ -171,16 +171,12 @@ class bitfinex extends \ccxt\async\bitfinex {
             $id = $this->safe_string($trade, $tradeLength - 4);
         }
         $timestamp = $this->safe_timestamp($trade, $tradeLength - 3);
-        $price = $this->safe_float($trade, $tradeLength - 2);
-        $amount = $this->safe_float($trade, $tradeLength - 1);
+        $price = $this->safe_string($trade, $tradeLength - 2);
+        $amount = $this->safe_string($trade, $tradeLength - 1);
         $side = null;
         if ($amount !== null) {
-            $side = ($amount > 0) ? 'buy' : 'sell';
-            $amount = abs($amount);
-        }
-        $cost = null;
-        if (($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
+            $side = Precise::string_gt($amount, '0') ? 'buy' : 'sell';
+            $amount = Precise::string_abs($amount);
         }
         $seq = $this->safe_string($trade, 2);
         $parts = explode('-', $seq);
@@ -191,7 +187,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $symbol = $this->safe_symbol($marketId, $market);
         $takerOrMaker = null;
         $orderId = null;
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -203,9 +199,9 @@ class bitfinex extends \ccxt\async\bitfinex {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => null,
-        );
+        ));
     }
 
     public function handle_ticker(Client $client, $message, $subscription) {
@@ -268,7 +264,7 @@ class bitfinex extends \ccxt\async\bitfinex {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the bitfinex api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
              */
             if ($limit !== null) {
                 if (($limit !== 25) && ($limit !== 100)) {
@@ -359,13 +355,13 @@ class bitfinex extends \ccxt\async\bitfinex {
             $orderbook = $this->orderbooks[$symbol];
             if ($isRaw) {
                 $id = $this->safe_string($message, 1);
-                $price = $this->safe_float($message, 2);
+                $price = $this->safe_string($message, 2);
                 $size = ($message[3] < 0) ? -$message[3] : $message[3];
                 $side = ($message[3] < 0) ? 'asks' : 'bids';
                 $bookside = $orderbook[$side];
                 // $price = 0 means that you have to remove the order from your book
-                $amount = ($price > 0) ? $size : 0;
-                $bookside->store ($price, $amount, $id);
+                $amount = Precise::string_gt($price, '0') ? $size : '0';
+                $bookside->store ($this->parse_number($price), $this->parse_number($amount), $id);
             } else {
                 $size = ($message[3] < 0) ? -$message[3] : $message[3];
                 $side = ($message[3] < 0) ? 'asks' : 'bids';
@@ -482,7 +478,7 @@ class bitfinex extends \ccxt\async\bitfinex {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitfinex api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());

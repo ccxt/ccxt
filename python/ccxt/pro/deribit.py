@@ -65,9 +65,9 @@ class deribit(ccxt.async_support.deribit):
     async def watch_balance(self, params={}):
         """
         see https://docs.deribit.com/#user-portfolio-currency
-        query for balance and get the amount of funds available for trading or funds locked in orders
+        watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the deribit api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.authenticate(params)
         messageHash = 'balance'
@@ -149,7 +149,7 @@ class deribit(ccxt.async_support.deribit):
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :param str [params.interval]: specify aggregation and frequency of notifications. Possible values: 100ms, raw
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -219,7 +219,7 @@ class deribit(ccxt.async_support.deribit):
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :param str [params.interval]: specify aggregation and frequency of notifications. Possible values: 100ms, raw
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -293,7 +293,7 @@ class deribit(ccxt.async_support.deribit):
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :param str [params.interval]: specify aggregation and frequency of notifications. Possible values: 100ms, raw
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.authenticate(params)
         if symbol is not None:
@@ -372,7 +372,7 @@ class deribit(ccxt.async_support.deribit):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :param str [params.interval]: Frequency of notifications. Events will be aggregated over self interval. Possible values: 100ms, raw
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -493,7 +493,7 @@ class deribit(ccxt.async_support.deribit):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the deribit api endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
         """
         await self.load_markets()
         await self.authenticate(params)
@@ -566,8 +566,9 @@ class deribit(ccxt.async_support.deribit):
         else:
             order = self.parse_order(data)
             orders = [order]
+        cachedOrders = self.orders
         for i in range(0, len(orders)):
-            self.orders.append(orders[i])
+            cachedOrders.append(orders[i])
         client.resolve(self.orders, channel)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):

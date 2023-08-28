@@ -18,8 +18,7 @@ assert_options (ASSERT_CALLBACK, function(){
         $message = $args[3];
         var_dump("[ASSERT_ERROR] - $message [ $file : $line ]");
     } catch (\Exception $exc) {
-        var_dump("[ASSERT_ERROR] -");
-        var_dump($args);
+        var_dump("[ASSERT_ERROR] -" . json_encode($args));
     }
     exit;
 });
@@ -83,10 +82,27 @@ function call_method($testFiles, $methodName, $exchange, $skippedProperties, $ar
     return $testFiles[$methodName]($exchange, $skippedProperties, ... $args);
 }
 
-function exception_message ($exc) {
-    $inner_message = $exc->getMessage();
-    return '[' . get_class($exc) . '] ' . substr($inner_message, 0, 500);
+function exception_message($exc) {
+    $items = array_slice($exc->getTrace(), 0, 12); // 12 members are enough for proper trace 
+    $output = '';
+    foreach ($items as $item) {
+        if (array_key_exists('file', $item)) {
+            $output .= $item['file'];
+            if (array_key_exists('line', $item)) {
+                $output .= ':' . $item['line'];
+            }
+            if (array_key_exists('class', $item)) {
+                $output .= ' ::: ' . $item['class'];
+            }
+            if (array_key_exists('function', $item)) {
+                $output .= ' > ' . $item['function'];
+            }
+            $output .= "\n";
+        }
+    }
+    return '[' . get_class($exc) . '] ' . $output . "\n\n";
 }
+
 
 function exit_script() {
     exit(0);
@@ -140,6 +156,11 @@ function close($exchange) {
 
 use Exception; // a common import
 
+use ccxt\NetworkError;
+use ccxt\DDoSProtection;
+use ccxt\RateLimitExceeded;
+use ccxt\OnMaintenance;
+use ccxt\RequestTimeout;
 use ccxt\AuthenticationError;
 
 class testMainClass extends baseMainTestClass {
@@ -157,7 +178,7 @@ class testMainClass extends baseMainTestClass {
         return Async\async(function () use ($exchangeId, $symbol) {
             $this->parse_cli_args();
             $symbolStr = $symbol !== null ? $symbol : 'all';
-            var_dump ('\nTESTING ', ext, array( 'exchange' => $exchangeId, 'symbol' => $symbolStr ), '\n');
+            dump ('\nTESTING ', ext, array( 'exchange' => $exchangeId, 'symbol' => $symbolStr ), '\n');
             $exchangeArgs = array(
                 'verbose' => $this->verbose,
                 'debug' => $this->debug,
@@ -168,7 +189,6 @@ class testMainClass extends baseMainTestClass {
             Async\await($this->import_files($exchange));
             $this->expand_settings($exchange, $symbol);
             Async\await($this->start_test($exchange, $symbol));
-            Async\await(close ($exchange));
         }) ();
     }
 
@@ -228,18 +248,9 @@ class testMainClass extends baseMainTestClass {
         $skippedSettings = io_file_read ($skippedFile);
         $skippedSettingsForExchange = $exchange->safe_value($skippedSettings, $exchangeId, array());
         // others
-        $skipReason = $exchange->safe_value($skippedSettingsForExchange, 'skip');
         $timeout = $exchange->safe_value($skippedSettingsForExchange, 'timeout');
         if ($timeout !== null) {
             $exchange->timeout = $timeout;
-        }
-        if ($skipReason !== null) {
-            dump ('[SKIPPED] exchange', $exchangeId, $skipReason);
-            exit_script ();
-        }
-        if ($exchange->alias) {
-            dump ('[SKIPPED] Alias $exchange-> ', 'exchange', $exchangeId, 'symbol', $symbol);
-            exit_script ();
         }
         $exchange->httpsProxy = $exchange->safe_string($skippedSettingsForExchange, 'httpsProxy');
         $this->skippedMethods = $exchange->safe_value($skippedSettingsForExchange, 'skipMethods', array());
@@ -260,19 +271,23 @@ class testMainClass extends baseMainTestClass {
 
     public function test_method($methodName, $exchange, $args, $isPublic) {
         return Async\async(function () use ($methodName, $exchange, $args, $isPublic) {
+            $isLoadMarkets = ($methodName === 'loadMarkets');
             $methodNameInTest = get_test_name ($methodName);
             // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base $exchange)
             if (!$isPublic && (is_array($this->checkedPublicTests) && array_key_exists($methodNameInTest, $this->checkedPublicTests)) && ($methodName !== 'fetchCurrencies')) {
                 return;
             }
             $skipMessage = null;
-            $isFetchOhlcvEmulated = ($methodName === 'fetchOHLCV' && $exchange->has['fetchOHLCV'] === 'emulated'); // todo => remove emulation from base
-            if (($methodName !== 'loadMarkets') && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName]) || $isFetchOhlcvEmulated) {
+            if (!$isLoadMarkets && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName])) {
                 $skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
             } elseif ((is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) && (gettype($this->skippedMethods[$methodName]) === 'string')) {
                 $skipMessage = '[INFO:SKIPPED_TEST]';
             } elseif (!(is_array($this->testFiles) && array_key_exists($methodNameInTest, $this->testFiles))) {
                 $skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
+            }
+            // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" need it to be called anyway (but can skip "test.loadMarket" for it)
+            if ($isLoadMarkets) {
+                Async\await($exchange->load_markets(true));
             }
             if ($skipMessage) {
                 if ($this->info) {
@@ -280,35 +295,72 @@ class testMainClass extends baseMainTestClass {
                 }
                 return;
             }
-            $argsStringified = '(' . implode(',', $args) . ')';
             if ($this->info) {
+                $argsStringified = '(' . implode(',', $args) . ')';
                 dump ($this->add_padding('[INFO:TESTING]', 25), $exchange->id, $methodNameInTest, $argsStringified);
             }
-            $result = null;
-            try {
-                $skippedProperties = $exchange->safe_value($this->skippedMethods, $methodName, array());
-                $result = Async\await(call_method ($this->testFiles, $methodNameInTest, $exchange, $skippedProperties, $args));
-                if ($isPublic) {
-                    $this->checkedPublicTests[$methodNameInTest] = true;
-                }
-            } catch (Exception $e) {
-                $isAuthError = ($e instanceof AuthenticationError);
-                if (!($isPublic && $isAuthError)) {
-                    dump ('[TEST_FAILURE]', exception_message ($e), ' | Exception from => ', $exchange->id, $methodNameInTest, $argsStringified);
-                    throw $e;
-                }
+            $skippedProperties = $exchange->safe_value($this->skippedMethods, $methodName, array());
+            Async\await(call_method ($this->testFiles, $methodNameInTest, $exchange, $skippedProperties, $args));
+            // if it was passed successfully, add to the list of successfull tests
+            if ($isPublic) {
+                $this->checkedPublicTests[$methodNameInTest] = true;
             }
-            return $result;
         }) ();
     }
 
-    public function test_safe($methodName, $exchange, $args, $isPublic) {
+    public function test_safe($methodName, $exchange, $args = [], $isPublic = false) {
         return Async\async(function () use ($methodName, $exchange, $args, $isPublic) {
-            try {
-                Async\await($this->test_method($methodName, $exchange, $args, $isPublic));
-                return true;
-            } catch (Exception $e) {
-                return false;
+            // `testSafe` method does not throw an exception, instead mutes it.
+            // The reason we mute the thrown exceptions here is because if this test is part
+            // of "runPublicTests", then we don't want to stop the whole test if any single
+            // test-method fails. For example, if "fetchOrderBook" public test fails, we still
+            // want to run "fetchTickers" and other methods. However, independently this fact,
+            // from those test-methods we still echo-out (var_dump/print...) the exception
+            // messages with specific formatted message "[TEST_FAILURE] ..." and that output is
+            // then regex-parsed by run-tests.js, so the exceptions are still printed out to
+            // console from there. So, even if some public tests fail, the script will continue
+            // doing other things (testing other spot/swap or private tests ...)
+            $maxRetries = 3;
+            $argsStringified = '(' . implode(',', $args) . ')';
+            for ($i = 0; $i < $maxRetries; $i++) {
+                try {
+                    Async\await($this->test_method($methodName, $exchange, $args, $isPublic));
+                    return true;
+                } catch (Exception $e) {
+                    $isAuthError = ($e instanceof AuthenticationError);
+                    $isRateLimitExceeded = ($e instanceof RateLimitExceeded);
+                    $isNetworkError = ($e instanceof NetworkError);
+                    $isDDoSProtection = ($e instanceof DDoSProtection);
+                    $isRequestTimeout = ($e instanceof RequestTimeout);
+                    $tempFailure = ($isRateLimitExceeded || $isNetworkError || $isDDoSProtection || $isRequestTimeout);
+                    if ($tempFailure) {
+                        // if last retry was gone with same `$tempFailure` error, then let's eventually return false
+                        if ($i === $maxRetries - 1) {
+                            dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $exchange->id, $methodName, $argsStringified);
+                        } else {
+                            // wait and retry again
+                            Async\await($exchange->sleep ($i * 1000)); // increase wait seconds on every retry
+                            continue;
+                        }
+                    } elseif ($e instanceof OnMaintenance) {
+                        // in case of maintenance, skip $exchange (don't fail the test)
+                        dump ('[TEST_WARNING] Exchange is on maintenance', $exchange->id);
+                    }
+                    // If public test faces authentication error, we don't break (see comments under `testSafe` method)
+                    else if ($isPublic && $isAuthError) {
+                        // in case of loadMarkets, it means that "tester" (developer or travis) does not have correct authentication, so it does not have a point to proceed at all
+                        if ($methodName === 'loadMarkets') {
+                            dump ('[TEST_WARNING]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exception_message ($e), $exchange->id, $methodName, $argsStringified);
+                        }
+                        if ($this->info) {
+                            dump ('[TEST_WARNING]', 'Authentication problem for public method', exception_message ($e), $exchange->id, $methodName, $argsStringified);
+                        }
+                    } else {
+                        // if not a temporary connectivity issue, then mark test (no need to re-try)
+                        dump ('[TEST_FAILURE]', exception_message ($e), $exchange->id, $methodName, $argsStringified);
+                    }
+                    return false;
+                }
             }
         }) ();
     }
@@ -316,7 +368,6 @@ class testMainClass extends baseMainTestClass {
     public function run_public_tests($exchange, $symbol) {
         return Async\async(function () use ($exchange, $symbol) {
             $tests = array(
-                'loadMarkets' => array(),
                 'fetchCurrencies' => array(),
                 'fetchTicker' => array( $symbol ),
                 'fetchTickers' => array( $symbol ),
@@ -351,24 +402,32 @@ class testMainClass extends baseMainTestClass {
             }
             // todo - not yet ready in other langs too
             // $promises[] = testThrottle ();
-            Async\await(Promise\all($promises));
+            $results = Async\await(Promise\all($promises));
+            // now count which test-methods retuned `false` from "testSafe" and dump that info below
             if ($this->info) {
-                dump ($this->add_padding('[INFO:PUBLIC_TESTS_DONE]', 25), $exchange->id);
+                $errors = array();
+                for ($i = 0; $i < count($testNames); $i++) {
+                    if (!$results[$i]) {
+                        $errors[] = $testNames[$i];
+                    }
+                }
+                // we don't throw exception for public-$tests, see comments under 'testSafe' method
+                $failedMsg = '';
+                $errorsLength = count($errors);
+                if ($errorsLength > 0) {
+                    $failedMsg = ' | Failed methods : ' . implode(', ', $errors);
+                }
+                dump ($this->add_padding('[INFO:PUBLIC_TESTS_END] ' . $market['type'] . $failedMsg, 25), $exchange->id);
             }
         }) ();
     }
 
     public function load_exchange($exchange) {
         return Async\async(function () use ($exchange) {
-            Async\await($exchange->load_markets());
-            assert (gettype($exchange->markets) === 'array', '.markets is not an object');
-            assert (gettype($exchange->symbols) === 'array' && array_keys($exchange->symbols) === array_keys(array_keys($exchange->symbols)), '.symbols is not an array');
-            $symbolsLength = count($exchange->symbols);
-            $marketKeys = is_array($exchange->markets) ? array_keys($exchange->markets) : array();
-            $marketKeysLength = count($marketKeys);
-            assert ($symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');
-            assert ($marketKeysLength > 0, '.markets objects keys length <= 0 (less than or equal to zero)');
-            assert ($symbolsLength === $marketKeysLength, 'number of .symbols is not equal to the number of .markets');
+            $result = Async\await($this->test_safe('loadMarkets', $exchange, array(), true));
+            if (!$result) {
+                return false;
+            }
             $symbols = array(
                 'BTC/CNY',
                 'BTC/USD',
@@ -411,6 +470,7 @@ class testMainClass extends baseMainTestClass {
                 }
             }
             dump ('Exchange loaded', $exchangeSymbolsLength, 'symbols', $resultMsg);
+            return true;
         }) ();
     }
 
@@ -634,7 +694,7 @@ class testMainClass extends baseMainTestClass {
                 'fetchOpenOrders' => array( $symbol ),
                 'fetchClosedOrders' => array( $symbol ),
                 'fetchMyTrades' => array( $symbol ),
-                'fetchLeverageTiers' => array( $symbol ),
+                'fetchLeverageTiers' => array( array( $symbol ) ),
                 'fetchLedger' => array( $code ),
                 'fetchTransactions' => array( $code ),
                 'fetchDeposits' => array( $code ),
@@ -642,32 +702,32 @@ class testMainClass extends baseMainTestClass {
                 'fetchBorrowRates' => array( $code ),
                 'fetchBorrowRate' => array( $code ),
                 'fetchBorrowInterest' => array( $code, $symbol ),
-                'addMargin' => array( $symbol ),
-                'reduceMargin' => array( $symbol ),
-                'setMargin' => array( $symbol ),
-                'setMarginMode' => array( $symbol ),
-                'setLeverage' => array( $symbol ),
+                // 'addMargin' => [ ],
+                // 'reduceMargin' => [ ],
+                // 'setMargin' => [ ],
+                // 'setMarginMode' => [ ],
+                // 'setLeverage' => [ ],
                 'cancelAllOrders' => array( $symbol ),
-                'cancelOrder' => array( $symbol ),
-                'cancelOrders' => array( $symbol ),
+                // 'cancelOrder' => [ ],
+                // 'cancelOrders' => [ ],
                 'fetchCanceledOrders' => array( $symbol ),
-                'fetchClosedOrder' => array( $symbol ),
-                'fetchOpenOrder' => array( $symbol ),
-                'fetchOrder' => array( $symbol ),
-                'fetchOrderTrades' => array( $symbol ),
+                // 'fetchClosedOrder' => [ ],
+                // 'fetchOpenOrder' => [ ],
+                // 'fetchOrder' => [ ],
+                // 'fetchOrderTrades' => [ ],
                 'fetchPosition' => array( $symbol ),
                 'fetchDeposit' => array( $code ),
                 'createDepositAddress' => array( $code ),
                 'fetchDepositAddress' => array( $code ),
                 'fetchDepositAddresses' => array( $code ),
                 'fetchDepositAddressesByNetwork' => array( $code ),
-                'editOrder' => array( $symbol ),
-                'fetchBorrowRateHistory' => array( $symbol ),
-                'fetchBorrowRatesPerSymbol' => array( $symbol ),
+                // 'editOrder' => [ ],
+                'fetchBorrowRateHistory' => array( $code ),
+                'fetchBorrowRatesPerSymbol' => [ ],
                 'fetchLedgerEntry' => array( $code ),
-                'fetchWithdrawal' => array( $code ),
-                'transfer' => array( $code ),
-                'withdraw' => array( $code ),
+                // 'fetchWithdrawal' => [ ],
+                // 'transfer' => [ ],
+                // 'withdraw' => [ ],
             );
             $market = $exchange->market ($symbol);
             $isSpot = $market['spot'];
@@ -721,8 +781,19 @@ class testMainClass extends baseMainTestClass {
             if ($this->sandbox || get_exchange_prop ($exchange, 'sandbox')) {
                 $exchange->set_sandbox_mode(true);
             }
-            Async\await($this->load_exchange($exchange));
-            Async\await($this->test_exchange($exchange, $symbol));
+            // because of python-async, we need proper `.close()` handling
+            try {
+                $result = Async\await($this->load_exchange($exchange));
+                if (!$result) {
+                    Async\await(close ($exchange));
+                    return;
+                }
+                Async\await($this->test_exchange($exchange, $symbol));
+                Async\await(close ($exchange));
+            } catch (Exception $e) {
+                Async\await(close ($exchange));
+                throw $e;
+            }
         }) ();
     }
 }

@@ -20,7 +20,7 @@ class bitfinex2 extends bitfinex2$1 {
             'countries': ['VG'],
             'version': 'v2',
             'certified': false,
-            'pro': false,
+            'pro': true,
             // new metainfo interface
             'has': {
                 'CORS': undefined,
@@ -45,6 +45,9 @@ class bitfinex2 extends bitfinex2$1 {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositsWithdrawals': true,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchMarginMode': false,
@@ -62,7 +65,7 @@ class bitfinex2 extends bitfinex2$1 {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'withdraw': true,
             },
             'timeframes': {
@@ -153,6 +156,7 @@ class bitfinex2 extends bitfinex2$1 {
                         'candles/trade:{timeframe}:{symbol}/hist': 2.66,
                         'status/{type}': 2.66,
                         'status/deriv': 2.66,
+                        'status/deriv/{symbol}/hist': 2.66,
                         'liquidations/hist': 80,
                         'rankings/{key}:{timeframe}:{symbol}/{section}': 2.66,
                         'rankings/{key}:{timeframe}:{symbol}/hist': 2.66,
@@ -428,7 +432,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @name bitfinex2#fetchStatus
          * @description the latest known information on the availability of the exchange API
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         * @returns {object} a [status structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure}
          */
         //
         //    [1] // operative
@@ -787,7 +791,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @name bitfinex2#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
@@ -831,7 +835,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         // transferring between derivatives wallet and regular wallet is not documented in their API
         // however we support it in CCXT (from just looking at web inspector)
@@ -974,7 +978,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const precision = this.safeValue(this.options, 'precision', 'R0');
@@ -1062,9 +1066,9 @@ class bitfinex2 extends bitfinex2$1 {
             'high': this.safeString(ticker, length - 2),
             'low': this.safeString(ticker, length - 1),
             'bid': this.safeString(ticker, length - 10),
-            'bidVolume': undefined,
+            'bidVolume': this.safeString(ticker, length - 9),
             'ask': this.safeString(ticker, length - 8),
-            'askVolume': undefined,
+            'askVolume': this.safeString(ticker, length - 7),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -1085,7 +1089,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1154,7 +1158,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1256,7 +1260,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1461,7 +1465,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {string} type 'limit' or 'market'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
-         * @param {float} price price of order
+         * @param {float} [price] price of order
          * @param {object} [params]  Extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
@@ -1472,7 +1476,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {string} [params.price_traling] The trailing price for a trailing stop order
          * @param {string} [params.price_aux_limit] Order price for stop limit orders
          * @param {string} [params.price_oco_stop] OCO stop price
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1623,7 +1627,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const request = {
             'all': 1,
@@ -1640,7 +1644,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {string} id order id
          * @param {string} symbol Not used by bitfinex2 cancelOrder ()
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const cid = this.safeValue2(params, 'cid', 'clientOrderId'); // client order id
         let request = undefined;
@@ -1672,7 +1676,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {string} id order id
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const request = {
             'id': [parseInt(id)],
@@ -1692,7 +1696,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {string} id order id
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const request = {
             'id': [parseInt(id)],
@@ -1713,7 +1717,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1776,7 +1780,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         // returns the most recent closed or canceled orders up to circa two weeks ago
         await this.loadMarkets();
@@ -1847,7 +1851,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrderTrades() requires a symbol argument');
@@ -1872,7 +1876,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -1901,7 +1905,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1916,7 +1920,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -1979,6 +1983,8 @@ class bitfinex2 extends bitfinex2$1 {
             'PENDING': 'pending',
             'PENDING REVIEW': 'pending',
             'PENDING CANCELLATION': 'pending',
+            'SENDING': 'pending',
+            'USER APPROVED': 'pending',
         };
         return this.safeString(statuses, status, status);
     }
@@ -2007,7 +2013,7 @@ class bitfinex2 extends bitfinex2$1 {
         //         "Invalid bitcoin address (abcdef)", // TEXT Text of the notification
         //     ]
         //
-        // fetchTransactions
+        // fetchDepositsWithdrawals
         //
         //     [
         //         13293039, // ID
@@ -2127,7 +2133,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @name bitfinex2#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.privatePostAuthRSummary(params);
@@ -2234,17 +2240,16 @@ class bitfinex2 extends bitfinex2$1 {
         }
         return result;
     }
-    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name bitfinex2#fetchTransactions
-         * @deprecated
-         * @description use fetchDepositsWithdrawals instead
-         * @param {string} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
-         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @name bitfinex2#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -2302,7 +2307,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         this.checkAddress(address);
         await this.loadMarkets();
@@ -2386,11 +2391,13 @@ class bitfinex2 extends bitfinex2$1 {
          * @method
          * @name bitfinex2#fetchPositions
          * @description fetch all open positions
+         * @see https://docs.bitfinex.com/reference/rest-auth-positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
          */
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
         const response = await this.privatePostAuthRPositions(params);
         //
         //     [
@@ -2426,8 +2433,76 @@ class bitfinex2 extends bitfinex2$1 {
         //         ]
         //     ]
         //
-        // todo unify parsePosition/parsePositions
-        return response;
+        return this.parsePositions(response, symbols);
+    }
+    parsePosition(position, market = undefined) {
+        //
+        //    [
+        //        "tBTCUSD",                    // SYMBOL
+        //        "ACTIVE",                     // STATUS
+        //        0.0195,                       // AMOUNT
+        //        8565.0267019,                 // BASE_PRICE
+        //        0,                            // MARGIN_FUNDING
+        //        0,                            // MARGIN_FUNDING_TYPE
+        //        -0.33455568705000516,         // PL
+        //        -0.0003117550117425625,       // PL_PERC
+        //        7045.876419249083,            // PRICE_LIQ
+        //        3.0673001895895604,           // LEVERAGE
+        //        null,                         // _PLACEHOLDER
+        //        142355652,                    // POSITION_ID
+        //        1574002216000,                // MTS_CREATE
+        //        1574002216000,                // MTS_UPDATE
+        //        null,                         // _PLACEHOLDER
+        //        0,                            // TYPE
+        //        null,                         // _PLACEHOLDER
+        //        0,                            // COLLATERAL
+        //        0,                            // COLLATERAL_MIN
+        //        // META
+        //        {
+        //            "reason": "TRADE",
+        //            "order_id": 34271018124,
+        //            "liq_stage": null,
+        //            "trade_price": "8565.0267019",
+        //            "trade_amount": "0.0195",
+        //            "order_id_oppo": 34277498022
+        //        }
+        //    ]
+        //
+        const marketId = this.safeString(position, 0);
+        const amount = this.safeString(position, 2);
+        const timestamp = this.safeInteger(position, 12);
+        const meta = this.safeString(position, 19);
+        const tradePrice = this.safeString(meta, 'trade_price');
+        const tradeAmount = this.safeString(meta, 'trade_amount');
+        return this.safePosition({
+            'info': position,
+            'id': this.safeString(position, 11),
+            'symbol': this.safeSymbol(marketId, market),
+            'notional': this.parseNumber(amount),
+            'marginMode': 'isolated',
+            'liquidationPrice': this.safeNumber(position, 8),
+            'entryPrice': this.safeNumber(position, 3),
+            'unrealizedPnl': this.safeNumber(position, 6),
+            'percentage': this.safeNumber(position, 7),
+            'contracts': undefined,
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'lastPrice': undefined,
+            'side': Precise["default"].stringGt(amount, '0') ? 'long' : 'short',
+            'hedged': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': this.safeInteger(position, 13),
+            'maintenanceMargin': this.safeNumber(position, 18),
+            'maintenanceMarginPercentage': undefined,
+            'collateral': this.safeNumber(position, 17),
+            'initialMargin': this.parseNumber(Precise["default"].stringMul(tradeAmount, tradePrice)),
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeNumber(position, 9),
+            'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
     nonce() {
         return this.milliseconds();
@@ -2477,8 +2552,8 @@ class bitfinex2 extends bitfinex2$1 {
         }
         if (statusCode === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
-            const errorCode = this.numberToString(response[1]);
-            const errorText = response[2];
+            const errorCode = this.safeString(response, 1, '');
+            const errorText = this.safeString(response, 2, '');
             const feedback = this.id + ' ' + errorText;
             this.throwBroadlyMatchedException(this.exceptions['broad'], errorText, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
@@ -2569,7 +2644,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets();
         await this.loadMarkets();
@@ -2604,6 +2679,226 @@ class bitfinex2 extends bitfinex2$1 {
         //     ]
         //
         return this.parseLedger(response, currency, since, limit);
+    }
+    async fetchFundingRate(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitfine#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
+         */
+        return this.fetchFundingRates([symbol], params);
+    }
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfine#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+         * @param {string[]} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
+         */
+        if (symbols === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRates() requires a symbols argument');
+        }
+        await this.loadMarkets();
+        const marketIds = this.marketIds(symbols);
+        const request = {
+            'keys': marketIds.join(','),
+        };
+        const response = await this.publicGetStatusDeriv(this.extend(request, params));
+        //
+        //   [
+        //       [
+        //          "tBTCF0:USTF0",
+        //          1691165059000,
+        //          null,
+        //          29297.851276225,
+        //          29277.5,
+        //          null,
+        //          36950860.76010306,
+        //          null,
+        //          1691193600000,
+        //          0.00000527,
+        //          82,
+        //          null,
+        //          0.00014548,
+        //          null,
+        //          null,
+        //          29278.8925,
+        //          null,
+        //          null,
+        //          9636.07644994,
+        //          null,
+        //          null,
+        //          null,
+        //          0.0005,
+        //          0.0025
+        //       ]
+        //   ]
+        //
+        return this.parseFundingRates(response);
+    }
+    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfine#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
+         */
+        await this.loadMarkets();
+        this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetStatusDerivSymbolHist(this.extend(request, params));
+        //
+        //   [
+        //       [
+        //          "tBTCF0:USTF0",
+        //          1691165059000,
+        //          null,
+        //          29297.851276225,
+        //          29277.5,
+        //          null,
+        //          36950860.76010306,
+        //          null,
+        //          1691193600000,
+        //          0.00000527,
+        //          82,
+        //          null,
+        //          0.00014548,
+        //          null,
+        //          null,
+        //          29278.8925,
+        //          null,
+        //          null,
+        //          9636.07644994,
+        //          null,
+        //          null,
+        //          null,
+        //          0.0005,
+        //          0.0025
+        //       ]
+        //   ]
+        //
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            const fr = response[i];
+            const rate = this.parseFundingRateHistory(fr, market);
+            rates.push(rate);
+        }
+        return this.filterBySymbolSinceLimit(rates, symbol, since, limit);
+    }
+    parseFundingRate(contract, market = undefined) {
+        //
+        //       [
+        //          "tBTCF0:USTF0",
+        //          1691165059000,
+        //          null,
+        //          29297.851276225,
+        //          29277.5,
+        //          null,
+        //          36950860.76010306,
+        //          null,
+        //          1691193600000,
+        //          0.00000527,
+        //          82,
+        //          null,
+        //          0.00014548,
+        //          null,
+        //          null,
+        //          29278.8925,
+        //          null,
+        //          null,
+        //          9636.07644994,
+        //          null,
+        //          null,
+        //          null,
+        //          0.0005,
+        //          0.0025
+        //       ]
+        //
+        const marketId = this.safeString(contract, 0);
+        const timestamp = this.safeInteger(contract, 1);
+        const nextFundingTimestamp = this.safeInteger(contract, 8);
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol(marketId, market),
+            'markPrice': this.safeNumber(contract, 15),
+            'indexPrice': this.safeNumber(contract, 3),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'fundingRate': this.safeNumber(contract, 12),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': this.safeNumber(contract, 9),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601(nextFundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
+    }
+    parseFundingRateHistory(contract, market = undefined) {
+        //
+        // [
+        //     1691165494000,
+        //     null,
+        //     29278.95838065,
+        //     29260.5,
+        //     null,
+        //     36950860.76010305,
+        //     null,
+        //     1691193600000,
+        //     0.00001449,
+        //     222,
+        //     null,
+        //     0.00014548,
+        //     null,
+        //     null,
+        //     29260.005,
+        //     null,
+        //     null,
+        //     9635.86484562,
+        //     null,
+        //     null,
+        //     null,
+        //     0.0005,
+        //     0.0025
+        // ]
+        //
+        const timestamp = this.safeInteger(contract, 0);
+        const nextFundingTimestamp = this.safeInteger(contract, 7);
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol(undefined, market),
+            'markPrice': this.safeNumber(contract, 14),
+            'indexPrice': this.safeNumber(contract, 2),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'fundingRate': this.safeNumber(contract, 11),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': this.safeNumber(contract, 8),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601(nextFundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
     }
 }
 

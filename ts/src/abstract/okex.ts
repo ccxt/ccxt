@@ -67,6 +67,7 @@ interface okx {
     publicGetTradingBotGridAiParam (params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotGridMinInvestment (params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotPublicRsiBackTesting (params?: {}): Promise<implicitReturnType>;
+    publicGetAssetExchangeList (params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateSummary (params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateHistory (params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSfpDcdProducts (params?: {}): Promise<implicitReturnType>;
@@ -222,6 +223,7 @@ interface okx {
     privatePostAccountSetRiskOffsetType (params?: {}): Promise<implicitReturnType>;
     privatePostAccountActivateOption (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSetAutoLoan (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountSetAccountLevel (params?: {}): Promise<implicitReturnType>;
     privatePostAccountMmpReset (params?: {}): Promise<implicitReturnType>;
     privatePostAccountMmpConfig (params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountModifyApikey (params?: {}): Promise<implicitReturnType>;
@@ -256,6 +258,7 @@ interface okx {
     privatePostBrokerNdSubaccountDeleteApikey (params?: {}): Promise<implicitReturnType>;
     privatePostBrokerNdSetSubaccountLevel (params?: {}): Promise<implicitReturnType>;
     privatePostBrokerNdSetSubaccountFeeRate (params?: {}): Promise<implicitReturnType>;
+    privatePostBrokerNdSetSubaccountAssets (params?: {}): Promise<implicitReturnType>;
     privatePostAssetBrokerNdSubaccountDepositAddress (params?: {}): Promise<implicitReturnType>;
     privatePostAssetBrokerNdModifySubaccountDepositAddress (params?: {}): Promise<implicitReturnType>;
     privatePostBrokerNdRebatePerOrders (params?: {}): Promise<implicitReturnType>;

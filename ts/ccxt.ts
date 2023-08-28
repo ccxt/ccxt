@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.0.18';
+const version = '4.0.77';
 
 (Exchange as any).ccxtVersion = version
 
@@ -55,6 +55,7 @@ import binance from  './src/binance.js'
 import binancecoinm from  './src/binancecoinm.js'
 import binanceus from  './src/binanceus.js'
 import binanceusdm from  './src/binanceusdm.js'
+import bingx from  './src/bingx.js'
 import bit2c from  './src/bit2c.js'
 import bitbank from  './src/bitbank.js'
 import bitbay from  './src/bitbay.js'
@@ -176,6 +177,7 @@ import bitvavoPro from  './src/pro/bitvavo.js'
 import blockchaincomPro from  './src/pro/blockchaincom.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
+import coinbasePro from  './src/pro/coinbase.js'
 import coinbaseprimePro from  './src/pro/coinbaseprime.js'
 import coinbaseproPro from  './src/pro/coinbasepro.js'
 import coinexPro from  './src/pro/coinex.js'
@@ -223,6 +225,7 @@ const exchanges = {
     'binancecoinm':           binancecoinm,
     'binanceus':              binanceus,
     'binanceusdm':            binanceusdm,
+    'bingx':                  bingx,
     'bit2c':                  bit2c,
     'bitbank':                bitbank,
     'bitbay':                 bitbay,
@@ -344,6 +347,7 @@ const pro = {
     'blockchaincom':          blockchaincomPro,
     'bybit':                  bybitPro,
     'cex':                    cexPro,
+    'coinbase':               coinbasePro,
     'coinbaseprime':          coinbaseprimePro,
     'coinbasepro':            coinbaseproPro,
     'coinex':                 coinexPro,
@@ -462,6 +466,7 @@ export {
     binancecoinm,
     binanceus,
     binanceusdm,
+    bingx,
     bit2c,
     bitbank,
     bitbay,

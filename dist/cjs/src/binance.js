@@ -77,6 +77,7 @@ class binance extends binance$1 {
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -105,6 +106,7 @@ class binance extends binance$1 {
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -385,8 +387,8 @@ class binance extends binance$1 {
                         'portfolio/collateralRate': 5,
                         'portfolio/pmLoan': 3.3335,
                         'portfolio/interest-history': 0.6667,
-                        'portfolio/interest-rate': 0.6667,
                         'portfolio/asset-index-price': 0.1,
+                        'portfolio/repay-futures-switch': 3,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -507,6 +509,7 @@ class binance extends binance$1 {
                         'staking/redeem': 0.1,
                         'staking/setAutoStaking': 0.1,
                         'portfolio/repay': 20.001,
+                        'loan/vip/renew': 40,
                         'loan/vip/borrow': 40,
                         'loan/borrow': 40,
                         'loan/repay': 40,
@@ -515,8 +518,11 @@ class binance extends binance$1 {
                         'loan/vip/repay': 40,
                         'convert/getQuote': 20.001,
                         'convert/acceptQuote': 3.3335,
-                        'portfolio/auto-collection': 0.6667,
-                        'portfolio/bnb-transfer': 0.6667,
+                        'portfolio/auto-collection': 150,
+                        'portfolio/asset-collection': 6,
+                        'portfolio/bnb-transfer': 150,
+                        'portfolio/repay-futures-switch': 150,
+                        'portfolio/repay-futures-negative-balance': 150,
                         'lending/auto-invest/plan/add': 0.1,
                         'lending/auto-invest/plan/edit': 0.1,
                         'lending/auto-invest/plan/edit-status': 0.1,
@@ -789,6 +795,8 @@ class binance extends binance$1 {
                         'userTrades': 5,
                         'exerciseRecord': 5,
                         'bill': 1,
+                        'income/asyn': 5,
+                        'income/asyn/id': 5,
                         'marginAccount': 3,
                         'mmp': 1,
                         'countdownCancelAll': 1,
@@ -850,9 +858,12 @@ class binance extends binance$1 {
                         'myTrades': 10,
                         'rateLimit/order': 20,
                         'myPreventedMatches': 1,
+                        'myAllocations': 10,
                     },
                     'post': {
                         'order/oco': 1,
+                        'sor/order': 1,
+                        'sor/order/test': 1,
                         'order': 1,
                         'order/cancelReplace': 1,
                         'order/test': 1,
@@ -873,6 +884,21 @@ class binance extends binance$1 {
                         'cm/openOrder': 1,
                         'cm/openOrders': 1,
                         'cm/allOrders': 20,
+                        'um/conditional/openOrder': 1,
+                        'um/conditional/openOrders': 40,
+                        'um/conditional/orderHistory': 1,
+                        'um/conditional/allOrders': 40,
+                        'cm/conditional/openOrder': 1,
+                        'cm/conditional/openOrders': 40,
+                        'cm/conditional/orderHistory': 1,
+                        'cm/conditional/allOrders': 40,
+                        'margin/order': 5,
+                        'margin/openOrders': 5,
+                        'margin/allOrders': 100,
+                        'margin/orderList': 5,
+                        'margin/allOrderList': 100,
+                        'margin/openOrderList': 5,
+                        'margin/myTrades': 5,
                         'balance': 20,
                         'account': 20,
                         'margin/maxBorrowable': 5,
@@ -891,14 +917,17 @@ class binance extends binance$1 {
                         'um/apiTradingStatus': 1,
                         'um/commissionRate': 20,
                         'cm/commissionRate': 20,
+                        'margin/marginLoan': 10,
+                        'margin/repayLoan': 10,
+                        'margin/marginInterestHistory': 1,
+                        'portfolio/interest-history': 50,
                         'um/income': 30,
                         'cm/income ': 30,
                         'um/account': 5,
                         'cm/account': 5,
-                        'margin/marginLoan': 0.0667,
-                        'margin/repayLoan': 0.0667,
-                        'margin/marginInterestHistory': 0.1,
-                        'portfolio/interest-history': 50, // 50
+                        'portfolio/repay-futures-switch': 3,
+                        'um/adlQuantile': 5,
+                        'cm/adlQuantile': 5,
                     },
                     'post': {
                         'um/order': 1,
@@ -913,7 +942,10 @@ class binance extends binance$1 {
                         'cm/positionSide/dual': 1,
                         'auto-collection': 0.6667,
                         'bnb-transfer': 0.6667,
-                        'listenKey': 1, // 1
+                        'portfolio/repay-futures-switch': 150,
+                        'portfolio/repay-futures-negative-balance': 150,
+                        'listenKey': 1,
+                        'asset-collection': 3,
                     },
                     'put': {
                         'listenKey': 1, // 1
@@ -1485,6 +1517,7 @@ class binance extends binance$1 {
                     '-4045': errors.ExchangeError,
                     '-4046': errors.AuthenticationError,
                     '-4047': errors.BadRequest,
+                    '-4054': errors.BadRequest,
                     '-5001': errors.BadRequest,
                     '-5002': errors.InsufficientFunds,
                     '-5003': errors.InsufficientFunds,
@@ -2467,7 +2500,7 @@ class binance extends binance$1 {
          * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
          * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
@@ -2718,7 +2751,7 @@ class binance extends binance$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2936,7 +2969,7 @@ class binance extends binance$1 {
          * @description the latest known information on the availability of the exchange API
          * @see https://binance-docs.github.io/apidocs/spot/en/#system-status-system
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         * @returns {object} a [status structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure}
          */
         const response = await this.sapiGetSystemStatus(params);
         //
@@ -2965,7 +2998,7 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2999,7 +3032,7 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker    // future
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -3035,7 +3068,7 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     // future
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -3141,7 +3174,7 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         let type = undefined;
@@ -3573,7 +3606,7 @@ class binance extends binance$1 {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.fromId] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -3679,44 +3712,21 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
          * @param {string} id cancel order id
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' editSpotOrder() does not support ' + market['type'] + ' orders');
         }
-        const request = {
-            'symbol': market['id'],
-            'side': side.toUpperCase(),
-        };
-        const clientOrderId = this.safeStringN(params, ['newClientOrderId', 'clientOrderId', 'origClientOrderId']);
-        let response = undefined;
-        if (market['spot']) {
-            response = await this.privatePostOrderCancelReplace(this.extend(request, params));
-        }
-        else {
-            request['orderId'] = id;
-            request['quantity'] = this.amountToPrecision(symbol, amount);
-            if (price !== undefined) {
-                request['price'] = this.priceToPrecision(symbol, price);
-            }
-            if (clientOrderId !== undefined) {
-                request['origClientOrderId'] = clientOrderId;
-            }
-            params = this.omit(params, ['clientOrderId', 'newClientOrderId']);
-            if (market['linear']) {
-                response = await this.fapiPrivatePutOrder(this.extend(request, params));
-            }
-            else if (market['inverse']) {
-                response = await this.dapiPrivatePutOrder(this.extend(request, params));
-            }
-        }
+        const payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, params);
+        const response = await this.privatePostOrderCancelReplace(payload);
         //
         // spot
         //
@@ -3770,9 +3780,9 @@ class binance extends binance$1 {
          * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the binance api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot margin trading
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market(symbol);
@@ -3788,7 +3798,7 @@ class binance extends binance$1 {
             uppercaseType = 'LIMIT_MAKER';
         }
         request['type'] = uppercaseType;
-        const stopPrice = this.safeNumber(params, 'stopPrice');
+        const stopPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         if (stopPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_LOSS';
@@ -3908,9 +3918,9 @@ class binance extends binance$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -3980,9 +3990,9 @@ class binance extends binance$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -4262,22 +4272,31 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade
          * @see https://binance-docs.github.io/apidocs/delivery/en/#new-order-trade
          * @see https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#new-order-using-sor-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#test-new-order-using-sor-trade
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {boolean} [params.sor] *spot only* whether to use SOR (Smart Order Routing) or not, default is false
+         * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const marketType = this.safeString(params, 'type', market['type']);
         const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
+        const sor = this.safeValue2(params, 'sor', 'SOR', false);
+        params = this.omit(params, 'sor', 'SOR');
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let method = 'privatePostOrder';
-        if (market['linear']) {
+        if (sor) {
+            method = 'privatePostSorOrder';
+        }
+        else if (market['linear']) {
             method = 'fapiPrivatePostOrder';
         }
         else if (market['inverse']) {
@@ -4372,13 +4391,10 @@ class binance extends binance$1 {
             request['isIsolated'] = true;
         }
         if (clientOrderId === undefined) {
-            const broker = this.safeValue(this.options, 'broker');
-            if (broker !== undefined) {
-                const brokerId = this.safeString(broker, marketType);
-                if (brokerId !== undefined) {
-                    request['newClientOrderId'] = brokerId + this.uuid22();
-                }
-            }
+            const broker = this.safeValue(this.options, 'broker', {});
+            const defaultId = (market['contract']) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+            const brokerId = this.safeString(broker, marketType, defaultId);
+            request['newClientOrderId'] = brokerId + this.uuid22();
         }
         else {
             request['newClientOrderId'] = clientOrderId;
@@ -4546,7 +4562,7 @@ class binance extends binance$1 {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol('fetchOrder', symbol);
         await this.loadMarkets();
@@ -4599,7 +4615,7 @@ class binance extends binance$1 {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol('fetchOrders', symbol);
         await this.loadMarkets();
@@ -4719,7 +4735,7 @@ class binance extends binance$1 {
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -4785,7 +4801,7 @@ class binance extends binance$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const orders = await this.fetchOrders(symbol, since, limit, params);
         return this.filterBy(orders, 'status', 'closed');
@@ -4802,7 +4818,7 @@ class binance extends binance$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol('fetchCanceledOrders', symbol);
         await this.loadMarkets();
@@ -4823,7 +4839,7 @@ class binance extends binance$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol('cancelOrder', symbol);
         await this.loadMarkets();
@@ -4881,7 +4897,7 @@ class binance extends binance$1 {
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol('cancelAllOrders', symbol);
         await this.loadMarkets();
@@ -4926,7 +4942,7 @@ class binance extends binance$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrderTrades() requires a symbol argument');
@@ -4952,7 +4968,7 @@ class binance extends binance$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -5091,7 +5107,7 @@ class binance extends binance$1 {
          * @param {int} [since] the earliest time in ms to fetch my dust trades for
          * @param {int} [limit] the maximum number of dust trades to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         //
         // Binance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
@@ -5231,7 +5247,7 @@ class binance extends binance$1 {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {bool} [params.fiat] if true, only fiat deposits will be returned
          * @param {int} [params.until] the latest time in ms to fetch deposits for
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -5334,7 +5350,7 @@ class binance extends binance$1 {
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {bool} [params.fiat] if true, only fiat withdrawals will be returned
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
         const legalMoney = this.safeValue(this.options, 'legalMoney', {});
@@ -5703,7 +5719,7 @@ class binance extends binance$1 {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -5797,7 +5813,7 @@ class binance extends binance$1 {
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -5858,7 +5874,7 @@ class binance extends binance$1 {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -5933,7 +5949,7 @@ class binance extends binance$1 {
          * @description please use fetchDepositWithdrawFees instead
          * @param {string[]|undefined} codes not used by binance fetchTransactionFees ()
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object[]} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets();
         const response = await this.sapiGetCapitalConfigGetall(params);
@@ -6046,7 +6062,7 @@ class binance extends binance$1 {
          * @description fetch deposit and withdraw fees
          * @param {string[]|undefined} codes not used by binance fetchDepositWithdrawFees ()
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object[]} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets();
         const response = await this.sapiGetCapitalConfigGetall(params);
@@ -6172,7 +6188,7 @@ class binance extends binance$1 {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
@@ -6224,7 +6240,7 @@ class binance extends binance$1 {
          * @description fetch the trading fees for a market
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -6250,7 +6266,7 @@ class binance extends binance$1 {
          * @name binance#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         let method = undefined;
@@ -6431,7 +6447,7 @@ class binance extends binance$1 {
          * @param {string} type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {float} params.recvWindow
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=futures-transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#futures-transfer-structure}
          */
         if ((type < 1) || (type > 4)) {
             throw new errors.ArgumentsRequired(this.id + ' type must be between 1 and 4');
@@ -6458,7 +6474,7 @@ class binance extends binance$1 {
          * @description fetch the current funding rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -6500,10 +6516,10 @@ class binance extends binance$1 {
          * @description fetches historical funding rate prices
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {int} [params.until] timestamp in ms of the latest funding rate
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -6570,7 +6586,7 @@ class binance extends binance$1 {
          * @description fetch the funding rate for multiple markets
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object} a dictionary of [funding rates structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -6876,6 +6892,7 @@ class binance extends binance$1 {
     parsePositionRisk(position, market = undefined) {
         //
         // usdm
+        //
         //     {
         //       "symbol": "BTCUSDT",
         //       "positionAmt": "0.001",
@@ -6895,6 +6912,7 @@ class binance extends binance$1 {
         //     }
         //
         // coinm
+        //
         //     {
         //       "symbol": "BTCUSD_PERP",
         //       "positionAmt": "2",
@@ -7045,6 +7063,8 @@ class binance extends binance$1 {
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         };
     }
     async loadLeverageBrackets(reload = false, params = {}) {
@@ -7094,7 +7114,7 @@ class binance extends binance$1 {
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         const [type, query] = this.handleMarketTypeAndParams('fetchLeverageTiers', undefined, params);
@@ -7200,7 +7220,7 @@ class binance extends binance$1 {
          * @description fetch data on an open position
          * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {object} a [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -7244,7 +7264,7 @@ class binance extends binance$1 {
          * @description fetch data on open options positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -7293,7 +7313,7 @@ class binance extends binance$1 {
         for (let i = 0; i < response.length; i++) {
             result.push(this.parsePosition(response[i], market));
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //
@@ -7359,7 +7379,7 @@ class binance extends binance$1 {
          * @description fetch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
          */
         const defaultMethod = this.safeString(this.options, 'fetchPositions', 'positionRisk');
         if (defaultMethod === 'positionRisk') {
@@ -7409,7 +7429,7 @@ class binance extends binance$1 {
         const account = await this[method](query);
         const result = this.parseAccountPositions(account);
         symbols = this.marketSymbols(symbols);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchPositionsRisk(symbols = undefined, params = {}) {
         /**
@@ -7506,7 +7526,7 @@ class binance extends binance$1 {
             result.push(parsed);
         }
         symbols = this.marketSymbols(symbols);
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -7517,7 +7537,7 @@ class binance extends binance$1 {
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @returns {object} a [funding history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -7744,7 +7764,63 @@ class binance extends binance$1 {
         const sorted = this.sortBy(settlements, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
+    async fetchMySettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchMySettlementHistory
+         * @description fetches historical settlement records of the user
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#user-exercise-record-user_data
+         * @param {string} symbol unified market symbol of the settlement history
+         * @param {int} [since] timestamp in ms
+         * @param {int} [limit] number of records
+         * @param {object} [params] exchange specific params
+         * @returns {object[]} a list of [settlement history objects]
+         */
+        await this.loadMarkets();
+        const market = (symbol === undefined) ? undefined : this.market(symbol);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchMySettlementHistory', market, params);
+        if (type !== 'option') {
+            throw new errors.NotSupported(this.id + ' fetchMySettlementHistory() supports option markets only');
+        }
+        const request = {};
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.eapiPrivateGetExerciseRecord(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "id": "1125899906842897036",
+        //             "currency": "USDT",
+        //             "symbol": "BTC-230728-30000-C",
+        //             "exercisePrice": "30000.00000000",
+        //             "markPrice": "29160.71284993",
+        //             "quantity": "1.00000000",
+        //             "amount": "0.00000000",
+        //             "fee": "0.00000000",
+        //             "createDate": 1690531200000,
+        //             "priceScale": 0,
+        //             "quantityScale": 2,
+        //             "optionSide": "CALL",
+        //             "positionSide": "LONG",
+        //             "quoteAsset": "USDT"
+        //         }
+        //     ]
+        //
+        const settlements = this.parseSettlements(response, market);
+        const sorted = this.sortBy(settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+    }
     parseSettlement(settlement, market) {
+        //
+        // fetchSettlementHistory
         //
         //     {
         //         "symbol": "ETH-230223-1900-P",
@@ -7754,17 +7830,38 @@ class binance extends binance$1 {
         //         "strikeResult": "REALISTIC_VALUE_STRICKEN"
         //     }
         //
-        const timestamp = this.safeInteger(settlement, 'expiryDate');
+        // fetchMySettlementHistory
+        //
+        //     {
+        //         "id": "1125899906842897036",
+        //         "currency": "USDT",
+        //         "symbol": "BTC-230728-30000-C",
+        //         "exercisePrice": "30000.00000000",
+        //         "markPrice": "29160.71284993",
+        //         "quantity": "1.00000000",
+        //         "amount": "0.00000000",
+        //         "fee": "0.00000000",
+        //         "createDate": 1690531200000,
+        //         "priceScale": 0,
+        //         "quantityScale": 2,
+        //         "optionSide": "CALL",
+        //         "positionSide": "LONG",
+        //         "quoteAsset": "USDT"
+        //     }
+        //
+        const timestamp = this.safeInteger2(settlement, 'expiryDate', 'createDate');
         const marketId = this.safeString(settlement, 'symbol');
         return {
             'info': settlement,
             'symbol': this.safeSymbol(marketId, market),
-            'price': this.safeNumber(settlement, 'realStrikePrice'),
+            'price': this.safeNumber2(settlement, 'realStrikePrice', 'exercisePrice'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         };
     }
     parseSettlements(settlements, market) {
+        //
+        // fetchSettlementHistory
         //
         //     [
         //         {
@@ -7773,6 +7870,27 @@ class binance extends binance$1 {
         //             "realStrikePrice": "1665.5897334",
         //             "expiryDate": 1677139200000,
         //             "strikeResult": "EXTRINSIC_VALUE_EXPIRED"
+        //         }
+        //     ]
+        //
+        // fetchMySettlementHistory
+        //
+        //     [
+        //         {
+        //             "id": "1125899906842897036",
+        //             "currency": "USDT",
+        //             "symbol": "BTC-230728-30000-C",
+        //             "exercisePrice": "30000.00000000",
+        //             "markPrice": "29160.71284993",
+        //             "quantity": "1.00000000",
+        //             "amount": "0.00000000",
+        //             "fee": "0.00000000",
+        //             "createDate": 1690531200000,
+        //             "priceScale": 0,
+        //             "quantityScale": 2,
+        //             "optionSide": "CALL",
+        //             "positionSide": "LONG",
+        //             "quoteAsset": "USDT"
         //         }
         //     ]
         //
@@ -7794,7 +7912,7 @@ class binance extends binance$1 {
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entrys to return
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets();
         let type = undefined;
@@ -7973,14 +8091,15 @@ class binance extends binance$1 {
         }
         else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials();
-            if (method === 'POST' && path === 'order') {
+            if (method === 'POST' && ((path === 'order') || (path === 'sor/order'))) {
                 // inject in implicit API calls
                 const newClientOrderId = this.safeString(params, 'newClientOrderId');
                 if (newClientOrderId === undefined) {
                     const isSpotOrMargin = (api.indexOf('sapi') > -1 || api === 'private');
                     const marketType = isSpotOrMargin ? 'spot' : 'future';
-                    const broker = this.safeValue(this.options, 'broker');
-                    const brokerId = this.safeString(broker, marketType);
+                    const defaultId = (!isSpotOrMargin) ? 'x-xcKtGhcu' : 'x-R4BD3S82';
+                    const broker = this.safeValue(this.options, 'broker', {});
+                    const brokerId = this.safeString(broker, marketType, defaultId);
                     params['newClientOrderId'] = brokerId + this.uuid22();
                 }
             }
@@ -8203,7 +8322,7 @@ class binance extends binance$1 {
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure}
          */
         return await this.modifyMarginHelper(symbol, amount, 2, params);
     }
@@ -8217,7 +8336,7 @@ class binance extends binance$1 {
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
          */
         return await this.modifyMarginHelper(symbol, amount, 1, params);
     }
@@ -8228,7 +8347,7 @@ class binance extends binance$1 {
          * @description fetch the rate of interest to borrow a currency for margin trading
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -8257,9 +8376,9 @@ class binance extends binance$1 {
          * @description retrieves a history of a currencies borrow interest rate at specific time slots
          * @param {string} code unified currency code
          * @param {int} [since] timestamp for the earliest borrow rate
-         * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+         * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure} to retrieve
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         * @returns {object[]} an array of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
          */
         await this.loadMarkets();
         if (limit === undefined) {
@@ -8419,7 +8538,7 @@ class binance extends binance$1 {
          * @param {int} [since] the earliest time in ms to fetch borrrow interest for
          * @param {int} [limit] the maximum number of structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+         * @returns {object[]} a list of [borrow interest structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-interest-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -8486,7 +8605,7 @@ class binance extends binance$1 {
          * @param {float} amount the amount to repay
          * @param {string} symbol unified market symbol, required for isolated margin
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
         const [marginMode, query] = this.handleMarginModeAndParams('repayMargin', params); // cross or isolated
         this.checkRequiredMarginArgument('repayMargin', symbol, marginMode);
@@ -8520,7 +8639,7 @@ class binance extends binance$1 {
          * @param {float} amount the amount to borrow
          * @param {string} symbol unified market symbol, required for isolated margin
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
         const [marginMode, query] = this.handleMarginModeAndParams('borrowMargin', params); // cross or isolated
         this.checkRequiredMarginArgument('borrowMargin', symbol, marginMode);
@@ -8572,7 +8691,7 @@ class binance extends binance$1 {
          * @param {int} [limit] default 30, max 500
          * @param {object} [params] exchange specific parameters
          * @param {int} [params.until] the time(ms) of the latest record to retrieve as a unix timestamp
-         * @returns {object} an array of [open interest history structure]{@link https://docs.ccxt.com/#/?id=interest-history-structure}
+         * @returns {object} an array of [open interest history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
          */
         if (timeframe === '1m') {
             throw new errors.BadRequest(this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
@@ -8634,7 +8753,7 @@ class binance extends binance$1 {
          * @see https://binance-docs.github.io/apidocs/voptions/en/#open-interest
          * @param {string} symbol unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);

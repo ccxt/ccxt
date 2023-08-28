@@ -140,7 +140,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         options = self.safe_value(self.options, 'watchTicker')
         method = self.safe_string(options, 'method', 'ticker')  # or ticker_lite
@@ -154,7 +154,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         method = self.safe_string(self.options, 'watchTickerMethod', 'ticker')  # or ticker_lite
         name = self.safe_string_2(params, 'method', 'watchTickerMethod', method)
@@ -169,7 +169,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         name = 'trade'
@@ -185,7 +185,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by krakenfutures watchOrderBook
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         orderbook = await self.subscribe_public('book', [symbol], params)
         return orderbook.limit()
@@ -199,7 +199,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param int [since]: not used by krakenfutures watchOrders
         :param int [limit]: not used by krakenfutures watchOrders
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         name = 'open_orders'
@@ -220,7 +220,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         await self.load_markets()
         name = 'fills'
@@ -242,7 +242,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param int [limit]: not used by krakenfutures watchBalance
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
         :param str [params.account]: can be either 'futures' or 'flex_futures'
-        :returns dict[]: a list of `balance structures <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict[]: a list of `balance structures <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         name = 'balances'
@@ -572,12 +572,13 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         limit = self.safe_integer(self.options, 'ordersLimit')
         self.orders = ArrayCacheBySymbolById(limit)
         symbols = {}
+        cachedOrders = self.orders
         for i in range(0, len(orders)):
             order = orders[i]
             parsed = self.parse_ws_order(order)
             symbol = parsed['symbol']
             symbols[symbol] = True
-            self.orders.append(parsed)
+            cachedOrders.append(parsed)
         if len(self.orders) > 0:
             client.resolve(self.orders, 'orders')
             keys = list(symbols.keys())

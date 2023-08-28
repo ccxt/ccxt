@@ -21,6 +21,7 @@ var binance = require('./src/binance.js');
 var binancecoinm = require('./src/binancecoinm.js');
 var binanceus = require('./src/binanceus.js');
 var binanceusdm = require('./src/binanceusdm.js');
+var bingx = require('./src/bingx.js');
 var bit2c = require('./src/bit2c.js');
 var bitbank = require('./src/bitbank.js');
 var bitbay = require('./src/bitbay.js');
@@ -139,6 +140,7 @@ var bitvavo$1 = require('./src/pro/bitvavo.js');
 var blockchaincom$1 = require('./src/pro/blockchaincom.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
+var coinbase$1 = require('./src/pro/coinbase.js');
 var coinbaseprime$1 = require('./src/pro/coinbaseprime.js');
 var coinbasepro$1 = require('./src/pro/coinbasepro.js');
 var coinex$1 = require('./src/pro/coinex.js');
@@ -178,7 +180,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.0.18';
+const version = '4.0.77';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -190,6 +192,7 @@ const exchanges = {
     'binancecoinm': binancecoinm,
     'binanceus': binanceus,
     'binanceusdm': binanceusdm,
+    'bingx': bingx,
     'bit2c': bit2c,
     'bitbank': bitbank,
     'bitbay': bitbay,
@@ -310,6 +313,7 @@ const pro = {
     'blockchaincom': blockchaincom$1,
     'bybit': bybit$1,
     'cex': cex$1,
+    'coinbase': coinbase$1,
     'coinbaseprime': coinbaseprime$1,
     'coinbasepro': coinbasepro$1,
     'coinex': coinex$1,
@@ -396,6 +400,7 @@ exports.binance = binance;
 exports.binancecoinm = binancecoinm;
 exports.binanceus = binanceus;
 exports.binanceusdm = binanceusdm;
+exports.bingx = bingx;
 exports.bit2c = bit2c;
 exports.bitbank = bitbank;
 exports.bitbay = bitbay;

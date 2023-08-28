@@ -61,6 +61,8 @@ class bitget(ccxt.async_support.bitget):
                     'exact': {
                         '30001': BadRequest,  # {"event":"error","code":30001,"msg":"instType:sp,channel:candleNone,instId:BTCUSDT doesn't exist"}
                         '30015': AuthenticationError,  # {event: 'error', code: 30015, msg: 'Invalid sign'}
+                        '30016': BadRequest,  # {event: 'error', code: 30016, msg: 'Param error'}
+                        '30011': AuthenticationError,  # {event: 'error', code: 30011, msg: 'Invalid ACCESS_KEY'}
                     },
                 },
             },
@@ -99,7 +101,7 @@ class bitget(ccxt.async_support.bitget):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -335,7 +337,7 @@ class bitget(ccxt.async_support.bitget):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -411,7 +413,8 @@ class bitget(ccxt.async_support.bitget):
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
             checksum = self.safe_value(self.options, 'checksum', True)
-            if checksum:
+            isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
+            if not isSnapshot and checksum:
                 storedAsks = storedOrderBook['asks']
                 storedBids = storedOrderBook['bids']
                 asksLength = len(storedAsks)
@@ -453,7 +456,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -543,7 +546,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
         """
         await self.load_markets()
         market = None
@@ -809,7 +812,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         # only contracts stream provides the trade info consistently in between order updates
         # the spot stream only provides on limit orders updates so we can't support it for spot
@@ -952,10 +955,10 @@ class bitget(ccxt.async_support.bitget):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
+        watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param str [params.type]: spot or contract if not provided self.options['defaultType'] is used
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', None, params)
@@ -1031,13 +1034,14 @@ class bitget(ccxt.async_support.bitget):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             timestamp = str(self.seconds())
             auth = timestamp + 'GET' + '/user/verify'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
@@ -1054,8 +1058,7 @@ class bitget(ccxt.async_support.bitget):
                 ],
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, message, messageHash)
         return future
 
     async def watch_private(self, messageHash, subscriptionHash, args, params={}):
@@ -1073,7 +1076,8 @@ class bitget(ccxt.async_support.bitget):
         #  {event: 'login', code: 0}
         #
         messageHash = 'authenticated'
-        client.resolve(message, messageHash)
+        future = self.safe_value(client.futures, messageHash)
+        future.resolve(True)
 
     def handle_error_message(self, client: Client, message):
         #

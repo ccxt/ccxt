@@ -54,7 +54,9 @@ export default class bitget extends bitgetRest {
                 'ws': {
                     'exact': {
                         '30001': BadRequest,
-                        '30015': AuthenticationError, // { event: 'error', code: 30015, msg: 'Invalid sign' }
+                        '30015': AuthenticationError,
+                        '30016': BadRequest,
+                        '30011': AuthenticationError, // { event: 'error', code: 30011, msg: 'Invalid ACCESS_KEY' }
                     },
                 },
             },
@@ -103,7 +105,7 @@ export default class bitget extends bitgetRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -346,7 +348,7 @@ export default class bitget extends bitgetRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -426,7 +428,8 @@ export default class bitget extends bitgetRest {
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601(timestamp);
             const checksum = this.safeValue(this.options, 'checksum', true);
-            if (checksum) {
+            const isSnapshot = this.safeString(message, 'action') === 'snapshot'; // snapshot does not have a checksum
+            if (!isSnapshot && checksum) {
                 const storedAsks = storedOrderBook['asks'];
                 const storedBids = storedOrderBook['bids'];
                 const asksLength = storedAsks.length;
@@ -478,7 +481,7 @@ export default class bitget extends bitgetRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -573,7 +576,7 @@ export default class bitget extends bitgetRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
          */
         await this.loadMarkets();
         let market = undefined;
@@ -856,7 +859,7 @@ export default class bitget extends bitgetRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         // only contracts stream provides the trade info consistently in between order updates
         // the spot stream only provides on limit orders updates so we can't support it for spot
@@ -1005,10 +1008,10 @@ export default class bitget extends bitgetRest {
         /**
          * @method
          * @name bitget#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchOrders', undefined, params);
@@ -1087,13 +1090,14 @@ export default class bitget extends bitgetRest {
         const message = this.extend(request, params);
         return await this.watch(url, messageHash, message, messageHash);
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.seconds().toString();
             const auth = timestamp + 'GET' + '/user/verify';
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, 'base64');
@@ -1110,8 +1114,7 @@ export default class bitget extends bitgetRest {
                 ],
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -1130,7 +1133,8 @@ export default class bitget extends bitgetRest {
         //  { event: 'login', code: 0 }
         //
         const messageHash = 'authenticated';
-        client.resolve(message, messageHash);
+        const future = this.safeValue(client.futures, messageHash);
+        future.resolve(true);
     }
     handleErrorMessage(client, message) {
         //

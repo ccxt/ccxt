@@ -36,6 +36,9 @@ export default class idex extends idexRest {
                 'watchOrderBookLimit': 1000, // default limit
                 'orderBookSubscriptions': {},
                 'token': undefined,
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
                 'fetchOrderBookSnapshotMaxAttempts': 10,
                 'fetchOrderBookSnapshotMaxDelay': 10000, // throw if there are no orders in 10 seconds
             },
@@ -73,7 +76,7 @@ export default class idex extends idexRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -149,7 +152,7 @@ export default class idex extends idexRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -210,17 +213,17 @@ export default class idex extends idexRest {
         const marketId = this.safeString (trade, 'm');
         const symbol = this.safeSymbol (marketId);
         const id = this.safeString (trade, 'i');
-        const price = this.safeFloat (trade, 'p');
-        const amount = this.safeFloat (trade, 'q');
-        const cost = this.safeFloat (trade, 'Q');
+        const price = this.safeString (trade, 'p');
+        const amount = this.safeString (trade, 'q');
+        const cost = this.safeString (trade, 'Q');
         const timestamp = this.safeInteger (trade, 't');
         const side = this.safeString (trade, 's');
         const fee = {
             'currency': this.safeString (trade, 'a'),
-            'cost': this.safeFloat (trade, 'f'),
+            'cost': this.safeString (trade, 'f'),
         };
         const takerOrMarker = this.safeString (trade, 'l');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -234,7 +237,7 @@ export default class idex extends idexRest {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        };
+        });
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -359,7 +362,7 @@ export default class idex extends idexRest {
         try {
             const limit = this.safeInteger (subscription, 'limit', 0);
             // 3. Request a level-2 order book snapshot for the market from the REST API Order Books endpoint with limit set to 0.
-            const snapshot = await this.fetchOrderBook (symbol, limit);
+            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit);
             const firstBuffered = this.safeValue (orderbook.cache, 0);
             const firstData = this.safeValue (firstBuffered, 'data');
             const firstNonce = this.safeInteger (firstData, 'u');
@@ -416,7 +419,7 @@ export default class idex extends idexRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -524,7 +527,7 @@ export default class idex extends idexRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const name = 'orders';
@@ -589,7 +592,7 @@ export default class idex extends idexRest {
         const marketId = this.safeString (order, 'm');
         const symbol = this.safeSymbol (marketId);
         const timestamp = this.safeInteger (order, 't');
-        const fills = this.safeValue (order, 'F');
+        const fills = this.safeValue (order, 'F', []);
         const trades = [];
         for (let i = 0; i < fills.length; i++) {
             trades.push (this.parseWsTrade (fills[i]));
@@ -597,18 +600,10 @@ export default class idex extends idexRest {
         const id = this.safeString (order, 'i');
         const side = this.safeString (order, 's');
         const orderType = this.safeString (order, 'o');
-        const amount = this.safeFloat (order, 'q');
-        const filled = this.safeFloat (order, 'z');
-        let remaining = undefined;
-        if ((amount !== undefined) && (filled !== undefined)) {
-            remaining = amount - filled;
-        }
-        const average = this.safeFloat (order, 'v');
-        const price = this.safeFloat (order, 'price', average);  // for market orders
-        let cost = undefined;
-        if ((amount !== undefined) && (price !== undefined)) {
-            cost = amount * price;
-        }
+        const amount = this.safeString (order, 'q');
+        const filled = this.safeString (order, 'z');
+        const average = this.safeString (order, 'v');
+        const price = this.safeString (order, 'price', average);  // for market orders
         const rawStatus = this.safeString (order, 'X');
         const status = this.parseOrderStatus (rawStatus);
         const fee = {
@@ -619,10 +614,11 @@ export default class idex extends idexRest {
         for (let i = 0; i < trades.length; i++) {
             lastTrade = trades[i];
             fee['currency'] = lastTrade['fee']['currency'];
-            fee['cost'] = this.sum (fee['cost'], lastTrade['fee']['cost']);
+            const stringLastTradeFee = lastTrade['fee']['cost'];
+            fee['cost'] = Precise.stringAdd (fee['cost'], stringLastTradeFee);
         }
         const lastTradeTimestamp = this.safeInteger (lastTrade, 'timestamp');
-        const parsedOrder = {
+        const parsedOrder = this.safeOrder ({
             'info': message,
             'id': id,
             'clientOrderId': undefined,
@@ -632,18 +628,18 @@ export default class idex extends idexRest {
             'symbol': symbol,
             'type': orderType,
             'side': side,
-            'price': price,
+            'price': this.parseNumber (price),
             'stopPrice': undefined,
             'triggerPrice': undefined,
-            'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
-            'remaining': remaining,
+            'amount': this.parseNumber (amount),
+            'cost': undefined,
+            'average': this.parseNumber (average),
+            'filled': this.parseNumber (filled),
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);

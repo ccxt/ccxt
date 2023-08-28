@@ -181,6 +181,9 @@ abstract class okex extends \ccxt\okx {
     public function public_get_tradingbot_public_rsi_back_testing($params = array()) {
         return $this->request('tradingBot/public/rsi-back-testing', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_asset_exchange_list($params = array()) {
+        return $this->request('asset/exchange-list', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
     public function public_get_finance_savings_lending_rate_summary($params = array()) {
         return $this->request('finance/savings/lending-rate-summary', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -236,7 +239,7 @@ abstract class okex extends \ccxt\okx {
         return $this->request('trade/fills', 'private', 'GET', $params, null, null, array("cost" => 0.3333333333333333));
     }
     public function private_get_trade_fills_history($params = array()) {
-        return $this->request('trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 2.2));
     }
     public function private_get_trade_order_algo($params = array()) {
         return $this->request('trade/order-algo', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -646,6 +649,9 @@ abstract class okex extends \ccxt\okx {
     public function private_post_account_set_auto_loan($params = array()) {
         return $this->request('account/set-auto-loan', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
+    public function private_post_account_set_account_level($params = array()) {
+        return $this->request('account/set-account-level', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
     public function private_post_account_mmp_reset($params = array()) {
         return $this->request('account/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
@@ -747,6 +753,9 @@ abstract class okex extends \ccxt\okx {
     }
     public function private_post_broker_nd_set_subaccount_fee_rate($params = array()) {
         return $this->request('broker/nd/set-subaccount-fee-rate', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function private_post_broker_nd_set_subaccount_assets($params = array()) {
+        return $this->request('broker/nd/set-subaccount-assets', 'private', 'POST', $params, null, null, array("cost" => 0.25));
     }
     public function private_post_asset_broker_nd_subaccount_deposit_address($params = array()) {
         return $this->request('asset/broker/nd/subaccount-deposit-address', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -940,6 +949,9 @@ abstract class okex extends \ccxt\okx {
     public function publicGetTradingBotPublicRsiBackTesting($params = array()) {
         return $this->request('tradingBot/public/rsi-back-testing', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicGetAssetExchangeList($params = array()) {
+        return $this->request('asset/exchange-list', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
     public function publicGetFinanceSavingsLendingRateSummary($params = array()) {
         return $this->request('finance/savings/lending-rate-summary', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -995,7 +1007,7 @@ abstract class okex extends \ccxt\okx {
         return $this->request('trade/fills', 'private', 'GET', $params, null, null, array("cost" => 0.3333333333333333));
     }
     public function privateGetTradeFillsHistory($params = array()) {
-        return $this->request('trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 2.2));
     }
     public function privateGetTradeOrderAlgo($params = array()) {
         return $this->request('trade/order-algo', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -1405,6 +1417,9 @@ abstract class okex extends \ccxt\okx {
     public function privatePostAccountSetAutoLoan($params = array()) {
         return $this->request('account/set-auto-loan', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
+    public function privatePostAccountSetAccountLevel($params = array()) {
+        return $this->request('account/set-account-level', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
     public function privatePostAccountMmpReset($params = array()) {
         return $this->request('account/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
@@ -1506,6 +1521,9 @@ abstract class okex extends \ccxt\okx {
     }
     public function privatePostBrokerNdSetSubaccountFeeRate($params = array()) {
         return $this->request('broker/nd/set-subaccount-fee-rate', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function privatePostBrokerNdSetSubaccountAssets($params = array()) {
+        return $this->request('broker/nd/set-subaccount-assets', 'private', 'POST', $params, null, null, array("cost" => 0.25));
     }
     public function privatePostAssetBrokerNdSubaccountDepositAddress($params = array()) {
         return $this->request('asset/broker/nd/subaccount-deposit-address', 'private', 'POST', $params, null, null, array("cost" => 1));

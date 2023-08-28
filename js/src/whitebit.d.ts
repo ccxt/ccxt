@@ -135,6 +135,26 @@ export default class whitebit extends Exchange {
         datetime: string;
         info: any;
     };
+    fetchFundingRate(symbol: string, params?: {}): Promise<any>;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
+    parseFundingRate(contract: any, market?: any): {
+        info: any;
+        symbol: any;
+        markPrice: number;
+        indexPrice: number;
+        interestRate: number;
+        timestamp: any;
+        datetime: any;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: string;
+        nextFundingRate: any;
+        nextFundingTimestamp: number;
+        nextFundingDatetime: string;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    };
     isFiat(currency: any): any;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

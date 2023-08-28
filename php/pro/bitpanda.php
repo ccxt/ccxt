@@ -85,9 +85,9 @@ class bitpanda extends \ccxt\async\bitpanda {
         return Async\async(function () use ($params) {
             /**
              * @see https://developers.bitpanda.com/exchange/#account-history-channel
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws'];
@@ -149,7 +149,7 @@ class bitpanda extends \ccxt\async\bitpanda {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -176,7 +176,7 @@ class bitpanda extends \ccxt\async\bitpanda {
              * watches price $tickers, a statistical calculation with the information for all markets or those specified.
              * @param {string} $symbols unified $symbols of the markets to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -277,7 +277,7 @@ class bitpanda extends \ccxt\async\bitpanda {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $messageHash = 'myTrades';
@@ -321,7 +321,7 @@ class bitpanda extends \ccxt\async\bitpanda {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -440,7 +440,7 @@ class bitpanda extends \ccxt\async\bitpanda {
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
              * @param {string} [$params->channel] can listen to $orders using ACCOUNT_HISTORY or TRADING
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $messageHash = 'orders';
@@ -526,7 +526,8 @@ class bitpanda extends \ccxt\async\bitpanda {
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
         $order = $this->parse_trading_order($message);
-        $this->orders.append ($order);
+        $orders = $this->orders;
+        $orders->append ($order);
         $client->resolve ($this->orders, 'orders:' . $order['symbol']);
         $client->resolve ($this->orders, 'orders');
     }
@@ -726,10 +727,11 @@ class bitpanda extends \ccxt\async\bitpanda {
         if ($rawOrdersLength === 0) {
             return;
         }
+        $orders = $this->orders;
         for ($i = 0; $i < count($rawOrders); $i++) {
             $order = $this->parse_order($rawOrders[$i]);
             $symbol = $this->safe_string($order, 'symbol', '');
-            $this->orders.append ($order);
+            $orders->append ($order);
             $client->resolve ($this->orders, 'orders:' . $symbol);
             $rawTrades = $this->safe_value($rawOrders[$i], 'trades', array());
             for ($ii = 0; $ii < count($rawTrades); $ii++) {
@@ -974,6 +976,7 @@ class bitpanda extends \ccxt\async\bitpanda {
             $this->myTrades = new ArrayCacheBySymbolById ($limit);
         }
         $symbol = null;
+        $orders = $this->orders;
         $update = $this->safe_value($message, 'update', array());
         $updateType = $this->safe_string($update, 'type');
         if ($updateType === 'ORDER_REJECTED' || $updateType === 'ORDER_CLOSED' || $updateType === 'STOP_ORDER_TRIGGERED') {
@@ -987,7 +990,7 @@ class bitpanda extends \ccxt\async\bitpanda {
             if ($updateType === 'ORDER_CLOSED' && $filled === 0) {
                 $status = 'canceled';
             }
-            $this->orders.append (array(
+            $orders->append (array(
                 'id' => $orderId,
                 'symbol' => $symbol,
                 'status' => $status,
@@ -997,7 +1000,7 @@ class bitpanda extends \ccxt\async\bitpanda {
         } else {
             $parsed = $this->parse_order($update);
             $symbol = $this->safe_string($parsed, 'symbol', '');
-            $this->orders.append ($parsed);
+            $orders->append ($parsed);
         }
         $client->resolve ($this->orders, 'orders:' . $symbol);
         $client->resolve ($this->orders, 'orders');

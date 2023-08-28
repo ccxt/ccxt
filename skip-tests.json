@@ -1,6 +1,5 @@
 {
     "ace": {
-        "skip": "30/05: 504 Gateway Time-out",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
@@ -17,11 +16,9 @@
         }
     },
     "alpaca": {
-        "skip": true,
         "skipWs": true
     },
     "ascendex": {
-        "skip": "03/06: 502 Gateway Time-out",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -31,6 +28,7 @@
                 "deposit": "not provided"
             },
             "fetchTickers": {
+                "low":"16 Aug - happened weird negative 24hr low",
                 "bid":"messed bid-ask",
                 "ask":"messed bid-ask"
             }
@@ -39,6 +37,9 @@
     "bequant": {
         "skipWs": true,
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/264802937#L2194"
+            },
             "fetchTickers": {
                 "bid":"broken bid-ask",
                 "ask":"broken bid-ask"
@@ -122,7 +123,6 @@
         "skipWs": true
     },
     "bitbank": {
-        "skip": "temporary outage"
     },
     "bitbay": {
         "skipMethods": {
@@ -369,7 +369,7 @@
         }
     },
     "blockchaincom": {
-        "skip":"temporary outage",
+        "skipWs": "https://app.travis-ci.com/github/ccxt/ccxt/builds/265225134#L2304",
         "skipMethods": {
             "loadMarkets": {
                 "taker":"not provided",
@@ -381,6 +381,7 @@
     },
     "bkex": {
         "skipMethods": {
+            "fetchOrderBook": "system busy",
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
                 "contractSize": "broken for some markets"
@@ -450,24 +451,24 @@
         }
     },
     "btcalpha": {
-	"skip": "USDT_USD high price is a negative number below zero breaking the assertion in the test",
         "skipMethods": {
             "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
             "fetchL2OrderBook": "same",
             "fetchTickers": {
+                "symbol": "https://app.travis-ci.com/github/ccxt/ccxt/builds/265171549#L2518",
                 "percentage": "broken",
                 "bid": "messed bid-ask",
                 "ask": "messed bid-ask"
             },
             "fetchTicker": {
-                "percentage": "broken",
-                "bid": "messed bid-ask",
-                "ask": "messed bid-ask"
+                "percentage": "",
+                "symbol": "",
+                "bid": "",
+                "ask": ""
             }
         }
     },
     "btcmarkets": {
-        "skip": "04/05 under maintenance",
         "skipMethods": {
             "loadMarkets":{
                 "active":"is undefined"
@@ -477,7 +478,6 @@
         }
     },
     "btctradeua": {
-        "skip": "24/05 exchange not available",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined",
@@ -489,8 +489,7 @@
         }
     },
     "bybit": {
-        "httpsProxy": "http://51.83.140.52:11230",
-        "skipPhpAsync": "missing php async proxy",
+        "skip": "403 forbidden, RateLimitExceeded",
         "skipMethods": {
             "fetchTickers": {
                 "symbol" :"returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT"
@@ -502,7 +501,7 @@
         }
     },
     "buda": {
-        "skip": "forbidden location"
+        "httpsProxy": "http://51.83.140.52:11230"
     },
     "bigone": {
         "skipMethods": {
@@ -631,7 +630,7 @@
         }
     },
     "currencycom": {
-        "skip": "17/06 exchange not available 503",
+        "skip": true,
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -655,13 +654,18 @@
     "delta": {
         "skipMethods": {
             "loadMarkets": "expiryDatetime must be equal to expiry in iso8601 format",
+            "fetchOrderBook": "ask crossing bids test failing",
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "quoteVolume >= baseVolume * low is failing",
+                "ask": "failing the test",
+                "bid": "failing the test"
             },
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "quoteVolume >= baseVolume * low is failing",
+                "ask": "failing the test",
+                "bid": "failing the test"
             }
         }
     },
@@ -804,7 +808,6 @@
         }
     },
     "huobijp": {
-        "skip": "29/06 fetchMarkets returns empty array",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -828,7 +831,6 @@
         }
     },
     "stex": {
-        "skip": "31/05 maintenance",
         "skipMethods": {
             "fetchCurrencies":{
                 "withdraw":"not provided",
@@ -908,7 +910,7 @@
         }
     },
     "kuna": {
-        "skip": "403 forbidden"
+        "httpsProxy": "http://51.83.140.52:11230"
     },
     "kucoin": {
         "skipWs": true,
@@ -1021,7 +1023,6 @@
         }
     },
     "ndax": {
-        "skip": "https://api.ndax.io:8443/AP/GetProducts?omsId=1 503 Service Unavailable No server is available to handle this request.",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
@@ -1031,6 +1032,7 @@
         }
     },
     "mexc": {
+	"skip": "OnMaintenance https://www.mexc.com/support/articles/17827791510263",
         "skipWs": true,
         "skipPhpAsync": "Connection ended before receiving response...",
         "skipMethods": {
@@ -1110,7 +1112,6 @@
         }
     },
     "okcoin": {
-        "skip": "502 Bad Gateway, probably location restricted, or might be temporary",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": {
@@ -1184,7 +1185,6 @@
         }
     },
     "tidex": {
-        "skip": "exchange does not seem to respond"
     },
     "kraken": {
         "skipWs": true,
@@ -1200,6 +1200,7 @@
         }
     },
     "krakenfutures": {
+        "skip": "continious timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/265225134#L2431",
         "skipMethods": {
             "loadMarkets": {
                 "type":"unexpected market type",
@@ -1229,7 +1230,7 @@
         }
     },
     "ripio": {
-        "skip": "503 Service Unavailable, might be location issue",
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipWs": true
     },
     "timex": {
@@ -1262,8 +1263,7 @@
         }
     },
     "wazirx": {
-        "skipWs": true,
-        "skip": "rate limit blocks"
+        "skipWs": true
     },
     "whitebit": {
         "skipWs": true,
@@ -1292,7 +1292,6 @@
         }
 	},
     "xt": {
-        "skip": "fetchFundingRate returns 502 Bad Gateway",
         "skipMethods": {
             "loadMarkets": "expiry and expiryDatetime are defined for non future/options markets",
             "fetchCurrencies": {
@@ -1333,6 +1332,30 @@
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
+            }
+        }
+    },
+    "bingx": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker": "is undefined",
+                "maker": "is undefined"
+            },
+            "fetchTrades": {
+                "side": "undefined"
+            },
+            "fetchTicker": "spot not supported",
+            "fetchTickers": {
+                "quoteVolume": "not supported"
+            },
+            "fetchOHLCV": "spot not supported",
+            "fetchCurrencies": {
+                "deposit": "not provided",
+                "precision": "not provided"
+            },
+            "fetchOrderBook": {
+                "ask": "multiple ask prices are equal in ob https://app.travis-ci.com/github/ccxt/ccxt/builds/264706670#L2228",
+                "bid": "multiple bid prices are equal https://app.travis-ci.com/github/ccxt/ccxt/builds/265172859#L2745"
             }
         }
     }
