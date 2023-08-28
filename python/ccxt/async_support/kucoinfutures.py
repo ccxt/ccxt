@@ -1098,7 +1098,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'size': preciseAmount,
             'leverage': 1,
         }
-        triggerPrice, stopLossPrice, takeProfitPrice = self.handleTriggerPrices(params)
+        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
         params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice'])
         if triggerPrice:
             request['stop'] = 'up' if (side == 'buy') else 'down'

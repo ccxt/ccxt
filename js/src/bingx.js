@@ -93,6 +93,7 @@ export default class bingx extends Exchange {
                                 'market/trades': 3,
                                 'market/depth': 3,
                                 'market/kline': 3,
+                                'ticker/24hr': 1,
                             },
                         },
                         'private': {
@@ -101,7 +102,6 @@ export default class bingx extends Exchange {
                                 'trade/openOrders': 3,
                                 'trade/historyOrders': 3,
                                 'account/balance': 3,
-                                'ticker/24hr': 1,
                             },
                             'post': {
                                 'trade/order': 3,
@@ -1100,7 +1100,7 @@ export default class bingx extends Exchange {
         };
         let response = undefined;
         if (market['spot']) {
-            response = await this.spotV1PrivateGetTicker24hr(this.extend(request, params));
+            response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
         }
         else {
             response = await this.swapV2PublicGetQuoteTicker(this.extend(request, params));
@@ -1150,7 +1150,7 @@ export default class bingx extends Exchange {
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         let response = undefined;
         if (type === 'spot') {
-            response = await this.spotV1PrivateGetTicker24hr(params);
+            response = await this.spotV1PublicGetTicker24hr(params);
         }
         else {
             response = await this.swapV2PublicGetQuoteTicker(params);
@@ -2878,6 +2878,7 @@ export default class bingx extends Exchange {
         params = this.omit(params, this.extractParams(path));
         params = this.keysort(params);
         if (access === 'public') {
+            params['timestamp'] = this.nonce();
             if (Object.keys(params).length) {
                 url += '?' + this.urlencode(params);
             }

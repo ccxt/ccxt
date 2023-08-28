@@ -107,6 +107,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'market/trades': 3,
                                 'market/depth': 3,
                                 'market/kline': 3,
+                                'ticker/24hr': 1,
                             },
                         },
                         'private': {
@@ -115,7 +116,6 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/openOrders': 3,
                                 'trade/historyOrders': 3,
                                 'account/balance': 3,
-                                'ticker/24hr': 1,
                             },
                             'post': {
                                 'trade/order': 3,
@@ -1069,7 +1069,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         response = None
         if market['spot']:
-            response = self.spotV1PrivateGetTicker24hr(self.extend(request, params))
+            response = self.spotV1PublicGetTicker24hr(self.extend(request, params))
         else:
             response = self.swapV2PublicGetQuoteTicker(self.extend(request, params))
         #
@@ -1114,7 +1114,7 @@ class bingx(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         response = None
         if type == 'spot':
-            response = self.spotV1PrivateGetTicker24hr(params)
+            response = self.spotV1PublicGetTicker24hr(params)
         else:
             response = self.swapV2PublicGetQuoteTicker(params)
         #
@@ -2725,6 +2725,7 @@ class bingx(Exchange, ImplicitAPI):
         params = self.omit(params, self.extract_params(path))
         params = self.keysort(params)
         if access == 'public':
+            params['timestamp'] = self.nonce()
             if params:
                 url += '?' + self.urlencode(params)
         elif access == 'private':

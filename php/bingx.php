@@ -91,6 +91,7 @@ class bingx extends Exchange {
                                 'market/trades' => 3,
                                 'market/depth' => 3,
                                 'market/kline' => 3,
+                                'ticker/24hr' => 1,
                             ),
                         ),
                         'private' => array(
@@ -99,7 +100,6 @@ class bingx extends Exchange {
                                 'trade/openOrders' => 3,
                                 'trade/historyOrders' => 3,
                                 'account/balance' => 3,
-                                'ticker/24hr' => 1,
                             ),
                             'post' => array(
                                 'trade/order' => 3,
@@ -1093,7 +1093,7 @@ class bingx extends Exchange {
         );
         $response = null;
         if ($market['spot']) {
-            $response = $this->spotV1PrivateGetTicker24hr (array_merge($request, $params));
+            $response = $this->spotV1PublicGetTicker24hr (array_merge($request, $params));
         } else {
             $response = $this->swapV2PublicGetQuoteTicker (array_merge($request, $params));
         }
@@ -1141,7 +1141,7 @@ class bingx extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $response = null;
         if ($type === 'spot') {
-            $response = $this->spotV1PrivateGetTicker24hr ($params);
+            $response = $this->spotV1PublicGetTicker24hr ($params);
         } else {
             $response = $this->swapV2PublicGetQuoteTicker ($params);
         }
@@ -2843,6 +2843,7 @@ class bingx extends Exchange {
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         if ($access === 'public') {
+            $params['timestamp'] = $this->nonce();
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }

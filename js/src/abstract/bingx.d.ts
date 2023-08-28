@@ -5,11 +5,11 @@ interface Exchange {
     spotV1PublicGetMarketTrades(params?: {}): Promise<implicitReturnType>;
     spotV1PublicGetMarketDepth(params?: {}): Promise<implicitReturnType>;
     spotV1PublicGetMarketKline(params?: {}): Promise<implicitReturnType>;
+    spotV1PublicGetTicker24hr(params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetTradeQuery(params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetTradeOpenOrders(params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetTradeHistoryOrders(params?: {}): Promise<implicitReturnType>;
     spotV1PrivateGetAccountBalance(params?: {}): Promise<implicitReturnType>;
-    spotV1PrivateGetTicker24hr(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeOrder(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeCancel(params?: {}): Promise<implicitReturnType>;
     spotV1PrivatePostTradeBatchOrders(params?: {}): Promise<implicitReturnType>;
