@@ -296,6 +296,7 @@ class testMainClass(baseMainTestClass):
             dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
         skippedProperties = exchange.safe_value(self.skippedMethods, methodName, {})
         await call_method(self.testFiles, methodNameInTest, exchange, skippedProperties, args)
+        # if it was passed successfully, add to the list of successfull tests
         if isPublic:
             self.checkedPublicTests[methodNameInTest] = True
 
@@ -336,6 +337,9 @@ class testMainClass(baseMainTestClass):
                     dump('[TEST_WARNING] Exchange is on maintenance', exchange.id)
                 # If public test faces authentication error, we don't break(see comments under `testSafe` method)
                 elif isPublic and isAuthError:
+                    # in case of loadMarkets, it means that "tester"(developer or travis) does not have correct authentication, so it does not have a point to proceed at all
+                    if methodName == 'loadMarkets':
+                        dump('[TEST_WARNING]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exception_message(e), exchange.id, methodName, argsStringified)
                     if self.info:
                         dump('[TEST_WARNING]', 'Authentication problem for public method', exception_message(e), exchange.id, methodName, argsStringified)
                 else:

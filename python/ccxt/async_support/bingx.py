@@ -1106,13 +1106,18 @@ class bingx(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
+        market = None
         if symbols is not None:
             symbols = self.market_symbols(symbols)
             firstSymbol = self.safe_string(symbols, 0)
             market = self.market(firstSymbol)
-            if not market['swap']:
-                raise BadRequest(self.id + ' fetchTicker is only supported for swap markets.')
-        response = await self.swapV2PublicGetQuoteTicker(params)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        response = None
+        if type == 'spot':
+            response = await self.spotV1PrivateGetTicker24hr(params)
+        else:
+            response = await self.swapV2PublicGetQuoteTicker(params)
         #
         #    {
         #        "code": 0,

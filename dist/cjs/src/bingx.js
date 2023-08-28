@@ -1137,15 +1137,21 @@ class bingx extends bingx$1 {
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
+        let market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
             const firstSymbol = this.safeString(symbols, 0);
-            const market = this.market(firstSymbol);
-            if (!market['swap']) {
-                throw new errors.BadRequest(this.id + ' fetchTicker is only supported for swap markets.');
-            }
+            market = this.market(firstSymbol);
         }
-        const response = await this.swapV2PublicGetQuoteTicker(params);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.spotV1PrivateGetTicker24hr(params);
+        }
+        else {
+            response = await this.swapV2PublicGetQuoteTicker(params);
+        }
         //
         //    {
         //        "code": 0,

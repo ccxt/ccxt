@@ -1164,15 +1164,20 @@ class bingx extends Exchange {
              * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
+            $market = null;
             if ($symbols !== null) {
                 $symbols = $this->market_symbols($symbols);
                 $firstSymbol = $this->safe_string($symbols, 0);
                 $market = $this->market($firstSymbol);
-                if (!$market['swap']) {
-                    throw new BadRequest($this->id . ' fetchTicker is only supported for swap markets.');
-                }
             }
-            $response = Async\await($this->swapV2PublicGetQuoteTicker ($params));
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+            $response = null;
+            if ($type === 'spot') {
+                $response = Async\await($this->spotV1PrivateGetTicker24hr ($params));
+            } else {
+                $response = Async\await($this->swapV2PublicGetQuoteTicker ($params));
+            }
             //
             //    {
             //        "code" => 0,
