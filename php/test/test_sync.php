@@ -398,8 +398,9 @@ class testMainClass extends baseMainTestClass {
             }
             // we don't throw exception for public-$tests, see comments under 'testSafe' method
             $failedMsg = '';
-            if (strlen($errors)) {
-                $failedMsg = ' | Failed methods => ' . implode(', ', $errors);
+            $errorsLength = count($errors);
+            if ($errorsLength > 0) {
+                $failedMsg = ' | Failed methods : ' . implode(', ', $errors);
             }
             dump ($this->add_padding('[INFO:PUBLIC_TESTS_END] ' . $market['type'] . $failedMsg, 25), $exchange->id);
         }

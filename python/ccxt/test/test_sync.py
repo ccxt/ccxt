@@ -389,8 +389,9 @@ class testMainClass(baseMainTestClass):
                     errors.append(testNames[i])
             # we don't raise exception for public-tests, see comments under 'testSafe' method
             failedMsg = ''
-            if len(errors):
-                failedMsg = ' | Failed methods: ' + ', '.join(errors)
+            errorsLength = len(errors)
+            if errorsLength > 0:
+                failedMsg = ' | Failed methods : ' + ', '.join(errors)
             dump(self.add_padding('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id)
 
     def load_exchange(self, exchange):
