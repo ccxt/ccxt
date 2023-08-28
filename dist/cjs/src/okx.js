@@ -221,6 +221,7 @@ class okx extends okx$1 {
                         'tradingBot/grid/ai-param': 1,
                         'tradingBot/grid/min-investment': 1,
                         'tradingBot/public/rsi-back-testing': 1,
+                        'asset/exchange-list': 5 / 3,
                         'finance/savings/lending-rate-summary': 5 / 3,
                         'finance/savings/lending-rate-history': 5 / 3,
                         // public broker

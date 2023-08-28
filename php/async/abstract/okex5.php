@@ -181,6 +181,9 @@ abstract class okex5 extends \ccxt\async\okex {
     public function public_get_tradingbot_public_rsi_back_testing($params = array()) {
         return $this->request('tradingBot/public/rsi-back-testing', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_asset_exchange_list($params = array()) {
+        return $this->request('asset/exchange-list', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
     public function public_get_finance_savings_lending_rate_summary($params = array()) {
         return $this->request('finance/savings/lending-rate-summary', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
@@ -945,6 +948,9 @@ abstract class okex5 extends \ccxt\async\okex {
     }
     public function publicGetTradingBotPublicRsiBackTesting($params = array()) {
         return $this->request('tradingBot/public/rsi-back-testing', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetAssetExchangeList($params = array()) {
+        return $this->request('asset/exchange-list', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
     public function publicGetFinanceSavingsLendingRateSummary($params = array()) {
         return $this->request('finance/savings/lending-rate-summary', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
