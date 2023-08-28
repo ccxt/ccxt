@@ -29,6 +29,8 @@ use ccxt\ArgumentsRequired;
 use ccxt\NullResponse;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
+use ccxt\BadResponse;
+use ccxt\BadRequest;
 
 use React;
 use React\Async;
@@ -38,11 +40,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.74';
+$version = '4.0.76';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.74';
+    const VERSION = '4.0.76';
 
     public $browser;
     public $marketsLoading = null;
@@ -2583,7 +2585,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
     }
@@ -3422,7 +3424,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             if ($this->has['fetchDepositsWithdrawals']) {
                 return Async\await($this->fetchDepositsWithdrawals ($code, $since, $limit, $params));

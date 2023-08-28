@@ -205,6 +205,11 @@ export default class coinsph extends Exchange {
                         'openapi/convert/v1/get-supported-trading-pairs': 1,
                         'openapi/convert/v1/get-quote': 1,
                         'openapi/convert/v1/accpet-quote': 1,
+                        'openapi/fiat/v1/support-channel': 1,
+                        'openapi/fiat/v1/cash-out': 1,
+                        'openapi/fiat/v1/history': 1,
+                        'openapi/migration/v4/sellorder': 1,
+                        'openapi/migration/v4/validate-field': 1,
                         'openapi/transfer/v3/transfers': 1,
                     },
                     'delete': {
@@ -832,7 +837,7 @@ export default class coinsph extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
          * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1006,7 +1011,7 @@ export default class coinsph extends Exchange {
          * @name coinsph#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetOpenapiV1Account(params);

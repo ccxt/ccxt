@@ -789,7 +789,7 @@ class bitfinex2 extends Exchange {
         /**
          * $query for $balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$balance-structure $balance structure}
          */
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
@@ -1064,9 +1064,9 @@ class bitfinex2 extends Exchange {
             'high' => $this->safe_string($ticker, $length - 2),
             'low' => $this->safe_string($ticker, $length - 1),
             'bid' => $this->safe_string($ticker, $length - 10),
-            'bidVolume' => null,
+            'bidVolume' => $this->safe_string($ticker, $length - 9),
             'ask' => $this->safe_string($ticker, $length - 8),
-            'askVolume' => null,
+            'askVolume' => $this->safe_string($ticker, $length - 7),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -1254,7 +1254,7 @@ class bitfinex2 extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);

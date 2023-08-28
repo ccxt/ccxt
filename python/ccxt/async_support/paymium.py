@@ -136,7 +136,7 @@ class paymium(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
         see https://paymium.github.io/api-documentation/#tag/User/paths/~1user/get
         :param dict [params]: extra parameters specific to the paymium api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetUser(params)
@@ -273,7 +273,7 @@ class paymium(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the paymium api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)

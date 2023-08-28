@@ -119,8 +119,15 @@ export default class bitmart extends Exchange {
                         'spot/v1/currencies': 7.5,
                         'spot/v1/symbols': 7.5,
                         'spot/v1/symbols/details': 5,
+                        'spot/quotation/v3/tickers': 6,
+                        'spot/quotation/v3/ticker': 4,
+                        'spot/quotation/v3/lite-klines': 4,
+                        'spot/quotation/v3/klines': 6,
+                        'spot/quotation/v3/books': 4,
+                        'spot/quotation/v3/trades': 4,
                         'spot/v1/ticker': 5,
                         'spot/v2/ticker': 5,
+                        'spot/v1/ticker_detail': 5,
                         'spot/v1/steps': 30,
                         'spot/v1/symbols/kline': 5,
                         'spot/v1/symbols/book': 5,
@@ -185,6 +192,12 @@ export default class bitmart extends Exchange {
                         'spot/v1/batch_orders': 1,
                         'spot/v2/cancel_order': 1,
                         'spot/v1/cancel_orders': 15,
+                        'spot/v4/query/order': 1,
+                        'spot/v4/query/client-order': 1,
+                        'spot/v4/query/open-orders': 5,
+                        'spot/v4/query/history-orders': 5,
+                        'spot/v4/query/trades': 5,
+                        'spot/v4/query/order-trades': 5,
                         // newer endpoint
                         'spot/v3/cancel_order': 1,
                         'spot/v2/batch_orders': 1,
@@ -1321,7 +1334,7 @@ export default class bitmart extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1690,7 +1703,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
          * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         let marketType = undefined;

@@ -715,6 +715,7 @@ class mexc extends mexc$1 {
                     '2003': errors.InvalidOrder,
                     '2005': errors.InsufficientFunds,
                     '400': errors.BadRequest,
+                    // '500': OnMaintenance, // {"code": 500,"message": "Under maintenance, please try again later","announcement": "https://www.mexc.com/support/articles/17827791510263"}
                     '600': errors.BadRequest,
                     '70011': errors.PermissionDenied,
                     '88004': errors.InsufficientFunds,
@@ -808,7 +809,8 @@ class mexc extends mexc$1 {
                     'Insufficient balance!': errors.InsufficientFunds,
                     'Bid price is great than max allow price': errors.InvalidOrder,
                     'Invalid symbol.': errors.BadSymbol,
-                    'Param error!': errors.BadRequest, // code:600
+                    'Param error!': errors.BadRequest,
+                    'maintenance': errors.OnMaintenance, // {"code": 500,"message": "Under maintenance, please try again later","announcement": "https://www.mexc.com/support/articles/17827791510263"}
                 },
             },
         });
@@ -1357,7 +1359,7 @@ class mexc extends mexc$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -3403,7 +3405,7 @@ class mexc extends mexc$1 {
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @param {string} [params.symbols] // required for margin, market id's separated by commas
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         let marketType = undefined;
@@ -3924,7 +3926,7 @@ class mexc extends mexc$1 {
          * @param {int} [since] not used by mexc, but filtered internally by ccxt
          * @param {int} [limit] mexc limit is page_size default 20, maximum is 100
          * @param {object} [params] extra parameters specific to the mexc api endpoint
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');

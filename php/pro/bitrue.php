@@ -63,7 +63,7 @@ class bitrue extends \ccxt\async\bitrue {
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
              * @param {array} [$params] extra parameters specific to the bitrue api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             $url = Async\await($this->authenticate());
             $messageHash = 'balance';

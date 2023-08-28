@@ -62,7 +62,7 @@ export default class bitrue extends bitrueRest {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         const url = await this.authenticate();
         const messageHash = 'balance';

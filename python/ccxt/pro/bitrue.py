@@ -62,7 +62,7 @@ class bitrue(ccxt.async_support.bitrue):
         watch balance and get the amount of funds available for trading or funds locked in orders
         see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
         :param dict [params]: extra parameters specific to the bitrue api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         url = await self.authenticate()
         messageHash = 'balance'

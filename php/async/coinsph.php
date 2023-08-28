@@ -208,6 +208,11 @@ class coinsph extends Exchange {
                         'openapi/convert/v1/get-supported-trading-pairs' => 1,
                         'openapi/convert/v1/get-quote' => 1,
                         'openapi/convert/v1/accpet-quote' => 1,
+                        'openapi/fiat/v1/support-channel' => 1,
+                        'openapi/fiat/v1/cash-out' => 1,
+                        'openapi/fiat/v1/history' => 1,
+                        'openapi/migration/v4/sellorder' => 1,
+                        'openapi/migration/v4/validate-field' => 1,
                         'openapi/transfer/v3/transfers' => 1,
                     ),
                     'delete' => array(
@@ -840,7 +845,7 @@ class coinsph extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch (default 500, max 1000)
              * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1016,7 +1021,7 @@ class coinsph extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the coinsph api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetOpenapiV1Account ($params));

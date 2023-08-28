@@ -223,6 +223,11 @@ class coinsph(Exchange, ImplicitAPI):
                         'openapi/convert/v1/get-supported-trading-pairs': 1,
                         'openapi/convert/v1/get-quote': 1,
                         'openapi/convert/v1/accpet-quote': 1,
+                        'openapi/fiat/v1/support-channel': 1,
+                        'openapi/fiat/v1/cash-out': 1,
+                        'openapi/fiat/v1/history': 1,
+                        'openapi/migration/v4/sellorder': 1,
+                        'openapi/migration/v4/validate-field': 1,
                         'openapi/transfer/v3/transfers': 1,
                     },
                     'delete': {
@@ -817,7 +822,7 @@ class coinsph(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch(default 500, max 1000)
         :param dict [params]: extra parameters specific to the coinsph api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -974,7 +979,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the coinsph api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         self.load_markets()
         response = self.privateGetOpenapiV1Account(params)

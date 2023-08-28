@@ -791,7 +791,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @name bitfinex2#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
@@ -1066,9 +1066,9 @@ class bitfinex2 extends bitfinex2$1 {
             'high': this.safeString(ticker, length - 2),
             'low': this.safeString(ticker, length - 1),
             'bid': this.safeString(ticker, length - 10),
-            'bidVolume': undefined,
+            'bidVolume': this.safeString(ticker, length - 9),
             'ask': this.safeString(ticker, length - 8),
-            'askVolume': undefined,
+            'askVolume': this.safeString(ticker, length - 7),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -1260,7 +1260,7 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);

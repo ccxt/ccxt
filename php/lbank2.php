@@ -896,7 +896,7 @@ class lbank2 extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the lbank2 api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1151,7 +1151,7 @@ class lbank2 extends Exchange {
          * @see https://www.lbank.info/en-US/docs/index.html#account-information
          * @see https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
          * @param {array} [$params] extra parameters specific to the lbank2 api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $this->load_markets();
         $method = $this->safe_string($params, 'method');
