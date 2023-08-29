@@ -1259,10 +1259,10 @@ export default class wavesexchange extends Exchange {
 
     toPrecision (amount, scale) {
         const amountString = this.numberToString (amount);
-        const precise = new Precise (amountString);
-        precise.decimals = Precise.stringSub (precise.decimals, scale);
-        precise.reduce ();
-        return precise;
+        const instance = new Precise (amountString);
+        instance.decimals = Precise.stringSub (instance.decimals, scale);
+        instance.reduce ();
+        return instance.toString ();
     }
 
     currencyFromPrecision (currency, amount) {
