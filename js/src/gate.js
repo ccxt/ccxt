@@ -274,6 +274,29 @@ export default class gate extends Exchange {
                             'sub_accounts/{user_id}/keys/{key}': 1,
                         },
                     },
+                    'portfolio': {
+                        'get': {
+                            'accounts': 1.5,
+                            'account_mode': 1.5,
+                            'borrowable': 1.5,
+                            'transferable': 1.5,
+                            'loans': 1.5,
+                            'loan_records': 1.5,
+                            'interest_records': 1.5,
+                            'spot/orders': 1.5,
+                            'spot/orders/{order_id}': 1.5,
+                        },
+                        'post': {
+                            'loans': 1.5,
+                            'spot/orders': 1.5,
+                        },
+                        'delete': {
+                            'spot/orders/{order_id}': 1.5,
+                        },
+                        'patch': {
+                            'spot/orders/{order_id}': 1.5,
+                        },
+                    },
                     'spot': {
                         'get': {
                             'fee': 1,
@@ -467,6 +490,22 @@ export default class gate extends Exchange {
                             'uni/lends': 1.5,
                         },
                     },
+                    'loan': {
+                        'get': {
+                            'collateral/orders': 1.5,
+                            'collateral/orders/{order_id}': 1.5,
+                            'collateral/repay_records': 1.5,
+                            'collateral/collaterals': 1.5,
+                            'collateral/total_amount': 1.5,
+                            'collateral/ltv': 1.5,
+                            'collateral/currencies': 1.5,
+                        },
+                        'post': {
+                            'collateral/orders': 1.5,
+                            'collateral/repay': 1.5,
+                            'collateral/collaterals': 1.5,
+                        },
+                    },
                     'account': {
                         'get': {
                             'detail': 1.5,
@@ -475,6 +514,9 @@ export default class gate extends Exchange {
                         },
                         'post': {
                             'stp_groups': 1.5,
+                            'stp_groups/{stp_id}/users': 1.5,
+                        },
+                        'delete': {
                             'stp_groups/{stp_id}/users': 1.5,
                         },
                     },
@@ -1625,7 +1667,7 @@ export default class gate extends Exchange {
          * @description fetch the current funding rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1687,7 +1729,7 @@ export default class gate extends Exchange {
          * @description fetch the funding rate for multiple markets
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object} a dictionary of [funding rates structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1858,7 +1900,7 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -1917,7 +1959,7 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1948,7 +1990,7 @@ export default class gate extends Exchange {
          * @description fetch the trading fees for multiple markets
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.privateWalletGetFee(params);
@@ -2014,7 +2056,7 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets();
         const response = await this.privateWalletGetWithdrawStatus(params);
@@ -2072,7 +2114,7 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets();
         const response = await this.privateWalletGetWithdrawStatus(params);
@@ -2155,7 +2197,7 @@ export default class gate extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @returns {object} a [funding history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
         await this.loadMarkets();
         // let defaultType = 'future';
@@ -2237,7 +2279,7 @@ export default class gate extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2348,7 +2390,7 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2504,7 +2546,7 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -2846,9 +2888,9 @@ export default class gate extends Exchange {
          * @description fetches historical funding rate prices
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
@@ -2941,7 +2983,7 @@ export default class gate extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -3033,7 +3075,7 @@ export default class gate extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
         this.checkRequiredSymbol('fetchOrderTrades', symbol);
@@ -3081,7 +3123,7 @@ export default class gate extends Exchange {
          * @param {int} [params.offset] *contract only* list offset, starting from 0
          * @param {string} [params.last_id] *contract only* specify list staring point using the id of last record in previous list-query results
          * @param {int} [params.count_total] *contract only* whether to return total number matched, default to 0(no return)
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
         let type = undefined;
@@ -3343,7 +3385,7 @@ export default class gate extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -3372,7 +3414,7 @@ export default class gate extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -3402,7 +3444,7 @@ export default class gate extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
@@ -3539,7 +3581,7 @@ export default class gate extends Exchange {
          * @param {string} type 'limit' or 'market' *"market" is contract only*
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
-         * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {object} [params]  Extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
@@ -3553,7 +3595,7 @@ export default class gate extends Exchange {
          * @param {bool} [params.close] *contract only* Set as true to close the position, with size set to 0
          * @param {bool} [params.auto_size] *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
          * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
-         * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object|undefined} [An order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -3874,9 +3916,9 @@ export default class gate extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -4216,7 +4258,7 @@ export default class gate extends Exchange {
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
          * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
-         * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const stop = this.safeValue2(params, 'is_stop_order', 'stop', false);
@@ -4258,7 +4300,7 @@ export default class gate extends Exchange {
          * @param {bool} [params.stop] true for fetching stop orders
          * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         return await this.fetchOrdersByStatus('open', symbol, since, limit, params);
     }
@@ -4274,7 +4316,7 @@ export default class gate extends Exchange {
          * @param {bool} [params.stop] true for fetching stop orders
          * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         return await this.fetchOrdersByStatus('finished', symbol, since, limit, params);
     }
@@ -4479,7 +4521,7 @@ export default class gate extends Exchange {
          * @param {string} symbol Unified market symbol
          * @param {object} [params] Parameters specified by the exchange api
          * @param {bool} [params.stop] True if the order to be cancelled is a trigger order
-         * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = (symbol === undefined) ? undefined : this.market(symbol);
@@ -4587,7 +4629,7 @@ export default class gate extends Exchange {
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = (symbol === undefined) ? undefined : this.market(symbol);
@@ -4646,7 +4688,7 @@ export default class gate extends Exchange {
          * @param {string} toAccount the account to transfer currency to
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @param {string} [params.symbol] Unified market symbol *required for type == margin*
-         * @returns A [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns A [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -4898,7 +4940,7 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-specified-contract-position
          * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {object} a [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -4982,7 +5024,7 @@ export default class gate extends Exchange {
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
          * @param {string} [params.type] swap, future or option, if not provided this.options['defaultType'] is used
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -5082,7 +5124,7 @@ export default class gate extends Exchange {
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         const [type, query] = this.handleMarketTypeAndParams('fetchLeverageTiers', undefined, params);
@@ -5324,7 +5366,7 @@ export default class gate extends Exchange {
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
          * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
         const marginMode = this.safeString(params, 'marginMode'); // cross or isolated
         params = this.omit(params, 'marginMode');
@@ -5407,7 +5449,7 @@ export default class gate extends Exchange {
          * @param {string} symbol unified market symbol, required for isolated margin
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
         const marginMode = this.safeString(params, 'marginMode'); // cross or isolated
         params = this.omit(params, 'marginMode');
@@ -5651,7 +5693,7 @@ export default class gate extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure}
          */
         return await this.modifyMarginHelper(symbol, -amount, params);
     }
@@ -5663,7 +5705,7 @@ export default class gate extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
          */
         return await this.modifyMarginHelper(symbol, amount, params);
     }
@@ -5678,7 +5720,7 @@ export default class gate extends Exchange {
          * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
          * @param {int} [limit] default 30
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -5939,7 +5981,7 @@ export default class gate extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets();
         let type = undefined;

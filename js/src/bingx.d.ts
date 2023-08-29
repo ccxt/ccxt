@@ -204,31 +204,8 @@ export default class bingx extends Exchange {
         networks: {};
     };
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        type: string;
-        currency: any;
-        network: string;
-        amount: number;
-        status: string;
-        timestamp: number;
-        datetime: string;
-        address: string;
-        addressFrom: any;
-        addressTo: string;
-        tag: string;
-        tagFrom: string;
-        tagTo: any;
-        updated: any;
-        comment: string;
-        fee: {
-            currency: any;
-            cost: number;
-            rate: any;
-        };
-    }>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<void>;
+    parseParams(params: any): string;
     sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

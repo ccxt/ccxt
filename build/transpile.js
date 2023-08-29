@@ -287,6 +287,7 @@ class Transpiler {
             [ /\.customParseBidAsk\s/g, '.custom_parse_bid_ask'],
             [ /\.customParseOrderBook\s/g, '.custom_parse_order_book'],
             [ /\.filterByArrayPositions\s/g, '.filter_by_array_positions'],
+            [ /\.handleTriggerPrices\s/g, '.handle_trigger_prices'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
