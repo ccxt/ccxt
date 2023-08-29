@@ -647,7 +647,7 @@ export default class bithumb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'currency': market['base'],
+            'currency': market['base'] + '_' + market['quote'],
         };
         if (limit !== undefined) {
             request['count'] = limit; // default 20, max 100
