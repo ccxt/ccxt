@@ -1621,15 +1621,19 @@ export default class phemex extends Exchange {
             id = this.safeString2 (trade, 'execId', 'execID');
             orderId = this.safeString (trade, 'orderID');
             if (market['settle'] === 'USDT') {
-                const sideId = this.safeString (trade, 'side');
-                side = (sideId === '1') ? 'buy' : 'sell';
+                const sideId = this.safeStringLower (trade, 'side');
+                if ((sideId === 'buy') || (sideId === 'sell')) {
+                    side = sideId;
+                } else if (sideId !== undefined) {
+                    side = (sideId === '1') ? 'buy' : 'sell';
+                }
                 const ordType = this.safeString (trade, 'ordType');
                 if (ordType === '1') {
                     type = 'market';
                 } else if (ordType === '2') {
                     type = 'limit';
                 }
-                priceString = this.safeString (trade, 'priceRp');
+                priceString = this.safeString (trade, 'execPriceRp');
                 amountString = this.safeString (trade, 'execQtyRq');
                 costString = this.safeString (trade, 'execValueRv');
                 feeCostString = this.safeString (trade, 'execFeeRv');
