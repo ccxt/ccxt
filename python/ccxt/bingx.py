@@ -273,6 +273,7 @@ class bingx(Exchange, ImplicitAPI):
                     '500': ExchangeError,
                     '504': ExchangeError,
                     '100001': AuthenticationError,
+                    '100412': AuthenticationError,
                     '100202': InsufficientFunds,
                     '100400': BadRequest,
                     '100440': ExchangeError,
@@ -2690,25 +2691,21 @@ class bingx(Exchange, ImplicitAPI):
         self.parse_transaction(data)
 
     def parse_params(self, params):
-        result = ''
         sortedParams = self.keysort(params)
         keys = list(sortedParams.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if i > 0:
-                result += '&'
             value = sortedParams[key]
             if isinstance(value, list):
-                result += key + '=['
+                arrStr = '['
                 for j in range(0, len(value)):
                     arrayElement = value[j]
                     if j > 0:
-                        result += ','
-                    result += str(arrayElement)
-                result += ']'
-            else:
-                result += key + '=' + str(value)
-        return result
+                        arrStr += ','
+                    arrStr += str(arrayElement)
+                arrStr += ']'
+                sortedParams[key] = arrStr
+        return sortedParams
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]
@@ -2731,8 +2728,9 @@ class bingx(Exchange, ImplicitAPI):
         elif access == 'private':
             self.check_required_credentials()
             params['timestamp'] = self.nonce()
-            query = self.parse_params(params)
-            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
+            parsedParams = self.parse_params(params)
+            query = self.urlencode(parsedParams)
+            signature = self.hmac(self.encode(self.rawencode(parsedParams)), self.encode(self.secret), hashlib.sha256)
             if params:
                 query = '?' + query + '&'
             else:

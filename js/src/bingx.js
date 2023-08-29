@@ -258,6 +258,7 @@ export default class bingx extends Exchange {
                     '500': ExchangeError,
                     '504': ExchangeError,
                     '100001': AuthenticationError,
+                    '100412': AuthenticationError,
                     '100202': InsufficientFunds,
                     '100400': BadRequest,
                     '100440': ExchangeError,
@@ -2835,31 +2836,25 @@ export default class bingx extends Exchange {
         this.parseTransaction(data);
     }
     parseParams(params) {
-        let result = '';
         const sortedParams = this.keysort(params);
         const keys = Object.keys(sortedParams);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (i > 0) {
-                result += '&';
-            }
             const value = sortedParams[key];
             if (Array.isArray(value)) {
-                result += key + '=[';
+                let arrStr = '[';
                 for (let j = 0; j < value.length; j++) {
                     const arrayElement = value[j];
                     if (j > 0) {
-                        result += ',';
+                        arrStr += ',';
                     }
-                    result += arrayElement.toString();
+                    arrStr += arrayElement.toString();
                 }
-                result += ']';
-            }
-            else {
-                result += key + '=' + value.toString();
+                arrStr += ']';
+                sortedParams[key] = arrStr;
             }
         }
-        return result;
+        return sortedParams;
     }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = section[0];
@@ -2886,8 +2881,9 @@ export default class bingx extends Exchange {
         else if (access === 'private') {
             this.checkRequiredCredentials();
             params['timestamp'] = this.nonce();
-            let query = this.parseParams(params);
-            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
+            const parsedParams = this.parseParams(params);
+            let query = this.urlencode(parsedParams);
+            const signature = this.hmac(this.encode(this.rawencode(parsedParams)), this.encode(this.secret), sha256);
             if (Object.keys(params).length) {
                 query = '?' + query + '&';
             }
