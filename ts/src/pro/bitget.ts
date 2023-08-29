@@ -1187,6 +1187,7 @@ export default class bitget extends bitgetRest {
                     delete client.subscriptions[messageHash];
                 }
             } else {
+                // Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue #19041
                 client.reject (e);
             }
             return true;
