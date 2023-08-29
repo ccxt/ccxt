@@ -290,6 +290,7 @@ class testMainClass extends baseMainTestClass {
         }
         $skippedProperties = $exchange->safe_value($this->skippedMethods, $methodName, array());
         call_method ($this->testFiles, $methodNameInTest, $exchange, $skippedProperties, $args);
+        // if it was passed successfully, add to the list of successfull tests
         if ($isPublic) {
             $this->checkedPublicTests[$methodNameInTest] = true;
         }
@@ -334,6 +335,10 @@ class testMainClass extends baseMainTestClass {
                 }
                 // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                 else if ($isPublic && $isAuthError) {
+                    // in case of loadMarkets, it means that "tester" (developer or travis) does not have correct authentication, so it does not have a point to proceed at all
+                    if ($methodName === 'loadMarkets') {
+                        dump ('[TEST_WARNING]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exception_message ($e), $exchange->id, $methodName, $argsStringified);
+                    }
                     if ($this->info) {
                         dump ('[TEST_WARNING]', 'Authentication problem for public method', exception_message ($e), $exchange->id, $methodName, $argsStringified);
                     }
@@ -393,8 +398,9 @@ class testMainClass extends baseMainTestClass {
             }
             // we don't throw exception for public-$tests, see comments under 'testSafe' method
             $failedMsg = '';
-            if (strlen($errors)) {
-                $failedMsg = ' | Failed methods => ' . implode(', ', $errors);
+            $errorsLength = count($errors);
+            if ($errorsLength > 0) {
+                $failedMsg = ' | Failed methods : ' . implode(', ', $errors);
             }
             dump ($this->add_padding('[INFO:PUBLIC_TESTS_END] ' . $market['type'] . $failedMsg, 25), $exchange->id);
         }

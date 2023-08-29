@@ -171,11 +171,11 @@ export default class hitbtc extends hitbtcRest {
          * @see https://api.hitbtc.com/#subscribe-to-top-of-book
          * @see https://api.hitbtc.com/#subscribe-to-top-of-book-in-batches
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the hitbtc api endpoint
-         * @param {string|undefined} params.method 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch'
-         * @param {int|undefined} params.depth 5 (default), 10, or 20
-         * @param {int|undefined} params.speed 100 (default), 500, or 1000
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch'
+         * @param {int} [params.depth] 5 (default), 10, or 20
+         * @param {int} [params.speed] 100 (default), 500, or 1000
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const options = this.safeValue (this.options, 'watchOrderBook');
@@ -278,9 +278,9 @@ export default class hitbtc extends hitbtcRest {
          * @see https://api.hitbtc.com/#subscribe-to-mini-ticker
          * @see https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the hitbtc api endpoint
-         * @param {string} params.method 'ticker/{speed}' (default), or 'ticker/price/{speed}'
-         * @param {string} params.speed '1s' (default), or '3s'
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {string} [params.method] 'ticker/{speed}' (default), or 'ticker/price/{speed}'
+         * @param {string} [params.speed] '1s' (default), or '3s'
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const options = this.safeValue (this.options, 'watchTicker');
@@ -470,10 +470,10 @@ export default class hitbtc extends hitbtcRest {
          * @description get the list of most recent trades for a particular symbol
          * @see https://api.hitbtc.com/#subscribe-to-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since not used by hitbtc watchTrades
-         * @param {int|undefined} limit 0-1000, Default value = 0 (no history returned)
-         * @param {object} params extra parameters specific to the hitbtc api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
