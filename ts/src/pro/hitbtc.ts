@@ -116,8 +116,8 @@ export default class hitbtc extends hitbtcRest {
          * @ignore
          * @method
          * @param {string} name websocket endpoint name
-         * @param {[string]|undefined} symbols unified CCXT symbol(s)
-         * @param {object} params extra parameters specific to the hitbtc api
+         * @param {[string]} [symbols] unified CCXT symbol(s)
+         * @param {object} [params] extra parameters specific to the hitbtc api
          * @returns
          */
         await this.loadMarkets ();
@@ -140,8 +140,8 @@ export default class hitbtc extends hitbtcRest {
          * @ignore
          * @method
          * @param {string} name websocket endpoint name
-         * @param {string|undefined} symbol unified CCXT symbol
-         * @param {object} params extra parameters specific to the hitbtc api
+         * @param {string} [symbol] unified CCXT symbol
+         * @param {object} [params] extra parameters specific to the hitbtc api
          * @returns
          */
         await this.loadMarkets ();
@@ -601,10 +601,10 @@ export default class hitbtc extends hitbtcRest {
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://api.hitbtc.com/#subscribe-to-candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since not used by hitbtc watchOHLCV
-         * @param {int|undefined} limit 0 – 1000, default value = 0 (no history returned)
-         * @param {object} params extra parameters specific to the hitbtc api endpoint
+         * @param {string} [timeframe] the length of time each candle represents
+         * @param {int} [since] not used by hitbtc watchOHLCV
+         * @param {int} [limit] 0 – 1000, default value = 0 (no history returned)
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const period = this.safeString (this.timeframes, timeframe, timeframe);
@@ -716,10 +716,10 @@ export default class hitbtc extends hitbtcRest {
          * @see https://api.hitbtc.com/#subscribe-to-reports
          * @see https://api.hitbtc.com/#subscribe-to-reports-2
          * @see https://api.hitbtc.com/#subscribe-to-reports-3
-         * @param {string|undefined} symbol unified CCXT market symbol
-         * @param {int|undefined} since timestamp in ms of the earliest order to fetch
-         * @param {int|undefined} limit the maximum amount of orders to fetch
-         * @param {object} params extra parameters specific to the hitbtc api endpoint
+         * @param {string} [symbol] unified CCXT market symbol
+         * @param {int} [since] timestamp in ms of the earliest order to fetch
+         * @param {int} [limit] the maximum amount of orders to fetch
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -951,11 +951,11 @@ export default class hitbtc extends hitbtcRest {
          * @description watches balance updates, cannot subscribe to margin account balances
          * @see https://api.hitbtc.com/#subscribe-to-spot-balances
          * @see https://api.hitbtc.com/#subscribe-to-futures-balances
-         * @param {object} params extra parameters specific to the hitbtc api endpoint
-         * @param {string} params.type 'spot', 'swap', or 'future'
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {string} [params.type] 'spot', 'swap', or 'future'
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {string} params.mode 'updates' or 'batches' (default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
+         * @param {string} [params.mode] 'updates' or 'batches' (default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
          * @returns {[object]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
