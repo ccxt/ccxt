@@ -75,8 +75,9 @@ export default class hitbtc extends hitbtcRest {
         const url = this.urls['api']['ws']['private'];
         const messageHash = 'authenticated';
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.milliseconds ();
             const signature = this.hmac (this.encode (this.numberToString (timestamp)), this.encode (this.secret), sha256, 'hex');
             const request = {
@@ -88,7 +89,7 @@ export default class hitbtc extends hitbtcRest {
                     'signature': signature,
                 },
             };
-            future = await this.watch (url, messageHash, request);
+            this.watch (url, messageHash, request, messageHash);
             //
             //    {
             //        jsonrpc: '2.0',
@@ -106,7 +107,6 @@ export default class hitbtc extends hitbtcRest {
             //        }
             //    }
             //
-            client.subscriptions[messageHash] = future;
         }
         return future;
     }
@@ -1045,7 +1045,8 @@ export default class hitbtc extends hitbtcRest {
         const success = this.safeValue (message, 'result');
         const messageHash = 'authenticated';
         if (success) {
-            client.resolve (message, messageHash);
+            const future = this.safeValue (client.futures, messageHash);
+            future.resolve (true);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));
             client.reject (error, messageHash);
