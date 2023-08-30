@@ -133,7 +133,8 @@ public partial class Exchange
     {
         var url = url2 as String;
         var method = method2 as String;
-        var headers = headers2 as dict;
+        var headers3 = headers2 as dict;
+        var headers = this.extend(this.headers, headers3) as dict;
         var body = body2 as String;
 
         if (this.verbose)
@@ -281,7 +282,8 @@ public partial class Exchange
             var cost = endpointInfo["cost"] != null ? endpointInfo["cost"] : 1;
 
             // return await this.fetch2(path, api, method, new dict(), new dict(), (dict)parameters, new dict { { "cost", cost } });
-            return await this.fetch2(path, api, method, (dict)parameters, new dict(), new dict(), new dict { { "cost", cost } });
+            var res = await this.fetch2(path, api, method, parameters, new dict(), new dict(), new dict { { "cost", cost } });
+            return res;
 
         }
         throw new Exception("Endpoint not found!");
