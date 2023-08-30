@@ -2010,7 +2010,7 @@ class okcoin extends okcoin$1 {
                             }
                         }
                         else if (notional === undefined) {
-                            throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
+                            throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total cost value in the "amount" argument or in the "notional" extra parameter (the exchange-specific behaviour)');
                         }
                     }
                     else {
@@ -3487,7 +3487,7 @@ class okcoin extends okcoin$1 {
         let currency = undefined;
         if (type === 'spot') {
             if (code === undefined) {
-                throw new errors.ArgumentsRequired(this.id + " fetchLedger() requires a currency code argument for '" + type + "' markets");
+                throw new errors.ArgumentsRequired(this.id + ' fetchLedger() requires a currency code argument for "' + type + '" markets');
             }
             argument = 'Currency';
             currency = this.currency(code);

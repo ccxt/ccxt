@@ -1171,7 +1171,7 @@ class probit(Exchange, ImplicitAPI):
                             priceString = self.number_to_string(price)
                             cost = self.parse_number(Precise.string_mul(amountString, priceString))
                     elif cost is None:
-                        raise InvalidOrder(self.id + " createOrder() requires the price argument for market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter(the exchange-specific behaviour)")
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False and supply the total cost value in the "amount" argument or in the "cost" extra parameter(the exchange-specific behaviour)')
                 else:
                     cost = amount if (cost is None) else cost
                 costToPrecision = self.cost_to_precision(symbol, cost)
@@ -1607,7 +1607,7 @@ class probit(Exchange, ImplicitAPI):
             networkCode = self.network_id_to_code(networkId, currency['code'])
             withdrawalFees = self.safe_value(network, 'withdrawal_fee', {})
             withdrawFee = self.safe_number(withdrawalFees[0], 'amount')
-            if len(withdrawalFees) > 0:
+            if len(withdrawalFees):
                 withdrawResult = {
                     'fee': withdrawFee,
                     'percentage': False if (withdrawFee is not None) else None,
