@@ -2509,7 +2509,8 @@ class bybit extends Exchange {
         if ($symbols !== null) {
             $symbols = $this->market_symbols($symbols);
             $market = $this->market($symbols[0]);
-            if (strlen($symbols) === 1) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
                 $request['symbol'] = $market['id'];
             }
         }
@@ -3863,7 +3864,7 @@ class bybit extends Exchange {
                 $cost = $this->safe_number($params, 'cost');
                 $params = $this->omit($params, 'cost');
                 if ($price === null && $cost === null) {
-                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);

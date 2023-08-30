@@ -4083,7 +4083,7 @@ class okx(Exchange, ImplicitAPI):
             targetNetwork = self.safe_value(currency['networks'], self.network_id_to_code(network), {})
             fee = self.safe_string(targetNetwork, 'fee')
             if fee is None:
-                raise ArgumentsRequired(self.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
+                raise ArgumentsRequired(self.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.')
         request['fee'] = self.number_to_string(fee)  # withdrawals to OKCoin or OKX are fee-free, please set 0
         if 'password' in params:
             request['pwd'] = params['password']
