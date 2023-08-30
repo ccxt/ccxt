@@ -1031,6 +1031,7 @@
         }
     },
     "mexc": {
+	"skip": "OnMaintenance https://www.mexc.com/support/articles/17827791510263",
         "skipWs": true,
         "skipPhpAsync": "Connection ended before receiving response...",
         "skipMethods": {

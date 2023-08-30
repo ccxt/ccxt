@@ -129,7 +129,7 @@ def call_method(testFiles, methodName, exchange, skippedProperties, args):
 
 
 def exception_message(exc):
-    return '[' + type(exc).__name__ + '] ' + "".join(format_exception(exc, limit=6))
+    return '[' + type(exc).__name__ + '] ' + "".join(format_exception(type(exc), exc, exc.__traceback__, limit=6))
 
 
 def exit_script():
@@ -295,6 +295,7 @@ class testMainClass(baseMainTestClass):
             dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified)
         skippedProperties = exchange.safe_value(self.skippedMethods, methodName, {})
         call_method(self.testFiles, methodNameInTest, exchange, skippedProperties, args)
+        # if it was passed successfully, add to the list of successfull tests
         if isPublic:
             self.checkedPublicTests[methodNameInTest] = True
 
@@ -335,6 +336,9 @@ class testMainClass(baseMainTestClass):
                     dump('[TEST_WARNING] Exchange is on maintenance', exchange.id)
                 # If public test faces authentication error, we don't break(see comments under `testSafe` method)
                 elif isPublic and isAuthError:
+                    # in case of loadMarkets, it means that "tester"(developer or travis) does not have correct authentication, so it does not have a point to proceed at all
+                    if methodName == 'loadMarkets':
+                        dump('[TEST_WARNING]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exception_message(e), exchange.id, methodName, argsStringified)
                     if self.info:
                         dump('[TEST_WARNING]', 'Authentication problem for public method', exception_message(e), exchange.id, methodName, argsStringified)
                 else:
@@ -385,8 +389,9 @@ class testMainClass(baseMainTestClass):
                     errors.append(testNames[i])
             # we don't raise exception for public-tests, see comments under 'testSafe' method
             failedMsg = ''
-            if len(errors):
-                failedMsg = ' | Failed methods: ' + ', '.join(errors)
+            errorsLength = len(errors)
+            if errorsLength > 0:
+                failedMsg = ' | Failed methods : ' + ', '.join(errors)
             dump(self.add_padding('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id)
 
     def load_exchange(self, exchange):

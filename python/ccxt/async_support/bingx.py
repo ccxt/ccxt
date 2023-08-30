@@ -108,6 +108,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'market/trades': 3,
                                 'market/depth': 3,
                                 'market/kline': 3,
+                                'ticker/24hr': 1,
                             },
                         },
                         'private': {
@@ -121,6 +122,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/order': 3,
                                 'trade/cancel': 3,
                                 'trade/batchOrders': 3,
+                                'trade/cancelOrders': 3,
                             },
                         },
                     },
@@ -272,6 +274,7 @@ class bingx(Exchange, ImplicitAPI):
                     '500': ExchangeError,
                     '504': ExchangeError,
                     '100001': AuthenticationError,
+                    '100412': AuthenticationError,
                     '100202': InsufficientFunds,
                     '100400': BadRequest,
                     '100440': ExchangeError,
@@ -676,7 +679,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns [dict]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -773,9 +776,9 @@ class bingx(Exchange, ImplicitAPI):
             time = self.parse8601(datetimeId)
         isBuyerMaker = self.safe_value_2(trade, 'buyerMaker', 'isBuyerMaker')
         takeOrMaker = None
-        if isBuyerMaker:
-            takeOrMaker = 'maker'
-        elif isBuyerMaker is not None:
+        side = None
+        if isBuyerMaker is not None:
+            side = 'sell' if isBuyerMaker else 'buy'
             takeOrMaker = 'taker'
         cost = self.safe_string(trade, 'quoteQty')
         type = 'spot' if (cost is None) else 'swap'
@@ -789,7 +792,7 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': self.safe_symbol(None, market, '-', type),
             'order': None,
             'type': None,
-            'side': None,
+            'side': side,
             'takerOrMaker': takeOrMaker,
             'price': self.safe_string(trade, 'price'),
             'amount': self.safe_string_2(trade, 'qty', 'amount'),
@@ -809,7 +812,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -892,7 +895,7 @@ class bingx(Exchange, ImplicitAPI):
         see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -957,9 +960,9 @@ class bingx(Exchange, ImplicitAPI):
         see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        :returns [dict]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         await self.load_markets()
@@ -1009,7 +1012,7 @@ class bingx(Exchange, ImplicitAPI):
         see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure:
+        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1056,18 +1059,21 @@ class bingx(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
+        see https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
-            raise BadRequest(self.id + ' fetchTicker is only supported for swap markets.')
         request = {
             'symbol': market['id'],
         }
-        response = await self.swapV2PublicGetQuoteTicker(self.extend(request, params))
+        response = None
+        if market['spot']:
+            response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
+        else:
+            response = await self.swapV2PublicGetQuoteTicker(self.extend(request, params))
         #
         #    {
         #        "code": 0,
@@ -1089,7 +1095,8 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data')
-        return self.parse_ticker(data, market)
+        ticker = self.safe_value(data, 0, data)
+        return self.parse_ticker(ticker, market)
 
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
@@ -1097,16 +1104,21 @@ class bingx(Exchange, ImplicitAPI):
         see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
+        market = None
         if symbols is not None:
             symbols = self.market_symbols(symbols)
             firstSymbol = self.safe_string(symbols, 0)
             market = self.market(firstSymbol)
-            if not market['swap']:
-                raise BadRequest(self.id + ' fetchTicker is only supported for swap markets.')
-        response = await self.swapV2PublicGetQuoteTicker(params)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        response = None
+        if type == 'spot':
+            response = await self.spotV1PublicGetTicker24hr(params)
+        else:
+            response = await self.swapV2PublicGetQuoteTicker(params)
         #
         #    {
         #        "code": 0,
@@ -1134,6 +1146,20 @@ class bingx(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker, market=None):
         #
+        # spot
+        #    {
+        #        symbol: 'BTC-USDT',
+        #        openPrice: '26032.08',
+        #        highPrice: '26178.86',
+        #        lowPrice: '25968.18',
+        #        lastPrice: '26113.60',
+        #        volume: '1161.79',
+        #        quoteVolume: '30288466.44',
+        #        openTime: '1693081020762',
+        #        closeTime: '1693167420762'
+        #    }
+        # swap
+        #
         #    {
         #        "symbol": "BTC-USDT",
         #        "priceChange": "52.5",
@@ -1150,20 +1176,22 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        defaultType = self.safe_string(self.options, 'defaultType', 'swap')
-        symbol = self.safe_symbol(marketId, market, '-', defaultType)
+        change = self.safe_string(ticker, 'priceChange')
+        type = 'spot' if (change is None) else 'swap'
+        symbol = self.safe_symbol(marketId, market, None, type)
         open = self.safe_string(ticker, 'openPrice')
         high = self.safe_string(ticker, 'highPrice')
         low = self.safe_string(ticker, 'lowPrice')
         close = self.safe_string(ticker, 'lastPrice')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         baseVolume = self.safe_string(ticker, 'volume')
-        change = self.safe_string(ticker, 'chapriceChangenge')
         percentage = self.safe_string(ticker, 'priceChangePercent')
+        ts = self.safe_integer(ticker, 'closeTime')
+        datetime = self.iso8601(ts)
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': ts,
+            'datetime': datetime,
             'high': high,
             'low': low,
             'bid': None,
@@ -1191,7 +1219,7 @@ class bingx(Exchange, ImplicitAPI):
         see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :param boolean [params.standard]: whether to fetch standard contract balances
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         response = None
@@ -1301,7 +1329,7 @@ class bingx(Exchange, ImplicitAPI):
         :param [str]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the bingx api endpoint
         :param boolean [params.standard]: whether to fetch standard contract positions
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns [dict]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1413,7 +1441,7 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params.triggerPrice]: triggerPrice at which the attached take profit / stop loss order will be triggered(swap markets only)
         :param float [params.stopLossPrice]: stop loss trigger price(swap markets only)
         :param float [params.takeProfitPrice]: take profit trigger price(swap markets only)
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1679,7 +1707,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_symbol('cancelOrder', symbol)
         await self.load_markets()
@@ -1750,7 +1778,7 @@ class bingx(Exchange, ImplicitAPI):
         see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
         :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns [dict]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_symbol('cancelAllOrders', symbol)
         await self.load_markets()
@@ -1796,21 +1824,30 @@ class bingx(Exchange, ImplicitAPI):
         """
         cancel multiple orders
         see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
+        see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
         :param [str] ids: order ids
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_symbol('cancelOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
-        if market['type'] != 'swap':
-            raise BadRequest(self.id + ' cancelOrders is only supported for swap markets.')
         request = {
             'symbol': market['id'],
-            'ids': ids,
         }
-        response = await self.swapV2PrivateDeleteTradeBatchOrders(self.extend(request, params))
+        parsedIds = []
+        for i in range(0, len(ids)):
+            id = ids[i]
+            stringId = str(id)
+            parsedIds.append(stringId)
+        response = None
+        if market['spot']:
+            request['orderIds'] = ','.join(parsedIds)
+            response = await self.spotV1PrivatePostTradeCancelOrders(self.extend(request, params))
+        else:
+            request['orderIdList'] = parsedIds
+            response = await self.swapV2PrivateDeleteTradeBatchOrders(self.extend(request, params))
         #
         #    {
         #        "code": 0,
@@ -1849,7 +1886,7 @@ class bingx(Exchange, ImplicitAPI):
         see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Order
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_symbol('fetchOrders', symbol)
         await self.load_markets()
@@ -1928,7 +1965,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns [dict]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_symbol('fetchOrders', symbol)
         await self.load_markets()
@@ -2013,7 +2050,7 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bingx api endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.standard]: whether to fetch standard contract orders
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns [dict]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_symbol('fetchClosedOrders', symbol)
         await self.load_markets()
@@ -2099,7 +2136,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -2137,7 +2174,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of transfers structures to retrieve
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns [dict]: a list of `transfer structures <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
         await self.load_markets()
         currency = None
@@ -2208,7 +2245,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -2249,7 +2286,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns [dict]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -2410,7 +2447,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
         :param dict [params]: parameters specific to the bingx api endpoint
-        :returns dict: A `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
+        :returns dict: A `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure>`
         """
         type = self.safe_integer(params, 'type')  # 1 increase margin 2 decrease margin
         if type is None:
@@ -2441,7 +2478,7 @@ class bingx(Exchange, ImplicitAPI):
         see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        :returns dict: a `leverage structure <https://github.com/ccxt/ccxt/wiki/Manual#leverage-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2501,7 +2538,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the bingx api endpoint
         :param str params['trandingUnit']: COIN(directly represent assets such and ETH) or CONT(represents the number of contract sheets)
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns [dict]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         self.check_required_argument('fetchMyTrades', symbol, 'symbol')
         self.check_required_argument('fetchMyTrades', since, 'since')
@@ -2607,7 +2644,7 @@ class bingx(Exchange, ImplicitAPI):
         see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
         :param [str]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
         """
         await self.load_markets()
         response = await self.walletsV1PrivateGetCapitalConfigGetall(params)
@@ -2624,7 +2661,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str [tag]:
         :param dict [params]: extra parameters specific to the bingx api endpoint
         :param int [params.walletType]: 1 fund account, 2 standard account, 3 perpetual account
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -2654,6 +2691,23 @@ class bingx(Exchange, ImplicitAPI):
         #    }
         self.parse_transaction(data)
 
+    def parse_params(self, params):
+        sortedParams = self.keysort(params)
+        keys = list(sortedParams.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = sortedParams[key]
+            if isinstance(value, list):
+                arrStr = '['
+                for j in range(0, len(value)):
+                    arrayElement = value[j]
+                    if j > 0:
+                        arrStr += ','
+                    arrStr += str(arrayElement)
+                arrStr += ']'
+                sortedParams[key] = arrStr
+        return sortedParams
+
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]
         version = section[1]
@@ -2669,14 +2723,15 @@ class bingx(Exchange, ImplicitAPI):
         params = self.omit(params, self.extract_params(path))
         params = self.keysort(params)
         if access == 'public':
+            params['timestamp'] = self.nonce()
             if params:
                 url += '?' + self.urlencode(params)
         elif access == 'private':
             self.check_required_credentials()
             params['timestamp'] = self.nonce()
-            query = self.urlencode(params)
-            rawQuery = self.rawencode(params)
-            signature = self.hmac(self.encode(rawQuery), self.encode(self.secret), hashlib.sha256)
+            parsedParams = self.parse_params(params)
+            query = self.urlencode(parsedParams)
+            signature = self.hmac(self.encode(self.rawencode(parsedParams)), self.encode(self.secret), hashlib.sha256)
             if params:
                 query = '?' + query + '&'
             else:

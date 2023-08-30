@@ -60,6 +60,7 @@ class ImplicitAPI:
     public_get_tradingbot_grid_ai_param = publicGetTradingBotGridAiParam = Entry('tradingBot/grid/ai-param', 'public', 'GET', {'cost': 1})
     public_get_tradingbot_grid_min_investment = publicGetTradingBotGridMinInvestment = Entry('tradingBot/grid/min-investment', 'public', 'GET', {'cost': 1})
     public_get_tradingbot_public_rsi_back_testing = publicGetTradingBotPublicRsiBackTesting = Entry('tradingBot/public/rsi-back-testing', 'public', 'GET', {'cost': 1})
+    public_get_asset_exchange_list = publicGetAssetExchangeList = Entry('asset/exchange-list', 'public', 'GET', {'cost': 1.6666666666666667})
     public_get_finance_savings_lending_rate_summary = publicGetFinanceSavingsLendingRateSummary = Entry('finance/savings/lending-rate-summary', 'public', 'GET', {'cost': 1.6666666666666667})
     public_get_finance_savings_lending_rate_history = publicGetFinanceSavingsLendingRateHistory = Entry('finance/savings/lending-rate-history', 'public', 'GET', {'cost': 1.6666666666666667})
     public_get_finance_sfp_dcd_products = publicGetFinanceSfpDcdProducts = Entry('finance/sfp/dcd/products', 'public', 'GET', {'cost': 0.6666666666666666})
