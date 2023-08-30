@@ -1539,9 +1539,9 @@ An exchange can be instantiated like shown in the examples below:
 
    # Python
    import ccxt
-   exchange = ccxt.okcoinusd () # default id
-   okcoin1 = ccxt.okcoinusd ({ 'id': 'okcoin1' })
-   okcoin2 = ccxt.okcoinusd ({ 'id': 'okcoin2' })
+   exchange = ccxt.okcoin() # default id
+   okcoin1 = ccxt.okcoin({ 'id': 'okcoin1' })
+   okcoin2 = ccxt.okcoin({ 'id': 'okcoin2' })
    id = 'btcchina'
    btcchina = eval ('ccxt.%s ()' % id)
    coinbasepro = getattr (ccxt, 'coinbasepro') ()
@@ -2467,7 +2467,7 @@ In order to load markets manually beforehand call the ``loadMarkets ()`` / ``loa
 .. code-block:: Python
 
    # Python
-   okcoin = ccxt.okcoinusd()
+   okcoin = ccxt.okcoin()
    markets = okcoin.load_markets()
    print(okcoin.id, markets)
 
