@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/bitvavo.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } from './base/errors.js';
-import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
+import { DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Int } from './base/types.js';
@@ -261,7 +261,7 @@ export default class bitvavo extends Exchange {
                     'expires': 1000, // 1 second
                 },
             },
-            'precisionMode': SIGNIFICANT_DIGITS,
+            'precisionMode': DECIMAL_PLACES,
             'commonCurrencies': {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             },
