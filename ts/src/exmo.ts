@@ -1645,6 +1645,46 @@ export default class exmo extends Exchange {
         return this.parseOrders (response, market, since, limit, params);
     }
 
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#editOrder
+         * @description *margin only* edit a trade order
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#f27ee040-c75f-4b59-b608-d05bd45b7899  // margin
+         * @param {string} id order id
+         * @param {string} symbol unified CCXT market symbol
+         * @param {string} type not used by exmo editOrder
+         * @param {string} side not used by exmo editOrder
+         * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {float} [params.triggerPrice] stop price for stop-market and stop-limit orders
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.distance] distance for trailing stop orders
+         * @param {int} [params.expire] expiration timestamp in UTC timezone for the order. order will not be expired if expire is 0
+         * @param {string} [params.comment] optional comment for order. up to 50 latin symbols, whitespaces, underscores
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const request = {
+            'order_id': id,  // id of the open order
+        };
+        if (amount !== undefined) {
+            request['quantity'] = amount;
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (market['symbol'], price);
+        }
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision (market['symbol'], triggerPrice);
+        }
+        const response = await this.privatePostMarginUserOrderUpdate (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
     async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
