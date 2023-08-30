@@ -492,15 +492,17 @@ export default class gate extends gateRest {
             const subscription = this.safeString(ohlcv, 'n', '');
             const parts = subscription.split('_');
             const timeframe = this.safeString(parts, 0);
+            const timeframeId = this.findTimeframe(timeframe);
             const prefix = timeframe + '_';
             const marketId = subscription.replace(prefix, '');
             const symbol = this.safeSymbol(marketId, undefined, '_', marketType);
             const parsed = this.parseOHLCV(ohlcv);
-            let stored = this.safeValue(this.ohlcvs, symbol);
+            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+            let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                this.ohlcvs[symbol] = stored;
+                this.ohlcvs[symbol][timeframeId] = stored;
             }
             stored.append(parsed);
             marketIds[symbol] = timeframe;
@@ -511,7 +513,7 @@ export default class gate extends gateRest {
             const timeframe = marketIds[symbol];
             const interval = this.findTimeframe(timeframe);
             const hash = 'candles' + ':' + interval + ':' + symbol;
-            const stored = this.safeValue(this.ohlcvs, symbol);
+            const stored = this.safeValue(this.ohlcvs[symbol], interval);
             client.resolve(stored, hash);
         }
     }
