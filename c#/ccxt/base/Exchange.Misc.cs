@@ -39,7 +39,7 @@ public partial class Exchange
         }
         else
         {
-            return (string)parameter2;
+            return (string)path2;
         }
     }
 

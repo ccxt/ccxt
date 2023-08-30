@@ -43,8 +43,12 @@ public partial class Exchange
         return omit(a, keys);
     }
 
-    public dict omit(object aa, object k)
+    public object omit(object aa, object k)
     {
+        if (aa.GetType() == typeof(List<object>))
+        {
+            return aa;
+        }
         List<string> keys = null;
         if (k.GetType() == typeof(string))
         {

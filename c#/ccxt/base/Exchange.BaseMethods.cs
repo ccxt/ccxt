@@ -300,7 +300,7 @@ public partial class Exchange
     public async virtual Task<object> fetchRestOrderBookSafe(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object fetchSnapshotMaxRetries = this.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
+        object fetchSnapshotMaxRetries = this.handleOption("watchOrderBook", "maxRetries", 3);
         for (object i = 0; isLessThan(i, fetchSnapshotMaxRetries); postFixIncrement(ref i))
         {
             try
@@ -423,9 +423,9 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " parseWsOrderTrade() is not supported yet")) ;
     }
 
-    public virtual void parseWsOHLCV(object ohlcv, object market = null)
+    public virtual object parseWsOHLCV(object ohlcv, object market = null)
     {
-        throw new NotSupported ((string)add(this.id, " parseWsOHLCV() is not supported yet")) ;
+        return this.parseOHLCV(ohlcv, market);
     }
 
     public async virtual Task<object> fetchFundingRates(object symbols = null, object parameters = null)
@@ -3098,11 +3098,20 @@ public partial class Exchange
         }
         if (isTrue(isEqual(precision, null)))
         {
-            return fee;
+            return this.forceString(fee);
         } else
         {
             return this.decimalToPrecision(fee, ROUND, precision, this.precisionMode, this.paddingMode);
         }
+    }
+
+    public virtual object forceString(object value)
+    {
+        if (isTrue(!((value).GetType() == typeof(string))))
+        {
+            return this.numberToString(value);
+        }
+        return value;
     }
 
     public virtual object isTickPrecision()
@@ -3870,7 +3879,7 @@ public partial class Exchange
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @returns {object[]} an array of [funding history structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(incomes)); postFixIncrement(ref i))
@@ -3894,6 +3903,17 @@ public partial class Exchange
         return market;
     }
 
+    public virtual object parseWsOHLCVs(object ohlcvs, object market = null, object timeframe = null, object since = null, object limit = null)
+    {
+        timeframe ??= "1m";
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
+        {
+            ((List<object>)results).Add(this.parseWsOHLCV(getValue(ohlcvs, i), market));
+        }
+        return results;
+    }
+
     public async virtual Task<object> fetchTransactions(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -3905,7 +3925,7 @@ public partial class Exchange
         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange api endpoint
-        * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+        * @returns {object} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchDepositsWithdrawals")))
