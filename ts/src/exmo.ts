@@ -1335,20 +1335,28 @@ export default class exmo extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+         * @param {string} [params.timeInForce] 'fok', 'ioc' or 'post_only'
+         * @param {boolean} [params.postOnly] true for post only orders
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const prefix = (type === 'market') ? (type + '_') : '';
-        const orderType = prefix + side;
         const isMarket = (type === 'market') && (price === undefined);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        const isSpot = (marginMode !== 'cross') && (marginMode !== 'isolated');
+        const execType = this.safeString (params, 'exec_type');
+        let isPostOnly = undefined;
+        [ isPostOnly, params ] = this.handlePostOnly (type === 'market', execType === 'postOnly', params);
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request = {
             'pair': market['id'],
             // 'leverage': 2,
             'quantity': this.amountToPrecision (market['symbol'], amount),
             // spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             // margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
-            'type': orderType,
             'price': isMarket ? 0 : this.priceToPrecision (market['symbol'], price),
             // 'stop_price': this.priceToPrecision (symbol, stopPrice),
             // 'distance': 0, // distance for trailing stop orders
@@ -1356,7 +1364,7 @@ export default class exmo extends Exchange {
             // 'client_id': 123, // optional, must be a positive integer
             // 'comment': '', // up to 50 latin symbols, whitespaces, underscores
         };
-        let method = 'privatePostOrderCreate';
+        let method = isSpot ? 'privatePostOrderCreate' : 'privatePostMarginUserOrderCreate';
         let clientOrderId = this.safeValue2 (params, 'client_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             clientOrderId = this.safeInteger2 (params, 'client_id', 'clientOrderId');
@@ -1365,16 +1373,47 @@ export default class exmo extends Exchange {
             } else {
                 request['client_id'] = clientOrderId;
             }
-            params = this.omit (params, [ 'client_id', 'clientOrderId' ]);
         }
-        if ((type === 'stop') || (type === 'stop_limit') || (type === 'trailing_stop')) {
-            const stopPrice = this.safeNumber2 (params, 'stop_price', 'stopPrice');
+        params = this.omit (params, [ 'stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId' ]);
+        if ((type === 'stop_buy') || (type === 'stop_sell') || (type === 'stop_limit_buy') || (type === 'stop_limit_sell') || (type === 'trailing_stop_buy') || (type === 'trailing_stop_sell')) {
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             } else {
-                params = this.omit (params, [ 'stopPrice', 'stop_price' ]);
                 request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-                method = 'privatePostMarginUserOrderCreate';
+            }
+        } else if (stopPrice !== undefined) {
+            if (isSpot) {
+                if (type === 'limit') {
+                    throw new BadRequest (this.id + ' createOrder () cannot create stop limit orders for spot, only stop market');
+                } else {
+                    method = 'privatePostStopMarketOrderCreate';
+                    request['type'] = side;
+                    request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
+                }
+            } else {
+                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+                if (type === 'limit') {
+                    request['type'] = (side === 'buy') ? 'stop_limit_buy' : 'stop_limit_sell';
+                } else if (type === 'market') {
+                    request['type'] = (side === 'buy') ? 'stop_buy' : 'stop_sell';
+                }
+            }
+        } else {
+            if (isSpot) {
+                if (type === 'limit') {
+                    type = side;
+                } else if (type === 'market') {
+                    type = 'market_' + side;
+                }
+            } else {
+                type = type + '_' + side;
+            }
+        }
+        if (!isSpot) {
+            if (isPostOnly) {
+                request['exec_type'] = 'post_only';
+            } else if (timeInForce !== undefined) {
+                request['exec_type'] = timeInForce;
             }
         }
         const response = await this[method] (this.extend (request, params));
