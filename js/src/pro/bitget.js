@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import bitgetRest from '../bitget.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -54,9 +54,18 @@ export default class bitget extends bitgetRest {
                 'ws': {
                     'exact': {
                         '30001': BadRequest,
+                        '30002': AuthenticationError,
+                        '30003': BadRequest,
+                        '30004': AuthenticationError,
+                        '30005': AuthenticationError,
+                        '30006': RateLimitExceeded,
+                        '30007': RateLimitExceeded,
+                        '30011': AuthenticationError,
+                        '30012': AuthenticationError,
+                        '30013': AuthenticationError,
+                        '30014': BadRequest,
                         '30015': AuthenticationError,
-                        '30016': BadRequest,
-                        '30011': AuthenticationError, // { event: 'error', code: 30011, msg: 'Invalid ACCESS_KEY' }
+                        '30016': BadRequest, // { event: 'error', code: 30016, msg: 'Param error' }
                     },
                 },
             },
@@ -1146,6 +1155,9 @@ export default class bitget extends bitgetRest {
                 const code = this.safeString(message, 'code');
                 const feedback = this.id + ' ' + this.json(message);
                 this.throwExactlyMatchedException(this.exceptions['ws']['exact'], code, feedback);
+                const msg = this.safeString(message, 'msg', '');
+                this.throwBroadlyMatchedException(this.exceptions['ws']['broad'], msg, feedback);
+                throw new ExchangeError(feedback);
             }
             return false;
         }
@@ -1156,6 +1168,10 @@ export default class bitget extends bitgetRest {
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
+            }
+            else {
+                // Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue #19041
+                client.reject(e);
             }
             return true;
         }

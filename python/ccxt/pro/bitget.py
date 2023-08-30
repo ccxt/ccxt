@@ -8,9 +8,11 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 import hashlib
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
@@ -60,9 +62,18 @@ class bitget(ccxt.async_support.bitget):
                 'ws': {
                     'exact': {
                         '30001': BadRequest,  # {"event":"error","code":30001,"msg":"instType:sp,channel:candleNone,instId:BTCUSDT doesn't exist"}
+                        '30002': AuthenticationError,  # illegal request
+                        '30003': BadRequest,  # invalid op
+                        '30004': AuthenticationError,  # requires login
+                        '30005': AuthenticationError,  # login failed
+                        '30006': RateLimitExceeded,  # too many requests
+                        '30007': RateLimitExceeded,  # request over limit,connection close
+                        '30011': AuthenticationError,  # invalid ACCESS_KEY
+                        '30012': AuthenticationError,  # invalid ACCESS_PASSPHRASE
+                        '30013': AuthenticationError,  # invalid ACCESS_TIMESTAMP
+                        '30014': BadRequest,  # Request timestamp expired
                         '30015': AuthenticationError,  # {event: 'error', code: 30015, msg: 'Invalid sign'}
                         '30016': BadRequest,  # {event: 'error', code: 30016, msg: 'Param error'}
-                        '30011': AuthenticationError,  # {event: 'error', code: 30011, msg: 'Invalid ACCESS_KEY'}
                     },
                 },
             },
@@ -1089,6 +1100,9 @@ class bitget(ccxt.async_support.bitget):
                 code = self.safe_string(message, 'code')
                 feedback = self.id + ' ' + self.json(message)
                 self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], code, feedback)
+                msg = self.safe_string(message, 'msg', '')
+                self.throw_broadly_matched_exception(self.exceptions['ws']['broad'], msg, feedback)
+                raise ExchangeError(feedback)
             return False
         except Exception as e:
             if isinstance(e, AuthenticationError):
@@ -1096,6 +1110,9 @@ class bitget(ccxt.async_support.bitget):
                 client.reject(e, messageHash)
                 if messageHash in client.subscriptions:
                     del client.subscriptions[messageHash]
+            else:
+                # Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue  #19041
+                client.reject(e)
             return True
 
     def handle_message(self, client: Client, message):
