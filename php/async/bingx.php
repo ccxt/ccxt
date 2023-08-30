@@ -99,6 +99,7 @@ class bingx extends Exchange {
                                 'market/trades' => 3,
                                 'market/depth' => 3,
                                 'market/kline' => 3,
+                                'ticker/24hr' => 1,
                             ),
                         ),
                         'private' => array(
@@ -107,7 +108,6 @@ class bingx extends Exchange {
                                 'trade/openOrders' => 3,
                                 'trade/historyOrders' => 3,
                                 'account/balance' => 3,
-                                'ticker/24hr' => 1,
                             ),
                             'post' => array(
                                 'trade/order' => 3,
@@ -265,6 +265,7 @@ class bingx extends Exchange {
                     '500' => '\\ccxt\\ExchangeError',
                     '504' => '\\ccxt\\ExchangeError',
                     '100001' => '\\ccxt\\AuthenticationError',
+                    '100412' => '\\ccxt\\AuthenticationError',
                     '100202' => '\\ccxt\\InsufficientFunds',
                     '100400' => '\\ccxt\\BadRequest',
                     '100440' => '\\ccxt\\ExchangeError',
@@ -1124,7 +1125,7 @@ class bingx extends Exchange {
             );
             $response = null;
             if ($market['spot']) {
-                $response = Async\await($this->spotV1PrivateGetTicker24hr (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PublicGetTicker24hr (array_merge($request, $params)));
             } else {
                 $response = Async\await($this->swapV2PublicGetQuoteTicker (array_merge($request, $params)));
             }
@@ -1164,15 +1165,20 @@ class bingx extends Exchange {
              * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
+            $market = null;
             if ($symbols !== null) {
                 $symbols = $this->market_symbols($symbols);
                 $firstSymbol = $this->safe_string($symbols, 0);
                 $market = $this->market($firstSymbol);
-                if (!$market['swap']) {
-                    throw new BadRequest($this->id . ' fetchTicker is only supported for swap markets.');
-                }
             }
-            $response = Async\await($this->swapV2PublicGetQuoteTicker ($params));
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+            $response = null;
+            if ($type === 'spot') {
+                $response = Async\await($this->spotV1PublicGetTicker24hr ($params));
+            } else {
+                $response = Async\await($this->swapV2PublicGetQuoteTicker ($params));
+            }
             //
             //    {
             //        "code" => 0,
@@ -2870,30 +2876,25 @@ class bingx extends Exchange {
     }
 
     public function parse_params($params) {
-        $result = '';
         $sortedParams = $this->keysort($params);
         $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if ($i > 0) {
-                $result .= '&';
-            }
             $value = $sortedParams[$key];
             if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
-                $result .= $key . '=[';
+                $arrStr = '[';
                 for ($j = 0; $j < count($value); $j++) {
                     $arrayElement = $value[$j];
                     if ($j > 0) {
-                        $result .= ',';
+                        $arrStr .= ',';
                     }
-                    $result .= (string) $arrayElement;
+                    $arrStr .= (string) $arrayElement;
                 }
-                $result .= ']';
-            } else {
-                $result .= $key . '=' . (string) $value;
+                $arrStr .= ']';
+                $sortedParams[$key] = $arrStr;
             }
         }
-        return $result;
+        return $sortedParams;
     }
 
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -2912,14 +2913,16 @@ class bingx extends Exchange {
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         if ($access === 'public') {
+            $params['timestamp'] = $this->nonce();
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
         } elseif ($access === 'private') {
             $this->check_required_credentials();
             $params['timestamp'] = $this->nonce();
-            $query = $this->parse_params($params);
-            $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
+            $parsedParams = $this->parse_params($params);
+            $query = $this->urlencode($parsedParams);
+            $signature = $this->hmac($this->encode($this->rawencode($parsedParams)), $this->encode($this->secret), 'sha256');
             if ($params) {
                 $query = '?' . $query . '&';
             } else {

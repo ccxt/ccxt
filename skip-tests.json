@@ -630,7 +630,6 @@
         }
     },
     "currencycom": {
-        "skip": true,
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {

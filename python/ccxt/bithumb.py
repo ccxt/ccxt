@@ -617,7 +617,7 @@ class bithumb(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'currency': market['base'],
+            'currency': market['base'] + '_' + market['quote'],
         }
         if limit is not None:
             request['count'] = limit  # default 20, max 100

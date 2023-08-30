@@ -734,6 +734,7 @@ export default class Exchange {
     amountToPrecision(symbol: string, amount: any): any;
     feeToPrecision(symbol: string, fee: any): any;
     currencyToPrecision(code: string, fee: any, networkCode?: any): any;
+    forceString(value: any): any;
     isTickPrecision(): boolean;
     isDecimalPrecision(): boolean;
     isSignificantPrecision(): boolean;

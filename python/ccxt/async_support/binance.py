@@ -212,12 +212,11 @@ class binance(Exchange, ImplicitAPI):
             'api': {
                 # the API structure below will need 3-layer apidefs
                 'sapi': {
-                    # IP(api) = 1200 per minute =>(rateLimit = 50)
                     # IP(sapi) request rate limit of 12 000 per minute
-                    # 1 IP(sapi) => cost = 0.1
+                    # 1 IP(sapi) => cost = 0.1 =>(1000 / (50 * 0.1)) * 60 = 12000
                     # 10 IP(sapi) => cost = 1
                     # UID(sapi) request rate limit of 180 000 per minute
-                    # 1 UID(sapi) => cost = 1200 / 180 000 = 0.006667
+                    # 1 UID(sapi) => cost = 0.006667 =>(1000 / (50 * 0.006667)) * 60 = 180000
                     'get': {
                         'system/status': 0.1,
                         # these endpoints require self.apiKey
@@ -233,7 +232,7 @@ class binance(Exchange, ImplicitAPI):
                         'asset/transfer': 0.1,
                         'asset/assetDetail': 0.1,
                         'asset/tradeFee': 0.1,
-                        'asset/ledger-transfer/cloud-mining/queryByPage': 4,
+                        'asset/ledger-transfer/cloud-mining/queryByPage': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'asset/convert-transfer/queryByPage': 0.033335,
                         'margin/loan': 1,
                         'margin/repay': 1,
@@ -262,15 +261,16 @@ class binance(Exchange, ImplicitAPI):
                         'margin/isolatedMarginTier': 0.1,
                         'margin/rateLimit/order': 2,
                         'margin/dribblet': 0.1,
-                        'margin/dust': 20,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20
+                        'margin/dust': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20
                         'margin/crossMarginCollateralRatio': 10,
                         'margin/exchange-small-liability': 0.6667,
                         'margin/exchange-small-liability-history': 0.6667,
                         'margin/next-hourly-interest-rate': 0.6667,
+                        'margin/delist-schedule': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                         'loan/vip/loanable/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/collateral/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/vip/request/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/income': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/vip/request/data': 2.6668,  # Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
+                        'loan/income': 40.002,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/ongoing/orders': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/ltv/adjustment/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/borrow/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
@@ -289,7 +289,7 @@ class binance(Exchange, ImplicitAPI):
                         'futures/loan/wallet': 1,
                         'futures/loan/adjustCollateral/history': 1,
                         'futures/loan/liquidationHistory': 1,
-                        'rebate/taxQuery': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'rebate/taxQuery': 80.004,  # Weight(UID): 12000 => cost = 0.006667 * 12000 = 80.004
                         # https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall': 1,  # get networks for withdrawing USDT ERC20 vs USDT Omni
                         'capital/deposit/address': 1,
@@ -297,8 +297,8 @@ class binance(Exchange, ImplicitAPI):
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 0.1,
-                        'capital/contract/convertible-coins': 4.0002,
-                        'convert/tradeFlow': 20.0001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.0001
+                        'capital/contract/convertible-coins': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
+                        'convert/tradeFlow': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'convert/exchangeInfo': 50,
                         'convert/assetInfo': 10,
                         'convert/orderStatus': 0.6667,
@@ -306,7 +306,6 @@ class binance(Exchange, ImplicitAPI):
                         'account/apiTradingStatus': 0.1,
                         'account/apiRestrictions/ipRestriction': 0.1,
                         'bnbBurn': 0.1,
-                        # 'sub-account/assets': 1,(v3 endpoint)
                         'sub-account/futures/account': 1,
                         'sub-account/futures/accountSummary': 0.1,
                         'sub-account/futures/positionRisk': 1,
@@ -320,15 +319,16 @@ class binance(Exchange, ImplicitAPI):
                         'sub-account/transfer/subUserHistory': 0.1,
                         'sub-account/universalTransfer': 0.1,
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 1,
-                        'sub-account/transaction-tatistics': 0.4,
+                        'sub-account/transaction-statistics': 0.40002,  # Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'sub-account/subAccountApi/ipRestriction': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'managed-subaccount/asset': 0.1,
                         'managed-subaccount/accountSnapshot': 240,
                         'managed-subaccount/queryTransLogForInvestor': 0.1,
-                        'managed-subaccount/queryTransLogForTradeParent': 0.1,
-                        'managed-subaccount/fetch-future-asset': 0.1,
+                        'managed-subaccount/queryTransLogForTradeParent': 0.40002,  # Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'managed-subaccount/fetch-future-asset': 0.40002,  # Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
                         'managed-subaccount/marginAsset': 0.1,
-                        'managed-subaccount/info': 0.4,
-                        'managed-subaccount/deposit/address': 0.1,
+                        'managed-subaccount/info': 0.40002,  # Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'managed-subaccount/deposit/address': 0.006667,  # Weight(UID): 1 => cost = 0.006667 * 1 = 0.006667
                         'managed-subaccount/query-trans-log': 0.40002,
                         # lending endpoints
                         'lending/daily/product/list': 0.1,
@@ -402,10 +402,13 @@ class binance(Exchange, ImplicitAPI):
                         'nft/history/deposit': 20.001,
                         'nft/history/withdraw': 20.001,
                         'nft/user/getAsset': 20.001,
-                        'pay/transactions': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'pay/transactions': 20.001,
                         'giftcard/verify': 0.1,
                         'giftcard/cryptography/rsa-public-key': 0.1,
                         'giftcard/buyCode/token-limit': 0.1,
+                        'algo/spot/openOrders': 0.1,
+                        'algo/spot/historicalOrders': 0.1,
+                        'algo/spot/subOrders': 0.1,
                         'algo/futures/openOrders': 0.1,
                         'algo/futures/historicalOrders': 0.1,
                         'algo/futures/subOrders': 0.1,
@@ -421,12 +424,12 @@ class binance(Exchange, ImplicitAPI):
                         'staking/stakingRecord': 0.1,
                         'staking/personalLeftQuota': 0.1,
                         'lending/auto-invest/target-asset/list': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/target-asset/roi/list': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/all/asset': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/source-asset/list': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/plan/list': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/plan/id': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'lending/auto-invest/history/list': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/target-asset/roi/list': 0.1,
+                        'lending/auto-invest/all/asset': 0.1,
+                        'lending/auto-invest/source-asset/list': 0.1,
+                        'lending/auto-invest/plan/list': 0.1,
+                        'lending/auto-invest/plan/id': 0.1,
+                        'lending/auto-invest/history/list': 0.1,
                         # simple earn
                         'simple-earn/flexible/list': 15,
                         'simple-earn/locked/list': 15,
@@ -447,9 +450,9 @@ class binance(Exchange, ImplicitAPI):
                         'simple-earn/flexible/history/collateralRecord': 0.1,
                     },
                     'post': {
-                        'asset/dust': 1,
+                        'asset/dust': 0.06667,  # Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
                         'asset/dust-btc': 0.1,
-                        'asset/transfer': 0.1,
+                        'asset/transfer': 6.0003,  # Weight(UID): 900 => cost = 0.006667 * 900 = 6.0003
                         'asset/get-funding-asset': 0.1,
                         'asset/convert-transfer': 0.033335,
                         'account/disableFastWithdrawSwitch': 0.1,
@@ -459,12 +462,12 @@ class binance(Exchange, ImplicitAPI):
                         'capital/withdraw/apply': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'capital/contract/convertible-coins': 4.0002,
                         'capital/deposit/credit-apply': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
-                        'margin/transfer': 1,  # Weight(IP): 600 => cost = 0.1 * 600 = 60
+                        'margin/transfer': 4.0002,
                         'margin/loan': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay': 20.001,
                         'margin/order': 0.040002,  # Weight(UID): 6 => cost = 0.006667 * 6 = 0.040002
                         'margin/order/oco': 0.040002,
-                        'margin/dust': 20,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20
+                        'margin/dust': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/exchange-small-liability': 20.001,
                         # 'margin/isolated/create': 1, discontinued
                         'margin/isolated/transfer': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
@@ -481,8 +484,6 @@ class binance(Exchange, ImplicitAPI):
                         'sub-account/transfer/subToMaster': 0.1,
                         'sub-account/universalTransfer': 0.1,
                         'sub-account/options/enable': 0.1,
-                        # v2 not supported yet
-                        # 'sub-account/subAccountApi/ipRestriction': 20,
                         'managed-subaccount/deposit': 0.1,
                         'managed-subaccount/withdraw': 0.1,
                         'userDataStream': 0.1,
@@ -528,6 +529,7 @@ class binance(Exchange, ImplicitAPI):
                         'giftcard/createCode': 0.1,
                         'giftcard/redeemCode': 0.1,
                         'giftcard/buyCode': 0.1,
+                        'algo/spot/newOrderTwap': 20.001,
                         'algo/futures/newOrderVp': 20.001,
                         'algo/futures/newOrderTwap': 20.001,
                         # staking
@@ -535,15 +537,15 @@ class binance(Exchange, ImplicitAPI):
                         'staking/redeem': 0.1,
                         'staking/setAutoStaking': 0.1,
                         'portfolio/repay': 20.001,
-                        'loan/vip/renew': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
-                        'loan/vip/borrow': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
-                        'loan/borrow': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
-                        'loan/repay': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
-                        'loan/adjust/ltv': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
-                        'loan/customize/margin_call': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
-                        'loan/vip/repay': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
-                        'convert/getQuote': 20.001,
-                        'convert/acceptQuote': 3.3335,
+                        'loan/vip/renew': 40.002,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/vip/borrow': 40.002,
+                        'loan/borrow': 40.002,
+                        'loan/repay': 40.002,
+                        'loan/adjust/ltv': 40.002,
+                        'loan/customize/margin_call': 40.002,
+                        'loan/vip/repay': 40.002,
+                        'convert/getQuote': 1.3334,  # Weight(UID): 200 => cost = 0.006667 * 200 = 1.3334
+                        'convert/acceptQuote': 3.3335,  # Weight(UID): 500 => cost = 0.006667 * 500 = 3.3335
                         'portfolio/auto-collection': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/asset-collection': 6,  # Weight(IP): 60 => cost = 0.1 * 60 = 6
                         'portfolio/bnb-transfer': 150,  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
@@ -567,15 +569,17 @@ class binance(Exchange, ImplicitAPI):
                     'delete': {
                         # 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
                         'margin/openOrders': 0.1,
-                        'margin/order': 0.0066667,  # Weight(UID): 1 => cost = 0.006667
-                        'margin/orderList': 0.0066667,
+                        'margin/order': 0.006667,  # Weight(UID): 1 => cost = 0.006667
+                        'margin/orderList': 0.006667,
                         'margin/isolated/account': 2.0001,  # Weight(UID): 300 => cost =  0.006667 * 300 = 2.0001
                         'userDataStream': 0.1,
                         'userDataStream/isolated': 0.1,
                         # brokerage API TODO NO MENTION OF RATELIMIT IN BROKERAGE DOCS
                         'broker/subAccountApi': 1,
                         'broker/subAccountApi/ipRestriction/ipList': 1,
+                        'algo/spot/order': 0.1,
                         'algo/futures/order': 0.1,
+                        'sub-account/subAccountApi/ipRestriction/ipList': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                     },
                 },
                 'sapiV2': {
@@ -583,10 +587,13 @@ class binance(Exchange, ImplicitAPI):
                         'sub-account/futures/account': 0.1,
                         'sub-account/futures/positionRisk': 0.1,
                     },
+                    'post': {
+                        'sub-account/subAccountApi/ipRestriction': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                    },
                 },
                 'sapiV3': {
                     'get': {
-                        'sub-account/assets': 1,
+                        'sub-account/assets': 0.40002,  # Weight(UID): 60 => cost =  0.006667 * 60 = 0.40002
                     },
                     'post': {
                         'asset/getUserAsset': 0.5,
@@ -594,7 +601,7 @@ class binance(Exchange, ImplicitAPI):
                 },
                 'sapiV4': {
                     'get': {
-                        'sub-account/assets': 1,
+                        'sub-account/assets': 0.40002,  # Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
                     },
                 },
                 # deprecated
@@ -849,55 +856,59 @@ class binance(Exchange, ImplicitAPI):
                     },
                 },
                 'public': {
+                    # IP(api) request rate limit of 6000 per minute
+                    # 1 IP(api) => cost = 0.2 =>(1000 / (50 * 0.2)) * 60 = 6000
                     'get': {
-                        'ping': 1,
-                        'time': 1,
-                        'depth': {'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10], [5000, 50]]},
-                        'trades': 1,
-                        'aggTrades': 1,
-                        'historicalTrades': 5,
-                        'klines': 1,
-                        'ticker/24hr': {'cost': 1, 'noSymbol': 40},
-                        'ticker/price': {'cost': 1, 'noSymbol': 2},
-                        'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
-                        'exchangeInfo': 10,
+                        'ping': 0.2,  # Weight(IP): 1 => cost = 0.2 * 1 = 0.2
+                        'time': 0.2,
+                        'depth': {'cost': 0.4, 'byLimit': [[100, 0.4], [500, 2], [1000, 4], [5000, 20]]},
+                        'trades': 0.4,  # Weight(IP): 2 => cost = 0.2 * 2 = 0.4
+                        'aggTrades': 0.4,
+                        'historicalTrades': 2,  # Weight(IP): 10 => cost = 0.2 * 10 = 2
+                        'klines': 0.4,
+                        'uiKlines': 0.4,
+                        'ticker/24hr': {'cost': 0.4, 'noSymbol': 16},
+                        'ticker/price': {'cost': 0.4, 'noSymbol': 0.8},
+                        'ticker/bookTicker': {'cost': 0.4, 'noSymbol': 0.8},
+                        'exchangeInfo': 4,  # Weight(IP): 20 => cost = 0.2 * 20 = 4
+                        'avgPrice': 0.4,
                     },
                     'put': {
-                        'userDataStream': 1,
+                        'userDataStream': 0.4,
                     },
                     'post': {
-                        'userDataStream': 1,
+                        'userDataStream': 0.4,
                     },
                     'delete': {
-                        'userDataStream': 1,
+                        'userDataStream': 0.4,
                     },
                 },
                 'private': {
                     'get': {
-                        'allOrderList': 10,  # oco
-                        'openOrderList': 3,  # oco
-                        'orderList': 2,  # oco
-                        'order': 2,
-                        'openOrders': {'cost': 3, 'noSymbol': 40},
-                        'allOrders': 10,
-                        'account': 10,
-                        'myTrades': 10,
-                        'rateLimit/order': 20,
-                        'myPreventedMatches': 1,
-                        'myAllocations': 10,
+                        'allOrderList': 4,  # oco Weight(IP): 20 => cost = 0.2 * 20 = 4
+                        'openOrderList': 1.2,  # oco Weight(IP): 6 => cost = 0.2 * 6 = 1.2
+                        'orderList': 0.8,  # oco
+                        'order': 0.8,
+                        'openOrders': {'cost': 1.2, 'noSymbol': 16},
+                        'allOrders': 4,
+                        'account': 4,
+                        'myTrades': 4,
+                        'rateLimit/order': 8,  # Weight(IP): 40 => cost = 0.2 * 40 = 8
+                        'myPreventedMatches': 4,  # Weight(IP): 20 => cost = 0.2 * 20 = 4
+                        'myAllocations': 4,
                     },
                     'post': {
-                        'order/oco': 1,
-                        'sor/order': 1,
-                        'sor/order/test': 1,
-                        'order': 1,
-                        'order/cancelReplace': 1,
-                        'order/test': 1,
+                        'order/oco': 0.2,
+                        'sor/order': 0.2,
+                        'sor/order/test': 0.2,
+                        'order': 0.2,
+                        'order/cancelReplace': 0.2,
+                        'order/test': 0.2,
                     },
                     'delete': {
-                        'openOrders': 1,  # added on 2020-04-25 for canceling all open orders per symbol
-                        'orderList': 1,  # oco
-                        'order': 1,
+                        'openOrders': 0.2,
+                        'orderList': 0.2,  # oco
+                        'order': 0.2,
                     },
                 },
                 'papi': {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.77'
+__version__ = '4.0.79'
 
 # -----------------------------------------------------------------------------
 
@@ -3626,9 +3626,14 @@ class Exchange(object):
             networkItem = self.safe_value(networks, networkCode, {})
             precision = self.safe_value(networkItem, 'precision', precision)
         if precision is None:
-            return fee
+            return self.forceString(fee)
         else:
             return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
+
+    def force_string(self, value):
+        if not isinstance(value, str):
+            return self.number_to_string(value)
+        return value
 
     def is_tick_precision(self):
         return self.precisionMode == TICK_SIZE

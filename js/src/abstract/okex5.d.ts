@@ -59,6 +59,7 @@ interface okex {
     publicGetTradingBotGridAiParam(params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotGridMinInvestment(params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotPublicRsiBackTesting(params?: {}): Promise<implicitReturnType>;
+    publicGetAssetExchangeList(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateSummary(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateHistory(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSfpDcdProducts(params?: {}): Promise<implicitReturnType>;

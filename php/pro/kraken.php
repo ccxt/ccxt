@@ -760,8 +760,8 @@ class kraken extends \ccxt\async\kraken {
     }
 
     public function format_number($n, $length) {
-        $string = $this->number_to_string($n);
-        $parts = explode('.', $string);
+        $stringNumber = $this->number_to_string($n);
+        $parts = explode('.', $stringNumber);
         $integer = $this->safe_string($parts, 0);
         $decimals = $this->safe_string($parts, 1, '');
         $paddedDecimals = str_pad($decimals, $length, '0', STR_PAD_RIGHT);

@@ -90,6 +90,7 @@ class bingx extends bingx$1 {
                                 'market/trades': 3,
                                 'market/depth': 3,
                                 'market/kline': 3,
+                                'ticker/24hr': 1,
                             },
                         },
                         'private': {
@@ -98,7 +99,6 @@ class bingx extends bingx$1 {
                                 'trade/openOrders': 3,
                                 'trade/historyOrders': 3,
                                 'account/balance': 3,
-                                'ticker/24hr': 1,
                             },
                             'post': {
                                 'trade/order': 3,
@@ -255,6 +255,7 @@ class bingx extends bingx$1 {
                     '500': errors.ExchangeError,
                     '504': errors.ExchangeError,
                     '100001': errors.AuthenticationError,
+                    '100412': errors.AuthenticationError,
                     '100202': errors.InsufficientFunds,
                     '100400': errors.BadRequest,
                     '100440': errors.ExchangeError,
@@ -1097,7 +1098,7 @@ class bingx extends bingx$1 {
         };
         let response = undefined;
         if (market['spot']) {
-            response = await this.spotV1PrivateGetTicker24hr(this.extend(request, params));
+            response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
         }
         else {
             response = await this.swapV2PublicGetQuoteTicker(this.extend(request, params));
@@ -1137,15 +1138,21 @@ class bingx extends bingx$1 {
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
+        let market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
             const firstSymbol = this.safeString(symbols, 0);
-            const market = this.market(firstSymbol);
-            if (!market['swap']) {
-                throw new errors.BadRequest(this.id + ' fetchTicker is only supported for swap markets.');
-            }
+            market = this.market(firstSymbol);
         }
-        const response = await this.swapV2PublicGetQuoteTicker(params);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.spotV1PublicGetTicker24hr(params);
+        }
+        else {
+            response = await this.swapV2PublicGetQuoteTicker(params);
+        }
         //
         //    {
         //        "code": 0,
@@ -2826,31 +2833,25 @@ class bingx extends bingx$1 {
         this.parseTransaction(data);
     }
     parseParams(params) {
-        let result = '';
         const sortedParams = this.keysort(params);
         const keys = Object.keys(sortedParams);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (i > 0) {
-                result += '&';
-            }
             const value = sortedParams[key];
             if (Array.isArray(value)) {
-                result += key + '=[';
+                let arrStr = '[';
                 for (let j = 0; j < value.length; j++) {
                     const arrayElement = value[j];
                     if (j > 0) {
-                        result += ',';
+                        arrStr += ',';
                     }
-                    result += arrayElement.toString();
+                    arrStr += arrayElement.toString();
                 }
-                result += ']';
-            }
-            else {
-                result += key + '=' + value.toString();
+                arrStr += ']';
+                sortedParams[key] = arrStr;
             }
         }
-        return result;
+        return sortedParams;
     }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = section[0];
@@ -2869,6 +2870,7 @@ class bingx extends bingx$1 {
         params = this.omit(params, this.extractParams(path));
         params = this.keysort(params);
         if (access === 'public') {
+            params['timestamp'] = this.nonce();
             if (Object.keys(params).length) {
                 url += '?' + this.urlencode(params);
             }
@@ -2876,8 +2878,9 @@ class bingx extends bingx$1 {
         else if (access === 'private') {
             this.checkRequiredCredentials();
             params['timestamp'] = this.nonce();
-            let query = this.parseParams(params);
-            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
+            const parsedParams = this.parseParams(params);
+            let query = this.urlencode(parsedParams);
+            const signature = this.hmac(this.encode(this.rawencode(parsedParams)), this.encode(this.secret), sha256.sha256);
             if (Object.keys(params).length) {
                 query = '?' + query + '&';
             }

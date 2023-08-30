@@ -1115,7 +1115,7 @@ class kucoinfutures extends kucoin {
             'size' => $preciseAmount,
             'leverage' => 1,
         );
-        list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handleTriggerPrices ($params);
+        list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
         $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ));
         if ($triggerPrice) {
             $request['stop'] = ($side === 'buy') ? 'up' : 'down';

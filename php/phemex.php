@@ -1602,15 +1602,19 @@ class phemex extends Exchange {
             $id = $this->safe_string_2($trade, 'execId', 'execID');
             $orderId = $this->safe_string($trade, 'orderID');
             if ($market['settle'] === 'USDT') {
-                $sideId = $this->safe_string($trade, 'side');
-                $side = ($sideId === '1') ? 'buy' : 'sell';
+                $sideId = $this->safe_string_lower($trade, 'side');
+                if (($sideId === 'buy') || ($sideId === 'sell')) {
+                    $side = $sideId;
+                } elseif ($sideId !== null) {
+                    $side = ($sideId === '1') ? 'buy' : 'sell';
+                }
                 $ordType = $this->safe_string($trade, 'ordType');
                 if ($ordType === '1') {
                     $type = 'market';
                 } elseif ($ordType === '2') {
                     $type = 'limit';
                 }
-                $priceString = $this->safe_string($trade, 'priceRp');
+                $priceString = $this->safe_string($trade, 'execPriceRp');
                 $amountString = $this->safe_string($trade, 'execQtyRq');
                 $costString = $this->safe_string($trade, 'execValueRv');
                 $feeCostString = $this->safe_string($trade, 'execFeeRv');

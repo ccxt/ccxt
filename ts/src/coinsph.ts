@@ -1890,9 +1890,9 @@ export default class coinsph extends Exchange {
                 if (i !== 0) {
                     encodedArrayParams += '&';
                 }
-                const arrayValue = query[key];
+                const innerArray = query[key];
                 query = this.omit (query, key);
-                const encodedArrayParam = this.parseArrayParam (arrayValue, key);
+                const encodedArrayParam = this.parseArrayParam (innerArray, key);
                 encodedArrayParams += encodedArrayParam;
             }
         }

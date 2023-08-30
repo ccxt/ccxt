@@ -1835,16 +1835,16 @@ class coinsph extends Exchange {
 
     public function url_encode_query($query = array ()) {
         $encodedArrayParams = '';
-        $keys = is_array($query) ? array_keys($query) : $array();
+        $keys = is_array($query) ? array_keys($query) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             if (gettype($query[$key]) === 'array' && array_keys($query[$key]) === array_keys(array_keys($query[$key]))) {
                 if ($i !== 0) {
                     $encodedArrayParams .= '&';
                 }
-                $array = $query[$key];
+                $innerArray = $query[$key];
                 $query = $this->omit($query, $key);
-                $encodedArrayParam = $this->parse_array_param($array, $key);
+                $encodedArrayParam = $this->parse_array_param($innerArray, $key);
                 $encodedArrayParams .= $encodedArrayParam;
             }
         }

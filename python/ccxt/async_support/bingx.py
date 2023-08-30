@@ -108,6 +108,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'market/trades': 3,
                                 'market/depth': 3,
                                 'market/kline': 3,
+                                'ticker/24hr': 1,
                             },
                         },
                         'private': {
@@ -116,7 +117,6 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/openOrders': 3,
                                 'trade/historyOrders': 3,
                                 'account/balance': 3,
-                                'ticker/24hr': 1,
                             },
                             'post': {
                                 'trade/order': 3,
@@ -274,6 +274,7 @@ class bingx(Exchange, ImplicitAPI):
                     '500': ExchangeError,
                     '504': ExchangeError,
                     '100001': AuthenticationError,
+                    '100412': AuthenticationError,
                     '100202': InsufficientFunds,
                     '100400': BadRequest,
                     '100440': ExchangeError,
@@ -1070,7 +1071,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         response = None
         if market['spot']:
-            response = await self.spotV1PrivateGetTicker24hr(self.extend(request, params))
+            response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
         else:
             response = await self.swapV2PublicGetQuoteTicker(self.extend(request, params))
         #
@@ -1106,13 +1107,18 @@ class bingx(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
+        market = None
         if symbols is not None:
             symbols = self.market_symbols(symbols)
             firstSymbol = self.safe_string(symbols, 0)
             market = self.market(firstSymbol)
-            if not market['swap']:
-                raise BadRequest(self.id + ' fetchTicker is only supported for swap markets.')
-        response = await self.swapV2PublicGetQuoteTicker(params)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        response = None
+        if type == 'spot':
+            response = await self.spotV1PublicGetTicker24hr(params)
+        else:
+            response = await self.swapV2PublicGetQuoteTicker(params)
         #
         #    {
         #        "code": 0,
@@ -2686,25 +2692,21 @@ class bingx(Exchange, ImplicitAPI):
         self.parse_transaction(data)
 
     def parse_params(self, params):
-        result = ''
         sortedParams = self.keysort(params)
         keys = list(sortedParams.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if i > 0:
-                result += '&'
             value = sortedParams[key]
             if isinstance(value, list):
-                result += key + '=['
+                arrStr = '['
                 for j in range(0, len(value)):
                     arrayElement = value[j]
                     if j > 0:
-                        result += ','
-                    result += str(arrayElement)
-                result += ']'
-            else:
-                result += key + '=' + str(value)
-        return result
+                        arrStr += ','
+                    arrStr += str(arrayElement)
+                arrStr += ']'
+                sortedParams[key] = arrStr
+        return sortedParams
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]
@@ -2721,13 +2723,15 @@ class bingx(Exchange, ImplicitAPI):
         params = self.omit(params, self.extract_params(path))
         params = self.keysort(params)
         if access == 'public':
+            params['timestamp'] = self.nonce()
             if params:
                 url += '?' + self.urlencode(params)
         elif access == 'private':
             self.check_required_credentials()
             params['timestamp'] = self.nonce()
-            query = self.parse_params(params)
-            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
+            parsedParams = self.parse_params(params)
+            query = self.urlencode(parsedParams)
+            signature = self.hmac(self.encode(self.rawencode(parsedParams)), self.encode(self.secret), hashlib.sha256)
             if params:
                 query = '?' + query + '&'
             else:

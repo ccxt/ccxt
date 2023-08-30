@@ -1224,7 +1224,7 @@ class probit extends probit$1 {
                         }
                     }
                     else if (cost === undefined) {
-                        throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
+                        throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total cost value in the "amount" argument or in the "cost" extra parameter (the exchange-specific behaviour)');
                     }
                 }
                 else {
@@ -1694,7 +1694,7 @@ class probit extends probit$1 {
             const networkCode = this.networkIdToCode(networkId, currency['code']);
             const withdrawalFees = this.safeValue(network, 'withdrawal_fee', {});
             const withdrawFee = this.safeNumber(withdrawalFees[0], 'amount');
-            if (withdrawalFees.length > 0) {
+            if (withdrawalFees.length) {
                 const withdrawResult = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,
