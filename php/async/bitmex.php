@@ -1376,8 +1376,8 @@ class bitmex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->convert_from_raw_quantity($symbol, $this->safe_string($ticker, 'homeNotional24h')),
-            'quoteVolume' => $this->convert_from_raw_quantity($symbol, $this->safe_string($ticker, 'foreignNotional24h')),
+            'baseVolume' => $this->safe_string($ticker, 'homeNotional24h'),
+            'quoteVolume' => $this->safe_string($ticker, 'foreignNotional24h'),
             'info' => $ticker,
         ), $market);
     }
