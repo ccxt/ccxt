@@ -264,6 +264,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-lever-token/info': 2.5,
                         'v5/spot-lever-token/reference': 2.5,
                         # spot margin trade
+                        'v5/spot-margin-trade/data': 2.5,
                         'v5/spot-cross-margin-trade/data': 2.5,
                         'v5/spot-cross-margin-trade/pledge-token': 2.5,
                         'v5/spot-cross-margin-trade/borrow-token': 2.5,
