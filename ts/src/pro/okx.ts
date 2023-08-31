@@ -1282,6 +1282,8 @@ export default class okx extends okxRest {
                     delete client.subscriptions[messageHash];
                 }
                 return false;
+            } else {
+                client.reject (e);
             }
         }
         return message;
