@@ -100,14 +100,15 @@ class Exchange(object):
     """Base exchange class"""
     id = None
     name = None
+    countries = None
     version = None
     certified = False  # if certified by the CCXT dev team
     pro = False  # if it is integrated with CCXT Pro for WebSocket support
     alias = False  # whether this exchange is an alias to another exchange
     # rate limiter settings
     enableRateLimit = True
-    rateLimit = 0  # milliseconds = seconds * 1000
-    timeout = 0   # milliseconds = seconds * 1000
+    rateLimit = 2000  # milliseconds = seconds * 1000
+    timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_proxy = None
     trust_env = False
@@ -122,7 +123,7 @@ class Exchange(object):
     markets = None
     symbols = None
     codes = None
-    timeframes = None
+    timeframes = {}
 
     fees = {
         'trading': {
@@ -210,7 +211,7 @@ class Exchange(object):
         'base': None,
         'quote': None,
     }
-    exceptions = None
+    exceptions = {}
     limits = {
         'cost': {
             'min': None,
@@ -230,7 +231,33 @@ class Exchange(object):
         },
     }
 
-    httpExceptions = {}
+    httpExceptions = {
+        '422': ExchangeError,
+        '418': DDoSProtection,
+        '429': RateLimitExceeded,
+        '404': ExchangeNotAvailable,
+        '409': ExchangeNotAvailable,
+        '410': ExchangeNotAvailable,
+        '451': ExchangeNotAvailable,
+        '500': ExchangeNotAvailable,
+        '501': ExchangeNotAvailable,
+        '502': ExchangeNotAvailable,
+        '520': ExchangeNotAvailable,
+        '521': ExchangeNotAvailable,
+        '522': ExchangeNotAvailable,
+        '525': ExchangeNotAvailable,
+        '526': ExchangeNotAvailable,
+        '400': ExchangeNotAvailable,
+        '403': ExchangeNotAvailable,
+        '405': ExchangeNotAvailable,
+        '503': ExchangeNotAvailable,
+        '530': ExchangeNotAvailable,
+        '408': RequestTimeout,
+        '504': RequestTimeout,
+        '401': AuthenticationError,
+        '407': AuthenticationError,
+        '511': AuthenticationError,
+    }
 
     balance = None
     orderbooks = None
@@ -242,7 +269,7 @@ class Exchange(object):
     tickers = None
     base_currencies = None
     quote_currencies = None
-    currencies = None
+    currencies = {}
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
     positions = None
@@ -267,7 +294,110 @@ class Exchange(object):
     }
 
     # API method metainfo
-    has = {}
+    has = {
+        'publicAPI': True,
+        'privateAPI': True,
+        'CORS': None,
+        'spot': None,
+        'margin': None,
+        'swap': None,
+        'future': None,
+        'option': None,
+        'addMargin': None,
+        'cancelAllOrders': None,
+        'cancelOrder': True,
+        'cancelOrders': None,
+        'createDepositAddress': None,
+        'createLimitOrder': True,
+        'createMarketOrder': True,
+        'createOrder': True,
+        'createPostOnlyOrder': None,
+        'createReduceOnlyOrder': None,
+        'createStopOrder': None,
+        'createStopLimitOrder': None,
+        'createStopMarketOrder': None,
+        'createOrderWs': None,
+        'editOrderWs': None,
+        'fetchOpenOrdersWs': None,
+        'fetchOrderWs': None,
+        'cancelOrderWs': None,
+        'cancelOrdersWs': None,
+        'cancelAllOrdersWs': None,
+        'fetchTradesWs': None,
+        'fetchBalanceWs': None,
+        'editOrder': 'emulated',
+        'fetchAccounts': None,
+        'fetchBalance': True,
+        'fetchBidsAsks': None,
+        'fetchBorrowInterest': None,
+        'fetchBorrowRate': None,
+        'fetchBorrowRateHistory': None,
+        'fetchBorrowRatesPerSymbol': None,
+        'fetchBorrowRates': None,
+        'fetchCanceledOrders': None,
+        'fetchClosedOrder': None,
+        'fetchClosedOrders': None,
+        'fetchCurrencies': 'emulated',
+        'fetchDeposit': None,
+        'fetchDepositAddress': None,
+        'fetchDepositAddresses': None,
+        'fetchDepositAddressesByNetwork': None,
+        'fetchDeposits': None,
+        'fetchDepositsWithdrawals': None,
+        'fetchTransactionFee': None,
+        'fetchTransactionFees': None,
+        'fetchFundingHistory': None,
+        'fetchFundingRate': None,
+        'fetchFundingRateHistory': None,
+        'fetchFundingRates': None,
+        'fetchIndexOHLCV': None,
+        'fetchL2OrderBook': True,
+        'fetchLastPrices': None,
+        'fetchLedger': None,
+        'fetchLedgerEntry': None,
+        'fetchLeverageTiers': None,
+        'fetchMarketLeverageTiers': None,
+        'fetchMarkets': True,
+        'fetchMarkOHLCV': None,
+        'fetchMyTrades': None,
+        'fetchOHLCV': None,
+        'fetchOpenInterest': None,
+        'fetchOpenInterestHistory': None,
+        'fetchOpenOrder': None,
+        'fetchOpenOrders': None,
+        'fetchOrder': None,
+        'fetchOrderBook': True,
+        'fetchOrderBooks': None,
+        'fetchOrders': None,
+        'fetchOrderTrades': None,
+        'fetchPermissions': None,
+        'fetchPosition': None,
+        'fetchPositions': None,
+        'fetchPositionsBySymbol': None,
+        'fetchPositionsRisk': None,
+        'fetchPremiumIndexOHLCV': None,
+        'fetchStatus': 'emulated',
+        'fetchTicker': True,
+        'fetchTickers': None,
+        'fetchTime': None,
+        'fetchTrades': True,
+        'fetchTradingFee': None,
+        'fetchTradingFees': None,
+        'fetchTradingLimits': None,
+        'fetchTransactions': None,
+        'fetchTransfers': None,
+        'fetchWithdrawAddresses': None,
+        'fetchWithdrawal': None,
+        'fetchWithdrawals': None,
+        'reduceMargin': None,
+        'setLeverage': None,
+        'setMargin': None,
+        'setMarginMode': None,
+        'setPositionMode': None,
+        'signIn': None,
+        'transfer': None,
+        'withdraw': None,
+    }
     precisionMode = DECIMAL_PLACES
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
