@@ -80,6 +80,8 @@ class ImplicitAPI:
     private_subaccounts_post_sub_accounts_user_id_unlock = privateSubAccountsPostSubAccountsUserIdUnlock = Entry('sub_accounts/{user_id}/unlock', ['private', 'subAccounts'], 'POST', {'cost': 1})
     private_subaccounts_put_sub_accounts_user_id_keys_key = privateSubAccountsPutSubAccountsUserIdKeysKey = Entry('sub_accounts/{user_id}/keys/{key}', ['private', 'subAccounts'], 'PUT', {'cost': 1})
     private_subaccounts_delete_sub_accounts_user_id_keys_key = privateSubAccountsDeleteSubAccountsUserIdKeysKey = Entry('sub_accounts/{user_id}/keys/{key}', ['private', 'subAccounts'], 'DELETE', {'cost': 1})
+    private_portfolio_get_spot_currency_pairs = privatePortfolioGetSpotCurrencyPairs = Entry('spot/currency_pairs', ['private', 'portfolio'], 'GET', {'cost': 1.5})
+    private_portfolio_get_spot_currency_pairs_currency_pair = privatePortfolioGetSpotCurrencyPairsCurrencyPair = Entry('spot/currency_pairs/{currency_pair}', ['private', 'portfolio'], 'GET', {'cost': 1.5})
     private_portfolio_get_accounts = privatePortfolioGetAccounts = Entry('accounts', ['private', 'portfolio'], 'GET', {'cost': 1.5})
     private_portfolio_get_account_mode = privatePortfolioGetAccountMode = Entry('account_mode', ['private', 'portfolio'], 'GET', {'cost': 1.5})
     private_portfolio_get_borrowable = privatePortfolioGetBorrowable = Entry('borrowable', ['private', 'portfolio'], 'GET', {'cost': 1.5})

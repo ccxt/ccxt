@@ -87,6 +87,8 @@ interface Exchange {
     privateSubAccountsPostSubAccountsUserIdUnlock (params?: {}): Promise<implicitReturnType>;
     privateSubAccountsPutSubAccountsUserIdKeysKey (params?: {}): Promise<implicitReturnType>;
     privateSubAccountsDeleteSubAccountsUserIdKeysKey (params?: {}): Promise<implicitReturnType>;
+    privatePortfolioGetSpotCurrencyPairs (params?: {}): Promise<implicitReturnType>;
+    privatePortfolioGetSpotCurrencyPairsCurrencyPair (params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetAccounts (params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetAccountMode (params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetBorrowable (params?: {}): Promise<implicitReturnType>;

@@ -279,6 +279,8 @@ class gate extends gate$1 {
                     },
                     'portfolio': {
                         'get': {
+                            'spot/currency_pairs': 1.5,
+                            'spot/currency_pairs/{currency_pair}': 1.5,
                             'accounts': 1.5,
                             'account_mode': 1.5,
                             'borrowable': 1.5,
