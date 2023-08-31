@@ -579,7 +579,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             symbol = parsed['symbol']
             symbols[symbol] = True
             cachedOrders.append(parsed)
-        if len(self.orders) > 0:
+        if len(self.orders):
             client.resolve(self.orders, 'orders')
             keys = list(symbols.keys())
             for i in range(0, len(keys)):

@@ -621,7 +621,7 @@ class krakenfutures extends krakenfutures$1 {
             symbols[symbol] = true;
             cachedOrders.append(parsed);
         }
-        if (this.orders.length > 0) {
+        if (this.orders.length) {
             client.resolve(this.orders, 'orders');
             const keys = Object.keys(symbols);
             for (let i = 0; i < keys.length; i++) {
