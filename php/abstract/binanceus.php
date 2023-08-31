@@ -181,6 +181,24 @@ abstract class binanceus extends \ccxt\binance {
     public function sapi_get_loan_repay_collateral_rate($params = array()) {
         return $this->request('loan/repay/collateral/rate', 'sapi', 'GET', $params, null, null, array("cost" => 600));
     }
+    public function sapi_get_loan_flexible_ongoing_orders($params = array()) {
+        return $this->request('loan/flexible/ongoing/orders', 'sapi', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function sapi_get_loan_flexible_borrow_history($params = array()) {
+        return $this->request('loan/flexible/borrow/history', 'sapi', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapi_get_loan_flexible_repay_history($params = array()) {
+        return $this->request('loan/flexible/repay/history', 'sapi', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapi_get_loan_flexible_ltv_adjustment_history($params = array()) {
+        return $this->request('loan/flexible/ltv/adjustment/history', 'sapi', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapi_get_loan_flexible_loanable_data($params = array()) {
+        return $this->request('loan/flexible/loanable/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapi_get_loan_flexible_collateral_data($params = array()) {
+        return $this->request('loan/flexible/collateral/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
+    }
     public function sapi_get_loan_vip_ongoing_orders($params = array()) {
         return $this->request('loan/vip/ongoing/orders', 'sapi', 'GET', $params, null, null, array("cost" => 40));
     }
@@ -903,6 +921,15 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function sapi_post_loan_customize_margin_call($params = array()) {
         return $this->request('loan/customize/margin_call', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
+    }
+    public function sapi_post_loan_flexible_borrow($params = array()) {
+        return $this->request('loan/flexible/borrow', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
+    }
+    public function sapi_post_loan_flexible_repay($params = array()) {
+        return $this->request('loan/flexible/repay', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
+    }
+    public function sapi_post_loan_flexible_adjust_ltv($params = array()) {
+        return $this->request('loan/flexible/adjust/ltv', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
     }
     public function sapi_post_loan_vip_repay($params = array()) {
         return $this->request('loan/vip/repay', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
@@ -2077,6 +2104,24 @@ abstract class binanceus extends \ccxt\binance {
     public function sapiGetLoanRepayCollateralRate($params = array()) {
         return $this->request('loan/repay/collateral/rate', 'sapi', 'GET', $params, null, null, array("cost" => 600));
     }
+    public function sapiGetLoanFlexibleOngoingOrders($params = array()) {
+        return $this->request('loan/flexible/ongoing/orders', 'sapi', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function sapiGetLoanFlexibleBorrowHistory($params = array()) {
+        return $this->request('loan/flexible/borrow/history', 'sapi', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiGetLoanFlexibleRepayHistory($params = array()) {
+        return $this->request('loan/flexible/repay/history', 'sapi', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiGetLoanFlexibleLtvAdjustmentHistory($params = array()) {
+        return $this->request('loan/flexible/ltv/adjustment/history', 'sapi', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiGetLoanFlexibleLoanableData($params = array()) {
+        return $this->request('loan/flexible/loanable/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function sapiGetLoanFlexibleCollateralData($params = array()) {
+        return $this->request('loan/flexible/collateral/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
+    }
     public function sapiGetLoanVipOngoingOrders($params = array()) {
         return $this->request('loan/vip/ongoing/orders', 'sapi', 'GET', $params, null, null, array("cost" => 40));
     }
@@ -2799,6 +2844,15 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function sapiPostLoanCustomizeMarginCall($params = array()) {
         return $this->request('loan/customize/margin_call', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
+    }
+    public function sapiPostLoanFlexibleBorrow($params = array()) {
+        return $this->request('loan/flexible/borrow', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
+    }
+    public function sapiPostLoanFlexibleRepay($params = array()) {
+        return $this->request('loan/flexible/repay', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
+    }
+    public function sapiPostLoanFlexibleAdjustLtv($params = array()) {
+        return $this->request('loan/flexible/adjust/ltv', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));
     }
     public function sapiPostLoanVipRepay($params = array()) {
         return $this->request('loan/vip/repay', 'sapi', 'POST', $params, null, null, array("cost" => 40.002));

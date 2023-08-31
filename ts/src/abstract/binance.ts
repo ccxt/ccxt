@@ -67,6 +67,12 @@ interface Exchange {
     sapiGetLoanLoanableData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanCollateralData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanRepayCollateralRate (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleOngoingOrders (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleBorrowHistory (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleRepayHistory (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleLtvAdjustmentHistory (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleLoanableData (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleCollateralData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipOngoingOrders (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipRepayHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipCollateralAccount (params?: {}): Promise<implicitReturnType>;
@@ -308,6 +314,9 @@ interface Exchange {
     sapiPostLoanRepay (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanAdjustLtv (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanCustomizeMarginCall (params?: {}): Promise<implicitReturnType>;
+    sapiPostLoanFlexibleBorrow (params?: {}): Promise<implicitReturnType>;
+    sapiPostLoanFlexibleRepay (params?: {}): Promise<implicitReturnType>;
+    sapiPostLoanFlexibleAdjustLtv (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanVipRepay (params?: {}): Promise<implicitReturnType>;
     sapiPostConvertGetQuote (params?: {}): Promise<implicitReturnType>;
     sapiPostConvertAcceptQuote (params?: {}): Promise<implicitReturnType>;
