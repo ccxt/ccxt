@@ -1059,7 +1059,7 @@ export default class kucoin extends Exchange {
                     'code': networkCode,
                     'active': chainWithdrawEnabled && chainDepositEnabled,
                     'fee': this.safeNumber (chain, 'withdrawalMinFee'),
-                    'precision': precision,
+                    'precision': undefined,
                     'limits': {
                         'withdraw': {
                             'min': this.safeNumber (chain, 'withdrawalMinSize'),
