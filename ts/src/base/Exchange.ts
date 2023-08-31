@@ -190,6 +190,7 @@ export default class Exchange {
     origin = '*' // CORS origin
     //
     agent = undefined; // maintained for backwards compatibility
+    termId: string = undefined; // only for OKX
 
     minFundingAddressLength = 1 // used in checkAddress
     substituteCommonCurrencyCodes = true  // reserved

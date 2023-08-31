@@ -15,8 +15,6 @@ import { Int, OrderSide, OrderType } from './base/types.js';
  * @extends Exchange
  */
 export default class okx extends Exchange {
-    termId: string;
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okx',
@@ -26,6 +24,7 @@ export default class okx extends Exchange {
             'rateLimit': 100,
             'pro': true,
             'certified': true,
+            'termId': '',
             'has': {
                 'CORS': undefined,
                 'spot': true,

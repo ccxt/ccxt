@@ -214,8 +214,6 @@ export default class bitmart extends Exchange {
                         'spot/v3/cancel_order': 1,
                         'spot/v2/batch_orders': 1,
                         'spot/v2/submit_order': 1,
-                        'spot/v4/query/history-orders': 1,
-                        'spot/v4/query/open-orders': 1,
                         // margin
                         'spot/v1/margin/submit_order': 1,
                         'spot/v1/margin/isolated/borrow': 6,
