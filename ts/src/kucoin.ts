@@ -1097,10 +1097,7 @@ export default class kucoin extends Exchange {
                 const chainDepositEnabled = this.safeValue (chain, 'isDepositEnabled', false);
                 const chainExtraData = this.safeValue (extraChainsData, chainId, {});
                 networks[networkCode] = {
-                    'info': {
-                        'api': chain,
-                        'web': chainExtraData,
-                    },
+                    'info': chain,
                     'id': chainId,
                     'name': this.safeString (chain, 'chainName'),
                     'code': networkCode,
