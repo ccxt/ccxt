@@ -1549,6 +1549,8 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#0e135370-daa4-4689-8acd-b6876dee9ba1  // spot open orders
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a7cfd4f0-476e-4675-b33f-22a46902f245  // margin
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1556,23 +1558,91 @@ export default class exmo extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
+            market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const response = await this.privatePostUserOpenOrders (params);
-        const marketIds = Object.keys (response);
+        let marginMode = undefined;
+        marginMode = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        const isMargin = ((marginMode === 'cross') || (marginMode === 'isolated'));
+        let response = undefined;
         let orders = [];
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const market = this.safeMarket (marketId);
+        if (isMargin) {
+            response = await this.privatePostMarginUserOrderList (params);
+            //
+            //    {
+            //        "orders": [
+            //            {
+            //                "client_id": "0",
+            //                "comment": "",
+            //                "created": "1619068707985325495",
+            //                "distance": "0",
+            //                "expire": 0,
+            //                "funding_currency": "BTC",
+            //                "funding_quantity": "0.01",
+            //                "funding_rate": "0.02",
+            //                "leverage": "2",
+            //                "order_id": "123",
+            //                "pair": "BTC_USD",
+            //                "previous_type": "limit_sell",
+            //                "price": "58000",
+            //                "quantity": "0.01",
+            //                "src": 0,
+            //                "stop_price": "0",
+            //                "trigger_price": "58000",
+            //                "type": "limit_sell",
+            //                "updated": 1619068707989411800
+            //            }
+            //        ]
+            //    }
+            //
             params = this.extend (params, {
                 'status': 'open',
             });
-            const parsedOrders = this.parseOrders (response[marketId], market, since, limit, params);
-            orders = this.arrayConcat (orders, parsedOrders);
+            const responseOrders = this.safeValue (response, 'orders');
+            orders = this.parseOrders (responseOrders, market, since, limit, params);
+        } else {
+            response = await this.privatePostUserOpenOrders (params);
+            //
+            //    {
+            //        "USDT_USD": [
+            //            {
+            //                "parent_order_id": "507061384740151010",
+            //                "client_id": "100500",
+            //                "created": "1589547391",
+            //                "type": "stop_market_buy",
+            //                "pair": "USDT_USD",
+            //                "quantity": "1",
+            //                "trigger_price": "5",
+            //                "amount": "5"
+            //            }
+            //        ],
+            //        ...
+            //    }
+            //
+            const marketIds = Object.keys (response);
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const market = this.safeMarket (marketId);
+                params = this.extend (params, {
+                    'status': 'open',
+                });
+                const parsedOrders = this.parseOrders (response[marketId], market, since, limit, params);
+                orders = this.arrayConcat (orders, parsedOrders);
+            }
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as any;
+        return orders as any;
+    }
+
+    parseStatus (status) {
+        const statuses = {
+            'cancel_started': 'canceled',
+        };
+        if (status.indexOf ('cancel', status) >= 0) {
+            status = 'cancel';
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -1611,8 +1681,53 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
+        // Margin fetchOpenOrders
+        //
+        //    {
+        //        "client_id": "0",
+        //        "comment": "",
+        //        "created": "1619068707985325495",
+        //        "distance": "0",
+        //        "expire": 0,
+        //        "funding_currency": "BTC",
+        //        "funding_quantity": "0.01",
+        //        "funding_rate": "0.02",
+        //        "leverage": "2",
+        //        "order_id": "123",
+        //        "pair": "BTC_USD",
+        //        "previous_type": "limit_sell",
+        //        "price": "58000",
+        //        "quantity": "0.01",
+        //        "src": 0,
+        //        "stop_price": "0",
+        //        "trigger_price": "58000",
+        //        "type": "limit_sell",
+        //        "updated": 1619068707989411800
+        //    }
+        //
+        // Margin fetchClosedOrders
+        //
+        //    {
+        //        "distance": "0",
+        //        "event_id": "692842802860022508",
+        //        "event_time": "1619069531190173720",
+        //        "event_type": "OrderCancelStarted",
+        //        "order_id": "123",
+        //        "order_status": "cancel_started",
+        //        "order_type": "limit_sell",
+        //        "pair": "BTC_USD",
+        //        "price": "54115",
+        //        "quantity": "0.001",
+        //        "stop_price": "0",
+        //        "trade_id": "0",
+        //        "trade_price": "0",
+        //        "trade_quantity": "0",
+        //        "trade_type": ""
+        //    },
+        //
         const id = this.safeString (order, 'order_id');
-        const timestamp = this.safeTimestamp (order, 'created');
+        const eventTime = this.safeIntegerProduct2 (order, 'event_time', 'created', 0.000001);
+        const timestamp = this.safeTimestamp (order, 'created', eventTime);
         const side = this.safeString (order, 'type');
         let marketId = undefined;
         if ('pair' in order) {
@@ -1635,21 +1750,22 @@ export default class exmo extends Exchange {
         const cost = this.safeString (order, 'amount');
         const transactions = this.safeValue (order, 'trades', []);
         const clientOrderId = this.safeInteger (order, 'client_id');
+        const triggerPrice = this.safeString2 (order, 'trigger_price', 'stop_price');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': undefined,
+            'lastTradeTimestamp': this.safeIntegerProduct (order, 'updated', 0.000001),
+            'status': this.parseStatus (this.safeString (order, 'order_status')),
             'symbol': symbol,
             'type': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'cost': cost,
             'amount': amount,
             'filled': undefined,
