@@ -1782,6 +1782,8 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#1d2524dd-ae6d-403a-a067-77b50d13fbe5  // margin
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a51be1d0-af5f-44e4-99d7-f7b04c6067d0  // spot canceled orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] max number of orders to return, default is undefined
@@ -1789,6 +1791,13 @@ export default class exmo extends Exchange {
          * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
+        const isSpot = (marginMode !== 'cross') && (marginMode !== 'isolated');
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+        }
         const request = {};
         if (since !== undefined) {
             request['offset'] = limit;
@@ -1800,23 +1809,63 @@ export default class exmo extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await this.privatePostUserCancelledOrders (this.extend (request, params));
-        //
-        //     [{
-        //         "order_id": "27056153840",
-        //         "client_id": "0",
-        //         "created": "1653428646",
-        //         "type": "buy",
-        //         "pair": "BTC_USDT",
-        //         "quantity": "0.1",
-        //         "price": "10",
-        //         "amount": "1"
-        //     }]
-        //
-        params = this.extend (params, {
-            'status': 'canceled',
-        });
-        return this.parseOrders (response, market, since, limit, params);
+        let response = undefined;
+        if (isSpot) {
+            response = await this.privatePostUserCancelledOrders (this.extend (request, params));
+            //
+            //    [
+            //        {
+            //            "order_id": "27056153840",
+            //            "client_id": "0",
+            //            "created": "1653428646",
+            //            "type": "buy",
+            //            "pair": "BTC_USDT",
+            //            "quantity": "0.1",
+            //            "price": "10",
+            //            "amount": "1"
+            //        }
+            //    ]
+            //
+            params = this.extend (params, {
+                'status': 'canceled',
+            });
+            return this.parseOrders (response, market, since, limit, params);
+        } else {
+            const response = await this.privatePostMarginUserOrderTrades (this.extend (request, params));
+            //
+            //    {
+            //        "items": [
+            //            {
+            //                "distance": "0",
+            //                "event_id": "692842802860022508",
+            //                "event_time": "1619069531190173720",
+            //                "event_type": "OrderCancelStarted",
+            //                "order_id": "123",
+            //                "order_status": "cancel_started",
+            //                "order_type": "limit_sell",
+            //                "pair": "BTC_USD",
+            //                "price": "54115",
+            //                "quantity": "0.001",
+            //                "stop_price": "0",
+            //                "trade_id": "0",
+            //                "trade_price": "0",
+            //                "trade_quantity": "0",
+            //                "trade_type": ""
+            //            },
+            //        ]
+            //    }
+            //
+            const items = this.safeValue (response, 'items');
+            const orders = this.parseOrders (items, market, since, limit, params);
+            const result = [];
+            for (let i = 0; i < orders.length; i++) {
+                const order = orders[i];
+                if (order['status'] === 'closed') {
+                    result.push (order);
+                }
+            }
+            return result;
+        }
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
