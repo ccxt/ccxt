@@ -3850,18 +3850,18 @@ export default class bitget extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotPostTradeFills',
-            'swap': 'privateMixGetOrderFills',
-            'future': 'privateMixGetOrderFills',
-        });
         const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateSpotPostTradeFills (this.extend (request, query));
+        } else {
+            response = await this.privateMixGetOrderFills (this.extend (request, query));
+        }
         //
         //     {
         //       code: '00000',
