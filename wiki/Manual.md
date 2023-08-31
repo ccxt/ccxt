@@ -213,9 +213,9 @@ const exchangeId = 'binance'
 ```python
 # Python
 import ccxt
-exchange = ccxt.okcoinusd () # default id
-okcoin1 = ccxt.okcoinusd ({ 'id': 'okcoin1' })
-okcoin2 = ccxt.okcoinusd ({ 'id': 'okcoin2' })
+exchange = ccxt.okcoin () # default id
+okcoin1 = ccxt.okcoin ({ 'id': 'okcoin1' })
+okcoin2 = ccxt.okcoin ({ 'id': 'okcoin2' })
 id = 'btcchina'
 btcchina = eval ('ccxt.%s ()' % id)
 coinbasepro = getattr (ccxt, 'coinbasepro') ()
@@ -1063,7 +1063,7 @@ In order to load markets manually beforehand call the `loadMarkets ()` / `load_m
 
 ```python
 # Python
-okcoin = ccxt.okcoinusd()
+okcoin = ccxt.okcoin()
 markets = okcoin.load_markets()
 print(okcoin.id, markets)
 ```
@@ -1174,16 +1174,16 @@ var_dump($exchange->id, $symbols);                 // print all symbols
 
 $currencies = $exchange->currencies;               // an associative array of currencies
 
-$okcoinusd = '\\ccxt\\okcoinusd';
-$okcoinusd = new $okcoinusd();
+$okcoin = '\\ccxt\\okcoin';
+$okcoin = new $okcoin();
 
-$okcoinusd->load_markets();
+$okcoin->load_markets();
 
-$okcoinusd->markets['BTC/USD'];                    // symbol → market (get market by symbol)
-$okcoinusd->markets_by_id['btc_usd'][0];              // id → market (get market by id)
+$okcoin->markets['BTC/USD'];                    // symbol → market (get market by symbol)
+$okcoin->markets_by_id['btc_usd'][0];              // id → market (get market by id)
 
-$okcoinusd->markets['BTC/USD']['id'];              // symbol → id (get id by symbol)
-$okcoinusd->markets_by_id['btc_usd'][0]['symbol']; // id → symbol (get symbol by id)
+$okcoin->markets['BTC/USD']['id'];              // symbol → id (get id by symbol)
+$okcoin->markets_by_id['btc_usd'][0]['symbol']; // id → symbol (get symbol by id)
 ```
 
 ### Naming Consistency
@@ -1559,7 +1559,7 @@ To get a list of all available methods with an exchange instance, you can simply
 ```text
 console.log (new ccxt.kraken ())   // JavaScript
 print(dir(ccxt.hitbtc()))           # Python
-var_dump (new \ccxt\okcoinusd ()); // PHP
+var_dump (new \ccxt\okcoin ()); // PHP
 ```
 
 # Unified API
@@ -3045,7 +3045,7 @@ kraken.apiKey = 'YOUR_KRAKEN_API_KEY'
 kraken.secret = 'YOUR_KRAKEN_SECRET_KEY'
 
 // upon instantiation
-let okcoinusd = new ccxt.okcoinusd ({
+let okcoin = new ccxt.okcoin ({
     apiKey: 'YOUR_OKCOIN_API_KEY',
     secret: 'YOUR_OKCOIN_SECRET_KEY',
 })
@@ -3204,7 +3204,7 @@ acx = ccxt.acx({'nonce': lambda: ccxt.Exchange.milliseconds()})
 // PHP
 
 // 1: custom nonce value
-class MyOKCoinUSD extends \ccxt\okcoinusd {
+class Myokcoin extends \ccxt\okcoin {
     public function __construct ($options = array ()) {
         parent::__construct (array_merge (array ('i' => 1), $options));
     }
