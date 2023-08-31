@@ -588,7 +588,6 @@ export default class hitbtc extends Exchange {
                 'STEPN': 'GMT',
                 'STX': 'STOX',
                 'TV': 'Tokenville',
-                'USD': 'USDT',
                 'XMT': 'MTL',
                 'XPNT': 'PNT',
             },
