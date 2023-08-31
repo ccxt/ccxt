@@ -3849,7 +3849,6 @@ export default class bitget extends Exchange {
         this.checkRequiredSymbol ('fetchMyTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
         const request = {
             'symbol': market['id'],
         };
@@ -3857,10 +3856,10 @@ export default class bitget extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (marketType === 'spot') {
-            response = await this.privateSpotPostTradeFills (this.extend (request, query));
+        if (market['spot']) {
+            response = await this.privateSpotPostTradeFills (this.extend (request, params));
         } else {
-            response = await this.privateMixGetOrderFills (this.extend (request, query));
+            response = await this.privateMixGetOrderFills (this.extend (request, params));
         }
         //
         //     {
