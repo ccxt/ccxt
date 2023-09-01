@@ -458,6 +458,8 @@ export default class bitmart extends Exchange {
                     'ICP': 'Computer',
                     'XTZ': 'XTZ',
                     'MINA': 'MINA',
+                    'BEP20': 'BSC',
+                    'ARBI(BRIDGED)': 'ARBI',
                     // 'BEP20': [ 'BEP20', 'BSC_BNB', 'bep20' ], // todo: after unification
                     'THETA': 'THETA',
                     'AKT': 'AKT',
@@ -2486,7 +2488,7 @@ export default class bitmart extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        if (code === 'USDT') {
+        if (code === 'USDT' || code === 'USDC') {
             const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
             const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
             const networks = this.safeValue (this.options, 'networks', {});
@@ -2811,7 +2813,7 @@ export default class bitmart extends Exchange {
         const amount = this.safeNumber (transaction, 'arrival_amount');
         const timestamp = this.safeInteger (transaction, 'apply_time');
         const currencyId = this.safeString (transaction, 'currency');
-        const code = this.safeCurrencyCode (currencyId, currency);
+        let code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
@@ -2824,12 +2826,22 @@ export default class bitmart extends Exchange {
         const txid = this.safeString (transaction, 'tx_id');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'address_memo');
+        let network = undefined;
+        const NETWORK_SEPARATOR = '-';
+        if (code.includes (NETWORK_SEPARATOR)) {
+            const parts = code.split (NETWORK_SEPARATOR);
+            network = this.safeNetwork (parts[1]);
+            code = code.replace ('-' + network.toUpperCase (), '');
+            if (fee.currency.includes (NETWORK_SEPARATOR)) {
+                fee.currency = fee.currency.split (NETWORK_SEPARATOR)[0];
+            }
+        }
         return {
             'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': network,
             'address': address,
             'addressFrom': undefined,
             'addressTo': undefined,

@@ -1953,8 +1953,8 @@ export default class binance extends Exchange {
             const name = this.safeString (entry, 'name');
             const code = this.safeCurrencyCode (id);
             let minPrecision = undefined;
-            let isWithdrawEnabled = true;
-            let isDepositEnabled = true;
+            let isWithdrawEnabled = false;
+            let isDepositEnabled = false;
             const networkList = this.safeValue (entry, 'networkList', []);
             const fees = {};
             let fee = undefined;
@@ -1965,8 +1965,8 @@ export default class binance extends Exchange {
                 const withdrawFee = this.safeNumber (networkItem, 'withdrawFee');
                 const depositEnable = this.safeValue (networkItem, 'depositEnable');
                 const withdrawEnable = this.safeValue (networkItem, 'withdrawEnable');
-                isDepositEnabled = isDepositEnabled || depositEnable;
-                isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
+                isDepositEnabled = depositEnable || isDepositEnabled;
+                isWithdrawEnabled = withdrawEnable || isWithdrawEnabled;
                 fees[network] = withdrawFee;
                 const isDefault = this.safeValue (networkItem, 'isDefault');
                 if (isDefault || (fee === undefined)) {
