@@ -3948,11 +3948,11 @@ export default class bybit extends Exchange {
             request['reduceOnly'] = true;
         } else if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
+                const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                 request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
             }
             if (isTakeProfit) {
-                const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
+                const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
                 request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
             }
         }
