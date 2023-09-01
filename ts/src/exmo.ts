@@ -921,6 +921,7 @@ export default class exmo extends Exchange {
          * @name exmo#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {string} [params.marginMode] *isolated* fetches the isolated margin balance
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
