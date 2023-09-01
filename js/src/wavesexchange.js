@@ -2321,7 +2321,8 @@ export default class wavesexchange extends Exchange {
             const entry = depositWithdrawFees[code];
             const networks = this.safeValue(entry, 'networks');
             const networkKeys = Object.keys(networks);
-            if (networkKeys.length === 1) {
+            const networkKeysLength = networkKeys.length;
+            if (networkKeysLength === 1) {
                 const network = this.safeValue(networks, networkKeys[0]);
                 depositWithdrawFees[code]['withdraw'] = this.safeValue(network, 'withdraw');
                 depositWithdrawFees[code]['deposit'] = this.safeValue(network, 'deposit');
@@ -2463,7 +2464,8 @@ export default class wavesexchange extends Exchange {
         let isErc20 = true;
         const noPrefix = this.remove0xPrefix(address);
         const lower = noPrefix.toLowerCase();
-        for (let i = 0; i < lower.length; i++) {
+        const stringLength = lower.length * 1;
+        for (let i = 0; i < stringLength; i++) {
             const character = lower[i];
             if (!(character in set)) {
                 isErc20 = false;

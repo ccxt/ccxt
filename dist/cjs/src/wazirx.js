@@ -809,6 +809,7 @@ class wazirx extends wazirx$1 {
         const stopPrice = this.safeString(params, 'stopPrice');
         if (stopPrice !== undefined) {
             request['type'] = 'stop_limit';
+            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
         }
         const response = await this.privatePostOrder(this.extend(request, params));
         // {

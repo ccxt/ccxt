@@ -1296,8 +1296,8 @@ class bitmex(Exchange, ImplicitAPI):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.convert_from_raw_quantity(symbol, self.safe_string(ticker, 'homeNotional24h')),
-            'quoteVolume': self.convert_from_raw_quantity(symbol, self.safe_string(ticker, 'foreignNotional24h')),
+            'baseVolume': self.safe_string(ticker, 'homeNotional24h'),
+            'quoteVolume': self.safe_string(ticker, 'foreignNotional24h'),
             'info': ticker,
         }, market)
 

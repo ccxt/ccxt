@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\InvalidNonce;
@@ -57,9 +58,18 @@ class bitget extends \ccxt\async\bitget {
                 'ws' => array(
                     'exact' => array(
                         '30001' => '\\ccxt\\BadRequest', // array("event":"error","code":30001,"msg":"instType:sp,channel:candlenull,instId:BTCUSDT doesn't exist")
+                        '30002' => '\\ccxt\\AuthenticationError', // illegal request
+                        '30003' => '\\ccxt\\BadRequest', // invalid op
+                        '30004' => '\\ccxt\\AuthenticationError', // requires login
+                        '30005' => '\\ccxt\\AuthenticationError', // login failed
+                        '30006' => '\\ccxt\\RateLimitExceeded', // too many requests
+                        '30007' => '\\ccxt\\RateLimitExceeded', // request over limit,connection close
+                        '30011' => '\\ccxt\\AuthenticationError', // invalid ACCESS_KEY
+                        '30012' => '\\ccxt\\AuthenticationError', // invalid ACCESS_PASSPHRASE
+                        '30013' => '\\ccxt\\AuthenticationError', // invalid ACCESS_TIMESTAMP
+                        '30014' => '\\ccxt\\BadRequest', // Request timestamp expired
                         '30015' => '\\ccxt\\AuthenticationError', // array( event => 'error', code => 30015, msg => 'Invalid sign' )
                         '30016' => '\\ccxt\\BadRequest', // array( event => 'error', code => 30016, msg => 'Param error' )
-                        '30011' => '\\ccxt\\AuthenticationError', // array( event => 'error', code => 30011, msg => 'Invalid ACCESS_KEY' )
                     ),
                 ),
             ),
@@ -1165,7 +1175,7 @@ class bitget extends \ccxt\async\bitget {
 
     public function handle_error_message(Client $client, $message) {
         //
-        //    array( $event => 'error', $code => 30015, msg => 'Invalid sign' )
+        //    array( $event => 'error', $code => 30015, $msg => 'Invalid sign' )
         //
         $event = $this->safe_string($message, 'event');
         try {
@@ -1173,6 +1183,9 @@ class bitget extends \ccxt\async\bitget {
                 $code = $this->safe_string($message, 'code');
                 $feedback = $this->id . ' ' . $this->json($message);
                 $this->throw_exactly_matched_exception($this->exceptions['ws']['exact'], $code, $feedback);
+                $msg = $this->safe_string($message, 'msg', '');
+                $this->throw_broadly_matched_exception($this->exceptions['ws']['broad'], $msg, $feedback);
+                throw new ExchangeError($feedback);
             }
             return false;
         } catch (Exception $e) {
@@ -1182,6 +1195,9 @@ class bitget extends \ccxt\async\bitget {
                 if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
                     unset($client->subscriptions[$messageHash]);
                 }
+            } else {
+                // Note => if error happens on a subscribe $event, user will have to close exchange to resubscribe. Issue #19041
+                $client->reject ($e);
             }
             return true;
         }

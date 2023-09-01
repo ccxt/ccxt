@@ -704,8 +704,8 @@ class kraken(ccxt.async_support.kraken):
             client.resolve(orderbook, messageHash)
 
     def format_number(self, n, length):
-        string = self.number_to_string(n)
-        parts = string.split('.')
+        stringNumber = self.number_to_string(n)
+        parts = stringNumber.split('.')
         integer = self.safe_string(parts, 0)
         decimals = self.safe_string(parts, 1, '')
         paddedDecimals = decimals.ljust(length, '0')

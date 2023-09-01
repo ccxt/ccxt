@@ -2188,7 +2188,8 @@ class wavesexchange(Exchange, ImplicitAPI):
             entry = depositWithdrawFees[code]
             networks = self.safe_value(entry, 'networks')
             networkKeys = list(networks.keys())
-            if len(networkKeys) == 1:
+            networkKeysLength = len(networkKeys)
+            if networkKeysLength == 1:
                 network = self.safe_value(networks, networkKeys[0])
                 depositWithdrawFees[code]['withdraw'] = self.safe_value(network, 'withdraw')
                 depositWithdrawFees[code]['deposit'] = self.safe_value(network, 'deposit')
@@ -2316,7 +2317,8 @@ class wavesexchange(Exchange, ImplicitAPI):
         isErc20 = True
         noPrefix = self.remove0x_prefix(address)
         lower = noPrefix.lower()
-        for i in range(0, len(lower)):
+        stringLength = len(lower) * 1
+        for i in range(0, stringLength):
             character = lower[i]
             if not (character in set):
                 isErc20 = False

@@ -2352,7 +2352,8 @@ class wavesexchange extends Exchange {
             $entry = $depositWithdrawFees[$code];
             $networks = $this->safe_value($entry, 'networks');
             $networkKeys = is_array($networks) ? array_keys($networks) : array();
-            if (strlen($networkKeys) === 1) {
+            $networkKeysLength = count($networkKeys);
+            if ($networkKeysLength === 1) {
                 $network = $this->safe_value($networks, $networkKeys[0]);
                 $depositWithdrawFees[$code]['withdraw'] = $this->safe_value($network, 'withdraw');
                 $depositWithdrawFees[$code]['deposit'] = $this->safe_value($network, 'deposit');
@@ -2496,7 +2497,8 @@ class wavesexchange extends Exchange {
             $isErc20 = true;
             $noPrefix = $this->remove0x_prefix($address);
             $lower = strtolower($noPrefix);
-            for ($i = 0; $i < count($lower); $i++) {
+            $stringLength = strlen($lower) * 1;
+            for ($i = 0; $i < $stringLength; $i++) {
                 $character = $lower[$i];
                 if (!(is_array($set) && array_key_exists($character, $set))) {
                     $isErc20 = false;

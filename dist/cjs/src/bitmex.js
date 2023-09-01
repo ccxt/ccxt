@@ -1351,8 +1351,8 @@ class bitmex extends bitmex$1 {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.convertFromRawQuantity(symbol, this.safeString(ticker, 'homeNotional24h')),
-            'quoteVolume': this.convertFromRawQuantity(symbol, this.safeString(ticker, 'foreignNotional24h')),
+            'baseVolume': this.safeString(ticker, 'homeNotional24h'),
+            'quoteVolume': this.safeString(ticker, 'foreignNotional24h'),
             'info': ticker,
         }, market);
     }
