@@ -12,6 +12,7 @@ function testCurrency (exchange, skippedProperties, method, entry) {
     const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
     if (isNative) {
         format['info'] = {};
+        // todo: format['type'] = 'fiat|crypto';
         // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
         format['withdraw'] = true; // withdraw enabled
         format['deposit'] = true; // deposit enabled
@@ -29,6 +30,7 @@ function testCurrency (exchange, skippedProperties, method, entry) {
             },
         };
     }
+    if ('depositForFiat')
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
     //
