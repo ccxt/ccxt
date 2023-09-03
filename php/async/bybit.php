@@ -4428,9 +4428,6 @@ class bybit extends Exchange {
 
     public function edit_unified_account_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
-            if ($amount === null && $price === null) {
-                throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             if (!$market['linear'] && !$market['option']) {
@@ -4511,9 +4508,6 @@ class bybit extends Exchange {
 
     public function edit_unified_margin_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
-            if ($amount === null && $price === null) {
-                throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             if (!$market['linear'] && !$market['option']) {
@@ -4609,9 +4603,6 @@ class bybit extends Exchange {
 
     public function edit_contract_v3_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
-            if ($amount === null && $price === null) {
-                throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(

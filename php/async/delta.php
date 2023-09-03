@@ -714,6 +714,9 @@ class delta extends Exchange {
             for ($i = 0; $i < count($markets); $i++) {
                 $market = $markets[$i];
                 $type = $this->safe_string($market, 'contract_type');
+                if ($type === 'options_combos') {
+                    continue;
+                }
                 // $settlingAsset = $this->safe_value($market, 'settling_asset', array());
                 $quotingAsset = $this->safe_value($market, 'quoting_asset', array());
                 $underlyingAsset = $this->safe_value($market, 'underlying_asset', array());

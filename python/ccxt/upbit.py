@@ -11,6 +11,7 @@ from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -1638,11 +1639,18 @@ class upbit(Exchange, ImplicitAPI):
         }
         method = 'privatePostWithdraws'
         if code != 'KRW':
+            # 2023-05-23 Change to required parameters for digital assets
+            network = self.safe_string_upper_2(params, 'network', 'net_type')
+            if network is None:
+                raise ArgumentsRequired(self.id + ' withdraw() requires a network argument')
+            params = self.omit(params, ['network'])
+            request['net_type'] = network
             method += 'Coin'
             request['currency'] = currency['id']
             request['address'] = address
             if tag is not None:
                 request['secondary_address'] = tag
+            params = self.omit(params, 'network')
         else:
             method += 'Krw'
         response = getattr(self, method)(self.extend(request, params))

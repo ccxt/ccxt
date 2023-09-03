@@ -512,6 +512,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'versions': {
                     'public': {
                         'GET': {
+                            'currencies': 'v3',
                             'currencies/{currency}': 'v2',
                             'status': 'v1',
                             'market/orderbook/level2_20': 'v1',
@@ -1007,19 +1008,34 @@ class kucoin(Exchange, ImplicitAPI):
         promises = []
         promises.append(self.publicGetCurrencies(params))
         #
-        #     {
-        #         "currency": "OMG",
-        #         "name": "OMG",
-        #         "fullName": "OmiseGO",
-        #         "precision": 8,
-        #         "confirms": 12,
-        #         "withdrawalMinSize": "4",
-        #         "withdrawalMinFee": "1.25",
-        #         "isWithdrawEnabled": False,
-        #         "isDepositEnabled": False,
-        #         "isMarginEnabled": False,
-        #         "isDebitEnabled": False
-        #     }
+        #    {
+        #        "code":"200000",
+        #        "data":[
+        #           {
+        #              "currency":"CSP",
+        #              "name":"CSP",
+        #              "fullName":"Caspian",
+        #              "precision":8,
+        #              "confirms":null,
+        #              "contractAddress":null,
+        #              "isMarginEnabled":false,
+        #              "isDebitEnabled":false,
+        #              "chains":[
+        #                 {
+        #                    "chainName":"ERC20",
+        #                    "chain":"eth",
+        #                    "withdrawalMinSize":"2999",
+        #                    "withdrawalMinFee":"2999",
+        #                    "isWithdrawEnabled":false,
+        #                    "isDepositEnabled":false,
+        #                    "confirms":12,
+        #                    "preConfirms":12,
+        #                    "contractAddress":"0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
+        #                    "depositFeeRate": "0.001",  # present for some currencies/networks
+        #                 }
+        #              ]
+        #           },
+        #    }
         #
         promises.append(self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', True))
         #
@@ -1030,88 +1046,96 @@ class kucoin(Exchange, ImplicitAPI):
         #        "retry": False,
         #        "data": [
         #            {
-        #                "withdrawMinFee": "0.0005",
-        #                "chainName": "BTC",
-        #                "preDepositTipEnabled": "false",
-        #                "chain": "btc",
-        #                "isChainEnabled": "true",
-        #                "withdrawDisabledTip": "",
-        #                "walletPrecision": "8",
-        #                "chainFullName": "Bitcoin",
-        #                "orgAddress": "",
-        #                "isDepositEnabled": "true",
-        #                "withdrawMinSize": "0.001",
-        #                "depositDisabledTip": "",
-        #                "userAddressName": "",
-        #                "txUrl": "https://blockchain.info/tx/{txId}",
-        #                "preWithdrawTipEnabled": "false",
-        #                "withdrawFeeRate": "0",
-        #                "confirmationCount": "2",
+        #                "status": "enabled",
         #                "currency": "BTC",
+        #                "isChainEnabled": "true",
+        #                "chain": "btc",
+        #                "chainName": "BTC",
+        #                "chainFullName": "Bitcoin",
+        #                "walletPrecision": "8",
+        #                "isDepositEnabled": "true",
         #                "depositMinSize": "0.00005",
+        #                "confirmationCount": "2",
         #                "isWithdrawEnabled": "true",
-        #                "preDepositTip": "",
+        #                "withdrawMinSize": "0.001",
+        #                "withdrawMinFee": "0.0005",
+        #                "withdrawFeeRate": "0",
+        #                "depositDisabledTip": "Wallet Maintenance",
+        #                "preDepositTipEnabled": "true",
+        #                "preDepositTip": "Do not transfer from ETH network directly",
+        #                "withdrawDisabledTip": "",
+        #                "preWithdrawTipEnabled": "false",
         #                "preWithdrawTip": "",
-        #                "status": "enabled"
+        #                "orgAddress": "",
+        #                "userAddressName": "Memo",
         #            },
         #        ]
         #    }
         #
         responses = promises
-        responseCurrencies = responses[0]
-        responseChains = responses[1]
-        data = self.safe_value(responseCurrencies, 'data', [])
-        chainsData = self.safe_value(responseChains, 'data', [])
-        currencyChains = self.group_by(chainsData, 'currency')
+        currenciesResponse = self.safe_value(responses, 0, {})
+        currenciesData = self.safe_value(currenciesResponse, 'data', [])
+        additionalResponse = self.safe_value(responses, 1, {})
+        additionalData = self.safe_value(additionalResponse, 'data', [])
+        additionalDataGrouped = self.group_by(additionalData, 'currency')
         result = {}
-        for i in range(0, len(data)):
-            entry = data[i]
+        for i in range(0, len(currenciesData)):
+            entry = currenciesData[i]
             id = self.safe_string(entry, 'currency')
             name = self.safe_string(entry, 'fullName')
             code = self.safe_currency_code(id)
-            isWithdrawEnabled = self.safe_value(entry, 'isWithdrawEnabled', False)
-            isDepositEnabled = self.safe_value(entry, 'isDepositEnabled', False)
-            fee = self.safe_number(entry, 'withdrawalMinFee')
-            active = (isWithdrawEnabled and isDepositEnabled)
+            isWithdrawEnabled = None
+            isDepositEnabled = None
             networks = {}
-            chains = self.safe_value(currencyChains, id, [])
+            chains = self.safe_value(entry, 'chains', [])
+            extraChainsData = self.index_by(self.safe_value(additionalDataGrouped, id, []), 'chain')
+            precision = self.parse_number(self.parse_precision(self.safe_string(entry, 'precision')))
             for j in range(0, len(chains)):
                 chain = chains[j]
                 chainId = self.safe_string(chain, 'chain')
-                isChainEnabled = self.safe_string(chain, 'isChainEnabled')  # better than 'status'
-                if isChainEnabled == 'true':
-                    networkCode = self.network_id_to_code(chainId)
-                    chainWithdrawEnabled = self.safe_value(chain, 'isWithdrawEnabled', False)
-                    chainDepositEnabled = self.safe_value(chain, 'isDepositEnabled', False)
-                    networks[networkCode] = {
-                        'info': chain,
-                        'id': chainId,
-                        'name': self.safe_string_2(chain, 'chainFullName', 'chainName'),
-                        'code': networkCode,
-                        'active': chainWithdrawEnabled and chainDepositEnabled,
-                        'fee': self.safe_number(chain, 'withdrawMinFee'),
-                        'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'walletPrecision'))),
-                        'limits': {
-                            'withdraw': {
-                                'min': self.safe_number(chain, 'withdrawMinSize'),
-                                'max': None,
-                            },
-                            'deposit': {
-                                'min': self.safe_number(chain, 'depositMinSize'),
-                                'max': None,
-                            },
+                networkCode = self.network_id_to_code(chainId)
+                chainWithdrawEnabled = self.safe_value(chain, 'isWithdrawEnabled', False)
+                if isWithdrawEnabled is None:
+                    isWithdrawEnabled = chainWithdrawEnabled
+                else:
+                    isWithdrawEnabled = isWithdrawEnabled or chainWithdrawEnabled
+                chainDepositEnabled = self.safe_value(chain, 'isDepositEnabled', False)
+                if isDepositEnabled is None:
+                    isDepositEnabled = chainDepositEnabled
+                else:
+                    isDepositEnabled = isDepositEnabled or chainDepositEnabled
+                chainExtraData = self.safe_value(extraChainsData, chainId, {})
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': chainId,
+                    'name': self.safe_string(chain, 'chainName'),
+                    'code': networkCode,
+                    'active': chainWithdrawEnabled and chainDepositEnabled,
+                    'fee': self.safe_number(chain, 'withdrawalMinFee'),
+                    'deposit': chainDepositEnabled,
+                    'withdraw': chainWithdrawEnabled,
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chainExtraData, 'walletPrecision'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'withdrawalMinSize'),
+                            'max': None,
                         },
-                    }
+                        'deposit': {
+                            'min': self.safe_number(chainExtraData, 'depositMinSize'),
+                            'max': None,
+                        },
+                    },
+                }
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'precision'))),
+                'precision': precision,
                 'info': entry,
-                'active': active,
+                'active': (isDepositEnabled or isWithdrawEnabled),
                 'deposit': isDepositEnabled,
                 'withdraw': isWithdrawEnabled,
-                'fee': fee,
+                'fee': None,
                 'limits': self.limits,
                 'networks': networks,
             }
