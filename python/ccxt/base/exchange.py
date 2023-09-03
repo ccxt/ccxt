@@ -279,6 +279,7 @@ class Exchange(object):
         'updated': None,
         'eta': None,
         'url': None,
+        'info': None,
     }
 
     requiredCredentials = {
