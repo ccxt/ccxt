@@ -1866,7 +1866,7 @@ class wavesexchange extends Exchange {
             /**
              * query for $balance and get the $amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$balance-structure $balance structure}
              */
             // makes a lot of different requests to get all the $data
             // in particular:
@@ -2113,7 +2113,7 @@ class wavesexchange extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2352,7 +2352,8 @@ class wavesexchange extends Exchange {
             $entry = $depositWithdrawFees[$code];
             $networks = $this->safe_value($entry, 'networks');
             $networkKeys = is_array($networks) ? array_keys($networks) : array();
-            if (strlen($networkKeys) === 1) {
+            $networkKeysLength = count($networkKeys);
+            if ($networkKeysLength === 1) {
                 $network = $this->safe_value($networks, $networkKeys[0]);
                 $depositWithdrawFees[$code]['withdraw'] = $this->safe_value($network, 'withdraw');
                 $depositWithdrawFees[$code]['deposit'] = $this->safe_value($network, 'deposit');
@@ -2369,7 +2370,7 @@ class wavesexchange extends Exchange {
              * @see https://docs.wx.network/en/api/gateways/withdraw/currencies
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
              */
             Async\await($this->load_markets());
             $data = array();
@@ -2496,7 +2497,8 @@ class wavesexchange extends Exchange {
             $isErc20 = true;
             $noPrefix = $this->remove0x_prefix($address);
             $lower = strtolower($noPrefix);
-            for ($i = 0; $i < count($lower); $i++) {
+            $stringLength = strlen($lower) * 1;
+            for ($i = 0; $i < $stringLength; $i++) {
                 $character = $lower[$i];
                 if (!(is_array($set) && array_key_exists($character, $set))) {
                     $isErc20 = false;

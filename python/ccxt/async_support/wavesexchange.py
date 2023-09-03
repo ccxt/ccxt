@@ -1731,7 +1731,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         # makes a lot of different requests to get all the data
         # in particular:
@@ -1961,7 +1961,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2188,7 +2188,8 @@ class wavesexchange(Exchange, ImplicitAPI):
             entry = depositWithdrawFees[code]
             networks = self.safe_value(entry, 'networks')
             networkKeys = list(networks.keys())
-            if len(networkKeys) == 1:
+            networkKeysLength = len(networkKeys)
+            if networkKeysLength == 1:
                 network = self.safe_value(networks, networkKeys[0])
                 depositWithdrawFees[code]['withdraw'] = self.safe_value(network, 'withdraw')
                 depositWithdrawFees[code]['deposit'] = self.safe_value(network, 'deposit')
@@ -2201,7 +2202,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         see https://docs.wx.network/en/api/gateways/withdraw/currencies
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
         """
         await self.load_markets()
         data = []
@@ -2316,7 +2317,8 @@ class wavesexchange(Exchange, ImplicitAPI):
         isErc20 = True
         noPrefix = self.remove0x_prefix(address)
         lower = noPrefix.lower()
-        for i in range(0, len(lower)):
+        stringLength = len(lower) * 1
+        for i in range(0, stringLength):
             character = lower[i]
             if not (character in set):
                 isErc20 = False

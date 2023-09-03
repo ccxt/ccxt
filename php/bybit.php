@@ -38,7 +38,7 @@ class bybit extends Exchange {
                 'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
-                'fetchBorrowInterest' => false, // temporarily disabled, does not work
+                'fetchBorrowInterest' => false, // temporarily disabled, doesn't work
                 'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -244,6 +244,7 @@ class bybit extends Exchange {
                         'v5/spot-lever-token/info' => 2.5,
                         'v5/spot-lever-token/reference' => 2.5,
                         // spot margin trade
+                        'v5/spot-margin-trade/data' => 2.5,
                         'v5/spot-cross-margin-trade/data' => 2.5,
                         'v5/spot-cross-margin-trade/pledge-token' => 2.5,
                         'v5/spot-cross-margin-trade/borrow-token' => 2.5,
@@ -2509,7 +2510,8 @@ class bybit extends Exchange {
         if ($symbols !== null) {
             $symbols = $this->market_symbols($symbols);
             $market = $this->market($symbols[0]);
-            if (strlen($symbols) === 1) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
                 $request['symbol'] = $market['id'];
             }
         }
@@ -2579,10 +2581,10 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
          * @param {array} [$params] extra parameters specific to the bybit api endpoint
          * @param {int} [$params->until] $timestamp in ms of the latest funding rate
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
          */
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
@@ -2910,7 +2912,7 @@ class bybit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the bybit api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
          */
         $this->check_required_symbol('fetchTrades', $symbol);
         $this->load_markets();
@@ -3309,7 +3311,7 @@ class bybit extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the bybit api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $this->load_markets();
         $request = array();
@@ -3863,7 +3865,7 @@ class bybit extends Exchange {
                 $cost = $this->safe_number($params, 'cost');
                 $params = $this->omit($params, 'cost');
                 if ($price === null && $cost === null) {
-                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
@@ -8752,7 +8754,7 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the bybit api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
          */
         $this->check_required_credentials();
         $this->load_markets();

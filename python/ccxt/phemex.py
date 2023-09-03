@@ -1340,7 +1340,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1568,14 +1568,17 @@ class phemex(Exchange, ImplicitAPI):
             id = self.safe_string_2(trade, 'execId', 'execID')
             orderId = self.safe_string(trade, 'orderID')
             if market['settle'] == 'USDT':
-                sideId = self.safe_string(trade, 'side')
-                side = 'buy' if (sideId == '1') else 'sell'
+                sideId = self.safe_string_lower(trade, 'side')
+                if (sideId == 'buy') or (sideId == 'sell'):
+                    side = sideId
+                elif sideId is not None:
+                    side = 'buy' if (sideId == '1') else 'sell'
                 ordType = self.safe_string(trade, 'ordType')
                 if ordType == '1':
                     type = 'market'
                 elif ordType == '2':
                     type = 'limit'
-                priceString = self.safe_string(trade, 'priceRp')
+                priceString = self.safe_string(trade, 'execPriceRp')
                 amountString = self.safe_string(trade, 'execQtyRq')
                 costString = self.safe_string(trade, 'execValueRv')
                 feeCostString = self.safe_string(trade, 'execFeeRv')
@@ -1726,7 +1729,7 @@ class phemex(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
         :param dict [params]: extra parameters specific to the phemex api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         self.load_markets()
         type = None

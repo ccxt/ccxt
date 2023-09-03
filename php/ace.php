@@ -885,7 +885,7 @@ class ace extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the ace api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
          */
         $this->load_markets();
         $market = $this->safe_market($symbol);
@@ -970,7 +970,7 @@ class ace extends Exchange {
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---account-balance
          * @param {array} [$params] extra parameters specific to the ace api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $this->load_markets();
         $response = $this->privatePostV2CoinCustomerAccount ($params);

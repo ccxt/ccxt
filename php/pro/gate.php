@@ -385,7 +385,7 @@ class gate extends \ccxt\async\gate {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -501,15 +501,17 @@ class gate extends \ccxt\async\gate {
             $subscription = $this->safe_string($ohlcv, 'n', '');
             $parts = explode('_', $subscription);
             $timeframe = $this->safe_string($parts, 0);
+            $timeframeId = $this->find_timeframe($timeframe);
             $prefix = $timeframe . '_';
             $marketId = str_replace($prefix, '', $subscription);
             $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
             $parsed = $this->parse_ohlcv($ohlcv);
-            $stored = $this->safe_value($this->ohlcvs, $symbol);
+            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp ($limit);
-                $this->ohlcvs[$symbol] = $stored;
+                $this->ohlcvs[$symbol][$timeframeId] = $stored;
             }
             $stored->append ($parsed);
             $marketIds[$symbol] = $timeframe;
@@ -520,7 +522,7 @@ class gate extends \ccxt\async\gate {
             $timeframe = $marketIds[$symbol];
             $interval = $this->find_timeframe($timeframe);
             $hash = 'candles' . ':' . $interval . ':' . $symbol;
-            $stored = $this->safe_value($this->ohlcvs, $symbol);
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $interval);
             $client->resolve ($stored, $hash);
         }
     }
@@ -625,7 +627,7 @@ class gate extends \ccxt\async\gate {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $type = null;

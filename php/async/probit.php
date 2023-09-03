@@ -539,7 +539,7 @@ class probit extends Exchange {
              * @see https://docs-en.probit.com/reference/balance
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the probit api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetBalance ($params));
@@ -774,7 +774,7 @@ class probit extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the probit api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1244,7 +1244,7 @@ class probit extends Exchange {
                                 $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
                             }
                         } elseif ($cost === null) {
-                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total $cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
+                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total $cost value in the "amount" argument or in the "cost" extra parameter (the exchange-specific behaviour)');
                         }
                     } else {
                         $cost = ($cost === null) ? $amount : $cost;
@@ -1725,7 +1725,7 @@ class probit extends Exchange {
             $networkCode = $this->network_id_to_code($networkId, $currency['code']);
             $withdrawalFees = $this->safe_value($network, 'withdrawal_fee', array());
             $withdrawFee = $this->safe_number($withdrawalFees[0], 'amount');
-            if (strlen($withdrawalFees) > 0) {
+            if (strlen($withdrawalFees)) {
                 $withdrawResult = array(
                     'fee' => $withdrawFee,
                     'percentage' => ($withdrawFee !== null) ? false : null,

@@ -1422,7 +1422,7 @@ class okcoin(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the okcoin api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1781,7 +1781,7 @@ class okcoin(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the okcoin api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
@@ -1956,7 +1956,7 @@ class okcoin(Exchange, ImplicitAPI):
                             if notional is None:
                                 notional = amount * price
                         elif notional is None:
-                            raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter(the exchange-specific behaviour)")
+                            raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False and supply the total cost value in the "amount" argument or in the "notional" extra parameter(the exchange-specific behaviour)')
                     else:
                         notional = amount if (notional is None) else notional
                     request['notional'] = self.cost_to_precision(symbol, notional)
@@ -3326,7 +3326,7 @@ class okcoin(Exchange, ImplicitAPI):
         currency = None
         if type == 'spot':
             if code is None:
-                raise ArgumentsRequired(self.id + " fetchLedger() requires a currency code argument for '" + type + "' markets")
+                raise ArgumentsRequired(self.id + ' fetchLedger() requires a currency code argument for "' + type + '" markets')
             argument = 'Currency'
             currency = self.currency(code)
             request['currency'] = currency['id']

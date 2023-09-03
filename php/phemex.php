@@ -1369,7 +1369,7 @@ class phemex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the phemex api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1602,15 +1602,19 @@ class phemex extends Exchange {
             $id = $this->safe_string_2($trade, 'execId', 'execID');
             $orderId = $this->safe_string($trade, 'orderID');
             if ($market['settle'] === 'USDT') {
-                $sideId = $this->safe_string($trade, 'side');
-                $side = ($sideId === '1') ? 'buy' : 'sell';
+                $sideId = $this->safe_string_lower($trade, 'side');
+                if (($sideId === 'buy') || ($sideId === 'sell')) {
+                    $side = $sideId;
+                } elseif ($sideId !== null) {
+                    $side = ($sideId === '1') ? 'buy' : 'sell';
+                }
                 $ordType = $this->safe_string($trade, 'ordType');
                 if ($ordType === '1') {
                     $type = 'market';
                 } elseif ($ordType === '2') {
                     $type = 'limit';
                 }
-                $priceString = $this->safe_string($trade, 'priceRp');
+                $priceString = $this->safe_string($trade, 'execPriceRp');
                 $amountString = $this->safe_string($trade, 'execQtyRq');
                 $costString = $this->safe_string($trade, 'execValueRv');
                 $feeCostString = $this->safe_string($trade, 'execFeeRv');
@@ -1771,7 +1775,7 @@ class phemex extends Exchange {
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
          * @param {array} [$params] extra parameters specific to the phemex api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $this->load_markets();
         $type = null;

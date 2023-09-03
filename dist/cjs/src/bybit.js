@@ -248,6 +248,7 @@ class bybit extends bybit$1 {
                         'v5/spot-lever-token/info': 2.5,
                         'v5/spot-lever-token/reference': 2.5,
                         // spot margin trade
+                        'v5/spot-margin-trade/data': 2.5,
                         'v5/spot-cross-margin-trade/data': 2.5,
                         'v5/spot-cross-margin-trade/pledge-token': 2.5,
                         'v5/spot-cross-margin-trade/borrow-token': 2.5,
@@ -2527,7 +2528,8 @@ class bybit extends bybit$1 {
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
             market = this.market(symbols[0]);
-            if (symbols.length === 1) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
                 request['symbol'] = market['id'];
             }
         }
@@ -2599,10 +2601,10 @@ class bybit extends bybit$1 {
          * @see https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @param {int} [params.until] timestamp in ms of the latest funding rate
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
@@ -2936,7 +2938,7 @@ class bybit extends bybit$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         this.checkRequiredSymbol('fetchTrades', symbol);
         await this.loadMarkets();
@@ -3344,7 +3346,7 @@ class bybit extends bybit$1 {
          * @name bybit#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -3911,7 +3913,7 @@ class bybit extends bybit$1 {
                 const cost = this.safeNumber(params, 'cost');
                 params = this.omit(params, 'cost');
                 if (price === undefined && cost === undefined) {
-                    throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
                 }
                 else {
                     const amountString = this.numberToString(amount);
@@ -8902,7 +8904,7 @@ class bybit extends bybit$1 {
          * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {object} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();

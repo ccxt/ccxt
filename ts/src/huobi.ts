@@ -604,6 +604,7 @@ export default class huobi extends Exchange {
                             'linear-swap-api/v3/unified_account_info': 1,
                             'linear-swap-api/v3/fix_position_margin_change_record': 1,
                             'linear-swap-api/v3/swap_unified_account_type': 1,
+                            'linear-swap-api/v3/linear_swap_overview_account_info': 1,
                         },
                         'post': {
                             // Future Account Interface
@@ -798,6 +799,7 @@ export default class huobi extends Exchange {
                             'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
                             'linear-swap-api/v3/fix_position_margin_change': 1,
                             'linear-swap-api/v3/swap_switch_account_type': 1,
+                            'linear-swap-api/v3/linear_swap_fee_switch': 1,
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
                             'linear-swap-api/v1/swap_cross_trigger_order': 1,
@@ -2508,7 +2510,7 @@ export default class huobi extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2959,7 +2961,7 @@ export default class huobi extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the huobi api endpoint
          * @param {bool} [params.unified] provide this parameter if you have a recent account with unified cross+isolated margin account
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
@@ -4558,7 +4560,7 @@ export default class huobi extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -4690,7 +4692,7 @@ export default class huobi extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const market = this.market (symbol);
         const request = {
@@ -5899,7 +5901,7 @@ export default class huobi extends Exchange {
          * @param {int} [since] not used by huobi, but filtered internally by ccxt
          * @param {int} [limit] not used by huobi, but filtered internally by ccxt
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();

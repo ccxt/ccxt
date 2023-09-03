@@ -92,6 +92,7 @@ export default class bingx extends Exchange {
                                 'market/trades': 3,
                                 'market/depth': 3,
                                 'market/kline': 3,
+                                'ticker/24hr': 1,
                             },
                         },
                         'private': {
@@ -100,7 +101,6 @@ export default class bingx extends Exchange {
                                 'trade/openOrders': 3,
                                 'trade/historyOrders': 3,
                                 'account/balance': 3,
-                                'ticker/24hr': 1,
                             },
                             'post': {
                                 'trade/order': 3,
@@ -258,6 +258,7 @@ export default class bingx extends Exchange {
                     '500': ExchangeError,
                     '504': ExchangeError,
                     '100001': AuthenticationError,
+                    '100412': AuthenticationError,
                     '100202': InsufficientFunds,
                     '100400': BadRequest,
                     '100440': ExchangeError,
@@ -695,7 +696,7 @@ export default class bingx extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {[object]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -993,9 +994,9 @@ export default class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {[object]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
@@ -1114,9 +1115,9 @@ export default class bingx extends Exchange {
         };
         let response = undefined;
         if (market['spot']) {
-            response = await this.swapV2PublicGetQuoteTicker (this.extend (request, params));
+            response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
         } else {
-            response = await this.spotV1PublicGetCommonSymbols (this.extend (request, params));
+            response = await this.swapV2PublicGetQuoteTicker (this.extend (request, params));
         }
         //
         //    {
@@ -1139,7 +1140,8 @@ export default class bingx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseTicker (data, market);
+        const ticker = this.safeValue (data, 0, data);
+        return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}) {
@@ -1153,15 +1155,20 @@ export default class bingx extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
+        let market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
             const firstSymbol = this.safeString (symbols, 0);
-            const market = this.market (firstSymbol);
-            if (!market['swap']) {
-                throw new BadRequest (this.id + ' fetchTicker is only supported for swap markets.');
-            }
+            market = this.market (firstSymbol);
         }
-        const response = await this.swapV2PublicGetQuoteTicker (params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.spotV1PublicGetTicker24hr (params);
+        } else {
+            response = await this.swapV2PublicGetQuoteTicker (params);
+        }
         //
         //    {
         //        "code": 0,
@@ -1190,6 +1197,20 @@ export default class bingx extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
+        // spot
+        //    {
+        //        symbol: 'BTC-USDT',
+        //        openPrice: '26032.08',
+        //        highPrice: '26178.86',
+        //        lowPrice: '25968.18',
+        //        lastPrice: '26113.60',
+        //        volume: '1161.79',
+        //        quoteVolume: '30288466.44',
+        //        openTime: '1693081020762',
+        //        closeTime: '1693167420762'
+        //    }
+        // swap
+        //
         //    {
         //        "symbol": "BTC-USDT",
         //        "priceChange": "52.5",
@@ -1206,15 +1227,15 @@ export default class bingx extends Exchange {
         //    }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const defaultType = this.safeString (this.options, 'defaultType', 'swap');
-        const symbol = this.safeSymbol (marketId, market, '-', defaultType);
+        const change = this.safeString (ticker, 'priceChange');
+        const type = (change === undefined) ? 'spot' : 'swap';
+        const symbol = this.safeSymbol (marketId, market, undefined, type);
         const open = this.safeString (ticker, 'openPrice');
         const high = this.safeString (ticker, 'highPrice');
         const low = this.safeString (ticker, 'lowPrice');
         const close = this.safeString (ticker, 'lastPrice');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         const baseVolume = this.safeString (ticker, 'volume');
-        const change = this.safeString (ticker, 'chapriceChangenge');
         const percentage = this.safeString (ticker, 'priceChangePercent');
         const ts = this.safeInteger (ticker, 'closeTime');
         const datetime = this.iso8601 (ts);
@@ -1252,7 +1273,7 @@ export default class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @param {boolean} [params.standard] whether to fetch standard contract balances
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
         let response = undefined;
@@ -2789,7 +2810,7 @@ export default class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {object} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.walletsV1PrivateGetCapitalConfigGetall (params);
@@ -2844,30 +2865,25 @@ export default class bingx extends Exchange {
     }
 
     parseParams (params) {
-        let result = '';
         const sortedParams = this.keysort (params);
         const keys = Object.keys (sortedParams);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (i > 0) {
-                result += '&';
-            }
             const value = sortedParams[key];
             if (Array.isArray (value)) {
-                result += key + '=[';
+                let arrStr = '[';
                 for (let j = 0; j < value.length; j++) {
                     const arrayElement = value[j];
                     if (j > 0) {
-                        result += ',';
+                        arrStr += ',';
                     }
-                    result += arrayElement.toString ();
+                    arrStr += arrayElement.toString ();
                 }
-                result += ']';
-            } else {
-                result += key + '=' + value.toString ();
+                arrStr += ']';
+                sortedParams[key] = arrStr;
             }
         }
-        return result;
+        return sortedParams;
     }
 
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -2886,14 +2902,16 @@ export default class bingx extends Exchange {
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         if (access === 'public') {
+            params['timestamp'] = this.nonce ();
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
         } else if (access === 'private') {
             this.checkRequiredCredentials ();
             params['timestamp'] = this.nonce ();
-            let query = this.parseParams (params);
-            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+            const parsedParams = this.parseParams (params);
+            let query = this.urlencode (parsedParams);
+            const signature = this.hmac (this.encode (this.rawencode (parsedParams)), this.encode (this.secret), sha256);
             if (Object.keys (params).length) {
                 query = '?' + query + '&';
             } else {

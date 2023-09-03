@@ -715,7 +715,7 @@ class cryptocom extends Exchange {
          * @param {int} [$limit] the maximum number of $trades to fetch
          * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -879,7 +879,7 @@ class cryptocom extends Exchange {
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
          * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $this->load_markets();
         $response = $this->v1PrivatePostPrivateUserBalance ($params);
@@ -2397,7 +2397,7 @@ class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
          */
         $this->load_markets();
         $response = $this->v2PrivatePostPrivateGetCurrencyNetworks ($params);
@@ -2415,7 +2415,7 @@ class cryptocom extends Exchange {
          * @param {int} [$limit] max number of $ledger entries to return
          * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ledger-structure $ledger structure}
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ledger-structure $ledger structure}
          */
         $this->load_markets();
         $request = array();
@@ -2727,7 +2727,7 @@ class cryptocom extends Exchange {
          * @param {int} [$limit] the maximum amount of [funding rate structures] to fetch
          * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [$params->until] $timestamp in ms for the ending date filter, default is the current time
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
          */
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();

@@ -1090,7 +1090,7 @@ class bybit extends bybit$1 {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         const method = 'watchBalance';

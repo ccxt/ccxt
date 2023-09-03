@@ -275,6 +275,31 @@ class gate extends Exchange {
                             'sub_accounts/{user_id}/keys/{key}' => 1,
                         ),
                     ),
+                    'portfolio' => array(
+                        'get' => array(
+                            'spot/currency_pairs' => 1.5,
+                            'spot/currency_pairs/{currency_pair}' => 1.5,
+                            'accounts' => 1.5,
+                            'account_mode' => 1.5,
+                            'borrowable' => 1.5,
+                            'transferable' => 1.5,
+                            'loans' => 1.5,
+                            'loan_records' => 1.5,
+                            'interest_records' => 1.5,
+                            'spot/orders' => 1.5,
+                            'spot/orders/{order_id}' => 1.5,
+                        ),
+                        'post' => array(
+                            'loans' => 1.5,
+                            'spot/orders' => 1.5,
+                        ),
+                        'delete' => array(
+                            'spot/orders/{order_id}' => 1.5,
+                        ),
+                        'patch' => array(
+                            'spot/orders/{order_id}' => 1.5,
+                        ),
+                    ),
                     'spot' => array(
                         'get' => array(
                             'fee' => 1,
@@ -468,6 +493,22 @@ class gate extends Exchange {
                             'uni/lends' => 1.5,
                         ),
                     ),
+                    'loan' => array(
+                        'get' => array(
+                            'collateral/orders' => 1.5,
+                            'collateral/orders/{order_id}' => 1.5,
+                            'collateral/repay_records' => 1.5,
+                            'collateral/collaterals' => 1.5,
+                            'collateral/total_amount' => 1.5,
+                            'collateral/ltv' => 1.5,
+                            'collateral/currencies' => 1.5,
+                        ),
+                        'post' => array(
+                            'collateral/orders' => 1.5,
+                            'collateral/repay' => 1.5,
+                            'collateral/collaterals' => 1.5,
+                        ),
+                    ),
                     'account' => array(
                         'get' => array(
                             'detail' => 1.5,
@@ -476,6 +517,9 @@ class gate extends Exchange {
                         ),
                         'post' => array(
                             'stp_groups' => 1.5,
+                            'stp_groups/{stp_id}/users' => 1.5,
+                        ),
+                        'delete' => array(
                             'stp_groups/{stp_id}/users' => 1.5,
                         ),
                     ),
@@ -2834,9 +2878,9 @@ class gate extends Exchange {
          * fetches historical funding rate prices
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
          * @param {array} [$params] extra parameters specific to the gate api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
@@ -2928,7 +2972,7 @@ class gate extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the gate api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4860,7 +4904,7 @@ class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-specified-contract-position
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
          * @param {array} [$params] extra parameters specific to the gate api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);

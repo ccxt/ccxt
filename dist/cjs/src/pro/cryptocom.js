@@ -121,7 +121,7 @@ class cryptocom extends cryptocom$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -396,7 +396,7 @@ class cryptocom extends cryptocom$1 {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         const messageHash = 'user.balance';
         return await this.watchPrivateSubscribe(messageHash, params);
@@ -477,7 +477,7 @@ class cryptocom extends cryptocom$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         params = this.createOrderRequest(symbol, type, side, amount, price, params);

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.0.75';
+$version = '4.0.80';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.0.75';
+    const VERSION = '4.0.80';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4425,7 +4425,7 @@ class Exchange {
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
     }
@@ -4586,10 +4586,17 @@ class Exchange {
             $precision = $this->safe_value($networkItem, 'precision', $precision);
         }
         if ($precision === null) {
-            return $fee;
+            return $this->forceString ($fee);
         } else {
             return $this->decimal_to_precision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
         }
+    }
+
+    public function force_string($value) {
+        if (gettype($value) !== 'string') {
+            return $this->number_to_string($value);
+        }
+        return $value;
     }
 
     public function is_tick_precision() {
@@ -5225,7 +5232,7 @@ class Exchange {
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         if ($this->has['fetchDepositsWithdrawals']) {
             return $this->fetchDepositsWithdrawals ($code, $since, $limit, $params);

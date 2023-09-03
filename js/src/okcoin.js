@@ -1440,7 +1440,7 @@ export default class okcoin extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1824,7 +1824,7 @@ export default class okcoin extends Exchange {
          * @name okcoin#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType');
         const type = this.safeString(params, 'type', defaultType);
@@ -2013,7 +2013,7 @@ export default class okcoin extends Exchange {
                             }
                         }
                         else if (notional === undefined) {
-                            throw new InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
+                            throw new InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total cost value in the "amount" argument or in the "notional" extra parameter (the exchange-specific behaviour)');
                         }
                     }
                     else {
@@ -3490,7 +3490,7 @@ export default class okcoin extends Exchange {
         let currency = undefined;
         if (type === 'spot') {
             if (code === undefined) {
-                throw new ArgumentsRequired(this.id + " fetchLedger() requires a currency code argument for '" + type + "' markets");
+                throw new ArgumentsRequired(this.id + ' fetchLedger() requires a currency code argument for "' + type + '" markets');
             }
             argument = 'Currency';
             currency = this.currency(code);

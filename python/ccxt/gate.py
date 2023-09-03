@@ -297,6 +297,31 @@ class gate(Exchange, ImplicitAPI):
                             'sub_accounts/{user_id}/keys/{key}': 1,
                         },
                     },
+                    'portfolio': {
+                        'get': {
+                            'spot/currency_pairs': 1.5,
+                            'spot/currency_pairs/{currency_pair}': 1.5,
+                            'accounts': 1.5,
+                            'account_mode': 1.5,
+                            'borrowable': 1.5,
+                            'transferable': 1.5,
+                            'loans': 1.5,
+                            'loan_records': 1.5,
+                            'interest_records': 1.5,
+                            'spot/orders': 1.5,
+                            'spot/orders/{order_id}': 1.5,
+                        },
+                        'post': {
+                            'loans': 1.5,
+                            'spot/orders': 1.5,
+                        },
+                        'delete': {
+                            'spot/orders/{order_id}': 1.5,
+                        },
+                        'patch': {
+                            'spot/orders/{order_id}': 1.5,
+                        },
+                    },
                     'spot': {
                         'get': {
                             'fee': 1,
@@ -490,6 +515,22 @@ class gate(Exchange, ImplicitAPI):
                             'uni/lends': 1.5,
                         },
                     },
+                    'loan': {
+                        'get': {
+                            'collateral/orders': 1.5,
+                            'collateral/orders/{order_id}': 1.5,
+                            'collateral/repay_records': 1.5,
+                            'collateral/collaterals': 1.5,
+                            'collateral/total_amount': 1.5,
+                            'collateral/ltv': 1.5,
+                            'collateral/currencies': 1.5,
+                        },
+                        'post': {
+                            'collateral/orders': 1.5,
+                            'collateral/repay': 1.5,
+                            'collateral/collaterals': 1.5,
+                        },
+                    },
                     'account': {
                         'get': {
                             'detail': 1.5,
@@ -498,6 +539,9 @@ class gate(Exchange, ImplicitAPI):
                         },
                         'post': {
                             'stp_groups': 1.5,
+                            'stp_groups/{stp_id}/users': 1.5,
+                        },
+                        'delete': {
                             'stp_groups/{stp_id}/users': 1.5,
                         },
                     },
@@ -2742,9 +2786,9 @@ class gate(Exchange, ImplicitAPI):
         fetches historical funding rate prices
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the gate api endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
@@ -2829,7 +2873,7 @@ class gate(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the gate api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -4647,7 +4691,7 @@ class gate(Exchange, ImplicitAPI):
         see https://www.gate.io/docs/developers/apiv4/en/#get-specified-contract-position
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the gate api endpoint
-        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :returns dict: a `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
         """
         self.load_markets()
         market = self.market(symbol)

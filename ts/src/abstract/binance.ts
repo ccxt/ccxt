@@ -55,6 +55,7 @@ interface Exchange {
     sapiGetMarginExchangeSmallLiability (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginExchangeSmallLiabilityHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginNextHourlyInterestRate (params?: {}): Promise<implicitReturnType>;
+    sapiGetMarginDelistSchedule (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipLoanableData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipCollateralData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipRequestData (params?: {}): Promise<implicitReturnType>;
@@ -66,6 +67,12 @@ interface Exchange {
     sapiGetLoanLoanableData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanCollateralData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanRepayCollateralRate (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleOngoingOrders (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleBorrowHistory (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleRepayHistory (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleLtvAdjustmentHistory (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleLoanableData (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleCollateralData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipOngoingOrders (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipRepayHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipCollateralAccount (params?: {}): Promise<implicitReturnType>;
@@ -106,7 +113,8 @@ interface Exchange {
     sapiGetSubAccountTransferSubUserHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetSubAccountUniversalTransfer (params?: {}): Promise<implicitReturnType>;
     sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (params?: {}): Promise<implicitReturnType>;
-    sapiGetSubAccountTransactionTatistics (params?: {}): Promise<implicitReturnType>;
+    sapiGetSubAccountTransactionStatistics (params?: {}): Promise<implicitReturnType>;
+    sapiGetSubAccountSubAccountApiIpRestriction (params?: {}): Promise<implicitReturnType>;
     sapiGetManagedSubaccountAsset (params?: {}): Promise<implicitReturnType>;
     sapiGetManagedSubaccountAccountSnapshot (params?: {}): Promise<implicitReturnType>;
     sapiGetManagedSubaccountQueryTransLogForInvestor (params?: {}): Promise<implicitReturnType>;
@@ -182,6 +190,9 @@ interface Exchange {
     sapiGetGiftcardVerify (params?: {}): Promise<implicitReturnType>;
     sapiGetGiftcardCryptographyRsaPublicKey (params?: {}): Promise<implicitReturnType>;
     sapiGetGiftcardBuyCodeTokenLimit (params?: {}): Promise<implicitReturnType>;
+    sapiGetAlgoSpotOpenOrders (params?: {}): Promise<implicitReturnType>;
+    sapiGetAlgoSpotHistoricalOrders (params?: {}): Promise<implicitReturnType>;
+    sapiGetAlgoSpotSubOrders (params?: {}): Promise<implicitReturnType>;
     sapiGetAlgoFuturesOpenOrders (params?: {}): Promise<implicitReturnType>;
     sapiGetAlgoFuturesHistoricalOrders (params?: {}): Promise<implicitReturnType>;
     sapiGetAlgoFuturesSubOrders (params?: {}): Promise<implicitReturnType>;
@@ -290,6 +301,7 @@ interface Exchange {
     sapiPostGiftcardCreateCode (params?: {}): Promise<implicitReturnType>;
     sapiPostGiftcardRedeemCode (params?: {}): Promise<implicitReturnType>;
     sapiPostGiftcardBuyCode (params?: {}): Promise<implicitReturnType>;
+    sapiPostAlgoSpotNewOrderTwap (params?: {}): Promise<implicitReturnType>;
     sapiPostAlgoFuturesNewOrderVp (params?: {}): Promise<implicitReturnType>;
     sapiPostAlgoFuturesNewOrderTwap (params?: {}): Promise<implicitReturnType>;
     sapiPostStakingPurchase (params?: {}): Promise<implicitReturnType>;
@@ -302,6 +314,9 @@ interface Exchange {
     sapiPostLoanRepay (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanAdjustLtv (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanCustomizeMarginCall (params?: {}): Promise<implicitReturnType>;
+    sapiPostLoanFlexibleBorrow (params?: {}): Promise<implicitReturnType>;
+    sapiPostLoanFlexibleRepay (params?: {}): Promise<implicitReturnType>;
+    sapiPostLoanFlexibleAdjustLtv (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanVipRepay (params?: {}): Promise<implicitReturnType>;
     sapiPostConvertGetQuote (params?: {}): Promise<implicitReturnType>;
     sapiPostConvertAcceptQuote (params?: {}): Promise<implicitReturnType>;
@@ -329,9 +344,12 @@ interface Exchange {
     sapiDeleteUserDataStreamIsolated (params?: {}): Promise<implicitReturnType>;
     sapiDeleteBrokerSubAccountApi (params?: {}): Promise<implicitReturnType>;
     sapiDeleteBrokerSubAccountApiIpRestrictionIpList (params?: {}): Promise<implicitReturnType>;
+    sapiDeleteAlgoSpotOrder (params?: {}): Promise<implicitReturnType>;
     sapiDeleteAlgoFuturesOrder (params?: {}): Promise<implicitReturnType>;
+    sapiDeleteSubAccountSubAccountApiIpRestrictionIpList (params?: {}): Promise<implicitReturnType>;
     sapiV2GetSubAccountFuturesAccount (params?: {}): Promise<implicitReturnType>;
     sapiV2GetSubAccountFuturesPositionRisk (params?: {}): Promise<implicitReturnType>;
+    sapiV2PostSubAccountSubAccountApiIpRestriction (params?: {}): Promise<implicitReturnType>;
     sapiV3GetSubAccountAssets (params?: {}): Promise<implicitReturnType>;
     sapiV3PostAssetGetUserAsset (params?: {}): Promise<implicitReturnType>;
     sapiV4GetSubAccountAssets (params?: {}): Promise<implicitReturnType>;
@@ -526,10 +544,12 @@ interface Exchange {
     publicGetAggTrades (params?: {}): Promise<implicitReturnType>;
     publicGetHistoricalTrades (params?: {}): Promise<implicitReturnType>;
     publicGetKlines (params?: {}): Promise<implicitReturnType>;
+    publicGetUiKlines (params?: {}): Promise<implicitReturnType>;
     publicGetTicker24hr (params?: {}): Promise<implicitReturnType>;
     publicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
     publicGetTickerBookTicker (params?: {}): Promise<implicitReturnType>;
     publicGetExchangeInfo (params?: {}): Promise<implicitReturnType>;
+    publicGetAvgPrice (params?: {}): Promise<implicitReturnType>;
     publicPutUserDataStream (params?: {}): Promise<implicitReturnType>;
     publicPostUserDataStream (params?: {}): Promise<implicitReturnType>;
     publicDeleteUserDataStream (params?: {}): Promise<implicitReturnType>;

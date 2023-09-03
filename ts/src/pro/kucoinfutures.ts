@@ -192,7 +192,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         const url = await this.negotiate (false);
@@ -544,8 +544,9 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.kucoin.com/futures/#account-balance-events
          * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
+        await this.loadMarkets ();
         const url = await this.negotiate (true);
         const topic = '/contractAccount/wallet';
         const request = {

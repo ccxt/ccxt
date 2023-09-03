@@ -533,7 +533,7 @@ class probit(Exchange, ImplicitAPI):
         see https://docs-en.probit.com/reference/balance
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         self.load_markets()
         response = self.privateGetBalance(params)
@@ -747,7 +747,7 @@ class probit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1171,7 +1171,7 @@ class probit(Exchange, ImplicitAPI):
                             priceString = self.number_to_string(price)
                             cost = self.parse_number(Precise.string_mul(amountString, priceString))
                     elif cost is None:
-                        raise InvalidOrder(self.id + " createOrder() requires the price argument for market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter(the exchange-specific behaviour)")
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False and supply the total cost value in the "amount" argument or in the "cost" extra parameter(the exchange-specific behaviour)')
                 else:
                     cost = amount if (cost is None) else cost
                 costToPrecision = self.cost_to_precision(symbol, cost)
@@ -1607,7 +1607,7 @@ class probit(Exchange, ImplicitAPI):
             networkCode = self.network_id_to_code(networkId, currency['code'])
             withdrawalFees = self.safe_value(network, 'withdrawal_fee', {})
             withdrawFee = self.safe_number(withdrawalFees[0], 'amount')
-            if len(withdrawalFees) > 0:
+            if len(withdrawalFees):
                 withdrawResult = {
                     'fee': withdrawFee,
                     'percentage': False if (withdrawFee is not None) else None,

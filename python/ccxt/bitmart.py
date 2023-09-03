@@ -1308,7 +1308,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bitmart api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1647,7 +1647,7 @@ class bitmart(Exchange, ImplicitAPI):
         see https://developer-pro.bitmart.com/en/spot/#get-account-balance
         see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
         :param dict [params]: extra parameters specific to the bitmart api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         self.load_markets()
         marketType = None

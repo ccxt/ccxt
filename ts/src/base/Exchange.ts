@@ -3772,7 +3772,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         throw new NotSupported (this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
@@ -3933,10 +3933,17 @@ export default class Exchange {
             precision = this.safeValue (networkItem, 'precision', precision);
         }
         if (precision === undefined) {
-            return fee;
+            return this.forceString (fee);
         } else {
             return this.decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
         }
+    }
+
+    forceString (value) {
+        if (typeof value !== 'string') {
+            return this.numberToString (value);
+        }
+        return value;
     }
 
     isTickPrecision () {
@@ -4591,7 +4598,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         if (this.has['fetchDepositsWithdrawals']) {
             return await this.fetchDepositsWithdrawals (code, since, limit, params);

@@ -99,6 +99,7 @@ class bingx extends Exchange {
                                 'market/trades' => 3,
                                 'market/depth' => 3,
                                 'market/kline' => 3,
+                                'ticker/24hr' => 1,
                             ),
                         ),
                         'private' => array(
@@ -107,7 +108,6 @@ class bingx extends Exchange {
                                 'trade/openOrders' => 3,
                                 'trade/historyOrders' => 3,
                                 'account/balance' => 3,
-                                'ticker/24hr' => 1,
                             ),
                             'post' => array(
                                 'trade/order' => 3,
@@ -265,6 +265,7 @@ class bingx extends Exchange {
                     '500' => '\\ccxt\\ExchangeError',
                     '504' => '\\ccxt\\ExchangeError',
                     '100001' => '\\ccxt\\AuthenticationError',
+                    '100412' => '\\ccxt\\AuthenticationError',
                     '100202' => '\\ccxt\\InsufficientFunds',
                     '100400' => '\\ccxt\\BadRequest',
                     '100440' => '\\ccxt\\ExchangeError',
@@ -705,7 +706,7 @@ class bingx extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1003,9 +1004,9 @@ class bingx extends Exchange {
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+             * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+             * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
             $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             Async\await($this->load_markets());
@@ -1110,12 +1111,12 @@ class bingx extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
              * @see https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1124,9 +1125,9 @@ class bingx extends Exchange {
             );
             $response = null;
             if ($market['spot']) {
-                $response = Async\await($this->swapV2PublicGetQuoteTicker (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PublicGetTicker24hr (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->spotV1PublicGetCommonSymbols (array_merge($request, $params)));
+                $response = Async\await($this->swapV2PublicGetQuoteTicker (array_merge($request, $params)));
             }
             //
             //    {
@@ -1149,7 +1150,8 @@ class bingx extends Exchange {
             //    }
             //
             $data = $this->safe_value($response, 'data');
-            return $this->parse_ticker($data, $market);
+            $ticker = $this->safe_value($data, 0, $data);
+            return $this->parse_ticker($ticker, $market);
         }) ();
     }
 
@@ -1163,15 +1165,20 @@ class bingx extends Exchange {
              * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
+            $market = null;
             if ($symbols !== null) {
                 $symbols = $this->market_symbols($symbols);
                 $firstSymbol = $this->safe_string($symbols, 0);
                 $market = $this->market($firstSymbol);
-                if (!$market['swap']) {
-                    throw new BadRequest($this->id . ' fetchTicker is only supported for swap markets.');
-                }
             }
-            $response = Async\await($this->swapV2PublicGetQuoteTicker ($params));
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+            $response = null;
+            if ($type === 'spot') {
+                $response = Async\await($this->spotV1PublicGetTicker24hr ($params));
+            } else {
+                $response = Async\await($this->swapV2PublicGetQuoteTicker ($params));
+            }
             //
             //    {
             //        "code" => 0,
@@ -1201,6 +1208,20 @@ class bingx extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
+        // spot
+        //    {
+        //        $symbol => 'BTC-USDT',
+        //        openPrice => '26032.08',
+        //        highPrice => '26178.86',
+        //        lowPrice => '25968.18',
+        //        lastPrice => '26113.60',
+        //        volume => '1161.79',
+        //        $quoteVolume => '30288466.44',
+        //        openTime => '1693081020762',
+        //        closeTime => '1693167420762'
+        //    }
+        // swap
+        //
         //    {
         //        "symbol" => "BTC-USDT",
         //        "priceChange" => "52.5",
@@ -1217,15 +1238,15 @@ class bingx extends Exchange {
         //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'swap');
-        $symbol = $this->safe_symbol($marketId, $market, '-', $defaultType);
+        $change = $this->safe_string($ticker, 'priceChange');
+        $type = ($change === null) ? 'spot' : 'swap';
+        $symbol = $this->safe_symbol($marketId, $market, null, $type);
         $open = $this->safe_string($ticker, 'openPrice');
         $high = $this->safe_string($ticker, 'highPrice');
         $low = $this->safe_string($ticker, 'lowPrice');
         $close = $this->safe_string($ticker, 'lastPrice');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         $baseVolume = $this->safe_string($ticker, 'volume');
-        $change = $this->safe_string($ticker, 'chapriceChangenge');
         $percentage = $this->safe_string($ticker, 'priceChangePercent');
         $ts = $this->safe_integer($ticker, 'closeTime');
         $datetime = $this->iso8601($ts);
@@ -1262,7 +1283,7 @@ class bingx extends Exchange {
              * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @param {boolean} [$params->standard] whether to fetch $standard contract balances
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $response = null;
@@ -2799,7 +2820,7 @@ class bingx extends Exchange {
              * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
              * @param {[string]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->walletsV1PrivateGetCapitalConfigGetall ($params));
@@ -2855,30 +2876,25 @@ class bingx extends Exchange {
     }
 
     public function parse_params($params) {
-        $result = '';
         $sortedParams = $this->keysort($params);
         $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if ($i > 0) {
-                $result .= '&';
-            }
             $value = $sortedParams[$key];
             if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
-                $result .= $key . '=[';
+                $arrStr = '[';
                 for ($j = 0; $j < count($value); $j++) {
                     $arrayElement = $value[$j];
                     if ($j > 0) {
-                        $result .= ',';
+                        $arrStr .= ',';
                     }
-                    $result .= (string) $arrayElement;
+                    $arrStr .= (string) $arrayElement;
                 }
-                $result .= ']';
-            } else {
-                $result .= $key . '=' . (string) $value;
+                $arrStr .= ']';
+                $sortedParams[$key] = $arrStr;
             }
         }
-        return $result;
+        return $sortedParams;
     }
 
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -2897,14 +2913,16 @@ class bingx extends Exchange {
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         if ($access === 'public') {
+            $params['timestamp'] = $this->nonce();
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
         } elseif ($access === 'private') {
             $this->check_required_credentials();
             $params['timestamp'] = $this->nonce();
-            $query = $this->parse_params($params);
-            $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
+            $parsedParams = $this->parse_params($params);
+            $query = $this->urlencode($parsedParams);
+            $signature = $this->hmac($this->encode($this->rawencode($parsedParams)), $this->encode($this->secret), 'sha256');
             if ($params) {
                 $query = '?' . $query . '&';
             } else {

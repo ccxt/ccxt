@@ -689,9 +689,9 @@ export default class coinex extends Exchange {
             'high': this.safeString(ticker, 'high'),
             'low': this.safeString(ticker, 'low'),
             'bid': this.safeString(ticker, 'buy'),
-            'bidVolume': undefined,
+            'bidVolume': this.safeString(ticker, 'buy_amount'),
             'ask': this.safeString(ticker, 'sell'),
-            'askVolume': undefined,
+            'askVolume': this.safeString(ticker, 'sell_amount'),
             'vwap': undefined,
             'open': this.safeString(ticker, 'open'),
             'close': last,
@@ -1100,7 +1100,7 @@ export default class coinex extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the coinex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1491,7 +1491,7 @@ export default class coinex extends Exchange {
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query       // swap
          * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @param {string} [params.type] 'margin', 'swap', 'financial', or 'spot'
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
@@ -3848,9 +3848,9 @@ export default class coinex extends Exchange {
          * @description fetches historical funding rate prices
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the coinex api endpoint
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');

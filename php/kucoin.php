@@ -1159,7 +1159,7 @@ class kucoin extends Exchange {
          * @see https://docs.kucoin.com/#get-withdrawal-quotas
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the kucoin api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2527,7 +2527,7 @@ class kucoin extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3066,7 +3066,7 @@ class kucoin extends Exchange {
          * @param {array} [$params] extra parameters specific to the kucoin api endpoint
          * @param {array} [$params->marginMode] 'cross' or 'isolated', margin $type for fetching margin $balance
          * @param {array} [$params->type] extra parameters specific to the kucoin api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$balance-structure $balance structure}
          */
         $this->load_markets();
         $code = $this->safe_string($params, 'code');
@@ -3935,7 +3935,7 @@ class kucoin extends Exchange {
          * @see https://docs.kucoin.com/#get-currencies
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
          */
         $this->load_markets();
         $response = $this->publicGetCurrencies ($params);

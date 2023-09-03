@@ -622,6 +622,7 @@ class huobi(Exchange, ImplicitAPI):
                             'linear-swap-api/v3/unified_account_info': 1,
                             'linear-swap-api/v3/fix_position_margin_change_record': 1,
                             'linear-swap-api/v3/swap_unified_account_type': 1,
+                            'linear-swap-api/v3/linear_swap_overview_account_info': 1,
                         },
                         'post': {
                             # Future Account Interface
@@ -816,6 +817,7 @@ class huobi(Exchange, ImplicitAPI):
                             'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
                             'linear-swap-api/v3/fix_position_margin_change': 1,
                             'linear-swap-api/v3/swap_switch_account_type': 1,
+                            'linear-swap-api/v3/linear_swap_fee_switch': 1,
                             # Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
                             'linear-swap-api/v1/swap_cross_trigger_order': 1,
@@ -2419,7 +2421,7 @@ class huobi(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2821,7 +2823,7 @@ class huobi(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the huobi api endpoint
         :param bool [params.unified]: provide self parameter if you have a recent account with unified cross+isolated margin account
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         self.load_markets()
         type = None
@@ -4323,7 +4325,7 @@ class huobi(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the huobi api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         self.load_accounts()
@@ -4442,7 +4444,7 @@ class huobi(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the huobi api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         market = self.market(symbol)
         request = {
@@ -5528,7 +5530,7 @@ class huobi(Exchange, ImplicitAPI):
         :param int [since]: not used by huobi, but filtered internally by ccxt
         :param int [limit]: not used by huobi, but filtered internally by ccxt
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()

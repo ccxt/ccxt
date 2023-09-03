@@ -58,7 +58,7 @@ class bybit(Exchange, ImplicitAPI):
                 'createStopOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
-                'fetchBorrowInterest': False,  # temporarily disabled, does not work
+                'fetchBorrowInterest': False,  # temporarily disabled, doesn't work
                 'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -264,6 +264,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-lever-token/info': 2.5,
                         'v5/spot-lever-token/reference': 2.5,
                         # spot margin trade
+                        'v5/spot-margin-trade/data': 2.5,
                         'v5/spot-cross-margin-trade/data': 2.5,
                         'v5/spot-cross-margin-trade/pledge-token': 2.5,
                         'v5/spot-cross-margin-trade/borrow-token': 2.5,
@@ -2457,7 +2458,8 @@ class bybit(Exchange, ImplicitAPI):
         if symbols is not None:
             symbols = self.market_symbols(symbols)
             market = self.market(symbols[0])
-            if len(symbols) == 1:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
                 request['symbol'] = market['id']
         type = None
         type, params = self.handle_market_type_and_params('fetchFundingRates', market, params)
@@ -2522,10 +2524,10 @@ class bybit(Exchange, ImplicitAPI):
         see https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         await self.load_markets()
@@ -2828,7 +2830,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.check_required_symbol('fetchTrades', symbol)
         await self.load_markets()
@@ -3213,7 +3215,7 @@ class bybit(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         request = {}
@@ -3734,7 +3736,7 @@ class bybit(Exchange, ImplicitAPI):
                 cost = self.safe_number(params, 'cost')
                 params = self.omit(params, 'cost')
                 if price is None and cost is None:
-                    raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False to supply the cost in the amount argument(the exchange-specific behaviour)')
                 else:
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
@@ -8251,7 +8253,7 @@ class bybit(Exchange, ImplicitAPI):
         see https://bybit-exchange.github.io/docs/v5/asset/coin-info
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
         """
         self.check_required_credentials()
         await self.load_markets()

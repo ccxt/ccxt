@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitgetRest from '../bitget.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -53,9 +53,18 @@ export default class bitget extends bitgetRest {
                 'ws': {
                     'exact': {
                         '30001': BadRequest, // {"event":"error","code":30001,"msg":"instType:sp,channel:candleundefined,instId:BTCUSDT doesn't exist"}
+                        '30002': AuthenticationError, // illegal request
+                        '30003': BadRequest, // invalid op
+                        '30004': AuthenticationError, // requires login
+                        '30005': AuthenticationError, // login failed
+                        '30006': RateLimitExceeded, // too many requests
+                        '30007': RateLimitExceeded, // request over limit,connection close
+                        '30011': AuthenticationError, // invalid ACCESS_KEY
+                        '30012': AuthenticationError, // invalid ACCESS_PASSPHRASE
+                        '30013': AuthenticationError, // invalid ACCESS_TIMESTAMP
+                        '30014': BadRequest, // Request timestamp expired
                         '30015': AuthenticationError, // { event: 'error', code: 30015, msg: 'Invalid sign' }
                         '30016': BadRequest, // { event: 'error', code: 30016, msg: 'Param error' }
-                        '30011': AuthenticationError, // { event: 'error', code: 30011, msg: 'Invalid ACCESS_KEY' }
                     },
                 },
             },
@@ -487,7 +496,7 @@ export default class bitget extends bitgetRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1024,7 +1033,7 @@ export default class bitget extends bitgetRest {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);
@@ -1165,6 +1174,9 @@ export default class bitget extends bitgetRest {
                 const code = this.safeString (message, 'code');
                 const feedback = this.id + ' ' + this.json (message);
                 this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, feedback);
+                const msg = this.safeString (message, 'msg', '');
+                this.throwBroadlyMatchedException (this.exceptions['ws']['broad'], msg, feedback);
+                throw new ExchangeError (feedback);
             }
             return false;
         } catch (e) {
@@ -1174,6 +1186,9 @@ export default class bitget extends bitgetRest {
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
+            } else {
+                // Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue #19041
+                client.reject (e);
             }
             return true;
         }

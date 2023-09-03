@@ -1428,7 +1428,7 @@ class okcoin extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the okcoin api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1809,7 +1809,7 @@ class okcoin extends Exchange {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the okcoin api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -1992,7 +1992,7 @@ class okcoin extends Exchange {
                                 $notional = $amount * $price;
                             }
                         } elseif ($notional === null) {
-                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
+                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total cost value in the "amount" argument or in the "notional" extra parameter (the exchange-specific behaviour)');
                         }
                     } else {
                         $notional = ($notional === null) ? $amount : $notional;
@@ -3443,7 +3443,7 @@ class okcoin extends Exchange {
         $currency = null;
         if ($type === 'spot') {
             if ($code === null) {
-                throw new ArgumentsRequired($this->id . " fetchLedger() requires a $currency $code $argument for '" . $type . "' markets");
+                throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $currency $code $argument for "' . $type . '" markets');
             }
             $argument = 'Currency';
             $currency = $this->currency($code);

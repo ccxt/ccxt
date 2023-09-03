@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.75'
+__version__ = '4.0.80'
 
 # -----------------------------------------------------------------------------
 
@@ -3569,7 +3569,7 @@ class Exchange(object):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange api endpoint
-        :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
 
@@ -3692,9 +3692,14 @@ class Exchange(object):
             networkItem = self.safe_value(networks, networkCode, {})
             precision = self.safe_value(networkItem, 'precision', precision)
         if precision is None:
-            return fee
+            return self.forceString(fee)
         else:
             return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
+
+    def force_string(self, value):
+        if not isinstance(value, str):
+            return self.number_to_string(value)
+        return value
 
     def is_tick_precision(self):
         return self.precisionMode == TICK_SIZE
@@ -4227,7 +4232,7 @@ class Exchange(object):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange api endpoint
-        :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         if self.has['fetchDepositsWithdrawals']:
             return self.fetchDepositsWithdrawals(code, since, limit, params)

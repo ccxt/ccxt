@@ -1204,7 +1204,7 @@ class krakenfutures extends Exchange {
         $statusId = null;
         $price = null;
         $trades = array();
-        if (strlen($orderEvents) > 0) {
+        if (strlen($orderEvents)) {
             $executions = array();
             for ($i = 0; $i < count($orderEvents); $i++) {
                 $item = $orderEvents[$i];
@@ -1251,7 +1251,7 @@ class krakenfutures extends Exchange {
         $remaining = $this->safe_string($details, 'unfilledSize');
         $average = null;
         $filled2 = '0.0';
-        if (strlen($trades) > 0) {
+        if (strlen($trades)) {
             $vwapSum = '0.0';
             for ($i = 0; $i < count($trades); $i++) {
                 $trade = $trades[$i];

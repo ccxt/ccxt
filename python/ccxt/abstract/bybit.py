@@ -99,6 +99,7 @@ class ImplicitAPI:
     public_get_v5_market_delivery_price = publicGetV5MarketDeliveryPrice = Entry('v5/market/delivery-price', 'public', 'GET', {'cost': 2.5})
     public_get_v5_spot_lever_token_info = publicGetV5SpotLeverTokenInfo = Entry('v5/spot-lever-token/info', 'public', 'GET', {'cost': 2.5})
     public_get_v5_spot_lever_token_reference = publicGetV5SpotLeverTokenReference = Entry('v5/spot-lever-token/reference', 'public', 'GET', {'cost': 2.5})
+    public_get_v5_spot_margin_trade_data = publicGetV5SpotMarginTradeData = Entry('v5/spot-margin-trade/data', 'public', 'GET', {'cost': 2.5})
     public_get_v5_spot_cross_margin_trade_data = publicGetV5SpotCrossMarginTradeData = Entry('v5/spot-cross-margin-trade/data', 'public', 'GET', {'cost': 2.5})
     public_get_v5_spot_cross_margin_trade_pledge_token = publicGetV5SpotCrossMarginTradePledgeToken = Entry('v5/spot-cross-margin-trade/pledge-token', 'public', 'GET', {'cost': 2.5})
     public_get_v5_spot_cross_margin_trade_borrow_token = publicGetV5SpotCrossMarginTradeBorrowToken = Entry('v5/spot-cross-margin-trade/borrow-token', 'public', 'GET', {'cost': 2.5})

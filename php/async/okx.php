@@ -228,6 +228,7 @@ class okx extends Exchange {
                         'tradingBot/grid/ai-param' => 1,
                         'tradingBot/grid/min-investment' => 1,
                         'tradingBot/public/rsi-back-testing' => 1,
+                        'asset/exchange-list' => 5 / 3,
                         'finance/savings/lending-rate-summary' => 5 / 3,
                         'finance/savings/lending-rate-history' => 5 / 3,
                         // public broker
@@ -1957,7 +1958,7 @@ class okx extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the okx api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2136,9 +2137,9 @@ class okx extends Exchange {
              * fetches historical funding $rate prices
              * @param {string} $symbol unified $symbol of the $market to fetch the funding $rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding $rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-$rate-history-structure funding $rate structures~ to fetch
+             * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-$rate-history-structure funding $rate structures} to fetch
              * @param {array} [$params] extra parameters specific to the okx api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-$rate-history-structure funding $rate structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-$rate-history-structure funding $rate structures}
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
@@ -2324,7 +2325,7 @@ class okx extends Exchange {
             /**
              * $query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the okx api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
@@ -4326,7 +4327,7 @@ class okx extends Exchange {
                 $targetNetwork = $this->safe_value($currency['networks'], $this->network_id_to_code($network), array());
                 $fee = $this->safe_string($targetNetwork, 'fee');
                 if ($fee === null) {
-                    throw new ArgumentsRequired($this->id . " withdraw() requires a 'fee' string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set '0'. Withdrawing to external digital asset $address requires $network $transaction $fee->");
+                    throw new ArgumentsRequired($this->id . ' withdraw() requires a "fee" string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set "0". Withdrawing to external digital asset $address requires $network $transaction $fee->');
                 }
             }
             $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are $fee-free, please set 0

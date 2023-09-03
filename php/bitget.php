@@ -2223,7 +2223,7 @@ class bitget extends Exchange {
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch deposits for
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2539,7 +2539,7 @@ class bitget extends Exchange {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $this->load_markets();
@@ -3781,6 +3781,8 @@ class bitget extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-order-fill-detail
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -3790,16 +3792,18 @@ class bitget extends Exchange {
         $this->check_required_symbol('fetchMyTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['swap']) {
-            throw new BadSymbol($this->id . ' fetchMyTrades() only supports spot markets');
-        }
         $request = array(
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateSpotPostTradeFills (array_merge($request, $params));
+        $response = null;
+        if ($market['spot']) {
+            $response = $this->privateSpotPostTradeFills (array_merge($request, $params));
+        } else {
+            $response = $this->privateMixGetOrderFills (array_merge($request, $params));
+        }
         //
         //     {
         //       code => '00000',
@@ -4185,9 +4189,9 @@ class bitget extends Exchange {
          * fetches historical funding rate prices
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
          */
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
@@ -4857,7 +4861,7 @@ class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
          */
         $this->load_markets();
         $response = $this->publicSpotGetPublicCurrencies ($params);

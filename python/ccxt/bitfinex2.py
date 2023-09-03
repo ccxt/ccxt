@@ -791,7 +791,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         # self api call does not return the 'used' amount - use the v1 version instead(which also returns zero balances)
         # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
@@ -1050,9 +1050,9 @@ class bitfinex2(Exchange, ImplicitAPI):
             'high': self.safe_string(ticker, length - 2),
             'low': self.safe_string(ticker, length - 1),
             'bid': self.safe_string(ticker, length - 10),
-            'bidVolume': None,
+            'bidVolume': self.safe_string(ticker, length - 9),
             'ask': self.safe_string(ticker, length - 8),
-            'askVolume': None,
+            'askVolume': self.safe_string(ticker, length - 7),
             'vwap': None,
             'open': None,
             'close': last,
@@ -1232,7 +1232,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)

@@ -885,7 +885,7 @@ class lbank2(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1125,7 +1125,7 @@ class lbank2(Exchange, ImplicitAPI):
         see https://www.lbank.info/en-US/docs/index.html#account-information
         see https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         method = self.safe_string(params, 'method')
