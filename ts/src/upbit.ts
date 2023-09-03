@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/upbit.js';
-import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending } from './base/errors.js';
+import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
@@ -1749,12 +1749,18 @@ export default class upbit extends Exchange {
         };
         let method = 'privatePostWithdraws';
         if (code !== 'KRW') {
+            // 2023-05-23 Change to required parameters for digital assets 
+            if (params['network'] === undefined) {
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a network argument');
+            }
             method += 'Coin';
+            request['net_type'] = params['network'].toUpperCase();
             request['currency'] = currency['id'];
             request['address'] = address;
             if (tag !== undefined) {
                 request['secondary_address'] = tag;
             }
+            params = this.omit(params, 'network');
         } else {
             method += 'Krw';
         }
