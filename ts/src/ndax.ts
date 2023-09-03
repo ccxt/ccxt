@@ -362,7 +362,12 @@ export default class ndax extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'ProductId');
             const name = this.safeString (currency, 'ProductFullName');
-            const type = this.safeString (currency, 'ProductType');
+            if (name === 'Donottouch') {
+                // such "DO NOT USE" product is just an empty template, not actual currency
+                continue;
+            }
+            const ProductType = this.safeString (currency, 'ProductType');
+            const type = ProductType === 'NationalCurrency' ? 'fiat' : 'crypto';
             const code = this.safeCurrencyCode (this.safeString (currency, 'Product'));
             const isDisabled = this.safeValue (currency, 'IsDisabled');
             const active = !isDisabled;
