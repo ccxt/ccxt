@@ -474,7 +474,6 @@ export default class bittrex extends Exchange {
         //     ]
         //
         const result = {};
-        const ccc = [];
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
