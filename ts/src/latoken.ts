@@ -437,10 +437,13 @@ export default class latoken extends Exchange {
             const code = this.safeCurrencyCode (tag);
             const fee = this.safeNumber (currency, 'fee');
             const currencyType = this.safeString (currency, 'type');
-            const parts = currencyType.split ('_');
-            const numParts = parts.length;
-            const lastPart = this.safeValue (parts, numParts - 1);
-            const type = lastPart.toLowerCase ();
+            let type = undefined;
+            if (currencyType === 'CURRENCY_TYPE_ALTERNATIVE') {
+                type = 'other';
+            } else {
+                // CURRENCY_TYPE_CRYPTO and CURRENCY_TYPE_IEO are all cryptos
+                type = 'crypto';
+            }
             const status = this.safeString (currency, 'status');
             const active = (status === 'CURRENCY_STATUS_ACTIVE');
             const name = this.safeString (currency, 'name');
