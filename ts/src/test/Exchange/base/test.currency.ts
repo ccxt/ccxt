@@ -10,6 +10,7 @@ function testCurrency (exchange, skippedProperties, method, entry) {
     const emptyAllowedFor = [ 'name', 'fee' ];
     // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
     const isNative = exchange.has['fetchCurrencies'] && exchange.has['fetchCurrencies'] !== 'emulated';
+    const currencyType = exchange.safeString (entry, 'type');
     if (isNative) {
         format['info'] = {};
         // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
@@ -29,19 +30,17 @@ function testCurrency (exchange, skippedProperties, method, entry) {
                 'max': exchange.parseNumber ('1000'),
             },
         };
-        // todo: format['type'] = 'fiat|crypto';
-    }
-    // todo: after all exchanges have `type` defined, romove "if" check
-    const currencyType = exchange.safeString (entry, 'type');
-    if (currencyType !== undefined) {
-        testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', [ 'fiat', 'crypto' ]);
-    }
-    // only require "deposit" and "withdraw" if currency is not fiat, or if it's fiat, but not explicitly skipped
-    if (currencyType !== 'fiat' || !('depositForFiat' in skippedProperties)) {
-        format['deposit'] = true;
-    }
-    if (currencyType !== 'fiat' || !('withdrawForFiat' in skippedProperties)) {
-        format['withdraw'] = true;
+        // todo: format['type'] = 'fiat|crypto'; // after all exchanges have `type` defined, romove "if" check
+        if (currencyType !== undefined) {
+            testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', [ 'fiat', 'crypto' ]);
+        }
+        // only require "deposit" and "withdraw" if currency is not fiat, or if it's fiat, but not explicitly skipped
+        if (currencyType !== 'fiat' || !('depositForFiat' in skippedProperties)) {
+            format['deposit'] = true;
+        }
+        if (currencyType !== 'fiat' || !('withdrawForFiat' in skippedProperties)) {
+            format['withdraw'] = true;
+        }
     }
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
