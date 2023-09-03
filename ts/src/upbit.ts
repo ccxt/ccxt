@@ -1749,18 +1749,18 @@ export default class upbit extends Exchange {
         };
         let method = 'privatePostWithdraws';
         if (code !== 'KRW') {
-            // 2023-05-23 Change to required parameters for digital assets 
+            // 2023-05-23 Change to required parameters for digital assets
             if (params['network'] === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a network argument');
             }
             method += 'Coin';
-            request['net_type'] = params['network'].toUpperCase();
+            request['net_type'] = this.safeStringUpper (params, 'network');
             request['currency'] = currency['id'];
             request['address'] = address;
             if (tag !== undefined) {
                 request['secondary_address'] = tag;
             }
-            params = this.omit(params, 'network');
+            params = this.omit (params, 'network');
         } else {
             method += 'Krw';
         }
