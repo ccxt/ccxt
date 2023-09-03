@@ -511,7 +511,8 @@
             },
             "fetchTickers": {
                 "bid": "broken bid-ask",
-                "ask": "broken bid-ask"
+                "ask": "broken bid-ask",
+                "baseVolume": "negative value"
             }
         }
     },
