@@ -492,11 +492,13 @@ export default class Exchange {
         updated: number | undefined,
         eta: number | undefined,
         url: string | undefined,
+        info: any,
     } = {
         'status': 'ok',
         'updated': undefined,
         'eta': undefined,
         'url': undefined,
+        'info': undefined,
     };
 
     requiredCredentials: {
@@ -1519,7 +1521,8 @@ export default class Exchange {
             'paddingMode': this.paddingMode,
             'limits': this.limits,
             'httpExceptions': this.httpExceptions,
-            'commonCurrencies': { // gets extended/overwritten in subclasses
+            'commonCurrencies': {
+                // gets extended/overwritten in subclasses
                 'XBT': 'BTC',
                 'BCC': 'BCH',
                 'BCHABC': 'BCH',
@@ -3458,6 +3461,7 @@ export default class Exchange {
             });
         }
         if (!('info' in this.status)) {
+            // @ts-ignore
             this.status['info'] = undefined;
         }
         return this.status;
