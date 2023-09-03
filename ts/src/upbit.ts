@@ -1750,11 +1750,13 @@ export default class upbit extends Exchange {
         let method = 'privatePostWithdraws';
         if (code !== 'KRW') {
             // 2023-05-23 Change to required parameters for digital assets
-            if (params['network'] === undefined) {
+            const network = this.safeStringUpper2 (params, 'network', 'net_type');
+            if (network === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a network argument');
             }
+            params = this.omit (params, [ 'network' ]);
+            request['net_type'] = network;
             method += 'Coin';
-            request['net_type'] = this.safeStringUpper (params, 'network');
             request['currency'] = currency['id'];
             request['address'] = address;
             if (tag !== undefined) {
