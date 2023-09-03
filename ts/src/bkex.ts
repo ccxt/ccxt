@@ -498,7 +498,7 @@ export default class bkex extends Exchange {
         const codeRaw = this.safeInteger (response, 'code');
         const updated = this.safeInteger (response, 'data');
         return {
-            'status': (statusRaw === 0 && codeRaw === 0) ? 'ok' : statusRaw,
+            'status': (statusRaw === 0 && codeRaw === 0) ? 'ok' : this.numberToString (statusRaw),
             'updated': updated,
             'eta': undefined,
             'url': undefined,
