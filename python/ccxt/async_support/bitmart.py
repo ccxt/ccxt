@@ -1437,10 +1437,11 @@ class bitmart(Exchange, ImplicitAPI):
             end = self.sum(start, limit * duration)
             request[fromRequest] = start
             request[toRequest] = min(end, now)
-        method = 'publicGetSpotV1SymbolsKline'
+        response = None
         if type == 'swap':
-            method = 'publicGetContractPublicKline'
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.publicGetContractPublicKline(self.extend(request, params))
+        else:
+            response = await self.publicGetSpotQuotationV3Klines(self.extend(request, params))
         #
         # spot
         #
@@ -1477,8 +1478,7 @@ class bitmart(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        klines = self.safe_value(data, 'klines', [])
-        ohlcv = klines if (type == 'spot') else data
+        ohlcv = self.safe_value(data, 'klines', data)
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -3047,8 +3047,10 @@ class bitmart(Exchange, ImplicitAPI):
         #     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         #
         message = self.safe_string_lower(response, 'message')
+        isErrorMessage = (message is not None) and (message != 'ok') and (message != 'success')
         errorCode = self.safe_string(response, 'code')
-        if ((errorCode is not None) and (errorCode != '1000')) or ((message is not None) and (message != 'ok')):
+        isErrorCode = (errorCode is not None) and (errorCode != '1000')
+        if isErrorCode or isErrorMessage:
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorCode, feedback)
