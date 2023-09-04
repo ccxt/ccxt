@@ -858,10 +858,7 @@ export default class binance extends binanceRest {
             limit = stored.getLimit (symbol, limit);
         }
         const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
-        const res = {};
-        res[symbol] = {};
-        res[symbol][timeframe] = filtered;
-        return res; // check this out
+        return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
     handleOHLCV (client: Client, message) {

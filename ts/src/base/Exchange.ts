@@ -4467,6 +4467,13 @@ export default class Exchange {
             }
         }
     }
+
+    createOHLCVObject (symbol: string, timeframe: string, data) {
+        const res = {};
+        res[symbol] = {};
+        res[symbol][timeframe] = data;
+        return res;
+    }
 }
 
 export {
