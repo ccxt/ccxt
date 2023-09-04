@@ -47,6 +47,7 @@ interface Exchange {
     sapiGetMarginExchangeSmallLiability(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginExchangeSmallLiabilityHistory(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginNextHourlyInterestRate(params?: {}): Promise<implicitReturnType>;
+    sapiGetMarginCapitalFlow(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginDelistSchedule(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipLoanableData(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipCollateralData(params?: {}): Promise<implicitReturnType>;

@@ -242,6 +242,7 @@ export default class binance extends Exchange {
                         'margin/exchange-small-liability': 0.6667,
                         'margin/exchange-small-liability-history': 0.6667,
                         'margin/next-hourly-interest-rate': 0.6667,
+                        'margin/capital-flow': 10, // Weight(IP): 100 => cost = 0.1 * 100 = 10
                         'margin/delist-schedule': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                         'loan/vip/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40

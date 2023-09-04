@@ -48,6 +48,7 @@ class ImplicitAPI:
     sapi_get_margin_exchange_small_liability = sapiGetMarginExchangeSmallLiability = Entry('margin/exchange-small-liability', 'sapi', 'GET', {'cost': 0.6667})
     sapi_get_margin_exchange_small_liability_history = sapiGetMarginExchangeSmallLiabilityHistory = Entry('margin/exchange-small-liability-history', 'sapi', 'GET', {'cost': 0.6667})
     sapi_get_margin_next_hourly_interest_rate = sapiGetMarginNextHourlyInterestRate = Entry('margin/next-hourly-interest-rate', 'sapi', 'GET', {'cost': 0.6667})
+    sapi_get_margin_capital_flow = sapiGetMarginCapitalFlow = Entry('margin/capital-flow', 'sapi', 'GET', {'cost': 10})
     sapi_get_margin_delist_schedule = sapiGetMarginDelistSchedule = Entry('margin/delist-schedule', 'sapi', 'GET', {'cost': 0.6667})
     sapi_get_loan_vip_loanable_data = sapiGetLoanVipLoanableData = Entry('loan/vip/loanable/data', 'sapi', 'GET', {'cost': 40})
     sapi_get_loan_vip_collateral_data = sapiGetLoanVipCollateralData = Entry('loan/vip/collateral/data', 'sapi', 'GET', {'cost': 40})

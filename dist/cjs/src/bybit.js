@@ -4444,9 +4444,6 @@ class bybit extends bybit$1 {
         return this.parseOrder(order);
     }
     async editUnifiedAccountOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        if (amount === undefined && price === undefined) {
-            throw new errors.InvalidOrder(this.id + ' editOrder requires either a price argument or an amount argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['linear'] && !market['option']) {
@@ -4525,9 +4522,6 @@ class bybit extends bybit$1 {
         });
     }
     async editUnifiedMarginOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
-        if (amount === undefined && price === undefined) {
-            throw new errors.InvalidOrder(this.id + ' editOrder requires either a price argument or an amount argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['linear'] && !market['option']) {
@@ -4624,9 +4618,6 @@ class bybit extends bybit$1 {
         return this.parseOrder(order);
     }
     async editContractV3Order(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        if (amount === undefined && price === undefined) {
-            throw new errors.InvalidOrder(this.id + ' editOrder requires either a price argument or an amount argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {

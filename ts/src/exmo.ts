@@ -737,17 +737,55 @@ export default class exmo extends Exchange {
         //         },
         //     }
         //
+        let marginPairsDict = {};
+        if (this.checkRequiredCredentials (false)) {
+            const marginPairs = await this.privatePostMarginPairList (params);
+            //
+            //    {
+            //        "pairs": [
+            //            {
+            //                "buy_price": "55978.85",
+            //                "default_leverage": "3",
+            //                "is_fair_price": true,
+            //                "last_trade_price": "55999.23",
+            //                "liquidation_fee": "2",
+            //                "liquidation_level": "10",
+            //                "margin_call_level": "15",
+            //                "max_leverage": "3",
+            //                "max_order_price": "150000",
+            //                "max_order_quantity": "1",
+            //                "max_position_quantity": "1",
+            //                "max_price_precision": 2,
+            //                "min_order_price": "1",
+            //                "min_order_quantity": "0.00002",
+            //                "name": "BTC_USD",
+            //                "position": 1,
+            //                "sell_price": "55985.51",
+            //                "ticker_updated": "1619019818936107989",
+            //                "trade_maker_fee": "0",
+            //                "trade_taker_fee": "0.05",
+            //                "updated": "1619008608955599013"
+            //            }
+            //        ]
+            //    }
+            //
+            const pairs = this.safeValue (marginPairs, 'pairs');
+            marginPairsDict = this.indexBy (pairs, 'name');
+        }
         const keys = Object.keys (response);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
             const market = response[id];
+            const marginMarket = this.safeValue (marginPairsDict, id);
             const symbol = id.replace ('_', '/');
             const [ baseId, quoteId ] = symbol.split ('/');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const takerString = this.safeString (market, 'commission_taker_percent');
             const makerString = this.safeString (market, 'commission_maker_percent');
+            const maxQuantity = this.safeString (market, 'max_quantity');
+            const marginMaxQuantity = this.safeString (marginMarket, 'max_order_quantity');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -759,7 +797,7 @@ export default class exmo extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': true,
+                'margin': marginMarket !== undefined,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -781,11 +819,11 @@ export default class exmo extends Exchange {
                 'limits': {
                     'leverage': {
                         'min': undefined,
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'leverage'),
                     },
                     'amount': {
                         'min': this.safeNumber (market, 'min_quantity'),
-                        'max': this.safeNumber (market, 'max_quantity'),
+                        'max': this.parseNumber (Precise.stringMax (maxQuantity, marginMaxQuantity)),
                     },
                     'price': {
                         'min': this.safeNumber (market, 'min_price'),

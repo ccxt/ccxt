@@ -2252,7 +2252,9 @@ class bitmex extends Exchange {
                 $filteredResponse[] = $item;
             }
         }
-        return $this->parse_funding_rates($filteredResponse, $symbols);
+        $symbols = $this->market_symbols($symbols);
+        $result = $this->parse_funding_rates($filteredResponse);
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function parse_funding_rate($contract, $market = null) {

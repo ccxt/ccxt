@@ -743,17 +743,55 @@ class exmo extends Exchange {
             //         ),
             //     }
             //
+            $marginPairsDict = array();
+            if ($this->check_required_credentials(false)) {
+                $marginPairs = Async\await($this->privatePostMarginPairList ($params));
+                //
+                //    {
+                //        "pairs" => array(
+                //            {
+                //                "buy_price" => "55978.85",
+                //                "default_leverage" => "3",
+                //                "is_fair_price" => true,
+                //                "last_trade_price" => "55999.23",
+                //                "liquidation_fee" => "2",
+                //                "liquidation_level" => "10",
+                //                "margin_call_level" => "15",
+                //                "max_leverage" => "3",
+                //                "max_order_price" => "150000",
+                //                "max_order_quantity" => "1",
+                //                "max_position_quantity" => "1",
+                //                "max_price_precision" => 2,
+                //                "min_order_price" => "1",
+                //                "min_order_quantity" => "0.00002",
+                //                "name" => "BTC_USD",
+                //                "position" => 1,
+                //                "sell_price" => "55985.51",
+                //                "ticker_updated" => "1619019818936107989",
+                //                "trade_maker_fee" => "0",
+                //                "trade_taker_fee" => "0.05",
+                //                "updated" => "1619008608955599013"
+                //            }
+                //        )
+                //    }
+                //
+                $pairs = $this->safe_value($marginPairs, 'pairs');
+                $marginPairsDict = $this->index_by($pairs, 'name');
+            }
             $keys = is_array($response) ? array_keys($response) : array();
             $result = array();
             for ($i = 0; $i < count($keys); $i++) {
                 $id = $keys[$i];
                 $market = $response[$id];
+                $marginMarket = $this->safe_value($marginPairsDict, $id);
                 $symbol = str_replace('_', '/', $id);
                 list($baseId, $quoteId) = explode('/', $symbol);
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $takerString = $this->safe_string($market, 'commission_taker_percent');
                 $makerString = $this->safe_string($market, 'commission_maker_percent');
+                $maxQuantity = $this->safe_string($market, 'max_quantity');
+                $marginMaxQuantity = $this->safe_string($marginMarket, 'max_order_quantity');
                 $result[] = array(
                     'id' => $id,
                     'symbol' => $symbol,
@@ -765,7 +803,7 @@ class exmo extends Exchange {
                     'settleId' => null,
                     'type' => 'spot',
                     'spot' => true,
-                    'margin' => true,
+                    'margin' => $marginMarket !== null,
                     'swap' => false,
                     'future' => false,
                     'option' => false,
@@ -787,11 +825,11 @@ class exmo extends Exchange {
                     'limits' => array(
                         'leverage' => array(
                             'min' => null,
-                            'max' => null,
+                            'max' => $this->safe_number($market, 'leverage'),
                         ),
                         'amount' => array(
                             'min' => $this->safe_number($market, 'min_quantity'),
-                            'max' => $this->safe_number($market, 'max_quantity'),
+                            'max' => $this->parse_number(Precise::string_max($maxQuantity, $marginMaxQuantity)),
                         ),
                         'price' => array(
                             'min' => $this->safe_number($market, 'min_price'),
@@ -889,20 +927,35 @@ class exmo extends Exchange {
 
     public function parse_balance($response) {
         $result = array( 'info' => $response );
-        $free = $this->safe_value($response, 'balances', array());
-        $used = $this->safe_value($response, 'reserved', array());
-        $currencyIds = is_array($free) ? array_keys($free) : array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            if (is_array($free) && array_key_exists($currencyId, $free)) {
-                $account['free'] = $this->safe_string($free, $currencyId);
+        $wallets = $this->safe_value($response, 'wallets');
+        if ($wallets !== null) {
+            $currencyIds = is_array($wallets) ? array_keys($wallets) : array();
+            for ($i = 0; $i < count($currencyIds); $i++) {
+                $currencyId = $currencyIds[$i];
+                $item = $wallets[$currencyId];
+                $currency = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['used'] = $this->safe_string($item, 'used');
+                $account['free'] = $this->safe_string($item, 'free');
+                $account['total'] = $this->safe_string($item, 'balance');
+                $result[$currency] = $account;
             }
-            if (is_array($used) && array_key_exists($currencyId, $used)) {
-                $account['used'] = $this->safe_string($used, $currencyId);
+        } else {
+            $free = $this->safe_value($response, 'balances', array());
+            $used = $this->safe_value($response, 'reserved', array());
+            $currencyIds = is_array($free) ? array_keys($free) : array();
+            for ($i = 0; $i < count($currencyIds); $i++) {
+                $currencyId = $currencyIds[$i];
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                if (is_array($free) && array_key_exists($currencyId, $free)) {
+                    $account['free'] = $this->safe_string($free, $currencyId);
+                }
+                if (is_array($used) && array_key_exists($currencyId, $used)) {
+                    $account['used'] = $this->safe_string($used, $currencyId);
+                }
+                $result[$code] = $account;
             }
-            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -912,22 +965,44 @@ class exmo extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exmo api endpoint
+             * @param {string} [$params->marginMode] *isolated* fetches the isolated margin balance
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privatePostUserInfo ($params));
-            //
-            //     {
-            //         "uid":131685,
-            //         "server_date":1628999600,
-            //         "balances":array(
-            //             "EXM":"0",
-            //             "USD":"0",
-            //             "EUR":"0",
-            //             "GBP":"0",
-            //         ),
-            //     }
-            //
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
+            if ($marginMode === 'cross') {
+                throw new BadRequest($this->id . ' does not support cross margin');
+            }
+            $response = null;
+            if ($marginMode === 'isolated') {
+                $response = Async\await($this->privatePostMarginUserWalletList ($params));
+                //
+                //    {
+                //        "wallets" => {
+                //            "USD" => {
+                //                "balance" => "1000",
+                //                "free" => "600",
+                //                "used" => "400"
+                //            }
+                //        }
+                //    }
+                //
+            } else {
+                $response = Async\await($this->privatePostUserInfo ($params));
+                //
+                //     {
+                //         "uid":131685,
+                //         "server_date":1628999600,
+                //         "balances":array(
+                //             "EXM":"0",
+                //             "USD":"0",
+                //             "EUR":"0",
+                //             "GBP":"0",
+                //         ),
+                //     }
+                //
+            }
             return $this->parse_balance($response);
         }) ();
     }

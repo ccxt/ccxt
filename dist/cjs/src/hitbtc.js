@@ -589,7 +589,6 @@ class hitbtc extends hitbtc$1 {
                 'STEPN': 'GMT',
                 'STX': 'STOX',
                 'TV': 'Tokenville',
-                'USD': 'USDT',
                 'XMT': 'MTL',
                 'XPNT': 'PNT',
             },
@@ -641,6 +640,9 @@ class hitbtc extends hitbtc$1 {
         const ids = Object.keys(response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
+            if (id.endsWith('_BQX')) {
+                continue; // seems like an invalid symbol and if we try to access it individually we get: {"timestamp":"2023-09-02T14:38:20.351Z","error":{"description":"Try get /public/symbol, to get list of all available symbols.","code":2001,"message":"No such symbol: EOSUSD_BQX"},"path":"/api/3/public/symbol/EOSUSD_BQX","requestId":"e1e9fce6-16374591"}
+            }
             const market = this.safeValue(response, id);
             const marketType = this.safeString(market, 'type');
             const expiry = this.safeInteger(market, 'expiry');
