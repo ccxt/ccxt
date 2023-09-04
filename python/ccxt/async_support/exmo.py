@@ -698,17 +698,54 @@ class exmo(Exchange, ImplicitAPI):
         #         },
         #     }
         #
+        marginPairsDict = {}
+        if self.check_required_credentials(False):
+            marginPairs = await self.privatePostMarginPairList(params)
+            #
+            #    {
+            #        "pairs": [
+            #            {
+            #                "buy_price": "55978.85",
+            #                "default_leverage": "3",
+            #                "is_fair_price": True,
+            #                "last_trade_price": "55999.23",
+            #                "liquidation_fee": "2",
+            #                "liquidation_level": "10",
+            #                "margin_call_level": "15",
+            #                "max_leverage": "3",
+            #                "max_order_price": "150000",
+            #                "max_order_quantity": "1",
+            #                "max_position_quantity": "1",
+            #                "max_price_precision": 2,
+            #                "min_order_price": "1",
+            #                "min_order_quantity": "0.00002",
+            #                "name": "BTC_USD",
+            #                "position": 1,
+            #                "sell_price": "55985.51",
+            #                "ticker_updated": "1619019818936107989",
+            #                "trade_maker_fee": "0",
+            #                "trade_taker_fee": "0.05",
+            #                "updated": "1619008608955599013"
+            #            }
+            #        ]
+            #    }
+            #
+            pairs = self.safe_value(marginPairs, 'pairs')
+            marginPairsDict = self.index_by(pairs, 'name')
         keys = list(response.keys())
         result = []
         for i in range(0, len(keys)):
             id = keys[i]
             market = response[id]
+            marginMarket = self.safe_value(marginPairsDict, id)
             symbol = id.replace('_', '/')
             baseId, quoteId = symbol.split('/')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             takerString = self.safe_string(market, 'commission_taker_percent')
             makerString = self.safe_string(market, 'commission_maker_percent')
+            maxQuantity = self.safe_string(market, 'max_quantity')
+            marginMaxQuantity = self.safe_string(marginMarket, 'max_order_quantity')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -720,7 +757,7 @@ class exmo(Exchange, ImplicitAPI):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': True,
+                'margin': marginMarket is not None,
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -742,11 +779,11 @@ class exmo(Exchange, ImplicitAPI):
                 'limits': {
                     'leverage': {
                         'min': None,
-                        'max': None,
+                        'max': self.safe_number(market, 'leverage'),
                     },
                     'amount': {
                         'min': self.safe_number(market, 'min_quantity'),
-                        'max': self.safe_number(market, 'max_quantity'),
+                        'max': self.parse_number(Precise.string_max(maxQuantity, marginMaxQuantity)),
                     },
                     'price': {
                         'min': self.safe_number(market, 'min_price'),
