@@ -1482,7 +1482,7 @@ export default class bitmart extends Exchange {
             request[fromRequest] = start;
             request[toRequest] = Math.min (end, now);
         }
-        let method = 'publicGetSpotV1SymbolsKline';
+        let method = 'publicGetSpotQuotationV3Klines';
         if (type === 'swap') {
             method = 'publicGetContractPublicKline';
         }
