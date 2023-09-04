@@ -463,15 +463,17 @@ class gate(ccxt.async_support.gate):
             subscription = self.safe_string(ohlcv, 'n', '')
             parts = subscription.split('_')
             timeframe = self.safe_string(parts, 0)
+            timeframeId = self.find_timeframe(timeframe)
             prefix = timeframe + '_'
             marketId = subscription.replace(prefix, '')
             symbol = self.safe_symbol(marketId, None, '_', marketType)
             parsed = self.parse_ohlcv(ohlcv)
-            stored = self.safe_value(self.ohlcvs, symbol)
+            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
-                self.ohlcvs[symbol] = stored
+                self.ohlcvs[symbol][timeframeId] = stored
             stored.append(parsed)
             marketIds[symbol] = timeframe
         keys = list(marketIds.keys())
@@ -480,7 +482,7 @@ class gate(ccxt.async_support.gate):
             timeframe = marketIds[symbol]
             interval = self.find_timeframe(timeframe)
             hash = 'candles' + ':' + interval + ':' + symbol
-            stored = self.safe_value(self.ohlcvs, symbol)
+            stored = self.safe_value(self.ohlcvs[symbol], interval)
             client.resolve(stored, hash)
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):

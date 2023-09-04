@@ -588,7 +588,6 @@ class hitbtc extends Exchange {
                 'STEPN' => 'GMT',
                 'STX' => 'STOX',
                 'TV' => 'Tokenville',
-                'USD' => 'USDT',
                 'XMT' => 'MTL',
                 'XPNT' => 'PNT',
             ),
@@ -640,6 +639,9 @@ class hitbtc extends Exchange {
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
+            if (str_ends_with($id, '_BQX')) {
+                continue; // seems like an invalid $symbol and if we try to access it individually we get => array("timestamp":"2023-09-02T14:38:20.351Z","error":array("description":"Try get /public/symbol, to get list of all available symbols.","code":2001,"message":"No such $symbol => EOSUSD_BQX"),"path":"/api/3/public/symbol/EOSUSD_BQX","requestId":"e1e9fce6-16374591")
+            }
             $market = $this->safe_value($response, $id);
             $marketType = $this->safe_string($market, 'type');
             $expiry = $this->safe_integer($market, 'expiry');

@@ -494,6 +494,7 @@ export default class kucoin extends Exchange {
                 'versions': {
                     'public': {
                         'GET': {
+                            'currencies': 'v3',
                             'currencies/{currency}': 'v2',
                             'status': 'v1',
                             'market/orderbook/level2_20': 'v1',
@@ -1004,19 +1005,34 @@ export default class kucoin extends Exchange {
         const promises = [];
         promises.push (this.publicGetCurrencies (params));
         //
-        //     {
-        //         "currency": "OMG",
-        //         "name": "OMG",
-        //         "fullName": "OmiseGO",
-        //         "precision": 8,
-        //         "confirms": 12,
-        //         "withdrawalMinSize": "4",
-        //         "withdrawalMinFee": "1.25",
-        //         "isWithdrawEnabled": false,
-        //         "isDepositEnabled": false,
-        //         "isMarginEnabled": false,
-        //         "isDebitEnabled": false
-        //     }
+        //    {
+        //        "code":"200000",
+        //        "data":[
+        //           {
+        //              "currency":"CSP",
+        //              "name":"CSP",
+        //              "fullName":"Caspian",
+        //              "precision":8,
+        //              "confirms":null,
+        //              "contractAddress":null,
+        //              "isMarginEnabled":false,
+        //              "isDebitEnabled":false,
+        //              "chains":[
+        //                 {
+        //                    "chainName":"ERC20",
+        //                    "chain":"eth",
+        //                    "withdrawalMinSize":"2999",
+        //                    "withdrawalMinFee":"2999",
+        //                    "isWithdrawEnabled":false,
+        //                    "isDepositEnabled":false,
+        //                    "confirms":12,
+        //                    "preConfirms":12,
+        //                    "contractAddress":"0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
+        //                    "depositFeeRate": "0.001", // present for some currencies/networks
+        //                 }
+        //              ]
+        //           },
+        //    }
         //
         promises.push (this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', true));
         //
@@ -1027,90 +1043,99 @@ export default class kucoin extends Exchange {
         //        "retry": false,
         //        "data": [
         //            {
-        //                "withdrawMinFee": "0.0005",
-        //                "chainName": "BTC",
-        //                "preDepositTipEnabled": "false",
-        //                "chain": "btc",
-        //                "isChainEnabled": "true",
-        //                "withdrawDisabledTip": "",
-        //                "walletPrecision": "8",
-        //                "chainFullName": "Bitcoin",
-        //                "orgAddress": "",
-        //                "isDepositEnabled": "true",
-        //                "withdrawMinSize": "0.001",
-        //                "depositDisabledTip": "",
-        //                "userAddressName": "",
-        //                "txUrl": "https://blockchain.info/tx/{txId}",
-        //                "preWithdrawTipEnabled": "false",
-        //                "withdrawFeeRate": "0",
-        //                "confirmationCount": "2",
+        //                "status": "enabled",
         //                "currency": "BTC",
+        //                "isChainEnabled": "true",
+        //                "chain": "btc",
+        //                "chainName": "BTC",
+        //                "chainFullName": "Bitcoin",
+        //                "walletPrecision": "8",
+        //                "isDepositEnabled": "true",
         //                "depositMinSize": "0.00005",
+        //                "confirmationCount": "2",
         //                "isWithdrawEnabled": "true",
-        //                "preDepositTip": "",
+        //                "withdrawMinSize": "0.001",
+        //                "withdrawMinFee": "0.0005",
+        //                "withdrawFeeRate": "0",
+        //                "depositDisabledTip": "Wallet Maintenance",
+        //                "preDepositTipEnabled": "true",
+        //                "preDepositTip": "Do not transfer from ETH network directly",
+        //                "withdrawDisabledTip": "",
+        //                "preWithdrawTipEnabled": "false",
         //                "preWithdrawTip": "",
-        //                "status": "enabled"
+        //                "orgAddress": "",
+        //                "userAddressName": "Memo",
         //            },
         //        ]
         //    }
         //
         const responses = await Promise.all (promises);
-        const responseCurrencies = responses[0];
-        const responseChains = responses[1];
-        const data = this.safeValue (responseCurrencies, 'data', []);
-        const chainsData = this.safeValue (responseChains, 'data', []);
-        const currencyChains = this.groupBy (chainsData, 'currency');
+        const currenciesResponse = this.safeValue (responses, 0, {});
+        const currenciesData = this.safeValue (currenciesResponse, 'data', []);
+        const additionalResponse = this.safeValue (responses, 1, {});
+        const additionalData = this.safeValue (additionalResponse, 'data', []);
+        const additionalDataGrouped = this.groupBy (additionalData, 'currency');
         const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+        for (let i = 0; i < currenciesData.length; i++) {
+            const entry = currenciesData[i];
             const id = this.safeString (entry, 'currency');
             const name = this.safeString (entry, 'fullName');
             const code = this.safeCurrencyCode (id);
-            const isWithdrawEnabled = this.safeValue (entry, 'isWithdrawEnabled', false);
-            const isDepositEnabled = this.safeValue (entry, 'isDepositEnabled', false);
-            const fee = this.safeNumber (entry, 'withdrawalMinFee');
-            const active = (isWithdrawEnabled && isDepositEnabled);
+            let isWithdrawEnabled = undefined;
+            let isDepositEnabled = undefined;
             const networks = {};
-            const chains = this.safeValue (currencyChains, id, []);
+            const chains = this.safeValue (entry, 'chains', []);
+            const extraChainsData = this.indexBy (this.safeValue (additionalDataGrouped, id, []), 'chain');
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'precision')));
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const chainId = this.safeString (chain, 'chain');
-                const isChainEnabled = this.safeString (chain, 'isChainEnabled'); // better than 'status'
-                if (isChainEnabled === 'true') {
-                    const networkCode = this.networkIdToCode (chainId);
-                    const chainWithdrawEnabled = this.safeValue (chain, 'isWithdrawEnabled', false);
-                    const chainDepositEnabled = this.safeValue (chain, 'isDepositEnabled', false);
-                    networks[networkCode] = {
-                        'info': chain,
-                        'id': chainId,
-                        'name': this.safeString2 (chain, 'chainFullName', 'chainName'),
-                        'code': networkCode,
-                        'active': chainWithdrawEnabled && chainDepositEnabled,
-                        'fee': this.safeNumber (chain, 'withdrawMinFee'),
-                        'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'walletPrecision'))),
-                        'limits': {
-                            'withdraw': {
-                                'min': this.safeNumber (chain, 'withdrawMinSize'),
-                                'max': undefined,
-                            },
-                            'deposit': {
-                                'min': this.safeNumber (chain, 'depositMinSize'),
-                                'max': undefined,
-                            },
-                        },
-                    };
+                const networkCode = this.networkIdToCode (chainId);
+                const chainWithdrawEnabled = this.safeValue (chain, 'isWithdrawEnabled', false);
+                if (isWithdrawEnabled === undefined) {
+                    isWithdrawEnabled = chainWithdrawEnabled;
+                } else {
+                    isWithdrawEnabled = isWithdrawEnabled || chainWithdrawEnabled;
                 }
+                const chainDepositEnabled = this.safeValue (chain, 'isDepositEnabled', false);
+                if (isDepositEnabled === undefined) {
+                    isDepositEnabled = chainDepositEnabled;
+                } else {
+                    isDepositEnabled = isDepositEnabled || chainDepositEnabled;
+                }
+                const chainExtraData = this.safeValue (extraChainsData, chainId, {});
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': chainId,
+                    'name': this.safeString (chain, 'chainName'),
+                    'code': networkCode,
+                    'active': chainWithdrawEnabled && chainDepositEnabled,
+                    'fee': this.safeNumber (chain, 'withdrawalMinFee'),
+                    'deposit': chainDepositEnabled,
+                    'withdraw': chainWithdrawEnabled,
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chainExtraData, 'walletPrecision'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'withdrawalMinSize'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (chainExtraData, 'depositMinSize'),
+                            'max': undefined,
+                        },
+                    },
+                };
             }
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'precision'))),
+                'precision': precision,
                 'info': entry,
-                'active': active,
+                'active': (isDepositEnabled || isWithdrawEnabled),
                 'deposit': isDepositEnabled,
                 'withdraw': isWithdrawEnabled,
-                'fee': fee,
+                'fee': undefined,
                 'limits': this.limits,
                 'networks': networks,
             };

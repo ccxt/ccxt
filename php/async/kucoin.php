@@ -496,6 +496,7 @@ class kucoin extends Exchange {
                 'versions' => array(
                     'public' => array(
                         'GET' => array(
+                            'currencies' => 'v3',
                             'currencies/{currency}' => 'v2',
                             'status' => 'v1',
                             'market/orderbook/level2_20' => 'v1',
@@ -1005,19 +1006,34 @@ class kucoin extends Exchange {
             $promises = array();
             $promises[] = $this->publicGetCurrencies ($params);
             //
-            //     {
-            //         "currency" => "OMG",
-            //         "name" => "OMG",
-            //         "fullName" => "OmiseGO",
-            //         "precision" => 8,
-            //         "confirms" => 12,
-            //         "withdrawalMinSize" => "4",
-            //         "withdrawalMinFee" => "1.25",
-            //         "isWithdrawEnabled" => false,
-            //         "isDepositEnabled" => false,
-            //         "isMarginEnabled" => false,
-            //         "isDebitEnabled" => false
-            //     }
+            //    {
+            //        "code":"200000",
+            //        "data":array(
+            //           {
+            //              "currency":"CSP",
+            //              "name":"CSP",
+            //              "fullName":"Caspian",
+            //              "precision":8,
+            //              "confirms":null,
+            //              "contractAddress":null,
+            //              "isMarginEnabled":false,
+            //              "isDebitEnabled":false,
+            //              "chains":[
+            //                 array(
+            //                    "chainName":"ERC20",
+            //                    "chain":"eth",
+            //                    "withdrawalMinSize":"2999",
+            //                    "withdrawalMinFee":"2999",
+            //                    "isWithdrawEnabled":false,
+            //                    "isDepositEnabled":false,
+            //                    "confirms":12,
+            //                    "preConfirms":12,
+            //                    "contractAddress":"0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
+            //                    "depositFeeRate" => "0.001", // present for some currencies/networks
+            //                 }
+            //              )
+            //           ),
+            //    }
             //
             $promises[] = $this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', true);
             //
@@ -1028,90 +1044,99 @@ class kucoin extends Exchange {
             //        "retry" => false,
             //        "data" => array(
             //            array(
-            //                "withdrawMinFee" => "0.0005",
-            //                "chainName" => "BTC",
-            //                "preDepositTipEnabled" => "false",
-            //                "chain" => "btc",
-            //                "isChainEnabled" => "true",
-            //                "withdrawDisabledTip" => "",
-            //                "walletPrecision" => "8",
-            //                "chainFullName" => "Bitcoin",
-            //                "orgAddress" => "",
-            //                "isDepositEnabled" => "true",
-            //                "withdrawMinSize" => "0.001",
-            //                "depositDisabledTip" => "",
-            //                "userAddressName" => "",
-            //                "txUrl" => "https://blockchain.info/tx/{txId}",
-            //                "preWithdrawTipEnabled" => "false",
-            //                "withdrawFeeRate" => "0",
-            //                "confirmationCount" => "2",
+            //                "status" => "enabled",
             //                "currency" => "BTC",
+            //                "isChainEnabled" => "true",
+            //                "chain" => "btc",
+            //                "chainName" => "BTC",
+            //                "chainFullName" => "Bitcoin",
+            //                "walletPrecision" => "8",
+            //                "isDepositEnabled" => "true",
             //                "depositMinSize" => "0.00005",
+            //                "confirmationCount" => "2",
             //                "isWithdrawEnabled" => "true",
-            //                "preDepositTip" => "",
+            //                "withdrawMinSize" => "0.001",
+            //                "withdrawMinFee" => "0.0005",
+            //                "withdrawFeeRate" => "0",
+            //                "depositDisabledTip" => "Wallet Maintenance",
+            //                "preDepositTipEnabled" => "true",
+            //                "preDepositTip" => "Do not transfer from ETH network directly",
+            //                "withdrawDisabledTip" => "",
+            //                "preWithdrawTipEnabled" => "false",
             //                "preWithdrawTip" => "",
-            //                "status" => "enabled"
+            //                "orgAddress" => "",
+            //                "userAddressName" => "Memo",
             //            ),
             //        )
             //    }
             //
             $responses = Async\await(Promise\all($promises));
-            $responseCurrencies = $responses[0];
-            $responseChains = $responses[1];
-            $data = $this->safe_value($responseCurrencies, 'data', array());
-            $chainsData = $this->safe_value($responseChains, 'data', array());
-            $currencyChains = $this->group_by($chainsData, 'currency');
+            $currenciesResponse = $this->safe_value($responses, 0, array());
+            $currenciesData = $this->safe_value($currenciesResponse, 'data', array());
+            $additionalResponse = $this->safe_value($responses, 1, array());
+            $additionalData = $this->safe_value($additionalResponse, 'data', array());
+            $additionalDataGrouped = $this->group_by($additionalData, 'currency');
             $result = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $entry = $data[$i];
+            for ($i = 0; $i < count($currenciesData); $i++) {
+                $entry = $currenciesData[$i];
                 $id = $this->safe_string($entry, 'currency');
                 $name = $this->safe_string($entry, 'fullName');
                 $code = $this->safe_currency_code($id);
-                $isWithdrawEnabled = $this->safe_value($entry, 'isWithdrawEnabled', false);
-                $isDepositEnabled = $this->safe_value($entry, 'isDepositEnabled', false);
-                $fee = $this->safe_number($entry, 'withdrawalMinFee');
-                $active = ($isWithdrawEnabled && $isDepositEnabled);
+                $isWithdrawEnabled = null;
+                $isDepositEnabled = null;
                 $networks = array();
-                $chains = $this->safe_value($currencyChains, $id, array());
+                $chains = $this->safe_value($entry, 'chains', array());
+                $extraChainsData = $this->index_by($this->safe_value($additionalDataGrouped, $id, array()), 'chain');
+                $precision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'precision')));
                 for ($j = 0; $j < count($chains); $j++) {
                     $chain = $chains[$j];
                     $chainId = $this->safe_string($chain, 'chain');
-                    $isChainEnabled = $this->safe_string($chain, 'isChainEnabled'); // better than 'status'
-                    if ($isChainEnabled === 'true') {
-                        $networkCode = $this->network_id_to_code($chainId);
-                        $chainWithdrawEnabled = $this->safe_value($chain, 'isWithdrawEnabled', false);
-                        $chainDepositEnabled = $this->safe_value($chain, 'isDepositEnabled', false);
-                        $networks[$networkCode] = array(
-                            'info' => $chain,
-                            'id' => $chainId,
-                            'name' => $this->safe_string_2($chain, 'chainFullName', 'chainName'),
-                            'code' => $networkCode,
-                            'active' => $chainWithdrawEnabled && $chainDepositEnabled,
-                            'fee' => $this->safe_number($chain, 'withdrawMinFee'),
-                            'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'walletPrecision'))),
-                            'limits' => array(
-                                'withdraw' => array(
-                                    'min' => $this->safe_number($chain, 'withdrawMinSize'),
-                                    'max' => null,
-                                ),
-                                'deposit' => array(
-                                    'min' => $this->safe_number($chain, 'depositMinSize'),
-                                    'max' => null,
-                                ),
-                            ),
-                        );
+                    $networkCode = $this->network_id_to_code($chainId);
+                    $chainWithdrawEnabled = $this->safe_value($chain, 'isWithdrawEnabled', false);
+                    if ($isWithdrawEnabled === null) {
+                        $isWithdrawEnabled = $chainWithdrawEnabled;
+                    } else {
+                        $isWithdrawEnabled = $isWithdrawEnabled || $chainWithdrawEnabled;
                     }
+                    $chainDepositEnabled = $this->safe_value($chain, 'isDepositEnabled', false);
+                    if ($isDepositEnabled === null) {
+                        $isDepositEnabled = $chainDepositEnabled;
+                    } else {
+                        $isDepositEnabled = $isDepositEnabled || $chainDepositEnabled;
+                    }
+                    $chainExtraData = $this->safe_value($extraChainsData, $chainId, array());
+                    $networks[$networkCode] = array(
+                        'info' => $chain,
+                        'id' => $chainId,
+                        'name' => $this->safe_string($chain, 'chainName'),
+                        'code' => $networkCode,
+                        'active' => $chainWithdrawEnabled && $chainDepositEnabled,
+                        'fee' => $this->safe_number($chain, 'withdrawalMinFee'),
+                        'deposit' => $chainDepositEnabled,
+                        'withdraw' => $chainWithdrawEnabled,
+                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($chainExtraData, 'walletPrecision'))),
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $this->safe_number($chain, 'withdrawalMinSize'),
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => $this->safe_number($chainExtraData, 'depositMinSize'),
+                                'max' => null,
+                            ),
+                        ),
+                    );
                 }
                 $result[$code] = array(
                     'id' => $id,
                     'name' => $name,
                     'code' => $code,
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'precision'))),
+                    'precision' => $precision,
                     'info' => $entry,
-                    'active' => $active,
+                    'active' => ($isDepositEnabled || $isWithdrawEnabled),
                     'deposit' => $isDepositEnabled,
                     'withdraw' => $isWithdrawEnabled,
-                    'fee' => $fee,
+                    'fee' => null,
                     'limits' => $this->limits,
                     'networks' => $networks,
                 );

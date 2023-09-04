@@ -1766,9 +1766,9 @@ class coinsph(Exchange, ImplicitAPI):
             if isinstance(query[key], list):
                 if i != 0:
                     encodedArrayParams += '&'
-                array = query[key]
+                innerArray = query[key]
                 query = self.omit(query, key)
-                encodedArrayParam = self.parse_array_param(array, key)
+                encodedArrayParam = self.parse_array_param(innerArray, key)
                 encodedArrayParams += encodedArrayParam
         encodedQuery = self.urlencode(query)
         if len(encodedQuery) != 0:

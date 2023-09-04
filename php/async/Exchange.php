@@ -40,11 +40,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.76';
+$version = '4.0.81';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.76';
+    const VERSION = '4.0.81';
 
     public $browser;
     public $marketsLoading = null;
@@ -2760,10 +2760,17 @@ class Exchange extends \ccxt\Exchange {
             $precision = $this->safe_value($networkItem, 'precision', $precision);
         }
         if ($precision === null) {
-            return $fee;
+            return $this->forceString ($fee);
         } else {
             return $this->decimal_to_precision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
         }
+    }
+
+    public function force_string($value) {
+        if (gettype($value) !== 'string') {
+            return $this->number_to_string($value);
+        }
+        return $value;
     }
 
     public function is_tick_precision() {

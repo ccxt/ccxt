@@ -244,6 +244,7 @@ class bybit extends Exchange {
                         'v5/spot-lever-token/info' => 2.5,
                         'v5/spot-lever-token/reference' => 2.5,
                         // spot margin trade
+                        'v5/spot-margin-trade/data' => 2.5,
                         'v5/spot-cross-margin-trade/data' => 2.5,
                         'v5/spot-cross-margin-trade/pledge-token' => 2.5,
                         'v5/spot-cross-margin-trade/borrow-token' => 2.5,
@@ -2509,7 +2510,8 @@ class bybit extends Exchange {
         if ($symbols !== null) {
             $symbols = $this->market_symbols($symbols);
             $market = $this->market($symbols[0]);
-            if (strlen($symbols) === 1) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
                 $request['symbol'] = $market['id'];
             }
         }
@@ -3863,7 +3865,7 @@ class bybit extends Exchange {
                 $cost = $this->safe_number($params, 'cost');
                 $params = $this->omit($params, 'cost');
                 if ($price === null && $cost === null) {
-                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
@@ -4367,9 +4369,6 @@ class bybit extends Exchange {
     }
 
     public function edit_unified_account_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
-        if ($amount === null && $price === null) {
-            throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['linear'] && !$market['option']) {
@@ -4448,9 +4447,6 @@ class bybit extends Exchange {
     }
 
     public function edit_unified_margin_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($amount === null && $price === null) {
-            throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['linear'] && !$market['option']) {
@@ -4544,9 +4540,6 @@ class bybit extends Exchange {
     }
 
     public function edit_contract_v3_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
-        if ($amount === null && $price === null) {
-            throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

@@ -633,7 +633,7 @@ class bithumb extends bithumb$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'currency': market['base'],
+            'currency': market['base'] + '_' + market['quote'],
         };
         if (limit !== undefined) {
             request['count'] = limit; // default 20, max 100

@@ -209,6 +209,7 @@ class mexc(Exchange, ImplicitAPI):
                             'rebate/detail': 1,
                             'rebate/detail/kickback': 1,
                             'rebate/referCode': 1,
+                            'rebate/affiliate/commission': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                         },

@@ -51,9 +51,18 @@ class bitget extends bitget$1 {
                 'ws': {
                     'exact': {
                         '30001': errors.BadRequest,
+                        '30002': errors.AuthenticationError,
+                        '30003': errors.BadRequest,
+                        '30004': errors.AuthenticationError,
+                        '30005': errors.AuthenticationError,
+                        '30006': errors.RateLimitExceeded,
+                        '30007': errors.RateLimitExceeded,
+                        '30011': errors.AuthenticationError,
+                        '30012': errors.AuthenticationError,
+                        '30013': errors.AuthenticationError,
+                        '30014': errors.BadRequest,
                         '30015': errors.AuthenticationError,
-                        '30016': errors.BadRequest,
-                        '30011': errors.AuthenticationError, // { event: 'error', code: 30011, msg: 'Invalid ACCESS_KEY' }
+                        '30016': errors.BadRequest, // { event: 'error', code: 30016, msg: 'Param error' }
                     },
                 },
             },
@@ -1143,6 +1152,9 @@ class bitget extends bitget$1 {
                 const code = this.safeString(message, 'code');
                 const feedback = this.id + ' ' + this.json(message);
                 this.throwExactlyMatchedException(this.exceptions['ws']['exact'], code, feedback);
+                const msg = this.safeString(message, 'msg', '');
+                this.throwBroadlyMatchedException(this.exceptions['ws']['broad'], msg, feedback);
+                throw new errors.ExchangeError(feedback);
             }
             return false;
         }
@@ -1153,6 +1165,10 @@ class bitget extends bitget$1 {
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
+            }
+            else {
+                // Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue #19041
+                client.reject(e);
             }
             return true;
         }

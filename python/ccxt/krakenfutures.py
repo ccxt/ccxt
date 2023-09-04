@@ -1176,7 +1176,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         statusId = None
         price = None
         trades = []
-        if len(orderEvents) > 0:
+        if len(orderEvents):
             executions = []
             for i in range(0, len(orderEvents)):
                 item = orderEvents[i]
@@ -1215,7 +1215,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         remaining = self.safe_string(details, 'unfilledSize')
         average = None
         filled2 = '0.0'
-        if len(trades) > 0:
+        if len(trades):
             vwapSum = '0.0'
             for i in range(0, len(trades)):
                 trade = trades[i]
