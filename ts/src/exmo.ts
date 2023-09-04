@@ -737,10 +737,8 @@ export default class exmo extends Exchange {
         //         },
         //     }
         //
-        let marginPairsDict = undefined;
+        let marginPairsDict = {};
         if (this.checkRequiredCredentials (false)) {
-            marginPairsDict = {};
-        } else {
             const marginPairs = await this.privatePostMarginPairList (params);
             //
             //    {
