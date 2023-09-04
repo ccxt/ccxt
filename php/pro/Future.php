@@ -12,7 +12,7 @@ class Future extends Deferred implements PromiseInterface {
         parent::__construct();
     }
 
-    public function then($onFulfilled = null, $onRejected = null, $onProgress = null) {
+    public function then(?callable $onFulfilled = null, ?callable $onRejected = null) {
         return $this->promise()->then($onFulfilled, $onRejected);
     }
 
