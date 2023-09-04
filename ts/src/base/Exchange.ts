@@ -3103,6 +3103,10 @@ export default class Exchange {
     async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' watchPositions() is not supported yet');
     }
+    
+    async watchPositionForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        return this.watchPositions (symbols, since, limit, params);
+    }
 
     async fetchPositionsBySymbol (symbol: string, params = {}): Promise<Position[]> {
         /**
