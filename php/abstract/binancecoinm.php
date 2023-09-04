@@ -145,6 +145,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function sapi_get_margin_next_hourly_interest_rate($params = array()) {
         return $this->request('margin/next-hourly-interest-rate', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
     }
+    public function sapi_get_margin_capital_flow($params = array()) {
+        return $this->request('margin/capital-flow', 'sapi', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function sapi_get_margin_delist_schedule($params = array()) {
         return $this->request('margin/delist-schedule', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
     }
@@ -2067,6 +2070,9 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function sapiGetMarginNextHourlyInterestRate($params = array()) {
         return $this->request('margin/next-hourly-interest-rate', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));
+    }
+    public function sapiGetMarginCapitalFlow($params = array()) {
+        return $this->request('margin/capital-flow', 'sapi', 'GET', $params, null, null, array("cost" => 10));
     }
     public function sapiGetMarginDelistSchedule($params = array()) {
         return $this->request('margin/delist-schedule', 'sapi', 'GET', $params, null, null, array("cost" => 0.6667));

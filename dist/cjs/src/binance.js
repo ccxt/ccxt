@@ -240,6 +240,7 @@ class binance extends binance$1 {
                         'margin/exchange-small-liability': 0.6667,
                         'margin/exchange-small-liability-history': 0.6667,
                         'margin/next-hourly-interest-rate': 0.6667,
+                        'margin/capital-flow': 10,
                         'margin/delist-schedule': 0.6667,
                         'loan/vip/loanable/data': 40,
                         'loan/vip/collateral/data': 40,
