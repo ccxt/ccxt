@@ -3590,10 +3590,8 @@ export default class bybit extends Exchange {
             request['category'] = 'linear';
         } else if (market['inverse']) {
             request['category'] = 'inverse';
-        } else if (market['option'] && isUnifiedAccount) {
+        } else if (market['option']) {
             request['category'] = 'option';
-        } else {
-            throw new NotSupported (this.id + ' createOrder() not support this market type');
         }
         if (market['spot'] && (type === 'market') && (side === 'buy')) {
             // for market buy it requires the amount of quote currency to spend
@@ -3911,10 +3909,8 @@ export default class bybit extends Exchange {
             request['category'] = 'linear';
         } else if (market['inverse']) {
             request['category'] = 'inverse';
-        } else if (market['option'] && isUnifiedAccount) {
+        } else if (market['option']) {
             request['category'] = 'option';
-        } else {
-            throw new NotSupported (this.id + ' editOrder() not support this market type');
         }
         if (amount !== undefined) {
             request['qty'] = this.amountToPrecision (symbol, amount);
@@ -4058,10 +4054,8 @@ export default class bybit extends Exchange {
             request['category'] = 'linear';
         } else if (market['inverse']) {
             request['category'] = 'inverse';
-        } else if (market['option'] && isUnifiedAccount) {
+        } else if (market['option']) {
             request['category'] = 'option';
-        } else {
-            throw new NotSupported (this.id + ' cancelOrder() not support this market type');
         }
         const response = await this.privatePostV5OrderCancel (this.extend (request, params));
         //
@@ -4086,14 +4080,13 @@ export default class bybit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
         const request = {
             'symbol': market['id'],
         };
+        let response = undefined;
         if (market['option']) {
-            method = 'privatePostOptionUsdcOpenapiPrivateV1CancelAll';
+            response = await this.privatePostOptionUsdcOpenapiPrivateV1CancelAll (this.extend (request, params));
         } else {
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelAll';
             const isStop = this.safeValue (params, 'stop', false);
             if (isStop) {
                 request['orderFilter'] = 'StopOrder';
@@ -4101,8 +4094,8 @@ export default class bybit extends Exchange {
                 request['orderFilter'] = 'Order';
             }
             params = this.omit (params, [ 'stop' ]);
+            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1CancelAll (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -4155,20 +4148,16 @@ export default class bybit extends Exchange {
                 request['category'] = 'linear';
             } else if (market['inverse']) {
                 request['category'] = 'inverse';
-            } else if (market['option'] && isUnifiedAccount) {
+            } else if (market['option']) {
                 request['category'] = 'option';
-            } else {
-                throw new NotSupported (this.id + ' cancelAllOrders() ' + symbol + ' market type not support');
             }
         } else {
             const type = this.safeString (params, 'type', 'linear');
             request['category'] = type;
             const baseCoin = this.safeString (params, 'baseCoin');
             const settleCoin = this.safeString (params, 'settleCoin');
-            if (type === 'option') {
-                if (!isUnifiedAccount) {
-                    throw new NotSupported (this.id + ' cancelAllOrders() Normal Account not support ' + type + ' market');
-                }
+            if (((type === 'option') || settleCoin === 'USDC') && !isUnifiedAccount) {
+                throw new NotSupported (this.id + ' cancelAllOrders() Normal Account not support ' + type + ' market');
             }
             if ((type === 'linear') || (type === 'inverse')) {
                 if (baseCoin === undefined && settleCoin === undefined) {
@@ -4334,13 +4323,10 @@ export default class bybit extends Exchange {
         const request = {};
         let market = undefined;
         let type = this.safeString (params, 'type', 'linear');
-        params = this.omit (params, 'type');
+        let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            const isUsdcSettled = market['settle'] === 'USDC';
-            if (isUsdcSettled && !isUnifiedAccount) {
-                return await this.fetchUsdcOrders (symbol, since, limit, params);
-            }
+            isUsdcSettled = market['settle'] === 'USDC';
             request['symbol'] = market['id'];
             if (market['spot']) {
                 type = 'spot';
@@ -4348,21 +4334,16 @@ export default class bybit extends Exchange {
                 type = 'linear';
             } else if (market['inverse']) {
                 type = 'inverse';
-            } else if (market['option'] && isUnifiedAccount) {
+            } else if (market['option']) {
                 type = 'option';
-            } else {
-                throw new NotSupported (this.id + ' fetchOrders() ' + symbol + ' market type not support');
             }
-        } else {
-            if (type === 'option') {
-                if (!isUnifiedAccount) {
-                    throw new NotSupported (this.id + ' fetchOrders() Normal Account not support ' + type + ' market');
-                }
-            }
+        }
+        if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
+            return await this.fetchUsdcOrders (symbol, since, limit, params);
         }
         request['category'] = type;
         const isStop = this.safeValue (params, 'stop', false);
-        params = this.omit (params, [ 'stop' ]);
+        params = this.omit (params, [ 'stop', 'type' ]);
         if (isStop) {
             if (type === 'spot') {
                 request['orderFilter'] = 'tpslOrder';
@@ -4540,13 +4521,10 @@ export default class bybit extends Exchange {
         const request = {};
         let market = undefined;
         let type = this.safeString (params, 'type', 'linear');
-        params = this.omit (params, 'type');
+        let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            const isUsdcSettled = market['settle'] === 'USDC';
-            if (isUsdcSettled && !isUnifiedAccount) {
-                return await this.fetchUsdcOpenOrders (symbol, since, limit, params);
-            }
+            isUsdcSettled = market['settle'] === 'USDC';
             request['symbol'] = market['id'];
             if (market['spot']) {
                 type = 'spot';
@@ -4554,17 +4532,10 @@ export default class bybit extends Exchange {
                 type = 'linear';
             } else if (market['inverse']) {
                 type = 'inverse';
-            } else if (market['option'] && isUnifiedAccount) {
+            } else if (market['option']) {
                 type = 'option';
-            } else {
-                throw new NotSupported (this.id + ' fetchOpenOrders() ' + symbol + ' market type not support');
             }
         } else {
-            if (type === 'option') {
-                if (!isUnifiedAccount) {
-                    throw new NotSupported (this.id + ' fetchOpenOrders() Normal Account not support ' + type + ' market');
-                }
-            }
             if ((type === 'linear') || (type === 'inverse')) {
                 const baseCoin = this.safeString (params, 'baseCoin');
                 const settleCoin = this.safeString (params, 'settleCoin');
@@ -4573,9 +4544,12 @@ export default class bybit extends Exchange {
                 }
             }
         }
+        if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
+            return await this.fetchUsdcOpenOrders (symbol, since, limit, params);
+        }
         request['category'] = type;
         const isStop = this.safeValue (params, 'stop', false);
-        params = this.omit (params, [ 'stop' ]);
+        params = this.omit (params, [ 'stop', 'type' ]);
         if (isStop) {
             if (type === 'spot') {
                 request['orderFilter'] = 'tpslOrder';
@@ -4728,13 +4702,10 @@ export default class bybit extends Exchange {
         const request = {};
         let market = undefined;
         let type = this.safeString (params, 'type', 'linear');
-        params = this.omit (params, 'type');
+        let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            const isUsdcSettled = market['settle'] === 'USDC';
-            if (isUsdcSettled && !isUnifiedAccount) {
-                return await this.fetchMyUsdcTrades (symbol, since, limit, params);
-            }
+            isUsdcSettled = market['settle'] === 'USDC';
             request['symbol'] = market['id'];
             if (market['spot']) {
                 type = 'spot';
@@ -4742,21 +4713,16 @@ export default class bybit extends Exchange {
                 type = 'linear';
             } else if (market['inverse']) {
                 type = 'inverse';
-            } else if (market['option'] && isUnifiedAccount) {
+            } else if (market['option']) {
                 type = 'option';
-            } else {
-                throw new NotSupported (this.id + ' fetchMyTrades() ' + symbol + ' market type not support');
             }
-        } else {
-            if (type === 'option') {
-                if (!isUnifiedAccount) {
-                    throw new NotSupported (this.id + ' fetchMyTrades() Normal Account not support ' + type + ' market');
-                }
-            }
+        }
+        if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
+            return await this.fetchMyUsdcTrades (symbol, since, limit, params);
         }
         request['category'] = type;
         const isStop = this.safeValue (params, 'stop', false);
-        params = this.omit (params, [ 'stop' ]);
+        params = this.omit (params, [ 'stop', 'type' ]);
         if (isStop) {
             if (type === 'spot') {
                 request['orderFilter'] = 'tpslOrder';
@@ -5510,29 +5476,26 @@ export default class bybit extends Exchange {
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const isUsdcSettled = market['settle'] === 'USDC';
-        let method = undefined;
-        if (isUsdcSettled && !isUnifiedAccount) {
-            method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition';
+        let response = undefined;
+        if ((market['option'] || isUsdcSettled) && !isUnifiedAccount) {
             if (market['option']) {
                 request['category'] = 'OPTION';
             } else if (market['linear']) {
                 request['category'] = 'PERPETUAL';
             }
+            response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryPosition (this.extend (request, params));
         } else {
-            method = 'privateGetV5PositionList';
             let type = undefined;
             if (market['linear']) {
                 type = 'linear';
             } else if (market['inverse']) {
                 type = 'inverse';
-            } else if (market['option'] && isUnifiedAccount) {
+            } else if (market['option']) {
                 type = 'option';
-            } else {
-                throw new NotSupported (this.id + ' fetchPosition() ' + symbol + ' market type not support');
             }
             request['category'] = type;
+            response = await this.privateGetV5PositionList (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -5688,33 +5651,24 @@ export default class bybit extends Exchange {
         let type = this.safeString (params, 'type', 'linear');
         const settleCoin = this.safeString (params, 'settleCoin');
         const baseCoin = this.safeString (params, 'baseCoin');
+        let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            const isUsdcSettled = market['settle'] === 'USDC';
-            if (isUsdcSettled && !isUnifiedAccount) {
-                return await this.fetchUsdcPositions (symbols, params);
-            }
+            isUsdcSettled = market['settle'] === 'USDC';
             if (market['linear']) {
                 type = 'linear';
             } else if (market['inverse']) {
                 type = 'inverse';
-            } else if (market['option'] && isUnifiedAccount) {
+            } else if (market['option']) {
                 type = 'option';
                 if (baseCoin !== undefined) {
                     request['baseCoin'] = baseCoin;
                 }
-            } else {
-                throw new NotSupported (this.id + ' fetchPosition() ' + symbol + ' market type not support');
             }
         } else {
             if (type === 'spot') {
                 throw new NotSupported (this.id + ' fetchPosition() not support spot market');
-            }
-            if (type === 'option') {
-                if (!isUnifiedAccount) {
-                    throw new NotSupported (this.id + ' fetchPosition() Normal Account not support ' + type + ' market');
-                }
             }
             if ((type === 'linear') || (type === 'inverse')) {
                 if (settleCoin === undefined) {
@@ -5727,6 +5681,9 @@ export default class bybit extends Exchange {
                     request['baseCoin'] = baseCoin;
                 }
             }
+        }
+        if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
+            return await this.fetchUsdcPositions (symbols, params);
         }
         params = this.omit (params, [ 'type', 'settleCoin', 'baseCoin' ]);
         request['category'] = type;
