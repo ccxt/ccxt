@@ -1129,7 +1129,7 @@ export default class kucoin extends Exchange {
                 };
             }
             // kucoin has determined 'fiat' currencies with below logic
-            const isFiat = rawPrecision === '2' && chainsLength === 0;
+            const isFiat = (rawPrecision === '2') && (chainsLength === 0);
             result[code] = {
                 'id': id,
                 'name': name,
