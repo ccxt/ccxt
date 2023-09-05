@@ -363,7 +363,7 @@ export default class ndax extends Exchange {
             const id = this.safeString (currency, 'ProductId');
             const name = this.safeString (currency, 'ProductFullName');
             const ProductType = this.safeString (currency, 'ProductType');
-            let type = ProductType === 'NationalCurrency' ? 'fiat' : 'crypto';
+            let type = (ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
             if (ProductType === 'Unknown') {
                 // such currency is just a blanket entry
                 type = 'other';
