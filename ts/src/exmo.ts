@@ -1188,13 +1188,25 @@ export default class exmo extends Exchange {
         //         "commission_percent": "0.2"
         //     }
         //
+        // fetchMyTrades (margin)
+        //
+        //    {
+        //        "trade_id": "692861757015952517",
+        //        "trade_dt": "1693951853197811824",
+        //        "trade_type": "buy",
+        //        "pair": "ADA_USDT",
+        //        "quantity": "1.96607879",
+        //        "price": "0.2568",
+        //        "amount": "0.50488903"
+        //    }
+        //
         const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString (trade, 'trade_id');
         const orderId = this.safeString (trade, 'order_id');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
         const costString = this.safeString (trade, 'amount');
-        const side = this.safeString (trade, 'type');
+        const side = this.safeString2 (trade, 'type', 'trade_type');
         const type = undefined;
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market, '_');
@@ -1280,19 +1292,29 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#b8d8d9af-4f46-46a1-939b-ad261d79f452  // spot
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#f4b1aaf8-399f-403b-ab5e-4926d967a106  // margin
+         * @param {string} symbol a symbol is required but it can be a single string, or a non-empty array
          * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {int} [limit] *required for margin orders* the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exmo api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.offset] last deal offset, default = 0
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        // a symbol is required but it can be a single string, or a non-empty array
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument (a single symbol or an array)');
         }
         await this.loadMarkets ();
         let pair = undefined;
         let market = undefined;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+        const isSpot = ((marginMode !== 'cross') && (marginMode !== 'isolated'));
+        if (!isSpot && (limit === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a limit argument for margin orders');
+        }
         if (Array.isArray (symbol)) {
             const numSymbols = symbol.length;
             if (numSymbols < 1) {
@@ -1304,13 +1326,67 @@ export default class exmo extends Exchange {
             market = this.market (symbol);
             pair = market['id'];
         }
-        const request = {
-            'pair': pair,
-        };
+        const request = {};
+        if (isSpot) {
+            request['pair'] = pair;
+        } else {
+            request['pair_name'] = pair;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostUserTrades (this.extend (request, params));
+        const offset = this.safeInteger (params, 'offset');
+        if (offset === undefined) {
+            request['offset'] = 0;
+        }
+        let response = undefined;
+        if (isSpot) {
+            response = await this.privatePostUserTrades (this.extend (request, params));
+            //
+            //    {
+            //        "BTC_USD": [
+            //            {
+            //                "trade_id": 20056872,
+            //                "client_id": 100500,
+            //                "date": 1435488248,
+            //                "type": "buy",
+            //                "pair": "BTC_USD",
+            //                "quantity": "1",
+            //                "price": "100",
+            //                "amount": "100",
+            //                "order_id": 7,
+            //                "parent_order_id": 117684023830293,
+            //                "exec_type": "taker",
+            //                "commission_amount": "0.02",
+            //                "commission_currency": "BTC",
+            //                "commission_percent": "0.2"
+            //            }
+            //        ],
+            //        ...
+            //    }
+            //
+        } else {
+            const responseFromExchange = await this.privatePostMarginTrades (this.extend (request, params));
+            //
+            //    {
+            //        "trades": {
+            //            "ADA_USDT": [
+            //                {
+            //                    "trade_id": "692861757015952517",
+            //                    "trade_dt": "1693951853197811824",
+            //                    "trade_type": "buy",
+            //                    "pair": "ADA_USDT",
+            //                    "quantity": "1.96607879",
+            //                    "price": "0.2568",
+            //                    "amount": "0.50488903"
+            //                },
+            //            ]
+            //            ...
+            //        }
+            //    }
+            //
+            response = this.safeValue (responseFromExchange, 'trades');
+        }
         let result = [];
         const marketIdsInner = Object.keys (response);
         for (let i = 0; i < marketIdsInner.length; i++) {
