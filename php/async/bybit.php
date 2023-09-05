@@ -3945,11 +3945,11 @@ class bybit extends Exchange {
             } elseif ($timeInForce === 'ioc') {
                 $request['timeInForce'] = 'IOC';
             }
-            $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
-            $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
-            $stopLoss = $this->safe_number($params, 'stopLoss');
-            $takeProfit = $this->safe_number($params, 'takeProfit');
+            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
+            $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+            $stopLoss = $this->safe_value($params, 'stopLoss');
+            $takeProfit = $this->safe_value($params, 'takeProfit');
             $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
             $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
             $isStopLoss = $stopLoss !== null;
@@ -3966,15 +3966,19 @@ class bybit extends Exchange {
                 $request['reduceOnly'] = true;
             } elseif ($isStopLoss || $isTakeProfit) {
                 if ($isStopLoss) {
-                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLoss);
+                    $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
                 }
                 if ($isTakeProfit) {
-                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfit);
+                    $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                 }
             }
             if ($market['spot']) {
                 // only works for spot $market
-                if ($triggerPrice !== null || $stopLossTriggerPrice !== null || $takeProfitTriggerPrice !== null || $isStopLoss || $isTakeProfit) {
+                if ($triggerPrice !== null) {
+                    $request['orderFilter'] = 'StopOrder';
+                } elseif ($stopLossTriggerPrice !== null || $takeProfitTriggerPrice !== null || $isStopLoss || $isTakeProfit) {
                     $request['orderFilter'] = 'tpslOrder';
                 }
             }
@@ -4150,11 +4154,11 @@ class bybit extends Exchange {
             } elseif ($timeInForce === 'ioc') {
                 $request['timeInForce'] = 'ImmediateOrCancel';
             }
-            $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
-            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice', $triggerPrice);
-            $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
-            $stopLoss = $this->safe_number($params, 'stopLoss');
-            $takeProfit = $this->safe_number($params, 'takeProfit');
+            $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
+            $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
+            $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+            $stopLoss = $this->safe_value($params, 'stopLoss');
+            $takeProfit = $this->safe_value($params, 'takeProfit');
             $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
             $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
             $isStopLoss = $stopLoss !== null;
@@ -4171,10 +4175,12 @@ class bybit extends Exchange {
                 $request['basePrice'] = $ascending ? Precise::string_add($preciseTriggerPrice, $delta) : Precise::string_sub($preciseTriggerPrice, $delta);
             } elseif ($isStopLoss || $isTakeProfit) {
                 if ($isStopLoss) {
-                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLoss);
+                    $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
                 }
                 if ($isTakeProfit) {
-                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfit);
+                    $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                 }
             }
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -4253,11 +4259,11 @@ class bybit extends Exchange {
             } elseif ($timeInForce === 'ioc') {
                 $request['timeInForce'] = 'ImmediateOrCancel';
             }
-            $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice', $triggerPrice);
-            $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
-            $stopLoss = $this->safe_number($params, 'stopLoss');
-            $takeProfit = $this->safe_number($params, 'takeProfit');
+            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
+            $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+            $stopLoss = $this->safe_value($params, 'stopLoss');
+            $takeProfit = $this->safe_value($params, 'takeProfit');
             $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
             $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
             $isStopLoss = $stopLoss !== null;
@@ -4274,10 +4280,12 @@ class bybit extends Exchange {
                 $request['reduceOnly'] = true;
             } elseif ($isStopLoss || $isTakeProfit) {
                 if ($isStopLoss) {
-                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLoss);
+                    $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
                 }
                 if ($isTakeProfit) {
-                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfit);
+                    $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                 }
             }
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -4353,11 +4361,11 @@ class bybit extends Exchange {
                 $request['time_in_force'] = 'ImmediateOrCancel';
             }
             if ($market['swap']) {
-                $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
-                $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice', $triggerPrice);
-                $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
-                $stopLoss = $this->safe_number($params, 'stopLoss');
-                $takeProfit = $this->safe_number($params, 'takeProfit');
+                $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
+                $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
+                $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+                $stopLoss = $this->safe_value($params, 'stopLoss');
+                $takeProfit = $this->safe_value($params, 'takeProfit');
                 $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
                 $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
                 $isStopLoss = $stopLoss !== null;
@@ -4373,10 +4381,12 @@ class bybit extends Exchange {
                     $request['basePrice'] = $isStopLossTriggerOrder ? Precise::string_sub($preciseStopPrice, $delta) : Precise::string_add($preciseStopPrice, $delta);
                 } elseif ($isStopLoss || $isTakeProfit) {
                     if ($isStopLoss) {
-                        $request['stopLoss'] = $this->price_to_precision($symbol, $stopLoss);
+                        $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                        $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
                     }
                     if ($isTakeProfit) {
-                        $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfit);
+                        $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                        $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                     }
                 } else {
                     $request['orderFilter'] = 'Order';
@@ -4457,11 +4467,11 @@ class bybit extends Exchange {
             if ($amount !== null) {
                 $request['qty'] = $this->amount_to_precision($symbol, $amount);
             }
-            $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
-            $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
-            $stopLoss = $this->safe_number($params, 'stopLoss');
-            $takeProfit = $this->safe_number($params, 'takeProfit');
+            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
+            $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+            $stopLoss = $this->safe_value($params, 'stopLoss');
+            $takeProfit = $this->safe_value($params, 'takeProfit');
             $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
             $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
             $isStopLoss = $stopLoss !== null;
@@ -4474,10 +4484,12 @@ class bybit extends Exchange {
             }
             if ($isStopLoss || $isTakeProfit) {
                 if ($isStopLoss) {
-                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLoss);
+                    $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
                 }
                 if ($isTakeProfit) {
-                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfit);
+                    $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                 }
             }
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -4557,11 +4569,11 @@ class bybit extends Exchange {
             } elseif ($timeInForce === 'ioc') {
                 $request['timeInForce'] = 'ImmediateOrCancel';
             }
-            $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
-            $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
-            $stopLoss = $this->safe_number($params, 'stopLoss');
-            $takeProfit = $this->safe_number($params, 'takeProfit');
+            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
+            $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+            $stopLoss = $this->safe_value($params, 'stopLoss');
+            $takeProfit = $this->safe_value($params, 'takeProfit');
             $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
             $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
             $isStopLoss = $stopLoss !== null;
@@ -4574,10 +4586,12 @@ class bybit extends Exchange {
             }
             if ($isStopLoss || $isTakeProfit) {
                 if ($isStopLoss) {
-                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLoss);
+                    $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
                 }
                 if ($isTakeProfit) {
-                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfit);
+                    $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                 }
             }
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -4622,11 +4636,11 @@ class bybit extends Exchange {
             if ($amount !== null) {
                 $request['qty'] = $this->amount_to_precision($symbol, $amount);
             }
-            $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossTriggerPrice = $this->safe_number($params, 'stopLossPrice');
-            $takeProfitTriggerPrice = $this->safe_number($params, 'takeProfitPrice');
-            $stopLoss = $this->safe_number($params, 'stopLoss');
-            $takeProfit = $this->safe_number($params, 'takeProfit');
+            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
+            $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+            $stopLoss = $this->safe_value($params, 'stopLoss');
+            $takeProfit = $this->safe_value($params, 'takeProfit');
             $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
             $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
             $isStopLoss = $stopLoss !== null;
@@ -4639,10 +4653,12 @@ class bybit extends Exchange {
             }
             if ($isStopLoss || $isTakeProfit) {
                 if ($isStopLoss) {
-                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLoss);
+                    $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
                 }
                 if ($isTakeProfit) {
-                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfit);
+                    $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                 }
             }
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -4689,9 +4705,7 @@ class bybit extends Exchange {
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' editOrder() requires an $symbol argument');
-            }
+            $this->check_required_symbol('editOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());

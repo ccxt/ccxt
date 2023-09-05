@@ -254,7 +254,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('capital/deposit/subHisrec', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
     public function sapi_get_capital_withdraw_history($params = array()) {
-        return $this->request('capital/withdraw/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('capital/withdraw/history', 'sapi', 'GET', $params, null, null, array("cost" => 1800));
     }
     public function sapi_get_capital_contract_convertible_coins($params = array()) {
         return $this->request('capital/contract/convertible-coins', 'sapi', 'GET', $params, null, null, array("cost" => 4.0002));
@@ -2180,7 +2180,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('capital/deposit/subHisrec', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
     public function sapiGetCapitalWithdrawHistory($params = array()) {
-        return $this->request('capital/withdraw/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+        return $this->request('capital/withdraw/history', 'sapi', 'GET', $params, null, null, array("cost" => 1800));
     }
     public function sapiGetCapitalContractConvertibleCoins($params = array()) {
         return $this->request('capital/contract/convertible-coins', 'sapi', 'GET', $params, null, null, array("cost" => 4.0002));

@@ -358,7 +358,11 @@ class ndax(Exchange, ImplicitAPI):
             currency = response[i]
             id = self.safe_string(currency, 'ProductId')
             name = self.safe_string(currency, 'ProductFullName')
-            type = self.safe_string(currency, 'ProductType')
+            ProductType = self.safe_string(currency, 'ProductType')
+            type = 'fiat' if (ProductType == 'NationalCurrency') else 'crypto'
+            if ProductType == 'Unknown':
+                # such currency is just a blanket entry
+                type = 'other'
             code = self.safe_currency_code(self.safe_string(currency, 'Product'))
             isDisabled = self.safe_value(currency, 'IsDisabled')
             active = not isDisabled

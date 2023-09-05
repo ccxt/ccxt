@@ -437,10 +437,13 @@ class latoken extends Exchange {
                 $code = $this->safe_currency_code($tag);
                 $fee = $this->safe_number($currency, 'fee');
                 $currencyType = $this->safe_string($currency, 'type');
-                $parts = explode('_', $currencyType);
-                $numParts = count($parts);
-                $lastPart = $this->safe_value($parts, $numParts - 1);
-                $type = strtolower($lastPart);
+                $type = null;
+                if ($currencyType === 'CURRENCY_TYPE_ALTERNATIVE') {
+                    $type = 'other';
+                } else {
+                    // CURRENCY_TYPE_CRYPTO and CURRENCY_TYPE_IEO are all cryptos
+                    $type = 'crypto';
+                }
                 $status = $this->safe_string($currency, 'status');
                 $active = ($status === 'CURRENCY_STATUS_ACTIVE');
                 $name = $this->safe_string($currency, 'name');
