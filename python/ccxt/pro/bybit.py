@@ -160,7 +160,7 @@ class bybit(ccxt.async_support.bybit):
         see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -280,7 +280,8 @@ class bybit(ccxt.async_support.bybit):
         topic = self.safe_string(message, 'topic', '')
         updateType = self.safe_string(message, 'type', '')
         data = self.safe_value(message, 'data', {})
-        isSpot = self.safe_string(data, 's') is not None
+        isSpot = self.safe_string(data, 'openInterestValue') is None
+        type = 'spot' if isSpot else 'contract'
         symbol = None
         parsed = None
         if (updateType == 'snapshot') or isSpot:
@@ -290,7 +291,7 @@ class bybit(ccxt.async_support.bybit):
             topicParts = topic.split('.')
             topicLength = len(topicParts)
             marketId = self.safe_string(topicParts, topicLength - 1)
-            market = self.market(marketId)
+            market = self.safe_market(marketId, None, None, type)
             symbol = market['symbol']
             # update the info in place
             ticker = self.safe_value(self.tickers, symbol, {})
@@ -409,7 +410,7 @@ class bybit(ccxt.async_support.bybit):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -507,7 +508,7 @@ class bybit(ccxt.async_support.bybit):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -646,7 +647,7 @@ class bybit(ccxt.async_support.bybit):
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :param boolean [params.unifiedMargin]: use unified margin account
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
         """
         method = 'watchMyTrades'
         messageHash = 'myTrades'
@@ -763,7 +764,7 @@ class bybit(ccxt.async_support.bybit):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
         """
         await self.load_markets()
         method = 'watchOrders'
@@ -1031,7 +1032,7 @@ class bybit(ccxt.async_support.bybit):
         watch balance and get the amount of funds available for trading or funds locked in orders
         see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         method = 'watchBalance'
@@ -1306,12 +1307,13 @@ class bybit(ccxt.async_support.bybit):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def authenticate(self, url, params={}):
+    async def authenticate(self, url, params={}):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             expiresInt = self.milliseconds() + 10000
             expires = str(expiresInt)
             path = 'GET/realtime'
@@ -1324,8 +1326,7 @@ class bybit(ccxt.async_support.bybit):
                 ],
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, message, messageHash)
         return future
 
     def handle_error_message(self, client: Client, message):
@@ -1465,7 +1466,8 @@ class bybit(ccxt.async_support.bybit):
         success = self.safe_value(message, 'success')
         messageHash = 'authenticated'
         if success:
-            client.resolve(message, messageHash)
+            future = self.safe_value(client.futures, messageHash)
+            future.resolve(True)
         else:
             error = AuthenticationError(self.id + ' ' + self.json(message))
             client.reject(error, messageHash)

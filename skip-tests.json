@@ -28,6 +28,7 @@
                 "deposit": "not provided"
             },
             "fetchTickers": {
+                "low":"16 Aug - happened weird negative 24hr low",
                 "bid":"messed bid-ask",
                 "ask":"messed bid-ask"
             }
@@ -200,6 +201,8 @@
         }
     },
     "bithumb": {
+        "skip": "fetchMarkets returning undefined",
+        "until": "2023-09-05",
         "skipMethods": {
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -510,7 +513,8 @@
             },
             "fetchTickers": {
                 "bid": "broken bid-ask",
-                "ask": "broken bid-ask"
+                "ask": "broken bid-ask",
+                "baseVolume": "negative value"
             }
         }
     },
@@ -914,7 +918,9 @@
         "skipWs": true,
         "skipMethods":{
             "fetchCurrencies": {
-                "networks": "not yet implemented"
+                "networks": "not yet implemented",
+                "withdraw": "not provided for some currencies",
+                "deposit": "not provided for some currencies"
             },
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
@@ -1030,6 +1036,7 @@
         }
     },
     "mexc": {
+	"skip": "OnMaintenance https://www.mexc.com/support/articles/17827791510263",
         "skipWs": true,
         "skipPhpAsync": "Connection ended before receiving response...",
         "skipMethods": {

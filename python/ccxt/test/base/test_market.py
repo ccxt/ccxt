@@ -164,13 +164,15 @@ def test_market(exchange, skipped_properties, method, market):
     # check precisions
     if not ('precision' in skipped_properties):
         precision_keys = list(market['precision'].keys())
-        assert len(precision_keys) >= 2, 'precision should have \"amount\" and \"price\" keys at least' + log_text
+        keys_length = len(precision_keys)
+        assert keys_length >= 2, 'precision should have \"amount\" and \"price\" keys at least' + log_text
         for i in range(0, len(precision_keys)):
             test_shared_methods.check_precision_accuracy(exchange, skipped_properties, method, market['precision'], precision_keys[i])
     # check limits
     if not ('limits' in skipped_properties):
         limits_keys = list(market['limits'].keys())
-        assert len(limits_keys) >= 3, 'limits should have \"amount\", \"price\" and \"cost\" keys at least' + log_text
+        keys_length = len(limits_keys)
+        assert keys_length >= 3, 'limits should have \"amount\", \"price\" and \"cost\" keys at least' + log_text
         for i in range(0, len(limits_keys)):
             key = limits_keys[i]
             limit_entry = market['limits'][key]

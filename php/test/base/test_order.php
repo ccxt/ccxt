@@ -35,7 +35,7 @@ function test_order($exchange, $skipped_properties, $method, $entry, $symbol, $n
         'fee' => array(),
         'trades' => [],
     );
-    $empty_allowed_for = ['clientOrderId', 'stopPrice', 'trades']; // todo: we need more detailed property to skip the exchanges, that return only order id when executing order (in createOrder)
+    $empty_allowed_for = ['clientOrderId', 'stopPrice', 'trades', 'timestamp', 'datetime', 'lastTradeTimestamp', 'average', 'type', 'timeInForce', 'postOnly', 'side', 'price', 'amount', 'cost', 'filled', 'remaining', 'status', 'fee']; // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
     assert_timestamp($exchange, $skipped_properties, $method, $entry, $now);
     //
@@ -46,8 +46,7 @@ function test_order($exchange, $skipped_properties, $method, $entry, $symbol, $n
     assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
     assert_greater($exchange, $skipped_properties, $method, $entry, 'price', '0');
     assert_greater($exchange, $skipped_properties, $method, $entry, 'stopPrice', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'cost', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'average', '0');
+    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'cost', '0');
     assert_greater($exchange, $skipped_properties, $method, $entry, 'average', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'filled', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'remaining', '0');

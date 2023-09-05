@@ -166,7 +166,7 @@ class bybit extends \ccxt\async\bybit {
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -289,7 +289,8 @@ class bybit extends \ccxt\async\bybit {
         $topic = $this->safe_string($message, 'topic', '');
         $updateType = $this->safe_string($message, 'type', '');
         $data = $this->safe_value($message, 'data', array());
-        $isSpot = $this->safe_string($data, 's') !== null;
+        $isSpot = $this->safe_string($data, 'openInterestValue') === null;
+        $type = $isSpot ? 'spot' : 'contract';
         $symbol = null;
         $parsed = null;
         if (($updateType === 'snapshot') || $isSpot) {
@@ -299,7 +300,7 @@ class bybit extends \ccxt\async\bybit {
             $topicParts = explode('.', $topic);
             $topicLength = count($topicParts);
             $marketId = $this->safe_string($topicParts, $topicLength - 1);
-            $market = $this->market($marketId);
+            $market = $this->safe_market($marketId, null, null, $type);
             $symbol = $market['symbol'];
             // update the info in place
             $ticker = $this->safe_value($this->tickers, $symbol, array());
@@ -430,7 +431,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -541,7 +542,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -692,7 +693,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @param {boolean} [$params->unifiedMargin] use unified margin account
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
              */
             $method = 'watchMyTrades';
             $messageHash = 'myTrades';
@@ -819,7 +820,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
              */
             Async\await($this->load_markets());
             $method = 'watchOrders';
@@ -1102,7 +1103,7 @@ class bybit extends \ccxt\async\bybit {
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $method = 'watchBalance';
@@ -1405,8 +1406,9 @@ class bybit extends \ccxt\async\bybit {
         $this->check_required_credentials();
         $messageHash = 'authenticated';
         $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
             $expiresInt = $this->milliseconds() + 10000;
             $expires = (string) $expiresInt;
             $path = 'GET/realtime';
@@ -1419,8 +1421,7 @@ class bybit extends \ccxt\async\bybit {
                 ),
             );
             $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
+            $this->watch($url, $messageHash, $message, $messageHash);
         }
         return $future;
     }
@@ -1581,7 +1582,8 @@ class bybit extends \ccxt\async\bybit {
         $success = $this->safe_value($message, 'success');
         $messageHash = 'authenticated';
         if ($success) {
-            $client->resolve ($message, $messageHash);
+            $future = $this->safe_value($client->futures, $messageHash);
+            $future->resolve (true);
         } else {
             $error = new AuthenticationError ($this->id . ' ' . $this->json($message));
             $client->reject ($error, $messageHash);

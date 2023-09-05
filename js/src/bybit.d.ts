@@ -336,6 +336,7 @@ export default class bybit extends Exchange {
     };
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchMySettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {
         info: any;
         symbol: any;

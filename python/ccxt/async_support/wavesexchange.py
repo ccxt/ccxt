@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.wavesexchange import ImplicitAPI
 import asyncio
-import math
 import json
 from ccxt.base.types import OrderSide
 from ccxt.base.types import OrderType
@@ -596,7 +595,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -619,18 +618,29 @@ class wavesexchange(Exchange, ImplicitAPI):
 
     def parse_order_book_side(self, bookSide, market=None, limit: Optional[int] = None):
         precision = market['precision']
-        wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
-        amountPrecision = math.pow(10, precision['amount'])
-        difference = precision['amount'] - precision['price']
-        pricePrecision = math.pow(10, wavesPrecision - difference)
+        wavesPrecision = self.safe_string(self.options, 'wavesPrecision', '8')
+        amountPrecision = '1e' + self.number_to_string(precision['amount'])
+        amountPrecisionString = self.number_to_string(precision['amount'])
+        pricePrecisionString = self.number_to_string(precision['price'])
+        difference = Precise.string_sub(amountPrecisionString, pricePrecisionString)
+        pricePrecision = '1e' + Precise.string_sub(wavesPrecision, difference)
         result = []
         for i in range(0, len(bookSide)):
             entry = bookSide[i]
-            price = self.safe_integer(entry, 'price', 0) / pricePrecision
-            amount = self.safe_integer(entry, 'amount', 0) / amountPrecision
+            entryPrice = self.safe_string(entry, 'price', '0')
+            entryAmount = self.safe_string(entry, 'amount', '0')
+            price = None
+            amount = None
+            if (pricePrecision is not None) and (entryPrice is not None):
+                price = Precise.string_div(entryPrice, pricePrecision)
+            if (amountPrecision is not None) and (entryAmount is not None):
+                amount = Precise.string_div(entryAmount, amountPrecision)
             if (limit is not None) and (i > limit):
                 break
-            result.append([price, amount])
+            result.append([
+                self.parse_number(price),
+                self.parse_number(amount),
+            ])
         return result
 
     def check_required_keys(self):
@@ -815,7 +825,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -856,7 +866,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the aax api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         response = await self.marketGetTickers(params)
@@ -1007,7 +1017,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
         """
         await self.sign_in()
         networks = self.safe_value(self.options, 'networks', {})
@@ -1156,15 +1166,21 @@ class wavesexchange(Exchange, ImplicitAPI):
 
     def custom_price_to_precision(self, symbol, price):
         market = self.markets[symbol]
-        wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
-        difference = market['precision']['amount'] - market['precision']['price']
-        return self.parse_to_int(float(self.to_precision(price, wavesPrecision - difference)))
+        wavesPrecision = self.safe_string(self.options, 'wavesPrecision', '8')
+        amount = self.number_to_string(market['precision']['amount'])
+        precisionPrice = self.number_to_string(market['precision']['price'])
+        difference = Precise.string_sub(amount, precisionPrice)
+        precision = Precise.string_sub(wavesPrecision, difference)
+        pricePrecision = self.to_precision(price, str(precision))
+        return self.parse_to_int(float(pricePrecision))
 
     def custom_amount_to_precision(self, symbol, amount):
-        return self.parse_to_int(float(self.to_precision(amount, self.markets[symbol]['precision']['amount'])))
+        amountPrecision = self.number_to_string(self.to_precision(amount, self.number_to_string(self.markets[symbol]['precision']['amount'])))
+        return self.parse_to_int(float(amountPrecision))
 
     def currency_to_precision(self, code, amount, networkCode=None):
-        return self.parse_to_int(float(self.to_precision(amount, self.currencies[code]['precision'])))
+        amountPrecision = self.number_to_string(self.to_precision(amount, self.currencies[code]['precision']))
+        return self.parse_to_int(float(amountPrecision))
 
     def from_precision(self, amount, scale):
         if amount is None:
@@ -1175,11 +1191,11 @@ class wavesexchange(Exchange, ImplicitAPI):
         return str(precise)
 
     def to_precision(self, amount, scale):
-        amountString = str(amount)
+        amountString = self.number_to_string(amount)
         precise = Precise(amountString)
-        precise.decimals = precise.decimals - scale
+        precise.decimals = Precise.string_sub(precise.decimals, scale)
         precise.reduce()
-        return str(precise)
+        return precise
 
     def currency_from_precision(self, currency, amount):
         scale = self.currencies[currency]['precision']
@@ -1211,10 +1227,10 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
         :param float [params.stopPrice]: The price at which a stop order is triggered at
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_dependencies()
         self.check_required_keys()
@@ -1378,7 +1394,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_dependencies()
         self.check_required_keys()
@@ -1423,7 +1439,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_dependencies()
         self.check_required_keys()
@@ -1455,7 +1471,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_dependencies()
         self.check_required_keys()
@@ -1504,7 +1520,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         await self.sign_in()
@@ -1526,7 +1542,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         await self.sign_in()
@@ -1715,7 +1731,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         # makes a lot of different requests to get all the data
         # in particular:
@@ -1856,7 +1872,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         await self.load_markets()
         address = await self.get_waves_address()
@@ -1945,7 +1961,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2172,7 +2188,8 @@ class wavesexchange(Exchange, ImplicitAPI):
             entry = depositWithdrawFees[code]
             networks = self.safe_value(entry, 'networks')
             networkKeys = list(networks.keys())
-            if len(networkKeys) == 1:
+            networkKeysLength = len(networkKeys)
+            if networkKeysLength == 1:
                 network = self.safe_value(networks, networkKeys[0])
                 depositWithdrawFees[code]['withdraw'] = self.safe_value(network, 'withdraw')
                 depositWithdrawFees[code]['deposit'] = self.safe_value(network, 'deposit')
@@ -2185,7 +2202,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         see https://docs.wx.network/en/api/gateways/withdraw/currencies
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
         """
         await self.load_markets()
         data = []
@@ -2276,7 +2293,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # currently only works for BTC and WAVES
@@ -2300,7 +2317,8 @@ class wavesexchange(Exchange, ImplicitAPI):
         isErc20 = True
         noPrefix = self.remove0x_prefix(address)
         lower = noPrefix.lower()
-        for i in range(0, len(lower)):
+        stringLength = len(lower) * 1
+        for i in range(0, stringLength):
             character = lower[i]
             if not (character in set):
                 isErc20 = False

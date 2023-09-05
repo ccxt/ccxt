@@ -162,7 +162,7 @@ class bybit extends bybit$1 {
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -283,7 +283,8 @@ class bybit extends bybit$1 {
         const topic = this.safeString(message, 'topic', '');
         const updateType = this.safeString(message, 'type', '');
         const data = this.safeValue(message, 'data', {});
-        const isSpot = this.safeString(data, 's') !== undefined;
+        const isSpot = this.safeString(data, 'openInterestValue') === undefined;
+        const type = isSpot ? 'spot' : 'contract';
         let symbol = undefined;
         let parsed = undefined;
         if ((updateType === 'snapshot') || isSpot) {
@@ -294,7 +295,7 @@ class bybit extends bybit$1 {
             const topicParts = topic.split('.');
             const topicLength = topicParts.length;
             const marketId = this.safeString(topicParts, topicLength - 1);
-            const market = this.market(marketId);
+            const market = this.safeMarket(marketId, undefined, undefined, type);
             symbol = market['symbol'];
             // update the info in place
             const ticker = this.safeValue(this.tickers, symbol, {});
@@ -422,7 +423,7 @@ class bybit extends bybit$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return.
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -532,7 +533,7 @@ class bybit extends bybit$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -682,7 +683,7 @@ class bybit extends bybit$1 {
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @param {boolean} [params.unifiedMargin] use unified margin account
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
          */
         const method = 'watchMyTrades';
         let messageHash = 'myTrades';
@@ -807,7 +808,7 @@ class bybit extends bybit$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
          */
         await this.loadMarkets();
         const method = 'watchOrders';
@@ -1089,7 +1090,7 @@ class bybit extends bybit$1 {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         const method = 'watchBalance';
@@ -1387,12 +1388,13 @@ class bybit extends bybit$1 {
         const message = this.extend(request, params);
         return await this.watch(url, messageHash, message, messageHash);
     }
-    authenticate(url, params = {}) {
+    async authenticate(url, params = {}) {
         this.checkRequiredCredentials();
         const messageHash = 'authenticated';
         const client = this.client(url);
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const expiresInt = this.milliseconds() + 10000;
             const expires = expiresInt.toString();
             const path = 'GET/realtime';
@@ -1405,8 +1407,7 @@ class bybit extends bybit$1 {
                 ],
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -1565,7 +1566,8 @@ class bybit extends bybit$1 {
         const success = this.safeValue(message, 'success');
         const messageHash = 'authenticated';
         if (success) {
-            client.resolve(message, messageHash);
+            const future = this.safeValue(client.futures, messageHash);
+            future.resolve(true);
         }
         else {
             const error = new errors.AuthenticationError(this.id + ' ' + this.json(message));
