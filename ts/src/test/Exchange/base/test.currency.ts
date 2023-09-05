@@ -32,13 +32,13 @@ function testCurrency (exchange, skippedProperties, method, entry) {
         };
         // todo: format['type'] = 'fiat|crypto'; // after all exchanges have `type` defined, romove "if" check
         if (currencyType !== undefined) {
-            testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', [ 'fiat', 'crypto' ]);
+            testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', [ 'fiat', 'crypto', 'other' ]);
         }
-        // only require "deposit" and "withdraw" if currency is not fiat, or if it's fiat, but not explicitly skipped
-        if (currencyType !== 'fiat' || !('depositForFiat' in skippedProperties)) {
+        // only require "deposit" and "withdraw" to be present, when currency is not fiat, or when it's fiat, but skipped
+        if (!(currencyType === 'fiat' && 'depositForFiat' in skippedProperties)) {
             format['deposit'] = true;
         }
-        if (currencyType !== 'fiat' || !('withdrawForFiat' in skippedProperties)) {
+        if (!(currencyType === 'fiat' && 'withdrawForFiat' in skippedProperties)) {
             format['withdraw'] = true;
         }
     }
