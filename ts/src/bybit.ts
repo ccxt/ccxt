@@ -3939,9 +3939,6 @@ export default class bybit extends Exchange {
         if (isUsdcSettled && !isUnifiedAccount) {
             return await this.editUsdcOrder (id, symbol, type, side, amount, price, params);
         }
-        if (amount === undefined && price === undefined) {
-            throw new InvalidOrder (this.id + ' editOrder requires either a price argument or an amount argument');
-        }
         const request = {
             'symbol': market['id'],
             'orderId': id,
