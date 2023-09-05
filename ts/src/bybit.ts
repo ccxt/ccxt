@@ -3949,12 +3949,12 @@ export default class bybit extends Exchange {
             request['reduceOnly'] = true;
         } else if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                const stopLossTriggerPriceInner = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPriceInner);
             }
             if (isTakeProfit) {
-                const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                const takeProfitTriggerPriceInner = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPriceInner);
             }
         }
         if (market['spot']) {
@@ -4154,12 +4154,12 @@ export default class bybit extends Exchange {
             request['basePrice'] = ascending ? Precise.stringAdd (preciseTriggerPrice, delta) : Precise.stringSub (preciseTriggerPrice, delta);
         } else if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                const stopLossTriggerPriceInner = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPriceInner);
             }
             if (isTakeProfit) {
-                const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                const takeProfitTriggerPriceInner = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPriceInner);
             }
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -4257,12 +4257,12 @@ export default class bybit extends Exchange {
             request['reduceOnly'] = true;
         } else if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                const stopLossTriggerPriceInner = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPriceInner);
             }
             if (isTakeProfit) {
-                const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                const takeProfitTriggerPriceInner = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPriceInner);
             }
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -4356,12 +4356,12 @@ export default class bybit extends Exchange {
                 request['basePrice'] = isStopLossTriggerOrder ? Precise.stringSub (preciseStopPrice, delta) : Precise.stringAdd (preciseStopPrice, delta);
             } else if (isStopLoss || isTakeProfit) {
                 if (isStopLoss) {
-                    const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                    request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                    const stopLossTriggerPriceInner = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                    request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPriceInner);
                 }
                 if (isTakeProfit) {
-                    const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                    request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                    const takeProfitTriggerPriceInner = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                    request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPriceInner);
                 }
             } else {
                 request['orderFilter'] = 'Order';
@@ -4457,12 +4457,12 @@ export default class bybit extends Exchange {
         }
         if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                const stopLossTriggerPriceInner = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPriceInner);
             }
             if (isTakeProfit) {
-                const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                const takeProfitTriggerPriceInner = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPriceInner);
             }
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -4557,12 +4557,12 @@ export default class bybit extends Exchange {
         }
         if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                const stopLossTriggerPriceInner = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPriceInner);
             }
             if (isTakeProfit) {
-                const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                const takeProfitTriggerPriceInner = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPriceInner);
             }
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -4622,12 +4622,12 @@ export default class bybit extends Exchange {
         }
         if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                const stopLossTriggerPriceInner = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision (symbol, stopLossTriggerPriceInner);
             }
             if (isTakeProfit) {
-                const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                const takeProfitTriggerPriceInner = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision (symbol, takeProfitTriggerPriceInner);
             }
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
