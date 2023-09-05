@@ -98,6 +98,7 @@ interface Exchange {
     publicGetV5MarketDeliveryPrice(params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotLeverTokenInfo(params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotLeverTokenReference(params?: {}): Promise<implicitReturnType>;
+    publicGetV5SpotMarginTradeData(params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotCrossMarginTradeData(params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotCrossMarginTradePledgeToken(params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotCrossMarginTradeBorrowToken(params?: {}): Promise<implicitReturnType>;

@@ -698,17 +698,54 @@ class exmo(Exchange, ImplicitAPI):
         #         },
         #     }
         #
+        marginPairsDict = {}
+        if self.check_required_credentials(False):
+            marginPairs = await self.privatePostMarginPairList(params)
+            #
+            #    {
+            #        "pairs": [
+            #            {
+            #                "buy_price": "55978.85",
+            #                "default_leverage": "3",
+            #                "is_fair_price": True,
+            #                "last_trade_price": "55999.23",
+            #                "liquidation_fee": "2",
+            #                "liquidation_level": "10",
+            #                "margin_call_level": "15",
+            #                "max_leverage": "3",
+            #                "max_order_price": "150000",
+            #                "max_order_quantity": "1",
+            #                "max_position_quantity": "1",
+            #                "max_price_precision": 2,
+            #                "min_order_price": "1",
+            #                "min_order_quantity": "0.00002",
+            #                "name": "BTC_USD",
+            #                "position": 1,
+            #                "sell_price": "55985.51",
+            #                "ticker_updated": "1619019818936107989",
+            #                "trade_maker_fee": "0",
+            #                "trade_taker_fee": "0.05",
+            #                "updated": "1619008608955599013"
+            #            }
+            #        ]
+            #    }
+            #
+            pairs = self.safe_value(marginPairs, 'pairs')
+            marginPairsDict = self.index_by(pairs, 'name')
         keys = list(response.keys())
         result = []
         for i in range(0, len(keys)):
             id = keys[i]
             market = response[id]
+            marginMarket = self.safe_value(marginPairsDict, id)
             symbol = id.replace('_', '/')
             baseId, quoteId = symbol.split('/')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             takerString = self.safe_string(market, 'commission_taker_percent')
             makerString = self.safe_string(market, 'commission_maker_percent')
+            maxQuantity = self.safe_string(market, 'max_quantity')
+            marginMaxQuantity = self.safe_string(marginMarket, 'max_order_quantity')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -720,7 +757,7 @@ class exmo(Exchange, ImplicitAPI):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': True,
+                'margin': marginMarket is not None,
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -742,11 +779,11 @@ class exmo(Exchange, ImplicitAPI):
                 'limits': {
                     'leverage': {
                         'min': None,
-                        'max': None,
+                        'max': self.safe_number(market, 'leverage'),
                     },
                     'amount': {
                         'min': self.safe_number(market, 'min_quantity'),
-                        'max': self.safe_number(market, 'max_quantity'),
+                        'max': self.parse_number(Precise.string_max(maxQuantity, marginMaxQuantity)),
                     },
                     'price': {
                         'min': self.safe_number(market, 'min_price'),
@@ -832,40 +869,73 @@ class exmo(Exchange, ImplicitAPI):
 
     def parse_balance(self, response):
         result = {'info': response}
-        free = self.safe_value(response, 'balances', {})
-        used = self.safe_value(response, 'reserved', {})
-        currencyIds = list(free.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            if currencyId in free:
-                account['free'] = self.safe_string(free, currencyId)
-            if currencyId in used:
-                account['used'] = self.safe_string(used, currencyId)
-            result[code] = account
+        wallets = self.safe_value(response, 'wallets')
+        if wallets is not None:
+            currencyIds = list(wallets.keys())
+            for i in range(0, len(currencyIds)):
+                currencyId = currencyIds[i]
+                item = wallets[currencyId]
+                currency = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['used'] = self.safe_string(item, 'used')
+                account['free'] = self.safe_string(item, 'free')
+                account['total'] = self.safe_string(item, 'balance')
+                result[currency] = account
+        else:
+            free = self.safe_value(response, 'balances', {})
+            used = self.safe_value(response, 'reserved', {})
+            currencyIds = list(free.keys())
+            for i in range(0, len(currencyIds)):
+                currencyId = currencyIds[i]
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                if currencyId in free:
+                    account['free'] = self.safe_string(free, currencyId)
+                if currencyId in used:
+                    account['used'] = self.safe_string(used, currencyId)
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exmo api endpoint
+        :param str [params.marginMode]: *isolated* fetches the isolated margin balance
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
-        response = await self.privatePostUserInfo(params)
-        #
-        #     {
-        #         "uid":131685,
-        #         "server_date":1628999600,
-        #         "balances":{
-        #             "EXM":"0",
-        #             "USD":"0",
-        #             "EUR":"0",
-        #             "GBP":"0",
-        #         },
-        #     }
-        #
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
+        if marginMode == 'cross':
+            raise BadRequest(self.id + ' does not support cross margin')
+        response = None
+        if marginMode == 'isolated':
+            response = await self.privatePostMarginUserWalletList(params)
+            #
+            #    {
+            #        "wallets": {
+            #            "USD": {
+            #                "balance": "1000",
+            #                "free": "600",
+            #                "used": "400"
+            #            }
+            #        }
+            #    }
+            #
+        else:
+            response = await self.privatePostUserInfo(params)
+            #
+            #     {
+            #         "uid":131685,
+            #         "server_date":1628999600,
+            #         "balances":{
+            #             "EXM":"0",
+            #             "USD":"0",
+            #             "EUR":"0",
+            #             "GBP":"0",
+            #         },
+            #     }
+            #
         return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):

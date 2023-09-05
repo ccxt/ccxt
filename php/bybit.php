@@ -244,6 +244,7 @@ class bybit extends Exchange {
                         'v5/spot-lever-token/info' => 2.5,
                         'v5/spot-lever-token/reference' => 2.5,
                         // spot margin trade
+                        'v5/spot-margin-trade/data' => 2.5,
                         'v5/spot-cross-margin-trade/data' => 2.5,
                         'v5/spot-cross-margin-trade/pledge-token' => 2.5,
                         'v5/spot-cross-margin-trade/borrow-token' => 2.5,
@@ -4368,9 +4369,6 @@ class bybit extends Exchange {
     }
 
     public function edit_unified_account_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
-        if ($amount === null && $price === null) {
-            throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['linear'] && !$market['option']) {
@@ -4449,9 +4447,6 @@ class bybit extends Exchange {
     }
 
     public function edit_unified_margin_order(string $id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($amount === null && $price === null) {
-            throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['linear'] && !$market['option']) {
@@ -4545,9 +4540,6 @@ class bybit extends Exchange {
     }
 
     public function edit_contract_v3_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
-        if ($amount === null && $price === null) {
-            throw new InvalidOrder($this->id . ' editOrder requires either a $price argument or an $amount argument');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

@@ -3781,6 +3781,8 @@ class bitget extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-order-fill-detail
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -3790,16 +3792,18 @@ class bitget extends Exchange {
         $this->check_required_symbol('fetchMyTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['swap']) {
-            throw new BadSymbol($this->id . ' fetchMyTrades() only supports spot markets');
-        }
         $request = array(
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateSpotPostTradeFills (array_merge($request, $params));
+        $response = null;
+        if ($market['spot']) {
+            $response = $this->privateSpotPostTradeFills (array_merge($request, $params));
+        } else {
+            $response = $this->privateMixGetOrderFills (array_merge($request, $params));
+        }
         //
         //     {
         //       code => '00000',

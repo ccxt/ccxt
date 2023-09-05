@@ -639,7 +639,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $symbols[$symbol] = true;
             $cachedOrders->append ($parsed);
         }
-        if (strlen($this->orders) > 0) {
+        if (strlen($this->orders)) {
             $client->resolve ($this->orders, 'orders');
             $keys = is_array($symbols) ? array_keys($symbols) : array();
             for ($i = 0; $i < count($keys); $i++) {

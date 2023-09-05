@@ -277,6 +277,8 @@ class gate extends Exchange {
                     ),
                     'portfolio' => array(
                         'get' => array(
+                            'spot/currency_pairs' => 1.5,
+                            'spot/currency_pairs/{currency_pair}' => 1.5,
                             'accounts' => 1.5,
                             'account_mode' => 1.5,
                             'borrowable' => 1.5,
@@ -4123,7 +4125,6 @@ class gate extends Exchange {
         $remainingString = $this->safe_string($order, 'left');
         $cost = $this->safe_string($order, 'filled_total');
         $triggerPrice = $this->safe_number($trigger, 'price');
-        $rawStatus = null;
         $average = $this->safe_number_2($order, 'avg_deal_price', 'fill_price');
         if ($triggerPrice) {
             $remainingString = $amount;
@@ -4133,10 +4134,8 @@ class gate extends Exchange {
             $isMarketOrder = Precise::string_equals($price, '0') && ($timeInForce === 'IOC');
             $type = $isMarketOrder ? 'market' : 'limit';
             $side = Precise::string_gt($amount, '0') ? 'buy' : 'sell';
-            $rawStatus = $this->safe_string($order, 'finish_as', 'open');
-        } else {
-            $rawStatus = $this->safe_string($order, 'status');
         }
+        $rawStatus = $this->safe_string_n($order, array( 'status', 'finish_as', 'open' ));
         $timestamp = $this->safe_integer($order, 'create_time_ms');
         if ($timestamp === null) {
             $timestamp = $this->safe_timestamp_2($order, 'create_time', 'ctime');

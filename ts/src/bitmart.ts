@@ -1482,11 +1482,12 @@ export default class bitmart extends Exchange {
             request[fromRequest] = start;
             request[toRequest] = Math.min (end, now);
         }
-        let method = 'publicGetSpotV1SymbolsKline';
+        let response = undefined;
         if (type === 'swap') {
-            method = 'publicGetContractPublicKline';
+            response = await this.publicGetContractPublicKline (this.extend (request, params));
+        } else {
+            response = await this.publicGetSpotQuotationV3Klines (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -1523,8 +1524,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const klines = this.safeValue (data, 'klines', []);
-        const ohlcv = (type === 'spot') ? klines : data;
+        const ohlcv = this.safeValue (data, 'klines', data);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
@@ -3251,8 +3251,10 @@ export default class bitmart extends Exchange {
         //     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         //
         const message = this.safeStringLower (response, 'message');
+        const isErrorMessage = (message !== undefined) && (message !== 'ok') && (message !== 'success');
         const errorCode = this.safeString (response, 'code');
-        if (((errorCode !== undefined) && (errorCode !== '1000')) || ((message !== undefined) && (message !== 'ok'))) {
+        const isErrorCode = (errorCode !== undefined) && (errorCode !== '1000');
+        if (isErrorCode || isErrorMessage) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);

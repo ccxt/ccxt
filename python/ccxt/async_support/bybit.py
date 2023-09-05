@@ -264,6 +264,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-lever-token/info': 2.5,
                         'v5/spot-lever-token/reference': 2.5,
                         # spot margin trade
+                        'v5/spot-margin-trade/data': 2.5,
                         'v5/spot-cross-margin-trade/data': 2.5,
                         'v5/spot-cross-margin-trade/pledge-token': 2.5,
                         'v5/spot-cross-margin-trade/borrow-token': 2.5,
@@ -4188,8 +4189,6 @@ class bybit(Exchange, ImplicitAPI):
         return self.parse_order(order)
 
     async def edit_unified_account_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
-        if amount is None and price is None:
-            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         await self.load_markets()
         market = self.market(symbol)
         if not market['linear'] and not market['option']:
@@ -4257,8 +4256,6 @@ class bybit(Exchange, ImplicitAPI):
         })
 
     async def edit_unified_margin_order(self, id: str, symbol, type, side, amount, price=None, params={}):
-        if amount is None and price is None:
-            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         await self.load_markets()
         market = self.market(symbol)
         if not market['linear'] and not market['option']:
@@ -4339,8 +4336,6 @@ class bybit(Exchange, ImplicitAPI):
         return self.parse_order(order)
 
     async def edit_contract_v3_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
-        if amount is None and price is None:
-            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {

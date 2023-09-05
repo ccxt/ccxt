@@ -1700,12 +1700,20 @@ class upbit extends Exchange {
         );
         $method = 'privatePostWithdraws';
         if ($code !== 'KRW') {
+            // 2023-05-23 Change to required parameters for digital assets
+            $network = $this->safe_string_upper_2($params, 'network', 'net_type');
+            if ($network === null) {
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a $network argument');
+            }
+            $params = $this->omit($params, array( 'network' ));
+            $request['net_type'] = $network;
             $method .= 'Coin';
             $request['currency'] = $currency['id'];
             $request['address'] = $address;
             if ($tag !== null) {
                 $request['secondary_address'] = $tag;
             }
+            $params = $this->omit($params, 'network');
         } else {
             $method .= 'Krw';
         }

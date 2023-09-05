@@ -169,7 +169,8 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     // check precisions
     if (!(is_array($skipped_properties) && array_key_exists('precision', $skipped_properties))) {
         $precision_keys = is_array($market['precision']) ? array_keys($market['precision']) : array();
-        assert(count($precision_keys) >= 2, 'precision should have \"amount\" and \"price\" keys at least' . $log_text);
+        $keys_length = count($precision_keys);
+        assert($keys_length >= 2, 'precision should have \"amount\" and \"price\" keys at least' . $log_text);
         for ($i = 0; $i < count($precision_keys); $i++) {
             check_precision_accuracy($exchange, $skipped_properties, $method, $market['precision'], $precision_keys[$i]);
         }
@@ -177,7 +178,8 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     // check limits
     if (!(is_array($skipped_properties) && array_key_exists('limits', $skipped_properties))) {
         $limits_keys = is_array($market['limits']) ? array_keys($market['limits']) : array();
-        assert(count($limits_keys) >= 3, 'limits should have \"amount\", \"price\" and \"cost\" keys at least' . $log_text);
+        $keys_length = count($limits_keys);
+        assert($keys_length >= 3, 'limits should have \"amount\", \"price\" and \"cost\" keys at least' . $log_text);
         for ($i = 0; $i < count($limits_keys); $i++) {
             $key = $limits_keys[$i];
             $limit_entry = $market['limits'][$key];

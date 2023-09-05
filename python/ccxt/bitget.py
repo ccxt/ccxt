@@ -3634,6 +3634,8 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-order-fill-detail
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -3643,14 +3645,16 @@ class bitget(Exchange, ImplicitAPI):
         self.check_required_symbol('fetchMyTrades', symbol)
         self.load_markets()
         market = self.market(symbol)
-        if market['swap']:
-            raise BadSymbol(self.id + ' fetchMyTrades() only supports spot markets')
         request = {
             'symbol': market['id'],
         }
         if limit is not None:
             request['limit'] = limit
-        response = self.privateSpotPostTradeFills(self.extend(request, params))
+        response = None
+        if market['spot']:
+            response = self.privateSpotPostTradeFills(self.extend(request, params))
+        else:
+            response = self.privateMixGetOrderFills(self.extend(request, params))
         #
         #     {
         #       code: '00000',

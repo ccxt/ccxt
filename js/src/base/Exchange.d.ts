@@ -445,7 +445,6 @@ export default class Exchange {
         commonCurrencies: {
             XBT: string;
             BCC: string;
-            BCHABC: string;
             BCHSV: string;
         };
         precisionMode: number;
