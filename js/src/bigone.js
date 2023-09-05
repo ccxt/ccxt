@@ -425,7 +425,6 @@ export default class bigone extends Exchange {
                 networks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
-                    'type': type,
                     'margin': undefined,
                     'deposit': deposit,
                     'withdraw': withdraw,
@@ -454,6 +453,7 @@ export default class bigone extends Exchange {
                 'code': code,
                 'info': currency,
                 'name': name,
+                'type': type,
                 'active': undefined,
                 'deposit': currencyDepositEnabled,
                 'withdraw': currencyWithdrawEnabled,

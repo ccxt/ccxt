@@ -699,7 +699,8 @@ class bitfinex2 extends bitfinex2$1 {
             const label = this.safeValue(indexed['label'], id, []);
             const name = this.safeString(label, 1);
             const pool = this.safeValue(indexed['pool'], id, []);
-            const type = this.safeString(pool, 1);
+            const rawType = this.safeString(pool, 1);
+            const type = (rawType === undefined) ? 'other' : 'crypto';
             const feeValues = this.safeValue(indexed['fees'], id, []);
             const fees = this.safeValue(feeValues, 1, []);
             const fee = this.safeNumber(fees, 1);

@@ -223,7 +223,8 @@ class lykke extends lykke$1 {
             const id = this.safeString(currency, 'assetId');
             const code = this.safeString(currency, 'symbol');
             const name = this.safeString(currency, 'name');
-            const type = this.safeString(currency, 'type');
+            const rawType = this.safeString(currency, 'type');
+            const type = (rawType === 'erc20Token') ? 'crypto' : 'other';
             const deposit = this.safeValue(currency, 'blockchainDepositEnabled');
             const withdraw = this.safeValue(currency, 'blockchainWithdrawal');
             const isDisabled = this.safeValue(currency, 'isDisabled');

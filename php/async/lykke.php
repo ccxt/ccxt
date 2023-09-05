@@ -225,7 +225,8 @@ class lykke extends Exchange {
                 $id = $this->safe_string($currency, 'assetId');
                 $code = $this->safe_string($currency, 'symbol');
                 $name = $this->safe_string($currency, 'name');
-                $type = $this->safe_string($currency, 'type');
+                $rawType = $this->safe_string($currency, 'type');
+                $type = ($rawType === 'erc20Token') ? 'crypto' : 'other';
                 $deposit = $this->safe_value($currency, 'blockchainDepositEnabled');
                 $withdraw = $this->safe_value($currency, 'blockchainWithdrawal');
                 $isDisabled = $this->safe_value($currency, 'isDisabled');

@@ -3952,7 +3952,6 @@ class gate(Exchange, ImplicitAPI):
         remainingString = self.safe_string(order, 'left')
         cost = self.safe_string(order, 'filled_total')
         triggerPrice = self.safe_number(trigger, 'price')
-        rawStatus = None
         average = self.safe_number_2(order, 'avg_deal_price', 'fill_price')
         if triggerPrice:
             remainingString = amount
@@ -3961,9 +3960,7 @@ class gate(Exchange, ImplicitAPI):
             isMarketOrder = Precise.string_equals(price, '0') and (timeInForce == 'IOC')
             type = 'market' if isMarketOrder else 'limit'
             side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
-            rawStatus = self.safe_string(order, 'finish_as', 'open')
-        else:
-            rawStatus = self.safe_string(order, 'status')
+        rawStatus = self.safe_string_n(order, ['status', 'finish_as', 'open'])
         timestamp = self.safe_integer(order, 'create_time_ms')
         if timestamp is None:
             timestamp = self.safe_timestamp_2(order, 'create_time', 'ctime')

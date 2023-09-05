@@ -4155,7 +4155,6 @@ class gate extends gate$1 {
         let remainingString = this.safeString(order, 'left');
         let cost = this.safeString(order, 'filled_total');
         const triggerPrice = this.safeNumber(trigger, 'price');
-        let rawStatus = undefined;
         let average = this.safeNumber2(order, 'avg_deal_price', 'fill_price');
         if (triggerPrice) {
             remainingString = amount;
@@ -4165,11 +4164,8 @@ class gate extends gate$1 {
             const isMarketOrder = Precise["default"].stringEquals(price, '0') && (timeInForce === 'IOC');
             type = isMarketOrder ? 'market' : 'limit';
             side = Precise["default"].stringGt(amount, '0') ? 'buy' : 'sell';
-            rawStatus = this.safeString(order, 'finish_as', 'open');
         }
-        else {
-            rawStatus = this.safeString(order, 'status');
-        }
+        const rawStatus = this.safeStringN(order, ['status', 'finish_as', 'open']);
         let timestamp = this.safeInteger(order, 'create_time_ms');
         if (timestamp === undefined) {
             timestamp = this.safeTimestamp2(order, 'create_time', 'ctime');

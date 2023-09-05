@@ -479,11 +479,21 @@ class bittrex(Exchange, ImplicitAPI):
             precision = self.parse_number('1e-8')  # default precision, seems exchange has same amount-precision across all pairs in UI too. todo: fix "magic constants"
             fee = self.safe_number(currency, 'txFee')  # todo: redesign
             isActive = self.safe_string(currency, 'status')
+            coinType = self.safe_string(currency, 'coinType')
+            type = None
+            if coinType == 'FIAT':
+                type = 'fiat'
+            elif coinType == 'Award':
+                # these are exchange credits
+                type = 'other'
+            else:
+                # all others are cryptos
+                type = 'crypto'
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'type': self.safe_string(currency, 'coinType'),
+                'type': type,
                 'name': self.safe_string(currency, 'name'),
                 'active': (isActive == 'ONLINE'),
                 'deposit': None,

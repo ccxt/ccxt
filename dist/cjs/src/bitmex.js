@@ -2274,7 +2274,9 @@ class bitmex extends bitmex$1 {
                 filteredResponse.push(item);
             }
         }
-        return this.parseFundingRates(filteredResponse, symbols);
+        symbols = this.marketSymbols(symbols);
+        const result = this.parseFundingRates(filteredResponse);
+        return this.filterByArray(result, 'symbol', symbols);
     }
     parseFundingRate(contract, market = undefined) {
         // see response sample under "fetchMarkets" because same endpoint is being used here

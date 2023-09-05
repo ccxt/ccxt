@@ -825,8 +825,11 @@ export default class gate extends gateRest {
                 parsed['status'] = 'open';
             }
             else if (event === 'finish') {
-                const left = this.safeNumber(info, 'left');
-                parsed['status'] = (left === 0) ? 'closed' : 'canceled';
+                const status = this.safeString(parsed, 'status');
+                if (status === undefined) {
+                    const left = this.safeNumber(info, 'left');
+                    parsed['status'] = (left === 0) ? 'closed' : 'canceled';
+                }
             }
             stored.append(parsed);
             const symbol = parsed['symbol'];

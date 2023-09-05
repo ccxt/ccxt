@@ -730,17 +730,55 @@ export default class exmo extends Exchange {
         //         },
         //     }
         //
+        let marginPairsDict = {};
+        if (this.checkRequiredCredentials(false)) {
+            const marginPairs = await this.privatePostMarginPairList(params);
+            //
+            //    {
+            //        "pairs": [
+            //            {
+            //                "buy_price": "55978.85",
+            //                "default_leverage": "3",
+            //                "is_fair_price": true,
+            //                "last_trade_price": "55999.23",
+            //                "liquidation_fee": "2",
+            //                "liquidation_level": "10",
+            //                "margin_call_level": "15",
+            //                "max_leverage": "3",
+            //                "max_order_price": "150000",
+            //                "max_order_quantity": "1",
+            //                "max_position_quantity": "1",
+            //                "max_price_precision": 2,
+            //                "min_order_price": "1",
+            //                "min_order_quantity": "0.00002",
+            //                "name": "BTC_USD",
+            //                "position": 1,
+            //                "sell_price": "55985.51",
+            //                "ticker_updated": "1619019818936107989",
+            //                "trade_maker_fee": "0",
+            //                "trade_taker_fee": "0.05",
+            //                "updated": "1619008608955599013"
+            //            }
+            //        ]
+            //    }
+            //
+            const pairs = this.safeValue(marginPairs, 'pairs');
+            marginPairsDict = this.indexBy(pairs, 'name');
+        }
         const keys = Object.keys(response);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
             const market = response[id];
+            const marginMarket = this.safeValue(marginPairsDict, id);
             const symbol = id.replace('_', '/');
             const [baseId, quoteId] = symbol.split('/');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             const takerString = this.safeString(market, 'commission_taker_percent');
             const makerString = this.safeString(market, 'commission_maker_percent');
+            const maxQuantity = this.safeString(market, 'max_quantity');
+            const marginMaxQuantity = this.safeString(marginMarket, 'max_order_quantity');
             result.push({
                 'id': id,
                 'symbol': symbol,
@@ -752,7 +790,7 @@ export default class exmo extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': true,
+                'margin': marginMarket !== undefined,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -774,11 +812,11 @@ export default class exmo extends Exchange {
                 'limits': {
                     'leverage': {
                         'min': undefined,
-                        'max': undefined,
+                        'max': this.safeNumber(market, 'leverage'),
                     },
                     'amount': {
                         'min': this.safeNumber(market, 'min_quantity'),
-                        'max': this.safeNumber(market, 'max_quantity'),
+                        'max': this.parseNumber(Precise.stringMax(maxQuantity, marginMaxQuantity)),
                     },
                     'price': {
                         'min': this.safeNumber(market, 'min_price'),
@@ -874,20 +912,36 @@ export default class exmo extends Exchange {
     }
     parseBalance(response) {
         const result = { 'info': response };
-        const free = this.safeValue(response, 'balances', {});
-        const used = this.safeValue(response, 'reserved', {});
-        const currencyIds = Object.keys(free);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode(currencyId);
-            const account = this.account();
-            if (currencyId in free) {
-                account['free'] = this.safeString(free, currencyId);
+        const wallets = this.safeValue(response, 'wallets');
+        if (wallets !== undefined) {
+            const currencyIds = Object.keys(wallets);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const item = wallets[currencyId];
+                const currency = this.safeCurrencyCode(currencyId);
+                const account = this.account();
+                account['used'] = this.safeString(item, 'used');
+                account['free'] = this.safeString(item, 'free');
+                account['total'] = this.safeString(item, 'balance');
+                result[currency] = account;
             }
-            if (currencyId in used) {
-                account['used'] = this.safeString(used, currencyId);
+        }
+        else {
+            const free = this.safeValue(response, 'balances', {});
+            const used = this.safeValue(response, 'reserved', {});
+            const currencyIds = Object.keys(free);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const code = this.safeCurrencyCode(currencyId);
+                const account = this.account();
+                if (currencyId in free) {
+                    account['free'] = this.safeString(free, currencyId);
+                }
+                if (currencyId in used) {
+                    account['used'] = this.safeString(used, currencyId);
+                }
+                result[code] = account;
             }
-            result[code] = account;
         }
         return this.safeBalance(result);
     }
@@ -897,22 +951,45 @@ export default class exmo extends Exchange {
          * @name exmo#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {string} [params.marginMode] *isolated* fetches the isolated margin balance
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
-        const response = await this.privatePostUserInfo(params);
-        //
-        //     {
-        //         "uid":131685,
-        //         "server_date":1628999600,
-        //         "balances":{
-        //             "EXM":"0",
-        //             "USD":"0",
-        //             "EUR":"0",
-        //             "GBP":"0",
-        //         },
-        //     }
-        //
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
+        if (marginMode === 'cross') {
+            throw new BadRequest(this.id + ' does not support cross margin');
+        }
+        let response = undefined;
+        if (marginMode === 'isolated') {
+            response = await this.privatePostMarginUserWalletList(params);
+            //
+            //    {
+            //        "wallets": {
+            //            "USD": {
+            //                "balance": "1000",
+            //                "free": "600",
+            //                "used": "400"
+            //            }
+            //        }
+            //    }
+            //
+        }
+        else {
+            response = await this.privatePostUserInfo(params);
+            //
+            //     {
+            //         "uid":131685,
+            //         "server_date":1628999600,
+            //         "balances":{
+            //             "EXM":"0",
+            //             "USD":"0",
+            //             "EUR":"0",
+            //             "GBP":"0",
+            //         },
+            //     }
+            //
+        }
         return this.parseBalance(response);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {

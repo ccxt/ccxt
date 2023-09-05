@@ -774,8 +774,10 @@ class gate(ccxt.async_support.gate):
             if event == 'put' or event == 'update':
                 parsed['status'] = 'open'
             elif event == 'finish':
-                left = self.safe_number(info, 'left')
-                parsed['status'] = 'closed' if (left == 0) else 'canceled'
+                status = self.safe_string(parsed, 'status')
+                if status is None:
+                    left = self.safe_number(info, 'left')
+                    parsed['status'] = 'closed' if (left == 0) else 'canceled'
             stored.append(parsed)
             symbol = parsed['symbol']
             market = self.market(symbol)

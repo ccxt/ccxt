@@ -435,10 +435,12 @@ class latoken(Exchange, ImplicitAPI):
             code = self.safe_currency_code(tag)
             fee = self.safe_number(currency, 'fee')
             currencyType = self.safe_string(currency, 'type')
-            parts = currencyType.split('_')
-            numParts = len(parts)
-            lastPart = self.safe_value(parts, numParts - 1)
-            type = lastPart.lower()
+            type = None
+            if currencyType == 'CURRENCY_TYPE_ALTERNATIVE':
+                type = 'other'
+            else:
+                # CURRENCY_TYPE_CRYPTO and CURRENCY_TYPE_IEO are all cryptos
+                type = 'crypto'
             status = self.safe_string(currency, 'status')
             active = (status == 'CURRENCY_STATUS_ACTIVE')
             name = self.safe_string(currency, 'name')

@@ -195,7 +195,7 @@ export interface Position {
     timestamp?: number;
     datetime: string;
     contracts?: number;
-    contractsSize?: number;
+    contractSize?: number;
     side: string;
     notional?: number;
     leverage?: number;
