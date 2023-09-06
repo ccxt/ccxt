@@ -1445,6 +1445,17 @@ export default class bybit extends Exchange {
         return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
+    getBybitType (method, market, params) {
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams (method, market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams (method, market, params);
+        if (type === 'option' || type === 'spot') {
+            return [ type, params ];
+        }
+        return [ subType, params ];
+    }
+
     async fetchTime (params = {}) {
         /**
          * @method
@@ -2623,13 +2634,12 @@ export default class bybit extends Exchange {
         const market = this.market (symbol);
         symbol = market['symbol'];
         request['symbol'] = market['id'];
-        if (market['option']) {
-            throw new NotSupported (this.id + ' fetchFundingRateHistory() is not supported for option markets');
-        } else if (market['linear']) {
-            request['category'] = 'linear';
-        } else if (market['inverse']) {
-            request['category'] = 'inverse';
+        let type = undefined;
+        [ type, params ] = this.getBybitType ('fetchFundingRateHistory', market, params);
+        if (type === 'spot' || type === 'option') {
+            throw new NotSupported (this.id + ' fetchFundingRateHistory() only support linear and inverse market');
         }
+        request['category'] = type;
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -2936,6 +2946,8 @@ export default class bybit extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         this.checkRequiredSymbol ('fetchTrades', symbol);
@@ -2951,17 +2963,9 @@ export default class bybit extends Exchange {
             // others: [1,1000], default: 500
             request['limit'] = limit;
         }
-        if (market['type'] === 'spot') {
-            request['category'] = 'spot';
-        } else {
-            if (market['option']) {
-                request['category'] = 'option';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            } else if (market['inverse']) {
-                request['category'] = 'inverse';
-            }
-        }
+        let type = undefined;
+        [ type, params ] = this.getBybitType ('fetchTrades', market, params);
+        request['category'] = type;
         const response = await this.publicGetV5MarketRecentTrade (this.extend (request, params));
         //
         //     {
@@ -3220,11 +3224,11 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/asset/all-balance
          * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {string|undefined} [params.type] wallet type, ['spot', 'swap', 'fund']
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const request = {};
-        let method = undefined;
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         let type = undefined;
@@ -3244,18 +3248,17 @@ export default class bybit extends Exchange {
         const unifiedType = this.safeStringUpper (accountTypes, type, type);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        let response = undefined;
         if (isSpot && (marginMode !== undefined)) {
-            method = 'privateGetV5SpotCrossMarginTradeAccount';
+            response = await this.privateGetV5SpotCrossMarginTradeAccount (this.extend (request, params));
         } else if (unifiedType === 'FUND') {
             // use this endpoint only we have no other choice
             // because it requires transfer permission
-            method = 'privateGetV5AssetTransferQueryAccountCoinsBalance';
             request['accountType'] = unifiedType;
-        } else {
-            method = 'privateGetV5AccountWalletBalance';
-            request['accountType'] = unifiedType;
+            response = await this.privateGetV5AssetTransferQueryAccountCoinsBalance (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
+        request['accountType'] = unifiedType;
+        response = await this.privateGetV5AccountWalletBalance (this.extend (request, params));
         //
         // cross
         //     {
@@ -4177,6 +4180,11 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/order/cancel-all
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {boolean|undefined} [params.stop] true if stop order
+         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string|undefined} [params.baseCoin] Base coin. Supports linear, inverse & option
+         * @param {string|undefined} [params.settleCoin] Settle coin. Supports linear, inverse & option
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -4191,42 +4199,22 @@ export default class bybit extends Exchange {
                 return await this.cancelAllUsdcOrders (symbol, params);
             }
             request['symbol'] = market['id'];
-            if (market['spot']) {
-                request['category'] = 'spot';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            } else if (market['inverse']) {
-                request['category'] = 'inverse';
-            } else if (market['option']) {
-                request['category'] = 'option';
-            }
-        } else {
-            const type = this.safeString (params, 'type', 'linear');
-            request['category'] = type;
+        }
+        let type = undefined;
+        [ type, params ] = this.getBybitType ('cancelAllOrders', market, params);
+        request['category'] = type;
+        if ((type === 'option') && !isUnifiedAccount) {
+            throw new NotSupported (this.id + ' cancelAllOrders() Normal Account not support ' + type + ' market');
+        }
+        if ((type === 'linear') || (type === 'inverse')) {
             const baseCoin = this.safeString (params, 'baseCoin');
-            const settleCoin = this.safeString (params, 'settleCoin');
-            if (((type === 'option') || settleCoin === 'USDC') && !isUnifiedAccount) {
-                throw new NotSupported (this.id + ' cancelAllOrders() Normal Account not support ' + type + ' market');
-            }
-            if ((type === 'linear') || (type === 'inverse')) {
-                if (baseCoin === undefined && settleCoin === undefined) {
-                    throw new ArgumentsRequired (this.id + ' cancelAllOrders() linear & inverse market need baseCoin or settleCoin params');
-                }
-            }
-            if (baseCoin !== undefined) {
-                if (type === 'spot' && !isUnifiedAccount) {
-                    throw new NotSupported (this.id + ' cancelAllOrders() baseCoin not support spot market');
-                }
-                request['baseCoin'] = baseCoin;
-            } else if (settleCoin !== undefined) {
-                if (type === 'spot') {
-                    throw new NotSupported (this.id + ' cancelAllOrders() settleCoin not support spot market');
-                }
-                request['settleCoin'] = settleCoin;
+            if (symbol === undefined && baseCoin === undefined) {
+                const defaultSettle = this.safeString (this.options, 'defaultSettle');
+                request['settleCoin'] = this.safeString (params, 'settleCoin', defaultSettle);
             }
         }
         const isStop = this.safeValue (params, 'stop', false);
-        params = this.omit (params, [ 'type', 'stop' ]);
+        params = this.omit (params, [ 'stop' ]);
         if (isStop) {
             request['orderFilter'] = 'tpslOrder';
         }
@@ -4364,6 +4352,9 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {boolean|undefined} [params.stop] true if stop order
+         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -4371,28 +4362,20 @@ export default class bybit extends Exchange {
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const request = {};
         let market = undefined;
-        let type = this.safeString (params, 'type', 'linear');
         let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market (symbol);
             isUsdcSettled = market['settle'] === 'USDC';
             request['symbol'] = market['id'];
-            if (market['spot']) {
-                type = 'spot';
-            } else if (market['linear']) {
-                type = 'linear';
-            } else if (market['inverse']) {
-                type = 'inverse';
-            } else if (market['option']) {
-                type = 'option';
-            }
         }
+        let type = undefined;
+        [ type, params ] = this.getBybitType ('fetchOrders', market, params);
         if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
             return await this.fetchUsdcOrders (symbol, since, limit, params);
         }
         request['category'] = type;
         const isStop = this.safeValue (params, 'stop', false);
-        params = this.omit (params, [ 'stop', 'type' ]);
+        params = this.omit (params, [ 'stop' ]);
         if (isStop) {
             if (type === 'spot') {
                 request['orderFilter'] = 'tpslOrder';
@@ -4500,6 +4483,9 @@ export default class bybit extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] max number of orders to return, default is undefined
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {boolean|undefined} [params.stop] true if stop order
+         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -4560,8 +4546,13 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/order/open-order
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {boolean|undefined} [params.stop] true if stop order
+         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string|undefined} [params.baseCoin] Base coin. Supports linear, inverse & option
+         * @param {string|undefined} [params.settleCoin] Settle coin. Supports linear, inverse & option
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -4569,28 +4560,19 @@ export default class bybit extends Exchange {
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const request = {};
         let market = undefined;
-        let type = this.safeString (params, 'type', 'linear');
         let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market (symbol);
             isUsdcSettled = market['settle'] === 'USDC';
             request['symbol'] = market['id'];
-            if (market['spot']) {
-                type = 'spot';
-            } else if (market['linear']) {
-                type = 'linear';
-            } else if (market['inverse']) {
-                type = 'inverse';
-            } else if (market['option']) {
-                type = 'option';
-            }
-        } else {
-            if ((type === 'linear') || (type === 'inverse')) {
-                const baseCoin = this.safeString (params, 'baseCoin');
-                const settleCoin = this.safeString (params, 'settleCoin');
-                if ((baseCoin === undefined) && (settleCoin === undefined)) {
-                    throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires baseCoin or settleCoin argument in linear and inverse market');
-                }
+        }
+        let type = undefined;
+        [ type, params ] = this.getBybitType ('fetchOpenOrders', market, params);
+        if (type === 'linear' || type === 'inverse') {
+            const baseCoin = this.safeString (params, 'baseCoin');
+            if (symbol === undefined && baseCoin === undefined) {
+                const defaultSettle = this.safeString (this.options, 'defaultSettle');
+                request['settleCoin'] = this.safeString (params, 'settleCoin', defaultSettle);
             }
         }
         if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
@@ -4598,7 +4580,7 @@ export default class bybit extends Exchange {
         }
         request['category'] = type;
         const isStop = this.safeValue (params, 'stop', false);
-        params = this.omit (params, [ 'stop', 'type' ]);
+        params = this.omit (params, [ 'stop' ]);
         if (isStop) {
             if (type === 'spot') {
                 request['orderFilter'] = 'tpslOrder';
@@ -4743,6 +4725,9 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {boolean|undefined} [params.stop] true if stop order
+         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
@@ -4750,22 +4735,14 @@ export default class bybit extends Exchange {
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const request = {};
         let market = undefined;
-        let type = this.safeString (params, 'type', 'linear');
         let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market (symbol);
             isUsdcSettled = market['settle'] === 'USDC';
             request['symbol'] = market['id'];
-            if (market['spot']) {
-                type = 'spot';
-            } else if (market['linear']) {
-                type = 'linear';
-            } else if (market['inverse']) {
-                type = 'inverse';
-            } else if (market['option']) {
-                type = 'option';
-            }
         }
+        let type = undefined;
+        [ type, params ] = this.getBybitType ('fetchMyTrades', market, params);
         if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
             return await this.fetchMyUsdcTrades (symbol, since, limit, params);
         }
@@ -5526,22 +5503,12 @@ export default class bybit extends Exchange {
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const isUsdcSettled = market['settle'] === 'USDC';
         let response = undefined;
-        if ((market['option'] || isUsdcSettled) && !isUnifiedAccount) {
-            if (market['option']) {
-                request['category'] = 'OPTION';
-            } else if (market['linear']) {
-                request['category'] = 'PERPETUAL';
-            }
+        let type = undefined;
+        [ type, params ] = this.getBybitType ('fetchPosition', market, params);
+        if ((type === 'option' || isUsdcSettled) && !isUnifiedAccount) {
+            request['category'] = (type === 'option') ? 'OPTION' : 'PERPETUAL';
             response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryPosition (this.extend (request, params));
         } else {
-            let type = undefined;
-            if (market['linear']) {
-                type = 'linear';
-            } else if (market['inverse']) {
-                type = 'inverse';
-            } else if (market['option']) {
-                type = 'option';
-            }
             request['category'] = type;
             response = await this.privateGetV5PositionList (this.extend (request, params));
         }
@@ -5600,7 +5567,6 @@ export default class bybit extends Exchange {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
-        let type = undefined;
         if (Array.isArray (symbols)) {
             const length = symbols.length;
             if (length !== 1) {
@@ -5613,7 +5579,8 @@ export default class bybit extends Exchange {
             market = this.market (symbols);
             request['symbol'] = market['id'];
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchUsdcPositions', market, params);
+        let type = undefined;
+        [ type, params ] = this.getBybitType ('fetchUsdcPositions', market, params);
         request['category'] = (type === 'option') ? 'OPTION' : 'PERPETUAL';
         const response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryPosition (this.extend (request, params));
         //
@@ -5679,6 +5646,10 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/position
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string|undefined} [params.baseCoin] Base coin. Supports linear, inverse & option
+         * @param {string|undefined} [params.settleCoin] Settle coin. Supports linear, inverse & option
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         let symbol = undefined;
@@ -5697,44 +5668,28 @@ export default class bybit extends Exchange {
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const request = {};
         let market = undefined;
-        let type = this.safeString (params, 'type', 'linear');
-        const settleCoin = this.safeString (params, 'settleCoin');
-        const baseCoin = this.safeString (params, 'baseCoin');
         let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
             isUsdcSettled = market['settle'] === 'USDC';
-            if (market['linear']) {
-                type = 'linear';
-            } else if (market['inverse']) {
-                type = 'inverse';
-            } else if (market['option']) {
-                type = 'option';
-                if (baseCoin !== undefined) {
-                    request['baseCoin'] = baseCoin;
-                }
-            }
-        } else {
-            if (type === 'spot') {
-                throw new NotSupported (this.id + ' fetchPosition() not support spot market');
-            }
-            if ((type === 'linear') || (type === 'inverse')) {
-                if (settleCoin === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchPosition() requires settleCoin argument in linear and inverse market');
-                }
-                request['settleCoin'] = settleCoin;
-            }
-            if (type === 'option') {
-                if (baseCoin !== undefined) {
-                    request['baseCoin'] = baseCoin;
-                }
+        }
+        let type = undefined;
+        [ type, params ] = this.getBybitType ('fetchPositions', market, params);
+        if (type === 'spot') {
+            throw new NotSupported (this.id + ' fetchPositions() not support spot market');
+        }
+        if (type === 'linear' || type === 'inverse') {
+            const baseCoin = this.safeString (params, 'baseCoin');
+            if (symbol === undefined && baseCoin === undefined) {
+                const defaultSettle = this.safeString (this.options, 'defaultSettle');
+                request['settleCoin'] = this.safeString (params, 'settleCoin', defaultSettle);
             }
         }
         if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
             return await this.fetchUsdcPositions (symbols, params);
         }
-        params = this.omit (params, [ 'type', 'settleCoin', 'baseCoin' ]);
+        params = this.omit (params, [ 'type' ]);
         request['category'] = type;
         const response = await this.privateGetV5PositionList (this.extend (request, params));
         //
@@ -6089,10 +6044,8 @@ export default class bybit extends Exchange {
         if (symbol !== undefined) {
             request['category'] = market['linear'] ? 'linear' : 'inverse';
         } else {
-            const type = this.safeString (params, 'type');
-            if (type === undefined) {
-                throw new ArgumentsRequired (this.id + ' setPositionMode() requires a type argument for setting category');
-            }
+            let type = undefined;
+            [ type, params ] = this.getBybitType ('setPositionMode', market, params);
             request['category'] = type;
         }
         params = this.omit (params, 'type');
@@ -6826,6 +6779,7 @@ export default class bybit extends Exchange {
          * @description fetch the trading fees for multiple markets
          * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
          * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -6975,6 +6929,8 @@ export default class bybit extends Exchange {
          * @param {int} [since] timestamp in ms
          * @param {int} [limit] number of records
          * @param {object} [params] exchange specific params
+         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
          * @returns {object[]} a list of [settlement history objects]
          */
         await this.loadMarkets ();
@@ -6985,14 +6941,11 @@ export default class bybit extends Exchange {
             request['symbol'] = market['id'];
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
-        if (type === 'option') {
-            request['category'] = 'option';
-        } else {
-            let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchSettlementHistory', market, params, 'linear');
-            request['category'] = subType;
+        [ type, params ] = this.getBybitType ('fetchSettlementHistory', market, params);
+        if (type === 'spot') {
+            throw new NotSupported (this.id + ' fetchSettlementHistory() is not supported for spot market');
         }
+        request['category'] = type;
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -7033,6 +6986,8 @@ export default class bybit extends Exchange {
          * @param {int} [since] timestamp in ms
          * @param {int} [limit] number of records
          * @param {object} [params] exchange specific params
+         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
          * @returns {object[]} a list of [settlement history objects]
          */
         await this.loadMarkets ();
@@ -7043,17 +6998,11 @@ export default class bybit extends Exchange {
             request['symbol'] = market['id'];
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMySettlementHistory', market, params);
-        if (type === 'option') {
-            request['category'] = 'option';
-        } else {
-            let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchMySettlementHistory', market, params, 'linear');
-            if (subType === 'inverse') {
-                throw new NotSupported (this.id + ' fetchMySettlementHistory() doesn\'t support inverse markets');
-            }
-            request['category'] = 'linear';
+        [ type, params ] = this.getBybitType ('fetchMySettlementHistory', market, params);
+        if (type === 'spot' || type === 'inverse') {
+            throw new NotSupported (this.id + ' fetchMySettlementHistory() is not supported for spot market');
         }
+        request['category'] = 'linear';
         if (limit !== undefined) {
             request['limit'] = limit;
         }
