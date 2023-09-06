@@ -918,8 +918,8 @@
         "skipWs": true,
         "skipMethods":{
             "fetchCurrencies": {
-                "depositForFiat": "not provided",
-                "withdrawForFiat": "not provided"
+                "depositForNonCrypto": "not provided",
+                "withdrawForNonCrypto": "not provided"
             },
             "loadMarkets": {
                 "currencyIdAndCode": "messed"

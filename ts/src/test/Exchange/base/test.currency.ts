@@ -35,10 +35,10 @@ function testCurrency (exchange, skippedProperties, method, entry) {
             testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'type', [ 'fiat', 'crypto', 'other' ]);
         }
         // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-        if (currencyType !== 'fiat' || !('depositForFiat' in skippedProperties)) {
+        if (currencyType === 'crypto' || !('depositForNonCrypto' in skippedProperties)) {
             format['deposit'] = true;
         }
-        if (currencyType !== 'fiat' || !('withdrawForFiat' in skippedProperties)) {
+        if (currencyType === 'crypto' || !('withdrawForNonCrypto' in skippedProperties)) {
             format['withdraw'] = true;
         }
     }
