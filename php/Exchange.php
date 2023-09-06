@@ -338,7 +338,6 @@ class Exchange {
     public $commonCurrencies = array(
         'XBT' => 'BTC',
         'BCC' => 'BCH',
-        'BCHABC' => 'BCH',
         'BCHSV' => 'BSV',
     );
 
