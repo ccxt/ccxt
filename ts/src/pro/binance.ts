@@ -987,7 +987,17 @@ export default class binance extends binanceRest {
         client.resolve (result, messageHash);
         if (event === 'bookTicker') {
             // watch bookTickers
-            client.resolve ([ result ], '!' + 'bookTicker@arr');
+            client.resolve (result, '!' + 'bookTicker@arr');
+            const messageHashes = this.findMessageHashes (client, 'tickers::');
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                const parts = messageHash.split ('::');
+                const symbolsString = parts[1];
+                const symbols = symbolsString.split (',');
+                if (this.inArray (symbol, symbols)) {
+                    client.resolve (result, messageHash);
+                }
+            }
         }
     }
 
