@@ -582,41 +582,47 @@ class latoken extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
-        //     {
-        //         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
-        //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //         "volume24h":"76411867.852585600000000000",
-        //         "volume7d":"637809926.759451100000000000",
-        //         "change24h":"2.5300",
-        //         "change7d":"5.1300",
-        //         "lastPrice":"4426.9"
-        //     }
+        //    {
+        //        symbol => '92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+        //        baseCurrency => '92151d82-df98-4d88-9a4d-284fa9eca49f',
+        //        quoteCurrency => '0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+        //        volume24h => '165723597.189022176000000000',
+        //        volume7d => '934505768.625109571000000000',
+        //        change24h => '0.0200',
+        //        change7d => '-6.4200',
+        //        amount24h => '6438.457663100000000000',
+        //        amount7d => '35657.785013800000000000',
+        //        lastPrice => '25779.16',
+        //        lastQuantity => '0.248403300000000000',
+        //        bestBid => '25778.74',
+        //        bestBidQuantity => '0.6520232',
+        //        bestAsk => '25779.17',
+        //        bestAskQuantity => '0.4956043',
+        //        updateTimestamp => '1693965231406'
+        //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_string($ticker, 'lastPrice');
-        $change = $this->safe_string($ticker, 'change24h');
-        $timestamp = $this->nonce();
+        $timestamp = $this->safe_integer($ticker, 'updateTimestamp');
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $this->safe_symbol($marketId, $market),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'low' => $this->safe_string($ticker, 'low'),
-            'high' => $this->safe_string($ticker, 'high'),
-            'bid' => null,
-            'bidVolume' => null,
-            'ask' => null,
-            'askVolume' => null,
+            'low' => null,
+            'high' => null,
+            'bid' => $this->safe_string($ticker, 'bestBid'),
+            'bidVolume' => $this->safe_string($ticker, 'bestBidQuantity'),
+            'ask' => $this->safe_string($ticker, 'bestAsk'),
+            'askVolume' => $this->safe_string($ticker, 'bestAskQuantity'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => null,
+            'change' => null,
+            'percentage' => $this->safe_string($ticker, 'change24h'),
             'average' => null,
-            'baseVolume' => null,
+            'baseVolume' => $this->safe_string($ticker, 'amount24h'),
             'quoteVolume' => $this->safe_string($ticker, 'volume24h'),
             'info' => $ticker,
         ), $market);
@@ -638,16 +644,24 @@ class latoken extends Exchange {
             );
             $response = Async\await($this->publicGetTickerBaseQuote (array_merge($request, $params)));
             //
-            //     {
-            //         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-            //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
-            //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-            //         "volume24h":"76411867.852585600000000000",
-            //         "volume7d":"637809926.759451100000000000",
-            //         "change24h":"2.5300",
-            //         "change7d":"5.1300",
-            //         "lastPrice":"4426.9"
-            //     }
+            //    {
+            //        $symbol => '92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+            //        baseCurrency => '92151d82-df98-4d88-9a4d-284fa9eca49f',
+            //        quoteCurrency => '0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+            //        volume24h => '165723597.189022176000000000',
+            //        volume7d => '934505768.625109571000000000',
+            //        change24h => '0.0200',
+            //        change7d => '-6.4200',
+            //        amount24h => '6438.457663100000000000',
+            //        amount7d => '35657.785013800000000000',
+            //        lastPrice => '25779.16',
+            //        lastQuantity => '0.248403300000000000',
+            //        bestBid => '25778.74',
+            //        bestBidQuantity => '0.6520232',
+            //        bestAsk => '25779.17',
+            //        bestAskQuantity => '0.4956043',
+            //        updateTimestamp => '1693965231406'
+            //    }
             //
             return $this->parse_ticker($response, $market);
         }) ();
@@ -664,18 +678,26 @@ class latoken extends Exchange {
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTicker ($params));
             //
-            //     array(
-            //         array(
-            //             "symbol":"DASH/BTC",
-            //             "baseCurrency":"ed75c263-4ab9-494b-8426-031dab1c7cc1",
-            //             "quoteCurrency":"92151d82-df98-4d88-9a4d-284fa9eca49f",
-            //             "volume24h":"1.977753278000000000",
-            //             "volume7d":"18.964342670000000000",
-            //             "change24h":"-1.4800",
-            //             "change7d":"-5.5200",
-            //             "lastPrice":"0.003066"
-            //         ),
-            //     )
+            //    array(
+            //        {
+            //            symbol => '92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+            //            baseCurrency => '92151d82-df98-4d88-9a4d-284fa9eca49f',
+            //            quoteCurrency => '0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+            //            volume24h => '165723597.189022176000000000',
+            //            volume7d => '934505768.625109571000000000',
+            //            change24h => '0.0200',
+            //            change7d => '-6.4200',
+            //            amount24h => '6438.457663100000000000',
+            //            amount7d => '35657.785013800000000000',
+            //            lastPrice => '25779.16',
+            //            lastQuantity => '0.248403300000000000',
+            //            bestBid => '25778.74',
+            //            bestBidQuantity => '0.6520232',
+            //            bestAsk => '25779.17',
+            //            bestAskQuantity => '0.4956043',
+            //            updateTimestamp => '1693965231406'
+            //        }
+            //    )
             //
             return $this->parse_tickers($response, $symbols);
         }) ();
