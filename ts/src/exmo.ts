@@ -1306,14 +1306,17 @@ export default class exmo extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument (a single symbol or an array)');
         }
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+        if (marginMode === 'cross') {
+            throw new BadRequest (this.id + 'only isolated margin is supported');
+        }
         await this.loadMarkets ();
         let pair = undefined;
         let market = undefined;
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-        const isSpot = ((marginMode !== 'cross') && (marginMode !== 'isolated'));
-        if (!isSpot && (limit === undefined)) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a limit argument for margin orders');
+        const isSpot = marginMode !== 'isolated';
+        if (limit === undefined) {
+            limit = 100;
         }
         if (Array.isArray (symbol)) {
             const numSymbols = symbol.length;
