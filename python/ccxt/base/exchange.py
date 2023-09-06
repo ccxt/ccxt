@@ -390,7 +390,6 @@ class Exchange(object):
     commonCurrencies = {
         'XBT': 'BTC',
         'BCC': 'BCH',
-        'BCHABC': 'BCH',
         'BCHSV': 'BSV',
     }
     synchronous = True
