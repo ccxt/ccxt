@@ -1835,7 +1835,7 @@ export default class exmo extends Exchange {
             });
             return this.parseOrders (response, market, since, limit, params);
         } else {
-            const response = await this.privatePostMarginUserOrderTrades (this.extend (request, params));
+            const response = await this.privatePostMarginUserOrderHistory (this.extend (request, params));
             //
             //    {
             //        "items": [
