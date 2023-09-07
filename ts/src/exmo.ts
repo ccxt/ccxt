@@ -1312,22 +1312,11 @@ export default class exmo extends Exchange {
             throw new BadRequest (this.id + 'only isolated margin is supported');
         }
         await this.loadMarkets ();
-        let pair = undefined;
-        let market = undefined;
+        const market = this.market (symbol);
+        const pair = market['id'];
         const isSpot = marginMode !== 'isolated';
         if (limit === undefined) {
             limit = 100;
-        }
-        if (Array.isArray (symbol)) {
-            const numSymbols = symbol.length;
-            if (numSymbols < 1) {
-                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a non-empty symbol array');
-            }
-            const marketIds = this.marketIds (symbol);
-            pair = marketIds.join (',');
-        } else {
-            market = this.market (symbol);
-            pair = market['id'];
         }
         const request = {};
         if (isSpot) {
