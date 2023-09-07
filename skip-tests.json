@@ -16,7 +16,10 @@
         }
     },
     "alpaca": {
-        "skipWs": true
+        "skipWs": true,
+        "skipMethods": {
+            "fetchTrades": "empty response https://app.travis-ci.com/github/ccxt/ccxt/builds/265786440#L2211"
+        }
     },
     "ascendex": {
         "skipMethods": {
