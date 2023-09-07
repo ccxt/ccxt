@@ -19,16 +19,16 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
     │                              .                              |
     │                  The Unified CCXT Pro API                   |
     |                              .                              |
-    |       loadMarkets            .         watchBalance         |
-    |       watchTicker            .         watchOrders          |
-    |       watchTickers           .         watchMyTrades        |
-    |       watchOrderBook         .         watchPositions       |
-    |       watchOHLCV             .         createOrderWs        |
-    |       watchStatus            .         editOrderWs          |
-    |       watchTrades            .         cancelOrderWs        |
-    │                              .         cancelOrdersWs       |
-    │                              .         cancelAllOrdersWs    |
-    │                              .                              |
+    |     loadMarkets              .         watchBalance         |
+    |     watchTicker              .         watchOrders          |
+    |     watchTickers             .         watchMyTrades        |
+    |     watchOrderBook           .         watchPositions       |
+    |     watchOHLCV               .         createOrderWs        |
+    |     watchStatus              .         editOrderWs          |
+    |     watchTrades              .         cancelOrderWs        |
+    │     watchOHLCVForSymbols     .         cancelOrdersWs       |
+    │     watchTradesForSymbols    .         cancelAllOrdersWs    |
+    │     watchOrderBookForSymbols .                              |
     │                              .                              |
     +=============================================================+
     │                              .                              |
@@ -597,6 +597,40 @@ if ($exchange->has['watchOrderBook']) {
 }
 ```
 
+##### watchOrderBookForSymbols
+
+Similar to `watchOrderBook` but accepts an array of symbols so you can subscribe to multiple orderbooks in a single message.
+
+```javascript
+// JavaScript
+if (exchange.has['watchOrderBookForSymbols']) {
+    while (true) {
+        try {
+            const orderbook = await exchange.watchOrderBookForSymbols (['BTC/USDT', 'LTC/USDT'], limit, params)
+            console.log (new Date (), symbol, orderbook['asks'][0], orderbook['bids'][0])
+        } catch (e) {
+            console.log (e)
+            // stop the loop on exception or leave it commented to retry
+            // throw e
+        }
+    }
+}
+```
+
+```python
+# Python
+if exchange.has['watchOrderBookForSymbols']:
+    while True:
+        try:
+            orderbook = await exchange.watchOrderBookForSymbols(['BTC/USDT', 'LTC/USDT'], limit, params)
+            print(exchange.iso8601(exchange.milliseconds()), symbol, orderbook['asks'][0], orderbook['bids'][0])
+        except Exception as e:
+            print(e)
+            # stop the loop on exception or leave it commented to retry
+            # raise e
+```
+
+
 ##### watchTicker
 Some exchanges allow different topics to listen to tickers (ie: bookTicker). You can set this in `exchange.options['watchTicker']['name']`
 ```javascript
@@ -777,6 +811,50 @@ if ($exchange->has['watchOHLCV']) {
 }
 ```
 
+
+##### watchOHLCVForSymbols
+
+Similar to `watchOHLCV` but allows multiple subscriptions of symbols and timeframes
+
+```javascript
+// JavaScript
+if (exchange.has['watchOHLCVForSymbols']) {
+    while (true) {
+        try {
+            const subscriptions = [[
+                ['BTC/USDT', '1d'],
+                ['LTC/USDT', '5m'],
+                ['ETH/USDT', '1h']
+            ]]
+            const candles = await exchange.watchOHLCVForSymbols (subscriptions, since, limit, params)
+            console.log (new Date (), candles)
+        } catch (e) {
+            console.log (e)
+            // stop the loop on exception or leave it commented to retry
+            // throw e
+        }
+    }
+}
+```
+
+```python
+# Python
+if exchange.has['watchOHLCVForSymbols']:
+    while True:
+        try:
+            subscriptions = [[
+                ['BTC/USDT', '1d'],
+                ['LTC/USDT', '5m'],
+                ['ETH/USDT', '1h']
+            ]]
+            candles = await exchange.watch_ohlcv(subscriptions, since, limit, params)
+            print(exchange.iso8601(exchange.milliseconds()), candles)
+        except Exception as e:
+            print(e)
+            # stop the loop on exception or leave it commented to retry
+            # raise e
+```
+
 ##### watchTrades
 
 ```javascript
@@ -823,6 +901,39 @@ if ($exchange->has['watchTrades']) {
     });
 }
 ```
+##### watchTradesForSymbols
+
+Similar to `watchTrades` but allows subscribing to multiple symbols in a single call.
+
+```javascript
+// JavaScript
+if (exchange.has['watchTradesForSymbols']) {
+    while (true) {
+        try {
+            const trades = await exchange.watchTradesForSymbols (['LTC/USDT', 'BTC/USDT'], since, limit, params)
+            console.log (new Date (), trades)
+        } catch (e) {
+            console.log (e)
+            // stop the loop on exception or leave it commented to retry
+            // throw e
+        }
+    }
+}
+```
+
+```python
+# Python
+if exchange.has['watchTradesForSymbols']:
+    while True:
+        try:
+            trades = await exchange.watchTradesForSymbols(['LTC/USDT', 'BTC/USDT'], since, limit, params)
+            print(exchange.iso8601(exchange.milliseconds()), trades)
+        except Exception as e:
+            print(e)
+            # stop the loop on exception or leave it commented to retry
+            # raise e
+```
+
 
 ### Private Methods
 
