@@ -537,7 +537,6 @@
         }
     },
     "coinbasepro": {
-		"skipPhpAsync":true,
         "skipMethods": {
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
@@ -547,7 +546,6 @@
         }
     },
     "coinbaseprime": {
-		"skipPhpAsync":true,
         "skipMethods": {
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
@@ -780,7 +778,6 @@
         "skipWs": true
     },
     "huobi": {
-		"skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -1037,7 +1034,6 @@
     },
     "mexc": {
         "skipWs": true,
-        "skipPhpAsync": "Connection ended before receiving response...",
         "skipMethods": {
             "loadMarkets":{
                 "currencyIdAndCode": "messed"
@@ -1282,7 +1278,6 @@
         }
     },
 	"woo": {
-		"skipPhpAsync": true,
         "skipMethods":{
             "loadMarkets":{
                 "active": "undefined",
