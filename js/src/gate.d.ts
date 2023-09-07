@@ -7,6 +7,53 @@ import { Int, OrderSide, OrderType } from './base/types.js';
 export default class gate extends Exchange {
     describe(): any;
     setSandboxMode(enable: any): void;
+    convertExpireDate(date: any): string;
+    createExpiredOptionMarket(symbol: any): {
+        id: string;
+        symbol: string;
+        base: any;
+        quote: string;
+        settle: string;
+        baseId: any;
+        quoteId: string;
+        settleId: string;
+        active: boolean;
+        type: string;
+        linear: any;
+        inverse: any;
+        spot: boolean;
+        swap: boolean;
+        future: boolean;
+        option: boolean;
+        margin: boolean;
+        contract: boolean;
+        contractSize: number;
+        expiry: number;
+        expiryDatetime: string;
+        optionType: string;
+        strike: number;
+        precision: {
+            amount: number;
+            price: any;
+        };
+        limits: {
+            amount: {
+                min: any;
+                max: any;
+            };
+            price: {
+                min: any;
+                max: any;
+            };
+            cost: {
+                min: any;
+                max: any;
+            };
+        };
+        info: any;
+    };
+    market(symbol: any): any;
+    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;
     fetchMarkets(params?: {}): Promise<any>;
     fetchSpotMarkets(params?: {}): Promise<any[]>;
     fetchContractMarkets(params?: {}): Promise<any[]>;
@@ -334,6 +381,7 @@ export default class gate extends Exchange {
         info: any;
     };
     fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchMySettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {
         info: any;
         symbol: any;

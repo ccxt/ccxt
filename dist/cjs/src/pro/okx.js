@@ -28,16 +28,10 @@ class okx extends okx$1 {
             },
             'urls': {
                 'api': {
-                    'ws': {
-                        'public': 'wss://ws.okx.com:8443/ws/v5/public',
-                        'private': 'wss://ws.okx.com:8443/ws/v5/private', // wss://wsaws.okx.com:8443/ws/v5/private
-                    },
+                    'ws': 'wss://ws.okx.com:8443/ws/v5',
                 },
                 'test': {
-                    'ws': {
-                        'public': 'wss://wspap.okx.com:8443/ws/v5/public?brokerId=9999',
-                        'private': 'wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999',
-                    },
+                    'ws': 'wss://wspap.okx.com:8443/ws/v5',
                 },
             },
             'options': {
@@ -99,13 +93,27 @@ class okx extends okx$1 {
             },
         });
     }
+    getUrl(channel, access = 'public') {
+        // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
+        const isSandbox = this.options['sandboxMode'];
+        const sandboxSuffix = isSandbox ? '?brokerId=9999' : '';
+        const isPublic = (access === 'public');
+        const url = this.urls['api']['ws'];
+        if ((channel.indexOf('candle') > -1) || (channel === 'orders-algo')) {
+            return url + '/business' + sandboxSuffix;
+        }
+        else if (isPublic) {
+            return url + '/public' + sandboxSuffix;
+        }
+        return url + '/private' + sandboxSuffix;
+    }
     async subscribeMultiple(access, channel, symbols = undefined, params = {}) {
         await this.loadMarkets();
         if (symbols === undefined) {
             symbols = this.symbols;
         }
         symbols = this.marketSymbols(symbols);
-        const url = this.urls['api']['ws'][access];
+        const url = this.getUrl(channel, access);
         let messageHash = channel;
         const args = [];
         messageHash += '::' + symbols.join(',');
@@ -125,7 +133,7 @@ class okx extends okx$1 {
     }
     async subscribe(access, messageHash, channel, symbol, params = {}) {
         await this.loadMarkets();
-        const url = this.urls['api']['ws'][access];
+        const url = this.getUrl(channel, access);
         const firstArgument = {
             'channel': channel,
         };
@@ -151,7 +159,7 @@ class okx extends okx$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -205,7 +213,7 @@ class okx extends okx$1 {
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchTicker', 'channel', 'tickers');
@@ -222,8 +230,11 @@ class okx extends okx$1 {
          * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
+        if (this.isEmpty(symbols)) {
+            throw new errors.ArgumentsRequired(this.id + ' watchTickers requires a list of symbols');
+        }
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'tickers');
         const newTickers = await this.subscribeMultiple('public', channel, symbols, params);
@@ -353,7 +364,7 @@ class okx extends okx$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         const options = this.safeValue(this.options, 'watchOrderBook', {});
         //
@@ -593,15 +604,16 @@ class okx extends okx$1 {
         }
         return message;
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const access = this.safeString(params, 'access', 'private');
         params = this.omit(params, ['access']);
-        const url = this.urls['api']['ws'][access];
+        const url = this.getUrl('users', access);
         const messageHash = 'authenticated';
         const client = this.client(url);
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.seconds().toString();
             const method = 'GET';
             const path = '/users/self/verify';
@@ -620,8 +632,7 @@ class okx extends okx$1 {
                 ],
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -631,7 +642,7 @@ class okx extends okx$1 {
          * @name okx#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -725,7 +736,7 @@ class okx extends okx$1 {
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {bool} [params.stop] true if fetching trigger or conditional trades
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -767,7 +778,7 @@ class okx extends okx$1 {
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {bool} [params.stop] true if fetching trigger or conditional orders
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -984,11 +995,11 @@ class okx extends okx$1 {
          * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {boolean} params.test test order, default false
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl('private', 'private');
         const messageHash = this.nonce().toString();
         let op = undefined;
         [op, params] = this.handleOptionAndParams(params, 'createOrderWs', 'op', 'batch-orders');
@@ -1053,11 +1064,11 @@ class okx extends okx$1 {
          * @param {float} amount how much of the currency you want to trade in units of the base currency
          * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl('private', 'private');
         const messageHash = this.nonce().toString();
         let op = undefined;
         [op, params] = this.handleOptionAndParams(params, 'editOrderWs', 'op', 'amend-order');
@@ -1079,14 +1090,14 @@ class okx extends okx$1 {
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.clOrdId] client order id
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         if (symbol === undefined) {
             throw new errors.BadRequest(this.id + ' cancelOrderWs() requires a symbol argument');
         }
         await this.loadMarkets();
         await this.authenticate();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl('private', 'private');
         const messageHash = this.nonce().toString();
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         params = this.omit(params, ['clientOrderId', 'clOrdId']);
@@ -1115,7 +1126,7 @@ class okx extends okx$1 {
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const idsLength = ids.length;
         if (idsLength > 20) {
@@ -1126,7 +1137,7 @@ class okx extends okx$1 {
         }
         await this.loadMarkets();
         await this.authenticate();
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl('private', 'private');
         const messageHash = this.nonce().toString();
         const args = [];
         for (let i = 0; i < idsLength; i++) {
@@ -1151,7 +1162,7 @@ class okx extends okx$1 {
          * @description cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         if (symbol === undefined) {
             throw new errors.BadRequest(this.id + ' cancelAllOrdersWs() requires a symbol argument');
@@ -1162,7 +1173,7 @@ class okx extends okx$1 {
         if (market['type'] !== 'option') {
             throw new errors.BadRequest(this.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
-        const url = this.urls['api']['ws']['private'];
+        const url = this.getUrl('private', 'private');
         const messageHash = this.nonce().toString();
         const request = {
             'id': messageHash,
@@ -1204,7 +1215,8 @@ class okx extends okx$1 {
         //
         //     { event: 'login', success: true }
         //
-        client.resolve(message, 'authenticated');
+        const future = this.safeValue(client.futures, 'authenticated');
+        future.resolve(true);
     }
     ping(client) {
         // okex does not support built-in ws protocol-level ping-pong
@@ -1239,6 +1251,9 @@ class okx extends okx$1 {
                     delete client.subscriptions[messageHash];
                 }
                 return false;
+            }
+            else {
+                client.reject(e);
             }
         }
         return message;

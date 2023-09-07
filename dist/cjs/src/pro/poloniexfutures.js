@@ -220,7 +220,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @see https://futures-docs.poloniex.com/#get-real-time-symbol-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -237,7 +237,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const options = this.safeValue(this.options, 'watchTrades');
@@ -260,7 +260,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @param {int} [limit] not used by poloniexfutures watchOrderBook
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @param {string} [params.method] the method to use. Defaults to /contractMarket/level2 can also be /contractMarket/level3v2 to receive the raw stream of orders
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const options = this.safeValue(this.options, 'watchOrderBook');
@@ -291,7 +291,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @param {string} [params.method] the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const options = this.safeValue(this.options, 'watchOrders');
@@ -313,7 +313,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://futures-docs.poloniex.com/#account-balance-events
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         const name = '/contractAccount/wallet';

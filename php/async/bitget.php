@@ -154,6 +154,8 @@ class bitget extends Exchange {
                             'market/depth' => 1,
                             'market/spot-vip-level' => 2,
                             'market/history-candles' => 1,
+                            'public/loan/coinInfos' => 2, // 10 times/1s (IP) => 20/10 = 2
+                            'public/loan/hour-interest' => 2, // 10 times/1s (IP) => 20/10 = 2
                         ),
                     ),
                     'mix' => array(
@@ -202,6 +204,11 @@ class bitget extends Exchange {
                             'account/transferRecords' => 1, // 20 times/1s (UID) => 20/20 = 1
                             'convert/currencies' => 2,
                             'convert/convert-record' => 2,
+                            'loan/ongoing-orders' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/repay-history' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/revise-history' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/borrow-history' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/debts' => 2, // 10 times/1s (UID) => 20/10 = 2
                         ),
                         'post' => array(
                             'wallet/transfer' => 4,
@@ -232,6 +239,9 @@ class bitget extends Exchange {
                             'plan/batchCancelPlan' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'convert/quoted-price' => 4,
                             'convert/trade' => 4,
+                            'loan/borrow' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/repay' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'loan/revise-pledge' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/order/orderCurrentList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/order/orderHistoryList' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'trace/order/closeTrackingOrder' => 2, // 10 times/1s (UID) => 20/10 = 2
@@ -367,6 +377,9 @@ class bitget extends Exchange {
                             'account/sub-email' => 20, // 1 times/1s (UID) => 20/1 = 20
                             'account/sub-spot-assets' => 2, // 10 times/1s (UID) => 20/10 = 2
                             'account/sub-future-assets' => 2, // 10 times/1s (UID) => 20/10 = 2
+                            'account/subaccount-transfer' => 1, // unknown
+                            'account/subaccount-deposit' => 1, // unknown
+                            'account/subaccount-withdrawal' => 1, // unknown
                             'account/sub-api-list' => 2, // 10 times/1s (UID) => 20/10 = 2
                         ),
                         'post' => array(
@@ -1477,7 +1490,7 @@ class bitget extends Exchange {
              * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-position-tier
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure leverage tiers structure}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1551,7 +1564,7 @@ class bitget extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
              * @param {string} [$params->pageNo] pageNo default 1
              * @param {string} [$params->pageSize] pageSize default 20. Max 100
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
             if ($code === null) {
@@ -1607,7 +1620,7 @@ class bitget extends Exchange {
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
              * @param {string} [$params->chain] the $chain to withdraw to
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
              */
             $this->check_address($address);
             $chain = $this->safe_string_2($params, 'chain', 'network');
@@ -1683,7 +1696,7 @@ class bitget extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
              * @param {string} [$params->pageNo] pageNo default 1
              * @param {string} [$params->pageSize] pageSize default 20. Max 100
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
             if ($code === null) {
@@ -1800,7 +1813,7 @@ class bitget extends Exchange {
              * fetch the deposit address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
              */
             Async\await($this->load_markets());
             $networkCode = $this->safe_string($params, 'network');
@@ -1860,7 +1873,7 @@ class bitget extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2018,7 +2031,7 @@ class bitget extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2064,7 +2077,7 @@ class bitget extends Exchange {
              * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-$symbol-ticker
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
              */
             $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             Async\await($this->load_markets());
@@ -2244,7 +2257,7 @@ class bitget extends Exchange {
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
              * @param {int} [$params->until] the latest time in ms to fetch deposits for
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2338,7 +2351,7 @@ class bitget extends Exchange {
              * fetch the trading fees for a $market
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2376,7 +2389,7 @@ class bitget extends Exchange {
             /**
              * fetch the trading fees for multiple markets
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$fee-structure $fee structures} indexed by market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicSpotGetPublicProducts ($params));
@@ -2568,7 +2581,7 @@ class bitget extends Exchange {
             /**
              * $query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             Async\await($this->load_markets());
@@ -2817,7 +2830,7 @@ class bitget extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
              * @param {float} [$params->triggerPrice] *swap only* The $price at which a trigger order is triggered at
              * @param {float} [$params->stopLossPrice] *swap only* The $price at which a stop loss order is triggered at
@@ -2827,7 +2840,7 @@ class bitget extends Exchange {
              * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
              * @param {float} [$params->stopLoss.triggerPrice] *swap only* stop loss trigger $price
              * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2998,9 +3011,9 @@ class bitget extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -3096,7 +3109,7 @@ class bitget extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             $this->check_required_symbol('cancelOrder', $symbol);
             Async\await($this->load_markets());
@@ -3140,7 +3153,7 @@ class bitget extends Exchange {
              * @param {string[]} $ids order $ids
              * @param {string} $symbol unified $market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $this->check_required_symbol('cancelOrders', $symbol);
             Async\await($this->load_markets());
@@ -3209,7 +3222,7 @@ class bitget extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
              * @param {string} [$params->code] marginCoin unified $currency $code
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             Async\await($this->load_markets());
@@ -3277,7 +3290,7 @@ class bitget extends Exchange {
              * fetches information on an order made by the user
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             $this->check_required_symbol('fetchOrder', $symbol);
             Async\await($this->load_markets());
@@ -3366,7 +3379,7 @@ class bitget extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -3534,7 +3547,7 @@ class bitget extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the max number of closed orders to return
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $this->check_required_symbol('fetchClosedOrders', $symbol);
@@ -3562,7 +3575,7 @@ class bitget extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the max number of canceled orders to return
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $this->check_required_symbol('fetchCanceledOrders', $symbol);
@@ -3748,7 +3761,7 @@ class bitget extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entrys to return, default is null
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -3834,25 +3847,29 @@ class bitget extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-order-fill-detail
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             $this->check_required_symbol('fetchMyTrades', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            if ($market['swap']) {
-                throw new BadSymbol($this->id . ' fetchMyTrades() only supports spot markets');
-            }
             $request = array(
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateSpotPostTradeFills (array_merge($request, $params)));
+            $response = null;
+            if ($market['spot']) {
+                $response = Async\await($this->privateSpotPostTradeFills (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateMixGetOrderFills (array_merge($request, $params)));
+            }
             //
             //     {
             //       code => '00000',
@@ -3890,7 +3907,7 @@ class bitget extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades to retrieve
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             $this->check_required_symbol('fetchOrderTrades', $symbol);
             Async\await($this->load_markets());
@@ -3940,7 +3957,7 @@ class bitget extends Exchange {
              * fetch $data on a single open contract trade $position
              * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$position-structure $position structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -3990,7 +4007,7 @@ class bitget extends Exchange {
              * fetch all open positions
              * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$position-structure $position structure}
              */
             $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             Async\await($this->load_markets());
@@ -4246,9 +4263,9 @@ class bitget extends Exchange {
              * fetches historical funding rate prices
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+             * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
             $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             Async\await($this->load_markets());
@@ -4303,7 +4320,7 @@ class bitget extends Exchange {
              * fetch the current funding rate
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4369,7 +4386,7 @@ class bitget extends Exchange {
              * @param {int} [$since] the starting timestamp in milliseconds
              * @param {int} [$limit] the number of entries to return
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4516,7 +4533,7 @@ class bitget extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure margin structure}
              */
             if ($amount > 0) {
                 throw new BadRequest($this->id . ' reduceMargin() $amount parameter must be a negative value');
@@ -4536,7 +4553,7 @@ class bitget extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure margin structure}
              */
             $holdSide = $this->safe_string($params, 'holdSide');
             if ($holdSide === null) {
@@ -4552,7 +4569,7 @@ class bitget extends Exchange {
              * fetch the set leverage for a $market
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-structure leverage structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4624,8 +4641,14 @@ class bitget extends Exchange {
              */
             $this->check_required_symbol('setMarginMode', $symbol);
             $marginMode = strtolower($marginMode);
+            if ($marginMode === 'isolated') {
+                $marginMode = 'fixed';
+            }
+            if ($marginMode === 'cross') {
+                $marginMode = 'crossed';
+            }
             if (($marginMode !== 'fixed') && ($marginMode !== 'crossed')) {
-                throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be "fixed" or "crossed"');
+                throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be either fixed (isolated) or crossed (cross)');
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4685,7 +4708,7 @@ class bitget extends Exchange {
              * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-interest
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {array} [$params] exchange specific parameters
-             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=interest-history-structure)
+             * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure)
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4722,7 +4745,7 @@ class bitget extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch transfers for
              * @param {int} [$limit] the maximum number of  transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
              */
             Async\await($this->load_markets());
             $type = null;
@@ -4781,7 +4804,7 @@ class bitget extends Exchange {
              *
              * EXCHANGE SPECIFIC PARAMS
              * @param {string} [$params->clientOid] custom id
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -4938,7 +4961,7 @@ class bitget extends Exchange {
              * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicSpotGetPublicCurrencies ($params));

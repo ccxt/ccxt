@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.68'
+__version__ = '4.0.85'
 
 # -----------------------------------------------------------------------------
 
@@ -390,7 +390,6 @@ class Exchange(object):
     commonCurrencies = {
         'XBT': 'BTC',
         'BCC': 'BCH',
-        'BCHABC': 'BCH',
         'BCHSV': 'BSV',
     }
     synchronous = True
@@ -1923,7 +1922,7 @@ class Exchange(object):
         raise NotSupported(self.id + ' parseWsOrderTrade() is not supported yet')
 
     def parse_ws_ohlcv(self, ohlcv, market=None):
-        raise NotSupported(self.id + ' parseWsOHLCV() is not supported yet')
+        return self.parse_ohlcv(ohlcv, market)
 
     def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')
@@ -2920,7 +2919,7 @@ class Exchange(object):
         for i in range(0, len(positions)):
             position = self.extend(self.parse_position(positions[i], None), params)
             result.append(position)
-        return self.filterByArrayPositions(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_accounts(self, accounts, params={}):
         accounts = self.to_array(accounts)
@@ -3105,7 +3104,7 @@ class Exchange(object):
         specifically fetches positions for specific symbol, unlike fetchPositions(which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
         :param str symbol: unified market symbol of the market the position is held in
         :param dict params: extra parameters specific to the endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        :returns dict[]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
         """
         raise NotSupported(self.id + ' fetchPositionsBySymbol() is not supported yet')
 
@@ -3503,7 +3502,7 @@ class Exchange(object):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange api endpoint
-        :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
 
@@ -3626,9 +3625,14 @@ class Exchange(object):
             networkItem = self.safe_value(networks, networkCode, {})
             precision = self.safe_value(networkItem, 'precision', precision)
         if precision is None:
-            return fee
+            return self.forceString(fee)
         else:
             return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
+
+    def force_string(self, value):
+        if not isinstance(value, str):
+            return self.number_to_string(value)
+        return value
 
     def is_tick_precision(self):
         return self.precisionMode == TICK_SIZE
@@ -4130,7 +4134,7 @@ class Exchange(object):
         :param dict market: ccxt market
         :param int [since]: when defined, the response items are filtered to only include items after self timestamp
         :param int [limit]: limits the number of items in the response
-        :returns dict[]: an array of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns dict[]: an array of `funding history structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
         """
         result = []
         for i in range(0, len(incomes)):
@@ -4147,6 +4151,12 @@ class Exchange(object):
         market = self.market(firstMarket)
         return market
 
+    def parse_ws_ohlcvs(self, ohlcvs: List[object], market: Optional[Any] = None, timeframe: str = '1m', since: Optional[int] = None, limit: Optional[int] = None):
+        results = []
+        for i in range(0, len(ohlcvs)):
+            results.append(self.parse_ws_ohlcv(ohlcvs[i], market))
+        return results
+
     def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
          * @deprecated
@@ -4155,7 +4165,7 @@ class Exchange(object):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange api endpoint
-        :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         if self.has['fetchDepositsWithdrawals']:
             return self.fetchDepositsWithdrawals(code, since, limit, params)

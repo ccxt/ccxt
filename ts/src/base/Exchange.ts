@@ -614,7 +614,6 @@ export default class Exchange {
             'commonCurrencies': { // gets extended/overwritten in subclasses
                 'XBT': 'BTC',
                 'BCC': 'BCH',
-                'BCHABC': 'BCH',
                 'BCHSV': 'BSV',
             },
             'precisionMode': DECIMAL_PLACES,
@@ -1261,11 +1260,13 @@ export default class Exchange {
 
     async close () {
         const clients = Object.values (this.clients || {});
+        const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i] as WsClient;
             delete this.clients[client.url];
-            await client.close ();
+            closedClients.push(client.close ());
         }
+        return Promise.all (closedClients);
     }
 
     async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {
@@ -1685,7 +1686,7 @@ export default class Exchange {
     }
 
     parseWsOHLCV (ohlcv, market = undefined) {
-        throw new NotSupported (this.id + ' parseWsOHLCV() is not supported yet');
+        return this.parseOHLCV (ohlcv, market);
     }
 
     async fetchFundingRates (symbols: string[] = undefined, params = {}): Promise<any> {
@@ -3113,7 +3114,7 @@ export default class Exchange {
          * @description specifically fetches positions for specific symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
          * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} params extra parameters specific to the endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new NotSupported (this.id + ' fetchPositionsBySymbol() is not supported yet');
     }
@@ -3616,7 +3617,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         throw new NotSupported (this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
@@ -3777,10 +3778,17 @@ export default class Exchange {
             precision = this.safeValue (networkItem, 'precision', precision);
         }
         if (precision === undefined) {
-            return fee;
+            return this.forceString (fee);
         } else {
             return this.decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
         }
+    }
+
+    forceString (value) {
+        if (typeof value !== 'string') {
+            return this.numberToString (value);
+        }
+        return value;
     }
 
     isTickPrecision () {
@@ -4396,7 +4404,7 @@ export default class Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @returns {object[]} an array of [funding history structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
         const result = [];
         for (let i = 0; i < incomes.length; i++) {
@@ -4417,6 +4425,14 @@ export default class Exchange {
         return market;
     }
 
+    parseWsOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined) {
+        const results = [];
+        for (let i = 0; i < ohlcvs.length; i++) {
+            results.push (this.parseWsOHLCV (ohlcvs[i], market));
+        }
+        return results;
+    }
+
     async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         /**
          * @method
@@ -4427,7 +4443,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         if (this.has['fetchDepositsWithdrawals']) {
             return await this.fetchDepositsWithdrawals (code, since, limit, params);
