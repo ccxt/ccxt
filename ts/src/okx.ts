@@ -109,6 +109,7 @@ export default class okx extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfer': true,
                 'fetchTransfers': true,
+                'fetchUnderlyingAssets': true,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -6734,6 +6735,38 @@ export default class okx extends Exchange {
             }
         }
         return result;
+    }
+
+    async fetchUnderlyingAssets (params = {}) {
+        /**
+         * @method
+         * @name okx#fetchUnderlyingAssets
+         * @description fetches the market ids of underlying assets for different derivative types
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
+         * @param {object} [params] exchange specific params
+         * @returns {object[]} a list of [underlying assets]
+         */
+        await this.loadMarkets ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchUnderlyingAssets', undefined, params);
+        const request = {
+            'instType': this.convertToInstrumentType (type),
+        };
+        const response = await this.publicGetPublicUnderlying (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             [
+        //                 "BTC-USD",
+        //                 "ETH-USD"
+        //             ]
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const underlyings = this.safeValue (response, 'data', []);
+        return underlyings[0];
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
