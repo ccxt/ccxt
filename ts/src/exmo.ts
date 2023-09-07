@@ -1720,7 +1720,7 @@ export default class exmo extends Exchange {
         const id = this.safeString2 (order, 'order_id', 'parent_order_id');
         const eventTime = this.safeIntegerProduct2 (order, 'event_time', 'created', 0.000001);
         const timestamp = this.safeTimestamp (order, 'created', eventTime);
-        const orderType = this.safeString (order, 'type', 'order_type');
+        const orderType = this.safeString2 (order, 'type', 'order_type');
         const side = this.parseSide (orderType);
         let marketId = undefined;
         if ('pair' in order) {
