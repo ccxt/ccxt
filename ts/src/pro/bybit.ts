@@ -351,12 +351,11 @@ export default class bybit extends bybitRest {
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const topics = [];
@@ -507,7 +506,7 @@ export default class bybit extends bybitRest {
          * @name bybit#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
-         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] the maximum amount of order book entries to return.
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
