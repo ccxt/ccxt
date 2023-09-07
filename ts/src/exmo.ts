@@ -1351,10 +1351,6 @@ export default class exmo extends Exchange {
             throw new BadRequest (this.id + ' only supports isolated margin');
         }
         const isSpot = (marginMode !== 'isolated');
-        const execType = this.safeString (params, 'exec_type');
-        let isPostOnly = undefined;
-        [ isPostOnly, params ] = this.handlePostOnly (type === 'market', execType === 'postOnly', params);
-        const timeInForce = this.safeString (params, 'timeInForce');
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request = {
             'pair': market['id'],
@@ -1383,16 +1379,7 @@ export default class exmo extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrder requires an extra param params["leverage"] for margin orders');
         }
         params = this.omit (params, [ 'stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId' ]);
-        if ((type === 'stop_buy') || (type === 'stop_sell') || (type === 'stop_limit_buy') || (type === 'stop_limit_sell') || (type === 'trailing_stop_buy') || (type === 'trailing_stop_sell')) {
-            if (triggerPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
-            } else if (marginMode !== 'isolated') {
-                throw new InvalidOrder (this.id + ' createOrder() must have params["marginMode"] set to "isolated" for orders of type ' + type);
-            } else {
-                request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
-                request['type'] = type;
-            }
-        } else if (triggerPrice !== undefined) {
+        if (triggerPrice !== undefined) {
             if (isSpot) {
                 if (type === 'limit') {
                     throw new BadRequest (this.id + ' createOrder () cannot create stop limit orders for spot, only stop market');
@@ -1413,14 +1400,22 @@ export default class exmo extends Exchange {
             }
         } else {
             if (isSpot) {
+                const execType = this.safeString (params, 'exec_type');
+                let isPostOnly = undefined;
+                [ isPostOnly, params ] = this.handlePostOnly (type === 'market', execType === 'post_only', params);
+                const timeInForce = this.safeString (params, 'timeInForce');
                 request['price'] = isMarket ? 0 : this.priceToPrecision (market['symbol'], price);
                 if (type === 'limit') {
                     request['type'] = side;
                 } else if (type === 'market') {
                     request['type'] = 'market_' + side;
                 }
+                if (isPostOnly) {
+                    request['exec_type'] = 'post_only';
+                } else if (timeInForce !== undefined) {
+                    request['exec_type'] = timeInForce;
+                }
             } else {
-                request['price'] = this.priceToPrecision (market['symbol'], price);
                 if (type === 'limit' || type === 'market') {
                     request['type'] = type + '_' + side;
                 } else {
@@ -1428,12 +1423,8 @@ export default class exmo extends Exchange {
                 }
             }
         }
-        if (isSpot) {
-            if (isPostOnly) {
-                request['exec_type'] = 'post_only';
-            } else if (timeInForce !== undefined) {
-                request['exec_type'] = timeInForce;
-            }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (market['symbol'], price);
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
