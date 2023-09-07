@@ -1347,7 +1347,10 @@ export default class exmo extends Exchange {
         const isMarket = (type === 'market') && (price === undefined);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        const isSpot = (marginMode !== 'cross') && (marginMode !== 'isolated');
+        if (marginMode === 'cross') {
+            throw new BadRequest (this.id + ' only supports isolated margin');
+        }
+        const isSpot = (marginMode !== 'isolated');
         const execType = this.safeString (params, 'exec_type');
         let isPostOnly = undefined;
         [ isPostOnly, params ] = this.handlePostOnly (type === 'market', execType === 'postOnly', params);
@@ -1383,8 +1386,11 @@ export default class exmo extends Exchange {
         if ((type === 'stop_buy') || (type === 'stop_sell') || (type === 'stop_limit_buy') || (type === 'stop_limit_sell') || (type === 'trailing_stop_buy') || (type === 'trailing_stop_sell')) {
             if (triggerPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+            } else if (marginMode !== 'isolated') {
+                throw new InvalidOrder (this.id + ' createOrder() must have params["marginMode"] set to "isolated" for orders of type ' + type);
             } else {
                 request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
+                request['type'] = type;
             }
         } else if (triggerPrice !== undefined) {
             if (isSpot) {
