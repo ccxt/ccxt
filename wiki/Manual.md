@@ -1592,6 +1592,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
 - `fetchOpenInterest ([symbol[, params]])`
 - `fetchVolatilityHistory ([code[, params]])`
+- `fetchUnderlyingAssets ()`
 - ...
 
 ```text
@@ -1899,6 +1900,7 @@ if ($exchange->has['fetchMyTrades']) {
 - [Funding Rate History](#funding-rate-history)
 - [Open Interest History](#open-interest-history)
 - [Volatility History](#volatility-history)
+- [Underlying Assets](#underlying-assets)
 
 ## Order Book
 
@@ -2934,6 +2936,30 @@ Returns
     datetime: '2023-07-28T00:50:00.000Z',
     volatility: 0.23854072,
 }
+```
+
+## Underlying Assets
+
+*contract only*
+
+Use the `fetchUnderlyingAssets` method to get the market id's of underlying assets for a derivative contract type from the exchange.
+
+```javascript
+fetchUnderlyingAssets (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"instType": "OPTION"}`)
+
+Returns
+
+- An [underlying assets structure](#underlying-assets-structure)
+
+### Underlying Assets Structure
+
+```javascript
+[ 'BTC_USDT', 'ETH_USDT', 'DOGE_USDT' ]
 ```
 
 # Private API

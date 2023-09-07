@@ -6271,7 +6271,7 @@ export default class gate extends Exchange {
          * @description fetches the market ids of underlying assets for different derivative types
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-underlyings
          * @param {object} [params] exchange specific params
-         * @returns {object[]} a list of [underlying assets objects]
+         * @returns {object[]} a list of [underlying assets]{@link https://github.com/ccxt/ccxt/wiki/Manual#underlying-assets-structure}
          */
         await this.loadMarkets ();
         let type = undefined;

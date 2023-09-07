@@ -6744,7 +6744,7 @@ export default class okx extends Exchange {
          * @description fetches the market ids of underlying assets for different derivative types
          * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
          * @param {object} [params] exchange specific params
-         * @returns {object[]} a list of [underlying assets]
+         * @returns {object[]} a list of [underlying assets]{@link https://github.com/ccxt/ccxt/wiki/Manual#underlying-assets-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
