@@ -19,6 +19,7 @@ export default class gate extends gateRest {
                 'watchTicker': true,
                 'watchTickers': true, // for now
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchBalance': true,

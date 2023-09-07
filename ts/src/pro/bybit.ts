@@ -18,11 +18,14 @@ export default class bybit extends bybitRest {
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchPosition': undefined,
             },
             'urls': {

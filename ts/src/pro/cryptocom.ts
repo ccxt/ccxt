@@ -20,7 +20,9 @@ export default class cryptocom extends cryptocomRest {
                 'watchTickers': false, // for now
                 'watchMyTrades': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchOHLCV': true,
                 'createOrderWs': true,

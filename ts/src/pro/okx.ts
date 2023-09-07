@@ -19,6 +19,8 @@ export default class okx extends okxRest {
                 'watchTickers': true,
                 'watchOrderBook': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
+                'watchOrderBookForSymbols': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
                 'watchOrders': true,

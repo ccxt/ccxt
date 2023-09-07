@@ -17,9 +17,11 @@ export default class coinbasepro extends coinbaseproRest {
                 'ws': true,
                 'watchOHLCV': false, // missing on the exchange side
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchBalance': false,
                 'watchStatus': false, // for now
                 'watchOrders': true,

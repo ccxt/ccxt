@@ -20,6 +20,8 @@ export default class kucoin extends kucoinRest {
                 'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
+                'watchOrderBookForSymbols': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
             },

@@ -18,6 +18,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchBalance': true,
+                'watchTradesForSymbols': true,
+                'watchOrderBookForSymbols': true,
             },
             'options': {
                 'accountsByType': {
