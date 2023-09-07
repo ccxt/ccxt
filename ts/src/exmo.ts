@@ -1329,34 +1329,43 @@ export default class exmo extends Exchange {
          * @name exmo#createOrder
          * @description create a trade order
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#de6f4321-eeac-468c-87f7-c4ad7062e265  // stop market
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#3561b86c-9ff1-436e-8e68-ac926b7eb523  // margin
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+         * @param {string} [params.timeInForce] *spot only* 'fok', 'ioc' or 'post_only'
+         * @param {boolean} [params.postOnly] *spot only* true for post only orders
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const prefix = (type === 'market') ? (type + '_') : '';
-        const orderType = prefix + side;
         const isMarket = (type === 'market') && (price === undefined);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        const isSpot = (marginMode !== 'cross') && (marginMode !== 'isolated');
+        const execType = this.safeString (params, 'exec_type');
+        let isPostOnly = undefined;
+        [ isPostOnly, params ] = this.handlePostOnly (type === 'market', execType === 'postOnly', params);
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request = {
             'pair': market['id'],
             // 'leverage': 2,
             'quantity': this.amountToPrecision (market['symbol'], amount),
             // spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             // margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
-            'type': orderType,
-            'price': isMarket ? 0 : this.priceToPrecision (market['symbol'], price),
             // 'stop_price': this.priceToPrecision (symbol, stopPrice),
             // 'distance': 0, // distance for trailing stop orders
             // 'expire': 0, // expiration timestamp in UTC timezone for the order, unless expire is 0
             // 'client_id': 123, // optional, must be a positive integer
             // 'comment': '', // up to 50 latin symbols, whitespaces, underscores
         };
-        let method = 'privatePostOrderCreate';
+        let method = isSpot ? 'privatePostOrderCreate' : 'privatePostMarginUserOrderCreate';
         let clientOrderId = this.safeValue2 (params, 'client_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             clientOrderId = this.safeInteger2 (params, 'client_id', 'clientOrderId');
@@ -1365,16 +1374,59 @@ export default class exmo extends Exchange {
             } else {
                 request['client_id'] = clientOrderId;
             }
-            params = this.omit (params, [ 'client_id', 'clientOrderId' ]);
         }
-        if ((type === 'stop') || (type === 'stop_limit') || (type === 'trailing_stop')) {
-            const stopPrice = this.safeNumber2 (params, 'stop_price', 'stopPrice');
-            if (stopPrice === undefined) {
+        const leverage = this.safeNumber (params, 'leverage');
+        if (!isSpot && (leverage === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrder requires an extra param params["leverage"] for margin orders');
+        }
+        params = this.omit (params, [ 'stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId' ]);
+        if ((type === 'stop_buy') || (type === 'stop_sell') || (type === 'stop_limit_buy') || (type === 'stop_limit_sell') || (type === 'trailing_stop_buy') || (type === 'trailing_stop_sell')) {
+            if (triggerPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             } else {
-                params = this.omit (params, [ 'stopPrice', 'stop_price' ]);
-                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-                method = 'privatePostMarginUserOrderCreate';
+                request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
+            }
+        } else if (triggerPrice !== undefined) {
+            if (isSpot) {
+                if (type === 'limit') {
+                    throw new BadRequest (this.id + ' createOrder () cannot create stop limit orders for spot, only stop market');
+                } else {
+                    method = 'privatePostStopMarketOrderCreate';
+                    request['type'] = side;
+                    request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+                }
+            } else {
+                request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
+                if (type === 'limit') {
+                    request['type'] = 'stop_limit_' + side;
+                } else if (type === 'market') {
+                    request['type'] = 'stop_' + side;
+                } else {
+                    request['type'] = type;
+                }
+            }
+        } else {
+            if (isSpot) {
+                request['price'] = isMarket ? 0 : this.priceToPrecision (market['symbol'], price);
+                if (type === 'limit') {
+                    request['type'] = side;
+                } else if (type === 'market') {
+                    request['type'] = 'market_' + side;
+                }
+            } else {
+                request['price'] = this.priceToPrecision (market['symbol'], price);
+                if (type === 'limit' || type === 'market') {
+                    request['type'] = type + '_' + side;
+                } else {
+                    request['type'] = type;
+                }
+            }
+        }
+        if (isSpot) {
+            if (isPostOnly) {
+                request['exec_type'] = 'post_only';
+            } else if (timeInForce !== undefined) {
+                request['exec_type'] = timeInForce;
             }
         }
         const response = await this[method] (this.extend (request, params));
