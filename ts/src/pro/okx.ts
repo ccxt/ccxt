@@ -214,7 +214,9 @@ export default class okx extends okxRest {
         const url = this.urls['api']['ws']['public'];
         const trades = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
-            limit = trades.getLimit (undefined, limit);
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }

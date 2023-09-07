@@ -627,7 +627,9 @@ export default class bitget extends bitgetRest {
         const messageHash = 'multipleTrades::' + symbols.join (',');
         const trades = await this.watchPublicMultiple (messageHash, topics, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (undefined, limit);
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
