@@ -1423,7 +1423,8 @@ export default class exmo extends Exchange {
         /**
          * @method
          * @name exmo#fetchOrder
-         * @description fetches information on an order made by the user
+         * @description *spot only* fetches information on an order made by the user
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
          * @param {string} symbol not used by exmo fetchOrder
          * @param {object} [params] extra parameters specific to the exmo api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
@@ -1465,6 +1466,7 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
