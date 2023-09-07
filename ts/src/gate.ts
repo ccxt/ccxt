@@ -130,6 +130,7 @@ export default class gate extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'fetchUnderlyingAssets': true,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
@@ -6261,6 +6262,42 @@ export default class gate extends Exchange {
         const [ request, query ] = this.prepareRequest (market, 'swap', params);
         request['dual_mode'] = hedged;
         return await this.privateFuturesPostSettleDualMode (this.extend (request, query));
+    }
+
+    async fetchUnderlyingAssets (params = {}) {
+        /**
+         * @method
+         * @name gate#fetchUnderlyingAssets
+         * @description fetches the market ids of underlying assets for different derivative types
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-underlyings
+         * @param {object} [params] exchange specific params
+         * @returns {object[]} a list of [underlying assets objects]
+         */
+        await this.loadMarkets ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchUnderlyingAssets', undefined, params);
+        if (type !== 'option') {
+            throw new NotSupported (this.id + ' fetchUnderlyingAssets() supports option markets only');
+        }
+        const response = await this.publicOptionsGetUnderlyings (params);
+        //
+        //    [
+        //        {
+        //            "index_time": "1646915796",
+        //            "name": "BTC_USDT",
+        //            "index_price": "39142.73"
+        //        }
+        //    ]
+        //
+        const underlyings = [];
+        for (let i = 0; i < response.length; i++) {
+            const underlying = response[i];
+            const name = this.safeString (underlying, 'name');
+            if (name !== undefined) {
+                underlyings.push (name);
+            }
+        }
+        return underlyings;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
