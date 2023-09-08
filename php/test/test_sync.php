@@ -12,14 +12,17 @@ use React\Promise;
 
 assert_options (ASSERT_CALLBACK, function(){
     $args = func_get_args();
+    $message = '';
     try {
         $file = $args[0];
         $line = $args[1];
-        $message = $args[3];
-        var_dump("[ASSERT_ERROR] - $message [ $file : $line ]");
+        $assert_message = $args[3];
+        $message = "[ASSERT_ERROR] - [ $file : $line ] $message";
     } catch (\Exception $exc) {
-        var_dump("[ASSERT_ERROR] -" . json_encode($args));
+        $message = "[ASSERT_ERROR] -" . json_encode($args);
     }
+    $message = substr($message, 0, 1000);
+    var_dump($message);
     exit;
 });
 
@@ -100,7 +103,8 @@ function exception_message($exc) {
             $output .= "\n";
         }
     }
-    return '[' . get_class($exc) . '] ' . $output . "\n\n";
+    $message = '[' . get_class($exc) . '] ' . $output . "\n\n";
+    return substr($message, 0, 1000);
 }
 
 
