@@ -17,7 +17,7 @@ assert_options (ASSERT_CALLBACK, function(){
         $file = $args[0];
         $line = $args[1];
         $assert_message = $args[3];
-        $message = "[ASSERT_ERROR] - [ $file : $line ] $message";
+        $message = "[ASSERT_ERROR] - [ $file : $line ] $assert_message";
     } catch (\Exception $exc) {
         $message = "[ASSERT_ERROR] -" . json_encode($args);
     }
