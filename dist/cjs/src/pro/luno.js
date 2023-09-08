@@ -288,13 +288,13 @@ class luno extends luno$1 {
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
         if (createUpdate !== undefined) {
-            const array = this.customParseBidAsk(createUpdate, 'price', 'volume', 'order_id');
+            const bidAskArray = this.customParseBidAsk(createUpdate, 'price', 'volume', 'order_id');
             const type = this.safeString(createUpdate, 'type');
             if (type === 'ASK') {
-                asksOrderSide.storeArray(array);
+                asksOrderSide.storeArray(bidAskArray);
             }
             else if (type === 'BID') {
-                bidsOrderSide.storeArray(array);
+                bidsOrderSide.storeArray(bidAskArray);
             }
         }
         const deleteUpdate = this.safeValue(message, 'delete_update');
