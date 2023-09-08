@@ -1612,7 +1612,7 @@ export default class exmo extends Exchange {
             'cancel_started': 'canceled',
         };
         if (status.indexOf ('cancel', status) >= 0) {
-            status = 'cancel';
+            status = 'canceled';
         }
         return this.safeString (statuses, status, status);
     }
@@ -1797,18 +1797,19 @@ export default class exmo extends Exchange {
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only supports isolated margin');
         }
+        if (limit === undefined) {
+            limit = 100;
+        }
         const isSpot = (marginMode !== 'isolated');
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const request = {};
-        if (since !== undefined) {
-            request['offset'] = limit;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
+        const request = {
+            'limit': limit,
+        };
+        request['offset'] = (since !== undefined) ? limit : 0;
+        request['limit'] = limit;
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1840,22 +1841,23 @@ export default class exmo extends Exchange {
             //    {
             //        "items": [
             //            {
-            //                "distance": "0",
-            //                "event_id": "692842802860022508",
-            //                "event_time": "1619069531190173720",
+            //                "event_id": "692862104574106858",
+            //                "event_time": "1694116400173489405",
             //                "event_type": "OrderCancelStarted",
-            //                "order_id": "123",
+            //                "order_id": "692862104561289319",
+            //                "order_type": "stop_limit_sell",
             //                "order_status": "cancel_started",
-            //                "order_type": "limit_sell",
-            //                "pair": "BTC_USD",
-            //                "price": "54115",
-            //                "quantity": "0.001",
-            //                "stop_price": "0",
             //                "trade_id": "0",
-            //                "trade_price": "0",
+            //                "trade_type":"",
             //                "trade_quantity": "0",
-            //                "trade_type": ""
-            //            },
+            //                "trade_price": "0",
+            //                "pair": "ADA_USDT",
+            //                "quantity": "12",
+            //                "price": "0.23",
+            //                "stop_price": "0.22",
+            //                "distance": "0"
+            //            }
+            //            ...
             //        ]
             //    }
             //
@@ -1864,7 +1866,7 @@ export default class exmo extends Exchange {
             const result = [];
             for (let i = 0; i < orders.length; i++) {
                 const order = orders[i];
-                if (order['status'] === 'closed') {
+                if (order['status'] === 'canceled') {
                     result.push (order);
                 }
             }
