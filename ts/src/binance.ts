@@ -3392,6 +3392,18 @@ export default class binance extends Exchange {
         //         "M": true           // Was the trade the best price match?
         //     }
         //
+        // aggregate trades for swap & future (both linear and inverse)
+        //
+        //     {
+        //         "a": "269772814",
+        //         "p": "25864.1",
+        //         "q": "3",
+        //         "f": "662149354",
+        //         "l": "662149355",
+        //         "T": "1694209776022",
+        //         "m": false,
+        //     }
+        //
         // recent public trades and old public trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-trade-lookup-market_data
@@ -3522,6 +3534,7 @@ export default class binance extends Exchange {
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
+            takerOrMaker = 'taker'; // this holds true, because "buyerMaker" is defined only for public trades, and public trade is always taker
         } else if ('side' in trade) {
             side = this.safeStringLower (trade, 'side');
         } else {
@@ -3668,6 +3681,20 @@ export default class binance extends Exchange {
         //             "m": true,          // Was the buyer the maker?
         //             "M": true           // Was the trade the best price match?
         //         }
+        //     ]
+        //
+        // inverse
+        //
+        //     [
+        //      {
+        //         "a": "269772814",
+        //         "p": "25864.1",
+        //         "q": "3",
+        //         "f": "662149354",
+        //         "l": "662149355",
+        //         "T": "1694209776022",
+        //         "m": false,
+        //      },
         //     ]
         //
         // recent public trades and historical public trades
