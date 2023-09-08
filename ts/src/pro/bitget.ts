@@ -1235,11 +1235,11 @@ export default class bitget extends bitgetRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPublicMultiple (messageHash, array, params = {}) {
+    async watchPublicMultiple (messageHash, argsArray, params = {}) {
         const url = this.urls['api']['ws'];
         const request = {
             'op': 'subscribe',
-            'args': array,
+            'args': argsArray,
         };
         const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, messageHash);
