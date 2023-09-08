@@ -839,7 +839,7 @@ export default class bigone extends Exchange {
         if ((takerSide !== undefined) && (side !== undefined) && (side !== 'SELF_TRADING')) {
             takerOrMaker = (takerSide === side) ? 'taker' : 'maker';
         }
-        if (isPublicTrade && takerOrMaker === undefined) {
+        if (isPublicTrade && (takerSide !== undefined) && (takerOrMaker === undefined)) {
             takerOrMaker = 'taker'; // public trades are always "taker"
         }
         if (side === undefined) {
