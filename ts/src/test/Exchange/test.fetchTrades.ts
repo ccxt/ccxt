@@ -22,6 +22,7 @@ async function testFetchTrades (exchange, skippedProperties, symbol) {
     //
     for (let i = 0; i < trades.length; i++) {
         const trade = trades[i];
+        const logText = testSharedMethods.logTemplate (exchange, method, trade);
         assert (trade['takerOrMaker'] === 'taker', '"takerOrMaker" value in public trade should always be "taker"' + logText);
         testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'side', [ 'buy', 'sell' ]);
     }
