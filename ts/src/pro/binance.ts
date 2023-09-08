@@ -780,8 +780,8 @@ export default class binance extends binanceRest {
         const nameOption = this.safeString (options, 'name', 'kline');
         const name = this.safeString (params, 'name', nameOption);
         if (name === 'indexPriceKline') {
-            // weird behavior for index price kline we can't use the perp suffix
             marketId = marketId.replace ('_perp', '');
+            // weird behavior for index price kline we can't use the perp suffix
         }
         params = this.omit (params, 'name');
         const messageHash = marketId + '@' + name + '_' + interval;
@@ -839,7 +839,7 @@ export default class binance extends binanceRest {
             const market = this.market (symbol);
             let marketId = market['lowercaseId'];
             if (name === 'indexPriceKline') {
-            // weird behavior for index price kline we can't use the perp suffix
+                // weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace ('_perp', '');
             }
             const topic = marketId + '@' + name + '_' + interval;
