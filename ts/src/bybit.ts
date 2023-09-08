@@ -4209,7 +4209,7 @@ export default class bybit extends Exchange {
         if ((type === 'linear') || (type === 'inverse')) {
             const baseCoin = this.safeString (params, 'baseCoin');
             if (symbol === undefined && baseCoin === undefined) {
-                const defaultSettle = this.safeString (this.options, 'defaultSettle');
+                const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
                 request['settleCoin'] = this.safeString (params, 'settleCoin', defaultSettle);
             }
         }
@@ -4571,8 +4571,10 @@ export default class bybit extends Exchange {
         if (type === 'linear' || type === 'inverse') {
             const baseCoin = this.safeString (params, 'baseCoin');
             if (symbol === undefined && baseCoin === undefined) {
-                const defaultSettle = this.safeString (this.options, 'defaultSettle');
-                request['settleCoin'] = this.safeString (params, 'settleCoin', defaultSettle);
+                const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
+                const settleCoin = this.safeString (params, 'settleCoin', defaultSettle);
+                request['settleCoin'] = settleCoin;
+                isUsdcSettled = (settleCoin === 'USDC');
             }
         }
         if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
@@ -5682,8 +5684,10 @@ export default class bybit extends Exchange {
         if (type === 'linear' || type === 'inverse') {
             const baseCoin = this.safeString (params, 'baseCoin');
             if (symbol === undefined && baseCoin === undefined) {
-                const defaultSettle = this.safeString (this.options, 'defaultSettle');
-                request['settleCoin'] = this.safeString (params, 'settleCoin', defaultSettle);
+                const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
+                const settleCoin = this.safeString (params, 'settleCoin', defaultSettle);
+                request['settleCoin'] = settleCoin;
+                isUsdcSettled = (settleCoin === 'USDC');
             }
         }
         if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
