@@ -233,7 +233,9 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const messageHash = 'multipleTrades::' + symbols.join (',');
         const trades = await this.subscribe (url, messageHash, topic, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (undefined, limit);
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
