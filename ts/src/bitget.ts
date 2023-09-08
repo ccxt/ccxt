@@ -2574,6 +2574,8 @@ export default class bitget extends Exchange {
         /**
          * @method
          * @name bitget#fetchBalance
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-account-assets
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-list
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
@@ -2639,13 +2641,32 @@ export default class bitget extends Exchange {
     parseBalance (balance) {
         const result = { 'info': balance };
         //
+        // spot
+        //
         //     {
-        //       coinId: '1',
-        //       coinName: 'BTC',
-        //       available: '0.00099900',
-        //       frozen: '0.00000000',
-        //       lock: '0.00000000',
-        //       uTime: '1661595535000'
+        //         coinId: '1',
+        //         coinName: 'BTC',
+        //         available: '0.00099900',
+        //         frozen: '0.00000000',
+        //         lock: '0.00000000',
+        //         uTime: '1661595535000'
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         marginCoin: 'BTC',
+        //         locked: '0.00001948',
+        //         available: '0.00006622',
+        //         crossMaxAvailable: '0.00004674',
+        //         fixedMaxAvailable: '0.00004674',
+        //         maxTransferOut: '0.00004674',
+        //         equity: '0.00006622',
+        //         usdtEquity: '1.734307497491',
+        //         btcEquity: '0.000066229058',
+        //         crossRiskRate: '0.066308887072',
+        //         unrealizedPL: '0',
+        //         bonus: '0'
         //     }
         //
         for (let i = 0; i < balance.length; i++) {
@@ -2653,10 +2674,12 @@ export default class bitget extends Exchange {
             const currencyId = this.safeString2 (entry, 'coinName', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
+            const spotAccountFree = this.safeString (entry, 'available');
+            const contractAccountFree = this.safeString (entry, 'maxTransferOut');
+            account['free'] = (contractAccountFree !== undefined) ? contractAccountFree : spotAccountFree;
             const frozen = this.safeString (entry, 'frozen');
             const locked = this.safeString2 (entry, 'lock', 'locked');
             account['used'] = Precise.stringAdd (frozen, locked);
-            account['free'] = this.safeString (entry, 'available');
             result[code] = account;
         }
         return this.safeBalance (result);
