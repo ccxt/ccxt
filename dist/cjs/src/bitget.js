@@ -147,6 +147,7 @@ class bitget extends bitget$1 {
                             'market/candles': 1,
                             'market/depth': 1,
                             'market/spot-vip-level': 2,
+                            'market/merge-depth': 1,
                             'market/history-candles': 1,
                             'public/loan/coinInfos': 2,
                             'public/loan/hour-interest': 2, // 10 times/1s (IP) => 20/10 = 2
@@ -174,6 +175,7 @@ class bitget extends bitget$1 {
                             'market/history-candles': 1,
                             'market/history-index-candles': 1,
                             'market/history-mark-candles': 1,
+                            'market/merge-depth': 1,
                         },
                     },
                     'margin': {
