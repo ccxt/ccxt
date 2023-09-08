@@ -1157,6 +1157,19 @@ class exmo extends Exchange {
         //         "commission_percent" => "0.2"
         //     }
         //
+        // margin
+        //
+        //    {
+        //        "is_maker" => false,
+        //        "order_id" => "123",
+        //        "pair" => "BTC_USD",
+        //        "price" => "54122.25",
+        //        "quantity" => "0.00069994",
+        //        "trade_dt" => "1619069561718824428",
+        //        "trade_id" => "692842802860135010",
+        //        "type" => "sell"
+        //    }
+        //
         $timestamp = $this->safe_timestamp($trade, 'date');
         $id = $this->safe_string($trade, 'trade_id');
         $orderId = $this->safe_string($trade, 'order_id');
@@ -1168,7 +1181,12 @@ class exmo extends Exchange {
         $marketId = $this->safe_string($trade, 'pair');
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $takerOrMaker = $this->safe_string($trade, 'exec_type');
+        $isMaker = $this->safe_value($trade, 'is_maker');
+        $takerOrMakerDefault = null;
+        if ($isMaker !== null) {
+            $takerOrMakerDefault = $isMaker ? 'maker' : 'taker';
+        }
+        $takerOrMaker = $this->safe_string($trade, 'exec_type', $takerOrMakerDefault);
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'commission_amount');
         if ($feeCostString !== null) {
@@ -1399,13 +1417,21 @@ class exmo extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the $trades made from a single order
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#00810661-9119-46c5-aec5-55abe9cb42c7  // margin
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades to retrieve
          * @param {array} [$params] extra parameters specific to the exmo api endpoint
+         * @param {string} [$params->marginMode] set to "isolated" to fetch $trades for a margin order
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrderTrades', $params);
+        if ($marginMode === 'cross') {
+            throw new BadRequest($this->id . ' only supports isolated margin');
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1413,32 +1439,53 @@ class exmo extends Exchange {
         $request = array(
             'order_id' => (string) $id,
         );
-        $response = $this->privatePostOrderTrades (array_merge($request, $params));
-        //
-        //     {
-        //         "type" => "buy",
-        //         "in_currency" => "BTC",
-        //         "in_amount" => "1",
-        //         "out_currency" => "USD",
-        //         "out_amount" => "100",
-        //         "trades" => array(
-        //             {
-        //                 "trade_id" => 3,
-        //                 "date" => 1435488248,
-        //                 "type" => "buy",
-        //                 "pair" => "BTC_USD",
-        //                 "order_id" => 12345,
-        //                 "quantity" => 1,
-        //                 "price" => 100,
-        //                 "amount" => 100,
-        //                 "exec_type" => "taker",
-        //                 "commission_amount" => "0.02",
-        //                 "commission_currency" => "BTC",
-        //                 "commission_percent" => "0.2"
-        //             }
-        //         )
-        //     }
-        //
+        $response = null;
+        if ($marginMode === 'isolated') {
+            $response = $this->privatePostMarginUserOrderTrades (array_merge($request, $params));
+            //
+            //    {
+            //        "trades" => array(
+            //            {
+            //                "is_maker" => false,
+            //                "order_id" => "123",
+            //                "pair" => "BTC_USD",
+            //                "price" => "54122.25",
+            //                "quantity" => "0.00069994",
+            //                "trade_dt" => "1619069561718824428",
+            //                "trade_id" => "692842802860135010",
+            //                "type" => "sell"
+            //            }
+            //        )
+            //    }
+            //
+        } else {
+            $response = $this->privatePostOrderTrades (array_merge($request, $params));
+            //
+            //     {
+            //         "type" => "buy",
+            //         "in_currency" => "BTC",
+            //         "in_amount" => "1",
+            //         "out_currency" => "USD",
+            //         "out_amount" => "100",
+            //         "trades" => array(
+            //             {
+            //                 "trade_id" => 3,
+            //                 "date" => 1435488248,
+            //                 "type" => "buy",
+            //                 "pair" => "BTC_USD",
+            //                 "order_id" => 12345,
+            //                 "quantity" => 1,
+            //                 "price" => 100,
+            //                 "amount" => 100,
+            //                 "exec_type" => "taker",
+            //                 "commission_amount" => "0.02",
+            //                 "commission_currency" => "BTC",
+            //                 "commission_percent" => "0.2"
+            //             }
+            //         )
+            //     }
+            //
+        }
         $trades = $this->safe_value($response, 'trades');
         return $this->parse_trades($trades, $market, $since, $limit);
     }
