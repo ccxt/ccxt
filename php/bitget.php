@@ -2537,6 +2537,8 @@ class bitget extends Exchange {
 
     public function fetch_balance($params = array ()) {
         /**
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-account-assets
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-list
          * $query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
@@ -2602,13 +2604,32 @@ class bitget extends Exchange {
     public function parse_balance($balance) {
         $result = array( 'info' => $balance );
         //
+        // spot
+        //
         //     {
-        //       coinId => '1',
-        //       coinName => 'BTC',
-        //       available => '0.00099900',
-        //       $frozen => '0.00000000',
-        //       lock => '0.00000000',
-        //       uTime => '1661595535000'
+        //         coinId => '1',
+        //         coinName => 'BTC',
+        //         available => '0.00099900',
+        //         $frozen => '0.00000000',
+        //         lock => '0.00000000',
+        //         uTime => '1661595535000'
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         marginCoin => 'BTC',
+        //         $locked => '0.00001948',
+        //         available => '0.00006622',
+        //         crossMaxAvailable => '0.00004674',
+        //         fixedMaxAvailable => '0.00004674',
+        //         maxTransferOut => '0.00004674',
+        //         equity => '0.00006622',
+        //         usdtEquity => '1.734307497491',
+        //         btcEquity => '0.000066229058',
+        //         crossRiskRate => '0.066308887072',
+        //         unrealizedPL => '0',
+        //         bonus => '0'
         //     }
         //
         for ($i = 0; $i < count($balance); $i++) {
@@ -2616,10 +2637,12 @@ class bitget extends Exchange {
             $currencyId = $this->safe_string_2($entry, 'coinName', 'marginCoin');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
+            $spotAccountFree = $this->safe_string($entry, 'available');
+            $contractAccountFree = $this->safe_string($entry, 'maxTransferOut');
+            $account['free'] = ($contractAccountFree !== null) ? $contractAccountFree : $spotAccountFree;
             $frozen = $this->safe_string($entry, 'frozen');
             $locked = $this->safe_string_2($entry, 'lock', 'locked');
             $account['used'] = Precise::string_add($frozen, $locked);
-            $account['free'] = $this->safe_string($entry, 'available');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
