@@ -10,14 +10,11 @@ include_once rootDir .'/vendor/autoload.php';
 use React\Async;
 use React\Promise;
 
-assert_options (ASSERT_CALLBACK, function(){
+assert_options (ASSERT_CALLBACK, function(string $file, int $line, ?string $assertion, string $description = null){
     $args = func_get_args();
     $message = '';
     try {
-        $file = $args[0];
-        $line = $args[1];
-        $assert_message = $args[3];
-        $message = "[ASSERT_ERROR] - [ $file : $line ] $message";
+        $message = "[ASSERT_ERROR] - [ $file : $line ] $description";
     } catch (\Exception $exc) {
         $message = "[ASSERT_ERROR] -" . json_encode($args);
     }
