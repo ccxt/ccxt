@@ -1174,6 +1174,9 @@ export default class ascendex extends Exchange {
         const priceString = this.safeString2 (trade, 'price', 'p');
         const amountString = this.safeString (trade, 'q');
         const buyerIsMaker = this.safeValue (trade, 'bm', false);
+        const id = this.safeString (trade, 'seqnum');
+        const isPublic = (buyerIsMaker !== undefined) && (id !== undefined);
+        const takerOrMaker = isPublic ? 'taker' : undefined;
         const side = buyerIsMaker ? 'sell' : 'buy';
         market = this.safeMarket (undefined, market);
         return this.safeTrade ({
@@ -1184,7 +1187,7 @@ export default class ascendex extends Exchange {
             'id': undefined,
             'order': undefined,
             'type': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': priceString,
             'amount': amountString,
