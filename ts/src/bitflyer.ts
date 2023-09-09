@@ -412,27 +412,30 @@ export default class bitflyer extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades (public) v1
-        //
-        //     {
-        //          "id":2278466664,
-        //          "side":"SELL",
-        //          "price":56810.7,
-        //          "size":0.08798,
-        //          "exec_date":"2021-11-19T11:46:39.323",
-        //          "buy_child_order_acceptance_id":"JRF20211119-114209-236525",
-        //          "sell_child_order_acceptance_id":"JRF20211119-114639-236919"
-        //      }
+        // fetchTrades
         //
         //      {
-        //          "id":2278463423,
-        //          "side":"BUY",
-        //          "price":56757.83,
-        //          "size":0.6003,"exec_date":"2021-11-19T11:28:00.523",
-        //          "buy_child_order_acceptance_id":"JRF20211119-112800-236526",
-        //          "sell_child_order_acceptance_id":"JRF20211119-112734-062017"
-        //      }
+        //          "id": 39287,
+        //          "side": "BUY",
+        //          "price": 31690,
+        //          "size": 27.04,
+        //          "exec_date": "2015-07-08T02:43:34.823",
+        //          "buy_child_order_acceptance_id": "JRF20150707-200203-452209",
+        //          "sell_child_order_acceptance_id": "JRF20150708-024334-060234"
+        //      },
         //
+        // fetchMyTrades
+        //
+        //      {
+        //          "id": 37233,
+        //          "side": "BUY",
+        //          "price": 33470,
+        //          "size": 0.01,
+        //          "exec_date": "2015-07-07T09:57:40.397",
+        //          "child_order_id": "JOR20150707-060559-021935",
+        //          "child_order_acceptance_id": "JRF20150707-060559-396699"
+        //          "commission": 0,
+        //      },
         //
         //
         let side = this.safeStringLower (trade, 'side');
@@ -456,6 +459,11 @@ export default class bitflyer extends Exchange {
         const amountString = this.safeString (trade, 'size');
         const id = this.safeString (trade, 'id');
         market = this.safeMarket (undefined, market);
+        let takerOrMaker = undefined;
+        const isPublic = ('buy_child_order_acceptance_id' in trade) || ('sell_child_order_acceptance_id' in trade);
+        if (isPublic) {
+            takerOrMaker = 'taker'; // public trade always "taker"
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -465,7 +473,7 @@ export default class bitflyer extends Exchange {
             'order': order,
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
@@ -493,6 +501,19 @@ export default class bitflyer extends Exchange {
             request['count'] = limit;
         }
         const response = await this.publicGetGetexecutions (this.extend (request, params));
+        //
+        //    [
+        //     {
+        //       "id": 39287,
+        //       "side": "BUY",
+        //       "price": 31690,
+        //       "size": 27.04,
+        //       "exec_date": "2015-07-08T02:43:34.823",
+        //       "buy_child_order_acceptance_id": "JRF20150707-200203-452209",
+        //       "sell_child_order_acceptance_id": "JRF20150708-024334-060234"
+        //     },
+        //    ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -739,6 +760,20 @@ export default class bitflyer extends Exchange {
             request['count'] = limit;
         }
         const response = await this.privateGetGetexecutions (this.extend (request, params));
+        //
+        //    [
+        //     {
+        //       "id": 37233,
+        //       "side": "BUY",
+        //       "price": 33470,
+        //       "size": 0.01,
+        //       "exec_date": "2015-07-07T09:57:40.397",
+        //       "child_order_id": "JOR20150707-060559-021935",
+        //       "child_order_acceptance_id": "JRF20150707-060559-396699"
+        //       "commission": 0,
+        //     },
+        //    ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
