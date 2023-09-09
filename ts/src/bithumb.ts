@@ -616,6 +616,11 @@ export default class bithumb extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
+        let takerOrMaker = undefined;
+        const isPulic = ('units_traded' in trade);
+        if (isPulic) {
+            takerOrMaker = 'taker';
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -625,7 +630,7 @@ export default class bithumb extends Exchange {
             'order': undefined,
             'type': type,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
             'cost': costString,
