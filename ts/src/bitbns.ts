@@ -828,6 +828,11 @@ export default class bitbns extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
+        let takerOrMaker = undefined;
+        const isPublic = ('tradeId' in trade) && ('price' in trade) && ('quote_volume' in trade) && ('base_volume' in trade) && ('timestamp' in trade) && ('type' in trade);
+        if (isPublic) {
+            takerOrMaker = 'taker'; // public trade always "taker"
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -837,7 +842,7 @@ export default class bitbns extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
             'cost': costString,
