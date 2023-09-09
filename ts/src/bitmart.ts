@@ -1318,6 +1318,10 @@ export default class bitmart extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
+        const isPublic = ('order_time' in trade);
+        if (isPublic && (takerOrMaker === undefined)) {
+            takerOrMaker = 'taker';
+        }
         return this.safeTrade ({
             'info': trade,
             'id': id,
