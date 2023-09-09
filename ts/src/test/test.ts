@@ -717,7 +717,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         const errorsCnt = errors.length; // PHP transpile count($errors)
         if (errorsCnt > 0) {
-            throw new ExchangeError ('[TEST_FAILURE]' + 'Failed private tests'  + this.exchangeTitle (exchange) + ' [' + market['type'] + '] ' + errors.join (', '));
+            throw new ExchangeError ('[TEST_FAILURE]' + 'Failed private tests' + this.exchangeTitle (exchange) + ' [' + market['type'] + '] ' + errors.join (', '));
         } else {
             if (this.info) {
                 dump (this.addPadding ('[INFO:PRIVATE_TESTS_DONE]', 25), this.exchangeTitle (exchange));
