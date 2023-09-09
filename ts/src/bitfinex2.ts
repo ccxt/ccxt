@@ -1250,6 +1250,9 @@ export default class bitfinex2 extends Exchange {
             const orderType = trade[6];
             type = this.safeString (this.options['exchangeTypes'], orderType);
         }
+        if (!isPrivate && (takerOrMaker === undefined)) {
+            takerOrMaker = 'taker'; // public trade always "taker"
+        }
         return this.safeTrade ({
             'id': id,
             'timestamp': timestamp,
