@@ -6268,7 +6268,7 @@ export default class gate extends Exchange {
         /**
          * @method
          * @name gate#fetchUnderlyingAssets
-         * @description fetches the market ids of underlying assets for different derivative types
+         * @description fetches the market ids of underlying assets for a specific contract market type
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-underlyings
          * @param {string|undefined} marketType the contract market type, 'option', 'swap' or 'future', the default is 'option'
          * @param {object} [params] exchange specific params

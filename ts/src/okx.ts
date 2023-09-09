@@ -6741,7 +6741,7 @@ export default class okx extends Exchange {
         /**
          * @method
          * @name okx#fetchUnderlyingAssets
-         * @description fetches the market ids of underlying assets for different derivative types
+         * @description fetches the market ids of underlying assets for a specific contract market type
          * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
          * @param {string|undefined} marketType the contract market type, 'option', 'swap' or 'future', the default is 'option'
          * @param {object} [params] exchange specific params
