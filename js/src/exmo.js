@@ -1176,6 +1176,19 @@ export default class exmo extends Exchange {
         //         "commission_percent": "0.2"
         //     }
         //
+        // margin
+        //
+        //    {
+        //        "is_maker": false,
+        //        "order_id": "123",
+        //        "pair": "BTC_USD",
+        //        "price": "54122.25",
+        //        "quantity": "0.00069994",
+        //        "trade_dt": "1619069561718824428",
+        //        "trade_id": "692842802860135010",
+        //        "type": "sell"
+        //    }
+        //
         const timestamp = this.safeTimestamp(trade, 'date');
         const id = this.safeString(trade, 'trade_id');
         const orderId = this.safeString(trade, 'order_id');
@@ -1187,7 +1200,12 @@ export default class exmo extends Exchange {
         const marketId = this.safeString(trade, 'pair');
         market = this.safeMarket(marketId, market, '_');
         const symbol = market['symbol'];
-        const takerOrMaker = this.safeString(trade, 'exec_type');
+        const isMaker = this.safeValue(trade, 'is_maker');
+        let takerOrMakerDefault = undefined;
+        if (isMaker !== undefined) {
+            takerOrMakerDefault = isMaker ? 'maker' : 'taker';
+        }
+        const takerOrMaker = this.safeString(trade, 'exec_type', takerOrMakerDefault);
         let fee = undefined;
         const feeCostString = this.safeString(trade, 'commission_amount');
         if (feeCostString !== undefined) {
@@ -1427,13 +1445,21 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#00810661-9119-46c5-aec5-55abe9cb42c7  // margin
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {string} [params.marginMode] set to "isolated" to fetch trades for a margin order
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchOrderTrades', params);
+        if (marginMode === 'cross') {
+            throw new BadRequest(this.id + ' only supports isolated margin');
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1441,32 +1467,54 @@ export default class exmo extends Exchange {
         const request = {
             'order_id': id.toString(),
         };
-        const response = await this.privatePostOrderTrades(this.extend(request, params));
-        //
-        //     {
-        //         "type": "buy",
-        //         "in_currency": "BTC",
-        //         "in_amount": "1",
-        //         "out_currency": "USD",
-        //         "out_amount": "100",
-        //         "trades": [
-        //             {
-        //                 "trade_id": 3,
-        //                 "date": 1435488248,
-        //                 "type": "buy",
-        //                 "pair": "BTC_USD",
-        //                 "order_id": 12345,
-        //                 "quantity": 1,
-        //                 "price": 100,
-        //                 "amount": 100,
-        //                 "exec_type": "taker",
-        //                 "commission_amount": "0.02",
-        //                 "commission_currency": "BTC",
-        //                 "commission_percent": "0.2"
-        //             }
-        //         ]
-        //     }
-        //
+        let response = undefined;
+        if (marginMode === 'isolated') {
+            response = await this.privatePostMarginUserOrderTrades(this.extend(request, params));
+            //
+            //    {
+            //        "trades": [
+            //            {
+            //                "is_maker": false,
+            //                "order_id": "123",
+            //                "pair": "BTC_USD",
+            //                "price": "54122.25",
+            //                "quantity": "0.00069994",
+            //                "trade_dt": "1619069561718824428",
+            //                "trade_id": "692842802860135010",
+            //                "type": "sell"
+            //            }
+            //        ]
+            //    }
+            //
+        }
+        else {
+            response = await this.privatePostOrderTrades(this.extend(request, params));
+            //
+            //     {
+            //         "type": "buy",
+            //         "in_currency": "BTC",
+            //         "in_amount": "1",
+            //         "out_currency": "USD",
+            //         "out_amount": "100",
+            //         "trades": [
+            //             {
+            //                 "trade_id": 3,
+            //                 "date": 1435488248,
+            //                 "type": "buy",
+            //                 "pair": "BTC_USD",
+            //                 "order_id": 12345,
+            //                 "quantity": 1,
+            //                 "price": 100,
+            //                 "amount": 100,
+            //                 "exec_type": "taker",
+            //                 "commission_amount": "0.02",
+            //                 "commission_currency": "BTC",
+            //                 "commission_percent": "0.2"
+            //             }
+            //         ]
+            //     }
+            //
+        }
         const trades = this.safeValue(response, 'trades');
         return this.parseTrades(trades, market, since, limit);
     }

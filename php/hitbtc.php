@@ -1219,6 +1219,8 @@ class hitbtc extends Exchange {
         $takerOrMaker = null;
         if ($taker !== null) {
             $takerOrMaker = $taker ? 'taker' : 'maker';
+        } else {
+            $takerOrMaker = 'taker'; // the only case when `$taker` field is missing, is public fetchTrades and it must be $taker
         }
         if ($feeCostString !== null) {
             $info = $this->safe_value($market, 'info', array());
