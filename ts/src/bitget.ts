@@ -2165,7 +2165,7 @@ export default class bitget extends Exchange {
         //         "fillTime": "1692073691000"
         //     }
         //
-        // swap
+        // swap - public trades
         //
         //     {
         //         "tradeId": "1075199767891652609",
@@ -2223,6 +2223,10 @@ export default class bitget extends Exchange {
             };
         }
         const datetime = this.iso8601 (timestamp);
+        let takerOrMaker = undefined;
+        if ((('timestamp' in trade) && ('size' in trade)) || ('fillTime' in trade)) {
+            takerOrMaker = 'taker';
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString2 (trade, 'tradeId', 'fillId'),
@@ -2230,7 +2234,7 @@ export default class bitget extends Exchange {
             'symbol': symbol,
             'side': this.safeStringLower (trade, 'side'),
             'type': this.safeString (trade, 'orderType'),
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': this.safeString2 (trade, 'fillPrice', 'price'),
             'amount': amount,
             'cost': undefined,
@@ -2296,6 +2300,16 @@ export default class bitget extends Exchange {
             params = this.omit (params, 'method');
             if (swapMethod === 'publicMixGetMarketFillsHistory') {
                 response = await this.publicMixGetMarketFillsHistory (this.extend (request, params));
+                //
+                //     {
+                //         "tradeId": "1084459062491590657",
+                //         "price": "25874",
+                //         "size": "1.624",
+                //         "side": "Buy",
+                //         "timestamp": "1694281109000",
+                //         "symbol": "BTCUSDT_UMCBL",
+                //     }
+                //
             } else if (swapMethod === 'publicMixGetMarketFills') {
                 response = await this.publicMixGetMarketFills (this.extend (request, params));
             }
