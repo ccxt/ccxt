@@ -1320,7 +1320,7 @@ export default class bitmart extends Exchange {
         }
         const isPublic = ('order_time' in trade);
         if (isPublic && (takerOrMaker === undefined)) {
-            takerOrMaker = 'taker';
+            takerOrMaker = 'taker'; // public trade always "taker"
         }
         return this.safeTrade ({
             'info': trade,
