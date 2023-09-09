@@ -242,13 +242,13 @@ export default class testMainClass extends baseMainTestClass {
         }
         if (skipMessage) {
             if (this.info) {
-                dump (this.addPadding (skipMessage, 25), exchange.id, methodNameInTest);
+                dump (this.addPadding (skipMessage, 25), exchange.id, exchange.options['defaultType'], methodNameInTest);
             }
             return;
         }
         if (this.info) {
             const argsStringified = '(' + args.join (',') + ')';
-            dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
+            dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, exchange.options['defaultType'], methodNameInTest, argsStringified);
         }
         const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
         await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
@@ -285,7 +285,7 @@ export default class testMainClass extends baseMainTestClass {
                 if (tempFailure) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
-                        dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, methodName, argsStringified);
+                        dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, exchange.options['defaultType'], methodName, argsStringified);
                     } else {
                         // wait and retry again
                         await exchange.sleep (i * 1000); // increase wait seconds on every retry
@@ -293,20 +293,20 @@ export default class testMainClass extends baseMainTestClass {
                     }
                 } else if (e instanceof OnMaintenance) {
                     // in case of maintenance, skip exchange (don't fail the test)
-                    dump ('[TEST_WARNING] Exchange is on maintenance', exchange.id);
+                    dump ('[TEST_WARNING] Exchange is on maintenance', exchange.id, exchange.options['defaultType']);
                 }
                 // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                 else if (isPublic && isAuthError) {
                     // in case of loadMarkets, it means that "tester" (developer or travis) does not have correct authentication, so it does not have a point to proceed at all
                     if (methodName === 'loadMarkets') {
-                        dump ('[TEST_WARNING]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                        dump ('[TEST_WARNING]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exceptionMessage (e), exchange.id, exchange.options['defaultType'], methodName, argsStringified);
                     }
                     if (this.info) {
-                        dump ('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                        dump ('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage (e), exchange.id, exchange.options['defaultType'], methodName, argsStringified);
                     }
                 } else {
                     // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
-                    dump ('[TEST_FAILURE]', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                    dump ('[TEST_FAILURE]', exceptionMessage (e), exchange.id, exchange.options['defaultType'], methodName, argsStringified);
                 }
                 return false;
             }
@@ -364,7 +364,7 @@ export default class testMainClass extends baseMainTestClass {
             if (errorsLength > 0) {
                 failedMsg = ' | Failed methods : ' + errors.join (', ');
             }
-            dump (this.addPadding ('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id);
+            dump (this.addPadding ('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id, exchange.options['defaultType']);
         }
     }
 
@@ -414,7 +414,7 @@ export default class testMainClass extends baseMainTestClass {
                 resultMsg = resultSymbols.join (', ');
             }
         }
-        dump ('Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg);
+        dump ('Exchange loaded', exchange.id, exchange.options['defaultType'], exchangeSymbolsLength, 'symbols', resultMsg);
         return true;
     }
 
@@ -587,25 +587,29 @@ export default class testMainClass extends baseMainTestClass {
         if (!this.privateTestOnly) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 if (this.info) {
-                    dump ('[INFO:SPOT TESTS]');
+                    dump ('[INFO:SPOT TESTS]', exchange.id, exchange.options['defaultType']);
                 }
                 exchange.options['type'] = 'spot';
+                exchange.options['defaultType'] = 'spot';
                 await this.runPublicTests (exchange, spotSymbol);
             }
             if (exchange.has['swap'] && swapSymbol !== undefined) {
                 if (this.info) {
-                    dump ('[INFO:SWAP TESTS]');
+                    dump ('[INFO:SWAP TESTS]', exchange.id, exchange.options['defaultType']);
                 }
                 exchange.options['type'] = 'swap';
+                exchange.options['defaultType'] = 'swap';
                 await this.runPublicTests (exchange, swapSymbol);
             }
         }
         if (this.privateTest || this.privateTestOnly) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
+                exchange.options['type'] = 'spot';
                 exchange.options['defaultType'] = 'spot';
                 await this.runPrivateTests (exchange, spotSymbol);
             }
             if (exchange.has['swap'] && swapSymbol !== undefined) {
+                exchange.options['type'] = 'swap';
                 exchange.options['defaultType'] = 'swap';
                 await this.runPrivateTests (exchange, swapSymbol);
             }
@@ -614,7 +618,7 @@ export default class testMainClass extends baseMainTestClass {
 
     async runPrivateTests (exchange, symbol) {
         if (!exchange.checkRequiredCredentials (false)) {
-            dump ('[Skipping private tests]', 'Keys not found');
+            dump ('[Skipping private tests]', 'Keys not found', exchange.id, exchange.options['defaultType']);
             return;
         }
         const code = this.getExchangeCode (exchange);
@@ -707,7 +711,7 @@ export default class testMainClass extends baseMainTestClass {
             throw new Error ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
         } else {
             if (this.info) {
-                dump (this.addPadding ('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id);
+                dump (this.addPadding ('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id, exchange.options['defaultType']);
             }
         }
     }
