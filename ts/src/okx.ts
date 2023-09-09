@@ -6737,17 +6737,18 @@ export default class okx extends Exchange {
         return result;
     }
 
-    async fetchUnderlyingAssets (marketType: string = undefined, params = {}) {
+    async fetchUnderlyingAssets (params = {}) {
         /**
          * @method
          * @name okx#fetchUnderlyingAssets
          * @description fetches the market ids of underlying assets for a specific contract market type
          * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
-         * @param {string|undefined} marketType the contract market type, 'option', 'swap' or 'future', the default is 'option'
          * @param {object} [params] exchange specific params
+         * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
          * @returns {object[]} a list of [underlying assets]{@link https://github.com/ccxt/ccxt/wiki/Manual#underlying-assets-structure}
          */
         await this.loadMarkets ();
+        let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchUnderlyingAssets', undefined, params);
         if ((marketType === undefined) || (marketType === 'spot')) {
             marketType = 'option';

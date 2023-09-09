@@ -2945,13 +2945,13 @@ Returns
 Use the `fetchUnderlyingAssets` method to get the market id's of underlying assets for a contract market type from the exchange.
 
 ```javascript
-fetchUnderlyingAssets (marketType = undefined, params = {})
+fetchUnderlyingAssets (params = {})
 ```
 
 Parameters
 
-- **marketType** (String) Unified marketType, the default is 'option' (e.g. `"option"`)
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"instType": "OPTION"}`)
+- **params.type** (String) Unified marketType, the default is 'option' (e.g. `"option"`)
 
 Returns
 
