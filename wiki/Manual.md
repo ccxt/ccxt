@@ -2942,14 +2942,15 @@ Returns
 
 *contract only*
 
-Use the `fetchUnderlyingAssets` method to get the market id's of underlying assets for a derivative contract type from the exchange.
+Use the `fetchUnderlyingAssets` method to get the market id's of underlying assets for a contract market type from the exchange.
 
 ```javascript
-fetchUnderlyingAssets (params = {})
+fetchUnderlyingAssets (marketType = undefined, params = {})
 ```
 
 Parameters
 
+- **marketType** (String) Unified marketType, the default is 'option' (e.g. `"option"`)
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"instType": "OPTION"}`)
 
 Returns
