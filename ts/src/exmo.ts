@@ -1303,9 +1303,7 @@ export default class exmo extends Exchange {
          * @param {int} [params.offset] last deal offset, default = 0
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument (a single symbol or an array)');
-        }
+        this.checkRequiredSymbol ('fetchMyTrades', symbol);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         if (marginMode === 'cross') {
@@ -1327,10 +1325,8 @@ export default class exmo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const offset = this.safeInteger (params, 'offset');
-        if (offset === undefined) {
-            request['offset'] = 0;
-        }
+        const offset = this.safeInteger (params, 'offset', 0);
+        request['offset'] = offset;
         let response = undefined;
         if (isSpot) {
             response = await this.privatePostUserTrades (this.extend (request, params));
