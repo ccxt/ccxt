@@ -151,6 +151,7 @@ class gate(Exchange, ImplicitAPI):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
+                'fetchUnderlyingAssets': True,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
@@ -5891,6 +5892,38 @@ class gate(Exchange, ImplicitAPI):
         request, query = self.prepare_request(market, 'swap', params)
         request['dual_mode'] = hedged
         return await self.privateFuturesPostSettleDualMode(self.extend(request, query))
+
+    async def fetch_underlying_assets(self, params={}):
+        """
+        fetches the market ids of underlying assets for a specific contract market type
+        :param dict [params]: exchange specific params
+        :param str [params.type]: the contract market type, 'option', 'swap' or 'future', the default is 'option'
+        :returns dict[]: a list of `underlying assets <https://github.com/ccxt/ccxt/wiki/Manual#underlying-assets-structure>`
+        """
+        await self.load_markets()
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchUnderlyingAssets', None, params)
+        if (marketType is None) or (marketType == 'spot'):
+            marketType = 'option'
+        if marketType != 'option':
+            raise NotSupported(self.id + ' fetchUnderlyingAssets() supports option markets only')
+        response = await self.publicOptionsGetUnderlyings(params)
+        #
+        #    [
+        #        {
+        #            "index_time": "1646915796",
+        #            "name": "BTC_USDT",
+        #            "index_price": "39142.73"
+        #        }
+        #    ]
+        #
+        underlyings = []
+        for i in range(0, len(response)):
+            underlying = response[i]
+            name = self.safe_string(underlying, 'name')
+            if name is not None:
+                underlyings.append(name)
+        return underlyings
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
