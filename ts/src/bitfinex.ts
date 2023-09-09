@@ -923,7 +923,7 @@ export default class bitfinex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades (public) v1
+        // fetchTrades (public)
         //
         //     {
         //          "timestamp":1637258380,
@@ -934,15 +934,7 @@ export default class bitfinex extends Exchange {
         //          "type":"sell"
         //     }
         //
-        //     {    "timestamp":1637258238,
-        //          "tid":894452800,
-        //          "price":"0.99958",
-        //          "amount":"261.90514",
-        //          "exchange":"bitfinex",
-        //          "type":"buy"
-        //     }
-        //
-        // fetchMyTrades (private) v1
+        // fetchMyTrades (private)
         //
         //     {
         //          "price":"0.99941",
@@ -983,6 +975,11 @@ export default class bitfinex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
+        let takerOrMaker = undefined;
+        const isPublic = ('exchange' in trade);
+        if (isPublic) {
+            takerOrMaker = 'taker';
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -992,7 +989,7 @@ export default class bitfinex extends Exchange {
             'type': type,
             'order': orderId,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
@@ -1021,6 +1018,18 @@ export default class bitfinex extends Exchange {
             request['timestamp'] = this.parseToInt (since / 1000);
         }
         const response = await this.publicGetTradesSymbol (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "timestamp": "1694284565",
+        //            "tid": "1415415034",
+        //            "price": "25862.0",
+        //            "amount": "0.00020685",
+        //            "exchange": "bitfinex",
+        //            "type": "buy"
+        //        },
+        //    ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
