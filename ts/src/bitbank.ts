@@ -323,12 +323,23 @@ export default class bitbank extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades
+        //
+        //    {
+        //        "transaction_id": "1143247037",
+        //        "side": "buy",
+        //        "price": "3836025",
+        //        "amount": "0.0005",
+        //        "executed_at": "1694249441593"
+        //    }
+        //
         const timestamp = this.safeInteger (trade, 'executed_at');
         market = this.safeMarket (undefined, market);
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const id = this.safeString2 (trade, 'transaction_id', 'trade_id');
-        const takerOrMaker = this.safeString (trade, 'maker_taker');
+        let takerOrMaker = this.safeString (trade, 'maker_taker');
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'fee_amount_quote');
         if (feeCostString !== undefined) {
@@ -340,6 +351,10 @@ export default class bitbank extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const type = this.safeString (trade, 'type');
         const side = this.safeString (trade, 'side');
+        const isPublic = ('transaction_id' in trade) && ('side' in trade) && ('price' in trade) && ('amount' in trade) && ('executed_at' in trade);
+        if (isPublic && takerOrMaker === undefined) {
+            takerOrMaker = 'taker'; // public trades always "taker"
+        }
         return this.safeTrade ({
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
