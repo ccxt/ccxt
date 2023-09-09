@@ -797,6 +797,10 @@ export default class bitso extends Exchange {
         const price = this.safeString (trade, 'price');
         const orderId = this.safeString (trade, 'oid');
         const id = this.safeString (trade, 'tid');
+        const isPublic = ('amount' in trade);
+        if (isPublic && (takerOrMaker === undefined)) {
+            takerOrMaker = 'taker'; // public trade always "taker"
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
