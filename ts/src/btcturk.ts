@@ -474,11 +474,6 @@ export default class btcturk extends Exchange {
                 'currency': this.safeCurrencyCode (feeCurrency),
             };
         }
-        let takerOrMaker = undefined;
-        const isPublic = ('pairNormalized' in trade) && ('tid' in trade) && ('date' in trade);
-        if (isPublic) {
-            takerOrMaker = 'taker'; // public trade always "taker"
-        }
         return this.safeTrade ({
             'info': trade,
             'id': id,
@@ -488,7 +483,7 @@ export default class btcturk extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
@@ -535,7 +530,7 @@ export default class btcturk extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseOHLCV (ohlcv, market = undefined) {
