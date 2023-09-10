@@ -828,11 +828,6 @@ export default class bitbns extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        let takerOrMaker = undefined;
-        const isPublic = ('tradeId' in trade) && ('price' in trade) && ('quote_volume' in trade) && ('base_volume' in trade) && ('timestamp' in trade) && ('type' in trade);
-        if (isPublic) {
-            takerOrMaker = 'taker'; // public trade always "taker"
-        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -842,7 +837,7 @@ export default class bitbns extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
             'cost': costString,
@@ -947,7 +942,7 @@ export default class bitbns extends Exchange {
         //         {"tradeId":"1909155","price":"61853.1100","quote_volume":2304.37,"base_volume":0.03716263,"timestamp":1634549670000,"type":"sell"}
         //     }
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
