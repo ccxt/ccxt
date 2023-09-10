@@ -394,11 +394,6 @@ export default class btctradeua extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amnt_trade');
         market = this.safeMarket (undefined, market);
-        let takerOrMaker = undefined;
-        const isPublic = ('pub_date' in trade);
-        if (isPublic) {
-            takerOrMaker = 'taker'; // public trade always "taker"
-        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -408,7 +403,7 @@ export default class btctradeua extends Exchange {
             'type': type,
             'side': side,
             'order': undefined,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
@@ -457,7 +452,7 @@ export default class btctradeua extends Exchange {
                 trades.push (response[i]);
             }
         }
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
