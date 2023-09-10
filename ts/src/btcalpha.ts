@@ -407,11 +407,6 @@ export default class btcalpha extends Exchange {
         const amountString = this.safeString (trade, 'amount');
         const id = this.safeString (trade, 'id');
         const side = this.safeString2 (trade, 'my_side', 'type');
-        let takerOrMaker = undefined;
-        const isPublic = !('my_side' in trade);
-        if (isPublic) {
-            takerOrMaker = 'taker'; // public trade always "taker"
-        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -421,7 +416,7 @@ export default class btcalpha extends Exchange {
             'order': id,
             'type': 'limit',
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
@@ -451,7 +446,7 @@ export default class btcalpha extends Exchange {
             request['limit'] = limit;
         }
         const trades = await this.publicGetExchanges (this.extend (request, params));
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
