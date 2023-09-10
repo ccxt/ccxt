@@ -294,7 +294,7 @@ export default class bitforex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const isPublic = ('tradeFee' in trade) && ('orderId' in trade);
+        const isPublic = !('tradeFee' in trade) && !('orderId' in trade);
         if (isPublic && (takerOrMaker === undefined)) {
             takerOrMaker = 'taker'; // public trade always "taker"
         }
