@@ -240,11 +240,6 @@ export default class bitstamp1 extends Exchange {
         const amount = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 'currency_pair');
         market = this.safeMarket (marketId, market);
-        let takerOrMaker = undefined;
-        const isPublic = ('date' in trade);
-        if (isPublic) {
-            takerOrMaker = 'taker'; // public trade always taker
-        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -254,7 +249,7 @@ export default class bitstamp1 extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': undefined,
@@ -293,7 +288,7 @@ export default class bitstamp1 extends Exchange {
         //        },
         //    ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseBalance (response) {
