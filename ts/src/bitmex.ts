@@ -1573,10 +1573,6 @@ export default class bitmex extends Exchange {
             takerOrMaker = Precise.stringLt (feeCostString, '0') ? 'maker' : 'taker';
         }
         const type = this.safeStringLower (trade, 'ordType');
-        const isPublic = ('grossValue' in trade) && ('tickDirection' in trade) && ('size' in trade);
-        if (isPublic && (takerOrMaker === undefined)) {
-            takerOrMaker = 'taker'; // public trade always "taker"
-        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -1780,7 +1776,7 @@ export default class bitmex extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
