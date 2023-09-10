@@ -298,6 +298,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function public_get_v5_spot_lever_token_reference($params = array()) {
         return $this->request('v5/spot-lever-token/reference', 'public', 'GET', $params, null, null, array("cost" => 2.5));
     }
+    public function public_get_v5_spot_margin_trade_data($params = array()) {
+        return $this->request('v5/spot-margin-trade/data', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    }
     public function public_get_v5_spot_cross_margin_trade_data($params = array()) {
         return $this->request('v5/spot-cross-margin-trade/data', 'public', 'GET', $params, null, null, array("cost" => 2.5));
     }
@@ -1659,6 +1662,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function publicGetV5SpotLeverTokenReference($params = array()) {
         return $this->request('v5/spot-lever-token/reference', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    }
+    public function publicGetV5SpotMarginTradeData($params = array()) {
+        return $this->request('v5/spot-margin-trade/data', 'public', 'GET', $params, null, null, array("cost" => 2.5));
     }
     public function publicGetV5SpotCrossMarginTradeData($params = array()) {
         return $this->request('v5/spot-cross-margin-trade/data', 'public', 'GET', $params, null, null, array("cost" => 2.5));

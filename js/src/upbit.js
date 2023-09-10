@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/upbit.js';
-import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending } from './base/errors.js';
+import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
@@ -1037,7 +1037,7 @@ export default class upbit extends Exchange {
             if (side === 'buy') {
                 if (this.options['createMarketBuyOrderRequiresPrice']) {
                     if (price === undefined) {
-                        throw new InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                        throw new InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
                     }
                     else {
                         amount = amount * price;
@@ -1728,12 +1728,20 @@ export default class upbit extends Exchange {
         };
         let method = 'privatePostWithdraws';
         if (code !== 'KRW') {
+            // 2023-05-23 Change to required parameters for digital assets
+            const network = this.safeStringUpper2(params, 'network', 'net_type');
+            if (network === undefined) {
+                throw new ArgumentsRequired(this.id + ' withdraw() requires a network argument');
+            }
+            params = this.omit(params, ['network']);
+            request['net_type'] = network;
             method += 'Coin';
             request['currency'] = currency['id'];
             request['address'] = address;
             if (tag !== undefined) {
                 request['secondary_address'] = tag;
             }
+            params = this.omit(params, 'network');
         }
         else {
             method += 'Krw';

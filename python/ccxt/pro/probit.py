@@ -484,10 +484,10 @@ class probit(ccxt.async_support.probit):
         if ticker is not None:
             self.handle_ticker(client, message)
         trades = self.safe_value(message, 'recent_trades', [])
-        if len(trades) > 0:
+        if len(trades):
             self.handle_trades(client, message)
         orderBook = self.safe_value_n(message, ['order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4'], [])
-        if len(orderBook) > 0:
+        if len(orderBook):
             self.handle_order_book(client, message, orderBook)
 
     def handle_message(self, client: Client, message):

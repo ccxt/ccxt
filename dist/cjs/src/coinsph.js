@@ -1865,9 +1865,9 @@ class coinsph extends coinsph$1 {
                 if (i !== 0) {
                     encodedArrayParams += '&';
                 }
-                const array = query[key];
+                const innerArray = query[key];
                 query = this.omit(query, key);
-                const encodedArrayParam = this.parseArrayParam(array, key);
+                const encodedArrayParam = this.parseArrayParam(innerArray, key);
                 encodedArrayParams += encodedArrayParam;
             }
         }

@@ -297,6 +297,31 @@ class gate(Exchange, ImplicitAPI):
                             'sub_accounts/{user_id}/keys/{key}': 1,
                         },
                     },
+                    'portfolio': {
+                        'get': {
+                            'spot/currency_pairs': 1.5,
+                            'spot/currency_pairs/{currency_pair}': 1.5,
+                            'accounts': 1.5,
+                            'account_mode': 1.5,
+                            'borrowable': 1.5,
+                            'transferable': 1.5,
+                            'loans': 1.5,
+                            'loan_records': 1.5,
+                            'interest_records': 1.5,
+                            'spot/orders': 1.5,
+                            'spot/orders/{order_id}': 1.5,
+                        },
+                        'post': {
+                            'loans': 1.5,
+                            'spot/orders': 1.5,
+                        },
+                        'delete': {
+                            'spot/orders/{order_id}': 1.5,
+                        },
+                        'patch': {
+                            'spot/orders/{order_id}': 1.5,
+                        },
+                    },
                     'spot': {
                         'get': {
                             'fee': 1,
@@ -490,6 +515,22 @@ class gate(Exchange, ImplicitAPI):
                             'uni/lends': 1.5,
                         },
                     },
+                    'loan': {
+                        'get': {
+                            'collateral/orders': 1.5,
+                            'collateral/orders/{order_id}': 1.5,
+                            'collateral/repay_records': 1.5,
+                            'collateral/collaterals': 1.5,
+                            'collateral/total_amount': 1.5,
+                            'collateral/ltv': 1.5,
+                            'collateral/currencies': 1.5,
+                        },
+                        'post': {
+                            'collateral/orders': 1.5,
+                            'collateral/repay': 1.5,
+                            'collateral/collaterals': 1.5,
+                        },
+                    },
                     'account': {
                         'get': {
                             'detail': 1.5,
@@ -498,6 +539,9 @@ class gate(Exchange, ImplicitAPI):
                         },
                         'post': {
                             'stp_groups': 1.5,
+                            'stp_groups/{stp_id}/users': 1.5,
+                        },
+                        'delete': {
                             'stp_groups/{stp_id}/users': 1.5,
                         },
                     },

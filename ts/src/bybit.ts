@@ -250,6 +250,7 @@ export default class bybit extends Exchange {
                         'v5/spot-lever-token/info': 2.5,
                         'v5/spot-lever-token/reference': 2.5,
                         // spot margin trade
+                        'v5/spot-margin-trade/data': 2.5,
                         'v5/spot-cross-margin-trade/data': 2.5,
                         'v5/spot-cross-margin-trade/pledge-token': 2.5,
                         'v5/spot-cross-margin-trade/borrow-token': 2.5,
@@ -2529,7 +2530,8 @@ export default class bybit extends Exchange {
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
             market = this.market (symbols[0]);
-            if (symbols.length === 1) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
                 request['symbol'] = market['id'];
             }
         }
@@ -3895,7 +3897,7 @@ export default class bybit extends Exchange {
                 const cost = this.safeNumber (params, 'cost');
                 params = this.omit (params, 'cost');
                 if (price === undefined && cost === undefined) {
-                    throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
                 } else {
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
@@ -4399,9 +4401,6 @@ export default class bybit extends Exchange {
     }
 
     async editUnifiedAccountOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        if (amount === undefined && price === undefined) {
-            throw new InvalidOrder (this.id + ' editOrder requires either a price argument or an amount argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['linear'] && !market['option']) {
@@ -4480,9 +4479,6 @@ export default class bybit extends Exchange {
     }
 
     async editUnifiedMarginOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
-        if (amount === undefined && price === undefined) {
-            throw new InvalidOrder (this.id + ' editOrder requires either a price argument or an amount argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['linear'] && !market['option']) {
@@ -4576,9 +4572,6 @@ export default class bybit extends Exchange {
     }
 
     async editContractV3Order (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        if (amount === undefined && price === undefined) {
-            throw new InvalidOrder (this.id + ' editOrder requires either a price argument or an amount argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

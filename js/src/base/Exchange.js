@@ -3361,11 +3361,17 @@ export default class Exchange {
             precision = this.safeValue(networkItem, 'precision', precision);
         }
         if (precision === undefined) {
-            return fee;
+            return this.forceString(fee);
         }
         else {
             return this.decimalToPrecision(fee, ROUND, precision, this.precisionMode, this.paddingMode);
         }
+    }
+    forceString(value) {
+        if (typeof value !== 'string') {
+            return this.numberToString(value);
+        }
+        return value;
     }
     isTickPrecision() {
         return this.precisionMode === TICK_SIZE;

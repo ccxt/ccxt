@@ -750,8 +750,8 @@ export default class kraken extends krakenRest {
     }
 
     formatNumber (n, length) {
-        const string = this.numberToString (n);
-        const parts = string.split ('.');
+        const stringNumber = this.numberToString (n);
+        const parts = stringNumber.split ('.');
         const integer = this.safeString (parts, 0);
         const decimals = this.safeString (parts, 1, '');
         const paddedDecimals = decimals.padEnd (length, '0');

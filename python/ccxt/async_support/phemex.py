@@ -1568,14 +1568,17 @@ class phemex(Exchange, ImplicitAPI):
             id = self.safe_string_2(trade, 'execId', 'execID')
             orderId = self.safe_string(trade, 'orderID')
             if market['settle'] == 'USDT':
-                sideId = self.safe_string(trade, 'side')
-                side = 'buy' if (sideId == '1') else 'sell'
+                sideId = self.safe_string_lower(trade, 'side')
+                if (sideId == 'buy') or (sideId == 'sell'):
+                    side = sideId
+                elif sideId is not None:
+                    side = 'buy' if (sideId == '1') else 'sell'
                 ordType = self.safe_string(trade, 'ordType')
                 if ordType == '1':
                     type = 'market'
                 elif ordType == '2':
                     type = 'limit'
-                priceString = self.safe_string(trade, 'priceRp')
+                priceString = self.safe_string(trade, 'execPriceRp')
                 amountString = self.safe_string(trade, 'execQtyRq')
                 costString = self.safe_string(trade, 'execValueRv')
                 feeCostString = self.safe_string(trade, 'execFeeRv')

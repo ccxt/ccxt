@@ -102,14 +102,16 @@ class okx extends \ccxt\async\okx {
 
     public function get_url(string $channel, $access = 'public') {
         // for context => https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-$url
+        $isSandbox = $this->options['sandboxMode'];
+        $sandboxSuffix = $isSandbox ? '?brokerId=9999' : '';
         $isPublic = ($access === 'public');
         $url = $this->urls['api']['ws'];
         if ((mb_strpos($channel, 'candle') > -1) || ($channel === 'orders-algo')) {
-            return $url . '/business';
+            return $url . '/business' . $sandboxSuffix;
         } elseif ($isPublic) {
-            return $url . '/public';
+            return $url . '/public' . $sandboxSuffix;
         }
-        return $url . '/private';
+        return $url . '/private' . $sandboxSuffix;
     }
 
     public function subscribe_multiple($access, $channel, ?array $symbols = null, $params = array ()) {
@@ -1289,6 +1291,8 @@ class okx extends \ccxt\async\okx {
                     unset($client->subscriptions[$messageHash]);
                 }
                 return false;
+            } else {
+                $client->reject ($e);
             }
         }
         return $message;

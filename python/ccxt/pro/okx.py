@@ -106,13 +106,15 @@ class okx(ccxt.async_support.okx):
 
     def get_url(self, channel: str, access='public'):
         # for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
+        isSandbox = self.options['sandboxMode']
+        sandboxSuffix = '?brokerId=9999' if isSandbox else ''
         isPublic = (access == 'public')
         url = self.urls['api']['ws']
         if (channel.find('candle') > -1) or (channel == 'orders-algo'):
-            return url + '/business'
+            return url + '/business' + sandboxSuffix
         elif isPublic:
-            return url + '/public'
-        return url + '/private'
+            return url + '/public' + sandboxSuffix
+        return url + '/private' + sandboxSuffix
 
     async def subscribe_multiple(self, access, channel, symbols: Optional[List[str]] = None, params={}):
         await self.load_markets()
@@ -1171,6 +1173,8 @@ class okx(ccxt.async_support.okx):
                 if messageHash in client.subscriptions:
                     del client.subscriptions[messageHash]
                 return False
+            else:
+                client.reject(e)
         return message
 
     def handle_message(self, client: Client, message):

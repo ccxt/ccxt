@@ -19,6 +19,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function spot_v1_public_get_market_kline($params = array()) {
         return $this->request('market/kline', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function spot_v1_public_get_ticker_24hr($params = array()) {
+        return $this->request('ticker/24hr', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spot_v1_private_get_trade_query($params = array()) {
         return $this->request('trade/query', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -30,9 +33,6 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function spot_v1_private_get_account_balance($params = array()) {
         return $this->request('account/balance', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
-    }
-    public function spot_v1_private_get_ticker_24hr($params = array()) {
-        return $this->request('ticker/24hr', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function spot_v1_private_post_trade_order($params = array()) {
         return $this->request('trade/order', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
@@ -220,6 +220,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function spotV1PublicGetMarketKline($params = array()) {
         return $this->request('market/kline', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 3));
     }
+    public function spotV1PublicGetTicker24hr($params = array()) {
+        return $this->request('ticker/24hr', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spotV1PrivateGetTradeQuery($params = array()) {
         return $this->request('trade/query', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -231,9 +234,6 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function spotV1PrivateGetAccountBalance($params = array()) {
         return $this->request('account/balance', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
-    }
-    public function spotV1PrivateGetTicker24hr($params = array()) {
-        return $this->request('ticker/24hr', array('spot', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function spotV1PrivatePostTradeOrder($params = array()) {
         return $this->request('trade/order', array('spot', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));

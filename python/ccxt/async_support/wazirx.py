@@ -776,6 +776,7 @@ class wazirx(Exchange, ImplicitAPI):
         stopPrice = self.safe_string(params, 'stopPrice')
         if stopPrice is not None:
             request['type'] = 'stop_limit'
+            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         response = await self.privatePostOrder(self.extend(request, params))
         # {
         #     "id": 28,

@@ -882,20 +882,35 @@ export default class exmo extends Exchange {
 
     parseBalance (response) {
         const result = { 'info': response };
-        const free = this.safeValue (response, 'balances', {});
-        const used = this.safeValue (response, 'reserved', {});
-        const currencyIds = Object.keys (free);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            if (currencyId in free) {
-                account['free'] = this.safeString (free, currencyId);
+        const wallets = this.safeValue (response, 'wallets');
+        if (wallets !== undefined) {
+            const currencyIds = Object.keys (wallets);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const item = wallets[currencyId];
+                const currency = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['used'] = this.safeString (item, 'used');
+                account['free'] = this.safeString (item, 'free');
+                account['total'] = this.safeString (item, 'balance');
+                result[currency] = account;
             }
-            if (currencyId in used) {
-                account['used'] = this.safeString (used, currencyId);
+        } else {
+            const free = this.safeValue (response, 'balances', {});
+            const used = this.safeValue (response, 'reserved', {});
+            const currencyIds = Object.keys (free);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                if (currencyId in free) {
+                    account['free'] = this.safeString (free, currencyId);
+                }
+                if (currencyId in used) {
+                    account['used'] = this.safeString (used, currencyId);
+                }
+                result[code] = account;
             }
-            result[code] = account;
         }
         return this.safeBalance (result);
     }
@@ -906,22 +921,44 @@ export default class exmo extends Exchange {
          * @name exmo#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {string} [params.marginMode] *isolated* fetches the isolated margin balance
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostUserInfo (params);
-        //
-        //     {
-        //         "uid":131685,
-        //         "server_date":1628999600,
-        //         "balances":{
-        //             "EXM":"0",
-        //             "USD":"0",
-        //             "EUR":"0",
-        //             "GBP":"0",
-        //         },
-        //     }
-        //
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        if (marginMode === 'cross') {
+            throw new BadRequest (this.id + ' does not support cross margin');
+        }
+        let response = undefined;
+        if (marginMode === 'isolated') {
+            response = await this.privatePostMarginUserWalletList (params);
+            //
+            //    {
+            //        "wallets": {
+            //            "USD": {
+            //                "balance": "1000",
+            //                "free": "600",
+            //                "used": "400"
+            //            }
+            //        }
+            //    }
+            //
+        } else {
+            response = await this.privatePostUserInfo (params);
+            //
+            //     {
+            //         "uid":131685,
+            //         "server_date":1628999600,
+            //         "balances":{
+            //             "EXM":"0",
+            //             "USD":"0",
+            //             "EUR":"0",
+            //             "GBP":"0",
+            //         },
+            //     }
+            //
+        }
         return this.parseBalance (response);
     }
 
