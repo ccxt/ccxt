@@ -1250,9 +1250,6 @@ export default class bitfinex2 extends Exchange {
             const orderType = trade[6];
             type = this.safeString (this.options['exchangeTypes'], orderType);
         }
-        if (!isPrivate && (takerOrMaker === undefined)) {
-            takerOrMaker = 'taker'; // public trade always "taker"
-        }
         return this.safeTrade ({
             'id': id,
             'timestamp': timestamp,
@@ -1307,7 +1304,7 @@ export default class bitfinex2 extends Exchange {
         //     ]
         //
         const trades = this.sortBy (response, 1);
-        return this.parseTrades (trades, market, undefined, limit);
+        return this.parseTrades (trades, market, undefined, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 100, params = {}) {
