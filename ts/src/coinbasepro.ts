@@ -829,7 +829,18 @@ export default class coinbasepro extends Exchange {
             request['limit'] = limit; // default 100
         }
         const response = await this.publicGetProductsIdTrades (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
+        //
+        //    [
+        //        {
+        //            "trade_id": "15035219",
+        //            "side": "sell",
+        //            "size": "0.27426731",
+        //            "price": "25820.42000000",
+        //            "time": "2023-09-10T13:47:41.447577Z"
+        //        },
+        //    ]
+        //
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchTradingFees (params = {}) {
