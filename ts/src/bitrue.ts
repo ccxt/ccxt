@@ -1108,10 +1108,6 @@ export default class bitrue extends Exchange {
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
-        const isPublic = ('isBuyerMaker' in trade) || ('T' in trade);
-        if (isPublic) {
-            takerOrMaker = 'taker'; // public trade always "taker"
-        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -1189,7 +1185,7 @@ export default class bitrue extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseOrderStatus (status) {
