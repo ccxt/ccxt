@@ -372,6 +372,21 @@ export default class btctradeua extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades
+        //
+        //     {
+        //         "amnt_base": "2220.1204701750",
+        //         "order_id": 247644861,
+        //         "unixtime": 1694340398,
+        //         "price": "1019739.3229211044",
+        //         "amnt_trade": "0.0021771451",
+        //         "user": "Vasily1989",
+        //         "type": "sell",
+        //         "pub_date": "Sept. 10, 2023, 1:06 p.m.",
+        //         "id": 7498807
+        //     }
+        //
         const timestamp = this.parseExchangeSpecificDatetime (this.safeString (trade, 'pub_date'));
         const id = this.safeString (trade, 'id');
         const type = 'limit';
@@ -379,6 +394,11 @@ export default class btctradeua extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amnt_trade');
         market = this.safeMarket (undefined, market);
+        let takerOrMaker = undefined;
+        const isPublic = ('pub_date' in trade);
+        if (isPublic) {
+            takerOrMaker = 'taker'; // public trade always "taker"
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -388,7 +408,7 @@ export default class btctradeua extends Exchange {
             'type': type,
             'side': side,
             'order': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
@@ -413,6 +433,21 @@ export default class btctradeua extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetDealsSymbol (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "amnt_base": "2220.1204701750",
+        //            "order_id": 247644861,
+        //            "unixtime": 1694340398,
+        //            "price": "1019739.3229211044",
+        //            "amnt_trade": "0.0021771451",
+        //            "user": "Vasily1989",
+        //            "type": "sell",
+        //            "pub_date": "Sept. 10, 2023, 1:06 p.m.",
+        //            "id": 7498807
+        //        },
+        //    ]
+        //
         // they report each trade twice (once for both of the two sides of the fill)
         // deduplicate trades for that reason
         const trades = [];
