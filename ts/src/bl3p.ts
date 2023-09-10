@@ -250,11 +250,26 @@ export default class bl3p extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades
+        //
+        //     {
+        //         "trade_id": "2518789",
+        //         "date": "1694348697745",
+        //         "amount_int": "2959153",
+        //         "price_int": "2416231440"
+        //     }
+        //
         const id = this.safeString (trade, 'trade_id');
         const timestamp = this.safeInteger (trade, 'date');
         const price = this.safeString (trade, 'price_int');
         const amount = this.safeString (trade, 'amount_int');
         market = this.safeMarket (undefined, market);
+        let takerOrMaker = undefined;
+        const isPublic = ('trade_id' in trade);
+        if (isPublic) {
+            takerOrMaker = 'taker';
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -264,7 +279,7 @@ export default class bl3p extends Exchange {
             'type': undefined,
             'side': undefined,
             'order': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': Precise.stringDiv (price, '100000'),
             'amount': Precise.stringDiv (amount, '100000000'),
             'cost': undefined,
@@ -287,6 +302,21 @@ export default class bl3p extends Exchange {
         const response = await this.publicGetMarketTrades (this.extend ({
             'market': market['id'],
         }, params));
+        //
+        //    {
+        //        "result": "success",
+        //        "data": {
+        //            "trades": [
+        //                {
+        //                    "trade_id": "2518789",
+        //                    "date": "1694348697745",
+        //                    "amount_int": "2959153",
+        //                    "price_int": "2416231440"
+        //                },
+        //            ]
+        //        }
+        //     }
+        //
         const result = this.parseTrades (response['data']['trades'], market, since, limit);
         return result;
     }
