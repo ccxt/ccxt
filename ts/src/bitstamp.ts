@@ -952,11 +952,6 @@ export default class bitstamp extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        let takerOrMaker = undefined;
-        const isPublic = ('amount' in trade) && ('date' in trade);
-        if (isPublic) {
-            takerOrMaker = 'taker'; // public trade always taker
-        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -966,7 +961,7 @@ export default class bitstamp extends Exchange {
             'order': orderId,
             'type': type,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
             'cost': costString,
@@ -1010,7 +1005,7 @@ export default class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseOHLCV (ohlcv, market = undefined) {
