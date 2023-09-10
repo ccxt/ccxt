@@ -1138,7 +1138,7 @@ export default class coinex extends Exchange {
         //          "message": "OK"
         //      }
         //
-        return this.parseTrades (response['data'], market, since, limit);
+        return this.parseTrades (response['data'], market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchTradingFee (symbol: string, params = {}) {
