@@ -768,7 +768,7 @@ export default class bitso extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         const marketId = this.safeString (trade, 'book');
         const symbol = this.safeSymbol (marketId, market, '_');
-        let side = this.safeString (trade, 'side');
+        const side = this.safeString (trade, 'side');
         const makerSide = this.safeString (trade, 'maker_side');
         let takerOrMaker = undefined;
         if (side === makerSide) {
