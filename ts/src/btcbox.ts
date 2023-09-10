@@ -243,6 +243,11 @@ export default class btcbox extends Exchange {
         const amountString = this.safeString (trade, 'amount');
         const type = undefined;
         const side = this.safeString (trade, 'type');
+        let takerOrMaker = undefined;
+        const isPublic = ('date' in trade) && ('price' in trade) && ('amount' in trade) && ('tid' in trade) && ('type' in trade);
+        if (isPublic) {
+            takerOrMaker = 'taker'; // public trade always "taker"
+        }
         return this.safeTrade ({
             'info': trade,
             'id': id,
@@ -252,7 +257,7 @@ export default class btcbox extends Exchange {
             'symbol': market['symbol'],
             'type': type,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
