@@ -551,8 +551,8 @@ export default class bitopro extends Exchange {
         const price = this.safeString (trade, 'price');
         const type = this.safeStringLower (trade, 'type');
         let side = this.safeStringLower (trade, 'action');
-        const isBuyer = this.safeValue (trade, 'isBuyer');
         if (side === undefined) {
+            const isBuyer = this.safeValue (trade, 'isBuyer');
             if (isBuyer) {
                 side = 'buy';
             } else {
@@ -581,10 +581,6 @@ export default class bitopro extends Exchange {
             } else {
                 takerOrMaker = 'maker';
             }
-        }
-        const isPublic = (isBuyer !== undefined);
-        if (isPublic && takerOrMaker === undefined) {
-            takerOrMaker = 'taker'; // public trade is taker
         }
         return this.safeTrade ({
             'id': id,
@@ -633,7 +629,7 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchTradingFees (params = {}) {
