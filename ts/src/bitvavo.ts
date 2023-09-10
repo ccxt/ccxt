@@ -743,6 +743,10 @@ export default class bitvavo extends Exchange {
             };
         }
         const orderId = this.safeString (trade, 'orderId');
+        const isPublic = !('fee' in trade) && !('feeCurrency' in trade) && !('orderId' in trade);
+        if (isPublic && (takerOrMaker === undefined)) {
+            takerOrMaker = 'taker'; // public trade always "taker"
+        }
         return this.safeTrade ({
             'info': trade,
             'id': id,
