@@ -265,11 +265,6 @@ export default class bl3p extends Exchange {
         const price = this.safeString (trade, 'price_int');
         const amount = this.safeString (trade, 'amount_int');
         market = this.safeMarket (undefined, market);
-        let takerOrMaker = undefined;
-        const isPublic = ('trade_id' in trade);
-        if (isPublic) {
-            takerOrMaker = 'taker';
-        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -279,7 +274,7 @@ export default class bl3p extends Exchange {
             'type': undefined,
             'side': undefined,
             'order': undefined,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': Precise.stringDiv (price, '100000'),
             'amount': Precise.stringDiv (amount, '100000000'),
             'cost': undefined,
@@ -317,8 +312,7 @@ export default class bl3p extends Exchange {
         //        }
         //     }
         //
-        const result = this.parseTrades (response['data']['trades'], market, since, limit);
-        return result;
+        return this.parseTrades (response['data']['trades'], market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchTradingFees (params = {}) {
