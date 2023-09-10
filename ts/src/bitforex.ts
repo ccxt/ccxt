@@ -250,14 +250,6 @@ export default class bitforex extends Exchange {
         //          "tid":"1131019666"
         //      }
         //
-        //      {
-        //          "price":57591.33,
-        //          "amount":0.002,
-        //          "time":1637329685322,
-        //          "direction":1,
-        //          "tid":"1131019639"
-        //      }
-        //
         // fetchMyTrades (private)
         //
         //     {
@@ -301,6 +293,10 @@ export default class bitforex extends Exchange {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
+        }
+        const isPublic = ('tradeFee' in trade) && ('orderId' in trade);
+        if (isPublic && (takerOrMaker === undefined)) {
+            takerOrMaker = 'taker'; // public trade always "taker"
         }
         return this.safeTrade ({
             'info': trade,
