@@ -407,6 +407,11 @@ export default class btcalpha extends Exchange {
         const amountString = this.safeString (trade, 'amount');
         const id = this.safeString (trade, 'id');
         const side = this.safeString2 (trade, 'my_side', 'type');
+        let takerOrMaker = undefined;
+        const isPublic = !('my_side' in trade);
+        if (isPublic) {
+            takerOrMaker = 'taker'; // public trade always "taker"
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -416,7 +421,7 @@ export default class btcalpha extends Exchange {
             'order': id,
             'type': 'limit',
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
