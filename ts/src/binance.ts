@@ -3534,7 +3534,6 @@ export default class binance extends Exchange {
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
-            takerOrMaker = 'taker'; // this holds true, because "buyerMaker" is defined only for public trades, and public trade is always taker
         } else if ('side' in trade) {
             side = this.safeStringLower (trade, 'side');
         } else {
@@ -3724,7 +3723,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async editSpotOrder (id: string, symbol, type, side, amount, price = undefined, params = {}) {
