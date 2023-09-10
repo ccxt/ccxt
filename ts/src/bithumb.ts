@@ -616,11 +616,6 @@ export default class bithumb extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        let takerOrMaker = undefined;
-        const isPulic = ('units_traded' in trade);
-        if (isPulic) {
-            takerOrMaker = 'taker';
-        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -630,7 +625,7 @@ export default class bithumb extends Exchange {
             'order': undefined,
             'type': type,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
             'cost': costString,
@@ -673,7 +668,7 @@ export default class bithumb extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
