@@ -771,20 +771,10 @@ export default class bitso extends Exchange {
         let side = this.safeString (trade, 'side');
         const makerSide = this.safeString (trade, 'maker_side');
         let takerOrMaker = undefined;
-        if (side !== undefined) {
-            // private trades
-            if (side === makerSide) {
-                takerOrMaker = 'maker';
-            } else {
-                takerOrMaker = 'taker';
-            }
+        if (side === makerSide) {
+            takerOrMaker = 'maker';
         } else {
-            // public trades
-            if (makerSide === 'buy') {
-                side = 'sell';
-            } else if (makerSide === 'sell') {
-                side = 'buy';
-            }
+            takerOrMaker = 'taker';
         }
         let amount = this.safeString2 (trade, 'amount', 'major');
         if (amount !== undefined) {
@@ -807,10 +797,6 @@ export default class bitso extends Exchange {
         const price = this.safeString (trade, 'price');
         const orderId = this.safeString (trade, 'oid');
         const id = this.safeString (trade, 'tid');
-        const isPublic = ('amount' in trade);
-        if (isPublic && (takerOrMaker === undefined)) {
-            takerOrMaker = 'taker'; // public trade always "taker"
-        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -845,7 +831,7 @@ export default class bitso extends Exchange {
             'book': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
-        return this.parseTrades (response['payload'], market, since, limit);
+        return this.parseTrades (response['payload'], market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchTradingFees (params = {}) {
