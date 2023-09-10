@@ -755,6 +755,10 @@ export default class bittrex extends Exchange {
                 'currency': market['quote'],
             };
         }
+        const isPublic = ('takerSide' in trade);
+        if (isPublic) {
+            takerOrMaker = 'taker'; // public trade always "taker"
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
