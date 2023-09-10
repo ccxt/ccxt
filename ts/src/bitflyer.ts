@@ -459,11 +459,6 @@ export default class bitflyer extends Exchange {
         const amountString = this.safeString (trade, 'size');
         const id = this.safeString (trade, 'id');
         market = this.safeMarket (undefined, market);
-        let takerOrMaker = undefined;
-        const isPublic = ('buy_child_order_acceptance_id' in trade) || ('sell_child_order_acceptance_id' in trade);
-        if (isPublic) {
-            takerOrMaker = 'taker'; // public trade always "taker"
-        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -473,7 +468,7 @@ export default class bitflyer extends Exchange {
             'order': order,
             'type': undefined,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
@@ -514,7 +509,7 @@ export default class bitflyer extends Exchange {
         //     },
         //    ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchTradingFee (symbol: string, params = {}) {
