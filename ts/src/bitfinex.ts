@@ -975,11 +975,6 @@ export default class bitfinex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        let takerOrMaker = undefined;
-        const isPublic = ('exchange' in trade);
-        if (isPublic) {
-            takerOrMaker = 'taker';
-        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -989,7 +984,7 @@ export default class bitfinex extends Exchange {
             'type': type,
             'order': orderId,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
@@ -1030,7 +1025,7 @@ export default class bitfinex extends Exchange {
         //        },
         //    ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
