@@ -1318,10 +1318,6 @@ export default class bitmart extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const isPublic = ('order_time' in trade);
-        if (isPublic && (takerOrMaker === undefined)) {
-            takerOrMaker = 'taker'; // public trade always "taker"
-        }
         return this.safeTrade ({
             'info': trade,
             'id': id,
@@ -1381,7 +1377,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const trades = this.safeValue (data, 'trades', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseOHLCV (ohlcv, market = undefined) {
