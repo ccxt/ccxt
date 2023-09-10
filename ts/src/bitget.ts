@@ -2223,10 +2223,6 @@ export default class bitget extends Exchange {
             };
         }
         const datetime = this.iso8601 (timestamp);
-        let takerOrMaker = undefined;
-        if ((('timestamp' in trade) && ('size' in trade)) || ('fillTime' in trade)) {
-            takerOrMaker = 'taker';
-        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString2 (trade, 'tradeId', 'fillId'),
@@ -2234,7 +2230,7 @@ export default class bitget extends Exchange {
             'symbol': symbol,
             'side': this.safeStringLower (trade, 'side'),
             'type': this.safeString (trade, 'orderType'),
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': this.safeString2 (trade, 'fillPrice', 'price'),
             'amount': amount,
             'cost': undefined,
@@ -2352,7 +2348,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchTradingFee (symbol: string, params = {}) {
