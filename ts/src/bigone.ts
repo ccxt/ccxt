@@ -827,7 +827,6 @@ export default class bigone extends Exchange {
         //         "inserted_at": "2019-04-15T06:20:57Z"
         //     }
         //
-        const isPublicTrade = ('created_at' in trade);
         const timestamp = this.parse8601 (this.safeString2 (trade, 'created_at', 'inserted_at'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
@@ -838,9 +837,6 @@ export default class bigone extends Exchange {
         let takerOrMaker = undefined;
         if ((takerSide !== undefined) && (side !== undefined) && (side !== 'SELF_TRADING')) {
             takerOrMaker = (takerSide === side) ? 'taker' : 'maker';
-        }
-        if (isPublicTrade && (takerSide !== undefined) && (takerOrMaker === undefined)) {
-            takerOrMaker = 'taker'; // public trades are always "taker"
         }
         if (side === undefined) {
             // taker side is not related to buy/sell side
@@ -967,7 +963,7 @@ export default class bigone extends Exchange {
         //     }
         //
         const trades = this.safeValue (response, 'data', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseOHLCV (ohlcv, market = undefined) {
