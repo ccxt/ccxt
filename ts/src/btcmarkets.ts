@@ -733,7 +733,11 @@ export default class btcmarkets extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const takerOrMaker = this.safeStringLower (trade, 'liquidityType');
+        let takerOrMaker = this.safeStringLower (trade, 'liquidityType');
+        const isPublic = !('orderId' in trade) && !('clientOrderId' in trade) && !('liquidityType' in trade);
+        if (isPublic) {
+            takerOrMaker = 'taker'; // public trade always "taker"
+        }
         return this.safeTrade ({
             'info': trade,
             'id': id,
