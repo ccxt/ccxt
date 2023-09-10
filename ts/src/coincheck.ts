@@ -520,7 +520,7 @@ export default class coincheck extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchTradingFees (params = {}) {
