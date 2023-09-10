@@ -936,10 +936,6 @@ export default class bitpanda extends Exchange {
             };
             takerOrMaker = this.safeStringLower (feeInfo, 'fee_type');
         }
-        const isPublic = ('sequence' in trade);
-        if (isPublic && (takerOrMaker === undefined)) {
-            takerOrMaker = 'taker'; // public trade always "taker"
-        }
         return this.safeTrade ({
             'id': this.safeString2 (trade, 'trade_id', 'sequence'),
             'order': this.safeString (trade, 'order_id'),
@@ -996,7 +992,7 @@ export default class bitpanda extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseBalance (response) {
