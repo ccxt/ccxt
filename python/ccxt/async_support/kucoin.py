@@ -1090,8 +1090,10 @@ class kucoin(Exchange, ImplicitAPI):
             networks = {}
             chains = self.safe_value(entry, 'chains', [])
             extraChainsData = self.index_by(self.safe_value(additionalDataGrouped, id, []), 'chain')
-            precision = self.parse_number(self.parse_precision(self.safe_string(entry, 'precision')))
-            for j in range(0, len(chains)):
+            rawPrecision = self.safe_string(entry, 'precision')
+            precision = self.parse_number(self.parse_precision(rawPrecision))
+            chainsLength = len(chains)
+            for j in range(0, chainsLength):
                 chain = chains[j]
                 chainId = self.safe_string(chain, 'chain')
                 networkCode = self.network_id_to_code(chainId)
@@ -1127,10 +1129,13 @@ class kucoin(Exchange, ImplicitAPI):
                         },
                     },
                 }
+            # kucoin has determined 'fiat' currencies with below logic
+            isFiat = (rawPrecision == '2') and (chainsLength == 0)
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
+                'type': 'fiat' if isFiat else 'crypto',
                 'precision': precision,
                 'info': entry,
                 'active': (isDepositEnabled or isWithdrawEnabled),

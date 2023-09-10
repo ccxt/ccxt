@@ -1087,8 +1087,10 @@ class kucoin extends Exchange {
                 $networks = array();
                 $chains = $this->safe_value($entry, 'chains', array());
                 $extraChainsData = $this->index_by($this->safe_value($additionalDataGrouped, $id, array()), 'chain');
-                $precision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'precision')));
-                for ($j = 0; $j < count($chains); $j++) {
+                $rawPrecision = $this->safe_string($entry, 'precision');
+                $precision = $this->parse_number($this->parse_precision($rawPrecision));
+                $chainsLength = count($chains);
+                for ($j = 0; $j < $chainsLength; $j++) {
                     $chain = $chains[$j];
                     $chainId = $this->safe_string($chain, 'chain');
                     $networkCode = $this->network_id_to_code($chainId);
@@ -1127,10 +1129,13 @@ class kucoin extends Exchange {
                         ),
                     );
                 }
+                // kucoin has determined 'fiat' currencies with below logic
+                $isFiat = ($rawPrecision === '2') && ($chainsLength === 0);
                 $result[$code] = array(
                     'id' => $id,
                     'name' => $name,
                     'code' => $code,
+                    'type' => $isFiat ? 'fiat' : 'crypto',
                     'precision' => $precision,
                     'info' => $entry,
                     'active' => ($isDepositEnabled || $isWithdrawEnabled),

@@ -991,7 +991,17 @@ class binance extends \ccxt\async\binance {
         $client->resolve ($result, $messageHash);
         if ($event === 'bookTicker') {
             // watch bookTickers
-            $client->resolve (array( $result ), '!' . 'bookTicker@arr');
+            $client->resolve ($result, '!' . 'bookTicker@arr');
+            $messageHashes = $this->find_message_hashes($client, 'tickers::');
+            for ($i = 0; $i < count($messageHashes); $i++) {
+                $messageHash = $messageHashes[$i];
+                $parts = explode('::', $messageHash);
+                $symbolsString = $parts[1];
+                $symbols = explode(',', $symbolsString);
+                if ($this->in_array($symbol, $symbols)) {
+                    $client->resolve ($result, $messageHash);
+                }
+            }
         }
     }
 

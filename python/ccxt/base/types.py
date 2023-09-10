@@ -69,7 +69,7 @@ class Position(TypedDict):
     timestamp: int
     datetime: str
     contracts: Numeric
-    contractsSize: Numeric
+    contractSize: Numeric
     side: str
     notional: Numeric
     leverage: Numeric

@@ -267,13 +267,13 @@ class bitfinex2 extends bitfinex2$1 {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.myTrades = new Cache.ArrayCacheBySymbolById(limit);
         }
-        const array = this.myTrades;
-        array.append(trade);
-        this.myTrades = array;
+        const tradesArray = this.myTrades;
+        tradesArray.append(trade);
+        this.myTrades = tradesArray;
         // generic subscription
-        client.resolve(array, name);
+        client.resolve(tradesArray, name);
         // specific subscription
-        client.resolve(array, messageHash);
+        client.resolve(tradesArray, messageHash);
     }
     handleTrades(client, message, subscription) {
         //

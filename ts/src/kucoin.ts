@@ -1086,8 +1086,10 @@ export default class kucoin extends Exchange {
             const networks = {};
             const chains = this.safeValue (entry, 'chains', []);
             const extraChainsData = this.indexBy (this.safeValue (additionalDataGrouped, id, []), 'chain');
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'precision')));
-            for (let j = 0; j < chains.length; j++) {
+            const rawPrecision = this.safeString (entry, 'precision');
+            const precision = this.parseNumber (this.parsePrecision (rawPrecision));
+            const chainsLength = chains.length;
+            for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
                 const chainId = this.safeString (chain, 'chain');
                 const networkCode = this.networkIdToCode (chainId);
@@ -1126,10 +1128,13 @@ export default class kucoin extends Exchange {
                     },
                 };
             }
+            // kucoin has determined 'fiat' currencies with below logic
+            const isFiat = (rawPrecision === '2') && (chainsLength === 0);
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
+                'type': isFiat ? 'fiat' : 'crypto',
                 'precision': precision,
                 'info': entry,
                 'active': (isDepositEnabled || isWithdrawEnabled),

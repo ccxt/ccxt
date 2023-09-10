@@ -913,7 +913,15 @@ class binance(ccxt.async_support.binance):
         client.resolve(result, messageHash)
         if event == 'bookTicker':
             # watch bookTickers
-            client.resolve([result], '!' + 'bookTicker@arr')
+            client.resolve(result, '!' + 'bookTicker@arr')
+            messageHashes = self.find_message_hashes(client, 'tickers::')
+            for i in range(0, len(messageHashes)):
+                messageHash = messageHashes[i]
+                parts = messageHash.split('::')
+                symbolsString = parts[1]
+                symbols = symbolsString.split(',')
+                if self.in_array(symbol, symbols):
+                    client.resolve(result, messageHash)
 
     def handle_tickers(self, client: Client, message):
         index = client.url.find('/stream')

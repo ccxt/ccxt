@@ -259,8 +259,8 @@ class luno extends \ccxt\async\luno {
         //  create
         //     {
         //         sequence => '110980825',
-        //         trade_updates => $array(),
-        //         create_update => $array(
+        //         trade_updates => array(),
+        //         create_update => array(
         //             order_id => 'BXHSYXAUMH8C2RW',
         //             $type => 'ASK',
         //             price => '24081.09000000',
@@ -273,9 +273,9 @@ class luno extends \ccxt\async\luno {
         //  delete
         //     {
         //         sequence => '110980825',
-        //         trade_updates => $array(),
+        //         trade_updates => array(),
         //         create_update => null,
-        //         delete_update => $array(
+        //         delete_update => array(
         //             "order_id" => "BXMC2CJ7HNB88U4"
         //         ),
         //         status_update => null,
@@ -284,7 +284,7 @@ class luno extends \ccxt\async\luno {
         //  trade
         //     {
         //         sequence => '110980825',
-        //         trade_updates => $array(
+        //         trade_updates => array(
         //             {
         //                 "base" => "0.1",
         //                 "counter" => "5232.00",
@@ -302,12 +302,12 @@ class luno extends \ccxt\async\luno {
         $asksOrderSide = $orderbook['asks'];
         $bidsOrderSide = $orderbook['bids'];
         if ($createUpdate !== null) {
-            $array = $this->custom_parse_bid_ask($createUpdate, 'price', 'volume', 'order_id');
+            $bidAskArray = $this->custom_parse_bid_ask($createUpdate, 'price', 'volume', 'order_id');
             $type = $this->safe_string($createUpdate, 'type');
             if ($type === 'ASK') {
-                $asksOrderSide->storeArray ($array);
+                $asksOrderSide->storeArray ($bidAskArray);
             } elseif ($type === 'BID') {
-                $bidsOrderSide->storeArray ($array);
+                $bidsOrderSide->storeArray ($bidAskArray);
             }
         }
         $deleteUpdate = $this->safe_value($message, 'delete_update');

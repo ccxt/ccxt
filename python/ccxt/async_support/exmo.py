@@ -12,7 +12,6 @@ from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -698,17 +697,54 @@ class exmo(Exchange, ImplicitAPI):
         #         },
         #     }
         #
+        marginPairsDict = {}
+        if self.check_required_credentials(False):
+            marginPairs = await self.privatePostMarginPairList(params)
+            #
+            #    {
+            #        "pairs": [
+            #            {
+            #                "buy_price": "55978.85",
+            #                "default_leverage": "3",
+            #                "is_fair_price": True,
+            #                "last_trade_price": "55999.23",
+            #                "liquidation_fee": "2",
+            #                "liquidation_level": "10",
+            #                "margin_call_level": "15",
+            #                "max_leverage": "3",
+            #                "max_order_price": "150000",
+            #                "max_order_quantity": "1",
+            #                "max_position_quantity": "1",
+            #                "max_price_precision": 2,
+            #                "min_order_price": "1",
+            #                "min_order_quantity": "0.00002",
+            #                "name": "BTC_USD",
+            #                "position": 1,
+            #                "sell_price": "55985.51",
+            #                "ticker_updated": "1619019818936107989",
+            #                "trade_maker_fee": "0",
+            #                "trade_taker_fee": "0.05",
+            #                "updated": "1619008608955599013"
+            #            }
+            #        ]
+            #    }
+            #
+            pairs = self.safe_value(marginPairs, 'pairs')
+            marginPairsDict = self.index_by(pairs, 'name')
         keys = list(response.keys())
         result = []
         for i in range(0, len(keys)):
             id = keys[i]
             market = response[id]
+            marginMarket = self.safe_value(marginPairsDict, id)
             symbol = id.replace('_', '/')
             baseId, quoteId = symbol.split('/')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             takerString = self.safe_string(market, 'commission_taker_percent')
             makerString = self.safe_string(market, 'commission_maker_percent')
+            maxQuantity = self.safe_string(market, 'max_quantity')
+            marginMaxQuantity = self.safe_string(marginMarket, 'max_order_quantity')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -720,7 +756,7 @@ class exmo(Exchange, ImplicitAPI):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': True,
+                'margin': marginMarket is not None,
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -742,11 +778,11 @@ class exmo(Exchange, ImplicitAPI):
                 'limits': {
                     'leverage': {
                         'min': None,
-                        'max': None,
+                        'max': self.safe_number(market, 'leverage'),
                     },
                     'amount': {
                         'min': self.safe_number(market, 'min_quantity'),
-                        'max': self.safe_number(market, 'max_quantity'),
+                        'max': self.parse_number(Precise.string_max(maxQuantity, marginMaxQuantity)),
                     },
                     'price': {
                         'min': self.safe_number(market, 'min_price'),
@@ -1070,18 +1106,34 @@ class exmo(Exchange, ImplicitAPI):
         #         "commission_percent": "0.2"
         #     }
         #
+        # fetchMyTrades(margin)
+        #
+        #    {
+        #        "trade_id": "692861757015952517",
+        #        "trade_dt": "1693951853197811824",
+        #        "trade_type": "buy",
+        #        "pair": "ADA_USDT",
+        #        "quantity": "1.96607879",
+        #        "price": "0.2568",
+        #        "amount": "0.50488903"
+        #    }
+        #
         timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string(trade, 'trade_id')
         orderId = self.safe_string(trade, 'order_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'quantity')
         costString = self.safe_string(trade, 'amount')
-        side = self.safe_string(trade, 'type')
+        side = self.safe_string_2(trade, 'type', 'trade_type')
         type = None
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
-        takerOrMaker = self.safe_string(trade, 'exec_type')
+        isMaker = self.safe_value(trade, 'is_maker')
+        takerOrMakerDefault = None
+        if isMaker is not None:
+            takerOrMakerDefault = 'maker' if isMaker else 'taker'
+        takerOrMaker = self.safe_string(trade, 'exec_type', takerOrMakerDefault)
         fee = None
         feeCostString = self.safe_string(trade, 'commission_amount')
         if feeCostString is not None:
@@ -1154,33 +1206,84 @@ class exmo(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
-        :param str symbol: unified market symbol
+        see https://documenter.getpostman.com/view/10287440/SzYXWKPi#b8d8d9af-4f46-46a1-939b-ad261d79f452  # spot
+        see https://documenter.getpostman.com/view/10287440/SzYXWKPi#f4b1aaf8-399f-403b-ab5e-4926d967a106  # margin
+        :param str symbol: a symbol is required but it can be a single string, or a non-empty array
         :param int [since]: the earliest time in ms to fetch trades for
-        :param int [limit]: the maximum number of trades structures to retrieve
+        :param int [limit]: *required for margin orders* the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exmo api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int [params.offset]: last deal offset, default = 0
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        # a symbol is required but it can be a single string, or a non-empty array
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument(a single symbol or an array)')
+        self.check_required_symbol('fetchMyTrades', symbol)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
+        if marginMode == 'cross':
+            raise BadRequest(self.id + 'only isolated margin is supported')
         await self.load_markets()
-        pair = None
-        market = None
-        if isinstance(symbol, list):
-            numSymbols = len(symbol)
-            if numSymbols < 1:
-                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a non-empty symbol array')
-            marketIds = self.market_ids(symbol)
-            pair = ','.join(marketIds)
+        market = self.market(symbol)
+        pair = market['id']
+        isSpot = marginMode != 'isolated'
+        if limit is None:
+            limit = 100
+        request = {}
+        if isSpot:
+            request['pair'] = pair
         else:
-            market = self.market(symbol)
-            pair = market['id']
-        request = {
-            'pair': pair,
-        }
+            request['pair_name'] = pair
         if limit is not None:
             request['limit'] = limit
-        response = await self.privatePostUserTrades(self.extend(request, params))
+        offset = self.safe_integer(params, 'offset', 0)
+        request['offset'] = offset
+        response = None
+        if isSpot:
+            response = await self.privatePostUserTrades(self.extend(request, params))
+            #
+            #    {
+            #        "BTC_USD": [
+            #            {
+            #                "trade_id": 20056872,
+            #                "client_id": 100500,
+            #                "date": 1435488248,
+            #                "type": "buy",
+            #                "pair": "BTC_USD",
+            #                "quantity": "1",
+            #                "price": "100",
+            #                "amount": "100",
+            #                "order_id": 7,
+            #                "parent_order_id": 117684023830293,
+            #                "exec_type": "taker",
+            #                "commission_amount": "0.02",
+            #                "commission_currency": "BTC",
+            #                "commission_percent": "0.2"
+            #            }
+            #        ],
+            #        ...
+            #    }
+            #
+        else:
+            responseFromExchange = await self.privatePostMarginTrades(self.extend(request, params))
+            #
+            #    {
+            #        "trades": {
+            #            "ADA_USDT": [
+            #                {
+            #                    "trade_id": "692861757015952517",
+            #                    "trade_dt": "1693951853197811824",
+            #                    "trade_type": "buy",
+            #                    "pair": "ADA_USDT",
+            #                    "quantity": "1.96607879",
+            #                    "price": "0.2568",
+            #                    "amount": "0.50488903"
+            #                },
+            #            ]
+            #            ...
+            #        }
+            #    }
+            #
+            response = self.safe_value(responseFromExchange, 'trades')
         result = []
         marketIdsInner = list(response.keys())
         for i in range(0, len(marketIdsInner)):
@@ -1295,45 +1398,72 @@ class exmo(Exchange, ImplicitAPI):
     async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
+        see https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  # spot
+        see https://documenter.getpostman.com/view/10287440/SzYXWKPi#00810661-9119-46c5-aec5-55abe9cb42c7  # margin
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exmo api endpoint
+        :param str [params.marginMode]: set to "isolated" to fetch trades for a margin order
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchOrderTrades', params)
+        if marginMode == 'cross':
+            raise BadRequest(self.id + ' only supports isolated margin')
         market = None
         if symbol is not None:
             market = self.market(symbol)
         request = {
             'order_id': str(id),
         }
-        response = await self.privatePostOrderTrades(self.extend(request, params))
-        #
-        #     {
-        #         "type": "buy",
-        #         "in_currency": "BTC",
-        #         "in_amount": "1",
-        #         "out_currency": "USD",
-        #         "out_amount": "100",
-        #         "trades": [
-        #             {
-        #                 "trade_id": 3,
-        #                 "date": 1435488248,
-        #                 "type": "buy",
-        #                 "pair": "BTC_USD",
-        #                 "order_id": 12345,
-        #                 "quantity": 1,
-        #                 "price": 100,
-        #                 "amount": 100,
-        #                 "exec_type": "taker",
-        #                 "commission_amount": "0.02",
-        #                 "commission_currency": "BTC",
-        #                 "commission_percent": "0.2"
-        #             }
-        #         ]
-        #     }
-        #
+        response = None
+        if marginMode == 'isolated':
+            response = await self.privatePostMarginUserOrderTrades(self.extend(request, params))
+            #
+            #    {
+            #        "trades": [
+            #            {
+            #                "is_maker": False,
+            #                "order_id": "123",
+            #                "pair": "BTC_USD",
+            #                "price": "54122.25",
+            #                "quantity": "0.00069994",
+            #                "trade_dt": "1619069561718824428",
+            #                "trade_id": "692842802860135010",
+            #                "type": "sell"
+            #            }
+            #        ]
+            #    }
+            #
+        else:
+            response = await self.privatePostOrderTrades(self.extend(request, params))
+            #
+            #     {
+            #         "type": "buy",
+            #         "in_currency": "BTC",
+            #         "in_amount": "1",
+            #         "out_currency": "USD",
+            #         "out_amount": "100",
+            #         "trades": [
+            #             {
+            #                 "trade_id": 3,
+            #                 "date": 1435488248,
+            #                 "type": "buy",
+            #                 "pair": "BTC_USD",
+            #                 "order_id": 12345,
+            #                 "quantity": 1,
+            #                 "price": 100,
+            #                 "amount": 100,
+            #                 "exec_type": "taker",
+            #                 "commission_amount": "0.02",
+            #                 "commission_currency": "BTC",
+            #                 "commission_percent": "0.2"
+            #             }
+            #         ]
+            #     }
+            #
         trades = self.safe_value(response, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
