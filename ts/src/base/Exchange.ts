@@ -2862,6 +2862,17 @@ export default class Exchange {
             const percentageString = Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100');
             position['percentage'] = this.parseNumber (percentageString);
         }
+        // if contractSize is undefined get from market
+        let contractSize = this.safeNumber (position, 'contractSize');
+        const symbol = this.safeString (position, 'symbol');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (contractSize === undefined && market !== undefined) {
+            contractSize = this.safeNumber (market, 'contractSize');
+            position['contractSize'] = contractSize;
+        }
         return position as any;
     }
 
