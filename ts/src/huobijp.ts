@@ -915,7 +915,7 @@ export default class huobijp extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const trades = this.safeValue (data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
-                const trade = this.parseTrade (trades[j], market);
+                const trade = this.extend (this.parseTrade (trades[j], market), { 'takerOrMaker': 'taker' });
                 result.push (trade);
             }
         }
