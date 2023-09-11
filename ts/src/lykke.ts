@@ -649,7 +649,7 @@ export default class lykke extends Exchange {
         //         "error":null
         //     }
         //
-        return this.parseTrades (result, market, since, limit);
+        return this.parseTrades (result, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseBalance (response) {
