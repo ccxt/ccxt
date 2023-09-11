@@ -1611,7 +1611,7 @@ export default class exmo extends Exchange {
         const statuses = {
             'cancel_started': 'canceled',
         };
-        if (status.indexOf ('cancel', status) >= 0) {
+        if (status.indexOf ('cancel') >= 0) {
             status = 'canceled';
         }
         return this.safeString (statuses, status, status);
