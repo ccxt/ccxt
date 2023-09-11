@@ -454,7 +454,7 @@ export default class zaif extends Exchange {
                 response = [];
             }
         }
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
