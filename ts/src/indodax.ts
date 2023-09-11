@@ -517,7 +517,7 @@ export default class indodax extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetPairTrades (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseOrderStatus (status) {
