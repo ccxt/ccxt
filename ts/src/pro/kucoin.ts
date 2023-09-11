@@ -633,7 +633,7 @@ export default class kucoin extends kucoinRest {
             'cost': undefined,
             'average': undefined,
             'filled': filled,
-            'remaining': undefined,
+            'remaining': this.safeNumber (order, 'remainSize'),
             'status': status,
             'fee': undefined,
             'trades': trades,
