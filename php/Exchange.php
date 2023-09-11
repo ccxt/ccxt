@@ -839,7 +839,7 @@ class Exchange {
     }
 
     public static function is_empty($object) {
-        return empty($object);
+        return empty($object) || count($object) === 0;
     }
 
     public static function keysort($array) {
