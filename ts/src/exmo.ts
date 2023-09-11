@@ -1289,7 +1289,7 @@ export default class exmo extends Exchange {
         //     }
         //
         const data = this.safeValue (response, market['id'], []);
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
