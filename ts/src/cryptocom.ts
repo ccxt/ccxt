@@ -769,7 +769,7 @@ export default class cryptocom extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const trades = this.safeValue (result, 'data', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
