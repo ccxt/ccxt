@@ -1419,7 +1419,7 @@ export default class phemex extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const trades = this.safeValue2 (result, 'trades', 'trades_p', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseTrade (trade, market = undefined) {
