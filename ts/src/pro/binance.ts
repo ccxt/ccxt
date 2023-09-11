@@ -97,7 +97,7 @@ export default class binance extends binanceRest {
                 },
                 'watchPositions': {
                     'fetchPositionsSnapshot': true, // or false
-                    'awaitPositionsSnapshot': false, // whether to wait for the positions snapshot before providing updates
+                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
                 'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate': 1200000, // 20 mins
@@ -2195,7 +2195,8 @@ export default class binance extends binanceRest {
         const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.positions[type];
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.isEmpty (cache)) {
-            return await client.future (type + ':fetchPositionsSnapshot');
+            const snapshot = await client.future (type + ':fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
         }
         const newPositions = await this.watch (url, messageHash, undefined, type);
         if (this.newUpdates) {
