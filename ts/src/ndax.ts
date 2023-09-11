@@ -987,7 +987,7 @@ export default class ndax extends Exchange {
         //         [6913255,8,0.000006,19107.81,2543430495,2543430793,1606935933881,2,0,0,0],
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchAccounts (params = {}) {
