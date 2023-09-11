@@ -464,7 +464,7 @@ export default class wazirx extends Exchange {
         //         "isBuyerMaker":false
         //     },
         // ]
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseTrade (trade, market = undefined) {
