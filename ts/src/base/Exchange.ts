@@ -1025,19 +1025,31 @@ export default class Exchange {
         let currencies = undefined
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
-            currencies = await this.fetchCurrencies ()
+            const currenciesFromOutside = this.safeValue (params, 'currenciesFromOutside', undefined);
+            if (!currenciesFromOutside || reload) {
+                currencies = await this.fetchCurrencies ()
+                const fetchCurrenciesCallback = this.safeValue (params, 'fetchCurrenciesCallback', undefined);
+                if (fetchCurrenciesCallback) {
+                    currencies = fetchCurrenciesCallback (currencies)
+                    this.omit(params, 'fetchCurrenciesCallback')
+                }
+            } else {
+                currencies = currenciesFromOutside
+                this.omit(params, 'currenciesFromOutside')
+            }
         }
         let markets
-        // TODO strip loadFromOutside, loadedMarketCallback params to avoid side effects
         const loadFromOutside = this.safeValue(params, 'loadFromOutside', undefined);
         if (!loadFromOutside || reload) {
             markets = await this.fetchMarkets (params)
-            const loadedMarketCallback = this.safeValue(params, 'loadedMarketCallback', undefined);
+            const loadedMarketCallback = this.safeValue (params, 'loadedMarketCallback', undefined);
             if (loadedMarketCallback) {
                 loadedMarketCallback (markets)
+                this.omit(params, 'loadedMarketCallback')
             }
         } else {
             markets = this.fetchMarketsFromOutside (loadFromOutside)
+            this.omit(params, 'loadFromOutside')
         }
         return this.setMarkets (markets, currencies)
     }
