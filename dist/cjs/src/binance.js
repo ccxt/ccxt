@@ -106,6 +106,7 @@ class binance extends binance$1 {
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,

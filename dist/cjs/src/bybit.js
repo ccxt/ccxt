@@ -87,6 +87,7 @@ class bybit extends bybit$1 {
                 'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,

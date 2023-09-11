@@ -2227,6 +2227,7 @@ class bitmex(Exchange, ImplicitAPI):
         params = self.omit(params, ['until', 'till'])
         if until is not None:
             request['endTime'] = self.iso8601(until)
+        request['reverse'] = True
         response = await self.publicGetFunding(self.extend(request, params))
         #
         #    [

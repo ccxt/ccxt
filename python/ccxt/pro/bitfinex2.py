@@ -256,13 +256,13 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
-        array = self.myTrades
-        array.append(trade)
-        self.myTrades = array
+        tradesArray = self.myTrades
+        tradesArray.append(trade)
+        self.myTrades = tradesArray
         # generic subscription
-        client.resolve(array, name)
+        client.resolve(tradesArray, name)
         # specific subscription
-        client.resolve(array, messageHash)
+        client.resolve(tradesArray, messageHash)
 
     def handle_trades(self, client: Client, message, subscription):
         #

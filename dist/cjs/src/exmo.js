@@ -1173,18 +1173,35 @@ class exmo extends exmo$1 {
         //         "commission_percent": "0.2"
         //     }
         //
+        // fetchMyTrades (margin)
+        //
+        //    {
+        //        "trade_id": "692861757015952517",
+        //        "trade_dt": "1693951853197811824",
+        //        "trade_type": "buy",
+        //        "pair": "ADA_USDT",
+        //        "quantity": "1.96607879",
+        //        "price": "0.2568",
+        //        "amount": "0.50488903"
+        //    }
+        //
         const timestamp = this.safeTimestamp(trade, 'date');
         const id = this.safeString(trade, 'trade_id');
         const orderId = this.safeString(trade, 'order_id');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'quantity');
         const costString = this.safeString(trade, 'amount');
-        const side = this.safeString(trade, 'type');
+        const side = this.safeString2(trade, 'type', 'trade_type');
         const type = undefined;
         const marketId = this.safeString(trade, 'pair');
         market = this.safeMarket(marketId, market, '_');
         const symbol = market['symbol'];
-        const takerOrMaker = this.safeString(trade, 'exec_type');
+        const isMaker = this.safeValue(trade, 'is_maker');
+        let takerOrMakerDefault = undefined;
+        if (isMaker !== undefined) {
+            takerOrMakerDefault = isMaker ? 'maker' : 'taker';
+        }
+        const takerOrMaker = this.safeString(trade, 'exec_type', takerOrMakerDefault);
         let fee = undefined;
         const feeCostString = this.safeString(trade, 'commission_amount');
         if (feeCostString !== undefined) {
@@ -1263,38 +1280,91 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#b8d8d9af-4f46-46a1-939b-ad261d79f452  // spot
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#f4b1aaf8-399f-403b-ab5e-4926d967a106  // margin
+         * @param {string} symbol a symbol is required but it can be a single string, or a non-empty array
          * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {int} [limit] *required for margin orders* the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exmo api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.offset] last deal offset, default = 0
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        // a symbol is required but it can be a single string, or a non-empty array
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument (a single symbol or an array)');
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchMyTrades', params);
+        if (marginMode === 'cross') {
+            throw new errors.BadRequest(this.id + 'only isolated margin is supported');
         }
         await this.loadMarkets();
-        let pair = undefined;
-        let market = undefined;
-        if (Array.isArray(symbol)) {
-            const numSymbols = symbol.length;
-            if (numSymbols < 1) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a non-empty symbol array');
-            }
-            const marketIds = this.marketIds(symbol);
-            pair = marketIds.join(',');
+        const market = this.market(symbol);
+        const pair = market['id'];
+        const isSpot = marginMode !== 'isolated';
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {};
+        if (isSpot) {
+            request['pair'] = pair;
         }
         else {
-            market = this.market(symbol);
-            pair = market['id'];
+            request['pair_name'] = pair;
         }
-        const request = {
-            'pair': pair,
-        };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostUserTrades(this.extend(request, params));
+        const offset = this.safeInteger(params, 'offset', 0);
+        request['offset'] = offset;
+        let response = undefined;
+        if (isSpot) {
+            response = await this.privatePostUserTrades(this.extend(request, params));
+            //
+            //    {
+            //        "BTC_USD": [
+            //            {
+            //                "trade_id": 20056872,
+            //                "client_id": 100500,
+            //                "date": 1435488248,
+            //                "type": "buy",
+            //                "pair": "BTC_USD",
+            //                "quantity": "1",
+            //                "price": "100",
+            //                "amount": "100",
+            //                "order_id": 7,
+            //                "parent_order_id": 117684023830293,
+            //                "exec_type": "taker",
+            //                "commission_amount": "0.02",
+            //                "commission_currency": "BTC",
+            //                "commission_percent": "0.2"
+            //            }
+            //        ],
+            //        ...
+            //    }
+            //
+        }
+        else {
+            const responseFromExchange = await this.privatePostMarginTrades(this.extend(request, params));
+            //
+            //    {
+            //        "trades": {
+            //            "ADA_USDT": [
+            //                {
+            //                    "trade_id": "692861757015952517",
+            //                    "trade_dt": "1693951853197811824",
+            //                    "trade_type": "buy",
+            //                    "pair": "ADA_USDT",
+            //                    "quantity": "1.96607879",
+            //                    "price": "0.2568",
+            //                    "amount": "0.50488903"
+            //                },
+            //            ]
+            //            ...
+            //        }
+            //    }
+            //
+            response = this.safeValue(responseFromExchange, 'trades');
+        }
         let result = [];
         const marketIdsInner = Object.keys(response);
         for (let i = 0; i < marketIdsInner.length; i++) {
@@ -1424,13 +1494,21 @@ class exmo extends exmo$1 {
          * @method
          * @name exmo#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#00810661-9119-46c5-aec5-55abe9cb42c7  // margin
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {string} [params.marginMode] set to "isolated" to fetch trades for a margin order
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchOrderTrades', params);
+        if (marginMode === 'cross') {
+            throw new errors.BadRequest(this.id + ' only supports isolated margin');
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1438,32 +1516,54 @@ class exmo extends exmo$1 {
         const request = {
             'order_id': id.toString(),
         };
-        const response = await this.privatePostOrderTrades(this.extend(request, params));
-        //
-        //     {
-        //         "type": "buy",
-        //         "in_currency": "BTC",
-        //         "in_amount": "1",
-        //         "out_currency": "USD",
-        //         "out_amount": "100",
-        //         "trades": [
-        //             {
-        //                 "trade_id": 3,
-        //                 "date": 1435488248,
-        //                 "type": "buy",
-        //                 "pair": "BTC_USD",
-        //                 "order_id": 12345,
-        //                 "quantity": 1,
-        //                 "price": 100,
-        //                 "amount": 100,
-        //                 "exec_type": "taker",
-        //                 "commission_amount": "0.02",
-        //                 "commission_currency": "BTC",
-        //                 "commission_percent": "0.2"
-        //             }
-        //         ]
-        //     }
-        //
+        let response = undefined;
+        if (marginMode === 'isolated') {
+            response = await this.privatePostMarginUserOrderTrades(this.extend(request, params));
+            //
+            //    {
+            //        "trades": [
+            //            {
+            //                "is_maker": false,
+            //                "order_id": "123",
+            //                "pair": "BTC_USD",
+            //                "price": "54122.25",
+            //                "quantity": "0.00069994",
+            //                "trade_dt": "1619069561718824428",
+            //                "trade_id": "692842802860135010",
+            //                "type": "sell"
+            //            }
+            //        ]
+            //    }
+            //
+        }
+        else {
+            response = await this.privatePostOrderTrades(this.extend(request, params));
+            //
+            //     {
+            //         "type": "buy",
+            //         "in_currency": "BTC",
+            //         "in_amount": "1",
+            //         "out_currency": "USD",
+            //         "out_amount": "100",
+            //         "trades": [
+            //             {
+            //                 "trade_id": 3,
+            //                 "date": 1435488248,
+            //                 "type": "buy",
+            //                 "pair": "BTC_USD",
+            //                 "order_id": 12345,
+            //                 "quantity": 1,
+            //                 "price": 100,
+            //                 "amount": 100,
+            //                 "exec_type": "taker",
+            //                 "commission_amount": "0.02",
+            //                 "commission_currency": "BTC",
+            //                 "commission_percent": "0.2"
+            //             }
+            //         ]
+            //     }
+            //
+        }
         const trades = this.safeValue(response, 'trades');
         return this.parseTrades(trades, market, since, limit);
     }

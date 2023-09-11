@@ -1481,10 +1481,7 @@ asyncio.run(print_poloniex_ethbtc_ticker())
 
 ### PHP
 
-In the PHP 5-compatible version all API methods are synchronous, but with PHP 7.1+ the CCXT library optionally supports asynchronous concurrency mode using the 'yield' syntax (very similar to async/await in Python). The asynchronous PHP version uses the [RecoilPHP](https://github.com/recoilphp/recoil), [ReactPHP](https://reactphp.org/) and [clue/reactphp-buzz](https://github.com/clue/reactphp-buzz) libraries. In async mode you have all the same properties and methods, but any networking API method should be decorated with the `yield` keyword, your script should be in a ReactPHP/RecoilPHP wrapper, and all exchange constructors need to be passed the loop and kernel instances from the wrapper.
-
-To use the async version of the library, use the `ccxt_async` namespace, as in the following example:
-
+CCXT support PHP 8+ versions. The library has both synchronous and asynchronous versions. To use synchronous version, use `\ccxt` namespace (i.e. `new ccxt\binance()`) and to use asynchronous version, use `\ccxt\async` namespace (i.e. `new ccxt\async\binance()`). Asynchronous version uses [ReactPHP](https://reactphp.org/) library in the background. In async mode you have all the same properties and methods, but any networking API method should be decorated with the `\React\Async\await` keyword and your script should be in a ReactPHP wrapper:
 ```php
 // PHP
 <?php
@@ -1592,6 +1589,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
 - `fetchOpenInterest ([symbol[, params]])`
 - `fetchVolatilityHistory ([code[, params]])`
+- `fetchUnderlyingAssets ()`
 - ...
 
 ```text
@@ -1899,6 +1897,7 @@ if ($exchange->has['fetchMyTrades']) {
 - [Funding Rate History](#funding-rate-history)
 - [Open Interest History](#open-interest-history)
 - [Volatility History](#volatility-history)
+- [Underlying Assets](#underlying-assets)
 
 ## Order Book
 
@@ -2934,6 +2933,31 @@ Returns
     datetime: '2023-07-28T00:50:00.000Z',
     volatility: 0.23854072,
 }
+```
+
+## Underlying Assets
+
+*contract only*
+
+Use the `fetchUnderlyingAssets` method to get the market id's of underlying assets for a contract market type from the exchange.
+
+```javascript
+fetchUnderlyingAssets (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"instType": "OPTION"}`)
+- **params.type** (String) Unified marketType, the default is 'option' (e.g. `"option"`)
+
+Returns
+
+- An [underlying assets structure](#underlying-assets-structure)
+
+### Underlying Assets Structure
+
+```javascript
+[ 'BTC_USDT', 'ETH_USDT', 'DOGE_USDT' ]
 ```
 
 # Private API

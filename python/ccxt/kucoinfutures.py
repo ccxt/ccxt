@@ -1099,11 +1099,18 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'leverage': 1,
         }
         triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
+        triggerPriceTypes = {
+            'mark': 'MP',
+            'last': 'TP',
+            'index': 'IP',
+        }
+        triggerPriceType = self.safe_string(params, 'triggerPriceType', 'mark')
+        triggerPriceTypeValue = self.safe_string(triggerPriceTypes, triggerPriceType, triggerPriceType)
         params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice'])
         if triggerPrice:
             request['stop'] = 'up' if (side == 'buy') else 'down'
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
-            request['stopPriceType'] = 'MP'
+            request['stopPriceType'] = triggerPriceTypeValue
         elif stopLossPrice or takeProfitPrice:
             if stopLossPrice:
                 request['stop'] = 'up' if (side == 'buy') else 'down'
@@ -1112,7 +1119,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 request['stop'] = 'down' if (side == 'buy') else 'up'
                 request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
             request['reduceOnly'] = True
-            request['stopPriceType'] = 'MP'
+            request['stopPriceType'] = triggerPriceTypeValue
         uppercaseType = type.upper()
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if uppercaseType == 'LIMIT':

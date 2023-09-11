@@ -1235,6 +1235,9 @@ export default class hitbtc extends Exchange {
         if (taker !== undefined) {
             takerOrMaker = taker ? 'taker' : 'maker';
         }
+        else {
+            takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
+        }
         if (feeCostString !== undefined) {
             const info = this.safeValue(market, 'info', {});
             const feeCurrency = this.safeString(info, 'fee_currency');

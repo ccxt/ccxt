@@ -131,6 +131,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchTransactionFees': True,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
+                'fetchUnderlyingAssets': False,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
