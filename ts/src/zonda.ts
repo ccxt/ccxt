@@ -1335,7 +1335,7 @@ export default class zonda extends Exchange {
         }
         const response = await this.v1_01PublicGetTradingTransactionsSymbol (this.extend (request, params));
         const items = this.safeValue (response, 'items');
-        return this.parseTrades (items, market, since, limit);
+        return this.parseTrades (items, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
