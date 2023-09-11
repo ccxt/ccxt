@@ -728,7 +728,7 @@ export default class yobit extends Exchange {
             }
         }
         const result = this.safeValue (response, market['id'], []);
-        return this.parseTrades (result, market, since, limit);
+        return this.parseTrades (result, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchTradingFees (params = {}) {
