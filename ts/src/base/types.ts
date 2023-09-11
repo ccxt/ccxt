@@ -190,34 +190,34 @@ export interface DepositAddressResponse {
 }
 
 export interface Position {
-    symbol: string;
-    id: string;
-    timestamp?: number;
-    datetime: string;
+    collateral?: number;
     contracts?: number;
     contractSize?: number;
-    side: string;
-    notional?: number;
-    leverage?: number;
-    unrealizedPnl?: number;
-    realizedPnl?: number;
-    collateral?: number;
+    datetime: string;
     entryPrice?: number;
-    markPrice?: number;
-    liquidationPrice?: number;
     hedged?: boolean;
-    maintenanceMargin?: number;
-    maintenanceMarginPercentage?: number;
+    id: string;
+    info: any;
     initialMargin?: number;
     initialMarginPercentage?: number;
+    lastPrice?: number;
+    lastUpdateTimestamp?: number;
+    leverage?: number;
+    liquidationPrice?: number;
+    maintenanceMargin?: number;
+    maintenanceMarginPercentage?: number;
     marginMode: string;
     marginRatio?: number;
-    lastUpdateTimestamp?: number;
-    lastPrice?: number;
+    markPrice?: number;
+    notional?: number;
     percentage?: number;
+    realizedPnl?: number;
+    side: string;
     stopLossPrice?: number;
+    symbol: string;
     takeProfitPrice?: number;
-    info: any;
+    timestamp?: number;
+    unrealizedPnl?: number;
 }
 
 /** [ timestamp, open, high, low, close, volume ] */
