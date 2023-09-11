@@ -402,8 +402,18 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const deltaEnd = this.safeInteger (data, 'sequence');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            const topic = this.safeString (message, 'topic');
-            const subscription = client.subscriptions[topic];
+            const topicParts = topic.split (':');
+            const topicSymbol = this.safeString (topicParts, 1);
+            const topicChannel = this.safeString (topicParts, 0);
+            const subscriptions = Object.keys (client.subscriptions);
+            let subscription = undefined;
+            for (let i = 0; i < subscriptions.length; i++) {
+                const key = subscriptions[i];
+                if ((key.indexOf (topicSymbol) >= 0) && (key.indexOf (topicChannel) >= 0)) {
+                    subscription = client.subscriptions[key];
+                    break;
+                }
+            }
             const limit = this.safeInteger (subscription, 'limit');
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
             if (cacheLength === snapshotDelay) {
