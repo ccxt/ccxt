@@ -22,6 +22,8 @@ class okx extends \ccxt\async\okx {
                 'watchTickers' => true,
                 'watchOrderBook' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
+                'watchOrderBookForSymbols' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => true,
                 'watchOrders' => true,
@@ -183,6 +185,48 @@ class okx extends \ccxt\async\okx {
         }) ();
     }
 
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular symbol
+             * @param {string} symbol unified symbol of the market to fetch $trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 0) {
+                throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
+            }
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $channel = 'trades';
+            $topics = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $marketId = $this->market_id($symbols[$i]);
+                $topic = array(
+                    'channel' => $channel,
+                    'instId' => $marketId,
+                );
+                $topics[] = $topic;
+            }
+            $request = array(
+                'op' => 'subscribe',
+                'args' => $topics,
+            );
+            $messageHash = 'multipleTrades::' . implode(',', $symbols);
+            $url = $this->get_url($channel, 'public');
+            $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            if ($this->newUpdates) {
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
     public function handle_trades(Client $client, $message) {
         //
         //     {
@@ -215,6 +259,7 @@ class okx extends \ccxt\async\okx {
             }
             $stored->append ($trade);
             $client->resolve ($stored, $messageHash);
+            $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $stored);
         }
         return $message;
     }
@@ -418,6 +463,42 @@ class okx extends \ccxt\async\okx {
         }) ();
     }
 
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string[]} $symbols unified array of $symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $options = $this->safe_value($this->options, 'watchOrderBook', array());
+            $depth = $this->safe_string($options, 'depth', 'books');
+            if (($depth === 'books-l2-tbt') || ($depth === 'books50-l2-tbt')) {
+                Async\await($this->authenticate(array( 'access' => 'public' )));
+            }
+            $topics = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $marketId = $this->market_id($symbols[$i]);
+                $topic = array(
+                    'channel' => $depth,
+                    'instId' => $marketId,
+                );
+                $topics[] = $topic;
+            }
+            $request = array(
+                'op' => 'subscribe',
+                'args' => $topics,
+            );
+            $url = $this->get_url($depth, 'public');
+            $messageHash = 'multipleOrderbooks::' . implode(',', $symbols);
+            $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            return $orderbook->limit ();
+        }) ();
+    }
+
     public function handle_delta($bookside, $delta) {
         //
         //     array(
@@ -600,6 +681,7 @@ class okx extends \ccxt\async\okx {
                 $orderbook['symbol'] = $symbol;
                 $this->handle_order_book_message($client, $update, $orderbook, $messageHash);
                 $client->resolve ($orderbook, $messageHash);
+                $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbooks::', $symbol, $orderbook);
             }
         } elseif ($action === 'update') {
             if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
@@ -608,6 +690,7 @@ class okx extends \ccxt\async\okx {
                     $update = $data[$i];
                     $this->handle_order_book_message($client, $update, $orderbook, $messageHash);
                     $client->resolve ($orderbook, $messageHash);
+                    $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbooks::', $symbol, $orderbook);
                 }
             }
         } elseif (($channel === 'books5') || ($channel === 'bbo-tbt')) {
@@ -622,6 +705,7 @@ class okx extends \ccxt\async\okx {
                 $snapshot = $this->parse_order_book($update, $symbol, $timestamp, 'bids', 'asks', 0, 1);
                 $orderbook->reset ($snapshot);
                 $client->resolve ($orderbook, $messageHash);
+                $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbooks::', $symbol, $orderbook);
             }
         }
         return $message;

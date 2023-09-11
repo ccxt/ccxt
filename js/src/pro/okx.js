@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import okxRest from '../okx.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
+import { AuthenticationError, BadRequest, InvalidNonce, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -19,6 +19,8 @@ export default class okx extends okxRest {
                 'watchTickers': true,
                 'watchOrderBook': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
+                'watchOrderBookForSymbols': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
                 'watchOrders': true,
@@ -172,6 +174,47 @@ export default class okx extends okxRest {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const channel = 'trades';
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const marketId = this.marketId(symbols[i]);
+            const topic = {
+                'channel': channel,
+                'instId': marketId,
+            };
+            topics.push(topic);
+        }
+        const request = {
+            'op': 'subscribe',
+            'args': topics,
+        };
+        const messageHash = 'multipleTrades::' + symbols.join(',');
+        const url = this.getUrl(channel, 'public');
+        const trades = await this.watch(url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            const first = this.safeValue(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+    }
     handleTrades(client, message) {
         //
         //     {
@@ -204,6 +247,7 @@ export default class okx extends okxRest {
             }
             stored.append(trade);
             client.resolve(stored, messageHash);
+            this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, stored);
         }
         return message;
     }
@@ -400,6 +444,41 @@ export default class okx extends okxRest {
         const orderbook = await this.subscribe('public', depth, depth, symbol, params);
         return orderbook.limit();
     }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const options = this.safeValue(this.options, 'watchOrderBook', {});
+        const depth = this.safeString(options, 'depth', 'books');
+        if ((depth === 'books-l2-tbt') || (depth === 'books50-l2-tbt')) {
+            await this.authenticate({ 'access': 'public' });
+        }
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const marketId = this.marketId(symbols[i]);
+            const topic = {
+                'channel': depth,
+                'instId': marketId,
+            };
+            topics.push(topic);
+        }
+        const request = {
+            'op': 'subscribe',
+            'args': topics,
+        };
+        const url = this.getUrl(depth, 'public');
+        const messageHash = 'multipleOrderbooks::' + symbols.join(',');
+        const orderbook = await this.watch(url, messageHash, request, messageHash);
+        return orderbook.limit();
+    }
     handleDelta(bookside, delta) {
         //
         //     [
@@ -579,6 +658,7 @@ export default class okx extends okxRest {
                 orderbook['symbol'] = symbol;
                 this.handleOrderBookMessage(client, update, orderbook, messageHash);
                 client.resolve(orderbook, messageHash);
+                this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbooks::', symbol, orderbook);
             }
         }
         else if (action === 'update') {
@@ -588,6 +668,7 @@ export default class okx extends okxRest {
                     const update = data[i];
                     this.handleOrderBookMessage(client, update, orderbook, messageHash);
                     client.resolve(orderbook, messageHash);
+                    this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbooks::', symbol, orderbook);
                 }
             }
         }
@@ -603,6 +684,7 @@ export default class okx extends okxRest {
                 const snapshot = this.parseOrderBook(update, symbol, timestamp, 'bids', 'asks', 0, 1);
                 orderbook.reset(snapshot);
                 client.resolve(orderbook, messageHash);
+                this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbooks::', symbol, orderbook);
             }
         }
         return message;

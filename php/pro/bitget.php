@@ -23,11 +23,14 @@ class bitget extends \ccxt\async\bitget {
                 'watchBalance' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
+                'watchOHLCVForSymbols' => true,
                 'watchOrderBook' => true,
+                'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -284,6 +287,44 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
+    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
+            /**
+             * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $topics = array();
+            $hashes = array();
+            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+                $data = $symbolsAndTimeframes[$i];
+                $symbol = $this->safe_string($data, 0);
+                $timeframe = $this->safe_string($data, 1);
+                $market = $this->market($symbol);
+                $interval = $this->safe_string($this->options['timeframes'], $timeframe);
+                $instType = $market['spot'] ? 'sp' : 'mc';
+                $args = array(
+                    'instType' => $instType,
+                    'channel' => 'candle' . $interval,
+                    'instId' => $this->get_ws_market_id($market),
+                );
+                $topics[] = $args;
+                $hashes[] = $symbol . '#' . $timeframe;
+            }
+            $messageHash = 'multipleOHLCV::' . implode(',', $hashes);
+            list($symbol, $timeframe, $stored) = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
+            if ($this->newUpdates) {
+                $limit = $stored->getLimit ($symbol, $limit);
+            }
+            $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
+            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
+        }) ();
+    }
+
     public function handle_ohlcv(Client $client, $message) {
         //
         //   {
@@ -335,6 +376,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $messageHash = 'candles:' . $timeframe . ':' . $symbol;
         $client->resolve ($stored, $messageHash);
+        $this->resolve_multiple_ohlcv($client, 'multipleOHLCV::', $symbol, $timeframe, $stored);
     }
 
     public function parse_ws_ohlcv($ohlcv, $market = null) {
@@ -384,6 +426,44 @@ class bitget extends \ccxt\async\bitget {
                 'instId' => $this->get_ws_market_id($market),
             );
             $orderbook = Async\await($this->watch_public($messageHash, $args, $params));
+            if ($incrementalFeed) {
+                return $orderbook->limit ();
+            } else {
+                return $orderbook;
+            }
+        }) ();
+    }
+
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string[]} $symbols unified array of $symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $channel = 'books';
+            $incrementalFeed = true;
+            if (($limit === 5) || ($limit === 15)) {
+                $channel .= (string) $limit;
+                $incrementalFeed = false;
+            }
+            $topics = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $instType = $market['spot'] ? 'sp' : 'mc';
+                $args = array(
+                    'instType' => $instType,
+                    'channel' => $channel,
+                    'instId' => $this->get_ws_market_id($market),
+                );
+                $topics[] = $args;
+            }
+            $messageHash = 'multipleOrderbooks::' . implode(',', $symbols);
+            $orderbook = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
             if ($incrementalFeed) {
                 return $orderbook->limit ();
             } else {
@@ -476,6 +556,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $this->orderbooks[$symbol] = $storedOrderBook;
         $client->resolve ($storedOrderBook, $messageHash);
+        $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbooks::', $symbol, $storedOrderBook);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -520,6 +601,44 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular symbol
+             * @param {string} symbol unified symbol of the $market to fetch $trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 0) {
+                throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
+            }
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $topics = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $instType = $market['spot'] ? 'sp' : 'mc';
+                $args = array(
+                    'instType' => $instType,
+                    'channel' => 'trade',
+                    'instId' => $this->get_ws_market_id($market),
+                );
+                $topics[] = $args;
+            }
+            $messageHash = 'multipleTrades::' . implode(',', $symbols);
+            $trades = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
+            if ($this->newUpdates) {
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
     public function handle_trades(Client $client, $message) {
         //
         //    {
@@ -555,6 +674,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $messageHash = 'trade:' . $symbol;
         $client->resolve ($stored, $messageHash);
+        $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $stored);
     }
 
     public function parse_ws_trade($trade, $market = null) {
@@ -1116,6 +1236,18 @@ class bitget extends \ccxt\async\bitget {
             $request = array(
                 'op' => 'subscribe',
                 'args' => array( $args ),
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
+    }
+
+    public function watch_public_multiple($messageHash, $argsArray, $params = array ()) {
+        return Async\async(function () use ($messageHash, $argsArray, $params) {
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => $argsArray,
             );
             $message = array_merge($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));

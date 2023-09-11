@@ -26,11 +26,14 @@ class binance(ccxt.async_support.binance):
                 'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
+                'watchOHLCVForSymbols': True,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
                 'createOrderWs': True,
                 'editOrderWs': True,
                 'cancelOrderWs': True,
@@ -211,6 +214,54 @@ class binance(ccxt.async_support.binance):
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
         return orderbook.limit()
 
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the binance api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        if limit is not None:
+            if (limit != 5) and (limit != 10) and (limit != 20) and (limit != 50) and (limit != 100) and (limit != 500) and (limit != 1000):
+                raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 5, 10, 20, 50, 100, 500 or 1000')
+        #
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        firstMarket = self.market(symbols[0])
+        type = firstMarket['type']
+        if firstMarket['contract']:
+            type = 'future' if firstMarket['linear'] else 'delivery'
+        name = 'depth'
+        messageHash = 'multipleOrderbook::' + ','.join(symbols)
+        url = self.urls['api']['ws'][type] + '/' + self.stream(type, 'multipleOrderbook')
+        requestId = self.request_id(url)
+        watchOrderBookRate = self.safe_string(self.options, 'watchOrderBookRate', '100')
+        subParams = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            messageHash = market['lowercaseId'] + '@' + name + '@' + watchOrderBookRate + 'ms'
+            subParams.append(messageHash)
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': subParams,
+            'id': requestId,
+        }
+        subscription = {
+            'id': str(requestId),
+            'messageHash': messageHash,
+            'name': name,
+            'symbols': symbols,
+            'method': self.handle_order_book_subscription,
+            'limit': limit,
+            'type': type,
+            'params': params,
+        }
+        message = self.extend(request, params)
+        orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
+        return orderbook.limit()
+
     async def fetch_order_book_snapshot(self, client, message, subscription):
         messageHash = self.safe_string(subscription, 'messageHash')
         symbol = self.safe_string(subscription, 'symbol')
@@ -338,6 +389,8 @@ class binance(ccxt.async_support.binance):
                             self.handle_order_book_message(client, message, orderbook)
                             if nonce < orderbook['nonce']:
                                 client.resolve(orderbook, messageHash)
+                                # watchOrderBookForSymbols part(dry logic)
+                                self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbook::', symbol, orderbook)
                         else:
                             # todo: client.reject from handleOrderBookMessage properly
                             raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
@@ -351,6 +404,8 @@ class binance(ccxt.async_support.binance):
                             self.handle_order_book_message(client, message, orderbook)
                             if nonce <= orderbook['nonce']:
                                 client.resolve(orderbook, messageHash)
+                                # watchOrderBookForSymbols part(dry logic)
+                                self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbook::', symbol, orderbook)
                         else:
                             # todo: client.reject from handleOrderBookMessage properly
                             raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
@@ -361,13 +416,19 @@ class binance(ccxt.async_support.binance):
 
     def handle_order_book_subscription(self, client: Client, message, subscription):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
-        symbol = self.safe_string(subscription, 'symbol')
+        # messageHash = self.safe_string(subscription, 'messageHash')
+        symbol = self.safe_string(subscription, 'symbol')  # watchOrderBook
+        symbols = self.safe_value(subscription, 'symbols', [symbol])  # watchOrderBookForSymbols
         limit = self.safe_integer(subscription, 'limit', defaultLimit)
-        if symbol in self.orderbooks:
-            del self.orderbooks[symbol]
-        self.orderbooks[symbol] = self.order_book({}, limit)
-        # fetch the snapshot in a separate async call
-        self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
+        # handle list of symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            if symbol in self.orderbooks:
+                del self.orderbooks[symbol]
+            self.orderbooks[symbol] = self.order_book({}, limit)
+            subscription['symbol'] = symbol
+            # fetch the snapshot in a separate async call
+            self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
     def handle_subscription_status(self, client: Client, message):
         #
@@ -383,6 +444,48 @@ class binance(ccxt.async_support.binance):
         if method is not None:
             method(client, message, subscription)
         return message
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        get the list of most recent trades for a list of symbols
+        :param str[] symbols: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the binance api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        options = self.safe_value(self.options, 'watchTradesForSymbols', {})
+        name = self.safe_string(options, 'name', 'trade')
+        firstMarket = self.market(symbols[0])
+        type = firstMarket['type']
+        if firstMarket['contract']:
+            type = 'future' if firstMarket['linear'] else 'delivery'
+        subParams = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            messageHash = market['lowercaseId'] + '@' + name
+            subParams.append(messageHash)
+        messageHash = 'multipleTrades::' + ','.join(symbols)
+        query = self.omit(params, 'type')
+        url = self.urls['api']['ws'][type] + '/' + self.stream(type, messageHash)
+        requestId = self.request_id(url)
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': subParams,
+            'id': requestId,
+        }
+        subscribe = {
+            'id': requestId,
+        }
+        trades = await self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
+        if self.newUpdates:
+            first = self.safe_value(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -577,8 +680,8 @@ class binance(ccxt.async_support.binance):
     def handle_trade(self, client: Client, message):
         # the trade streams push raw trade information in real-time
         # each trade has a unique buyer and seller
-        index = client.url.find('/stream')
-        marketType = 'spot' if (index >= 0) else 'contract'
+        isSpot = ((client.url.find('/stream') > -1) or (client.url.find('/testnet.binance') > -1))
+        marketType = 'spot' if (isSpot) else 'contract'
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
@@ -593,6 +696,8 @@ class binance(ccxt.async_support.binance):
         tradesArray.append(trade)
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, messageHash)
+        # watchTradesForSymbols part
+        self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, tradesArray)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -612,8 +717,8 @@ class binance(ccxt.async_support.binance):
         nameOption = self.safe_string(options, 'name', 'kline')
         name = self.safe_string(params, 'name', nameOption)
         if name == 'indexPriceKline':
-            # weird behavior for index price kline we can't use the perp suffix
             marketId = marketId.replace('_perp', '')
+            # weird behavior for index price kline we can't use the perp suffix
         params = self.omit(params, 'name')
         messageHash = marketId + '@' + name + '_' + interval
         type = market['type']
@@ -635,6 +740,56 @@ class binance(ccxt.async_support.binance):
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the binance api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        options = self.safe_value(self.options, 'watchOHLCV', {})
+        nameOption = self.safe_string(options, 'name', 'kline')
+        name = self.safe_string(params, 'name', nameOption)
+        params = self.omit(params, 'name')
+        firstMarket = self.market(symbolsAndTimeframes[0][0])
+        type = firstMarket['type']
+        if firstMarket['contract']:
+            type = 'future' if firstMarket['linear'] else 'delivery'
+        subParams = []
+        hashes = []
+        for i in range(0, len(symbolsAndTimeframes)):
+            data = symbolsAndTimeframes[i]
+            symbol = data[0]
+            timeframe = data[1]
+            interval = self.safe_string(self.timeframes, timeframe, timeframe)
+            market = self.market(symbol)
+            marketId = market['lowercaseId']
+            if name == 'indexPriceKline':
+                # weird behavior for index price kline we can't use the perp suffix
+                marketId = marketId.replace('_perp', '')
+            topic = marketId + '@' + name + '_' + interval
+            subParams.append(topic)
+            hashes.append(symbol + '#' + timeframe)
+        messageHash = 'multipleOHLCV::' + ','.join(hashes)
+        url = self.urls['api']['ws'][type] + '/' + self.stream(type, messageHash)
+        requestId = self.request_id(url)
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': subParams,
+            'id': requestId,
+        }
+        subscribe = {
+            'id': requestId,
+        }
+        symbol, timeframe, stored = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscribe)
+        if self.newUpdates:
+            limit = stored.getLimit(symbol, limit)
+        filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
+        return self.create_ohlcv_object(symbol, timeframe, filtered)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -687,8 +842,8 @@ class binance(ccxt.async_support.binance):
             self.safe_float(kline, 'c'),
             self.safe_float(kline, 'v'),
         ]
-        index = client.url.find('/stream')
-        marketType = 'spot' if (index >= 0) else 'contract'
+        isSpot = ((client.url.find('/stream') > -1) or (client.url.find('/testnet.binance') > -1))
+        marketType = 'spot' if (isSpot) else 'contract'
         symbol = self.safe_symbol(marketId, None, None, marketType)
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
@@ -698,6 +853,8 @@ class binance(ccxt.async_support.binance):
             self.ohlcvs[symbol][timeframe] = stored
         stored.append(parsed)
         client.resolve(stored, messageHash)
+        # watchOHLCVForSymbols part
+        self.resolve_multiple_ohlcv(client, 'multipleOHLCV::', symbol, timeframe, stored)
 
     async def watch_ticker(self, symbol: str, params={}):
         """
@@ -905,8 +1062,8 @@ class binance(ccxt.async_support.binance):
             event = 'miniTicker'
         wsMarketId = self.safe_string_lower(message, 's')
         messageHash = wsMarketId + '@' + event
-        index = client.url.find('/stream')
-        marketType = 'spot' if (index >= 0) else 'contract'
+        isSpot = ((client.url.find('/stream') > -1) or (client.url.find('/testnet.binance') > -1))
+        marketType = 'spot' if (isSpot) else 'contract'
         result = self.parse_ws_ticker(message, marketType)
         symbol = result['symbol']
         self.tickers[symbol] = result
@@ -924,8 +1081,8 @@ class binance(ccxt.async_support.binance):
                     client.resolve(result, messageHash)
 
     def handle_tickers(self, client: Client, message):
-        index = client.url.find('/stream')
-        marketType = 'spot' if (index >= 0) else 'contract'
+        isSpot = ((client.url.find('/stream') > -1) or (client.url.find('/testnet.binance') > -1))
+        marketType = 'spot' if (isSpot) else 'contract'
         rawTickers = []
         newTickers = []
         if isinstance(message, list):

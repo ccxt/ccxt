@@ -10,6 +10,7 @@ from ccxt.base.types import OrderSide
 from ccxt.base.types import OrderType
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
+from typing import List
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import AuthenticationError
 
@@ -25,7 +26,9 @@ class cryptocom(ccxt.async_support.cryptocom):
                 'watchTickers': False,  # for now
                 'watchMyTrades': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchOHLCV': True,
                 'createOrderWs': True,
@@ -77,6 +80,27 @@ class cryptocom(ccxt.async_support.cryptocom):
         orderbook = await self.watch_public(messageHash, params)
         return orderbook.limit()
 
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the cryptocom api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        topics = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            messageHash = 'book' + '.' + market['id']
+            topics.append(messageHash)
+        messageHash = 'multipleOrderbooks::' + ','.join(symbols)
+        orderbook = await self.watch_public_multiple(messageHash, topics, params)
+        return orderbook.limit()
+
     def handle_order_book_snapshot(self, client: Client, message):
         # full snapshot
         #
@@ -115,6 +139,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         orderbook.reset(snapshot)
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
+        self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbooks::', symbol, orderbook)
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -133,6 +158,32 @@ class cryptocom(ccxt.async_support.cryptocom):
         trades = await self.watch_public(messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the cryptocom api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        topics = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            messageHash = 'trade' + '.' + market['id']
+            topics.append(messageHash)
+        messageHash = 'multipleTrades::' + ','.join(symbols)
+        trades = await self.watch_public_multiple(messageHash, topics, params)
+        if self.newUpdates:
+            first = self.safe_value(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
@@ -178,6 +229,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         channelReplaced = channel.replace('.' + marketId, '')
         client.resolve(stored, symbolSpecificMessageHash)
         client.resolve(stored, channelReplaced)
+        self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, stored)
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -538,6 +590,19 @@ class cryptocom(ccxt.async_support.cryptocom):
             'method': 'subscribe',
             'params': {
                 'channels': [messageHash],
+            },
+            'nonce': id,
+        }
+        message = self.extend(request, params)
+        return await self.watch(url, messageHash, message, messageHash)
+
+    async def watch_public_multiple(self, messageHash, topics, params={}):
+        url = self.urls['api']['ws']['public']
+        id = self.nonce()
+        request = {
+            'method': 'subscribe',
+            'params': {
+                'channels': topics,
             },
             'nonce': id,
         }
