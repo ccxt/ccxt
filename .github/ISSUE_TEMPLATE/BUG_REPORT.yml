@@ -42,9 +42,9 @@ body:
       label: Programming Languages
       description: Which language are you using?
       options:
-        - JS
-        - python
-        - php
+        - JavaScript
+        - Python
+        - PHP
     validations:
       required: false
 

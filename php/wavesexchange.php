@@ -76,6 +76,7 @@ class wavesexchange extends Exchange {
                 'signIn' => true,
                 'transfer' => false,
                 'withdraw' => true,
+                'ws' => false,
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -95,23 +96,23 @@ class wavesexchange extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'test' => array(
-                    'matcher' => 'https://matcher-testnet.waves.exchange',
+                    'matcher' => 'https://matcher-testnet.wx.network',
                     'node' => 'https://nodes-testnet.wavesnodes.com',
                     'public' => 'https://api-testnet.wavesplatform.com/v0',
-                    'private' => 'https://api-testnet.waves.exchange/v1',
-                    'forward' => 'https://testnet.waves.exchange/api/v1/forward/matcher',
-                    'market' => 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
+                    'private' => 'https://api-testnet.wx.network/v1',
+                    'forward' => 'https://testnet.wx.network/api/v1/forward/matcher',
+                    'market' => 'https://testnet.wx.network/api/v1/forward/marketdata/api/v1',
                 ),
                 'api' => array(
-                    'matcher' => 'https://matcher.waves.exchange',
-                    'node' => 'https://nodes.waves.exchange',
+                    'matcher' => 'https://matcher.wx.network',
+                    'node' => 'https://nodes.wx.network',
                     'public' => 'https://api.wavesplatform.com/v0',
-                    'private' => 'https://api.waves.exchange/v1',
-                    'forward' => 'https://waves.exchange/api/v1/forward/matcher',
-                    'market' => 'https://waves.exchange/api/v1/forward/marketdata/api/v1',
+                    'private' => 'https://api.wx.network/v1',
+                    'forward' => 'https://wx.network/api/v1/forward/matcher',
+                    'market' => 'https://wx.network/api/v1/forward/marketdata/api/v1',
                 ),
-                'doc' => 'https://docs.waves.exchange',
-                'www' => 'https://waves.exchange',
+                'doc' => 'https://docs.wx.network',
+                'www' => 'https://wx.network',
             ),
             'api' => array(
                 'matcher' => array(
@@ -124,28 +125,36 @@ class wavesexchange extends Exchange {
                         'matcher/debug/currentOffset',
                         'matcher/debug/lastOffset',
                         'matcher/debug/oldestSnapshotOffset',
+                        'matcher/debug/config',
+                        'matcher/debug/address/{address}',
+                        'matcher/debug/status',
+                        'matcher/debug/address/{address}/check',
                         'matcher/orderbook',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}',
+                        'matcher/orderbook/{baseId}/{quoteId}',
                         'matcher/orderbook/{baseId}/{quoteId}/publicKey/{publicKey}',
                         'matcher/orderbook/{baseId}/{quoteId}/{orderId}',
                         'matcher/orderbook/{baseId}/{quoteId}/info',
                         'matcher/orderbook/{baseId}/{quoteId}/status',
-                        'matcher/orderbook/{baseId}/{quoteId}/tradeableBalance/{address}',
+                        'matcher/orderbook/{baseId}/{quoteId}/tradableBalance/{address}',
                         'matcher/orderbook/{publicKey}',
                         'matcher/orderbook/{publicKey}/{orderId}',
                         'matcher/orders/{address}',
                         'matcher/orders/{address}/{orderId}',
                         'matcher/transactions/{orderId}',
+                        'api/v1/orderbook/{baseId}/{quoteId}',
                     ),
                     'post' => array(
                         'matcher/orderbook',
                         'matcher/orderbook/market',
                         'matcher/orderbook/cancel',
                         'matcher/orderbook/{baseId}/{quoteId}/cancel',
-                        'matcher/orderbook/{amountAsset}/{priceAsset}/calculateFee',
+                        'matcher/orderbook/{baseId}/{quoteId}/calculateFee',
+                        'matcher/orderbook/{baseId}/{quoteId}/delete',
+                        'matcher/orderbook/{baseId}/{quoteId}/cancelAll',
                         'matcher/debug/saveSnapshots',
                         'matcher/orders/{address}/cancel',
                         'matcher/orders/cancel/{orderId}',
+                        'matcher/orders/serialize',
                     ),
                     'delete' => array(
                         'matcher/orderbook/{baseId}/{quoteId}',
@@ -352,6 +361,7 @@ class wavesexchange extends Exchange {
 
     public function set_sandbox_mode($enabled) {
         $this->options['messagePrefix'] = $enabled ? 'T' : 'W';
+        $this->options['sandboxMode'] = $enabled;
         parent::set_sandbox_mode($enabled);
     }
 
@@ -361,13 +371,13 @@ class wavesexchange extends Exchange {
         $amount = $this->custom_amount_to_precision($symbol, $amount);
         $price = $this->custom_price_to_precision($symbol, $price);
         $request = array_merge(array(
-            'amountAsset' => $market['baseId'],
-            'priceAsset' => $market['quoteId'],
+            'baseId' => $market['baseId'],
+            'quoteId' => $market['quoteId'],
             'orderType' => $side,
             'amount' => $amount,
             'price' => $price,
         ), $params);
-        return $this->matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee ($request);
+        return $this->matcherPostMatcherOrderbookBaseIdQuoteIdCalculateFee ($request);
     }
 
     public function custom_calculate_fee(string $symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
@@ -413,7 +423,7 @@ class wavesexchange extends Exchange {
             // currencies can have any name because you can create you own token
             // result someone can create a fake token called BTC
             // we use this mapping to determine the real tokens
-            // https://docs.waves.exchange/en/waves-matcher/matcher-api#asset-pair
+            // https://docs.wx.network/en/waves-matcher/matcher-api#asset-pair
             $response = $this->matcherGetMatcherSettings ();
             // {
             //   "orderVersions" => array(
@@ -577,15 +587,15 @@ class wavesexchange extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array_merge(array(
-            'amountAsset' => $market['baseId'],
-            'priceAsset' => $market['quoteId'],
+            'baseId' => $market['baseId'],
+            'quoteId' => $market['quoteId'],
         ), $params);
-        $response = $this->matcherGetMatcherOrderbookAmountAssetPriceAsset ($request);
+        $response = $this->matcherGetMatcherOrderbookBaseIdQuoteId ($request);
         $timestamp = $this->safe_integer($response, 'timestamp');
         $bids = $this->parse_order_book_side($this->safe_value($response, 'bids'), $market, $limit);
         $asks = $this->parse_order_book_side($this->safe_value($response, 'asks'), $market, $limit);
@@ -601,19 +611,32 @@ class wavesexchange extends Exchange {
 
     public function parse_order_book_side($bookSide, $market = null, ?int $limit = null) {
         $precision = $market['precision'];
-        $wavesPrecision = $this->safe_integer($this->options, 'wavesPrecision', 8);
-        $amountPrecision = pow(10, $precision['amount']);
-        $difference = $precision['amount'] - $precision['price'];
-        $pricePrecision = pow(10, $wavesPrecision - $difference);
+        $wavesPrecision = $this->safe_string($this->options, 'wavesPrecision', '8');
+        $amountPrecision = '1e' . $this->number_to_string($precision['amount']);
+        $amountPrecisionString = $this->number_to_string($precision['amount']);
+        $pricePrecisionString = $this->number_to_string($precision['price']);
+        $difference = Precise::string_sub($amountPrecisionString, $pricePrecisionString);
+        $pricePrecision = '1e' . Precise::string_sub($wavesPrecision, $difference);
         $result = array();
         for ($i = 0; $i < count($bookSide); $i++) {
             $entry = $bookSide[$i];
-            $price = $this->safe_integer($entry, 'price', 0) / $pricePrecision;
-            $amount = $this->safe_integer($entry, 'amount', 0) / $amountPrecision;
+            $entryPrice = $this->safe_string($entry, 'price', '0');
+            $entryAmount = $this->safe_string($entry, 'amount', '0');
+            $price = null;
+            $amount = null;
+            if (($pricePrecision !== null) && ($entryPrice !== null)) {
+                $price = Precise::string_div($entryPrice, $pricePrecision);
+            }
+            if (($amountPrecision !== null) && ($entryAmount !== null)) {
+                $amount = Precise::string_div($entryAmount, $amountPrecision);
+            }
             if (($limit !== null) && ($i > $limit)) {
                 break;
             }
-            $result[] = array( $price, $amount );
+            $result[] = array(
+                $this->parse_number($price),
+                $this->parse_number($amount),
+            );
         }
         return $result;
     }
@@ -712,7 +735,7 @@ class wavesexchange extends Exchange {
             $expiresDelta = 60 * 60 * 24 * 7;
             $seconds = $this->sum($this->seconds(), $expiresDelta);
             $seconds = (string) $seconds;
-            $clientId = 'waves.exchange';
+            $clientId = 'wx.network';
             // W for production, T for testnet
             $defaultMessagePrefix = $this->safe_string($this->options, 'messagePrefix', 'W');
             $message = $defaultMessagePrefix . ':' . $clientId . ':' . $seconds;
@@ -819,7 +842,7 @@ class wavesexchange extends Exchange {
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -861,7 +884,7 @@ class wavesexchange extends Exchange {
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the aax api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
          */
         $this->load_markets();
         $response = $this->marketGetTickers ($params);
@@ -1022,7 +1045,7 @@ class wavesexchange extends Exchange {
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
          */
         $this->sign_in();
         $networks = $this->safe_value($this->options, 'networks', array());
@@ -1185,17 +1208,23 @@ class wavesexchange extends Exchange {
 
     public function custom_price_to_precision($symbol, $price) {
         $market = $this->markets[$symbol];
-        $wavesPrecision = $this->safe_integer($this->options, 'wavesPrecision', 8);
-        $difference = $market['precision']['amount'] - $market['precision']['price'];
-        return $this->parse_to_int(floatval($this->to_precision($price, $wavesPrecision - $difference)));
+        $wavesPrecision = $this->safe_string($this->options, 'wavesPrecision', '8');
+        $amount = $this->number_to_string($market['precision']['amount']);
+        $precisionPrice = $this->number_to_string($market['precision']['price']);
+        $difference = Precise::string_sub($amount, $precisionPrice);
+        $precision = Precise::string_sub($wavesPrecision, $difference);
+        $pricePrecision = $this->to_precision($price, (string) $precision);
+        return $this->parse_to_int(floatval($pricePrecision));
     }
 
     public function custom_amount_to_precision($symbol, $amount) {
-        return $this->parse_to_int(floatval($this->to_precision($amount, $this->markets[$symbol]['precision']['amount'])));
+        $amountPrecision = $this->number_to_string($this->to_precision($amount, $this->number_to_string($this->markets[$symbol]['precision']['amount'])));
+        return $this->parse_to_int(floatval($amountPrecision));
     }
 
     public function currency_to_precision($code, $amount, $networkCode = null) {
-        return $this->parse_to_int(floatval($this->to_precision($amount, $this->currencies[$code]['precision'])));
+        $amountPrecision = $this->number_to_string($this->to_precision($amount, $this->currencies[$code]['precision']));
+        return $this->parse_to_int(floatval($amountPrecision));
     }
 
     public function from_precision($amount, $scale) {
@@ -1209,11 +1238,11 @@ class wavesexchange extends Exchange {
     }
 
     public function to_precision($amount, $scale) {
-        $amountString = (string) $amount;
+        $amountString = $this->number_to_string($amount);
         $precise = new Precise ($amountString);
-        $precise->decimals = $precise->decimals - $scale;
+        $precise->decimals = Precise::string_sub($precise->decimals, $scale);
         $precise->reduce ();
-        return (string) $precise;
+        return $precise;
     }
 
     public function currency_from_precision($currency, $amount) {
@@ -1252,9 +1281,10 @@ class wavesexchange extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of $base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @param {float} [$params->stopPrice] The $price at which a stop order is triggered at
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->check_required_dependencies();
         $this->check_required_keys();
@@ -1264,10 +1294,11 @@ class wavesexchange extends Exchange {
         $amountAsset = $this->get_asset_id($market['baseId']);
         $priceAsset = $this->get_asset_id($market['quoteId']);
         $isMarketOrder = ($type === 'market');
+        $stopPrice = $this->safe_float_2($params, 'triggerPrice', 'stopPrice');
+        $isStopOrder = ($stopPrice !== null);
         if (($isMarketOrder) && ($price === null)) {
             throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders to determine the max $price for buy and the min $price for sell');
         }
-        $orderType = ($side === 'buy') ? 0 : 1;
         $timestamp = $this->milliseconds();
         $defaultExpiryDelta = $this->safe_integer($this->options, 'createOrderDefaultExpiry', 2419200000);
         $expiration = $this->sum($timestamp, $defaultExpiryDelta);
@@ -1282,7 +1313,7 @@ class wavesexchange extends Exchange {
         //        "matcherFee":"4077612"
         //     }
         //  }
-        $base = $this->safe_value($matcherFees, 'base');
+        $base = $this->safe_value_2($matcherFees, 'base', 'discount');
         $baseFeeAssetId = $this->safe_string($base, 'feeAssetId');
         $baseFeeAsset = $this->safe_currency_code($baseFeeAssetId);
         $baseMatcherFee = $this->safe_string($base, 'matcherFee');
@@ -1331,26 +1362,12 @@ class wavesexchange extends Exchange {
         }
         $amount = $this->custom_amount_to_precision($symbol, $amount);
         $price = $this->custom_price_to_precision($symbol, $price);
-        $byteArray = [
-            $this->number_to_be(3, 1),
-            $this->base58_to_binary($this->apiKey),
-            $this->base58_to_binary($matcherPublicKey),
-            $this->get_asset_bytes($market['baseId']),
-            $this->get_asset_bytes($market['quoteId']),
-            $this->number_to_be($orderType, 1),
-            $this->number_to_be($price, 8),
-            $this->number_to_be($amount, 8),
-            $this->number_to_be($timestamp, 8),
-            $this->number_to_be($expiration, 8),
-            $this->number_to_be($matcherFee, 8),
-            $this->get_asset_bytes($matcherFeeAssetId),
-        ];
-        $binary = $this->binary_concat_array($byteArray);
-        $signature = $this->eddsa(bin2hex($binary), bin2hex($this->base58_to_binary($this->secret)), 'ed25519');
         $assetPair = array(
             'amountAsset' => $amountAsset,
             'priceAsset' => $priceAsset,
         );
+        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+        $chainId = ($sandboxMode) ? 84 : 87;
         $body = array(
             'senderPublicKey' => $this->apiKey,
             'matcherPublicKey' => $matcherPublicKey,
@@ -1361,36 +1378,71 @@ class wavesexchange extends Exchange {
             'timestamp' => $timestamp,
             'expiration' => $expiration,
             'matcherFee' => intval($matcherFee),
-            'signature' => $signature,
-            'version' => 3,
+            'priceMode' => 'assetDecimals',
+            'version' => 4,
+            'chainId' => $chainId,
         );
+        if ($isStopOrder) {
+            //
+            // {
+            //     'v' => 1, // version (int)
+            //     'c' => array( // condition (object)
+            //         't' => 'sp', // condition $type-> for now only "stop-$price" (string)
+            //         'v' => array( // $value (object)
+            //             'p' => '123', // $price (long)
+            //         ),
+            //     ),
+            // }
+            //
+            $attachment = array(
+                'v' => 1,
+                'c' => array(
+                    't' => 'sp',
+                    'v' => array(
+                        'p' => $this->custom_price_to_precision($symbol, $stopPrice),
+                    ),
+                ),
+            );
+            $body['attachment'] = $this->binary_to_base58($this->encode(json_encode ($attachment)));
+        }
         if ($matcherFeeAssetId !== 'WAVES') {
             $body['matcherFeeAssetId'] = $matcherFeeAssetId;
         }
+        $serializedOrder = $this->matcherPostMatcherOrdersSerialize ($body);
+        if (($serializedOrder[0] === '"') && ($serializedOrder[(strlen($serializedOrder) - 1)] === '"')) {
+            $serializedOrder = mb_substr($serializedOrder, 1, strlen($serializedOrder) - 1 - 1);
+        }
+        $signature = $this->eddsa(bin2hex($this->base58_to_binary($serializedOrder)), bin2hex($this->base58_to_binary($this->secret)), 'ed25519');
+        $body['signature'] = $signature;
         //
         //     {
-        //         "success":true,
-        //         "message":array(
-        //             "version":3,
-        //             "id":"GK5ox4RfLJFtqjQsCbDmvCya8ZhFVEUQDtF4yYuAJ6C7",
-        //             "sender":"3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
-        //             "senderPublicKey":"AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF",
-        //             "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
-        //             "assetPair":array(
-        //                 "amountAsset":"C1iWsKGqLwjHUndiQ7iXpdmPum9PeCDFfyXBdJJosDRS",
-        //                 "priceAsset":"WAVES"
-        //             ),
-        //             "orderType":"buy",
-        //             "amount":110874978,
-        //             "price":514397851,
-        //             "timestamp":1650473255988,
-        //             "expiration":1652892455988,
-        //             "matcherFee":7074571,
-        //             "matcherFeeAssetId":"Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on",
-        //             "signature":"5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8",
-        //             "proofs":["5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8"]
+        //         "success" => true,
+        //         "message" => array(
+        //           "version" => 4,
+        //           "id" => "8VR49dLZFaYcVwzx9TqVMTAZCSUoyB74kLUHrEPCSJgN",
+        //           "sender" => "3MpEdBXtsRHRj2TvZURSb8uLDxzneVbYczW",
+        //           "senderPublicKey" => "8aUTNqHGCBiubySBRhcS1N6NC5jLczhVcndRfMAuwtkY",
+        //           "matcherPublicKey" => "8QUAqtTckM5B8gvcuP7mMswat9SjKUuafJMusEoSn1Gy",
+        //           "assetPair" => array(
+        //             "amountAsset" => "EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
+        //             "priceAsset" => "25FEqEjRkqK6yCkiT7Lz6SAYz7gUFCtxfCChnrVFD5AT"
+        //           ),
+        //           "orderType" => "sell",
+        //           "amount" => 100000,
+        //           "price" => 480000,
+        //           "timestamp" => 1690852043772,
+        //           "expiration" => 1693271243772,
+        //           "matcherFee" => 83327570,
+        //           "signature" => "3QYDWQVSP4kdqpTLodCuboh8bpWd6GW5s1pQyKdce1JBDwX6t4kH5Xtuq35pqo94gxjo3cfG6k6Xuic2JaYLubkK",
+        //           "proofs" => array(
+        //             "3QYDWQVSP4kdqpTLodCuboh8bpWd6GW5s1pQyKdce1JBDwX6t4kH5Xtuq35pqo94gxjo3cfG6k6Xuic2JaYLubkK"
+        //           ),
+        //           "matcherFeeAssetId" => "EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
+        //           "eip712Signature" => null,
+        //           "priceMode" => "assetDecimals",
+        //           "attachment" => "2PQ4akZHnMSZrQissuu5uudoXbgsipeDnFcRtXtjVgkdm1gUWEgGzp"
         //         ),
-        //         "status":"OrderAccepted"
+        //         "status" => "OrderAccepted"
         //     }
         //
         if ($isMarketOrder) {
@@ -1410,7 +1462,7 @@ class wavesexchange extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->check_required_dependencies();
         $this->check_required_keys();
@@ -1456,7 +1508,7 @@ class wavesexchange extends Exchange {
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->check_required_dependencies();
         $this->check_required_keys();
@@ -1490,7 +1542,7 @@ class wavesexchange extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
          * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->check_required_dependencies();
         $this->check_required_keys();
@@ -1541,7 +1593,7 @@ class wavesexchange extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
         $this->sign_in();
@@ -1565,7 +1617,7 @@ class wavesexchange extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
          * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
         $this->sign_in();
@@ -1624,7 +1676,7 @@ class wavesexchange extends Exchange {
         // createOrder
         //
         //     {
-        //         'version' => 3,
+        //         'version' => 4,
         //         'id' => 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
         //         'sender' => '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
         //         'senderPublicKey' => 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
@@ -1644,6 +1696,7 @@ class wavesexchange extends Exchange {
         //         'proofs' => array(
         //             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
         //         ),
+        //         "attachment":"77rnoyFX5BDr15hqZiUtgXKSN46zsbHHQjVNrTMLZcLz62mmFKr39FJ"
         //     }
         //
         //
@@ -1666,8 +1719,9 @@ class wavesexchange extends Exchange {
         //             priceAsset => 'WAVES'
         //         ),
         //         avgWeighedPrice => 0,
-        //         version => 3,
+        //         version => 4,
         //         totalExecutedPriceAssets => 0,  // in fetchOpenOrder/s
+        //         "attachment":"77rnoyFX5BDr15hqZiUtgXKSN46zsbHHQjVNrTMLZcLz62mmFKr39FJ"
         //     }
         //
         $timestamp = $this->safe_integer($order, 'timestamp');
@@ -1708,6 +1762,20 @@ class wavesexchange extends Exchange {
                 'fee' => $this->parse_number($this->currency_from_precision($currency, $this->safe_string($order, 'matcherFee'))),
             );
         }
+        $triggerPrice = null;
+        $attachment = $this->safe_string($order, 'attachment');
+        if ($attachment !== null) {
+            $decodedAttachment = $this->parse_json($this->decode($this->base58_to_binary($attachment)));
+            if ($decodedAttachment !== null) {
+                $c = $this->safe_value($decodedAttachment, 'c');
+                if ($c !== null) {
+                    $v = $this->safe_value($c, 'v');
+                    if ($v !== null) {
+                        $triggerPrice = $this->safe_string($v, 'p');
+                    }
+                }
+            }
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1721,8 +1789,8 @@ class wavesexchange extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
-            'triggerPrice' => null,
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => null,
             'average' => $average,
@@ -1752,7 +1820,7 @@ class wavesexchange extends Exchange {
         /**
          * query for $balance and get the $amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$balance-structure $balance structure}
          */
         // makes a lot of different requests to get all the $data
         // in particular:
@@ -1904,7 +1972,7 @@ class wavesexchange extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->load_markets();
         $address = $this->get_waves_address();
@@ -1995,7 +2063,7 @@ class wavesexchange extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2233,7 +2301,8 @@ class wavesexchange extends Exchange {
             $entry = $depositWithdrawFees[$code];
             $networks = $this->safe_value($entry, 'networks');
             $networkKeys = is_array($networks) ? array_keys($networks) : array();
-            if (strlen($networkKeys) === 1) {
+            $networkKeysLength = count($networkKeys);
+            if ($networkKeysLength === 1) {
                 $network = $this->safe_value($networks, $networkKeys[0]);
                 $depositWithdrawFees[$code]['withdraw'] = $this->safe_value($network, 'withdraw');
                 $depositWithdrawFees[$code]['deposit'] = $this->safe_value($network, 'deposit');
@@ -2245,11 +2314,11 @@ class wavesexchange extends Exchange {
     public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
-         * @see https://docs.waves.exchange/en/api/gateways/deposit/currencies
-         * @see https://docs.waves.exchange/en/api/gateways/withdraw/currencies
+         * @see https://docs.wx.network/en/api/gateways/deposit/currencies
+         * @see https://docs.wx.network/en/api/gateways/withdraw/currencies
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
          */
         $this->load_markets();
         $data = array();
@@ -2346,7 +2415,7 @@ class wavesexchange extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the wavesexchange api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         // currently only works for BTC and WAVES
@@ -2374,7 +2443,8 @@ class wavesexchange extends Exchange {
         $isErc20 = true;
         $noPrefix = $this->remove0x_prefix($address);
         $lower = strtolower($noPrefix);
-        for ($i = 0; $i < count($lower); $i++) {
+        $stringLength = strlen($lower) * 1;
+        for ($i = 0; $i < $stringLength; $i++) {
             $character = $lower[$i];
             if (!(is_array($set) && array_key_exists($character, $set))) {
                 $isErc20 = false;

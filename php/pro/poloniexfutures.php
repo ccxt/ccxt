@@ -45,7 +45,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
                 'watchOrderBook' => array(
                     'method' => '/contractMarket/level2', // can also be '/contractMarket/level3v2'
                     'snapshotDelay' => 5,
-                    'maxRetries' => 3,
+                    'snapshotMaxRetries' => 3,
                 ),
                 'streamLimit' => 5, // called tunnels by poloniexfutures docs
                 'streamBySubscriptionsHash' => array(),
@@ -239,7 +239,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
              * @see https://futures-docs.poloniex.com/#get-real-time-$symbol-ticker
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -257,7 +257,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $options = $this->safe_value($this->options, 'watchTrades');
@@ -281,7 +281,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
              * @param {int} [$limit] not used by poloniexfutures watchOrderBook
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
              * @param {string} [$params->method] the method to use. Defaults to /contractMarket/level2 can also be /contractMarket/level3v2 to receive the raw stream of orders
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
              */
             Async\await($this->load_markets());
             $options = $this->safe_value($this->options, 'watchOrderBook');
@@ -313,7 +313,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
              * @param {string} [$params->method] the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop $orders
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $options = $this->safe_value($this->options, 'watchOrders');
@@ -333,13 +333,10 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * watches information on multiple orders made by the user
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://futures-docs.poloniex.com/#account-balance-events
-             * @param {string} symbol not used by poloniexfutures watchBalance
-             * @param {int} [since] not used by poloniexfutures watchBalance
-             * @param {int} [limit] not used by poloniexfutures watchBalance
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $name = '/contractAccount/wallet';
