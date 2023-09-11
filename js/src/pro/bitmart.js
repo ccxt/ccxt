@@ -90,7 +90,7 @@ export default class bitmart extends bitmartRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -107,7 +107,7 @@ export default class bitmart extends bitmartRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         return await this.subscribe('ticker', symbol, params);
     }
@@ -120,7 +120,7 @@ export default class bitmart extends bitmartRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' watchOrders requires a symbol argument');
@@ -387,7 +387,7 @@ export default class bitmart extends bitmartRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         const options = this.safeValue(this.options, 'watchOrderBook', {});
         const depth = this.safeString(options, 'depth', 'depth50');
@@ -485,13 +485,14 @@ export default class bitmart extends bitmartRest {
         }
         return message;
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const url = this.implodeHostname(this.urls['api']['ws']['private']);
         const messageHash = 'authenticated';
         const client = this.client(url);
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.milliseconds().toString();
             const memo = this.uid;
             const path = 'bitmart.WebSocket';
@@ -507,8 +508,7 @@ export default class bitmart extends bitmartRest {
                 ],
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -523,7 +523,8 @@ export default class bitmart extends bitmartRest {
         //     { event: 'login' }
         //
         const messageHash = 'authenticated';
-        client.resolve(message, messageHash);
+        const future = this.safeValue(client.futures, messageHash);
+        future.resolve(true);
     }
     handleErrorMessage(client, message) {
         //

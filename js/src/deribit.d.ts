@@ -82,12 +82,12 @@ export default class deribit extends Exchange {
         updated: number;
         fee: any;
     };
-    parsePosition(position: any, market?: any): any;
-    fetchPosition(symbol: string, params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    fetchVolatilityHistory(code: string, params?: {}): Promise<any[]>;
-    parseVolatilityHistory(volatility: any): any[];
+    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchVolatilityHistory(code: string, params?: {}): Promise<any[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
+    parseVolatilityHistory(volatility: any): any[];
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;
@@ -143,6 +143,45 @@ export default class deribit extends Exchange {
         networks: {};
     };
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<{
+        info: any;
+        symbol: any;
+        markPrice: any;
+        indexPrice: number;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: any;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    }>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseFundingRate(contract: any, market?: any): {
+        info: any;
+        symbol: any;
+        markPrice: any;
+        indexPrice: number;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: any;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    };
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

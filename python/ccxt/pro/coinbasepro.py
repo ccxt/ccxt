@@ -8,6 +8,7 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import AuthenticationError
@@ -22,7 +23,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
                 'watchOHLCV': False,  # missing on the exchange side
                 'watchOrderBook': True,
                 'watchTicker': True,
-                'watchTickers': False,  # for now
+                'watchTickers': True,
                 'watchTrades': True,
                 'watchBalance': False,
                 'watchStatus': False,  # for now
@@ -32,6 +33,9 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             'urls': {
                 'api': {
                     'ws': 'wss://ws-feed.pro.coinbase.com',
+                },
+                'test': {
+                    'ws': 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
                 },
             },
             'options': {
@@ -54,19 +58,46 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             'passphrase': self.password,
         }
 
-    async def subscribe(self, name, symbol, messageHashStart, params={}):
+    async def subscribe(self, name, symbol=None, messageHashStart=None, params={}):
         await self.load_markets()
-        market = self.market(symbol)
-        messageHash = messageHashStart + ':' + market['id']
+        market = None
+        messageHash = messageHashStart
+        productIds = []
+        if symbol is not None:
+            market = self.market(symbol)
+            messageHash += ':' + market['id']
+            productIds.append(market['id'])
         url = self.urls['api']['ws']
         if 'signature' in params:
             # need to distinguish between public trades and user trades
             url = url + '?'
         subscribe = {
             'type': 'subscribe',
-            'product_ids': [
-                market['id'],
+            'product_ids': productIds,
+            'channels': [
+                name,
             ],
+        }
+        request = self.extend(subscribe, params)
+        return await self.watch(url, messageHash, request, messageHash)
+
+    async def subscribe_multiple(self, name, symbols=[], messageHashStart=None, params={}):
+        await self.load_markets()
+        market = None
+        symbols = self.market_symbols(symbols)
+        messageHash = messageHashStart + ','.join(symbols)
+        productIds = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            productIds.append(market['id'])
+        url = self.urls['api']['ws']
+        if 'signature' in params:
+            # need to distinguish between public trades and user trades
+            url = url + '?'
+        subscribe = {
+            'type': 'subscribe',
+            'product_ids': productIds,
             'channels': [
                 name,
             ],
@@ -79,10 +110,30 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         name = 'ticker'
         return await self.subscribe(name, symbol, name, params)
+
+    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        """
+        await self.load_markets()
+        symbolsLength = len(symbols)
+        if symbolsLength == 0:
+            raise BadSymbol(self.id + ' watchTickers requires a non-empty symbols array')
+        channel = 'ticker'
+        messageHash = 'tickers::'
+        newTickers = await self.subscribe_multiple(channel, symbols, messageHash, params)
+        if self.newUpdates:
+            return newTickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -91,7 +142,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -108,10 +159,9 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
         """
-        if symbol is None:
-            raise BadSymbol(self.id + ' watchMyTrades requires a symbol')
+        self.check_required_symbol('watchMyTrades', symbol)
         await self.load_markets()
         symbol = self.symbol(symbol)
         name = 'user'
@@ -129,7 +179,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise BadSymbol(self.id + ' watchMyTrades requires a symbol')
@@ -149,7 +199,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         name = 'level2'
         await self.load_markets()
@@ -173,7 +223,8 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             'marketId': market['id'],
             'limit': limit,
         }
-        orderbook = await self.watch(url, messageHash, request, messageHash, subscription)
+        authentication = self.authenticate()
+        orderbook = await self.watch(url, messageHash, self.extend(request, authentication), messageHash, subscription)
         return orderbook.limit()
 
     def handle_trade(self, client: Client, message):
@@ -531,6 +582,14 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             type = self.safe_string(message, 'type')
             messageHash = type + ':' + marketId
             client.resolve(ticker, messageHash)
+            messageHashes = self.find_message_hashes(client, 'tickers::')
+            for i in range(0, len(messageHashes)):
+                messageHash = messageHashes[i]
+                parts = messageHash.split('::')
+                symbolsString = parts[1]
+                symbols = symbolsString.split(',')
+                if self.in_array(symbol, symbols):
+                    client.resolve(ticker, messageHash)
         return message
 
     def parse_ticker(self, ticker, market=None):
@@ -561,29 +620,29 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         marketId = self.safe_string(ticker, 'product_id')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
-        last = self.safe_number(ticker, 'price')
-        return {
+        last = self.safe_string(ticker, 'price')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high_24h'),
-            'low': self.safe_number(ticker, 'low_24h'),
-            'bid': self.safe_number(ticker, 'best_bid'),
-            'bidVolume': self.safe_number(ticker, 'best_bid_size'),
-            'ask': self.safe_number(ticker, 'best_ask'),
-            'askVolume': self.safe_number(ticker, 'best_ask_size'),
+            'high': self.safe_string(ticker, 'high_24h'),
+            'low': self.safe_string(ticker, 'low_24h'),
+            'bid': self.safe_string(ticker, 'best_bid'),
+            'bidVolume': self.safe_string(ticker, 'best_bid_size'),
+            'ask': self.safe_string(ticker, 'best_ask'),
+            'askVolume': self.safe_string(ticker, 'best_ask_size'),
             'vwap': None,
-            'open': self.safe_number(ticker, 'open_24h'),
+            'open': self.safe_string(ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume_24h'),
+            'baseVolume': self.safe_string(ticker, 'volume_24h'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        })
 
     def handle_delta(self, bookside, delta):
         price = self.safe_number(delta, 0)

@@ -50,6 +50,7 @@ class Client {
     public $gunzip = false;
     public $inflate = false;
     public $throttler = null;
+    public $throttle = null;
     public $connection = null;
     public $connected; // connection-related Future
     public $isConnected = false;

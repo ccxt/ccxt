@@ -7,6 +7,53 @@ import { Int, OrderSide, OrderType } from './base/types.js';
 export default class gate extends Exchange {
     describe(): any;
     setSandboxMode(enable: any): void;
+    convertExpireDate(date: any): string;
+    createExpiredOptionMarket(symbol: any): {
+        id: string;
+        symbol: string;
+        base: any;
+        quote: string;
+        settle: string;
+        baseId: any;
+        quoteId: string;
+        settleId: string;
+        active: boolean;
+        type: string;
+        linear: any;
+        inverse: any;
+        spot: boolean;
+        swap: boolean;
+        future: boolean;
+        option: boolean;
+        margin: boolean;
+        contract: boolean;
+        contractSize: number;
+        expiry: number;
+        expiryDatetime: string;
+        optionType: string;
+        strike: number;
+        precision: {
+            amount: number;
+            price: any;
+        };
+        limits: {
+            amount: {
+                min: any;
+                max: any;
+            };
+            price: {
+                min: any;
+                max: any;
+            };
+            cost: {
+                min: any;
+                max: any;
+            };
+        };
+        info: any;
+    };
+    market(symbol: any): any;
+    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;
     fetchMarkets(params?: {}): Promise<any>;
     fetchSpotMarkets(params?: {}): Promise<any[]>;
     fetchContractMarkets(params?: {}): Promise<any[]>;
@@ -254,9 +301,9 @@ export default class gate extends Exchange {
         info: any;
     };
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
-    fetchPosition(symbol: string, params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
+    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
     repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<{
@@ -334,6 +381,7 @@ export default class gate extends Exchange {
         info: any;
     };
     fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchMySettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {
         info: any;
         symbol: any;
@@ -362,5 +410,6 @@ export default class gate extends Exchange {
     };
     parseLedgerEntryType(type: any): string;
     setPositionMode(hedged: any, symbol?: any, params?: {}): Promise<any>;
+    fetchUnderlyingAssets(params?: {}): Promise<any[]>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

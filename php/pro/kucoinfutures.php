@@ -38,7 +38,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                 'tradesLimit' => 1000,
                 'watchOrderBook' => array(
                     'snapshotDelay' => 20,
-                    'maxRetries' => 3,
+                    'snapshotMaxRetries' => 3,
                 ),
                 'watchTicker' => array(
                     'name' => 'contractMarket/tickerV2', // market/ticker
@@ -145,7 +145,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
              * @see https://docs.kucoin.com/futures/#get-real-time-$symbol-ticker-v2
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the kucoinfutures api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -197,7 +197,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the kucoinfutures api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(false));
@@ -263,7 +263,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the kucoinfutures api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             if ($limit !== null) {
                 if (($limit !== 20) && ($limit !== 100)) {
@@ -423,7 +423,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the kucoinfutures api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(true));
@@ -549,8 +549,9 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs.kucoin.com/futures/#account-balance-events
              * @param {array} [$params] extra parameters specific to the kucoinfutures api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
+            Async\await($this->load_markets());
             $url = Async\await($this->negotiate(true));
             $topic = '/contractAccount/wallet';
             $request = array(
@@ -700,25 +701,31 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
     }
 
     public function handle_error_message(Client $client, $message) {
-        return $message;
+        //
+        //    {
+        //        "id" => "64d8732c856851144bded10d",
+        //        "type" => "error",
+        //        "code" => 401,
+        //        "data" => "token is expired"
+        //    }
+        //
+        $data = $this->safe_string($message, 'data', '');
+        $this->handle_errors(null, null, $client->url, null, null, $data, $message, null, null);
     }
 
     public function handle_message(Client $client, $message) {
-        if ($this->handle_error_message($client, $message)) {
-            $type = $this->safe_string($message, 'type');
-            $methods = array(
-                // 'heartbeat' => $this->handleHeartbeat,
-                'welcome' => array($this, 'handle_system_status'),
-                'ack' => array($this, 'handle_subscription_status'),
-                'message' => array($this, 'handle_subject'),
-                'pong' => array($this, 'handle_pong'),
-            );
-            $method = $this->safe_value($methods, $type);
-            if ($method === null) {
-                return $message;
-            } else {
-                return $method($client, $message);
-            }
+        $type = $this->safe_string($message, 'type');
+        $methods = array(
+            // 'heartbeat' => $this->handleHeartbeat,
+            'welcome' => array($this, 'handle_system_status'),
+            'ack' => array($this, 'handle_subscription_status'),
+            'message' => array($this, 'handle_subject'),
+            'pong' => array($this, 'handle_pong'),
+            'error' => array($this, 'handle_error_message'),
+        );
+        $method = $this->safe_value($methods, $type);
+        if ($method !== null) {
+            return $method($client, $message);
         }
     }
 }
