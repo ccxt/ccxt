@@ -417,7 +417,7 @@ export default class lbank extends Exchange {
             request['size'] = limit;
         }
         const response = await this.publicGetTrades (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseOHLCV (ohlcv, market = undefined) {
