@@ -511,6 +511,7 @@ export default class kucoin extends kucoinRest {
         /**
          * @method
          * @name kucoin#watchOrders
+         * @see https://docs.kucoin.com/#private-order-change
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -550,21 +551,41 @@ export default class kucoin extends kucoinRest {
 
     parseWsOrder (order, market = undefined) {
         //
-        //     {
-        //         'symbol': 'XCAD-USDT',
-        //         'orderType': 'limit',
-        //         'side': 'buy',
-        //         'orderId': '6249167327218b000135e749',
-        //         'type': 'canceled',
-        //         'orderTime': 1648957043065280224,
-        //         'size': '100.452',
-        //         'filledSize': '0',
-        //         'price': '2.9635',
-        //         'clientOid': 'buy-XCAD-USDT-1648957043010159',
-        //         'remainSize': '0',
-        //         'status': 'done',
-        //         'ts': 1648957054031001037
-        //     }
+        //    {
+        //        'symbol': 'XCAD-USDT',
+        //        'orderType': 'limit',
+        //        'side': 'buy',
+        //        'orderId': '6249167327218b000135e749',
+        //        'type': 'canceled',
+        //        'orderTime': 1648957043065280224,
+        //        'size': '100.452',
+        //        'filledSize': '0',
+        //        'price': '2.9635',
+        //        'clientOid': 'buy-XCAD-USDT-1648957043010159',
+        //        'remainSize': '0',
+        //        'status': 'done',
+        //        'ts': 1648957054031001037
+        //    }
+        // match - order is executed
+        //    {
+        //        "symbol":"KCS-USDT",
+        //        "orderType":"limit",
+        //        "side":"sell",
+        //        "orderId":"5efab07953bdea00089965fa",
+        //        "liquidity":"taker",
+        //        "type":"match",
+        //        "orderTime":1670329987026,
+        //        "size":"0.1",
+        //        "filledSize":"0.1",
+        //        "price":"0.938",
+        //        "matchPrice":"0.96738",
+        //        "matchSize":"0.1",
+        //        "tradeId":"5efab07a4ee4c7000a82d6d9",
+        //        "clientOid":"1593487481000313",
+        //        "remainSize":"0",
+        //        "status":"match",
+        //        "ts":1670329987311000000
+        //    }
         //
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOid');
@@ -579,6 +600,20 @@ export default class kucoin extends kucoinRest {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const side = this.safeStringLower (order, 'side');
+        // find previous trades in order
+        const stored = this.orders;
+        const ordersById = this.safeValue (stored, symbol, {});
+        const storedOrder = this.safeValue (ordersById, id);
+        const trades = this.safeValue (storedOrder, 'trades', []);
+        if (rawType === 'match') { // order is executed
+            trades.push (this.safeTrade ({
+                'symbol': symbol,
+                'side': side,
+                'takerOrMaker': this.safeString (order, 'liquidity'),
+                'price': this.safeNumber (order, 'matchPrice'),
+                'amount': this.safeNumber (order, 'matchSize'),
+            }));
+        }
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
@@ -601,20 +636,20 @@ export default class kucoin extends kucoinRest {
             'remaining': undefined,
             'status': status,
             'fee': undefined,
-            'trades': undefined,
+            'trades': trades,
         }, market);
     }
 
     handleOrder (client: Client, message) {
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
         const messageHash = 'orders';
         const data = this.safeValue (message, 'data');
         const parsed = this.parseWsOrder (data);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
-        if (this.orders === undefined) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
-        }
         const cachedOrders = this.orders;
         const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
         const order = this.safeValue (orders, orderId);
