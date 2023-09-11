@@ -677,7 +677,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const trades = this.safeValue (response, 'data', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchTime (params = {}) {
