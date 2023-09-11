@@ -205,7 +205,6 @@ class Exchange {
         this.vwap = vwap;
         this.ymd = ymd;
         this.ymdhms = ymdhms;
-        this.ymdhms = ymdhms;
         this.yymmdd = yymmdd;
         this.yyyymmdd = yyyymmdd;
         Object.assign(this, functions);
@@ -321,7 +320,6 @@ class Exchange {
             'certified': false,
             'commonCurrencies': {
                 'BCC': 'BCH',
-                'BCHABC': 'BCH',
                 'BCHSV': 'BSV',
                 'XBT': 'BTC',
             },

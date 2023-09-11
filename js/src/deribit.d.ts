@@ -82,12 +82,12 @@ export default class deribit extends Exchange {
         updated: number;
         fee: any;
     };
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
-    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchVolatilityHistory(code: string, params?: {}): Promise<any[]>;
-    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     parseVolatilityHistory(volatility: any): any[];
+    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;

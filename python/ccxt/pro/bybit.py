@@ -666,7 +666,7 @@ class bybit(ccxt.async_support.bybit):
         trades = await self.watch_topics(url, messageHash, [topic], params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message):
         #

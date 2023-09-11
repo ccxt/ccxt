@@ -686,7 +686,7 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 100)  # avoid API exception "limit should less than 100"
         response = None
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchTrades', market, params)

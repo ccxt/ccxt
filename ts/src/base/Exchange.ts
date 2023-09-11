@@ -393,7 +393,6 @@ export default class Exchange {
     safeString2 = safeString2
     safeStringLower = safeStringLower
     safeStringLower2 = safeStringLower2
-    safeStringLower2 = safeStringLower2
     safeStringLowerN = safeStringLowerN
     safeStringN = safeStringN
     safeStringUpper = safeStringUpper
