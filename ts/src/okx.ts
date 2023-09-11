@@ -2008,7 +2008,7 @@ export default class okx extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseOHLCV (ohlcv, market = undefined) {
