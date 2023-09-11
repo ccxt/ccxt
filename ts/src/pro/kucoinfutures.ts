@@ -220,12 +220,12 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
-        symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const url = await this.negotiate (false);
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
