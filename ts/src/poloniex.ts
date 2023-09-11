@@ -953,7 +953,7 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
