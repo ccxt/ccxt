@@ -494,7 +494,7 @@ export default class coinone extends Exchange {
         //     }
         //
         const completeOrders = this.safeValue (response, 'completeOrders', []);
-        return this.parseTrades (completeOrders, market, since, limit);
+        return this.parseTrades (completeOrders, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
