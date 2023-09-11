@@ -26,6 +26,7 @@ declare const errorHierarchy: {
                 OrderImmediatelyFillable: {};
                 OrderNotFillable: {};
                 DuplicateOrderId: {};
+                ContractUnavailable: {};
             };
             NotSupported: {};
         };

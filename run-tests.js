@@ -213,12 +213,28 @@ const sequentialMap = async (input, fn) => {
 
 const testExchange = async (exchange) => {
 
-    numExchangesTested++
-    const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
+    const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
+
+    // no need to test alias classes
+    if (exchange.alias) {
+        numExchangesTested++;
+        log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
+        return [];
+    }
 
     if (skipSettings[exchange] && skipSettings[exchange].skip) {
-        log.bright (('[' + percentsDone + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
-        return [];
+        if (!('until' in skipSettings[exchange])) {
+            // if until not specified, skip forever
+            numExchangesTested++;
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
+            return [];
+        }
+        if (new Date(skipSettings[exchange].until) > new Date()) {
+            numExchangesTested++;
+            // if untilDate has not been yet reached, skip test for exchange
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
+            return [];
+        }
     }
 
 /*  Run tests for all/selected languages (in parallel)     */
@@ -283,7 +299,8 @@ const testExchange = async (exchange) => {
             logMessage += infoMessages.blue;
         }
     }
-    log.bright (('[' + percentsDone + ']').dim, 'Tested', exchange.cyan, logMessage)
+    numExchangesTested++;
+    log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, logMessage)
 
 /*  Return collected data to main loop     */
 

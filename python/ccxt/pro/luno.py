@@ -45,7 +45,7 @@ class luno(ccxt.async_support.luno):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of    trades to fetch
         :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.check_required_credentials()
         await self.load_markets()
@@ -136,7 +136,7 @@ class luno(ccxt.async_support.luno):
         :param int [limit]: the maximum amount of order book entries to return
         :param dictConstructor [params]: extra parameters specific to the luno api endpoint
         :param str [params.type]: accepts l2 or l3 for level 2 or level 3 order book
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.check_required_credentials()
         await self.load_markets()
@@ -281,12 +281,12 @@ class luno(ccxt.async_support.luno):
         asksOrderSide = orderbook['asks']
         bidsOrderSide = orderbook['bids']
         if createUpdate is not None:
-            array = self.custom_parse_bid_ask(createUpdate, 'price', 'volume', 'order_id')
+            bidAskArray = self.custom_parse_bid_ask(createUpdate, 'price', 'volume', 'order_id')
             type = self.safe_string(createUpdate, 'type')
             if type == 'ASK':
-                asksOrderSide.storeArray(array)
+                asksOrderSide.storeArray(bidAskArray)
             elif type == 'BID':
-                bidsOrderSide.storeArray(array)
+                bidsOrderSide.storeArray(bidAskArray)
         deleteUpdate = self.safe_value(message, 'delete_update')
         if deleteUpdate is not None:
             orderId = self.safe_string(deleteUpdate, 'order_id')

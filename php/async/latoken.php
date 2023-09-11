@@ -437,10 +437,13 @@ class latoken extends Exchange {
                 $code = $this->safe_currency_code($tag);
                 $fee = $this->safe_number($currency, 'fee');
                 $currencyType = $this->safe_string($currency, 'type');
-                $parts = explode('_', $currencyType);
-                $numParts = count($parts);
-                $lastPart = $this->safe_value($parts, $numParts - 1);
-                $type = strtolower($lastPart);
+                $type = null;
+                if ($currencyType === 'CURRENCY_TYPE_ALTERNATIVE') {
+                    $type = 'other';
+                } else {
+                    // CURRENCY_TYPE_CRYPTO and CURRENCY_TYPE_IEO are all cryptos
+                    $type = 'crypto';
+                }
                 $status = $this->safe_string($currency, 'status');
                 $active = ($status === 'CURRENCY_STATUS_ACTIVE');
                 $name = $this->safe_string($currency, 'name');
@@ -477,7 +480,7 @@ class latoken extends Exchange {
             /**
              * query for $balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$balance-structure $balance structure}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetAuthAccount ($params));
@@ -545,7 +548,7 @@ class latoken extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -579,41 +582,47 @@ class latoken extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
-        //     {
-        //         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
-        //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //         "volume24h":"76411867.852585600000000000",
-        //         "volume7d":"637809926.759451100000000000",
-        //         "change24h":"2.5300",
-        //         "change7d":"5.1300",
-        //         "lastPrice":"4426.9"
-        //     }
+        //    {
+        //        symbol => '92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+        //        baseCurrency => '92151d82-df98-4d88-9a4d-284fa9eca49f',
+        //        quoteCurrency => '0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+        //        volume24h => '165723597.189022176000000000',
+        //        volume7d => '934505768.625109571000000000',
+        //        change24h => '0.0200',
+        //        change7d => '-6.4200',
+        //        amount24h => '6438.457663100000000000',
+        //        amount7d => '35657.785013800000000000',
+        //        lastPrice => '25779.16',
+        //        lastQuantity => '0.248403300000000000',
+        //        bestBid => '25778.74',
+        //        bestBidQuantity => '0.6520232',
+        //        bestAsk => '25779.17',
+        //        bestAskQuantity => '0.4956043',
+        //        updateTimestamp => '1693965231406'
+        //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_string($ticker, 'lastPrice');
-        $change = $this->safe_string($ticker, 'change24h');
-        $timestamp = $this->nonce();
+        $timestamp = $this->safe_integer($ticker, 'updateTimestamp');
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $this->safe_symbol($marketId, $market),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'low' => $this->safe_string($ticker, 'low'),
-            'high' => $this->safe_string($ticker, 'high'),
-            'bid' => null,
-            'bidVolume' => null,
-            'ask' => null,
-            'askVolume' => null,
+            'low' => null,
+            'high' => null,
+            'bid' => $this->safe_string($ticker, 'bestBid'),
+            'bidVolume' => $this->safe_string($ticker, 'bestBidQuantity'),
+            'ask' => $this->safe_string($ticker, 'bestAsk'),
+            'askVolume' => $this->safe_string($ticker, 'bestAskQuantity'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => null,
+            'change' => null,
+            'percentage' => $this->safe_string($ticker, 'change24h'),
             'average' => null,
-            'baseVolume' => null,
+            'baseVolume' => $this->safe_string($ticker, 'amount24h'),
             'quoteVolume' => $this->safe_string($ticker, 'volume24h'),
             'info' => $ticker,
         ), $market);
@@ -625,7 +634,7 @@ class latoken extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -635,16 +644,24 @@ class latoken extends Exchange {
             );
             $response = Async\await($this->publicGetTickerBaseQuote (array_merge($request, $params)));
             //
-            //     {
-            //         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-            //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
-            //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-            //         "volume24h":"76411867.852585600000000000",
-            //         "volume7d":"637809926.759451100000000000",
-            //         "change24h":"2.5300",
-            //         "change7d":"5.1300",
-            //         "lastPrice":"4426.9"
-            //     }
+            //    {
+            //        $symbol => '92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+            //        baseCurrency => '92151d82-df98-4d88-9a4d-284fa9eca49f',
+            //        quoteCurrency => '0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+            //        volume24h => '165723597.189022176000000000',
+            //        volume7d => '934505768.625109571000000000',
+            //        change24h => '0.0200',
+            //        change7d => '-6.4200',
+            //        amount24h => '6438.457663100000000000',
+            //        amount7d => '35657.785013800000000000',
+            //        lastPrice => '25779.16',
+            //        lastQuantity => '0.248403300000000000',
+            //        bestBid => '25778.74',
+            //        bestBidQuantity => '0.6520232',
+            //        bestAsk => '25779.17',
+            //        bestAskQuantity => '0.4956043',
+            //        updateTimestamp => '1693965231406'
+            //    }
             //
             return $this->parse_ticker($response, $market);
         }) ();
@@ -656,23 +673,31 @@ class latoken extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTicker ($params));
             //
-            //     array(
-            //         array(
-            //             "symbol":"DASH/BTC",
-            //             "baseCurrency":"ed75c263-4ab9-494b-8426-031dab1c7cc1",
-            //             "quoteCurrency":"92151d82-df98-4d88-9a4d-284fa9eca49f",
-            //             "volume24h":"1.977753278000000000",
-            //             "volume7d":"18.964342670000000000",
-            //             "change24h":"-1.4800",
-            //             "change7d":"-5.5200",
-            //             "lastPrice":"0.003066"
-            //         ),
-            //     )
+            //    array(
+            //        {
+            //            symbol => '92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+            //            baseCurrency => '92151d82-df98-4d88-9a4d-284fa9eca49f',
+            //            quoteCurrency => '0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+            //            volume24h => '165723597.189022176000000000',
+            //            volume7d => '934505768.625109571000000000',
+            //            change24h => '0.0200',
+            //            change7d => '-6.4200',
+            //            amount24h => '6438.457663100000000000',
+            //            amount7d => '35657.785013800000000000',
+            //            lastPrice => '25779.16',
+            //            lastQuantity => '0.248403300000000000',
+            //            bestBid => '25778.74',
+            //            bestBidQuantity => '0.6520232',
+            //            bestAsk => '25779.17',
+            //            bestAskQuantity => '0.4956043',
+            //            updateTimestamp => '1693965231406'
+            //        }
+            //    )
             //
             return $this->parse_tickers($response, $symbols);
         }) ();
@@ -772,7 +797,7 @@ class latoken extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -803,7 +828,7 @@ class latoken extends Exchange {
              * fetch the trading fees for a market
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structure}
              */
             $method = $this->safe_string($params, 'method');
             $params = $this->omit($params, 'method');
@@ -875,7 +900,7 @@ class latoken extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1058,7 +1083,7 @@ class latoken extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -1104,7 +1129,7 @@ class latoken extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1157,7 +1182,7 @@ class latoken extends Exchange {
              * fetches information on an order made by the user
              * @param {string} $symbol not used by latoken fetchOrder
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1196,9 +1221,9 @@ class latoken extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1242,7 +1267,7 @@ class latoken extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol not used by latoken cancelOrder ()
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1268,7 +1293,7 @@ class latoken extends Exchange {
              * cancel all open orders in a $market
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1303,7 +1328,7 @@ class latoken extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest transaction, default is null
              * @param {int} [$limit] max number of transactions to return, default is null
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1434,7 +1459,7 @@ class latoken extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $transfers for
              * @param {int} [$limit] the maximum number of  $transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1484,7 +1509,7 @@ class latoken extends Exchange {
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
              * @param {array} [$params] extra parameters specific to the latoken api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);

@@ -31,6 +31,18 @@ abstract class phemex extends \ccxt\Exchange {
     public function public_get_md_v2_kline_last($params = array()) {
         return $this->request('md/v2/kline/last', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function public_get_md_orderbook($params = array()) {
+        return $this->request('md/orderbook', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_md_trade($params = array()) {
+        return $this->request('md/trade', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_md_spot_ticker_24hr($params = array()) {
+        return $this->request('md/spot/ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_exchange_public_cfg_chain_settings($params = array()) {
+        return $this->request('exchange/public/cfg/chain-settings', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function v1_get_md_orderbook($params = array()) {
         return $this->request('md/orderbook', 'v1', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -175,6 +187,21 @@ abstract class phemex extends \ccxt\Exchange {
     public function private_get_api_data_spots_funds($params = array()) {
         return $this->request('api-data/spots/funds', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_api_data_spots_orders($params = array()) {
+        return $this->request('api-data/spots/orders', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_api_data_spots_orders_by_order_id($params = array()) {
+        return $this->request('api-data/spots/orders/by-order-id', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_api_data_spots_pnls($params = array()) {
+        return $this->request('api-data/spots/pnls', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_api_data_spots_trades($params = array()) {
+        return $this->request('api-data/spots/trades', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_api_data_spots_trades_by_order_id($params = array()) {
+        return $this->request('api-data/spots/trades/by-order-id', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_assets_convert($params = array()) {
         return $this->request('assets/convert', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -234,6 +261,9 @@ abstract class phemex extends \ccxt\Exchange {
     }
     public function private_post_assets_convert($params = array()) {
         return $this->request('assets/convert', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_put_spot_orders_create($params = array()) {
+        return $this->request('spot/orders/create', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function private_put_spot_orders($params = array()) {
         return $this->request('spot/orders', 'private', 'PUT', $params, null, null, array("cost" => 1));
@@ -303,6 +333,18 @@ abstract class phemex extends \ccxt\Exchange {
     }
     public function publicGetMdV2KlineLast($params = array()) {
         return $this->request('md/v2/kline/last', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetMdOrderbook($params = array()) {
+        return $this->request('md/orderbook', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetMdTrade($params = array()) {
+        return $this->request('md/trade', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetMdSpotTicker24hr($params = array()) {
+        return $this->request('md/spot/ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetExchangePublicCfgChainSettings($params = array()) {
+        return $this->request('exchange/public/cfg/chain-settings', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function v1GetMdOrderbook($params = array()) {
         return $this->request('md/orderbook', 'v1', 'GET', $params, null, null, array("cost" => 5));
@@ -448,6 +490,21 @@ abstract class phemex extends \ccxt\Exchange {
     public function privateGetApiDataSpotsFunds($params = array()) {
         return $this->request('api-data/spots/funds', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function privateGetApiDataSpotsOrders($params = array()) {
+        return $this->request('api-data/spots/orders', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetApiDataSpotsOrdersByOrderId($params = array()) {
+        return $this->request('api-data/spots/orders/by-order-id', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetApiDataSpotsPnls($params = array()) {
+        return $this->request('api-data/spots/pnls', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetApiDataSpotsTrades($params = array()) {
+        return $this->request('api-data/spots/trades', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetApiDataSpotsTradesByOrderId($params = array()) {
+        return $this->request('api-data/spots/trades/by-order-id', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetAssetsConvert($params = array()) {
         return $this->request('assets/convert', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -507,6 +564,9 @@ abstract class phemex extends \ccxt\Exchange {
     }
     public function privatePostAssetsConvert($params = array()) {
         return $this->request('assets/convert', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePutSpotOrdersCreate($params = array()) {
+        return $this->request('spot/orders/create', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function privatePutSpotOrders($params = array()) {
         return $this->request('spot/orders', 'private', 'PUT', $params, null, null, array("cost" => 1));

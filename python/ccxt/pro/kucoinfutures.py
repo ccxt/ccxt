@@ -39,7 +39,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
                 'tradesLimit': 1000,
                 'watchOrderBook': {
                     'snapshotDelay': 20,
-                    'maxRetries': 3,
+                    'snapshotMaxRetries': 3,
                 },
                 'watchTicker': {
                     'name': 'contractMarket/tickerV2',  # market/ticker
@@ -133,7 +133,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         see https://docs.kucoin.com/futures/#get-real-time-symbol-ticker-v2
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -181,7 +181,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         url = await self.negotiate(False)
@@ -241,7 +241,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         if limit is not None:
             if (limit != 20) and (limit != 100):
@@ -381,7 +381,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         url = await self.negotiate(True)
@@ -491,11 +491,12 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
+        watch balance and get the amount of funds available for trading or funds locked in orders
         see https://docs.kucoin.com/futures/#account-balance-events
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
+        await self.load_markets()
         url = await self.negotiate(True)
         topic = '/contractAccount/wallet'
         request = {
@@ -632,20 +633,27 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         return message
 
     def handle_error_message(self, client: Client, message):
-        return message
+        #
+        #    {
+        #        "id": "64d8732c856851144bded10d",
+        #        "type": "error",
+        #        "code": 401,
+        #        "data": "token is expired"
+        #    }
+        #
+        data = self.safe_string(message, 'data', '')
+        self.handle_errors(None, None, client.url, None, None, data, message, None, None)
 
     def handle_message(self, client: Client, message):
-        if self.handle_error_message(client, message):
-            type = self.safe_string(message, 'type')
-            methods = {
-                # 'heartbeat': self.handleHeartbeat,
-                'welcome': self.handle_system_status,
-                'ack': self.handle_subscription_status,
-                'message': self.handle_subject,
-                'pong': self.handle_pong,
-            }
-            method = self.safe_value(methods, type)
-            if method is None:
-                return message
-            else:
-                return method(client, message)
+        type = self.safe_string(message, 'type')
+        methods = {
+            # 'heartbeat': self.handleHeartbeat,
+            'welcome': self.handle_system_status,
+            'ack': self.handle_subscription_status,
+            'message': self.handle_subject,
+            'pong': self.handle_pong,
+            'error': self.handle_error_message,
+        }
+        method = self.safe_value(methods, type)
+        if method is not None:
+            return method(client, message)

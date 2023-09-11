@@ -28,7 +28,7 @@ export default class cryptocom extends cryptocomRest {
     handleErrorMessage(client: Client, message: any): boolean;
     handleSubscribe(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
-    authenticate(params?: {}): any;
+    authenticate(params?: {}): Promise<any>;
     handlePing(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): void;
 }

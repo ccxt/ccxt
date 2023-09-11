@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -78,6 +78,7 @@ export default class okx extends Exchange {
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -108,6 +109,8 @@ export default class okx extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfer': true,
                 'fetchTransfers': true,
+                'fetchUnderlyingAssets': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -221,6 +224,7 @@ export default class okx extends Exchange {
                         'tradingBot/grid/ai-param': 1,
                         'tradingBot/grid/min-investment': 1,
                         'tradingBot/public/rsi-back-testing': 1,
+                        'asset/exchange-list': 5 / 3,
                         'finance/savings/lending-rate-summary': 5 / 3,
                         'finance/savings/lending-rate-history': 5 / 3,
                         // public broker
@@ -247,7 +251,7 @@ export default class okx extends Exchange {
                         'trade/orders-history': 1 / 2,
                         'trade/orders-history-archive': 1,
                         'trade/fills': 1 / 3,
-                        'trade/fills-history': 2,
+                        'trade/fills-history': 2.2,
                         'trade/order-algo': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
@@ -438,6 +442,7 @@ export default class okx extends Exchange {
                         'broker/nd/subaccount/delete-apikey': 1,
                         'broker/nd/set-subaccount-level': 4,
                         'broker/nd/set-subaccount-fee-rate': 4,
+                        'broker/nd/set-subaccount-assets': 0.25,
                         'asset/broker/nd/subaccount-deposit-address': 1,
                         'asset/broker/nd/modify-subaccount-deposit-address': 5 / 3,
                         'broker/nd/rebate-per-orders': 36000,
@@ -543,16 +548,16 @@ export default class okx extends Exchange {
                     '51018': ExchangeError, // User with option account can not hold net short positions
                     '51019': ExchangeError, // No net long positions can be held under isolated margin mode in options
                     '51020': InvalidOrder, // Order amount should be greater than the min available amount
-                    '51021': BadSymbol, // Contract to be listed
-                    '51022': BadSymbol, // Contract suspended
+                    '51021': ContractUnavailable, // Contract to be listed
+                    '51022': ContractUnavailable, // Contract suspended
                     '51023': ExchangeError, // Position does not exist
                     '51024': AccountSuspended, // Unified accountblocked
                     '51025': ExchangeError, // Order count exceeds the limit
                     '51026': BadSymbol, // Instrument type does not match underlying index
-                    '51027': BadSymbol, // Contract expired
-                    '51028': BadSymbol, // Contract under delivery
-                    '51029': BadSymbol, // Contract is being settled
-                    '51030': BadSymbol, // Funding fee is being settled
+                    '51027': ContractUnavailable, // Contract expired
+                    '51028': ContractUnavailable, // Contract under delivery
+                    '51029': ContractUnavailable, // Contract is being settled
+                    '51030': ContractUnavailable, // Funding fee is being settled
                     '51046': InvalidOrder, // The take profit trigger price must be higher than the order price
                     '51047': InvalidOrder, // The stop loss trigger price must be lower than the order price
                     '51031': InvalidOrder, // This order price is not within the closing price range
@@ -599,6 +604,7 @@ export default class okx extends Exchange {
                     '51162': InvalidOrder, // You have {instrument} open orders. Cancel these orders and try again
                     '51163': InvalidOrder, // You hold {instrument} positions. Close these positions and try again
                     '51166': InvalidOrder, // Currently, we don't support leading trades with this instrument
+                    '51174': InvalidOrder, // The number of {param0} pending orders reached the upper limit of {param1} (orders).
                     '51201': InvalidOrder, // Value of per market order cannot exceed 100,000 USDT
                     '51202': InvalidOrder, // Market - order amount exceeds the max amount
                     '51203': InvalidOrder, // Order amount exceeds the limit {0}
@@ -1132,7 +1138,7 @@ export default class okx extends Exchange {
          * @name okx#fetchStatus
          * @description the latest known information on the availability of the exchange API
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         * @returns {object} a [status structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure}
          */
         const response = await this.publicGetSystemStatus (params);
         //
@@ -1204,7 +1210,7 @@ export default class okx extends Exchange {
          * @name okx#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
          */
         const response = await this.privateGetAccountConfig (params);
         //
@@ -1247,6 +1253,7 @@ export default class okx extends Exchange {
          * @method
          * @name okx#fetchMarkets
          * @description retrieves data on all markets for okx
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-instruments
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -1363,12 +1370,10 @@ export default class okx extends Exchange {
             }
         }
         const tickSize = this.safeString (market, 'tickSz');
-        const minAmountString = this.safeString (market, 'minSz');
-        const minAmount = this.parseNumber (minAmountString);
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
-        const precisionPrice = this.parseNumber (tickSize);
         let maxLeverage = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
+        const maxSpotCost = this.safeNumber (market, 'maxMktSz');
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -1395,7 +1400,7 @@ export default class okx extends Exchange {
             'optionType': optionType,
             'precision': {
                 'amount': this.safeNumber (market, 'lotSz'),
-                'price': precisionPrice,
+                'price': this.parseNumber (tickSize),
             },
             'limits': {
                 'leverage': {
@@ -1403,16 +1408,16 @@ export default class okx extends Exchange {
                     'max': this.parseNumber (maxLeverage),
                 },
                 'amount': {
-                    'min': minAmount,
+                    'min': this.safeNumber (market, 'minSz'),
                     'max': undefined,
                 },
                 'price': {
-                    'min': precisionPrice,
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': contract ? undefined : maxSpotCost,
                 },
             },
             'info': market,
@@ -1636,7 +1641,7 @@ export default class okx extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1738,7 +1743,7 @@ export default class okx extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1829,7 +1834,7 @@ export default class okx extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -1946,7 +1951,7 @@ export default class okx extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2125,9 +2130,9 @@ export default class okx extends Exchange {
          * @description fetches historical funding rate prices
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
@@ -2266,7 +2271,7 @@ export default class okx extends Exchange {
          * @description fetch the trading fees for a market
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2313,7 +2318,7 @@ export default class okx extends Exchange {
          * @name okx#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
@@ -2669,7 +2674,7 @@ export default class okx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {bool} [params.reduceOnly] MARGIN orders only, or swap/future orders in net mode
          * @param {bool} [params.postOnly] true to place a post only order
@@ -2681,7 +2686,7 @@ export default class okx extends Exchange {
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
          * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2778,7 +2783,7 @@ export default class okx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.clientOrderId] client order id, uses id if not passed
          * @param {float} [params.stopLossPrice] stop loss trigger price
@@ -2795,7 +2800,7 @@ export default class okx extends Exchange {
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
          * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2833,7 +2838,7 @@ export default class okx extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const stop = this.safeValue (params, 'stop');
         if (stop) {
@@ -2887,7 +2892,7 @@ export default class okx extends Exchange {
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if (symbol === undefined) {
@@ -3187,7 +3192,7 @@ export default class okx extends Exchange {
          * @param {string} id the order id
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra and exchange specific parameters
-         * @returns [an order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns [an order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -3336,7 +3341,7 @@ export default class okx extends Exchange {
          * @param {bool} [params.stop] True if fetching trigger or conditional orders
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -3485,7 +3490,7 @@ export default class okx extends Exchange {
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {int} [params.until] timestamp in ms to fetch orders for
-         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -3659,7 +3664,7 @@ export default class okx extends Exchange {
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {int} [params.until] timestamp in ms to fetch orders for
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -3820,7 +3825,7 @@ export default class okx extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -3882,7 +3887,7 @@ export default class okx extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         const request = {
             // 'instrument_id': market['id'],
@@ -3907,7 +3912,7 @@ export default class okx extends Exchange {
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchLedger', {});
@@ -4202,7 +4207,7 @@ export default class okx extends Exchange {
          * @description fetch a dictionary of addresses for a currency, indexed by network
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+         * @returns {object} a dictionary of [address structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure} indexed by the network
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -4244,7 +4249,7 @@ export default class okx extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
         const rawNetwork = this.safeStringUpper (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
@@ -4288,7 +4293,7 @@ export default class okx extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -4317,7 +4322,7 @@ export default class okx extends Exchange {
             const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (network), {});
             fee = this.safeString (targetNetwork, 'fee');
             if (fee === undefined) {
-                throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
             }
         }
         request['fee'] = this.numberToString (fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
@@ -4365,7 +4370,7 @@ export default class okx extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -4438,7 +4443,7 @@ export default class okx extends Exchange {
          * @param {string} id deposit id
          * @param {string} code filter by currency code
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -4465,7 +4470,7 @@ export default class okx extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -4530,7 +4535,7 @@ export default class okx extends Exchange {
          * @param {string} id withdrawal id
          * @param {string} code unified currency code of the currency withdrawn, default is undefined
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -4709,7 +4714,7 @@ export default class okx extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
-         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         * @returns {object} a [leverage structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-structure}
          */
         await this.loadMarkets ();
         let marginMode = undefined;
@@ -4752,7 +4757,7 @@ export default class okx extends Exchange {
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object} a [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4815,7 +4820,7 @@ export default class okx extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const position = this.safeValue (data, 0);
         if (position === undefined) {
-            return position;
+            return undefined;
         }
         return this.parsePosition (position);
     }
@@ -4829,7 +4834,7 @@ export default class okx extends Exchange {
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -4903,7 +4908,7 @@ export default class okx extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i]));
         }
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     parsePosition (position, market = undefined) {
@@ -5044,6 +5049,8 @@ export default class okx extends Exchange {
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'leverage': this.parseNumber (leverageString),
             'marginRatio': marginRatio,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
 
@@ -5058,7 +5065,7 @@ export default class okx extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -5234,7 +5241,7 @@ export default class okx extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -5398,7 +5405,7 @@ export default class okx extends Exchange {
          * @description fetch the current funding rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -5439,7 +5446,7 @@ export default class okx extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @returns {object} a [funding history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -5740,7 +5747,7 @@ export default class okx extends Exchange {
          * @name okx#fetchBorrowRates
          * @description fetch the borrow interest rates of all currencies
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         * @returns {object} a list of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetAccountInterestRate (params);
@@ -5781,7 +5788,7 @@ export default class okx extends Exchange {
          * @description fetch the rate of interest to borrow a currency for margin trading
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -5880,7 +5887,7 @@ export default class okx extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest borrowRate, default is undefined
          * @param {int} [limit] max number of borrow rate prices to return, default is undefined
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} indexed by the market symbol
+         * @returns {object} a dictionary of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure} indexed by the market symbol
          */
         await this.loadMarkets ();
         const request = {
@@ -5921,9 +5928,9 @@ export default class okx extends Exchange {
          * @description retrieves a history of a currencies borrow interest rate at specific time slots
          * @param {string} code unified currency code
          * @param {int} [since] timestamp for the earliest borrow rate
-         * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+         * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure} to retrieve
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         * @returns {object[]} an array of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -6016,7 +6023,7 @@ export default class okx extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
@@ -6029,7 +6036,7 @@ export default class okx extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
@@ -6043,7 +6050,7 @@ export default class okx extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
-         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+         * @returns {object} a [leverage tiers structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -6143,11 +6150,11 @@ export default class okx extends Exchange {
          * @param {string} code the unified currency code for the currency of the interest
          * @param {string} symbol the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
          * @param {int} [since] timestamp in ms of the earliest time to receive interest records for
-         * @param {int} [limit] the number of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure} to retrieve
+         * @param {int} [limit] the number of [borrow interest structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-interest-structure} to retrieve
          * @param {object} [params] exchange specific parameters
          * @param {int} [params.type] Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
          * @param {string} [params.marginMode] 'cross' or 'isolated'
-         * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+         * @returns {object[]} An list of [borrow interest structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-interest-structure}
          */
         await this.loadMarkets ();
         let marginMode = undefined;
@@ -6227,7 +6234,7 @@ export default class okx extends Exchange {
          * @param {float} amount the amount to borrow
          * @param {string} symbol not used by okx.borrowMargin ()
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -6272,7 +6279,7 @@ export default class okx extends Exchange {
          * @param {float} amount the amount to repay
          * @param {string} symbol not used by okx.repayMargin ()
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -6339,7 +6346,7 @@ export default class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -6386,7 +6393,7 @@ export default class okx extends Exchange {
          * @param {int} [limit] Not used by okx, but parsed internally by CCXT
          * @param {object} [params] Exchange specific parameters
          * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
-         * @returns An array of [open interest structures]{@link https://docs.ccxt.com/#/?id=interest-history-structure}
+         * @returns An array of [open interest structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
          */
         const options = this.safeValue (this.options, 'fetchOpenInterestHistory', {});
         const timeframes = this.safeValue (options, 'timeframes', {});
@@ -6515,7 +6522,7 @@ export default class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object[]} a list of [fees structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetAssetCurrencies (params);
@@ -6728,6 +6735,45 @@ export default class okx extends Exchange {
             }
         }
         return result;
+    }
+
+    async fetchUnderlyingAssets (params = {}) {
+        /**
+         * @method
+         * @name okx#fetchUnderlyingAssets
+         * @description fetches the market ids of underlying assets for a specific contract market type
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
+         * @param {object} [params] exchange specific params
+         * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
+         * @returns {object[]} a list of [underlying assets]{@link https://github.com/ccxt/ccxt/wiki/Manual#underlying-assets-structure}
+         */
+        await this.loadMarkets ();
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchUnderlyingAssets', undefined, params);
+        if ((marketType === undefined) || (marketType === 'spot')) {
+            marketType = 'option';
+        }
+        if ((marketType !== 'option') && (marketType !== 'swap') && (marketType !== 'future')) {
+            throw new NotSupported (this.id + ' fetchUnderlyingAssets() supports contract markets only');
+        }
+        const request = {
+            'instType': this.convertToInstrumentType (marketType),
+        };
+        const response = await this.publicGetPublicUnderlying (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             [
+        //                 "BTC-USD",
+        //                 "ETH-USD"
+        //             ]
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const underlyings = this.safeValue (response, 'data', []);
+        return underlyings[0];
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

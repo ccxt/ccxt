@@ -28,7 +28,7 @@ function test_trade($exchange, $skipped_properties, $method, $entry, $symbol, $n
     );
     // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     // removed side because some public endpoints return trades without side
-    $empty_allowed_for = ['fees', 'fee', 'symbol', 'order', 'id', 'takerOrMaker'];
+    $empty_allowed_for = ['fees', 'fee', 'symbol', 'order', 'id', 'takerOrMaker', 'timestamp', 'datetime'];
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
     assert_timestamp($exchange, $skipped_properties, $method, $entry, $now);
     assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);

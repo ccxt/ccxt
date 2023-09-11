@@ -165,7 +165,7 @@ export default class bybit extends bybitRest {
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -286,7 +286,8 @@ export default class bybit extends bybitRest {
         const topic = this.safeString(message, 'topic', '');
         const updateType = this.safeString(message, 'type', '');
         const data = this.safeValue(message, 'data', {});
-        const isSpot = this.safeString(data, 's') !== undefined;
+        const isSpot = this.safeString(data, 'openInterestValue') === undefined;
+        const type = isSpot ? 'spot' : 'contract';
         let symbol = undefined;
         let parsed = undefined;
         if ((updateType === 'snapshot') || isSpot) {
@@ -297,7 +298,7 @@ export default class bybit extends bybitRest {
             const topicParts = topic.split('.');
             const topicLength = topicParts.length;
             const marketId = this.safeString(topicParts, topicLength - 1);
-            const market = this.market(marketId);
+            const market = this.safeMarket(marketId, undefined, undefined, type);
             symbol = market['symbol'];
             // update the info in place
             const ticker = this.safeValue(this.tickers, symbol, {});
@@ -425,7 +426,7 @@ export default class bybit extends bybitRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return.
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -531,11 +532,11 @@ export default class bybit extends bybitRest {
          * @name bybit#watchTrades
          * @description watches information on multiple trades made in a market
          * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -685,7 +686,7 @@ export default class bybit extends bybitRest {
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @param {boolean} [params.unifiedMargin] use unified margin account
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
          */
         const method = 'watchMyTrades';
         let messageHash = 'myTrades';
@@ -706,7 +707,7 @@ export default class bybit extends bybitRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     handleMyTrades(client, message) {
         //
@@ -810,7 +811,7 @@ export default class bybit extends bybitRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
          */
         await this.loadMarkets();
         const method = 'watchOrders';
@@ -917,21 +918,21 @@ export default class bybit extends bybitRest {
         //         ]
         //     }
         //
-        const type = this.safeString(message, 'type', '');
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         const orders = this.orders;
-        let rawOrders = [];
+        let rawOrders = this.safeValue(message, 'data', []);
+        const first = this.safeValue(rawOrders, 0, {});
+        const category = this.safeString(first, 'category');
+        const isSpot = category === 'spot';
         let parser = undefined;
-        if (type === 'snapshot') {
-            rawOrders = this.safeValue(message, 'data', []);
+        if (isSpot) {
             parser = 'parseWsSpotOrder';
         }
         else {
             parser = 'parseContractOrder';
-            rawOrders = this.safeValue(message, 'data', []);
             rawOrders = this.safeValue(rawOrders, 'result', rawOrders);
         }
         const symbols = {};
@@ -979,35 +980,76 @@ export default class bybit extends bybitRest {
         //        v: '0', // leverage
         //        d: 'NO_LIQ'
         //    }
+        // v5
+        //    {
+        //        "category":"spot",
+        //        "symbol":"LTCUSDT",
+        //        "orderId":"1474764674982492160",
+        //        "orderLinkId":"1690541649154749",
+        //        "blockTradeId":"",
+        //        "side":"Buy",
+        //        "positionIdx":0,
+        //        "orderStatus":"Cancelled",
+        //        "cancelType":"UNKNOWN",
+        //        "rejectReason":"EC_NoError",
+        //        "timeInForce":"GTC",
+        //        "isLeverage":"0",
+        //        "price":"0",
+        //        "qty":"5.00000",
+        //        "avgPrice":"0",
+        //        "leavesQty":"0.00000",
+        //        "leavesValue":"5.0000000",
+        //        "cumExecQty":"0.00000",
+        //        "cumExecValue":"0.0000000",
+        //        "cumExecFee":"",
+        //        "orderType":"Market",
+        //        "stopOrderType":"",
+        //        "orderIv":"",
+        //        "triggerPrice":"0.000",
+        //        "takeProfit":"",
+        //        "stopLoss":"",
+        //        "triggerBy":"",
+        //        "tpTriggerBy":"",
+        //        "slTriggerBy":"",
+        //        "triggerDirection":0,
+        //        "placeType":"",
+        //        "lastPriceOnCreated":"0.000",
+        //        "closeOnTrigger":false,
+        //        "reduceOnly":false,
+        //        "smpGroup":0,
+        //        "smpType":"None",
+        //        "smpOrderId":"",
+        //        "createdTime":"1690541649160",
+        //        "updatedTime":"1690541649168"
+        //     }
         //
-        const id = this.safeString(order, 'i');
-        const marketId = this.safeString(order, 's');
+        const id = this.safeString2(order, 'i', 'orderId');
+        const marketId = this.safeString2(order, 's', 'symbol');
         const symbol = this.safeSymbol(marketId, market, undefined, 'spot');
-        const timestamp = this.safeInteger(order, 'O');
-        let price = this.safeString(order, 'p');
+        const timestamp = this.safeInteger2(order, 'O', 'createdTime');
+        let price = this.safeString2(order, 'p', 'price');
         if (price === '0') {
             price = undefined; // market orders
         }
-        const filled = this.safeString(order, 'z');
-        const status = this.parseOrderStatus(this.safeString(order, 'X'));
-        const side = this.safeStringLower(order, 'S');
-        const lastTradeTimestamp = this.safeString(order, 'E');
-        const timeInForce = this.safeString(order, 'f');
+        const filled = this.safeString2(order, 'z', 'cumExecQty');
+        const status = this.parseOrderStatus(this.safeString2(order, 'X', 'orderStatus'));
+        const side = this.safeStringLower2(order, 'S', 'side');
+        const lastTradeTimestamp = this.safeString2(order, 'E', 'updatedTime');
+        const timeInForce = this.safeString2(order, 'f', 'timeInForce');
         let amount = undefined;
-        const cost = this.safeString(order, 'Z');
-        const q = this.safeString(order, 'q');
-        let type = this.safeStringLower(order, 'o');
-        if (type.indexOf('quote') >= 0) {
+        const cost = this.safeString2(order, 'Z', 'cumExecValue');
+        let type = this.safeStringLower2(order, 'o', 'orderType');
+        if ((type !== undefined) && (type.indexOf('market') >= 0)) {
+            type = 'market';
+        }
+        if (type === 'market' && side === 'buy') {
             amount = filled;
         }
         else {
-            amount = q;
-        }
-        if (type.indexOf('market') >= 0) {
-            type = 'market';
+            amount = this.safeString2(order, 'orderQty', 'qty');
         }
         let fee = undefined;
-        const feeCost = this.safeString(order, 'n');
+        const feeCost = this.safeString2(order, 'n', 'cumExecFee');
         if (feeCost !== undefined && feeCost !== '0') {
             const feeCurrencyId = this.safeString(order, 'N');
             const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
@@ -1016,10 +1058,11 @@ export default class bybit extends bybitRest {
                 'currency': feeCurrencyCode,
             };
         }
+        const triggerPrice = this.omitZero(this.safeString(order, 'triggerPrice'));
         return this.safeOrder({
             'info': order,
             'id': id,
-            'clientOrderId': this.safeString(order, 'c'),
+            'clientOrderId': this.safeString2(order, 'c', 'orderLinkId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1029,11 +1072,14 @@ export default class bybit extends bybitRest {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'takeProfitPrice': this.safeString(order, 'takeProfit'),
+            'stopLossPrice': this.safeString(order, 'stopLoss'),
+            'reduceOnly': this.safeValue(order, 'reduceOnly'),
             'amount': amount,
             'cost': cost,
-            'average': undefined,
+            'average': this.safeString(order, 'avgPrice'),
             'filled': filled,
             'remaining': undefined,
             'status': status,
@@ -1044,10 +1090,10 @@ export default class bybit extends bybitRest {
         /**
          * @method
          * @name bybit#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         const method = 'watchBalance';
@@ -1345,12 +1391,13 @@ export default class bybit extends bybitRest {
         const message = this.extend(request, params);
         return await this.watch(url, messageHash, message, messageHash);
     }
-    authenticate(url, params = {}) {
+    async authenticate(url, params = {}) {
         this.checkRequiredCredentials();
         const messageHash = 'authenticated';
         const client = this.client(url);
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const expiresInt = this.milliseconds() + 10000;
             const expires = expiresInt.toString();
             const path = 'GET/realtime';
@@ -1363,8 +1410,7 @@ export default class bybit extends bybitRest {
                 ],
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -1523,7 +1569,8 @@ export default class bybit extends bybitRest {
         const success = this.safeValue(message, 'success');
         const messageHash = 'authenticated';
         if (success) {
-            client.resolve(message, messageHash);
+            const future = this.safeValue(client.futures, messageHash);
+            future.resolve(true);
         }
         else {
             const error = new AuthenticationError(this.id + ' ' + this.json(message));
