@@ -818,7 +818,7 @@ export default class latoken extends Exchange {
         //         {"id":"f43d3ec8-db94-49f3-b534-91dbc2779296","isMakerBuyer":true,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.00","quantity":"0.41738","cost":"1851.0803","timestamp":1635854640323,"makerBuyer":true},
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchTradingFee (symbol: string, params = {}) {
