@@ -628,7 +628,7 @@ export default class independentreserve extends Exchange {
             'numberOfRecentTradesToRetrieve': 50, // max = 50
         };
         const response = await this.publicGetGetRecentTrades (this.extend (request, params));
-        return this.parseTrades (response['Trades'], market, since, limit);
+        return this.parseTrades (response['Trades'], market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchTradingFees (params = {}) {
