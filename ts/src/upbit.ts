@@ -864,7 +864,7 @@ export default class upbit extends Exchange {
         //                    ask_bid: "ASK",
         //              sequential_id:  15428917910540000 }  ]
         //
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async fetchTradingFee (symbol: string, params = {}) {
