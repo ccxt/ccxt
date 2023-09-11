@@ -432,5 +432,6 @@ export default class okx extends Exchange {
         datetime: any;
     };
     parseSettlements(settlements: any, market: any): any[];
+    fetchUnderlyingAssets(params?: {}): Promise<any>;
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

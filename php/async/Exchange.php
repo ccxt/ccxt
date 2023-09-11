@@ -40,11 +40,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.85';
+$version = '4.0.89';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.85';
+    const VERSION = '4.0.89';
 
     public $browser;
     public $marketsLoading = null;
@@ -102,10 +102,11 @@ class Exchange extends \ccxt\Exchange {
                 $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
                 $this->set_request_browser($request_browser_options);
             } else if ($socksProxy !== null) {
-                if (!class_exists('\Clue\React\Socks\Client')) {
+                $className = '\\Clue\\React\\Socks\\Client';
+                if (!class_exists($className)) {
                     throw new NotSupported($this->id . ' - to use SOCKS proxy with ccxt, at first you need install module "composer require clue/socks-react"');
                 }
-                $proxy = new \Clue\React\Socks\Client($socksProxy);
+                $proxy = new $className($socksProxy);
                 $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
                 $this->set_request_browser($request_browser_options);
             }

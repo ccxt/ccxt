@@ -738,8 +738,8 @@ class blockchaincom extends blockchaincom$1 {
         };
     }
     handleDelta(bookside, delta) {
-        const array = this.parseCountedBidAsk(delta, 'px', 'qty', 'num');
-        bookside.storeArray(array);
+        const bookArray = this.parseCountedBidAsk(delta, 'px', 'qty', 'num');
+        bookside.storeArray(bookArray);
     }
     handleDeltas(bookside, deltas) {
         for (let i = 0; i < deltas.length; i++) {
