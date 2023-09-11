@@ -14,10 +14,7 @@ import ccxt.pro as ccxt  # noqa: E402
 
 print('CCXT Version:', ccxt.__version__)
 
-exchange = ccxt.bybit({
-    # 'apiKey': 'YOUR_API_KEY',
-    # 'secret': 'YOUR_SECRET_KEY',
-})
+exchange = ccxt.binance({})
 
 
 async def watch_multiple_trades(symbols):
@@ -43,8 +40,7 @@ async def watch_multiple_ohlcv(symbols):
 async def example_1():
 
     await asyncio.gather(
-        watch_multiple_trades(['BTC/USDT', 'ETH/USDT']),
-        watch_multiple_trades(['ADA/USDT', 'LTC/USDT']),
+        watch_multiple_trades(['BTC/USDT' 'ADA/USDT', 'ETH/USDT']),
         watch_multiple_orderbooks(['BTC/USDT', 'ETH/USDT']),
         watch_multiple_ohlcv([['BTC/USDT', '1m'], ['LTC/USDT', '1m']]),
     )
