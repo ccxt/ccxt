@@ -396,7 +396,7 @@ export default class mercado extends Exchange {
             method += 'To';
         }
         const response = await this[method] (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseBalance (response) {
