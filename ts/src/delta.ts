@@ -1448,7 +1448,7 @@ export default class delta extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        return this.parseTrades (result, market, since, limit);
+        return this.parseTrades (result, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseOHLCV (ohlcv, market = undefined) {
