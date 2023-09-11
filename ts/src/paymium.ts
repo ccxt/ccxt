@@ -297,7 +297,7 @@ export default class paymium extends Exchange {
             'currency': market['id'],
         };
         const response = await this.publicGetDataCurrencyTrades (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     async createDepositAddress (code: string, params = {}) {
