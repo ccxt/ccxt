@@ -632,7 +632,7 @@ export default class hollaex extends Exchange {
         //     }
         //
         const trades = this.safeValue (response, market['id'], []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseTrade (trade, market = undefined) {
