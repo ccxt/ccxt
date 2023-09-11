@@ -143,7 +143,7 @@ import { CountedOrderBook, IndexedOrderBook, OrderBook as WsOrderBook } from './
 
 // import types
 import { Balance, Balances, Currency, DepositAddressResponse, Dictionary, Fee, IndexType, Int, Market, MinMax, OHLCV, OHLCVC, Order, OrderBook, OrderSide, OrderType, Position, Ticker, Trade, Transaction } from './types.js';
-export { Fee, Market, Ticker, Trade } from './types.js'
+export { Fee, Market, Position, Ticker, Trade } from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
@@ -2863,6 +2863,17 @@ export default class Exchange {
             // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
             const percentageString = Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100');
             position['percentage'] = this.parseNumber (percentageString);
+        }
+        // if contractSize is undefined get from market
+        let contractSize = this.safeNumber (position, 'contractSize');
+        const symbol = this.safeString (position, 'symbol');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (contractSize === undefined && market !== undefined) {
+            contractSize = this.safeNumber (market, 'contractSize');
+            position['contractSize'] = contractSize;
         }
         return position as any;
     }
