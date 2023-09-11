@@ -1406,18 +1406,32 @@ export default class exmo extends Exchange {
         if (marginMode === 'cross') {
             throw new BadRequest (this.id + ' only supports isolated margin');
         }
+        let response = undefined;
         if ((marginMode === 'isolated')) {
             request['order_id'] = id;
-            return await this.privatePostMarginUserOrderCancel (this.extend (request, params));
+            response = await this.privatePostMarginUserOrderCancel (this.extend (request, params));
+            //
+            //    {}
+            //
         } else {
             if (stop) {
                 request['parent_order_id'] = id;
-                return await this.privatePostStopMarketOrderCancel (this.extend (request, params));
+                response = this.privatePostStopMarketOrderCancel (this.extend (request, params));
+                //
+                //    {}
+                //
             } else {
                 request['order_id'] = id;
-                return await this.privatePostOrderCancel (this.extend (request, params));
+                response = this.privatePostOrderCancel (this.extend (request, params));
+                //
+                //    {
+                //        'error': '',
+                //        'result': True
+                //    }
+                //
             }
         }
+        return this.parseOrder (response);
     }
 
     async fetchOrder (id: string, symbol: string = undefined, params = {}) {
