@@ -210,7 +210,7 @@ export default class okx extends okxRest {
             'args': topics,
         };
         const messageHash = 'multipleTrades::' + symbols.join (',');
-        const url = this.urls['api']['ws']['public'];
+        const url = this.getUrl (channel, 'public');
         const trades = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
@@ -486,7 +486,7 @@ export default class okx extends okxRest {
             'op': 'subscribe',
             'args': topics,
         };
-        const url = this.urls['api']['ws']['public'];
+        const url = this.getUrl (depth, 'public');
         const messageHash = 'multipleOrderbooks::' + symbols.join (',');
         const orderbook = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
