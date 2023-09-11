@@ -29,7 +29,7 @@ async def watch_multiple_trades(symbols):
 async def watch_multiple_orderbooks(symbols):
     while True:
         orderbooks = await exchange.watch_order_book_for_symbols(symbols)
-        print(f'orderbook bid: {orderbooks["bids"][0]}')
+        print(f'orderbook bid: {orderbooks["symbol"]}{orderbooks["bids"][0]}')
 
 
 
