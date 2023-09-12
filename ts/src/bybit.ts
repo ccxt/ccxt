@@ -398,7 +398,7 @@ export default class bybit extends Exchange {
                         'v5/account/set-collateral-switch': 2.5,
                         'v5/account/collateral-info': 2.5,
                         'v5/asset/coin-greeks': 2.5,
-                        'v5/account/fee-rate': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/account/fee-rate': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/account/info': 2.5,
                         'v5/account/transaction-log': 2.5,
                         'v5/account/mmp-state': 2.5,
@@ -413,7 +413,6 @@ export default class bybit extends Exchange {
                         'v5/asset/transfer/query-inter-transfer-list': 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-sub-member-list': 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-universal-transfer-list': 25, // 2/s => cost = 50 / 2 = 25
-                        'ount/wallet-balancev5/asset/transfer/query-account-coin-balance': 2.5,
                         'v5/asset/deposit/query-allowed-list': 2.5,
                         'v5/asset/deposit/query-record': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-sub-member-record': 10, // 5/s => cost = 50 / 5 = 10
