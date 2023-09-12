@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinmate.js';
-import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -31,7 +31,11 @@ export default class coinmate extends Exchange {
                 'addMargin': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': false,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -177,6 +181,7 @@ export default class coinmate extends Exchange {
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'withdraw': {
                     'fillResponsefromRequest': true,
                     'methods': {
@@ -876,33 +881,81 @@ export default class coinmate extends Exchange {
          * @method
          * @name coinmate#createOrder
          * @description create a trade order
+         * @see https://coinmate.docs.apiary.io/#reference/order/buy-limit-order
+         * @see https://coinmate.docs.apiary.io/#reference/order/sell-limit-order
+         * @see https://coinmate.docs.apiary.io/#reference/order/buy-instant-order
+         * @see https://coinmate.docs.apiary.io/#reference/order/sell-instant-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the coinmate api endpoint
+         * @param {float} [params.triggerPrice] *limit only* the price at which a trigger order is triggered at
+         * @param {boolean} [params.postOnly] *limit only* if true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [params.timeInForce] *limit only* "GTC", "IOC", or "PO"
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.trailing] *limit only* flag indicating that stop loss order should be created as trailing. valid flag value is 0 or 1. default value is 0
+         * @param {int} [params.hidden] *limit only* flag indicating that order should be created as hidden. valid flag value is 0 or 1. default value is 0
+         * @param {string} [params.clientOrderId] numeric client id of order used to access order in case of not receiving order id.
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        let method = 'privatePost' + this.capitalize (side);
         const market = this.market (symbol);
         const request = {
             'currencyPair': market['id'],
         };
-        if (type === 'market') {
-            if (side === 'buy') {
-                request['total'] = this.amountToPrecision (symbol, amount); // amount in fiat
+        const isBuy = side === 'buy';
+        const isMarket = type === 'market';
+        let response = undefined;
+        let postOnly = undefined;
+        const exchangeSpecificPostOnly = this.safeString (params, 'postOnly');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const timeInForce = this.safeString (params, 'timeInForce');
+        [ postOnly, params ] = this.handlePostOnly (isMarket, exchangeSpecificPostOnly === '1', params);
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'timeInForce' ]);
+        if (isMarket) {
+            if (triggerPrice !== undefined) {
+                throw new BadRequest (this.id + ' cannot place trigger market orders, only trigger limit');
+            }
+            if (isBuy) {
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires price argument for market buy orders to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                    } else {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
+                        request['total'] = this.priceToPrecision (symbol, cost);
+                    }
+                } else {
+                    request['total'] = this.amountToPrecision (symbol, amount); // amount in fiat
+                }
+                response = await this.privatePostBuyInstant (this.extend (request, params));
             } else {
                 request['amount'] = this.amountToPrecision (symbol, amount); // amount in fiat
+                response = await this.privatePostSellInstant (this.extend (request, params));
             }
-            method += 'Instant';
         } else {
+            if (triggerPrice !== undefined) {
+                request['stopPrice'] = this.priceToPrecision (market['symbol'], triggerPrice);
+            }
+            if (timeInForce === 'IOC') {
+                request['immediateOrCancel'] = 1;
+            }
+            if (postOnly) {
+                request['postOnly'] = 1;
+            }
             request['amount'] = this.amountToPrecision (symbol, amount); // amount in crypto
             request['price'] = this.priceToPrecision (symbol, price);
-            method += this.capitalize (type);
+            if (isBuy) {
+                response = await this.privatePostBuyLimit (this.extend (request, params));
+            } else {
+                response = await this.privatePostSellLimit (this.extend (request, params));
+            }
         }
-        const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'data');
         return this.safeOrder ({
             'info': response,
