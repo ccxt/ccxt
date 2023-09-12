@@ -103,9 +103,10 @@ export default class okx extends okxRest {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
         const isSandbox = this.options['sandboxMode'];
         const sandboxSuffix = isSandbox ? '?brokerId=9999' : '';
+        const isBusiness = (access === 'business');
         const isPublic = (access === 'public');
         const url = this.urls['api']['ws'];
-        if ((channel.indexOf ('candle') > -1) || (channel === 'orders-algo')) {
+        if (isBusiness || (channel.indexOf ('candle') > -1) || (channel === 'orders-algo')) {
             return url + '/business' + sandboxSuffix;
         } else if (isPublic) {
             return url + '/public' + sandboxSuffix;
@@ -842,13 +843,13 @@ export default class okx extends okxRest {
          * @param {bool} [params.stop] true if fetching trigger or conditional trades
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
-        await this.loadMarkets ();
-        await this.authenticate ();
         // By default, receive order updates from any instrument type
         let type = undefined;
         [ type, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'type', 'ANY');
         const isStop = this.safeValue (params, 'stop', false);
         params = this.omit (params, [ 'stop' ]);
+        await this.loadMarkets ();
+        await this.authenticate ({ 'access': isStop ? 'business' : 'private' });
         const channel = isStop ? 'orders-algo' : 'orders';
         let messageHash = channel + '::myTrades';
         let market = undefined;
@@ -885,13 +886,13 @@ export default class okx extends okxRest {
          * @param {bool} [params.stop] true if fetching trigger or conditional orders
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        await this.loadMarkets ();
-        await this.authenticate ();
         let type = undefined;
         // By default, receive order updates from any instrument type
         [ type, params ] = this.handleOptionAndParams (params, 'watchOrders', 'type', 'ANY');
         const isStop = this.safeValue (params, 'stop', false);
         params = this.omit (params, [ 'stop' ]);
+        await this.loadMarkets ();
+        await this.authenticate ({ 'access': isStop ? 'business' : 'private' });
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
