@@ -2973,8 +2973,8 @@ fetchSettlementHistory (symbol = undefined, since = undefined, limit = undefined
 
 Parameters
 
-- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
-- **since** (Integer) Timestamp for the earliest settlement (e.g. `1645807945000`)
+- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT-230728-25500-P"`)
+- **since** (Integer) Timestamp for the earliest settlement (e.g. `1694073600000`)
 - **limit** (Integer) The maximum number of settlements to retrieve (e.g. `10`)
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
@@ -2986,17 +2986,11 @@ Returns
 
 ```javascript
 {
-    info: {
-        "symbol": "BTC-230907-25500-P",
-        "strikePrice": "25500",
-        "realStrikePrice": "25761.35807869",
-        "expiryDate": 1694073600000,
-        "strikeResult": "EXTRINSIC_VALUE_EXPIRED"
-    }
-    symbol: BTC/USDT:USDT-230728-25500-P,
+    info: { ... },
+    symbol: 'BTC/USDT:USDT-230728-25500-P',
     price: 25761.35807869,
     timestamp: 1694073600000,
-    datetime: 2023-09-07T08:00:00.000Z,
+    datetime: '2023-09-07T08:00:00.000Z',
 }
 ```
 
