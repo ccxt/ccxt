@@ -136,19 +136,19 @@ export default class bitopro extends Exchange {
                         'wallet/depositHistory/{currency}',
                         'wallet/withdrawHistory/{currency}',
                     ],
-                    'post': [
-                        'orders/{pair}',
-                        'orders/batch',
-                        'wallet/withdraw/{currency}',
-                    ],
-                    'put': [
-                        'orders',
-                    ],
-                    'delete': [
-                        'orders/{pair}/{id}',
-                        'orders/all',
-                        'orders/{pair}',
-                    ],
+                    'post': {
+                        'orders/{pair}': 1 / 2, // 1200/m => 20/s => 10/20 = 1/2
+                        'orders/batch': 20 / 3, // 90/m => 1.5/s => 10/1.5 = 20/3
+                        'wallet/withdraw/{currency}': 10, // 60/m => 1/s => 10/1 = 10
+                    },
+                    'put': {
+                        'orders': 5, // 2/s => 10/2 = 5
+                    },
+                    'delete': {
+                        'orders/{pair}/{id}': 2 / 3, // 900/m => 15/s => 10/15 = 2/3
+                        'orders/all': 5, // 2/s => 10/2 = 5
+                        'orders/{pair}': 5, // 2/s => 10/2 = 5
+                    },
                 },
             },
             'fees': {
