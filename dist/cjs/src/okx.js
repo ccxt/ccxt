@@ -6612,7 +6612,7 @@ class okx extends okx$1 {
          * @param {int} [since] timestamp in ms
          * @param {int} [limit] number of records
          * @param {object} [params] exchange specific params
-         * @returns {object[]} a list of [settlement history objects]
+         * @returns {object[]} a list of [settlement history objects]{@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure}
          */
         this.checkRequiredSymbol('fetchSettlementHistory', symbol);
         await this.loadMarkets();

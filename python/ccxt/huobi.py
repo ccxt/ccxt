@@ -7242,7 +7242,7 @@ class huobi(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms, value range = start_time -> current time，default = current time
         :param int [params.page_index]: page index, default page 1 if not filled
         :param int [params.code]: unified currency code, can be used when symbol is None
-        :returns: A list of settlement history objects
+        :returns dict[]: a list of `settlement history objects <https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure>`
         """
         code = self.safe_string(params, 'code')
         until = self.safe_integer_2(params, 'until', 'till')

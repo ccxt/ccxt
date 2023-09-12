@@ -7856,7 +7856,7 @@ class huobi extends huobi$1 {
          * @param {int} [params.until] timestamp in ms, value range = start_time -> current time，default = current time
          * @param {int} [params.page_index] page index, default page 1 if not filled
          * @param {int} [params.code] unified currency code, can be used when symbol is undefined
-         * @returns A list of settlement history objects
+         * @returns {object[]} a list of [settlement history objects]{@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure}
          */
         const code = this.safeString(params, 'code');
         const until = this.safeInteger2(params, 'until', 'till');

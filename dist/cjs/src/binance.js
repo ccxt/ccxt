@@ -7755,7 +7755,7 @@ class binance extends binance$1 {
          * @param {int} [since] timestamp in ms
          * @param {int} [limit] number of records, default 100, max 100
          * @param {object} [params] exchange specific params
-         * @returns {object[]} a list of [settlement history objects]
+         * @returns {object[]} a list of [settlement history objects]{@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure}
          */
         await this.loadMarkets();
         const market = (symbol === undefined) ? undefined : this.market(symbol);
