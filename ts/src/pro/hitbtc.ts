@@ -174,14 +174,14 @@ export default class hitbtc extends hitbtcRest {
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch'
-         * @param {int} [params.depth] 5 (default), 10, or 20
+         * @param {int} [params.depth] 5 , 10, or 20 (default)
          * @param {int} [params.speed] 100 (default), 500, or 1000
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const options = this.safeValue (this.options, 'watchOrderBook');
         const defaultMethod = this.safeString (options, 'method', 'orderbook/full');
         let name = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
-        const depth = this.safeString (params, 'depth', '5');
+        const depth = this.safeString (params, 'depth', '20');
         const speed = this.safeString (params, 'depth', '100');
         if (name === 'orderbook/{depth}/{speed}') {
             name = 'orderbook/D' + depth + '/' + speed + 'ms';
