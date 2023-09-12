@@ -2980,7 +2980,7 @@ Parameters
 
 Returns
 
-- An [settlement history structure](#settlement-history-structure)
+- An array of [settlement history structures](#settlement-history-structure)
 
 ### Settlement History Structure
 
