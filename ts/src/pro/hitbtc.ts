@@ -822,7 +822,7 @@ export default class hitbtc extends hitbtcRest {
 
     handleOrderHelper (client: Client, message, order) {
         const orders = this.orders;
-        const marketId = this.safeStringLower (order, 'instrument');
+        const marketId = this.safeStringLower2 (order, 'instrument', 'symbol');
         const method = this.safeString (message, 'method');
         const splitMethod = method.split ('_order');
         const messageHash = this.safeString (splitMethod, 0);
