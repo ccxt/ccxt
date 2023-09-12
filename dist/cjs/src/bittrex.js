@@ -473,11 +473,24 @@ class bittrex extends bittrex$1 {
             const precision = this.parseNumber('1e-8'); // default precision, seems exchange has same amount-precision across all pairs in UI too. todo: fix "magic constants"
             const fee = this.safeNumber(currency, 'txFee'); // todo: redesign
             const isActive = this.safeString(currency, 'status');
+            const coinType = this.safeString(currency, 'coinType');
+            let type = undefined;
+            if (coinType === 'FIAT') {
+                type = 'fiat';
+            }
+            else if (coinType === 'Award') {
+                // these are exchange credits
+                type = 'other';
+            }
+            else {
+                // all others are cryptos
+                type = 'crypto';
+            }
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'type': this.safeString(currency, 'coinType'),
+                'type': type,
                 'name': this.safeString(currency, 'name'),
                 'active': (isActive === 'ONLINE'),
                 'deposit': undefined,

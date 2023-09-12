@@ -2351,6 +2351,7 @@ class bitmex extends bitmex$1 {
         if (until !== undefined) {
             request['endTime'] = this.iso8601(until);
         }
+        request['reverse'] = true;
         const response = await this.publicGetFunding(this.extend(request, params));
         //
         //    [

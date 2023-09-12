@@ -98,6 +98,7 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
+                'fetchUnderlyingAssets': False,
                 'fetchVolatilityHistory': True,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,

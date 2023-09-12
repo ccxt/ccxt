@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\AuthenticationError;
 use React\Async;
@@ -19,9 +20,11 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 'ws' => true,
                 'watchOHLCV' => false, // missing on the exchange side
                 'watchOrderBook' => true,
+                'watchOrderBookForSymbols' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
                 'watchBalance' => false,
                 'watchStatus' => false, // for now
                 'watchOrders' => true,
@@ -173,6 +176,34 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }) ();
     }
 
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular symbol
+             * @param {string} symbol unified symbol of the market to fetch $trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the coinbase api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 0) {
+                throw new BadRequest($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
+            }
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $name = 'matches';
+            $messageHash = 'multipleTrades::';
+            $trades = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, $params));
+            if ($this->newUpdates) {
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
@@ -260,6 +291,45 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         }) ();
     }
 
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string[]} $symbols unified array of $symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
+             */
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 0) {
+                throw new BadRequest($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+            }
+            $name = 'level2';
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = $this->market_ids($symbols);
+            $messageHash = 'multipleOrderbooks' . '::' . implode(',', $symbols);
+            $url = $this->urls['api']['ws'];
+            $subscribe = array(
+                'type' => 'subscribe',
+                'product_ids' => $marketIds,
+                'channels' => array(
+                    $name,
+                ),
+            );
+            $request = array_merge($subscribe, $params);
+            $subscription = array(
+                'messageHash' => $messageHash,
+                'symbols' => $symbols,
+                'marketIds' => $marketIds,
+                'limit' => $limit,
+            );
+            $authentication = $this->authenticate();
+            $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $authentication), $messageHash, $subscription));
+            return $orderbook->limit ();
+        }) ();
+    }
+
     public function handle_trade(Client $client, $message) {
         //
         //     {
@@ -292,6 +362,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             }
             $tradesArray->append ($trade);
             $client->resolve ($tradesArray, $messageHash);
+            $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $tradesArray);
         }
         return $message;
     }
@@ -768,6 +839,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $orderbook['datetime'] = null;
             $orderbook['symbol'] = $symbol;
             $client->resolve ($orderbook, $messageHash);
+            $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbooks::', $symbol, $orderbook);
         } elseif ($type === 'l2update') {
             $orderbook = $this->orderbooks[$symbol];
             $timestamp = $this->parse8601($this->safe_string($message, 'time'));
@@ -788,6 +860,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
             $client->resolve ($orderbook, $messageHash);
+            $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbooks::', $symbol, $orderbook);
         }
     }
 

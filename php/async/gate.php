@@ -138,6 +138,7 @@ class gate extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
+                'fetchUnderlyingAssets' => true,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
@@ -6277,6 +6278,45 @@ class gate extends Exchange {
             list($request, $query) = $this->prepare_request($market, 'swap', $params);
             $request['dual_mode'] = $hedged;
             return Async\await($this->privateFuturesPostSettleDualMode (array_merge($request, $query)));
+        }) ();
+    }
+
+    public function fetch_underlying_assets($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches the market ids of $underlying assets for a specific contract market type
+             * @param {array} [$params] exchange specific $params
+             * @param {string} [$params->type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$underlying-assets-structure $underlying assets}
+             */
+            Async\await($this->load_markets());
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchUnderlyingAssets', null, $params);
+            if (($marketType === null) || ($marketType === 'spot')) {
+                $marketType = 'option';
+            }
+            if ($marketType !== 'option') {
+                throw new NotSupported($this->id . ' fetchUnderlyingAssets() supports option markets only');
+            }
+            $response = Async\await($this->publicOptionsGetUnderlyings ($params));
+            //
+            //    array(
+            //        {
+            //            "index_time" => "1646915796",
+            //            "name" => "BTC_USDT",
+            //            "index_price" => "39142.73"
+            //        }
+            //    )
+            //
+            $underlyings = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $underlying = $response[$i];
+                $name = $this->safe_string($underlying, 'name');
+                if ($name !== null) {
+                    $underlyings[] = $name;
+                }
+            }
+            return $underlyings;
         }) ();
     }
 

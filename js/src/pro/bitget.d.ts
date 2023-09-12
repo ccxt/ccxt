@@ -9,13 +9,16 @@ export default class bitget extends bitgetRest {
     handleTicker(client: Client, message: any): any;
     parseWsTicker(message: any, market?: any): import("../base/types.js").Ticker;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<import("../base/types.js").OHLCV[]>>>;
     handleOHLCV(client: Client, message: any): void;
     parseWsOHLCV(ohlcv: any, market?: any): number[];
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -28,6 +31,7 @@ export default class bitget extends bitgetRest {
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
     watchPublic(messageHash: any, args: any, params?: {}): Promise<any>;
+    watchPublicMultiple(messageHash: any, argsArray: any, params?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
     watchPrivate(messageHash: any, subscriptionHash: any, args: any, params?: {}): Promise<any>;
     handleAuthenticate(client: Client, message: any): void;

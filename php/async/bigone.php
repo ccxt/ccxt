@@ -423,7 +423,6 @@ class bigone extends Exchange {
                     $networks[$networkCode] = array(
                         'id' => $networkId,
                         'network' => $networkCode,
-                        'type' => $type,
                         'margin' => null,
                         'deposit' => $deposit,
                         'withdraw' => $withdraw,
@@ -452,6 +451,7 @@ class bigone extends Exchange {
                     'code' => $code,
                     'info' => $currency,
                     'name' => $name,
+                    'type' => $type,
                     'active' => null,
                     'deposit' => $currencyDepositEnabled,
                     'withdraw' => $currencyWithdrawEnabled,

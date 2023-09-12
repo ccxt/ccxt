@@ -83,6 +83,7 @@ class cryptocom extends cryptocom$1 {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,

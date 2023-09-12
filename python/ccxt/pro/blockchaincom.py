@@ -708,8 +708,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         }
 
     def handle_delta(self, bookside, delta):
-        array = self.parse_counted_bid_ask(delta, 'px', 'qty', 'num')
-        bookside.storeArray(array)
+        bookArray = self.parse_counted_bid_ask(delta, 'px', 'qty', 'num')
+        bookside.storeArray(bookArray)
 
     def handle_deltas(self, bookside, deltas):
         for i in range(0, len(deltas)):

@@ -231,7 +231,8 @@ class lykke(Exchange, ImplicitAPI):
             id = self.safe_string(currency, 'assetId')
             code = self.safe_string(currency, 'symbol')
             name = self.safe_string(currency, 'name')
-            type = self.safe_string(currency, 'type')
+            rawType = self.safe_string(currency, 'type')
+            type = 'crypto' if (rawType == 'erc20Token') else 'other'
             deposit = self.safe_value(currency, 'blockchainDepositEnabled')
             withdraw = self.safe_value(currency, 'blockchainWithdrawal')
             isDisabled = self.safe_value(currency, 'isDisabled')

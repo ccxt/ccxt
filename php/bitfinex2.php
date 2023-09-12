@@ -697,7 +697,8 @@ class bitfinex2 extends Exchange {
             $label = $this->safe_value($indexed['label'], $id, array());
             $name = $this->safe_string($label, 1);
             $pool = $this->safe_value($indexed['pool'], $id, array());
-            $type = $this->safe_string($pool, 1);
+            $rawType = $this->safe_string($pool, 1);
+            $type = ($rawType === null) ? 'other' : 'crypto';
             $feeValues = $this->safe_value($indexed['fees'], $id, array());
             $fees = $this->safe_value($feeValues, 1, array());
             $fee = $this->safe_number($fees, 1);

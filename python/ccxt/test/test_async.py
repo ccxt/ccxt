@@ -74,7 +74,9 @@ Error = Exception
 
 
 def handle_all_unhandled_exceptions(type, value, traceback):
-    dump((type), (value), "\n\n" + ("\n".join(format_tb(traceback))))
+    dump(
+        (type), (value), "\n<UNHANDLED EXCEPTION>\n" + ("\n".join(format_tb(traceback)))
+    )
     exit(1)  # unrecoverable crash
 
 
@@ -140,12 +142,16 @@ async def call_method(testFiles, methodName, exchange, skippedProperties, args):
 
 
 def exception_message(exc):
-    return (
+    message = (
         "["
         + type(exc).__name__
         + "] "
         + "".join(format_exception(type(exc), exc, exc.__traceback__, limit=6))
     )
+    if len(message) > 1000:
+        # Accessing out of range element causes error
+        message = message[0:1000]
+    return message
 
 
 def exit_script():

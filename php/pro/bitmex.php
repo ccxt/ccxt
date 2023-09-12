@@ -20,10 +20,12 @@ class bitmex extends \ccxt\async\bitmex {
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
+                'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
             ),
             'urls' => array(
                 'test' => array(
@@ -527,6 +529,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $stored->append ($trades[$j]);
             }
             $client->resolve ($stored, $messageHash);
+            $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $stored);
         }
     }
 
@@ -971,6 +974,45 @@ class bitmex extends \ccxt\async\bitmex {
         }) ();
     }
 
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string[]} $symbols unified array of $symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the bitmex api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
+             */
+            $table = null;
+            if ($limit === null) {
+                $table = $this->safe_string($this->options, 'watchOrderBookLevel', 'orderBookL2');
+            } elseif ($limit === 25) {
+                $table = 'orderBookL2_25';
+            } elseif ($limit === 10) {
+                $table = 'orderBookL10';
+            } else {
+                throw new ExchangeError($this->id . ' watchOrderBookForSymbols $limit argument must be null (L2), 25 (L2) or 10 (L3)');
+            }
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $topics = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $this->market($symbol);
+                $messageHash = $table . ':' . $market['id'];
+                $topics[] = $messageHash;
+            }
+            $messageHash = 'multipleOrderbook::' . implode(',', $symbols);
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => $topics,
+            );
+            $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+            return $orderbook->limit ();
+        }) ();
+    }
+
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
@@ -1196,6 +1238,7 @@ class bitmex extends \ccxt\async\bitmex {
             }
             $messageHash = $table . ':' . $marketId;
             $client->resolve ($orderbook, $messageHash);
+            $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbook::', $symbol, $orderbook);
         } else {
             $numUpdatesByMarketId = array();
             for ($i = 0; $i < count($data); $i++) {
@@ -1226,6 +1269,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $symbol = $market['symbol'];
                 $orderbook = $this->orderbooks[$symbol];
                 $client->resolve ($orderbook, $messageHash);
+                $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbook::', $symbol, $orderbook);
             }
         }
     }

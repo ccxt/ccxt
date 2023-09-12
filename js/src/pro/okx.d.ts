@@ -7,6 +7,7 @@ export default class okx extends okxRest {
     subscribeMultiple(access: any, channel: any, symbols?: string[], params?: {}): Promise<any>;
     subscribe(access: any, messageHash: any, channel: any, symbol: any, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): any;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: string[], params?: {}): Promise<any>;
@@ -14,6 +15,7 @@ export default class okx extends okxRest {
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: any, orderbook: any, messageHash: any): any;

@@ -1116,11 +1116,18 @@ class kucoinfutures extends kucoin {
             'leverage' => 1,
         );
         list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
+        $triggerPriceTypes = array(
+            'mark' => 'MP',
+            'last' => 'TP',
+            'index' => 'IP',
+        );
+        $triggerPriceType = $this->safe_string($params, 'triggerPriceType', 'mark');
+        $triggerPriceTypeValue = $this->safe_string($triggerPriceTypes, $triggerPriceType, $triggerPriceType);
         $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ));
         if ($triggerPrice) {
             $request['stop'] = ($side === 'buy') ? 'up' : 'down';
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            $request['stopPriceType'] = 'MP';
+            $request['stopPriceType'] = $triggerPriceTypeValue;
         } elseif ($stopLossPrice || $takeProfitPrice) {
             if ($stopLossPrice) {
                 $request['stop'] = ($side === 'buy') ? 'up' : 'down';
@@ -1130,7 +1137,7 @@ class kucoinfutures extends kucoin {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
             }
             $request['reduceOnly'] = true;
-            $request['stopPriceType'] = 'MP';
+            $request['stopPriceType'] = $triggerPriceTypeValue;
         }
         $uppercaseType = strtoupper($type);
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
