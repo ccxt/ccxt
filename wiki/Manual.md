@@ -213,9 +213,9 @@ const exchangeId = 'binance'
 ```python
 # Python
 import ccxt
-exchange = ccxt.okcoinusd () # default id
-okcoin1 = ccxt.okcoinusd ({ 'id': 'okcoin1' })
-okcoin2 = ccxt.okcoinusd ({ 'id': 'okcoin2' })
+exchange = ccxt.okcoin () # default id
+okcoin1 = ccxt.okcoin ({ 'id': 'okcoin1' })
+okcoin2 = ccxt.okcoin ({ 'id': 'okcoin2' })
 id = 'btcchina'
 btcchina = eval ('ccxt.%s ()' % id)
 coinbasepro = getattr (ccxt, 'coinbasepro') ()
@@ -1063,7 +1063,7 @@ In order to load markets manually beforehand call the `loadMarkets ()` / `load_m
 
 ```python
 # Python
-okcoin = ccxt.okcoinusd()
+okcoin = ccxt.okcoin()
 markets = okcoin.load_markets()
 print(okcoin.id, markets)
 ```
@@ -1174,16 +1174,16 @@ var_dump($exchange->id, $symbols);                 // print all symbols
 
 $currencies = $exchange->currencies;               // an associative array of currencies
 
-$okcoinusd = '\\ccxt\\okcoinusd';
-$okcoinusd = new $okcoinusd();
+$okcoin = '\\ccxt\\okcoin';
+$okcoin = new $okcoin();
 
-$okcoinusd->load_markets();
+$okcoin->load_markets();
 
-$okcoinusd->markets['BTC/USD'];                    // symbol → market (get market by symbol)
-$okcoinusd->markets_by_id['btc_usd'][0];              // id → market (get market by id)
+$okcoin->markets['BTC/USD'];                    // symbol → market (get market by symbol)
+$okcoin->markets_by_id['btc_usd'][0];              // id → market (get market by id)
 
-$okcoinusd->markets['BTC/USD']['id'];              // symbol → id (get id by symbol)
-$okcoinusd->markets_by_id['btc_usd'][0]['symbol']; // id → symbol (get symbol by id)
+$okcoin->markets['BTC/USD']['id'];              // symbol → id (get id by symbol)
+$okcoin->markets_by_id['btc_usd'][0]['symbol']; // id → symbol (get symbol by id)
 ```
 
 ### Naming Consistency
@@ -1481,10 +1481,7 @@ asyncio.run(print_poloniex_ethbtc_ticker())
 
 ### PHP
 
-In the PHP 5-compatible version all API methods are synchronous, but with PHP 7.1+ the CCXT library optionally supports asynchronous concurrency mode using the 'yield' syntax (very similar to async/await in Python). The asynchronous PHP version uses the [RecoilPHP](https://github.com/recoilphp/recoil), [ReactPHP](https://reactphp.org/) and [clue/reactphp-buzz](https://github.com/clue/reactphp-buzz) libraries. In async mode you have all the same properties and methods, but any networking API method should be decorated with the `yield` keyword, your script should be in a ReactPHP/RecoilPHP wrapper, and all exchange constructors need to be passed the loop and kernel instances from the wrapper.
-
-To use the async version of the library, use the `ccxt_async` namespace, as in the following example:
-
+CCXT support PHP 8+ versions. The library has both synchronous and asynchronous versions. To use synchronous version, use `\ccxt` namespace (i.e. `new ccxt\binance()`) and to use asynchronous version, use `\ccxt\async` namespace (i.e. `new ccxt\async\binance()`). Asynchronous version uses [ReactPHP](https://reactphp.org/) library in the background. In async mode you have all the same properties and methods, but any networking API method should be decorated with the `\React\Async\await` keyword and your script should be in a ReactPHP wrapper:
 ```php
 // PHP
 <?php
@@ -1559,7 +1556,7 @@ To get a list of all available methods with an exchange instance, you can simply
 ```text
 console.log (new ccxt.kraken ())   // JavaScript
 print(dir(ccxt.hitbtc()))           # Python
-var_dump (new \ccxt\okcoinusd ()); // PHP
+var_dump (new \ccxt\okcoin ()); // PHP
 ```
 
 # Unified API
@@ -1592,6 +1589,8 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
 - `fetchOpenInterest ([symbol[, params]])`
 - `fetchVolatilityHistory ([code[, params]])`
+- `fetchUnderlyingAssets ()`
+- `fetchSettlementHistory ([symbol[, since[, limit[, params]]]])`
 - ...
 
 ```text
@@ -1899,6 +1898,7 @@ if ($exchange->has['fetchMyTrades']) {
 - [Funding Rate History](#funding-rate-history)
 - [Open Interest History](#open-interest-history)
 - [Volatility History](#volatility-history)
+- [Underlying Assets](#underlying-assets)
 
 ## Order Book
 
@@ -2936,6 +2936,64 @@ Returns
 }
 ```
 
+## Underlying Assets
+
+*contract only*
+
+Use the `fetchUnderlyingAssets` method to get the market id's of underlying assets for a contract market type from the exchange.
+
+```javascript
+fetchUnderlyingAssets (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"instType": "OPTION"}`)
+- **params.type** (String) Unified marketType, the default is 'option' (e.g. `"option"`)
+
+Returns
+
+- An [underlying assets structure](#underlying-assets-structure)
+
+### Underlying Assets Structure
+
+```javascript
+[ 'BTC_USDT', 'ETH_USDT', 'DOGE_USDT' ]
+```
+
+## Settlement History
+
+*contract only*
+
+Use the `fetchSettlementHistory` method to get the public settlement history for a contract market from the exchange.
+
+```javascript
+fetchSettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT-230728-25500-P"`)
+- **since** (Integer) Timestamp for the earliest settlement (e.g. `1694073600000`)
+- **limit** (Integer) The maximum number of settlements to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [settlement history structures](#settlement-history-structure)
+
+### Settlement History Structure
+
+```javascript
+{
+    info: { ... },
+    symbol: 'BTC/USDT:USDT-230728-25500-P',
+    price: 25761.35807869,
+    timestamp: 1694073600000,
+    datetime: '2023-09-07T08:00:00.000Z',
+}
+```
+
 # Private API
 
 - [Authentication](#authentication)
@@ -3045,7 +3103,7 @@ kraken.apiKey = 'YOUR_KRAKEN_API_KEY'
 kraken.secret = 'YOUR_KRAKEN_SECRET_KEY'
 
 // upon instantiation
-let okcoinusd = new ccxt.okcoinusd ({
+let okcoin = new ccxt.okcoin ({
     apiKey: 'YOUR_OKCOIN_API_KEY',
     secret: 'YOUR_OKCOIN_SECRET_KEY',
 })
@@ -3204,7 +3262,7 @@ acx = ccxt.acx({'nonce': lambda: ccxt.Exchange.milliseconds()})
 // PHP
 
 // 1: custom nonce value
-class MyOKCoinUSD extends \ccxt\okcoinusd {
+class Myokcoin extends \ccxt\okcoin {
     public function __construct ($options = array ()) {
         parent::__construct (array_merge (array ('i' => 1), $options));
     }

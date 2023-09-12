@@ -1296,8 +1296,8 @@ class bitmex(Exchange, ImplicitAPI):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.convert_from_raw_quantity(symbol, self.safe_string(ticker, 'homeNotional24h')),
-            'quoteVolume': self.convert_from_raw_quantity(symbol, self.safe_string(ticker, 'foreignNotional24h')),
+            'baseVolume': self.safe_string(ticker, 'homeNotional24h'),
+            'quoteVolume': self.safe_string(ticker, 'foreignNotional24h'),
             'info': ticker,
         }, market)
 
@@ -2159,7 +2159,9 @@ class bitmex(Exchange, ImplicitAPI):
             swap = self.safe_value(market, 'swap', False)
             if swap:
                 filteredResponse.append(item)
-        return self.parse_funding_rates(filteredResponse, symbols)
+        symbols = self.market_symbols(symbols)
+        result = self.parse_funding_rates(filteredResponse)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_funding_rate(self, contract, market=None):
         # see response sample under "fetchMarkets" because same endpoint is being used here
@@ -2225,6 +2227,7 @@ class bitmex(Exchange, ImplicitAPI):
         params = self.omit(params, ['until', 'till'])
         if until is not None:
             request['endTime'] = self.iso8601(until)
+        request['reverse'] = True
         response = self.publicGetFunding(self.extend(request, params))
         #
         #    [

@@ -705,7 +705,8 @@ class bitfinex2(Exchange, ImplicitAPI):
             label = self.safe_value(indexed['label'], id, [])
             name = self.safe_string(label, 1)
             pool = self.safe_value(indexed['pool'], id, [])
-            type = self.safe_string(pool, 1)
+            rawType = self.safe_string(pool, 1)
+            type = 'other' if (rawType is None) else 'crypto'
             feeValues = self.safe_value(indexed['fees'], id, [])
             fees = self.safe_value(feeValues, 1, [])
             fee = self.safe_number(fees, 1)

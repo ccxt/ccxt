@@ -241,6 +241,12 @@ abstract class gate extends \ccxt\Exchange {
     public function private_subaccounts_delete_sub_accounts_user_id_keys_key($params = array()) {
         return $this->request('sub_accounts/{user_id}/keys/{key}', array('private', 'subAccounts'), 'DELETE', $params, null, null, array("cost" => 1));
     }
+    public function private_portfolio_get_spot_currency_pairs($params = array()) {
+        return $this->request('spot/currency_pairs', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_portfolio_get_spot_currency_pairs_currency_pair($params = array()) {
+        return $this->request('spot/currency_pairs/{currency_pair}', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
     public function private_portfolio_get_accounts($params = array()) {
         return $this->request('accounts', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.5));
     }
@@ -966,6 +972,12 @@ abstract class gate extends \ccxt\Exchange {
     }
     public function privateSubAccountsDeleteSubAccountsUserIdKeysKey($params = array()) {
         return $this->request('sub_accounts/{user_id}/keys/{key}', array('private', 'subAccounts'), 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function privatePortfolioGetSpotCurrencyPairs($params = array()) {
+        return $this->request('spot/currency_pairs', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privatePortfolioGetSpotCurrencyPairsCurrencyPair($params = array()) {
+        return $this->request('spot/currency_pairs/{currency_pair}', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.5));
     }
     public function privatePortfolioGetAccounts($params = array()) {
         return $this->request('accounts', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.5));

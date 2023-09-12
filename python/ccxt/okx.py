@@ -131,6 +131,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfer': True,
                 'fetchTransfers': True,
+                'fetchUnderlyingAssets': True,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
@@ -4083,7 +4084,7 @@ class okx(Exchange, ImplicitAPI):
             targetNetwork = self.safe_value(currency['networks'], self.network_id_to_code(network), {})
             fee = self.safe_string(targetNetwork, 'fee')
             if fee is None:
-                raise ArgumentsRequired(self.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.")
+                raise ArgumentsRequired(self.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.')
         request['fee'] = self.number_to_string(fee)  # withdrawals to OKCoin or OKX are fee-free, please set 0
         if 'password' in params:
             request['pwd'] = params['password']
@@ -6285,6 +6286,40 @@ class okx(Exchange, ImplicitAPI):
                     'datetime': self.iso8601(timestamp),
                 }))
         return result
+
+    def fetch_underlying_assets(self, params={}):
+        """
+        fetches the market ids of underlying assets for a specific contract market type
+        see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
+        :param dict [params]: exchange specific params
+        :param str [params.type]: the contract market type, 'option', 'swap' or 'future', the default is 'option'
+        :returns dict[]: a list of `underlying assets <https://github.com/ccxt/ccxt/wiki/Manual#underlying-assets-structure>`
+        """
+        self.load_markets()
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchUnderlyingAssets', None, params)
+        if (marketType is None) or (marketType == 'spot'):
+            marketType = 'option'
+        if (marketType != 'option') and (marketType != 'swap') and (marketType != 'future'):
+            raise NotSupported(self.id + ' fetchUnderlyingAssets() supports contract markets only')
+        request = {
+            'instType': self.convert_to_instrument_type(marketType),
+        }
+        response = self.publicGetPublicUnderlying(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             [
+        #                 "BTC-USD",
+        #                 "ETH-USD"
+        #             ]
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        underlyings = self.safe_value(response, 'data', [])
+        return underlyings[0]
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

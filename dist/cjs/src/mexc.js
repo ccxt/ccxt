@@ -192,6 +192,7 @@ class mexc extends mexc$1 {
                             'rebate/detail': 1,
                             'rebate/detail/kickback': 1,
                             'rebate/referCode': 1,
+                            'rebate/affiliate/commission': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                         },
@@ -832,7 +833,9 @@ class mexc extends mexc$1 {
             //
             //     {}
             //
-            status = Object.keys(response).length ? this.json(response) : 'ok';
+            const keys = Object.keys(response);
+            const length = keys.length;
+            status = length ? this.json(response) : 'ok';
         }
         else if (marketType === 'swap') {
             response = await this.contractPublicGetPing(query);

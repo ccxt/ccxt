@@ -604,6 +604,7 @@ export default class huobi extends Exchange {
                             'linear-swap-api/v3/unified_account_info': 1,
                             'linear-swap-api/v3/fix_position_margin_change_record': 1,
                             'linear-swap-api/v3/swap_unified_account_type': 1,
+                            'linear-swap-api/v3/linear_swap_overview_account_info': 1,
                         },
                         'post': {
                             // Future Account Interface
@@ -798,6 +799,7 @@ export default class huobi extends Exchange {
                             'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
                             'linear-swap-api/v3/fix_position_margin_change': 1,
                             'linear-swap-api/v3/swap_switch_account_type': 1,
+                            'linear-swap-api/v3/linear_swap_fee_switch': 1,
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
                             'linear-swap-api/v1/swap_cross_trigger_order': 1,
@@ -7730,7 +7732,7 @@ export default class huobi extends Exchange {
          * @param {int} [params.until] timestamp in ms, value range = start_time -> current time，default = current time
          * @param {int} [params.page_index] page index, default page 1 if not filled
          * @param {int} [params.code] unified currency code, can be used when symbol is undefined
-         * @returns A list of settlement history objects
+         * @returns {object[]} a list of [settlement history objects]{@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure}
          */
         const code = this.safeString (params, 'code');
         const until = this.safeInteger2 (params, 'until', 'till');

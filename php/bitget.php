@@ -144,6 +144,7 @@ class bitget extends Exchange {
                             'market/candles' => 1,
                             'market/depth' => 1,
                             'market/spot-vip-level' => 2,
+                            'market/merge-depth' => 1,
                             'market/history-candles' => 1,
                             'public/loan/coinInfos' => 2, // 10 times/1s (IP) => 20/10 = 2
                             'public/loan/hour-interest' => 2, // 10 times/1s (IP) => 20/10 = 2
@@ -171,6 +172,7 @@ class bitget extends Exchange {
                             'market/history-candles' => 1,
                             'market/history-index-candles' => 1,
                             'market/history-mark-candles' => 1,
+                            'market/merge-depth' => 1,
                         ),
                     ),
                     'margin' => array(
@@ -2537,6 +2539,8 @@ class bitget extends Exchange {
 
     public function fetch_balance($params = array ()) {
         /**
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-account-assets
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-list
          * $query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
@@ -2602,13 +2606,32 @@ class bitget extends Exchange {
     public function parse_balance($balance) {
         $result = array( 'info' => $balance );
         //
+        // spot
+        //
         //     {
-        //       coinId => '1',
-        //       coinName => 'BTC',
-        //       available => '0.00099900',
-        //       $frozen => '0.00000000',
-        //       lock => '0.00000000',
-        //       uTime => '1661595535000'
+        //         coinId => '1',
+        //         coinName => 'BTC',
+        //         available => '0.00099900',
+        //         $frozen => '0.00000000',
+        //         lock => '0.00000000',
+        //         uTime => '1661595535000'
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         marginCoin => 'BTC',
+        //         $locked => '0.00001948',
+        //         available => '0.00006622',
+        //         crossMaxAvailable => '0.00004674',
+        //         fixedMaxAvailable => '0.00004674',
+        //         maxTransferOut => '0.00004674',
+        //         equity => '0.00006622',
+        //         usdtEquity => '1.734307497491',
+        //         btcEquity => '0.000066229058',
+        //         crossRiskRate => '0.066308887072',
+        //         unrealizedPL => '0',
+        //         bonus => '0'
         //     }
         //
         for ($i = 0; $i < count($balance); $i++) {
@@ -2616,10 +2639,12 @@ class bitget extends Exchange {
             $currencyId = $this->safe_string_2($entry, 'coinName', 'marginCoin');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
+            $spotAccountFree = $this->safe_string($entry, 'available');
+            $contractAccountFree = $this->safe_string($entry, 'maxTransferOut');
+            $account['free'] = ($contractAccountFree !== null) ? $contractAccountFree : $spotAccountFree;
             $frozen = $this->safe_string($entry, 'frozen');
             $locked = $this->safe_string_2($entry, 'lock', 'locked');
             $account['used'] = Precise::string_add($frozen, $locked);
-            $account['free'] = $this->safe_string($entry, 'available');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
@@ -3781,6 +3806,8 @@ class bitget extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-order-fill-detail
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -3790,16 +3817,18 @@ class bitget extends Exchange {
         $this->check_required_symbol('fetchMyTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($market['swap']) {
-            throw new BadSymbol($this->id . ' fetchMyTrades() only supports spot markets');
-        }
         $request = array(
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateSpotPostTradeFills (array_merge($request, $params));
+        $response = null;
+        if ($market['spot']) {
+            $response = $this->privateSpotPostTradeFills (array_merge($request, $params));
+        } else {
+            $response = $this->privateMixGetOrderFills (array_merge($request, $params));
+        }
         //
         //     {
         //       code => '00000',

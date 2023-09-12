@@ -206,7 +206,6 @@ class yobit extends yobit$1 {
                 'PAC': '$PAC',
                 'PLAY': 'PlayCoin',
                 'PIVX': 'Darknet',
-                'PRS': 'PRE',
                 'PURE': 'PurePOS',
                 'PUTIN': 'PutinCoin',
                 'SPACE': 'Spacecoin',

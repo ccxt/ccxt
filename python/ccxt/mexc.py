@@ -209,6 +209,7 @@ class mexc(Exchange, ImplicitAPI):
                             'rebate/detail': 1,
                             'rebate/detail/kickback': 1,
                             'rebate/referCode': 1,
+                            'rebate/affiliate/commission': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                         },
@@ -847,7 +848,9 @@ class mexc(Exchange, ImplicitAPI):
             #
             #     {}
             #
-            status = self.json(response) if response else 'ok'
+            keys = list(response.keys())
+            length = len(keys)
+            status = self.json(response) if length else 'ok'
         elif marketType == 'swap':
             response = self.contractPublicGetPing(query)
             #

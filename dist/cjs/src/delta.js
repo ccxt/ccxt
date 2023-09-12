@@ -70,6 +70,7 @@ class delta extends delta$1 {
                 'fetchTrades': true,
                 'fetchTransfer': undefined,
                 'fetchTransfers': undefined,
+                'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
@@ -704,6 +705,9 @@ class delta extends delta$1 {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             let type = this.safeString(market, 'contract_type');
+            if (type === 'options_combos') {
+                continue;
+            }
             // const settlingAsset = this.safeValue (market, 'settling_asset', {});
             const quotingAsset = this.safeValue(market, 'quoting_asset', {});
             const underlyingAsset = this.safeValue(market, 'underlying_asset', {});

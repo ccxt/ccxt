@@ -286,7 +286,8 @@ export default class probit extends probitRest {
         //     }
         //
         const rawTrades = this.safeValue (message, 'data', []);
-        if (rawTrades.length === 0) {
+        const length = rawTrades.length;
+        if (length === 0) {
             return;
         }
         const reset = this.safeValue (message, 'reset', false);
@@ -374,7 +375,8 @@ export default class probit extends probitRest {
         //     }
         //
         const rawOrders = this.safeValue (message, 'data', []);
-        if (rawOrders.length === 0) {
+        const length = rawOrders.length;
+        if (length === 0) {
             return;
         }
         const messageHash = 'orders';
@@ -537,11 +539,11 @@ export default class probit extends probitRest {
             this.handleTicker (client, message);
         }
         const trades = this.safeValue (message, 'recent_trades', []);
-        if (trades.length > 0) {
+        if (trades.length) {
             this.handleTrades (client, message);
         }
         const orderBook = this.safeValueN (message, [ 'order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4' ], []);
-        if (orderBook.length > 0) {
+        if (orderBook.length) {
             this.handleOrderBook (client, message, orderBook);
         }
     }

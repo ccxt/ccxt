@@ -104,6 +104,7 @@ class okx extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfer' => true,
                 'fetchTransfers' => true,
+                'fetchUnderlyingAssets' => true,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
@@ -4260,7 +4261,7 @@ class okx extends Exchange {
             $targetNetwork = $this->safe_value($currency['networks'], $this->network_id_to_code($network), array());
             $fee = $this->safe_string($targetNetwork, 'fee');
             if ($fee === null) {
-                throw new ArgumentsRequired($this->id . " withdraw() requires a 'fee' string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set '0'. Withdrawing to external digital asset $address requires $network $transaction $fee->");
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a "fee" string parameter, $network $transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKX are $fee-free, please set "0". Withdrawing to external digital asset $address requires $network $transaction $fee->');
             }
         }
         $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are $fee-free, please set 0
@@ -6616,6 +6617,43 @@ class okx extends Exchange {
             }
         }
         return $result;
+    }
+
+    public function fetch_underlying_assets($params = array ()) {
+        /**
+         * fetches the market ids of underlying assets for a specific contract market type
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
+         * @param {array} [$params] exchange specific $params
+         * @param {string} [$params->type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#underlying-assets-structure underlying assets}
+         */
+        $this->load_markets();
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchUnderlyingAssets', null, $params);
+        if (($marketType === null) || ($marketType === 'spot')) {
+            $marketType = 'option';
+        }
+        if (($marketType !== 'option') && ($marketType !== 'swap') && ($marketType !== 'future')) {
+            throw new NotSupported($this->id . ' fetchUnderlyingAssets() supports contract markets only');
+        }
+        $request = array(
+            'instType' => $this->convert_to_instrument_type($marketType),
+        );
+        $response = $this->publicGetPublicUnderlying (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             array(
+        //                 "BTC-USD",
+        //                 "ETH-USD"
+        //             )
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $underlyings = $this->safe_value($response, 'data', array());
+        return $underlyings[0];
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

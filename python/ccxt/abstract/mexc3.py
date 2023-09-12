@@ -49,6 +49,7 @@ class ImplicitAPI:
     spot_private_get_rebate_detail = spotPrivateGetRebateDetail = Entry('rebate/detail', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_get_rebate_detail_kickback = spotPrivateGetRebateDetailKickback = Entry('rebate/detail/kickback', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_get_rebate_refercode = spotPrivateGetRebateReferCode = Entry('rebate/referCode', ['spot', 'private'], 'GET', {'cost': 1})
+    spot_private_get_rebate_affiliate_commission = spotPrivateGetRebateAffiliateCommission = Entry('rebate/affiliate/commission', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_get_mxdeduct_enable = spotPrivateGetMxDeductEnable = Entry('mxDeduct/enable', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_get_userdatastream = spotPrivateGetUserDataStream = Entry('userDataStream', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_post_order = spotPrivatePostOrder = Entry('order', ['spot', 'private'], 'POST', {'cost': 1})

@@ -430,7 +430,6 @@ class bigone(Exchange, ImplicitAPI):
                 networks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
-                    'type': type,
                     'margin': None,
                     'deposit': deposit,
                     'withdraw': withdraw,
@@ -458,6 +457,7 @@ class bigone(Exchange, ImplicitAPI):
                 'code': code,
                 'info': currency,
                 'name': name,
+                'type': type,
                 'active': None,
                 'deposit': currencyDepositEnabled,
                 'withdraw': currencyWithdrawEnabled,

@@ -73,6 +73,7 @@ export default class delta extends Exchange {
                 'fetchTrades': true,
                 'fetchTransfer': undefined,
                 'fetchTransfers': undefined,
+                'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
@@ -707,6 +708,9 @@ export default class delta extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             let type = this.safeString(market, 'contract_type');
+            if (type === 'options_combos') {
+                continue;
+            }
             // const settlingAsset = this.safeValue (market, 'settling_asset', {});
             const quotingAsset = this.safeValue(market, 'quoting_asset', {});
             const underlyingAsset = this.safeValue(market, 'underlying_asset', {});

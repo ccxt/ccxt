@@ -147,6 +147,7 @@ class bitget extends bitget$1 {
                             'market/candles': 1,
                             'market/depth': 1,
                             'market/spot-vip-level': 2,
+                            'market/merge-depth': 1,
                             'market/history-candles': 1,
                             'public/loan/coinInfos': 2,
                             'public/loan/hour-interest': 2, // 10 times/1s (IP) => 20/10 = 2
@@ -174,6 +175,7 @@ class bitget extends bitget$1 {
                             'market/history-candles': 1,
                             'market/history-index-candles': 1,
                             'market/history-mark-candles': 1,
+                            'market/merge-depth': 1,
                         },
                     },
                     'margin': {
@@ -2562,6 +2564,8 @@ class bitget extends bitget$1 {
         /**
          * @method
          * @name bitget#fetchBalance
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-account-assets
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-list
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
@@ -2626,13 +2630,32 @@ class bitget extends bitget$1 {
     parseBalance(balance) {
         const result = { 'info': balance };
         //
+        // spot
+        //
         //     {
-        //       coinId: '1',
-        //       coinName: 'BTC',
-        //       available: '0.00099900',
-        //       frozen: '0.00000000',
-        //       lock: '0.00000000',
-        //       uTime: '1661595535000'
+        //         coinId: '1',
+        //         coinName: 'BTC',
+        //         available: '0.00099900',
+        //         frozen: '0.00000000',
+        //         lock: '0.00000000',
+        //         uTime: '1661595535000'
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         marginCoin: 'BTC',
+        //         locked: '0.00001948',
+        //         available: '0.00006622',
+        //         crossMaxAvailable: '0.00004674',
+        //         fixedMaxAvailable: '0.00004674',
+        //         maxTransferOut: '0.00004674',
+        //         equity: '0.00006622',
+        //         usdtEquity: '1.734307497491',
+        //         btcEquity: '0.000066229058',
+        //         crossRiskRate: '0.066308887072',
+        //         unrealizedPL: '0',
+        //         bonus: '0'
         //     }
         //
         for (let i = 0; i < balance.length; i++) {
@@ -2640,10 +2663,12 @@ class bitget extends bitget$1 {
             const currencyId = this.safeString2(entry, 'coinName', 'marginCoin');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
+            const spotAccountFree = this.safeString(entry, 'available');
+            const contractAccountFree = this.safeString(entry, 'maxTransferOut');
+            account['free'] = (contractAccountFree !== undefined) ? contractAccountFree : spotAccountFree;
             const frozen = this.safeString(entry, 'frozen');
             const locked = this.safeString2(entry, 'lock', 'locked');
             account['used'] = Precise["default"].stringAdd(frozen, locked);
-            account['free'] = this.safeString(entry, 'available');
             result[code] = account;
         }
         return this.safeBalance(result);
@@ -3838,6 +3863,8 @@ class bitget extends bitget$1 {
          * @method
          * @name bitget#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-order-fill-detail
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -3847,16 +3874,19 @@ class bitget extends bitget$1 {
         this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['swap']) {
-            throw new errors.BadSymbol(this.id + ' fetchMyTrades() only supports spot markets');
-        }
         const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateSpotPostTradeFills(this.extend(request, params));
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.privateSpotPostTradeFills(this.extend(request, params));
+        }
+        else {
+            response = await this.privateMixGetOrderFills(this.extend(request, params));
+        }
         //
         //     {
         //       code: '00000',

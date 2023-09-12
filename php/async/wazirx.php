@@ -829,6 +829,7 @@ class wazirx extends Exchange {
             $stopPrice = $this->safe_string($params, 'stopPrice');
             if ($stopPrice !== null) {
                 $request['type'] = 'stop_limit';
+                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
             $response = Async\await($this->privatePostOrder (array_merge($request, $params)));
             // {

@@ -102,6 +102,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchTradingFees': True,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
+                'fetchUnderlyingAssets': False,
                 'fetchVolatilityHistory': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
@@ -263,6 +264,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-lever-token/info': 2.5,
                         'v5/spot-lever-token/reference': 2.5,
                         # spot margin trade
+                        'v5/spot-margin-trade/data': 2.5,
                         'v5/spot-cross-margin-trade/data': 2.5,
                         'v5/spot-cross-margin-trade/pledge-token': 2.5,
                         'v5/spot-cross-margin-trade/borrow-token': 2.5,
@@ -2456,7 +2458,8 @@ class bybit(Exchange, ImplicitAPI):
         if symbols is not None:
             symbols = self.market_symbols(symbols)
             market = self.market(symbols[0])
-            if len(symbols) == 1:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
                 request['symbol'] = market['id']
         type = None
         type, params = self.handle_market_type_and_params('fetchFundingRates', market, params)
@@ -3733,7 +3736,7 @@ class bybit(Exchange, ImplicitAPI):
                 cost = self.safe_number(params, 'cost')
                 params = self.omit(params, 'cost')
                 if price is None and cost is None:
-                    raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False to supply the cost in the amount argument(the exchange-specific behaviour)')
                 else:
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
@@ -3759,11 +3762,11 @@ class bybit(Exchange, ImplicitAPI):
             request['timeInForce'] = 'FOK'
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'IOC'
-        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
-        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
-        stopLoss = self.safe_number(params, 'stopLoss')
-        takeProfit = self.safe_number(params, 'takeProfit')
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        takeProfit = self.safe_value(params, 'takeProfit')
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLoss = stopLoss is not None
@@ -3780,12 +3783,16 @@ class bybit(Exchange, ImplicitAPI):
             request['reduceOnly'] = True
         elif isStopLoss or isTakeProfit:
             if isStopLoss:
-                request['stopLoss'] = self.price_to_precision(symbol, stopLoss)
+                stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
+                request['stopLoss'] = self.price_to_precision(symbol, stopLossTriggerPrice)
             if isTakeProfit:
-                request['takeProfit'] = self.price_to_precision(symbol, takeProfit)
+                takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
+                request['takeProfit'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
         if market['spot']:
             # only works for spot market
-            if triggerPrice is not None or stopLossTriggerPrice is not None or takeProfitTriggerPrice is not None or isStopLoss or isTakeProfit:
+            if triggerPrice is not None:
+                request['orderFilter'] = 'StopOrder'
+            elif stopLossTriggerPrice is not None or takeProfitTriggerPrice is not None or isStopLoss or isTakeProfit:
                 request['orderFilter'] = 'tpslOrder'
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
@@ -3938,11 +3945,11 @@ class bybit(Exchange, ImplicitAPI):
             request['timeInForce'] = 'FillOrKill'
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'ImmediateOrCancel'
-        triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice', triggerPrice)
-        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
-        stopLoss = self.safe_number(params, 'stopLoss')
-        takeProfit = self.safe_number(params, 'takeProfit')
+        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
+        takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        takeProfit = self.safe_value(params, 'takeProfit')
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLoss = stopLoss is not None
@@ -3959,9 +3966,11 @@ class bybit(Exchange, ImplicitAPI):
             request['basePrice'] = Precise.string_add(preciseTriggerPrice, delta) if ascending else Precise.string_sub(preciseTriggerPrice, delta)
         elif isStopLoss or isTakeProfit:
             if isStopLoss:
-                request['stopLoss'] = self.price_to_precision(symbol, stopLoss)
+                stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
+                request['stopLoss'] = self.price_to_precision(symbol, stopLossTriggerPrice)
             if isTakeProfit:
-                request['takeProfit'] = self.price_to_precision(symbol, takeProfit)
+                takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
+                request['takeProfit'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -4030,11 +4039,11 @@ class bybit(Exchange, ImplicitAPI):
             request['timeInForce'] = 'FillOrKill'
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'ImmediateOrCancel'
-        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice', triggerPrice)
-        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
-        stopLoss = self.safe_number(params, 'stopLoss')
-        takeProfit = self.safe_number(params, 'takeProfit')
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        takeProfit = self.safe_value(params, 'takeProfit')
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLoss = stopLoss is not None
@@ -4051,9 +4060,11 @@ class bybit(Exchange, ImplicitAPI):
             request['reduceOnly'] = True
         elif isStopLoss or isTakeProfit:
             if isStopLoss:
-                request['stopLoss'] = self.price_to_precision(symbol, stopLoss)
+                stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
+                request['stopLoss'] = self.price_to_precision(symbol, stopLossTriggerPrice)
             if isTakeProfit:
-                request['takeProfit'] = self.price_to_precision(symbol, takeProfit)
+                takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
+                request['takeProfit'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -4120,11 +4131,11 @@ class bybit(Exchange, ImplicitAPI):
         elif timeInForce == 'ioc':
             request['time_in_force'] = 'ImmediateOrCancel'
         if market['swap']:
-            triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
-            stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice', triggerPrice)
-            takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
-            stopLoss = self.safe_number(params, 'stopLoss')
-            takeProfit = self.safe_number(params, 'takeProfit')
+            triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+            stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
+            takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
+            stopLoss = self.safe_value(params, 'stopLoss')
+            takeProfit = self.safe_value(params, 'takeProfit')
             isStopLossTriggerOrder = stopLossTriggerPrice is not None
             isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
             isStopLoss = stopLoss is not None
@@ -4140,9 +4151,11 @@ class bybit(Exchange, ImplicitAPI):
                 request['basePrice'] = Precise.string_sub(preciseStopPrice, delta) if isStopLossTriggerOrder else Precise.string_add(preciseStopPrice, delta)
             elif isStopLoss or isTakeProfit:
                 if isStopLoss:
-                    request['stopLoss'] = self.price_to_precision(symbol, stopLoss)
+                    stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
+                    request['stopLoss'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                 if isTakeProfit:
-                    request['takeProfit'] = self.price_to_precision(symbol, takeProfit)
+                    takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
+                    request['takeProfit'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
             else:
                 request['orderFilter'] = 'Order'
         clientOrderId = self.safe_string(params, 'clientOrderId')
@@ -4186,8 +4199,6 @@ class bybit(Exchange, ImplicitAPI):
         return self.parse_order(order)
 
     def edit_unified_account_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
-        if amount is None and price is None:
-            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         self.load_markets()
         market = self.market(symbol)
         if not market['linear'] and not market['option']:
@@ -4213,11 +4224,11 @@ class bybit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         if amount is not None:
             request['qty'] = self.amount_to_precision(symbol, amount)
-        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
-        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
-        stopLoss = self.safe_number(params, 'stopLoss')
-        takeProfit = self.safe_number(params, 'takeProfit')
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        takeProfit = self.safe_value(params, 'takeProfit')
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLoss = stopLoss is not None
@@ -4228,9 +4239,11 @@ class bybit(Exchange, ImplicitAPI):
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         if isStopLoss or isTakeProfit:
             if isStopLoss:
-                request['stopLoss'] = self.price_to_precision(symbol, stopLoss)
+                stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
+                request['stopLoss'] = self.price_to_precision(symbol, stopLossTriggerPrice)
             if isTakeProfit:
-                request['takeProfit'] = self.price_to_precision(symbol, takeProfit)
+                takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
+                request['takeProfit'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -4255,8 +4268,6 @@ class bybit(Exchange, ImplicitAPI):
         })
 
     def edit_unified_margin_order(self, id: str, symbol, type, side, amount, price=None, params={}):
-        if amount is None and price is None:
-            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         self.load_markets()
         market = self.market(symbol)
         if not market['linear'] and not market['option']:
@@ -4300,11 +4311,11 @@ class bybit(Exchange, ImplicitAPI):
             request['timeInForce'] = 'FillOrKill'
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'ImmediateOrCancel'
-        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
-        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
-        stopLoss = self.safe_number(params, 'stopLoss')
-        takeProfit = self.safe_number(params, 'takeProfit')
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        takeProfit = self.safe_value(params, 'takeProfit')
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLoss = stopLoss is not None
@@ -4315,9 +4326,11 @@ class bybit(Exchange, ImplicitAPI):
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         if isStopLoss or isTakeProfit:
             if isStopLoss:
-                request['stopLoss'] = self.price_to_precision(symbol, stopLoss)
+                stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
+                request['stopLoss'] = self.price_to_precision(symbol, stopLossTriggerPrice)
             if isTakeProfit:
-                request['takeProfit'] = self.price_to_precision(symbol, takeProfit)
+                takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
+                request['takeProfit'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -4337,8 +4350,6 @@ class bybit(Exchange, ImplicitAPI):
         return self.parse_order(order)
 
     def edit_contract_v3_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
-        if amount is None and price is None:
-            raise InvalidOrder(self.id + ' editOrder requires either a price argument or an amount argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -4356,11 +4367,11 @@ class bybit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         if amount is not None:
             request['qty'] = self.amount_to_precision(symbol, amount)
-        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
-        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
-        stopLoss = self.safe_number(params, 'stopLoss')
-        takeProfit = self.safe_number(params, 'takeProfit')
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
+        stopLoss = self.safe_value(params, 'stopLoss')
+        takeProfit = self.safe_value(params, 'takeProfit')
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         isStopLoss = stopLoss is not None
@@ -4371,9 +4382,11 @@ class bybit(Exchange, ImplicitAPI):
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         if isStopLoss or isTakeProfit:
             if isStopLoss:
-                request['stopLoss'] = self.price_to_precision(symbol, stopLoss)
+                stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
+                request['stopLoss'] = self.price_to_precision(symbol, stopLossTriggerPrice)
             if isTakeProfit:
-                request['takeProfit'] = self.price_to_precision(symbol, takeProfit)
+                takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
+                request['takeProfit'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -4414,8 +4427,7 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires an symbol argument')
+        self.check_required_symbol('editOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()

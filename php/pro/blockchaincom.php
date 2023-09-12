@@ -755,8 +755,8 @@ class blockchaincom extends \ccxt\async\blockchaincom {
     }
 
     public function handle_delta($bookside, $delta) {
-        $array = $this->parse_counted_bid_ask($delta, 'px', 'qty', 'num');
-        $bookside->storeArray ($array);
+        $bookArray = $this->parse_counted_bid_ask($delta, 'px', 'qty', 'num');
+        $bookside->storeArray ($bookArray);
     }
 
     public function handle_deltas($bookside, $deltas) {

@@ -469,11 +469,22 @@ class bittrex extends Exchange {
             $precision = $this->parse_number('1e-8'); // default $precision, seems exchange has same amount-$precision across all pairs in UI too. todo => fix "magic constants"
             $fee = $this->safe_number($currency, 'txFee'); // todo => redesign
             $isActive = $this->safe_string($currency, 'status');
+            $coinType = $this->safe_string($currency, 'coinType');
+            $type = null;
+            if ($coinType === 'FIAT') {
+                $type = 'fiat';
+            } elseif ($coinType === 'Award') {
+                // these are exchange credits
+                $type = 'other';
+            } else {
+                // all others are cryptos
+                $type = 'crypto';
+            }
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
-                'type' => $this->safe_string($currency, 'coinType'),
+                'type' => $type,
                 'name' => $this->safe_string($currency, 'name'),
                 'active' => ($isActive === 'ONLINE'),
                 'deposit' => null,

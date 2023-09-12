@@ -1455,11 +1455,12 @@ class bitmart extends Exchange {
             $request[$fromRequest] = $start;
             $request[$toRequest] = min ($end, $now);
         }
-        $method = 'publicGetSpotV1SymbolsKline';
+        $response = null;
         if ($type === 'swap') {
-            $method = 'publicGetContractPublicKline';
+            $response = $this->publicGetContractPublicKline (array_merge($request, $params));
+        } else {
+            $response = $this->publicGetSpotQuotationV3Klines (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // spot
         //
@@ -1496,8 +1497,7 @@ class bitmart extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $klines = $this->safe_value($data, 'klines', array());
-        $ohlcv = ($type === 'spot') ? $klines : $data;
+        $ohlcv = $this->safe_value($data, 'klines', $data);
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
     }
 
@@ -3177,8 +3177,10 @@ class bitmart extends Exchange {
         //     array("errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null)
         //
         $message = $this->safe_string_lower($response, 'message');
+        $isErrorMessage = ($message !== null) && ($message !== 'ok') && ($message !== 'success');
         $errorCode = $this->safe_string($response, 'code');
-        if ((($errorCode !== null) && ($errorCode !== '1000')) || (($message !== null) && ($message !== 'ok'))) {
+        $isErrorCode = ($errorCode !== null) && ($errorCode !== '1000');
+        if ($isErrorCode || $isErrorMessage) {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorCode, $feedback);

@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\exmo as Exchange;
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
@@ -743,17 +742,55 @@ class exmo extends Exchange {
             //         ),
             //     }
             //
+            $marginPairsDict = array();
+            if ($this->check_required_credentials(false)) {
+                $marginPairs = Async\await($this->privatePostMarginPairList ($params));
+                //
+                //    {
+                //        "pairs" => array(
+                //            {
+                //                "buy_price" => "55978.85",
+                //                "default_leverage" => "3",
+                //                "is_fair_price" => true,
+                //                "last_trade_price" => "55999.23",
+                //                "liquidation_fee" => "2",
+                //                "liquidation_level" => "10",
+                //                "margin_call_level" => "15",
+                //                "max_leverage" => "3",
+                //                "max_order_price" => "150000",
+                //                "max_order_quantity" => "1",
+                //                "max_position_quantity" => "1",
+                //                "max_price_precision" => 2,
+                //                "min_order_price" => "1",
+                //                "min_order_quantity" => "0.00002",
+                //                "name" => "BTC_USD",
+                //                "position" => 1,
+                //                "sell_price" => "55985.51",
+                //                "ticker_updated" => "1619019818936107989",
+                //                "trade_maker_fee" => "0",
+                //                "trade_taker_fee" => "0.05",
+                //                "updated" => "1619008608955599013"
+                //            }
+                //        )
+                //    }
+                //
+                $pairs = $this->safe_value($marginPairs, 'pairs');
+                $marginPairsDict = $this->index_by($pairs, 'name');
+            }
             $keys = is_array($response) ? array_keys($response) : array();
             $result = array();
             for ($i = 0; $i < count($keys); $i++) {
                 $id = $keys[$i];
                 $market = $response[$id];
+                $marginMarket = $this->safe_value($marginPairsDict, $id);
                 $symbol = str_replace('_', '/', $id);
                 list($baseId, $quoteId) = explode('/', $symbol);
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $takerString = $this->safe_string($market, 'commission_taker_percent');
                 $makerString = $this->safe_string($market, 'commission_maker_percent');
+                $maxQuantity = $this->safe_string($market, 'max_quantity');
+                $marginMaxQuantity = $this->safe_string($marginMarket, 'max_order_quantity');
                 $result[] = array(
                     'id' => $id,
                     'symbol' => $symbol,
@@ -765,7 +802,7 @@ class exmo extends Exchange {
                     'settleId' => null,
                     'type' => 'spot',
                     'spot' => true,
-                    'margin' => true,
+                    'margin' => $marginMarket !== null,
                     'swap' => false,
                     'future' => false,
                     'option' => false,
@@ -787,11 +824,11 @@ class exmo extends Exchange {
                     'limits' => array(
                         'leverage' => array(
                             'min' => null,
-                            'max' => null,
+                            'max' => $this->safe_number($market, 'leverage'),
                         ),
                         'amount' => array(
                             'min' => $this->safe_number($market, 'min_quantity'),
-                            'max' => $this->safe_number($market, 'max_quantity'),
+                            'max' => $this->parse_number(Precise::string_max($maxQuantity, $marginMaxQuantity)),
                         ),
                         'price' => array(
                             'min' => $this->safe_number($market, 'min_price'),
@@ -889,20 +926,35 @@ class exmo extends Exchange {
 
     public function parse_balance($response) {
         $result = array( 'info' => $response );
-        $free = $this->safe_value($response, 'balances', array());
-        $used = $this->safe_value($response, 'reserved', array());
-        $currencyIds = is_array($free) ? array_keys($free) : array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            if (is_array($free) && array_key_exists($currencyId, $free)) {
-                $account['free'] = $this->safe_string($free, $currencyId);
+        $wallets = $this->safe_value($response, 'wallets');
+        if ($wallets !== null) {
+            $currencyIds = is_array($wallets) ? array_keys($wallets) : array();
+            for ($i = 0; $i < count($currencyIds); $i++) {
+                $currencyId = $currencyIds[$i];
+                $item = $wallets[$currencyId];
+                $currency = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['used'] = $this->safe_string($item, 'used');
+                $account['free'] = $this->safe_string($item, 'free');
+                $account['total'] = $this->safe_string($item, 'balance');
+                $result[$currency] = $account;
             }
-            if (is_array($used) && array_key_exists($currencyId, $used)) {
-                $account['used'] = $this->safe_string($used, $currencyId);
+        } else {
+            $free = $this->safe_value($response, 'balances', array());
+            $used = $this->safe_value($response, 'reserved', array());
+            $currencyIds = is_array($free) ? array_keys($free) : array();
+            for ($i = 0; $i < count($currencyIds); $i++) {
+                $currencyId = $currencyIds[$i];
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                if (is_array($free) && array_key_exists($currencyId, $free)) {
+                    $account['free'] = $this->safe_string($free, $currencyId);
+                }
+                if (is_array($used) && array_key_exists($currencyId, $used)) {
+                    $account['used'] = $this->safe_string($used, $currencyId);
+                }
+                $result[$code] = $account;
             }
-            $result[$code] = $account;
         }
         return $this->safe_balance($result);
     }
@@ -912,22 +964,44 @@ class exmo extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exmo api endpoint
+             * @param {string} [$params->marginMode] *isolated* fetches the isolated margin balance
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privatePostUserInfo ($params));
-            //
-            //     {
-            //         "uid":131685,
-            //         "server_date":1628999600,
-            //         "balances":array(
-            //             "EXM":"0",
-            //             "USD":"0",
-            //             "EUR":"0",
-            //             "GBP":"0",
-            //         ),
-            //     }
-            //
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
+            if ($marginMode === 'cross') {
+                throw new BadRequest($this->id . ' does not support cross margin');
+            }
+            $response = null;
+            if ($marginMode === 'isolated') {
+                $response = Async\await($this->privatePostMarginUserWalletList ($params));
+                //
+                //    {
+                //        "wallets" => {
+                //            "USD" => {
+                //                "balance" => "1000",
+                //                "free" => "600",
+                //                "used" => "400"
+                //            }
+                //        }
+                //    }
+                //
+            } else {
+                $response = Async\await($this->privatePostUserInfo ($params));
+                //
+                //     {
+                //         "uid":131685,
+                //         "server_date":1628999600,
+                //         "balances":array(
+                //             "EXM":"0",
+                //             "USD":"0",
+                //             "EUR":"0",
+                //             "GBP":"0",
+                //         ),
+                //     }
+                //
+            }
             return $this->parse_balance($response);
         }) ();
     }
@@ -1120,18 +1194,35 @@ class exmo extends Exchange {
         //         "commission_percent" => "0.2"
         //     }
         //
+        // fetchMyTrades (margin)
+        //
+        //    {
+        //        "trade_id" => "692861757015952517",
+        //        "trade_dt" => "1693951853197811824",
+        //        "trade_type" => "buy",
+        //        "pair" => "ADA_USDT",
+        //        "quantity" => "1.96607879",
+        //        "price" => "0.2568",
+        //        "amount" => "0.50488903"
+        //    }
+        //
         $timestamp = $this->safe_timestamp($trade, 'date');
         $id = $this->safe_string($trade, 'trade_id');
         $orderId = $this->safe_string($trade, 'order_id');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
         $costString = $this->safe_string($trade, 'amount');
-        $side = $this->safe_string($trade, 'type');
+        $side = $this->safe_string_2($trade, 'type', 'trade_type');
         $type = null;
         $marketId = $this->safe_string($trade, 'pair');
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $takerOrMaker = $this->safe_string($trade, 'exec_type');
+        $isMaker = $this->safe_value($trade, 'is_maker');
+        $takerOrMakerDefault = null;
+        if ($isMaker !== null) {
+            $takerOrMakerDefault = $isMaker ? 'maker' : 'taker';
+        }
+        $takerOrMaker = $this->safe_string($trade, 'exec_type', $takerOrMakerDefault);
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'commission_amount');
         if ($feeCostString !== null) {
@@ -1211,37 +1302,89 @@ class exmo extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
-             * @param {string} $symbol unified $market $symbol
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#b8d8d9af-4f46-46a1-939b-ad261d79f452  // spot
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#f4b1aaf8-399f-403b-ab5e-4926d967a106  // margin
+             * @param {string} $symbol a $symbol is required but it can be a single string, or a non-empty array
              * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of $trades structures to retrieve
+             * @param {int} [$limit] *required for margin orders* the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exmo api endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {int} [$params->offset] last deal $offset, default = 0
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
-            // a $symbol is required but it can be a single string, or a non-empty array
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument (a single $symbol or an array)');
+            $this->check_required_symbol('fetchMyTrades', $symbol);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
+            if ($marginMode === 'cross') {
+                throw new BadRequest($this->id . 'only isolated margin is supported');
             }
             Async\await($this->load_markets());
-            $pair = null;
-            $market = null;
-            if (gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol))) {
-                $numSymbols = count($symbol);
-                if ($numSymbols < 1) {
-                    throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a non-empty $symbol array');
-                }
-                $marketIds = $this->market_ids($symbol);
-                $pair = implode(',', $marketIds);
-            } else {
-                $market = $this->market($symbol);
-                $pair = $market['id'];
+            $market = $this->market($symbol);
+            $pair = $market['id'];
+            $isSpot = $marginMode !== 'isolated';
+            if ($limit === null) {
+                $limit = 100;
             }
-            $request = array(
-                'pair' => $pair,
-            );
+            $request = array();
+            if ($isSpot) {
+                $request['pair'] = $pair;
+            } else {
+                $request['pair_name'] = $pair;
+            }
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privatePostUserTrades (array_merge($request, $params)));
+            $offset = $this->safe_integer($params, 'offset', 0);
+            $request['offset'] = $offset;
+            $response = null;
+            if ($isSpot) {
+                $response = Async\await($this->privatePostUserTrades (array_merge($request, $params)));
+                //
+                //    {
+                //        "BTC_USD" => array(
+                //            {
+                //                "trade_id" => 20056872,
+                //                "client_id" => 100500,
+                //                "date" => 1435488248,
+                //                "type" => "buy",
+                //                "pair" => "BTC_USD",
+                //                "quantity" => "1",
+                //                "price" => "100",
+                //                "amount" => "100",
+                //                "order_id" => 7,
+                //                "parent_order_id" => 117684023830293,
+                //                "exec_type" => "taker",
+                //                "commission_amount" => "0.02",
+                //                "commission_currency" => "BTC",
+                //                "commission_percent" => "0.2"
+                //            }
+                //        ),
+                //        ...
+                //    }
+                //
+            } else {
+                $responseFromExchange = Async\await($this->privatePostMarginTrades (array_merge($request, $params)));
+                //
+                //    {
+                //        "trades" => {
+                //            "ADA_USDT" => array(
+                //                array(
+                //                    "trade_id" => "692861757015952517",
+                //                    "trade_dt" => "1693951853197811824",
+                //                    "trade_type" => "buy",
+                //                    "pair" => "ADA_USDT",
+                //                    "quantity" => "1.96607879",
+                //                    "price" => "0.2568",
+                //                    "amount" => "0.50488903"
+                //                ),
+                //            )
+                //            ...
+                //        }
+                //    }
+                //
+                $response = $this->safe_value($responseFromExchange, 'trades');
+            }
             $result = array();
             $marketIdsInner = is_array($response) ? array_keys($response) : array();
             for ($i = 0; $i < count($marketIdsInner); $i++) {
@@ -1373,13 +1516,21 @@ class exmo extends Exchange {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#00810661-9119-46c5-aec5-55abe9cb42c7  // margin
              * @param {string} $id order $id
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades to retrieve
              * @param {array} [$params] extra parameters specific to the exmo api endpoint
+             * @param {string} [$params->marginMode] set to "isolated" to fetch $trades for a margin order
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrderTrades', $params);
+            if ($marginMode === 'cross') {
+                throw new BadRequest($this->id . ' only supports isolated margin');
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -1387,32 +1538,53 @@ class exmo extends Exchange {
             $request = array(
                 'order_id' => (string) $id,
             );
-            $response = Async\await($this->privatePostOrderTrades (array_merge($request, $params)));
-            //
-            //     {
-            //         "type" => "buy",
-            //         "in_currency" => "BTC",
-            //         "in_amount" => "1",
-            //         "out_currency" => "USD",
-            //         "out_amount" => "100",
-            //         "trades" => array(
-            //             {
-            //                 "trade_id" => 3,
-            //                 "date" => 1435488248,
-            //                 "type" => "buy",
-            //                 "pair" => "BTC_USD",
-            //                 "order_id" => 12345,
-            //                 "quantity" => 1,
-            //                 "price" => 100,
-            //                 "amount" => 100,
-            //                 "exec_type" => "taker",
-            //                 "commission_amount" => "0.02",
-            //                 "commission_currency" => "BTC",
-            //                 "commission_percent" => "0.2"
-            //             }
-            //         )
-            //     }
-            //
+            $response = null;
+            if ($marginMode === 'isolated') {
+                $response = Async\await($this->privatePostMarginUserOrderTrades (array_merge($request, $params)));
+                //
+                //    {
+                //        "trades" => array(
+                //            {
+                //                "is_maker" => false,
+                //                "order_id" => "123",
+                //                "pair" => "BTC_USD",
+                //                "price" => "54122.25",
+                //                "quantity" => "0.00069994",
+                //                "trade_dt" => "1619069561718824428",
+                //                "trade_id" => "692842802860135010",
+                //                "type" => "sell"
+                //            }
+                //        )
+                //    }
+                //
+            } else {
+                $response = Async\await($this->privatePostOrderTrades (array_merge($request, $params)));
+                //
+                //     {
+                //         "type" => "buy",
+                //         "in_currency" => "BTC",
+                //         "in_amount" => "1",
+                //         "out_currency" => "USD",
+                //         "out_amount" => "100",
+                //         "trades" => array(
+                //             {
+                //                 "trade_id" => 3,
+                //                 "date" => 1435488248,
+                //                 "type" => "buy",
+                //                 "pair" => "BTC_USD",
+                //                 "order_id" => 12345,
+                //                 "quantity" => 1,
+                //                 "price" => 100,
+                //                 "amount" => 100,
+                //                 "exec_type" => "taker",
+                //                 "commission_amount" => "0.02",
+                //                 "commission_currency" => "BTC",
+                //                 "commission_percent" => "0.2"
+                //             }
+                //         )
+                //     }
+                //
+            }
             $trades = $this->safe_value($response, 'trades');
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();

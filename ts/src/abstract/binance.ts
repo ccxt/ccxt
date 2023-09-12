@@ -55,6 +55,7 @@ interface Exchange {
     sapiGetMarginExchangeSmallLiability (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginExchangeSmallLiabilityHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginNextHourlyInterestRate (params?: {}): Promise<implicitReturnType>;
+    sapiGetMarginCapitalFlow (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginDelistSchedule (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipLoanableData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipCollateralData (params?: {}): Promise<implicitReturnType>;
@@ -67,6 +68,12 @@ interface Exchange {
     sapiGetLoanLoanableData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanCollateralData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanRepayCollateralRate (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleOngoingOrders (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleBorrowHistory (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleRepayHistory (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleLtvAdjustmentHistory (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleLoanableData (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanFlexibleCollateralData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipOngoingOrders (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipRepayHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipCollateralAccount (params?: {}): Promise<implicitReturnType>;
@@ -308,6 +315,9 @@ interface Exchange {
     sapiPostLoanRepay (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanAdjustLtv (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanCustomizeMarginCall (params?: {}): Promise<implicitReturnType>;
+    sapiPostLoanFlexibleBorrow (params?: {}): Promise<implicitReturnType>;
+    sapiPostLoanFlexibleRepay (params?: {}): Promise<implicitReturnType>;
+    sapiPostLoanFlexibleAdjustLtv (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanVipRepay (params?: {}): Promise<implicitReturnType>;
     sapiPostConvertGetQuote (params?: {}): Promise<implicitReturnType>;
     sapiPostConvertAcceptQuote (params?: {}): Promise<implicitReturnType>;
@@ -371,6 +381,7 @@ interface Exchange {
     dapiPublicGetContinuousKlines (params?: {}): Promise<implicitReturnType>;
     dapiPublicGetIndexPriceKlines (params?: {}): Promise<implicitReturnType>;
     dapiPublicGetMarkPriceKlines (params?: {}): Promise<implicitReturnType>;
+    dapiPublicGetPremiumIndexKlines (params?: {}): Promise<implicitReturnType>;
     dapiPublicGetTicker24hr (params?: {}): Promise<implicitReturnType>;
     dapiPublicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
     dapiPublicGetTickerBookTicker (params?: {}): Promise<implicitReturnType>;
@@ -382,6 +393,7 @@ interface Exchange {
     dapiDataGetTakerBuySellVol (params?: {}): Promise<implicitReturnType>;
     dapiDataGetBasis (params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetPositionSideDual (params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetOrderAmendment (params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetOrder (params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetOpenOrder (params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
@@ -395,7 +407,10 @@ interface Exchange {
     dapiPrivateGetLeverageBracket (params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetForceOrders (params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetAdlQuantile (params?: {}): Promise<implicitReturnType>;
-    dapiPrivateGetOrderAmendment (params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetCommissionRate (params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetIncomeAsyn (params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetIncomeAsynId (params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetPmExchangeInfo (params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetPmAccountInfo (params?: {}): Promise<implicitReturnType>;
     dapiPrivatePostPositionSideDual (params?: {}): Promise<implicitReturnType>;
     dapiPrivatePostOrder (params?: {}): Promise<implicitReturnType>;

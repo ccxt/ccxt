@@ -197,6 +197,7 @@ class mexc extends Exchange {
                             'rebate/detail' => 1,
                             'rebate/detail/kickback' => 1,
                             'rebate/referCode' => 1,
+                            'rebate/affiliate/commission' => 1,
                             'mxDeduct/enable' => 1,
                             'userDataStream' => 1,
                         ),
@@ -837,7 +838,9 @@ class mexc extends Exchange {
                 //
                 //     array()
                 //
-                $status = $response ? $this->json($response) : 'ok';
+                $keys = is_array($response) ? array_keys($response) : array();
+                $length = count($keys);
+                $status = $length ? $this->json($response) : 'ok';
             } elseif ($marketType === 'swap') {
                 $response = Async\await($this->contractPublicGetPing ($query));
                 //

@@ -87,6 +87,7 @@ class bybit extends bybit$1 {
                 'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
@@ -248,6 +249,7 @@ class bybit extends bybit$1 {
                         'v5/spot-lever-token/info': 2.5,
                         'v5/spot-lever-token/reference': 2.5,
                         // spot margin trade
+                        'v5/spot-margin-trade/data': 2.5,
                         'v5/spot-cross-margin-trade/data': 2.5,
                         'v5/spot-cross-margin-trade/pledge-token': 2.5,
                         'v5/spot-cross-margin-trade/borrow-token': 2.5,
@@ -2527,7 +2529,8 @@ class bybit extends bybit$1 {
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
             market = this.market(symbols[0]);
-            if (symbols.length === 1) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
                 request['symbol'] = market['id'];
             }
         }
@@ -3911,7 +3914,7 @@ class bybit extends bybit$1 {
                 const cost = this.safeNumber(params, 'cost');
                 params = this.omit(params, 'cost');
                 if (price === undefined && cost === undefined) {
-                    throw new errors.InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
                 }
                 else {
                     const amountString = this.numberToString(amount);
@@ -3948,11 +3951,11 @@ class bybit extends bybit$1 {
         else if (timeInForce === 'ioc') {
             request['timeInForce'] = 'IOC';
         }
-        let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
-        const stopLoss = this.safeNumber(params, 'stopLoss');
-        const takeProfit = this.safeNumber(params, 'takeProfit');
+        let triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
+        const stopLoss = this.safeValue(params, 'stopLoss');
+        const takeProfit = this.safeValue(params, 'takeProfit');
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLoss = stopLoss !== undefined;
@@ -3971,15 +3974,20 @@ class bybit extends bybit$1 {
         }
         else if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                request['stopLoss'] = this.priceToPrecision(symbol, stopLoss);
+                const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
             }
             if (isTakeProfit) {
-                request['takeProfit'] = this.priceToPrecision(symbol, takeProfit);
+                const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
             }
         }
         if (market['spot']) {
             // only works for spot market
-            if (triggerPrice !== undefined || stopLossTriggerPrice !== undefined || takeProfitTriggerPrice !== undefined || isStopLoss || isTakeProfit) {
+            if (triggerPrice !== undefined) {
+                request['orderFilter'] = 'StopOrder';
+            }
+            else if (stopLossTriggerPrice !== undefined || takeProfitTriggerPrice !== undefined || isStopLoss || isTakeProfit) {
                 request['orderFilter'] = 'tpslOrder';
             }
         }
@@ -4158,11 +4166,11 @@ class bybit extends bybit$1 {
         else if (timeInForce === 'ioc') {
             request['timeInForce'] = 'ImmediateOrCancel';
         }
-        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice', triggerPrice);
-        const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
-        const stopLoss = this.safeNumber(params, 'stopLoss');
-        const takeProfit = this.safeNumber(params, 'takeProfit');
+        const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
+        const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice', triggerPrice);
+        const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
+        const stopLoss = this.safeValue(params, 'stopLoss');
+        const takeProfit = this.safeValue(params, 'takeProfit');
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLoss = stopLoss !== undefined;
@@ -4180,10 +4188,12 @@ class bybit extends bybit$1 {
         }
         else if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                request['stopLoss'] = this.priceToPrecision(symbol, stopLoss);
+                const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
             }
             if (isTakeProfit) {
-                request['takeProfit'] = this.priceToPrecision(symbol, takeProfit);
+                const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
             }
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -4263,11 +4273,11 @@ class bybit extends bybit$1 {
         else if (timeInForce === 'ioc') {
             request['timeInForce'] = 'ImmediateOrCancel';
         }
-        let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice', triggerPrice);
-        const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
-        const stopLoss = this.safeNumber(params, 'stopLoss');
-        const takeProfit = this.safeNumber(params, 'takeProfit');
+        let triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
+        const stopLoss = this.safeValue(params, 'stopLoss');
+        const takeProfit = this.safeValue(params, 'takeProfit');
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLoss = stopLoss !== undefined;
@@ -4286,10 +4296,12 @@ class bybit extends bybit$1 {
         }
         else if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                request['stopLoss'] = this.priceToPrecision(symbol, stopLoss);
+                const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
             }
             if (isTakeProfit) {
-                request['takeProfit'] = this.priceToPrecision(symbol, takeProfit);
+                const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
             }
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -4366,11 +4378,11 @@ class bybit extends bybit$1 {
             request['time_in_force'] = 'ImmediateOrCancel';
         }
         if (market['swap']) {
-            const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
-            const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice', triggerPrice);
-            const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
-            const stopLoss = this.safeNumber(params, 'stopLoss');
-            const takeProfit = this.safeNumber(params, 'takeProfit');
+            const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
+            const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice', triggerPrice);
+            const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
+            const stopLoss = this.safeValue(params, 'stopLoss');
+            const takeProfit = this.safeValue(params, 'takeProfit');
             const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
             const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
             const isStopLoss = stopLoss !== undefined;
@@ -4387,10 +4399,12 @@ class bybit extends bybit$1 {
             }
             else if (isStopLoss || isTakeProfit) {
                 if (isStopLoss) {
-                    request['stopLoss'] = this.priceToPrecision(symbol, stopLoss);
+                    const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                    request['stopLoss'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 }
                 if (isTakeProfit) {
-                    request['takeProfit'] = this.priceToPrecision(symbol, takeProfit);
+                    const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                    request['takeProfit'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 }
             }
             else {
@@ -4442,9 +4456,6 @@ class bybit extends bybit$1 {
         return this.parseOrder(order);
     }
     async editUnifiedAccountOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        if (amount === undefined && price === undefined) {
-            throw new errors.InvalidOrder(this.id + ' editOrder requires either a price argument or an amount argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['linear'] && !market['option']) {
@@ -4475,11 +4486,11 @@ class bybit extends bybit$1 {
         if (amount !== undefined) {
             request['qty'] = this.amountToPrecision(symbol, amount);
         }
-        let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
-        const stopLoss = this.safeNumber(params, 'stopLoss');
-        const takeProfit = this.safeNumber(params, 'takeProfit');
+        let triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
+        const stopLoss = this.safeValue(params, 'stopLoss');
+        const takeProfit = this.safeValue(params, 'takeProfit');
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLoss = stopLoss !== undefined;
@@ -4492,10 +4503,12 @@ class bybit extends bybit$1 {
         }
         if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                request['stopLoss'] = this.priceToPrecision(symbol, stopLoss);
+                const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
             }
             if (isTakeProfit) {
-                request['takeProfit'] = this.priceToPrecision(symbol, takeProfit);
+                const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
             }
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -4523,9 +4536,6 @@ class bybit extends bybit$1 {
         });
     }
     async editUnifiedMarginOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
-        if (amount === undefined && price === undefined) {
-            throw new errors.InvalidOrder(this.id + ' editOrder requires either a price argument or an amount argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['linear'] && !market['option']) {
@@ -4579,11 +4589,11 @@ class bybit extends bybit$1 {
         else if (timeInForce === 'ioc') {
             request['timeInForce'] = 'ImmediateOrCancel';
         }
-        let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
-        const stopLoss = this.safeNumber(params, 'stopLoss');
-        const takeProfit = this.safeNumber(params, 'takeProfit');
+        let triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
+        const stopLoss = this.safeValue(params, 'stopLoss');
+        const takeProfit = this.safeValue(params, 'takeProfit');
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLoss = stopLoss !== undefined;
@@ -4596,10 +4606,12 @@ class bybit extends bybit$1 {
         }
         if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                request['stopLoss'] = this.priceToPrecision(symbol, stopLoss);
+                const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
             }
             if (isTakeProfit) {
-                request['takeProfit'] = this.priceToPrecision(symbol, takeProfit);
+                const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
             }
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -4622,9 +4634,6 @@ class bybit extends bybit$1 {
         return this.parseOrder(order);
     }
     async editContractV3Order(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        if (amount === undefined && price === undefined) {
-            throw new errors.InvalidOrder(this.id + ' editOrder requires either a price argument or an amount argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -4644,11 +4653,11 @@ class bybit extends bybit$1 {
         if (amount !== undefined) {
             request['qty'] = this.amountToPrecision(symbol, amount);
         }
-        let triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeNumber(params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeNumber(params, 'takeProfitPrice');
-        const stopLoss = this.safeNumber(params, 'stopLoss');
-        const takeProfit = this.safeNumber(params, 'takeProfit');
+        let triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
+        const stopLoss = this.safeValue(params, 'stopLoss');
+        const takeProfit = this.safeValue(params, 'takeProfit');
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLoss = stopLoss !== undefined;
@@ -4661,10 +4670,12 @@ class bybit extends bybit$1 {
         }
         if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                request['stopLoss'] = this.priceToPrecision(symbol, stopLoss);
+                const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
             }
             if (isTakeProfit) {
-                request['takeProfit'] = this.priceToPrecision(symbol, takeProfit);
+                const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
             }
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -4710,9 +4721,7 @@ class bybit extends bybit$1 {
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an symbol argument');
-        }
+        this.checkRequiredSymbol('editOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();

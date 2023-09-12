@@ -1354,8 +1354,8 @@ export default class bitmex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.convertFromRawQuantity(symbol, this.safeString(ticker, 'homeNotional24h')),
-            'quoteVolume': this.convertFromRawQuantity(symbol, this.safeString(ticker, 'foreignNotional24h')),
+            'baseVolume': this.safeString(ticker, 'homeNotional24h'),
+            'quoteVolume': this.safeString(ticker, 'foreignNotional24h'),
             'info': ticker,
         }, market);
     }
@@ -2277,7 +2277,9 @@ export default class bitmex extends Exchange {
                 filteredResponse.push(item);
             }
         }
-        return this.parseFundingRates(filteredResponse, symbols);
+        symbols = this.marketSymbols(symbols);
+        const result = this.parseFundingRates(filteredResponse);
+        return this.filterByArray(result, 'symbol', symbols);
     }
     parseFundingRate(contract, market = undefined) {
         // see response sample under "fetchMarkets" because same endpoint is being used here
@@ -2352,6 +2354,7 @@ export default class bitmex extends Exchange {
         if (until !== undefined) {
             request['endTime'] = this.iso8601(until);
         }
+        request['reverse'] = true;
         const response = await this.publicGetFunding(this.extend(request, params));
         //
         //    [

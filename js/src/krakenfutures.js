@@ -1220,7 +1220,7 @@ export default class krakenfutures extends Exchange {
         let statusId = undefined;
         let price = undefined;
         let trades = [];
-        if (orderEvents.length > 0) {
+        if (orderEvents.length) {
             const executions = [];
             for (let i = 0; i < orderEvents.length; i++) {
                 const item = orderEvents[i];
@@ -1268,7 +1268,7 @@ export default class krakenfutures extends Exchange {
         let remaining = this.safeString(details, 'unfilledSize');
         let average = undefined;
         let filled2 = '0.0';
-        if (trades.length > 0) {
+        if (trades.length) {
             let vwapSum = '0.0';
             for (let i = 0; i < trades.length; i++) {
                 const trade = trades[i];

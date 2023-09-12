@@ -109,6 +109,7 @@ export default class okx extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfer': true,
                 'fetchTransfers': true,
+                'fetchUnderlyingAssets': true,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -4321,7 +4322,7 @@ export default class okx extends Exchange {
             const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (network), {});
             fee = this.safeString (targetNetwork, 'fee');
             if (fee === undefined) {
-                throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
             }
         }
         request['fee'] = this.numberToString (fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
@@ -6644,7 +6645,7 @@ export default class okx extends Exchange {
          * @param {int} [since] timestamp in ms
          * @param {int} [limit] number of records
          * @param {object} [params] exchange specific params
-         * @returns {object[]} a list of [settlement history objects]
+         * @returns {object[]} a list of [settlement history objects]{@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure}
          */
         this.checkRequiredSymbol ('fetchSettlementHistory', symbol);
         await this.loadMarkets ();
@@ -6734,6 +6735,45 @@ export default class okx extends Exchange {
             }
         }
         return result;
+    }
+
+    async fetchUnderlyingAssets (params = {}) {
+        /**
+         * @method
+         * @name okx#fetchUnderlyingAssets
+         * @description fetches the market ids of underlying assets for a specific contract market type
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
+         * @param {object} [params] exchange specific params
+         * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
+         * @returns {object[]} a list of [underlying assets]{@link https://github.com/ccxt/ccxt/wiki/Manual#underlying-assets-structure}
+         */
+        await this.loadMarkets ();
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchUnderlyingAssets', undefined, params);
+        if ((marketType === undefined) || (marketType === 'spot')) {
+            marketType = 'option';
+        }
+        if ((marketType !== 'option') && (marketType !== 'swap') && (marketType !== 'future')) {
+            throw new NotSupported (this.id + ' fetchUnderlyingAssets() supports contract markets only');
+        }
+        const request = {
+            'instType': this.convertToInstrumentType (marketType),
+        };
+        const response = await this.publicGetPublicUnderlying (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             [
+        //                 "BTC-USD",
+        //                 "ETH-USD"
+        //             ]
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const underlyings = this.safeValue (response, 'data', []);
+        return underlyings[0];
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

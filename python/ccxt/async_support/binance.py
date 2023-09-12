@@ -132,6 +132,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchTransactionFees': True,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
+                'fetchUnderlyingAssets': False,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
@@ -266,6 +267,7 @@ class binance(Exchange, ImplicitAPI):
                         'margin/exchange-small-liability': 0.6667,
                         'margin/exchange-small-liability-history': 0.6667,
                         'margin/next-hourly-interest-rate': 0.6667,
+                        'margin/capital-flow': 10,  # Weight(IP): 100 => cost = 0.1 * 100 = 10
                         'margin/delist-schedule': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                         'loan/vip/loanable/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/collateral/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
@@ -278,6 +280,12 @@ class binance(Exchange, ImplicitAPI):
                         'loan/loanable/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/collateral/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/repay/collateral/rate': 600,  # Weight(IP): 6000 => cost = 0.1 * 6000 = 600
+                        'loan/flexible/ongoing/orders': 30,  # Weight(IP): 300 => cost = 0.1 * 300 = 30
+                        'loan/flexible/borrow/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/repay/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/ltv/adjustment/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/loanable/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/collateral/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/ongoing/orders': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/repay/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/collateral/account': 600,  # Weight(IP): 6000 => cost = 0.1 * 6000 = 600
@@ -296,7 +304,7 @@ class binance(Exchange, ImplicitAPI):
                         'capital/deposit/hisrec': 0.1,
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
-                        'capital/withdraw/history': 0.1,
+                        'capital/withdraw/history': 1800,  # Weight(IP): 18000 => cost = 0.1 * 18000 = 1800
                         'capital/contract/convertible-coins': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'convert/tradeFlow': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'convert/exchangeInfo': 50,
@@ -543,6 +551,9 @@ class binance(Exchange, ImplicitAPI):
                         'loan/repay': 40.002,
                         'loan/adjust/ltv': 40.002,
                         'loan/customize/margin_call': 40.002,
+                        'loan/flexible/borrow': 40.002,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/repay': 40.002,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
+                        'loan/flexible/adjust/ltv': 40.002,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/vip/repay': 40.002,
                         'convert/getQuote': 1.3334,  # Weight(UID): 200 => cost = 0.006667 * 200 = 1.3334
                         'convert/acceptQuote': 3.3335,  # Weight(UID): 500 => cost = 0.006667 * 500 = 3.3335
@@ -640,6 +651,7 @@ class binance(Exchange, ImplicitAPI):
                         'continuousKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'indexPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'markPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'premiumIndexKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'ticker/24hr': {'cost': 1, 'noSymbol': 40},
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
                         'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
@@ -659,6 +671,7 @@ class binance(Exchange, ImplicitAPI):
                 'dapiPrivate': {
                     'get': {
                         'positionSide/dual': 30,
+                        'orderAmendment': 1,
                         'order': 1,
                         'openOrder': 1,
                         'openOrders': {'cost': 1, 'noSymbol': 5},
@@ -672,8 +685,11 @@ class binance(Exchange, ImplicitAPI):
                         'leverageBracket': 1,
                         'forceOrders': {'cost': 20, 'noSymbol': 50},
                         'adlQuantile': 5,
-                        'orderAmendment': 1,
-                        'pmAccountInfo': 5,
+                        'commissionRate': 20,
+                        'income/asyn': 5,
+                        'income/asyn/id': 5,
+                        'pmExchangeInfo': 0.5,  # Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'pmAccountInfo': 0.5,  # Weight(IP): 5 => cost = 0.1 * 5 = 0.5
                     },
                     'post': {
                         'positionSide/dual': 1,
