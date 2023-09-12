@@ -621,6 +621,7 @@ class binance extends Exchange {
                         'continuousKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'indexPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'markPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'premiumIndexKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
@@ -640,6 +641,7 @@ class binance extends Exchange {
                 'dapiPrivate' => array(
                     'get' => array(
                         'positionSide/dual' => 30,
+                        'orderAmendment' => 1,
                         'order' => 1,
                         'openOrder' => 1,
                         'openOrders' => array( 'cost' => 1, 'noSymbol' => 5 ),
@@ -653,8 +655,11 @@ class binance extends Exchange {
                         'leverageBracket' => 1,
                         'forceOrders' => array( 'cost' => 20, 'noSymbol' => 50 ),
                         'adlQuantile' => 5,
-                        'orderAmendment' => 1,
-                        'pmAccountInfo' => 5,
+                        'commissionRate' => 20,
+                        'income/asyn' => 5,
+                        'income/asyn/id' => 5,
+                        'pmExchangeInfo' => 0.5, // Weight(IP) => 5 => cost = 0.1 * 5 = 0.5
+                        'pmAccountInfo' => 0.5, // Weight(IP) => 5 => cost = 0.1 * 5 = 0.5
                     ),
                     'post' => array(
                         'positionSide/dual' => 1,

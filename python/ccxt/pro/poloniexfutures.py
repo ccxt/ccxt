@@ -288,7 +288,8 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         orders = self.filter_by_symbol_since_limit(orders, symbol, since, limit)
-        if len(orders) == 0:
+        length = len(orders)
+        if length == 0:
             return await self.watch_orders(symbol, since, limit, params)
         return orders
 

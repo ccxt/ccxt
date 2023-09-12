@@ -323,7 +323,8 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
             $orders = $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
-            if (strlen($orders) === 0) {
+            $length = count($orders);
+            if ($length === 0) {
                 return Async\await($this->watch_orders($symbol, $since, $limit, $params));
             }
             return $orders;

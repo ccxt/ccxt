@@ -651,6 +651,7 @@ class binance(Exchange, ImplicitAPI):
                         'continuousKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'indexPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'markPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'premiumIndexKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'ticker/24hr': {'cost': 1, 'noSymbol': 40},
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
                         'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
@@ -670,6 +671,7 @@ class binance(Exchange, ImplicitAPI):
                 'dapiPrivate': {
                     'get': {
                         'positionSide/dual': 30,
+                        'orderAmendment': 1,
                         'order': 1,
                         'openOrder': 1,
                         'openOrders': {'cost': 1, 'noSymbol': 5},
@@ -683,8 +685,11 @@ class binance(Exchange, ImplicitAPI):
                         'leverageBracket': 1,
                         'forceOrders': {'cost': 20, 'noSymbol': 50},
                         'adlQuantile': 5,
-                        'orderAmendment': 1,
-                        'pmAccountInfo': 5,
+                        'commissionRate': 20,
+                        'income/asyn': 5,
+                        'income/asyn/id': 5,
+                        'pmExchangeInfo': 0.5,  # Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'pmAccountInfo': 0.5,  # Weight(IP): 5 => cost = 0.1 * 5 = 0.5
                     },
                     'post': {
                         'positionSide/dual': 1,
