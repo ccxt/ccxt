@@ -664,8 +664,8 @@ export default class binance extends Exchange {
                         'commissionRate': 20,
                         'income/asyn': 5,
                         'income/asyn/id': 5,
-                        'pmExchangeInfo': 5,
-                        'pmAccountInfo': 5,
+                        'pmExchangeInfo': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'pmAccountInfo': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
                     },
                     'post': {
                         'positionSide/dual': 1,
