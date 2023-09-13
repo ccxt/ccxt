@@ -293,6 +293,7 @@ export default class gate extends Exchange {
                             'spot/orders/{order_id}': 1.5,
                         },
                         'post': {
+                            'account_mode': 1.5,
                             'loans': 1.5,
                             'spot/orders': 1.5,
                         },
