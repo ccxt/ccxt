@@ -67,6 +67,7 @@ export default class bingx extends Exchange {
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
                     'wallets': 'https://open-api.{hostname}/openApi',
+                    'user': 'https://open-api.{hostname}/openApi',
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -189,8 +190,10 @@ export default class bingx extends Exchange {
                 },
                 'user': {
                     'auth': {
-                        'post': {
-                            'userDataStream': 1,
+                        'private': {
+                            'post': {
+                                'userDataStream': 1,
+                            },
                         },
                     },
                 },
@@ -244,6 +247,7 @@ export default class bingx extends Exchange {
             'commonCurrencies': {
             },
             'options': {
+                'defaultType': 'spot',
                 'accountsByType': {
                     'spot': 'FUND',
                     'swap': 'PFUTURES',

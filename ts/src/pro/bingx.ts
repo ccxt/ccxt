@@ -37,7 +37,7 @@ export default class bingx extends bingxRest {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 20000,
+                'keepAlive': 1800000, // 30 minutes
             },
         });
     }
