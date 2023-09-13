@@ -1369,7 +1369,7 @@ export default class digifinex extends Exchange {
             request['symbol'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = market['swap'] ? Math.min (limit, 100) : limit;
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1414,7 +1414,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, market, since, limit);
+        return this.parseTrades (data, market, since, limit, { 'takerOrMaker': 'taker' });
     }
 
     parseOHLCV (ohlcv, market = undefined) {
