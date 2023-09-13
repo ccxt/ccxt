@@ -782,8 +782,8 @@ export default class gate extends gateRest {
         this.setPositionsCache (client, type, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache = this.positions[type];
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.isEmpty (cache)) {
+        const cache = this.safeValue (this.positions, type);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             return await client.future (type + ':fetchPositionsSnapshot');
         }
         const positions = await this.subscribePrivate (url, messageHash, payload, channel, query, true);
@@ -794,13 +794,12 @@ export default class gate extends gateRest {
     }
 
     setPositionsCache (client: Client, type, symbols: string[] = undefined) {
-        if (this.positions === undefined) {
+        if (this.positions !== undefined) {
             this.positions = {};
         }
         if (type in this.positions) {
             return;
         }
-        this.positions[type] = new ArrayCacheBySymbolBySide ();
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot) {
             const messageHash = type + ':fetchPositionsSnapshot';
@@ -808,11 +807,14 @@ export default class gate extends gateRest {
                 client.future (messageHash);
                 this.spawn (this.loadPositionsSnapshot, client, messageHash, type, symbols);
             }
+        } else {
+            this.positions[type] = new ArrayCacheBySymbolBySide ();
         }
     }
 
     async loadPositionsSnapshot (client, messageHash, type, symbols) {
         const positions = await this.fetchPositions (symbols, { 'type': type });
+        this.positions[type] = new ArrayCacheBySymbolBySide ();
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
