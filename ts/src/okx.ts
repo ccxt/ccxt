@@ -2618,7 +2618,7 @@ export default class okx extends Exchange {
                 } else {
                     request['tpOrdPx'] = '-1'; // market tp order
                 }
-                const takeProfitTriggerPriceType = this.safeString2 (stopLoss, 'triggerPriceType', 'tpTriggerPxType');
+                const takeProfitTriggerPriceType = this.safeString2 (takeProfit, 'triggerPriceType', 'tpTriggerPxType');
                 if (takeProfitTriggerPriceType !== undefined) {
                     if ((takeProfitTriggerPriceType !== 'last') && (takeProfitTriggerPriceType !== 'index') && (takeProfitTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder (this.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"');
