@@ -783,7 +783,6 @@ export default class bitso extends Exchange {
             } else {
                 side = 'buy';
             }
-            takerOrMaker = 'taker';
         }
         let amount = this.safeString2 (trade, 'amount', 'major');
         if (amount !== undefined) {
