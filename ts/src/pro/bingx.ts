@@ -17,6 +17,10 @@ export default class bingx extends bingxRest {
                 'watchTrades': true,
                 'watchOrderBook': true,
                 'watchOHLCV': true,
+                'watchOrders': true,
+                'watchTicker': false,
+                'watchTickers': false,
+                'watchBalance': true,
             },
             'urls': {
                 'api': {
@@ -375,9 +379,6 @@ export default class bingx extends bingxRest {
             throw new BadRequest (this.id + ' watchOHLCV is not supported for ' + marketType + ' markets.');
         }
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        if (interval === undefined) {
-            throw new BadRequest (this.id + ' this timeframe is not supported, supported timeframes: ' + this.timeframes);
-        }
         const messageHash = market['id'] + '@kline_' + interval;
         const uuid = this.uuid ();
         const request = {
@@ -397,35 +398,72 @@ export default class bingx extends bingxRest {
     async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name bitmex#watchOrders
+         * @name bingx#watchOrders
+         * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
+         * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const name = 'order';
-        const subscriptionHash = name;
-        let messageHash = name;
+        let type = undefined;
+        let market = undefined;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const subscriptionHash = (type === 'spot') ? 'spot:private' : 'swap:private';
+        let messageHash = (type === 'spot') ? 'spot:order' : 'swap:swap';
+        if (market !== undefined) {
             messageHash += ':' + symbol;
         }
-        const url = this.urls['api']['ws'];
-        const request = {
-            'op': 'subscribe',
-            'args': [
-                subscriptionHash,
-            ],
-        };
+        const url = this.urls['api']['ws'][type];
+        let request = undefined;
+        const uuid = this.uuid ();
+        if (type === 'spot') {
+            request = {
+                'id': uuid,
+                'dataType': 'spot.executionReport',
+            };
+        }
         const orders = await this.watch (url, messageHash, request, subscriptionHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    async watchBalance (params = {}) {
+        /**
+         * @method
+         * @name bingx#watchBalance
+         * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
+         * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const subscriptionHash = (type === 'spot') ? 'spot:private' : 'swap:private';
+        const messageHash = (type === 'spot') ? 'spot:balance' : 'swap:balance';
+        const url = this.urls['api']['ws'][type];
+        let request = undefined;
+        const uuid = this.uuid ();
+        if (type === 'spot') {
+            request = {
+                'id': uuid,
+                'dataType': 'spot.executionReport',
+            };
+        }
+        return await this.watch (url, messageHash, request, subscriptionHash);
     }
 
     handleErrorMessage (client: Client, message) {
@@ -436,7 +474,7 @@ export default class bingx extends bingxRest {
         const time = this.milliseconds ();
         const listenKey = this.safeString (this.options, 'listenKey');
         if (listenKey === undefined) {
-            const response = await this.userAuthPostUserDataStream ();
+            const response = await this.userAuthPrivatePostUserDataStream ();
             this.options['listenKey'] = this.safeString (response, 'listenKey');
             this.options['lastAuthenticatedTime'] = time;
             return;
@@ -444,7 +482,7 @@ export default class bingx extends bingxRest {
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            const response = await this.userAuthPostUserDataStream ({ 'listenKey': listenKey }); // extend the expiry
+            const response = await this.userAuthPrivatePostUserDataStream ({ 'listenKey': listenKey }); // extend the expiry
             this.options['listenKey'] = this.safeString (response, 'listenKey');
             this.options['lastAuthenticatedTime'] = time;
         }
@@ -454,12 +492,13 @@ export default class bingx extends bingxRest {
         return 'Pong';
     }
 
+    handleOrder (client, message) {
+
+    }
+
     handleMessage (client: Client, message) {
-        const table = this.safeString (message, 'e');
+        // public subscriptions
         const dataType = this.safeString (message, 'dataType');
-        // if (table === undefined && dataType !== undefined) {
-        //     table = dataType.split ('@')[1].split ('_')[0].replace (/[0-9]/g, '');
-        // }
         if (dataType === undefined) {
             return;
         }
@@ -467,19 +506,25 @@ export default class bingx extends bingxRest {
             this.handleOrderBook (client, message);
             return;
         }
-        const methods = {
-            'trade': this.handleTrades,
-            // 'depth': this.handleOrderBook,
-            // 'kline': this.handleOHLCV,
+        if (dataType.indexOf ('@trade') >= 0) {
+            this.handleTrades (client, message);
+            return;
+        }
+        if (dataType.indexOf ('@kline') >= 0) {
+            this.handleOHLCV (client, message);
+            return;
+        }
+        // private subscriptions
+        const eventType = this.safeString (message, 'e');
+        const eventTypes = {
+            'ORDER': this.handleOrder,
+            // 'DEPOSIT': this.handleBalance,
+            // 'WITHDRAW': this.handleBalance,
+            // 'ASSET_TRANSFER': this.handleBalance,
         };
-        // if ()
-        const method = this.safeValue (methods, table);
+        const method = this.safeValue (eventTypes, eventType);
         if (method !== undefined) {
-            return method.call (this, client, message);
-        } else {
-            console.log (message);
-            // console.log (message['data']);
-            // process.exit ();
+            method.call (this, client, message);
         }
     }
 }
