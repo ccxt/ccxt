@@ -91,6 +91,7 @@ class ImplicitAPI:
     private_portfolio_get_interest_records = privatePortfolioGetInterestRecords = Entry('interest_records', ['private', 'portfolio'], 'GET', {'cost': 1.5})
     private_portfolio_get_spot_orders = privatePortfolioGetSpotOrders = Entry('spot/orders', ['private', 'portfolio'], 'GET', {'cost': 1.5})
     private_portfolio_get_spot_orders_order_id = privatePortfolioGetSpotOrdersOrderId = Entry('spot/orders/{order_id}', ['private', 'portfolio'], 'GET', {'cost': 1.5})
+    private_portfolio_post_account_mode = privatePortfolioPostAccountMode = Entry('account_mode', ['private', 'portfolio'], 'POST', {'cost': 1.5})
     private_portfolio_post_loans = privatePortfolioPostLoans = Entry('loans', ['private', 'portfolio'], 'POST', {'cost': 1.5})
     private_portfolio_post_spot_orders = privatePortfolioPostSpotOrders = Entry('spot/orders', ['private', 'portfolio'], 'POST', {'cost': 1.5})
     private_portfolio_delete_spot_orders_order_id = privatePortfolioDeleteSpotOrdersOrderId = Entry('spot/orders/{order_id}', ['private', 'portfolio'], 'DELETE', {'cost': 1.5})
