@@ -2,6 +2,7 @@
 import assert from 'assert';
 import testSharedMethods from './base/test.sharedMethods.js';
 import testTrade from './base/test.trade.js';
+import Precise from '../../base/Precise.js';
 
 
 async function testFetchTrades (exchange, skippedProperties, symbol) {
@@ -38,7 +39,7 @@ async function testFetchTrades_ArrayValues (exchange, skippedProperties, symbol,
 }
 
 async function testFetchTrades_Side (exchange, skippedProperties, symbol, method, trades) {
-    if ('timestamp' in skippedProperties) {
+    if (('timestamp' in skippedProperties) || ('side' in skippedProperties)) {
         return;
     }
     // Check whether side is correct. This can be found out deterministically, by checking
@@ -55,6 +56,41 @@ async function testFetchTrades_Side (exchange, skippedProperties, symbol, method
     // note, that it's nearly impossible tha two different market order has been accepted by
     // exchange at the same timestamp, so we don't consider such exceptional rarest cases (even
     // if it ever happens, the test can be re-triggered shortly after some set of new trades)
+    let lastTs = undefined;
+    let lastPrice = undefined;
+    let lastSide = undefined;
+    for (let i = 0; i < trades.length; i++) {
+        const trade = trades[i];
+        const ts = trade['timestamp'];
+        const price = exchange.safeString (trade, 'price');
+        const side = trade['side'];
+        //
+        const isSameTs = ts === lastTs;
+        lastTs = ts;
+        const isSamePrice = Precise.stringEq (price, lastPrice);
+        lastPrice = price;
+        const isSameSide = side === lastSide;
+        lastSide = side;
+        //
+        // we are not interested in the trades where timestamps are different
+        if (!isSameTs) {
+            continue;
+        }
+        // as said above, the below assertion would work always except rarest exclusions (and if such case ever happens, we can just re-trigger the test, and then new set of trades would pass)
+        assert (isSameSide, 'Side should be same for trades with same timestamp' + testSharedMethods.logTemplate (exchange, method, trade));
+        // we are not interested if price is same
+        if (isSamePrice) {
+            continue;
+        }
+        //
+        const priceIncreasing = Precise.stringGt (price, lastPrice);
+        const priceDecreasing = Precise.stringLt (price, lastPrice);
+        if (priceIncreasing) {
+            assert (side === 'buy', 'Side should be `buy` if price is increasing' + testSharedMethods.logTemplate (exchange, method, trade));
+        } else if (priceDecreasing) {
+            assert (side === 'sell', 'Side should be `sell` if price is decreasing' + testSharedMethods.logTemplate (exchange, method, trade));
+        }
+    }
 }
 
 export default testFetchTrades;
