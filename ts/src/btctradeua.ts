@@ -452,7 +452,7 @@ export default class btctradeua extends Exchange {
                 trades.push (response[i]);
             }
         }
-        return this.parseTrades (trades, market, since, limit, { 'takerOrMaker': 'taker' });
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
