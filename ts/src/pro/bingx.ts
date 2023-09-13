@@ -174,7 +174,7 @@ export default class bingx extends bingxRest {
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
         if (limit === undefined) {
-            limit = 20;
+            limit = 100;
         } else {
             if (marketType === 'swap') {
                 if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100)) {
@@ -186,11 +186,11 @@ export default class bingx extends bingxRest {
                 }
             }
         }
-        const messageHash = market['id'] + '@depth' + limit.toString ();
         const url = this.safeValue (this.urls['api']['ws'], marketType);
         if (url === undefined) {
             throw new BadRequest (this.id + ' watchOrderBook is not supported for ' + marketType + ' markets.');
         }
+        const messageHash = market['id'] + '@depth' + limit.toString ();
         const uuid = this.uuid ();
         const request = {
             'id': uuid,
@@ -209,26 +209,10 @@ export default class bingx extends bingxRest {
         bookside.store (price, amount);
     }
 
-    handleDeltas (bookside, deltas) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
-        }
-    }
-
     handleOrderBook (client: Client, message) {
         //
         // spot
         //
-        // first snapshot
-        //
-        //    {
-        //        code: 0,
-        //        id: 'b41f1fc9-2e38-48d8-b6b2-e64fb2050538',
-        //        msg: 'SUCCESS',
-        //        timestamp: 1690900012131
-        //    }
-        //
-        // subsequent updates
         //
         //    {
         //        code: 0,
@@ -249,17 +233,6 @@ export default class bingx extends bingxRest {
         //
         // swap
         //
-        // first snapshot
-        //
-        //    {
-        //        id: 'd0ddbd94-81d5-41de-a098-96e6de9714ca',
-        //        code: 0,
-        //        msg: '',
-        //        dataType: '',
-        //        data: null
-        //    }
-        //
-        // subsequent updates
         //
         //    {
         //        code: 0,
@@ -285,13 +258,9 @@ export default class bingx extends bingxRest {
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             orderbook = this.orderBook ();
-        } else {
-            const asks = this.safeValue (data, 'asks', []);
-            const bids = this.safeValue (data, 'bids', []);
-            this.handleDeltas (orderbook['asks'], asks);
-            this.handleDeltas (orderbook['bids'], bids);
-            orderbook['symbol'] = symbol;
         }
+        const snapshot = this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 0, 1);
+        orderbook.reset (snapshot);
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
     }
@@ -464,8 +433,21 @@ export default class bingx extends bingxRest {
     }
 
     async authenticate (params = {}) {
-        const response = await this.userAuthUserDataStream ();
-        this.options['listenKey'] = this.safeString (response, 'listenKey');
+        const time = this.milliseconds ();
+        const listenKey = this.safeString (this.options, 'listenKey');
+        if (listenKey === undefined) {
+            const response = await this.userAuthPostUserDataStream ();
+            this.options['listenKey'] = this.safeString (response, 'listenKey');
+            this.options['lastAuthenticatedTime'] = time;
+            return;
+        }
+        const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
+        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour
+        if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
+            const response = await this.userAuthPostUserDataStream ({ 'listenKey': listenKey }); // extend the expiry
+            this.options['listenKey'] = this.safeString (response, 'listenKey');
+            this.options['lastAuthenticatedTime'] = time;
+        }
     }
 
     ping (client) {
@@ -473,16 +455,24 @@ export default class bingx extends bingxRest {
     }
 
     handleMessage (client: Client, message) {
-        let table = this.safeString (message, 'e');
+        const table = this.safeString (message, 'e');
         const dataType = this.safeString (message, 'dataType');
-        if (table === undefined && dataType !== undefined) {
-            table = dataType.split ('@')[1].split ('_')[0].replace (/[0-9]/g, '');
+        // if (table === undefined && dataType !== undefined) {
+        //     table = dataType.split ('@')[1].split ('_')[0].replace (/[0-9]/g, '');
+        // }
+        if (dataType === undefined) {
+            return;
+        }
+        if (dataType.indexOf ('@depth') >= 0) {
+            this.handleOrderBook (client, message);
+            return;
         }
         const methods = {
             'trade': this.handleTrades,
             // 'depth': this.handleOrderBook,
             // 'kline': this.handleOHLCV,
         };
+        // if ()
         const method = this.safeValue (methods, table);
         if (method !== undefined) {
             return method.call (this, client, message);

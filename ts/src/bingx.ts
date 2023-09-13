@@ -188,7 +188,11 @@ export default class bingx extends Exchange {
                     },
                 },
                 'user': {
-                    'auth': 'userDataStream',
+                    'auth': {
+                        'post': {
+                            'userDataStream': 1,
+                        },
+                    },
                 },
             },
             'timeframes': {
