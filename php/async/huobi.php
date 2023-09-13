@@ -4759,10 +4759,10 @@ class huobi extends Exchange {
                     }
                 }
             } else {
-                $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
+                $clientOrderId = $this->safe_integer_2($params, 'client_order_id', 'clientOrderId');
                 if ($clientOrderId !== null) {
                     $request['client_order_id'] = $clientOrderId;
-                    $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
+                    $params = $this->omit($params, array( 'clientOrderId' ));
                 }
                 if ($type === 'limit' || $type === 'ioc' || $type === 'fok' || $type === 'post_only') {
                     $request['price'] = $this->price_to_precision($symbol, $price);

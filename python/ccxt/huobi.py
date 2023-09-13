@@ -4480,10 +4480,10 @@ class huobi(Exchange, ImplicitAPI):
                 if price is not None:
                     request['tp_order_price'] = self.price_to_precision(symbol, price)
         else:
-            clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
+            clientOrderId = self.safe_integer_2(params, 'client_order_id', 'clientOrderId')
             if clientOrderId is not None:
                 request['client_order_id'] = clientOrderId
-                params = self.omit(params, ['client_order_id', 'clientOrderId'])
+                params = self.omit(params, ['clientOrderId'])
             if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
                 request['price'] = self.price_to_precision(symbol, price)
         if not isStopLossTriggerOrder and not isTakeProfitTriggerOrder:

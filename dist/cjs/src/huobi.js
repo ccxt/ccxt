@@ -4805,10 +4805,10 @@ class huobi extends huobi$1 {
             }
         }
         else {
-            const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
+            const clientOrderId = this.safeInteger2(params, 'client_order_id', 'clientOrderId');
             if (clientOrderId !== undefined) {
                 request['client_order_id'] = clientOrderId;
-                params = this.omit(params, ['client_order_id', 'clientOrderId']);
+                params = this.omit(params, ['clientOrderId']);
             }
             if (type === 'limit' || type === 'ioc' || type === 'fok' || type === 'post_only') {
                 request['price'] = this.priceToPrecision(symbol, price);
