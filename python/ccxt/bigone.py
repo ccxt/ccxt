@@ -1513,7 +1513,7 @@ class bigone(Exchange, ImplicitAPI):
         txid = self.safe_string(transaction, 'txid')
         address = self.safe_string(transaction, 'target_address')
         tag = self.safe_string(transaction, 'memo')
-        type = 'deposit' if ('customer_id' in transaction) else 'withdrawal'
+        type = 'withdrawal' if ('customer_id' in transaction) else 'deposit'
         return {
             'info': transaction,
             'id': id,
