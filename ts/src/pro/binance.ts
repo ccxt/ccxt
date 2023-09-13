@@ -2193,8 +2193,8 @@ export default class binance extends binanceRest {
         this.setPositionsCache (client, type, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache = this.positions[type];
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.isEmpty (cache)) {
+        const cache = this.safeValue (this.positions, type);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             const snapshot = await client.future (type + ':fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
         }
@@ -2212,7 +2212,6 @@ export default class binance extends binanceRest {
         if (type in this.positions) {
             return;
         }
-        this.positions[type] = new ArrayCacheBySymbolBySide ();
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot) {
             const messageHash = type + ':fetchPositionsSnapshot';
@@ -2220,15 +2219,21 @@ export default class binance extends binanceRest {
                 client.future (messageHash);
                 this.spawn (this.loadPositionsSnapshot, client, messageHash, type, symbols);
             }
+        } else {
+            this.positions[type] = new ArrayCacheBySymbolBySide ();
         }
     }
 
     async loadPositionsSnapshot (client, messageHash, type, symbols) {
         const positions = await this.fetchPositions (symbols, { 'type': type });
+        this.positions[type] = new ArrayCacheBySymbolBySide ();
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
-            cache.append (position);
+            const contracts = this.safeNumber (position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append (position);
+            }
         }
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
