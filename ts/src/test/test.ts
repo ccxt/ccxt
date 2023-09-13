@@ -223,20 +223,19 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     exchangeTitle (exchange, market = undefined) {
-        let result = exchange.id + ' ' + exchange.options['defaultType'];
-        if (exchange.options['defaultType'] !== 'spot') {
-            let subType = exchange.safeString2 (exchange.options, 'defaultSubType', 'subType');
-            if ((subType === undefined) && (market !== undefined)) {
-                if (market['linear']) {
-                    subType = 'linear';
-                } else if (market['inverse']) {
-                    subType = 'inverse';
-                } else if (exchange.safeValue (market, 'quanto') === true) {
-                    subType = 'quanto';
-                }
+        let marketType = exchange.safeString2 (exchange.options, 'defaultType', 'type', '');
+        let marketSubType = exchange.safeString2 (exchange.options, 'defaultSubType', 'subType', '');
+        if (market !== undefined) {
+            marketType = market['type'];
+            if (market['linear']) {
+                marketSubType = 'linear';
+            } else if (market['inverse']) {
+                marketSubType = 'inverse';
+            } else if (exchange.safeValue (market, 'quanto') === true) {
+                marketSubType = 'quanto';
             }
-            result = result + ' [subType: ' + subType + '] ';
         }
+        const result = exchange.id + ' ' + marketType + ' [subType: ' + marketSubType + '] ';
         return result;
     }
 
