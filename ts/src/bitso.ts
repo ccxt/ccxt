@@ -768,12 +768,21 @@ export default class bitso extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         const marketId = this.safeString (trade, 'book');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const side = this.safeString2 (trade, 'side', 'maker_side');
+        let side = this.safeString (trade, 'side');
         const makerSide = this.safeString (trade, 'maker_side');
         let takerOrMaker = undefined;
-        if (side === makerSide) {
-            takerOrMaker = 'maker';
+        if (side !== undefined) {
+            if (side === makerSide) {
+                takerOrMaker = 'maker';
+            } else {
+                takerOrMaker = 'taker';
+            }
         } else {
+            if (makerSide === 'buy') {
+                side = 'sell';
+            } else {
+                side = 'buy';
+            }
             takerOrMaker = 'taker';
         }
         let amount = this.safeString2 (trade, 'amount', 'major');
@@ -831,7 +840,7 @@ export default class bitso extends Exchange {
             'book': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
-        return this.parseTrades (response['payload'], market, since, limit, { 'takerOrMaker': 'taker' });
+        return this.parseTrades (response['payload'], market, since, limit);
     }
 
     async fetchTradingFees (params = {}) {
