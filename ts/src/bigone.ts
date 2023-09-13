@@ -1097,55 +1097,63 @@ export default class bigone extends Exchange {
     parseOrder (order, market = undefined) {
         //
         //    {
-        //        "id": 10,
-        //        "asset_pair_name": "EOS-BTC",
-        //        "price": "10.00",
-        //        "amount": "10.00",
-        //        "filled_amount": "9.0",
-        //        "avg_deal_price": "12.0",
-        //        "side": "ASK",
-        //        "state": "FILLED",
-        //        "created_at":"2019-01-29T06:05:56Z",
-        //        "updated_at":"2019-01-29T06:05:56Z",
+        //        "id": '42154072251',
+        //        "asset_pair_name": 'SOL-USDT',
+        //        "price": '20',
+        //        "amount": '0.5',
+        //        "filled_amount": '0',
+        //        "avg_deal_price": '0',
+        //        "side": 'ASK',
+        //        "state": 'PENDING',
+        //        "created_at": '2023-09-13T03:42:00Z',
+        //        "updated_at": '2023-09-13T03:42:00Z',
+        //        "type": 'LIMIT',
+        //        "stop_price": '0',
+        //        "immediate_or_cancel": false,
+        //        "post_only": false,
+        //        "client_order_id": ''
         //    }
         //
         const id = this.safeString (order, 'id');
         const marketId = this.safeString (order, 'asset_pair_name');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'amount');
-        const average = this.safeString (order, 'avg_deal_price');
-        const filled = this.safeString (order, 'filled_amount');
-        const status = this.parseOrderStatus (this.safeString (order, 'state'));
         let side = this.safeString (order, 'side');
         if (side === 'BID') {
             side = 'buy';
         } else {
             side = 'sell';
         }
-        const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'updated_at'));
+        let triggerPrice = this.safeString (order, 'stop_price');
+        if (Precise.stringEq (triggerPrice, '0')) {
+            triggerPrice = undefined;
+        }
+        const immediateOrCancel = this.safeValue (order, 'immediate_or_cancel');
+        let timeInForce = undefined;
+        if (immediateOrCancel) {
+            timeInForce = 'IOC';
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': this.parse8601 (this.safeString (order, 'updated_at')),
             'symbol': symbol,
-            'type': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'type': this.safeStringLower (order, 'type'),
+            'timeInForce': timeInForce,
+            'postOnly': this.safeValue (order, 'post_only'),
             'side': side,
-            'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': amount,
+            'price': this.safeString (order, 'price'),
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'amount': this.safeString (order, 'amount'),
             'cost': undefined,
-            'average': average,
-            'filled': filled,
+            'average': this.safeString (order, 'avg_deal_price'),
+            'filled': this.safeString (order, 'filled_amount'),
             'remaining': undefined,
-            'status': status,
+            'status': this.parseOrderStatus (this.safeString (order, 'state')),
             'fee': undefined,
             'trades': undefined,
         }, market);
