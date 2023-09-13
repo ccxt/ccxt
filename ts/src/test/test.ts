@@ -608,7 +608,6 @@ export default class testMainClass extends baseMainTestClass {
                 if (this.info) {
                     dump ('[INFO:SPOT TESTS]', this.exchangeTitle (exchange));
                 }
-                exchange.options['type'] = 'spot';
                 exchange.options['defaultType'] = 'spot';
                 await this.runPublicTests (exchange, spotSymbol);
             }
@@ -616,19 +615,16 @@ export default class testMainClass extends baseMainTestClass {
                 if (this.info) {
                     dump ('[INFO:SWAP TESTS]', this.exchangeTitle (exchange));
                 }
-                exchange.options['type'] = 'swap';
                 exchange.options['defaultType'] = 'swap';
                 await this.runPublicTests (exchange, swapSymbol);
             }
         }
         if (this.privateTest || this.privateTestOnly) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
-                exchange.options['type'] = 'spot';
                 exchange.options['defaultType'] = 'spot';
                 await this.runPrivateTests (exchange, spotSymbol);
             }
             if (exchange.has['swap'] && swapSymbol !== undefined) {
-                exchange.options['type'] = 'swap';
                 exchange.options['defaultType'] = 'swap';
                 await this.runPrivateTests (exchange, swapSymbol);
             }
