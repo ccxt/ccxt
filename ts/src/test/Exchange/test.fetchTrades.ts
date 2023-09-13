@@ -7,7 +7,7 @@ import Precise from '../../base/Precise.js';
 
 async function testFetchTrades (exchange, skippedProperties, symbol) {
     const method = 'fetchTrades';
-    const trades = await exchange.fetchTrades (symbol, undefined, 500);
+    const trades = await exchange.fetchTrades (symbol, undefined, 12000); // lets test with unrealistically high amount
     await testFetchTrades_Structure (exchange, skippedProperties, symbol, method, trades);
     await testFetchTrades_ArrayValues (exchange, skippedProperties, symbol, method, trades);
     await testFetchTrades_Side (exchange, skippedProperties, symbol, method, trades);
