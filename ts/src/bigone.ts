@@ -1609,7 +1609,7 @@ export default class bigone extends Exchange {
         const txid = this.safeString (transaction, 'txid');
         const address = this.safeString (transaction, 'target_address');
         const tag = this.safeString (transaction, 'memo');
-        const type = ('customer_id' in transaction) ? 'deposit' : 'withdrawal';
+        const type = ('customer_id' in transaction) ? 'withdrawal' : 'deposit';
         return {
             'info': transaction,
             'id': id,
