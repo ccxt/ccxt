@@ -3932,9 +3932,7 @@ export default class bybit extends Exchange {
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires an symbol argument');
-        }
+        this.checkRequiredSymbol ('editOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
@@ -4023,9 +4021,7 @@ export default class bybit extends Exchange {
     }
 
     async cancelUsdcOrder (id, symbol: string = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelUsdcOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelUsdcOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -4074,9 +4070,7 @@ export default class bybit extends Exchange {
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
@@ -4128,9 +4122,7 @@ export default class bybit extends Exchange {
     }
 
     async cancelAllUsdcOrders (symbol: string = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllUsdcOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelAllUsdcOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
