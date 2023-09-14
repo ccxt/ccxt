@@ -1204,7 +1204,8 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const requestSide = (side === 'buy') ? 'BID' : 'ASK';
+        const isBuy = (side === 'buy');
+        const requestSide = isBuy ? 'BID' : 'ASK';
         let uppercaseType = type.toUpperCase ();
         const isLimit = uppercaseType === 'LIMIT';
         const exchangeSpecificParam = this.safeValue (params, 'post_only');
@@ -1246,7 +1247,7 @@ export default class bigone extends Exchange {
         request['amount'] = this.amountToPrecision (symbol, amount);
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
-            request['operator'] = 'LTE';
+            request['operator'] = isBuy ? 'GTE' : 'LTE';
             if (isLimit) {
                 uppercaseType = 'STOP_LIMIT';
             } else if (uppercaseType === 'MARKET') {
