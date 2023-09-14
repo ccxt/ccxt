@@ -1562,6 +1562,11 @@ export default class kucoin extends Exchange {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        const paginate = this.safeValue (params, 'paginate', false);
+        params = this.omit (params, 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1500);
+        }
         const market = this.market (symbol);
         const marketId = market['id'];
         const request = {
