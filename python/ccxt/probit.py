@@ -760,7 +760,7 @@ class probit(Exchange, ImplicitAPI):
         if since is not None:
             request['start_time'] = self.iso8601(since)
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 10000)
         response = self.publicGetTrade(self.extend(request, params))
         #
         #     {

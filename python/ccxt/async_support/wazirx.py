@@ -437,7 +437,7 @@ class wazirx(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit  # Default 500; max 1000.
+            request['limit'] = min(limit, 1000)  # Default 500; max 1000.
         method = self.safe_string(self.options, 'fetchTradesMethod', 'publicGetTrades')
         response = await getattr(self, method)(self.extend(request, params))
         # [
