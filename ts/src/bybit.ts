@@ -2261,7 +2261,7 @@ export default class bybit extends Exchange {
          * @name bybit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://bybit-exchange.github.io/docs/v5/market/tickers
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} an array of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
@@ -2532,7 +2532,7 @@ export default class bybit extends Exchange {
          * @name bybit#fetchFundingRates
          * @description fetches funding rates for multiple markets
          * @see https://bybit-exchange.github.io/docs/v5/market/tickers
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
+         * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} an array of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
          */
@@ -2947,8 +2947,8 @@ export default class bybit extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
-         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         this.checkRequiredSymbol ('fetchTrades', symbol);
@@ -3225,7 +3225,7 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/asset/all-balance
          * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @param {string|undefined} [params.type] wallet type, ['spot', 'swap', 'fund']
+         * @param {string} [params.type] wallet type, ['spot', 'swap', 'fund']
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
@@ -4181,11 +4181,11 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/order/cancel-all
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @param {boolean|undefined} [params.stop] true if stop order
-         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
-         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
-         * @param {string|undefined} [params.baseCoin] Base coin. Supports linear, inverse & option
-         * @param {string|undefined} [params.settleCoin] Settle coin. Supports linear, inverse & option
+         * @param {boolean} [params.stop] true if stop order
+         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
+         * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -4353,9 +4353,9 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @param {boolean|undefined} [params.stop] true if stop order
-         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
-         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
+         * @param {boolean} [params.stop] true if stop order
+         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -4484,9 +4484,9 @@ export default class bybit extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] max number of orders to return, default is undefined
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @param {boolean|undefined} [params.stop] true if stop order
-         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
-         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
+         * @param {boolean} [params.stop] true if stop order
+         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -4549,11 +4549,11 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @param {boolean|undefined} [params.stop] true if stop order
-         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
-         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
-         * @param {string|undefined} [params.baseCoin] Base coin. Supports linear, inverse & option
-         * @param {string|undefined} [params.settleCoin] Settle coin. Supports linear, inverse & option
+         * @param {boolean} [params.stop] true if stop order
+         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
+         * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -4728,9 +4728,9 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @param {boolean|undefined} [params.stop] true if stop order
-         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
-         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
+         * @param {boolean} [params.stop] true if stop order
+         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
@@ -5647,12 +5647,12 @@ export default class bybit extends Exchange {
          * @name bybit#fetchPositions
          * @description fetch all open positions
          * @see https://bybit-exchange.github.io/docs/v5/position
-         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {string[]} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
-         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
-         * @param {string|undefined} [params.baseCoin] Base coin. Supports linear, inverse & option
-         * @param {string|undefined} [params.settleCoin] Settle coin. Supports linear, inverse & option
+         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
+         * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         let symbol = undefined;
@@ -6784,7 +6784,7 @@ export default class bybit extends Exchange {
          * @description fetch the trading fees for multiple markets
          * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -6882,7 +6882,7 @@ export default class bybit extends Exchange {
          * @name bybit#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
          * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
-         * @param {string[]|undefined} codes list of unified currency codes
+         * @param {string[]} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
@@ -6934,8 +6934,8 @@ export default class bybit extends Exchange {
          * @param {int} [since] timestamp in ms
          * @param {int} [limit] number of records
          * @param {object} [params] exchange specific params
-         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
-         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @returns {object[]} a list of [settlement history objects]
          */
         await this.loadMarkets ();
@@ -6991,8 +6991,8 @@ export default class bybit extends Exchange {
          * @param {int} [since] timestamp in ms
          * @param {int} [limit] number of records
          * @param {object} [params] exchange specific params
-         * @param {string|undefined} [params.type] market type, ['swap', 'option', 'spot']
-         * @param {string|undefined} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
+         * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @returns {object[]} a list of [settlement history objects]
          */
         await this.loadMarkets ();
