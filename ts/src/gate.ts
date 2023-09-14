@@ -2851,6 +2851,11 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const paginate = this.safeValue (params, 'paginate', false);
+        params = this.omit (params, 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
+        }
         if (market['option']) {
             return await this.fetchOptionOHLCV (symbol, timeframe, since, limit, params);
         }
@@ -3020,6 +3025,11 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const paginate = this.safeValue (params, 'paginate', false);
+        if (paginate) {
+            params = this.omit (params, 'paginate');
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params);
+        }
         //
         // spot
         //

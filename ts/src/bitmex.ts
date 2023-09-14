@@ -1422,6 +1422,11 @@ export default class bitmex extends Exchange {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        const paginate = this.safeValue (params, 'paginate', false);
+        params = this.omit (params, 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 100);
+        }
         // send JSON key/value pairs, such as {"key": "value"}
         // filter by individual fields and do advanced queries on timestamps
         // let filter = { 'key': 'value' };
@@ -1735,6 +1740,11 @@ export default class bitmex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const paginate = this.safeValue (params, 'paginate', false);
+        if (paginate) {
+            params = this.omit (params, 'paginate');
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params);
+        }
         const request = {
             'symbol': market['id'],
         };
