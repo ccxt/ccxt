@@ -1414,7 +1414,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, market, since, limit, { 'takerOrMaker': 'taker' });
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
