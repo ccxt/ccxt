@@ -1320,7 +1320,7 @@ export default class deribit extends Exchange {
             request['start_timestamp'] = since;
         }
         if (limit !== undefined) {
-            request['count'] = limit; // default 10
+            request['count'] = Math.min(limit, 1000); // default 10
         }
         const response = await this[method](this.extend(request, params));
         //
