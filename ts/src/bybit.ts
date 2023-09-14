@@ -5982,6 +5982,8 @@ export default class bybit extends Exchange {
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {string} [params.buyLeverage] leverage for buy side
+         * @param {string} [params.sellLeverage] leverage for sell side
          * @returns {object} response from the exchange
          */
         this.checkRequiredSymbol ('setLeverage', symbol);
