@@ -4350,6 +4350,7 @@ export default class bybit extends Exchange {
          * @param {boolean} [params.stop] true if stop order
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
+         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -4548,6 +4549,7 @@ export default class bybit extends Exchange {
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
          * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
+         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
