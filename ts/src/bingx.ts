@@ -833,25 +833,23 @@ export default class bingx extends Exchange {
             time = this.parse8601 (datetimeId);
         }
         const isBuyerMaker = this.safeValue2 (trade, 'buyerMaker', 'isBuyerMaker');
-        let takeOrMaker = undefined;
         let side = undefined;
         if (isBuyerMaker !== undefined) {
             side = isBuyerMaker ? 'sell' : 'buy';
-            takeOrMaker = 'taker';
         }
         const cost = this.safeString (trade, 'quoteQty');
         const type = (cost === undefined) ? 'spot' : 'swap';
         const currencyId = this.safeString (trade, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
         return this.safeTrade ({
-            'id': this.safeStringN (trade, [ 'id', 'orderId', 't' ]),
+            'id': this.safeStringN (trade, [ 'id', 't' ]),
             'info': trade,
             'timestamp': time,
             'datetime': this.iso8601 (time),
             'symbol': this.safeSymbol (undefined, market, '-', type),
-            'order': undefined,
+            'order': this.safeString (trade, 'orderId'),
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'takerOrMaker': (isBuyerMaker === true || this.safeValue (trade, 'm')) ? 'maker' : 'taker',
             'price': this.safeString2 (trade, 'price', 'p'),
             'amount': this.safeStringN (trade, [ 'qty', 'amount', 'q' ]),
@@ -1767,23 +1765,23 @@ export default class bingx extends Exchange {
         //
         const positionSide = this.safeString (order, 'positionSide');
         const marketType = (positionSide === undefined) ? 'spot' : 'swap';
-        const marketId = this.safeString (order, 'symbol');
+        const marketId = this.safeString2 (order, 'symbol', 's');
         const symbol = this.safeSymbol (marketId, market, '-', marketType);
-        const orderId = this.safeString (order, 'orderId');
-        const side = this.safeStringLower (order, 'side');
-        const type = this.safeStringLower (order, 'type');
-        const timestamp = this.safeInteger2 (order, 'time', 'transactTime');
-        const lastTradeTimestamp = this.safeInteger (order, 'updateTime');
-        const price = this.safeString (order, 'price');
-        const average = this.safeString (order, 'avgPrice');
-        const amount = this.safeString (order, 'origQty');
-        const filled = this.safeString (order, 'executedQty');
-        const statusId = this.safeString (order, 'status');
+        const orderId = this.safeString2 (order, 'orderId', 'i');
+        const side = this.safeStringLower2 (order, 'side', 'S');
+        const type = this.safeStringLower2 (order, 'type', 'o');
+        const timestamp = this.safeIntegerN (order, [ 'time', 'transactTime', 'E' ]);
+        const lastTradeTimestamp = this.safeInteger2 (order, 'updateTime', 'T');
+        const price = this.safeString2 (order, 'price', 'p');
+        const average = this.safeString2 (order, 'avgPrice', 'ap');
+        const amount = this.safeString2 (order, 'origQty', 'q');
+        const filled = this.safeString2 (order, 'executedQty', 'z');
+        const statusId = this.safeStringLower2 (order, 'status', 'x');
         const fee = {
-            'currency': this.safeString (order, 'feeAsset'),
-            'rate': this.safeString2 (order, 'fee', 'commission'),
+            'currency': this.safeString2 (order, 'feeAsset', 'N'),
+            'rate': this.safeStringN (order, [ 'fee', 'commission', 'n' ]),
         };
-        const clientOrderId = this.safeString (order, 'clientOrderId');
+        const clientOrderId = this.safeString2 (order, 'clientOrderId', 'c');
         return this.safeOrder ({
             'info': order,
             'id': orderId,

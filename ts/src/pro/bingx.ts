@@ -523,6 +523,35 @@ export default class bingx extends bingxRest {
         //         }
         //      }
         //
+        //      {
+        //         code: 0,
+        //         dataType: 'spot.executionReport',
+        //         data: {
+        //           e: 'executionReport',
+        //           E: 1694681809302,
+        //           s: 'LTC-USDT',
+        //           S: 'BUY',
+        //           o: 'MARKET',
+        //           q: 0,
+        //           p: 62.29,
+        //           x: 'TRADE',
+        //           X: 'FILLED',
+        //           i: '1702245001712369664',
+        //           l: 0.0802,
+        //           z: 0.0802,
+        //           L: 62.308,
+        //           n: -0.0000802,
+        //           N: 'LTC',
+        //           T: 1694681809256,
+        //           t: 38259147,
+        //           O: 1694681809248,
+        //           Z: 4.9971016,
+        //           Y: 4.9971016,
+        //           Q: 5,
+        //           m: false
+        //         }
+        //       }
+        //
         const data = this.safeValue (message, 'data', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
