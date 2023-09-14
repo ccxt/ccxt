@@ -1,10 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { error } from 'console';
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Market, Int, OrderSide, Balances, OrderType, Trade } from './base/types.js';
+import { Market, Int, OrderSide, Balances, OrderType, Trade, OHLCV } from './base/types.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -3292,6 +3293,11 @@ export default class binance extends Exchange {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        const paginate = this.safeValue (params, 'paginate', false);
+        params = this.omit (params, 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic<OHLCV[]> ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
+        }
         const market = this.market (symbol);
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
@@ -3583,16 +3589,72 @@ export default class binance extends Exchange {
         }, market);
     }
 
-    fetchPaginatedCall<Type> (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, entriesPerRequest = 100): Type {
-        const maxCalls = this.safeInteger (this.options, 'maxCalls', 20);
+    async fetchPaginatedCallDynamic<Type> (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = 1000): Promise<Type> {
+        const maxCalls = this.safeInteger (this.options, 'maxCalls', 10);
         const maxRetries = this.safeInteger (this.options, 'maxRetries', 3);
-        const lastTimestamp = undefined;
+        let lastTimestamp = undefined;
         let calls = 0;
+        let result = [];
+        let errors = 0;
         while ((calls < maxCalls)) {
             calls++;
-            const response = this[method] (symbol, since, limit, params);
-            const
+            try {
+                if (since === undefined) {
+                    // do it backwards, starting from the last
+                    const response = await this[method] (symbol, lastTimestamp, maxEntriesPerRequest, params);
+                    const responseLength = response.length;
+                    if (responseLength < maxEntriesPerRequest) {
+                        break;
+                    }
+                    errors = 0;
+                    result = this.arrayConcat (result, response);
+                    lastTimestamp = this.safeInteger (0, 'timestamp');
+                    if (lastTimestamp <= since) {
+                        break;
+                    }
+                } else {
+                    // do it forwards, starting from the since
+                    lastTimestamp = since;
+                    const response = await this[method] (symbol, lastTimestamp, maxEntriesPerRequest, params);
+                    const responseLength = response.length;
+                    if (responseLength < maxEntriesPerRequest) {
+                        break;
+                    }
+                    errors = 0;
+                    result = this.arrayConcat (result, response);
+                    lastTimestamp = this.safeInteger (responseLength - 1, 'timestamp');
+                }
+            } catch (e) {
+                if (errors + 1 > maxRetries) {
+                    throw e;
+                }
+                errors++;
+            }
         }
+        return result as any;
+    }
+
+    async fetchPaginatedCallDeterministic<Type> (method: string, symbol: string = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = 1000, sync = false): Promise<Type> {
+        const maxCalls = this.safeInteger (this.options, 'maxCalls', 10);
+        const now = this.milliseconds ();
+        const tasks = [];
+        const time = this.parseTimeframe (timeframe) * 1000;
+        const step = time * maxEntriesPerRequest;
+        let currentSince = now - (maxCalls * step);
+        for (let i = 0; i < maxCalls; i++) {
+            if (timeframe) {
+                tasks.push (this[method] (symbol, timeframe, currentSince, maxEntriesPerRequest, params));
+            } else {
+                tasks.push (this[method] (symbol, currentSince, maxEntriesPerRequest, params));
+            }
+            currentSince = currentSince + step;
+        }
+        const results = await Promise.all (tasks);
+        let result = [];
+        for (let i = 0; i < results.length; i++) {
+            result = result.concat (results[i]);
+        }
+        return result as any;
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3628,7 +3690,7 @@ export default class binance extends Exchange {
         const paginate = this.safeValue (params, 'paginate', false);
         if (paginate) {
             params = this.omit (params, 'paginate');
-            return await this.fetchPaginatedCall<Trade[]> ('fetchTrades', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic<Trade[]> ('fetchTrades', symbol, since, limit, params);
         }
         const market = this.market (symbol);
         const request = {
