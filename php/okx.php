@@ -104,6 +104,7 @@ class okx extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfer' => true,
                 'fetchTransfers' => true,
+                'fetchUnderlyingAssets' => true,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
@@ -2551,7 +2552,7 @@ class okx extends Exchange {
                 } else {
                     $request['slOrdPx'] = '-1'; // $market sl order
                 }
-                $stopLossTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'slTriggerPxType');
+                $stopLossTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last');
                 if ($stopLossTriggerPriceType !== null) {
                     if (($stopLossTriggerPriceType !== 'last') && ($stopLossTriggerPriceType !== 'index') && ($stopLossTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder($this->id . ' createOrder() stop loss $trigger $price $type must be one of "last", "index" or "mark"');
@@ -2586,7 +2587,7 @@ class okx extends Exchange {
                 } else {
                     $request['tpOrdPx'] = '-1'; // $market tp order
                 }
-                $takeProfitTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'tpTriggerPxType');
+                $takeProfitTriggerPriceType = $this->safe_string_2($takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last');
                 if ($takeProfitTriggerPriceType !== null) {
                     if (($takeProfitTriggerPriceType !== 'last') && ($takeProfitTriggerPriceType !== 'index') && ($takeProfitTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder($this->id . ' createOrder() take profit $trigger $price $type must be one of "last", "index" or "mark"');
@@ -6526,7 +6527,7 @@ class okx extends Exchange {
          * @param {int} [$since] timestamp in ms
          * @param {int} [$limit] number of records
          * @param {array} [$params] exchange specific $params
-         * @return {array[]} a list of [settlement history objects]
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
          */
         $this->check_required_symbol('fetchSettlementHistory', $symbol);
         $this->load_markets();
@@ -6616,6 +6617,43 @@ class okx extends Exchange {
             }
         }
         return $result;
+    }
+
+    public function fetch_underlying_assets($params = array ()) {
+        /**
+         * fetches the market ids of underlying assets for a specific contract market type
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
+         * @param {array} [$params] exchange specific $params
+         * @param {string} [$params->type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#underlying-assets-structure underlying assets}
+         */
+        $this->load_markets();
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchUnderlyingAssets', null, $params);
+        if (($marketType === null) || ($marketType === 'spot')) {
+            $marketType = 'option';
+        }
+        if (($marketType !== 'option') && ($marketType !== 'swap') && ($marketType !== 'future')) {
+            throw new NotSupported($this->id . ' fetchUnderlyingAssets() supports contract markets only');
+        }
+        $request = array(
+            'instType' => $this->convert_to_instrument_type($marketType),
+        );
+        $response = $this->publicGetPublicUnderlying (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             array(
+        //                 "BTC-USD",
+        //                 "ETH-USD"
+        //             )
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $underlyings = $this->safe_value($response, 'data', array());
+        return $underlyings[0];
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

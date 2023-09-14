@@ -107,6 +107,7 @@ class okx extends okx$1 {
                 'fetchTransactions': false,
                 'fetchTransfer': true,
                 'fetchTransfers': true,
+                'fetchUnderlyingAssets': true,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -2576,7 +2577,7 @@ class okx extends okx$1 {
                 else {
                     request['slOrdPx'] = '-1'; // market sl order
                 }
-                const stopLossTriggerPriceType = this.safeString2(stopLoss, 'triggerPriceType', 'slTriggerPxType');
+                const stopLossTriggerPriceType = this.safeString2(stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last');
                 if (stopLossTriggerPriceType !== undefined) {
                     if ((stopLossTriggerPriceType !== 'last') && (stopLossTriggerPriceType !== 'index') && (stopLossTriggerPriceType !== 'mark')) {
                         throw new errors.InvalidOrder(this.id + ' createOrder() stop loss trigger price type must be one of "last", "index" or "mark"');
@@ -2616,7 +2617,7 @@ class okx extends okx$1 {
                 else {
                     request['tpOrdPx'] = '-1'; // market tp order
                 }
-                const takeProfitTriggerPriceType = this.safeString2(stopLoss, 'triggerPriceType', 'tpTriggerPxType');
+                const takeProfitTriggerPriceType = this.safeString2(takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last');
                 if (takeProfitTriggerPriceType !== undefined) {
                     if ((takeProfitTriggerPriceType !== 'last') && (takeProfitTriggerPriceType !== 'index') && (takeProfitTriggerPriceType !== 'mark')) {
                         throw new errors.InvalidOrder(this.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"');
@@ -6611,7 +6612,7 @@ class okx extends okx$1 {
          * @param {int} [since] timestamp in ms
          * @param {int} [limit] number of records
          * @param {object} [params] exchange specific params
-         * @returns {object[]} a list of [settlement history objects]
+         * @returns {object[]} a list of [settlement history objects]{@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure}
          */
         this.checkRequiredSymbol('fetchSettlementHistory', symbol);
         await this.loadMarkets();
@@ -6699,6 +6700,44 @@ class okx extends okx$1 {
             }
         }
         return result;
+    }
+    async fetchUnderlyingAssets(params = {}) {
+        /**
+         * @method
+         * @name okx#fetchUnderlyingAssets
+         * @description fetches the market ids of underlying assets for a specific contract market type
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
+         * @param {object} [params] exchange specific params
+         * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
+         * @returns {object[]} a list of [underlying assets]{@link https://github.com/ccxt/ccxt/wiki/Manual#underlying-assets-structure}
+         */
+        await this.loadMarkets();
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchUnderlyingAssets', undefined, params);
+        if ((marketType === undefined) || (marketType === 'spot')) {
+            marketType = 'option';
+        }
+        if ((marketType !== 'option') && (marketType !== 'swap') && (marketType !== 'future')) {
+            throw new errors.NotSupported(this.id + ' fetchUnderlyingAssets() supports contract markets only');
+        }
+        const request = {
+            'instType': this.convertToInstrumentType(marketType),
+        };
+        const response = await this.publicGetPublicUnderlying(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             [
+        //                 "BTC-USD",
+        //                 "ETH-USD"
+        //             ]
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const underlyings = this.safeValue(response, 'data', []);
+        return underlyings[0];
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {

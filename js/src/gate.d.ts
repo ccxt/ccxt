@@ -410,5 +410,6 @@ export default class gate extends Exchange {
     };
     parseLedgerEntryType(type: any): string;
     setPositionMode(hedged: any, symbol?: any, params?: {}): Promise<any>;
+    fetchUnderlyingAssets(params?: {}): Promise<any[]>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

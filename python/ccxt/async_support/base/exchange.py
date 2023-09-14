@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.83'
+__version__ = '4.0.95'
 
 # -----------------------------------------------------------------------------
 
@@ -664,6 +664,15 @@ class Exchange(BaseExchange):
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchTrades() is not supported yet')
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchTradesForSymbols() is not supported yet')
+
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchOHLCVForSymbols() is not supported yet')
+
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchOrderBookForSymbols() is not supported yet')
 
     async def fetch_deposit_addresses(self, codes: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
@@ -1731,6 +1740,15 @@ class Exchange(BaseExchange):
             # was done in all implementations( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
             percentageString = Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100')
             position['percentage'] = self.parse_number(percentageString)
+        # if contractSize is None get from market
+        contractSize = self.safe_number(position, 'contractSize')
+        symbol = self.safe_string(position, 'symbol')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        if contractSize is None and market is not None:
+            contractSize = self.safe_number(market, 'contractSize')
+            position['contractSize'] = contractSize
         return position
 
     def parse_positions(self, positions, symbols: Optional[List[str]] = None, params={}):
@@ -2999,3 +3017,30 @@ class Exchange(BaseExchange):
         Typed wrapper for filterByArray that returns a list of positions
         """
         return self.filter_by_array(objects, key, values, indexed)
+
+    def resolve_promise_if_messagehash_matches(self, client, prefix: str, symbol: str, data):
+        messageHashes = self.findMessageHashes(client, prefix)
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            if self.in_array(symbol, symbols):
+                client.resolve(data, messageHash)
+
+    def resolve_multiple_ohlcv(self, client, prefix: str, symbol: str, timeframe: str, data):
+        messageHashes = self.findMessageHashes(client, 'multipleOHLCV::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsAndTimeframes = parts[1]
+            splitted = symbolsAndTimeframes.split(',')
+            id = symbol + '#' + timeframe
+            if self.in_array(id, splitted):
+                client.resolve([symbol, timeframe, data], messageHash)
+
+    def create_ohlcv_object(self, symbol: str, timeframe: str, data):
+        res = {}
+        res[symbol] = {}
+        res[symbol][timeframe] = data
+        return res

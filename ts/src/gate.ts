@@ -130,6 +130,7 @@ export default class gate extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'fetchUnderlyingAssets': true,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
@@ -292,6 +293,7 @@ export default class gate extends Exchange {
                             'spot/orders/{order_id}': 1.5,
                         },
                         'post': {
+                            'account_mode': 1.5,
                             'loans': 1.5,
                             'spot/orders': 1.5,
                         },
@@ -5841,7 +5843,7 @@ export default class gate extends Exchange {
          * @param {int} [since] timestamp in ms
          * @param {int} [limit] number of records
          * @param {object} [params] exchange specific params
-         * @returns {object[]} a list of [settlement history objects]
+         * @returns {object[]} a list of [settlement history objects]{@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure}
          */
         this.checkRequiredSymbol ('fetchSettlementHistory', symbol);
         await this.loadMarkets ();
@@ -6261,6 +6263,45 @@ export default class gate extends Exchange {
         const [ request, query ] = this.prepareRequest (market, 'swap', params);
         request['dual_mode'] = hedged;
         return await this.privateFuturesPostSettleDualMode (this.extend (request, query));
+    }
+
+    async fetchUnderlyingAssets (params = {}) {
+        /**
+         * @method
+         * @name gate#fetchUnderlyingAssets
+         * @description fetches the market ids of underlying assets for a specific contract market type
+         * @param {object} [params] exchange specific params
+         * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
+         * @returns {object[]} a list of [underlying assets]{@link https://github.com/ccxt/ccxt/wiki/Manual#underlying-assets-structure}
+         */
+        await this.loadMarkets ();
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchUnderlyingAssets', undefined, params);
+        if ((marketType === undefined) || (marketType === 'spot')) {
+            marketType = 'option';
+        }
+        if (marketType !== 'option') {
+            throw new NotSupported (this.id + ' fetchUnderlyingAssets() supports option markets only');
+        }
+        const response = await this.publicOptionsGetUnderlyings (params);
+        //
+        //    [
+        //        {
+        //            "index_time": "1646915796",
+        //            "name": "BTC_USDT",
+        //            "index_price": "39142.73"
+        //        }
+        //    ]
+        //
+        const underlyings = [];
+        for (let i = 0; i < response.length; i++) {
+            const underlying = response[i];
+            const name = this.safeString (underlying, 'name');
+            if (name !== undefined) {
+                underlyings.push (name);
+            }
+        }
+        return underlyings;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

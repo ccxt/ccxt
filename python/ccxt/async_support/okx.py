@@ -132,6 +132,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfer': True,
                 'fetchTransfers': True,
+                'fetchUnderlyingAssets': True,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
@@ -2482,7 +2483,7 @@ class okx(Exchange, ImplicitAPI):
                     request['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)  # limit sl order
                 else:
                     request['slOrdPx'] = '-1'  # market sl order
-                stopLossTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'slTriggerPxType')
+                stopLossTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last')
                 if stopLossTriggerPriceType is not None:
                     if (stopLossTriggerPriceType != 'last') and (stopLossTriggerPriceType != 'index') and (stopLossTriggerPriceType != 'mark'):
                         raise InvalidOrder(self.id + ' createOrder() stop loss trigger price type must be one of "last", "index" or "mark"')
@@ -2510,7 +2511,7 @@ class okx(Exchange, ImplicitAPI):
                     request['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)  # limit tp order
                 else:
                     request['tpOrdPx'] = '-1'  # market tp order
-                takeProfitTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'tpTriggerPxType')
+                takeProfitTriggerPriceType = self.safe_string_2(takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last')
                 if takeProfitTriggerPriceType is not None:
                     if (takeProfitTriggerPriceType != 'last') and (takeProfitTriggerPriceType != 'index') and (takeProfitTriggerPriceType != 'mark'):
                         raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"')
@@ -6203,7 +6204,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
         :param dict [params]: exchange specific params
-        :returns dict[]: a list of [settlement history objects]
+        :returns dict[]: a list of `settlement history objects <https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure>`
         """
         self.check_required_symbol('fetchSettlementHistory', symbol)
         await self.load_markets()
@@ -6286,6 +6287,40 @@ class okx(Exchange, ImplicitAPI):
                     'datetime': self.iso8601(timestamp),
                 }))
         return result
+
+    async def fetch_underlying_assets(self, params={}):
+        """
+        fetches the market ids of underlying assets for a specific contract market type
+        see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
+        :param dict [params]: exchange specific params
+        :param str [params.type]: the contract market type, 'option', 'swap' or 'future', the default is 'option'
+        :returns dict[]: a list of `underlying assets <https://github.com/ccxt/ccxt/wiki/Manual#underlying-assets-structure>`
+        """
+        await self.load_markets()
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchUnderlyingAssets', None, params)
+        if (marketType is None) or (marketType == 'spot'):
+            marketType = 'option'
+        if (marketType != 'option') and (marketType != 'swap') and (marketType != 'future'):
+            raise NotSupported(self.id + ' fetchUnderlyingAssets() supports contract markets only')
+        request = {
+            'instType': self.convert_to_instrument_type(marketType),
+        }
+        response = await self.publicGetPublicUnderlying(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             [
+        #                 "BTC-USD",
+        #                 "ETH-USD"
+        #             ]
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        underlyings = self.safe_value(response, 'data', [])
+        return underlyings[0]
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

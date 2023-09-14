@@ -1324,7 +1324,7 @@ class digifinex(Exchange, ImplicitAPI):
         else:
             request['symbol'] = market['id']
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 100) if market['swap'] else limit
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot

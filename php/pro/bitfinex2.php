@@ -254,10 +254,10 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     public function handle_my_trade(Client $client, $message, $subscription = array ()) {
         //
         // $trade execution
-        // $array(
+        // array(
         //     0,
         //     "te", // or tu
-        //     $array(
+        //     array(
         //        1133411090,
         //        "tLTCUST",
         //        1655110144598,
@@ -283,13 +283,13 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->myTrades = new ArrayCacheBySymbolById ($limit);
         }
-        $array = $this->myTrades;
-        $array->append ($trade);
-        $this->myTrades = $array;
+        $tradesArray = $this->myTrades;
+        $tradesArray->append ($trade);
+        $this->myTrades = $tradesArray;
         // generic $subscription
-        $client->resolve ($array, $name);
+        $client->resolve ($tradesArray, $name);
         // specific $subscription
-        $client->resolve ($array, $messageHash);
+        $client->resolve ($tradesArray, $messageHash);
     }
 
     public function handle_trades(Client $client, $message, $subscription) {

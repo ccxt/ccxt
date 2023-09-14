@@ -264,7 +264,8 @@ class probit(ccxt.async_support.probit):
         #     }
         #
         rawTrades = self.safe_value(message, 'data', [])
-        if len(rawTrades) == 0:
+        length = len(rawTrades)
+        if length == 0:
             return
         reset = self.safe_value(message, 'reset', False)
         messageHash = 'myTrades'
@@ -342,7 +343,8 @@ class probit(ccxt.async_support.probit):
         #     }
         #
         rawOrders = self.safe_value(message, 'data', [])
-        if len(rawOrders) == 0:
+        length = len(rawOrders)
+        if length == 0:
             return
         messageHash = 'orders'
         reset = self.safe_value(message, 'reset', False)

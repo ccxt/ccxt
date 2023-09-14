@@ -58,6 +58,8 @@ class bitmart extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -3105,6 +3107,61 @@ class bitmart extends Exchange {
             'timestamp' => $timestamp,  // borrow creation time
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
+        );
+    }
+
+    public function fetch_open_interest(string $symbol, $params = array ()) {
+        /**
+         * Retrieves the open interest of a currency
+         * @see https://developer-pro.bitmart.com/en/futures/#get-futures-openinterest
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {array} [$params] exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetContractPublicOpenInterest (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "Ok",
+        //         "data" => array(
+        //             "timestamp" => 1694657502415,
+        //             "symbol" => "BTCUSDT",
+        //             "open_interest" => "265231.721368593081729069",
+        //             "open_interest_value" => "7006353.83988919"
+        //         ),
+        //         "trace" => "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_open_interest($data, $market);
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //     {
+        //         "timestamp" => 1694657502415,
+        //         "symbol" => "BTCUSDT",
+        //         "open_interest" => "265231.721368593081729069",
+        //         "open_interest_value" => "7006353.83988919"
+        //     }
+        //
+        $timestamp = $this->safe_integer($interest, 'timestamp');
+        $id = $this->safe_string($interest, 'symbol');
+        return array(
+            'symbol' => $this->safe_symbol($id, $market),
+            'openInterestAmount' => $this->safe_number($interest, 'open_interest'),
+            'openInterestValue' => $this->safe_number($interest, 'open_interest_value'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
         );
     }
 

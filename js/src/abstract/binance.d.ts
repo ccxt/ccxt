@@ -373,6 +373,7 @@ interface Exchange {
     dapiPublicGetContinuousKlines(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetIndexPriceKlines(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetMarkPriceKlines(params?: {}): Promise<implicitReturnType>;
+    dapiPublicGetPremiumIndexKlines(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetTicker24hr(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetTickerPrice(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetTickerBookTicker(params?: {}): Promise<implicitReturnType>;
@@ -384,6 +385,7 @@ interface Exchange {
     dapiDataGetTakerBuySellVol(params?: {}): Promise<implicitReturnType>;
     dapiDataGetBasis(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetPositionSideDual(params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetOrderAmendment(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetOrder(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetOpenOrder(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetOpenOrders(params?: {}): Promise<implicitReturnType>;
@@ -397,7 +399,10 @@ interface Exchange {
     dapiPrivateGetLeverageBracket(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetForceOrders(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetAdlQuantile(params?: {}): Promise<implicitReturnType>;
-    dapiPrivateGetOrderAmendment(params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetCommissionRate(params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetIncomeAsyn(params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetIncomeAsynId(params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetPmExchangeInfo(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetPmAccountInfo(params?: {}): Promise<implicitReturnType>;
     dapiPrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
     dapiPrivatePostOrder(params?: {}): Promise<implicitReturnType>;

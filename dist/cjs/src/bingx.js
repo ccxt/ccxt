@@ -693,7 +693,7 @@ class bingx extends bingx$1 {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 100); // avoid API exception "limit should less than 100"
         }
         let response = undefined;
         let marketType = undefined;

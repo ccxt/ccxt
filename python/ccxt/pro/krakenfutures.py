@@ -105,7 +105,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             marketIds.append(self.market_id(symbol))
-        if len(symbols) == 1:
+        length = len(symbols)
+        if length == 1:
             market = self.market(marketIds[0])
             messageHash = messageHash + ':' + market['symbol']
         subscribe['product_ids'] = marketIds
@@ -579,7 +580,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             symbol = parsed['symbol']
             symbols[symbol] = True
             cachedOrders.append(parsed)
-        if len(self.orders):
+        length = len(self.orders)
+        if length > 0:
             client.resolve(self.orders, 'orders')
             keys = list(symbols.keys())
             for i in range(0, len(keys)):

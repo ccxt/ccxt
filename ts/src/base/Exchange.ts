@@ -141,7 +141,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 
 // import types
 import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position } from './types.js';
-export {Market, Trade, Fee, Ticker} from './types.js'
+export {Market, Trade, Fee, Position, Ticker} from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
@@ -540,6 +540,17 @@ export default class Exchange {
                 'signIn': undefined,
                 'transfer': undefined,
                 'withdraw': undefined,
+                'watchOrderBook': undefined,
+                'watchOrders': undefined,
+                'watchMyTrades': undefined,
+                'watchTickers': undefined,
+                'watchTicker': undefined,
+                'watchTrades': undefined,
+                'watchTradesForSymbols': undefined,
+                'watchOrderBookForSymbols': undefined,
+                'watchOHLCVForSymbols': undefined,
+                'watchBalance': undefined,
+                'watchOHLCV': undefined,
             },
             'urls': {
                 'logo': undefined,
@@ -1568,6 +1579,18 @@ export default class Exchange {
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
+    }
+
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
+        throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        throw new NotSupported (this.id + ' watchOrderBookForSymbols() is not supported yet');
     }
 
     async fetchDepositAddresses (codes: string[] = undefined, params = {}): Promise<any> {
@@ -2861,6 +2884,17 @@ export default class Exchange {
             // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
             const percentageString = Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100');
             position['percentage'] = this.parseNumber (percentageString);
+        }
+        // if contractSize is undefined get from market
+        let contractSize = this.safeNumber (position, 'contractSize');
+        const symbol = this.safeString (position, 'symbol');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (contractSize === undefined && market !== undefined) {
+            contractSize = this.safeNumber (market, 'contractSize');
+            position['contractSize'] = contractSize;
         }
         return position as any;
     }
@@ -4447,6 +4481,40 @@ export default class Exchange {
          * @description Typed wrapper for filterByArray that returns a list of positions
          */
         return this.filterByArray (objects, key, values, indexed) as Position[];
+    }
+
+    resolvePromiseIfMessagehashMatches (client, prefix: string, symbol: string, data) {
+        const messageHashes = this.findMessageHashes (client, prefix);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            if (this.inArray (symbol, symbols)) {
+                client.resolve (data, messageHash);
+            }
+        }
+    }
+
+    resolveMultipleOHLCV (client, prefix: string, symbol: string, timeframe: string, data) {
+        const messageHashes = this.findMessageHashes (client, 'multipleOHLCV::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsAndTimeframes = parts[1];
+            const splitted = symbolsAndTimeframes.split (',');
+            const id = symbol + '#' + timeframe;
+            if (this.inArray (id, splitted)) {
+                client.resolve ([ symbol, timeframe, data ], messageHash);
+            }
+        }
+    }
+
+    createOHLCVObject (symbol: string, timeframe: string, data): Dictionary<Dictionary<OHLCV[]>> {
+        const res = {};
+        res[symbol] = {};
+        res[symbol][timeframe] = data;
+        return res;
     }
 }
 

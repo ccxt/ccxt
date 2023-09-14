@@ -144,6 +144,7 @@ class bigone(Exchange, ImplicitAPI):
             'options': {
                 'accountsByType': {
                     'spot': 'SPOT',
+                    'fund': 'FUND',
                     'funding': 'FUND',
                     'future': 'CONTRACT',
                     'swap': 'CONTRACT',
@@ -1512,7 +1513,7 @@ class bigone(Exchange, ImplicitAPI):
         txid = self.safe_string(transaction, 'txid')
         address = self.safe_string(transaction, 'target_address')
         tag = self.safe_string(transaction, 'memo')
-        type = 'deposit' if ('customer_id' in transaction) else 'withdrawal'
+        type = 'withdrawal' if ('customer_id' in transaction) else 'deposit'
         return {
             'info': transaction,
             'id': id,
@@ -1631,10 +1632,11 @@ class bigone(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        see https://open.big.one/docs/spot_transfer.html#transfer-of-user
         :param str code: unified currency code
         :param float amount: amount to transfer
-        :param str fromAccount: account to transfer from
-        :param str toAccount: account to transfer to
+        :param str fromAccount: 'SPOT', 'FUND', or 'CONTRACT'
+        :param str toAccount: 'SPOT', 'FUND', or 'CONTRACT'
         :param dict [params]: extra parameters specific to the bigone api endpoint
         :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """

@@ -1111,7 +1111,7 @@ export default class hitbtc extends Exchange {
             request['symbols'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 1000);
         }
         if (since !== undefined) {
             request['from'] = since;
@@ -1237,6 +1237,8 @@ export default class hitbtc extends Exchange {
         let takerOrMaker = undefined;
         if (taker !== undefined) {
             takerOrMaker = taker ? 'taker' : 'maker';
+        } else {
+            takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
         if (feeCostString !== undefined) {
             const info = this.safeValue (market, 'info', {});

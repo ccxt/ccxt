@@ -208,6 +208,22 @@ export default class bitmart extends Exchange {
         datetime: string;
         info: any;
     };
+    fetchOpenInterest(symbol: string, params?: {}): Promise<{
+        symbol: any;
+        openInterestAmount: number;
+        openInterestValue: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    }>;
+    parseOpenInterest(interest: any, market?: any): {
+        symbol: any;
+        openInterestAmount: number;
+        openInterestValue: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    };
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

@@ -306,7 +306,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
             limit = orders.getLimit(symbol, limit);
         }
         orders = this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        if (orders.length === 0) {
+        const length = orders.length;
+        if (length === 0) {
             return await this.watchOrders(symbol, since, limit, params);
         }
         return orders;

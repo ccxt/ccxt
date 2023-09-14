@@ -47,6 +47,7 @@ class hollaex(Exchange, ImplicitAPI):
                 'createMarketBuyOrder': True,
                 'createMarketSellOrder': True,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -1087,6 +1088,8 @@ class hollaex(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the hollaex api endpoint
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
+        :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()

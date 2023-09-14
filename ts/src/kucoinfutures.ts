@@ -1138,11 +1138,18 @@ export default class kucoinfutures extends kucoin {
             'leverage': 1,
         };
         const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
+        const triggerPriceTypes = {
+            'mark': 'MP',
+            'last': 'TP',
+            'index': 'IP',
+        };
+        const triggerPriceType = this.safeString (params, 'triggerPriceType', 'mark');
+        const triggerPriceTypeValue = this.safeString (triggerPriceTypes, triggerPriceType, triggerPriceType);
         params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ]);
         if (triggerPrice) {
             request['stop'] = (side === 'buy') ? 'up' : 'down';
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
-            request['stopPriceType'] = 'MP';
+            request['stopPriceType'] = triggerPriceTypeValue;
         } else if (stopLossPrice || takeProfitPrice) {
             if (stopLossPrice) {
                 request['stop'] = (side === 'buy') ? 'up' : 'down';
@@ -1152,7 +1159,7 @@ export default class kucoinfutures extends kucoin {
                 request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
             }
             request['reduceOnly'] = true;
-            request['stopPriceType'] = 'MP';
+            request['stopPriceType'] = triggerPriceTypeValue;
         }
         const uppercaseType = type.toUpperCase ();
         const timeInForce = this.safeStringUpper (params, 'timeInForce');

@@ -12,11 +12,11 @@ import errorsHierarchy from '../base/errorHierarchy.js';
 // js specific codes //
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 process.on('uncaughtException', (e) => {
-    console.log(e, e.stack);
+    console.log(e, '<UNHANDLED EXCEPTION>', e.stack);
     process.exit(1);
 });
 process.on('unhandledRejection', (e) => {
-    console.log(e, e.stack);
+    console.log(e, '<UNHANDLED REJECTION>', e.stack);
     process.exit(1);
 });
 const [processPath, , exchangeId = null, exchangeSymbol = undefined] = process.argv.filter((x) => !x.startsWith('--'));
@@ -66,7 +66,7 @@ async function callMethod(testFiles, methodName, exchange, skippedProperties, ar
     return await testFiles[methodName](exchange, skippedProperties, ...args);
 }
 function exceptionMessage(exc) {
-    return '[' + exc.constructor.name + '] ' + exc.message.slice(0, 500);
+    return '[' + exc.constructor.name + '] ' + exc.stack.slice(0, 1000);
 }
 function exitScript() {
     process.exit(0);

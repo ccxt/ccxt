@@ -89,6 +89,7 @@ export default class bybit extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,

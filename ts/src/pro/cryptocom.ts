@@ -20,7 +20,9 @@ export default class cryptocom extends cryptocomRest {
                 'watchTickers': false, // for now
                 'watchMyTrades': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchOHLCV': true,
                 'createOrderWs': true,
@@ -78,6 +80,31 @@ export default class cryptocom extends cryptocomRest {
         return orderbook.limit ();
     }
 
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const messageHash = 'book' + '.' + market['id'];
+            topics.push (messageHash);
+        }
+        const messageHash = 'multipleOrderbooks::' + symbols.join (',');
+        const orderbook = await this.watchPublicMultiple (messageHash, topics, params);
+        return orderbook.limit ();
+    }
+
     handleOrderBookSnapshot (client: Client, message) {
         // full snapshot
         //
@@ -117,6 +144,7 @@ export default class cryptocom extends cryptocomRest {
         orderbook.reset (snapshot);
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
+        this.resolvePromiseIfMessagehashMatches (client, 'multipleOrderbooks::', symbol, orderbook);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -138,6 +166,37 @@ export default class cryptocom extends cryptocomRest {
         const trades = await this.watchPublic (messageHash, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#watchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const messageHash = 'trade' + '.' + market['id'];
+            topics.push (messageHash);
+        }
+        const messageHash = 'multipleTrades::' + symbols.join (',');
+        const trades = await this.watchPublicMultiple (messageHash, topics, params);
+        if (this.newUpdates) {
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -188,6 +247,7 @@ export default class cryptocom extends cryptocomRest {
         const channelReplaced = channel.replace ('.' + marketId, '');
         client.resolve (stored, symbolSpecificMessageHash);
         client.resolve (stored, channelReplaced);
+        this.resolvePromiseIfMessagehashMatches (client, 'multipleTrades::', symbol, stored);
     }
 
     async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -592,6 +652,20 @@ export default class cryptocom extends cryptocomRest {
             'method': 'subscribe',
             'params': {
                 'channels': [ messageHash ],
+            },
+            'nonce': id,
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    async watchPublicMultiple (messageHash, topics, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const id = this.nonce ();
+        const request = {
+            'method': 'subscribe',
+            'params': {
+                'channels': topics,
             },
             'nonce': id,
         };

@@ -93,6 +93,7 @@ class bybit extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
+                'fetchUnderlyingAssets' => false,
                 'fetchVolatilityHistory' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
@@ -8998,7 +8999,7 @@ class bybit extends Exchange {
              * @param {int} [$since] timestamp in ms
              * @param {int} [$limit] number of records
              * @param {array} [$params] exchange specific $params
-             * @return {array[]} a list of [settlement history objects]
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
              */
             Async\await($this->load_markets());
             $request = array();

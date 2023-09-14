@@ -1085,7 +1085,7 @@ class hitbtc(Exchange, ImplicitAPI):
             # symbol is optional for hitbtc fetchTrades
             request['symbols'] = market['id']
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         if since is not None:
             request['from'] = since
         response = self.publicGetPublicTrades(self.extend(request, params))
@@ -1200,6 +1200,8 @@ class hitbtc(Exchange, ImplicitAPI):
         takerOrMaker = None
         if taker is not None:
             takerOrMaker = 'taker' if taker else 'maker'
+        else:
+            takerOrMaker = 'taker'  # the only case when `taker` field is missing, is public fetchTrades and it must be taker
         if feeCostString is not None:
             info = self.safe_value(market, 'info', {})
             feeCurrency = self.safe_string(info, 'fee_currency')

@@ -128,6 +128,7 @@ class gate extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
+                'fetchUnderlyingAssets' => true,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
@@ -290,6 +291,7 @@ class gate extends Exchange {
                             'spot/orders/{order_id}' => 1.5,
                         ),
                         'post' => array(
+                            'account_mode' => 1.5,
                             'loans' => 1.5,
                             'spot/orders' => 1.5,
                         ),
@@ -5752,7 +5754,7 @@ class gate extends Exchange {
          * @param {int} [$since] timestamp in ms
          * @param {int} [$limit] number of records
          * @param {array} [$params] exchange specific $params
-         * @return {array[]} a list of [settlement history objects]
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
          */
         $this->check_required_symbol('fetchSettlementHistory', $symbol);
         $this->load_markets();
@@ -6166,6 +6168,43 @@ class gate extends Exchange {
         list($request, $query) = $this->prepare_request($market, 'swap', $params);
         $request['dual_mode'] = $hedged;
         return $this->privateFuturesPostSettleDualMode (array_merge($request, $query));
+    }
+
+    public function fetch_underlying_assets($params = array ()) {
+        /**
+         * fetches the market ids of $underlying assets for a specific contract market type
+         * @param {array} [$params] exchange specific $params
+         * @param {string} [$params->type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$underlying-assets-structure $underlying assets}
+         */
+        $this->load_markets();
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchUnderlyingAssets', null, $params);
+        if (($marketType === null) || ($marketType === 'spot')) {
+            $marketType = 'option';
+        }
+        if ($marketType !== 'option') {
+            throw new NotSupported($this->id . ' fetchUnderlyingAssets() supports option markets only');
+        }
+        $response = $this->publicOptionsGetUnderlyings ($params);
+        //
+        //    array(
+        //        {
+        //            "index_time" => "1646915796",
+        //            "name" => "BTC_USDT",
+        //            "index_price" => "39142.73"
+        //        }
+        //    )
+        //
+        $underlyings = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $underlying = $response[$i];
+            $name = $this->safe_string($underlying, 'name');
+            if ($name !== null) {
+                $underlyings[] = $name;
+            }
+        }
+        return $underlyings;
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

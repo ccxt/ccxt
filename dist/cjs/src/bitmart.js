@@ -61,6 +61,8 @@ class bitmart extends bitmart$1 {
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -3145,6 +3147,61 @@ class bitmart extends bitmart$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': info,
+        };
+    }
+    async fetchOpenInterest(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchOpenInterest
+         * @description Retrieves the open interest of a currency
+         * @see https://developer-pro.bitmart.com/en/futures/#get-futures-openinterest
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} [params] exchange specific parameters
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['contract']) {
+            throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetContractPublicOpenInterest(this.extend(request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "timestamp": 1694657502415,
+        //             "symbol": "BTCUSDT",
+        //             "open_interest": "265231.721368593081729069",
+        //             "open_interest_value": "7006353.83988919"
+        //         },
+        //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        return this.parseOpenInterest(data, market);
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //     {
+        //         "timestamp": 1694657502415,
+        //         "symbol": "BTCUSDT",
+        //         "open_interest": "265231.721368593081729069",
+        //         "open_interest_value": "7006353.83988919"
+        //     }
+        //
+        const timestamp = this.safeInteger(interest, 'timestamp');
+        const id = this.safeString(interest, 'symbol');
+        return {
+            'symbol': this.safeSymbol(id, market),
+            'openInterestAmount': this.safeNumber(interest, 'open_interest'),
+            'openInterestValue': this.safeNumber(interest, 'open_interest_value'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'info': interest,
         };
     }
     handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {

@@ -243,14 +243,7 @@
         "react/promise": "^2.9.0",
         "react/promise-timer": "^1.10"
     },
-    "suggest": {
-        "recoil/recoil": "Required for asynchronous API calls to exchanges with PHP",
-        "recoil/react": "Required for asynchronous API calls to exchanges with PHP",
-        "react/http": "Required for asynchronous API calls to exchanges with PHP",
-        "clue/buzz-react": "Required for asynchronous API calls to exchanges with PHP",
-        "react/event-loop": "Required for asynchronous API calls to exchanges with PHP",
-        "clue/http-proxy-react": "Required for using a proxy when doing asynchronous API calls to exchanges with PHP"
-    },
+    "suggest": { },
     "archive": {
         "exclude": [
             "/build",
