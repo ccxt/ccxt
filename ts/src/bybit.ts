@@ -2379,6 +2379,11 @@ export default class bybit extends Exchange {
          */
         this.checkRequiredSymbol ('fetchOHLCV', symbol);
         await this.loadMarkets ();
+        const paginate = this.safeValue (params, 'paginate', false);
+        params = this.omit (params, 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
+        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -2613,6 +2618,11 @@ export default class bybit extends Exchange {
         await this.loadMarkets ();
         if (limit === undefined) {
             limit = 200;
+        }
+        const paginate = this.safeValue (params, 'paginate', false);
+        if (paginate) {
+            params = this.omit (params, 'paginate');
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 200);
         }
         const request = {
             // 'category': '', // Product type. linear,inverse
@@ -2941,6 +2951,11 @@ export default class bybit extends Exchange {
          */
         this.checkRequiredSymbol ('fetchTrades', symbol);
         await this.loadMarkets ();
+        const paginate = this.safeValue (params, 'paginate', false);
+        if (paginate) {
+            params = this.omit (params, 'paginate');
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params);
+        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -8160,6 +8175,11 @@ export default class bybit extends Exchange {
             throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         await this.loadMarkets ();
+        const paginate = this.safeValue (params, 'paginate');
+        if (paginate) {
+            params = this.omit (params, 'paginate');
+            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500);
+        }
         const market = this.market (symbol);
         if (market['spot'] || market['option']) {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory() symbol does not support market ' + symbol);

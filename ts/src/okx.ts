@@ -1954,6 +1954,11 @@ export default class okx extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
+        const paginate = this.safeValue (params, 'paginate', false);
+        if (paginate) {
+            params = this.omit (params, 'paginate');
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, 100);
+        }
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],
@@ -2060,6 +2065,11 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const paginate = this.safeValue (params, 'paginate', false);
+        params = this.omit (params, 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 200);
+        }
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
@@ -2138,6 +2148,11 @@ export default class okx extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets ();
+        const paginate = this.safeValue (params, 'paginate', false);
+        if (paginate) {
+            params = this.omit (params, 'paginate');
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params);
+        }
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],

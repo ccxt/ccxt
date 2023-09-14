@@ -4517,21 +4517,21 @@ export default class Exchange {
         return res;
     }
 
-    safeMethodCall (call, maxRetries = 3) {
-        let i = 0;
-        while (true) {
-            try {
-                return call ();
-            } catch (e) {
-                if (i > maxRetries) {
-                    throw e;
-                }
-                i++;
-            }
-        }
-    }
+    // safeMethodCall (call, maxRetries = 3) {
+    //     let i = 0;
+    //     while (true) {
+    //         try {
+    //             return call ();
+    //         } catch (e) {
+    //             if (i > maxRetries) {
+    //                 throw e;
+    //             }
+    //             i++;
+    //         }
+    //     }
+    // }
 
-    async fetchPaginatedCallDynamic<Type> (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = 1000): Promise<Type> {
+    async fetchPaginatedCallDynamic (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = 1000): Promise<any> {
         const maxCalls = this.safeInteger (this.options, 'maxCalls', 10);
         const maxRetries = this.safeInteger (this.options, 'maxRetries', 3);
         let lastTimestamp = undefined;
@@ -4539,7 +4539,7 @@ export default class Exchange {
         let result = [];
         let errors = 0;
         while ((calls < maxCalls)) {
-            calls++;
+            calls = calls + 1;
             try {
                 if (since === undefined) {
                     // do it backwards, starting from the last
@@ -4570,13 +4570,13 @@ export default class Exchange {
                 if (errors + 1 > maxRetries) {
                     throw e;
                 }
-                errors++;
+                errors = errors + 1;
             }
         }
         return result as any;
     }
 
-    async fetchPaginatedCallDeterministic<Type> (method: string, symbol: string = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = 1000): Promise<Type> {
+    async fetchPaginatedCallDeterministic (method: string, symbol: string = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = 1000): Promise<any> {
         const maxCalls = this.safeInteger (this.options, 'maxCalls', 10);
         const now = this.milliseconds ();
         const tasks = [];

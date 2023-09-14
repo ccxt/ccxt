@@ -3296,7 +3296,7 @@ export default class binance extends Exchange {
         const paginate = this.safeValue (params, 'paginate', false);
         params = this.omit (params, 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic<OHLCV[]> ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
         }
         const market = this.market (symbol);
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
@@ -3622,7 +3622,7 @@ export default class binance extends Exchange {
         const paginate = this.safeValue (params, 'paginate', false);
         if (paginate) {
             params = this.omit (params, 'paginate');
-            return await this.fetchPaginatedCallDynamic<Trade[]> ('fetchTrades', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params);
         }
         const market = this.market (symbol);
         const request = {
