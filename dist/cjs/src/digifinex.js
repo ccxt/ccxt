@@ -1366,7 +1366,7 @@ class digifinex extends digifinex$1 {
             request['symbol'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = market['swap'] ? Math.min(limit, 100) : limit;
         }
         const response = await this[method](this.extend(request, params));
         //
