@@ -3,7 +3,7 @@
 
 import bingxRest from '../bingx.js';
 import { BadRequest } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -418,11 +418,11 @@ export default class bingx extends bingxRest {
         }
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const subscriptionHash = (type === 'spot') ? 'spot:private' : 'swap:private';
-        let messageHash = (type === 'spot') ? 'spot:order' : 'swap:swap';
+        let messageHash = (type === 'spot') ? 'spot:order' : 'swap:order';
         if (market !== undefined) {
             messageHash += ':' + symbol;
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type] + '?listenKey=' + this.options['listenKey'];
         let request = undefined;
         const uuid = this.uuid ();
         if (type === 'spot') {
@@ -454,7 +454,7 @@ export default class bingx extends bingxRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const subscriptionHash = (type === 'spot') ? 'spot:private' : 'swap:private';
         const messageHash = (type === 'spot') ? 'spot:balance' : 'swap:balance';
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type] + '?listenKey=' + this.options['listenKey'];
         let request = undefined;
         const uuid = this.uuid ();
         if (type === 'spot') {
@@ -493,7 +493,49 @@ export default class bingx extends bingxRest {
     }
 
     handleOrder (client, message) {
-
+        //
+        //     {
+        //         "code": 0,
+        //         "dataType": "spot.executionReport",
+        //         "data": {
+        //            "e": "executionReport",
+        //            "E": 1694680212947,
+        //            "s": "LTC-USDT",
+        //            "S": "BUY",
+        //            "o": "LIMIT",
+        //            "q": 0.1,
+        //            "p": 50,
+        //            "x": "NEW",
+        //            "X": "PENDING",
+        //            "i": 1702238305204043800,
+        //            "l": 0,
+        //            "z": 0,
+        //            "L": 0,
+        //            "n": 0,
+        //            "N": "",
+        //            "T": 0,
+        //            "t": 0,
+        //            "O": 1694680212676,
+        //            "Z": 0,
+        //            "Y": 0,
+        //            "Q": 0,
+        //            "m": false
+        //         }
+        //      }
+        //
+        const data = this.safeValue (message, 'data', {});
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.orders;
+        const parsedOrder = this.parseOrder (data);
+        stored.append (parsedOrder);
+        const symbol = parsedOrder['symbol'];
+        const market = this.market (symbol);
+        const messageHash = (market['spot']) ? 'spot:order' : 'swap:order';
+        client.resolve (stored, messageHash);
+        client.resolve (stored, messageHash + ':' + symbol);
     }
 
     handleMessage (client: Client, message) {
@@ -512,6 +554,10 @@ export default class bingx extends bingxRest {
         }
         if (dataType.indexOf ('@kline') >= 0) {
             this.handleOHLCV (client, message);
+            return;
+        }
+        if (dataType.indexOf ('executionReport') >= 0) {
+            this.handleOrder (client, message);
             return;
         }
         // private subscriptions
