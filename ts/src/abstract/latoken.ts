@@ -9,6 +9,7 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
+    privateGetAuthOrderActive (params?: {}): Promise<implicitReturnType>;
     publicGetBookCurrencyQuote (params?: {}): Promise<implicitReturnType>;
     publicGetChartWeek (params?: {}): Promise<implicitReturnType>;
     publicGetChartWeekCurrencyQuote (params?: {}): Promise<implicitReturnType>;
