@@ -4516,6 +4516,91 @@ export default class Exchange {
         res[symbol][timeframe] = data;
         return res;
     }
+
+    safeMethodCall (call, maxRetries = 3) {
+        let i = 0;
+        while (true) {
+            try {
+                return call ();
+            } catch (e) {
+                if (i > maxRetries) {
+                    throw e;
+                }
+                i++;
+            }
+        }
+    }
+
+    async fetchPaginatedCallDynamic<Type> (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = 1000): Promise<Type> {
+        const maxCalls = this.safeInteger (this.options, 'maxCalls', 10);
+        const maxRetries = this.safeInteger (this.options, 'maxRetries', 3);
+        let lastTimestamp = undefined;
+        let calls = 0;
+        let result = [];
+        let errors = 0;
+        while ((calls < maxCalls)) {
+            calls++;
+            try {
+                if (since === undefined) {
+                    // do it backwards, starting from the last
+                    const response = await this[method] (symbol, lastTimestamp, maxEntriesPerRequest, params);
+                    const responseLength = response.length;
+                    if (responseLength < maxEntriesPerRequest) {
+                        break;
+                    }
+                    errors = 0;
+                    result = this.arrayConcat (result, response);
+                    lastTimestamp = this.safeInteger (0, 'timestamp');
+                    if (lastTimestamp <= since) {
+                        break;
+                    }
+                } else {
+                    // do it forwards, starting from the since
+                    lastTimestamp = since;
+                    const response = await this[method] (symbol, lastTimestamp, maxEntriesPerRequest, params);
+                    const responseLength = response.length;
+                    if (responseLength < maxEntriesPerRequest) {
+                        break;
+                    }
+                    errors = 0;
+                    result = this.arrayConcat (result, response);
+                    lastTimestamp = this.safeInteger (responseLength - 1, 'timestamp');
+                }
+            } catch (e) {
+                if (errors + 1 > maxRetries) {
+                    throw e;
+                }
+                errors++;
+            }
+        }
+        return result as any;
+    }
+
+    async fetchPaginatedCallDeterministic<Type> (method: string, symbol: string = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = 1000): Promise<Type> {
+        const maxCalls = this.safeInteger (this.options, 'maxCalls', 10);
+        const now = this.milliseconds ();
+        const tasks = [];
+        const time = this.parseTimeframe (timeframe) * 1000;
+        const step = time * maxEntriesPerRequest;
+        let currentSince = now - (maxCalls * step);
+        if (since !== undefined) {
+            currentSince = Math.max (currentSince, since);
+        }
+        for (let i = 0; i < maxCalls; i++) {
+            if (timeframe && method !== 'fetchFundingRateHistory') {
+                tasks.push (this[method] (symbol, timeframe, currentSince, maxEntriesPerRequest, params));
+            } else {
+                tasks.push (this[method] (symbol, currentSince, maxEntriesPerRequest, params));
+            }
+            currentSince = currentSince + step;
+        }
+        const results = await Promise.all (tasks);
+        let result = [];
+        for (let i = 0; i < results.length; i++) {
+            result = result.concat (results[i]);
+        }
+        return result as any;
+    }
 }
 
 export {
