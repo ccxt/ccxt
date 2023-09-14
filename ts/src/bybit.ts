@@ -3592,6 +3592,13 @@ export default class bybit extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK"
+         * @param {bool} [params.postOnly] true or false whether the order is post-only
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+         * @param {string} [params.positionIdx] *contracts only*  0 for one-way mode, 1 buy side  of hedged mode, 2 sell side of hedged mode
+         * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
+         * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
+         * @param {string} [params.mmp] *option only* market maker protection
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
