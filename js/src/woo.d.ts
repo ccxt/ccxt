@@ -206,8 +206,8 @@ export default class woo extends Exchange {
         leverage: number;
     }>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    fetchPosition(symbol?: string, params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
+    fetchPosition(symbol?: string, params?: {}): Promise<import("./base/types.js").Position>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     defaultNetworkCodeForCurrency(code: any): any;
 }

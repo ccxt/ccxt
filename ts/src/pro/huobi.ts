@@ -87,7 +87,9 @@ export default class huobi extends huobiRest {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'api': 'api', // or api-aws for clients hosted on AWS
-                'maxOrderBookSyncAttempts': 3,
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
                 'ws': {
                     'gunzip': true,
                 },
@@ -123,7 +125,7 @@ export default class huobi extends huobiRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -195,7 +197,7 @@ export default class huobi extends huobiRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -324,7 +326,7 @@ export default class huobi extends huobiRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -393,7 +395,7 @@ export default class huobi extends huobiRest {
             const snapshotOrderBook = this.orderBook (snapshot, snapshotLimit);
             client.resolve (snapshotOrderBook, id);
             if ((sequence !== undefined) && (nonce < sequence)) {
-                const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
+                const maxAttempts = this.handleOption ('watchOrderBook', 'maxRetries', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
                 // retry to synchronize if we have not reached maxAttempts yet
                 if (numAttempts < maxAttempts) {
@@ -647,13 +649,14 @@ export default class huobi extends huobiRest {
          * @method
          * @name huobi#watchMyTrades
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         this.checkRequiredCredentials ();
+        await this.loadMarkets ();
         let type = undefined;
         let marketId = '*'; // wildcard
         let market = undefined;
@@ -662,7 +665,6 @@ export default class huobi extends huobiRest {
         let trades = undefined;
         let subType = undefined;
         if (symbol !== undefined) {
-            await this.loadMarkets ();
             market = this.market (symbol);
             symbol = market['symbol'];
             type = market['type'];
@@ -749,7 +751,7 @@ export default class huobi extends huobiRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
@@ -1191,9 +1193,9 @@ export default class huobi extends huobiRest {
         /**
          * @method
          * @name huobi#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         let type = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
         type = this.safeString (params, 'type', type);
@@ -1631,7 +1633,7 @@ export default class huobi extends huobiRest {
             this.handleMyTrade (client, message);
             return;
         }
-        if (privateType.indexOf ('accounts.update') !== -1) {
+        if (privateType.indexOf ('accounts.update') >= 0) {
             this.handleBalance (client, message);
             return;
         }
@@ -1643,10 +1645,10 @@ export default class huobi extends huobiRest {
         const op = this.safeString (message, 'op');
         if (op === 'notify') {
             const topic = this.safeString (message, 'topic', '');
-            if (topic.indexOf ('orders') !== -1) {
+            if (topic.indexOf ('orders') >= 0) {
                 this.handleOrder (client, message);
             }
-            if (topic.indexOf ('account') !== -1) {
+            if (topic.indexOf ('account') >= 0) {
                 this.handleBalance (client, message);
             }
         }
@@ -1707,8 +1709,8 @@ export default class huobi extends huobiRest {
         //        data: { 'user-id': '35930539' }
         //    }
         //
-        client.resolve (message, 'auth');
-        return message;
+        const promise = client.futures['authenticated'];
+        promise.resolve (message);
     }
 
     handleErrorMessage (client: Client, message) {
@@ -2071,7 +2073,7 @@ export default class huobi extends huobiRest {
     }
 
     async subscribePrivate (channel, messageHash, type, subtype, params = {}, subscriptionParams = {}) {
-        const requestId = this.nonce ();
+        const requestId = this.requestId ();
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
@@ -2114,12 +2116,12 @@ export default class huobi extends huobiRest {
             throw new ArgumentsRequired (this.id + ' authenticate requires a url, hostname and type argument');
         }
         this.checkRequiredCredentials ();
-        const messageHash = 'auth';
+        const messageHash = 'authenticated';
         const relativePath = url.replace ('wss://' + hostname, '');
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future (messageHash);
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.ymdhms (this.milliseconds (), 'T');
             let signatureParams = undefined;
             if (type === 'spot') {
@@ -2154,11 +2156,11 @@ export default class huobi extends huobiRest {
                 request = {
                     'params': params,
                     'action': 'req',
-                    'ch': messageHash,
+                    'ch': 'auth',
                 };
             } else {
                 request = {
-                    'op': messageHash,
+                    'op': 'auth',
                     'type': 'api',
                     'AccessKeyId': this.apiKey,
                     'SignatureMethod': 'HmacSHA256',
@@ -2167,8 +2169,14 @@ export default class huobi extends huobiRest {
                     'Signature': signature,
                 };
             }
-            await this.watch (url, messageHash, request, messageHash, future);
+            const requestId = this.requestId ();
+            const subscription = {
+                'id': requestId,
+                'messageHash': messageHash,
+                'params': params,
+            };
+            this.watch (url, messageHash, request, messageHash, subscription);
         }
-        return await future;
+        return future;
     }
 }

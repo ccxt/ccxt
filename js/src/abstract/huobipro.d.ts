@@ -315,9 +315,12 @@ interface huobi {
     contractPrivateGetApiV1ContractApiTradingStatus(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetSwapApiV1SwapApiTradingStatus(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV1SwapApiTradingStatus(params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetLinearSwapApiV1SwapCrossPositionSide(params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetLinearSwapApiV1SwapPositionSide(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV3UnifiedAccountInfo(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV3FixPositionMarginChangeRecord(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetLinearSwapApiV3SwapUnifiedAccountType(params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetLinearSwapApiV3LinearSwapOverviewAccountInfo(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractBalanceValuation(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractAccountInfo(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractPositionInfo(params?: {}): Promise<implicitReturnType>;
@@ -502,6 +505,7 @@ interface huobi {
     contractPrivatePostLinearSwapApiV3SwapCrossHisordersExact(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV3FixPositionMarginChange(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV3SwapSwitchAccountType(params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostLinearSwapApiV3LinearSwapFeeSwitch(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV1SwapTriggerOrder(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV1SwapTriggerCancel(params?: {}): Promise<implicitReturnType>;

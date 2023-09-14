@@ -75,8 +75,8 @@ export default class ascendex extends Exchange {
             rate: any;
         };
     };
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     parseFundingRate(contract: any, market?: any): {
         info: any;
         symbol: any;

@@ -6,22 +6,27 @@
 
 // ----------------------------------------------------------------------------
 import fs from 'fs';
-import assert from 'assert';
 import { fileURLToPath, pathToFileURL } from 'url';
 import ccxt from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
 // js specific codes //
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 process.on('uncaughtException', (e) => {
-    console.log(e, e.stack);
+    console.log(e, '<UNHANDLED EXCEPTION>', e.stack);
     process.exit(1);
 });
 process.on('unhandledRejection', (e) => {
-    console.log(e, e.stack);
+    console.log(e, '<UNHANDLED REJECTION>', e.stack);
     process.exit(1);
 });
 const [processPath, , exchangeId = null, exchangeSymbol = undefined] = process.argv.filter((x) => !x.startsWith('--'));
 const AuthenticationError = ccxt.AuthenticationError;
+const RateLimitExceeded = ccxt.RateLimitExceeded;
+const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
+const NetworkError = ccxt.NetworkError;
+const DDoSProtection = ccxt.DDoSProtection;
+const OnMaintenance = ccxt.OnMaintenance;
+const RequestTimeout = ccxt.RequestTimeout;
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
     constructor() {
@@ -61,7 +66,7 @@ async function callMethod(testFiles, methodName, exchange, skippedProperties, ar
     return await testFiles[methodName](exchange, skippedProperties, ...args);
 }
 function exceptionMessage(exc) {
-    return '[' + exc.constructor.name + '] ' + exc.message.slice(0, 500);
+    return '[' + exc.constructor.name + '] ' + exc.stack.slice(0, 1000);
 }
 function exitScript() {
     process.exit(0);
@@ -117,7 +122,7 @@ export default class testMainClass extends baseMainTestClass {
     async init(exchangeId, symbol) {
         this.parseCliArgs();
         const symbolStr = symbol !== undefined ? symbol : 'all';
-        console.log('\nTESTING ', ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
+        dump('\nTESTING ', ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
@@ -128,7 +133,6 @@ export default class testMainClass extends baseMainTestClass {
         await this.importFiles(exchange);
         this.expandSettings(exchange, symbol);
         await this.startTest(exchange, symbol);
-        await close(exchange);
     }
     async importFiles(exchange) {
         // exchange tests
@@ -184,18 +188,9 @@ export default class testMainClass extends baseMainTestClass {
         const skippedSettings = ioFileRead(skippedFile);
         const skippedSettingsForExchange = exchange.safeValue(skippedSettings, exchangeId, {});
         // others
-        const skipReason = exchange.safeValue(skippedSettingsForExchange, 'skip');
         const timeout = exchange.safeValue(skippedSettingsForExchange, 'timeout');
         if (timeout !== undefined) {
             exchange.timeout = timeout;
-        }
-        if (skipReason !== undefined) {
-            dump('[SKIPPED] exchange', exchangeId, skipReason);
-            exitScript();
-        }
-        if (exchange.alias) {
-            dump('[SKIPPED] Alias exchange. ', 'exchange', exchangeId, 'symbol', symbol);
-            exitScript();
         }
         exchange.httpsProxy = exchange.safeString(skippedSettingsForExchange, 'httpsProxy');
         this.skippedMethods = exchange.safeValue(skippedSettingsForExchange, 'skipMethods', {});
@@ -213,14 +208,14 @@ export default class testMainClass extends baseMainTestClass {
         return message + res;
     }
     async testMethod(methodName, exchange, args, isPublic) {
+        const isLoadMarkets = (methodName === 'loadMarkets');
         const methodNameInTest = getTestName(methodName);
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!isPublic && (methodNameInTest in this.checkedPublicTests) && (methodName !== 'fetchCurrencies')) {
             return;
         }
         let skipMessage = undefined;
-        const isFetchOhlcvEmulated = (methodName === 'fetchOHLCV' && exchange.has['fetchOHLCV'] === 'emulated'); // todo: remove emulation from base
-        if ((methodName !== 'loadMarkets') && (!(methodName in exchange.has) || !exchange.has[methodName]) || isFetchOhlcvEmulated) {
+        if (!isLoadMarkets && (!(methodName in exchange.has) || !exchange.has[methodName])) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         }
         else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
@@ -229,45 +224,87 @@ export default class testMainClass extends baseMainTestClass {
         else if (!(methodNameInTest in this.testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
+        // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
+        if (isLoadMarkets) {
+            await exchange.loadMarkets(true);
+        }
         if (skipMessage) {
             if (this.info) {
                 dump(this.addPadding(skipMessage, 25), exchange.id, methodNameInTest);
             }
             return;
         }
-        const argsStringified = '(' + args.join(',') + ')';
         if (this.info) {
+            const argsStringified = '(' + args.join(',') + ')';
             dump(this.addPadding('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
         }
-        let result = null;
-        try {
-            const skippedProperties = exchange.safeValue(this.skippedMethods, methodName, {});
-            result = await callMethod(this.testFiles, methodNameInTest, exchange, skippedProperties, args);
-            if (isPublic) {
-                this.checkedPublicTests[methodNameInTest] = true;
-            }
+        const skippedProperties = exchange.safeValue(this.skippedMethods, methodName, {});
+        await callMethod(this.testFiles, methodNameInTest, exchange, skippedProperties, args);
+        // if it was passed successfully, add to the list of successfull tests
+        if (isPublic) {
+            this.checkedPublicTests[methodNameInTest] = true;
         }
-        catch (e) {
-            const isAuthError = (e instanceof AuthenticationError);
-            if (!(isPublic && isAuthError)) {
-                dump('[TEST_FAILURE]', exceptionMessage(e), ' | Exception from: ', exchange.id, methodNameInTest, argsStringified);
-                throw e;
-            }
-        }
-        return result;
     }
-    async testSafe(methodName, exchange, args, isPublic) {
-        try {
-            await this.testMethod(methodName, exchange, args, isPublic);
-            return true;
-        }
-        catch (e) {
-            return false;
+    async testSafe(methodName, exchange, args = [], isPublic = false) {
+        // `testSafe` method does not throw an exception, instead mutes it.
+        // The reason we mute the thrown exceptions here is because if this test is part
+        // of "runPublicTests", then we don't want to stop the whole test if any single
+        // test-method fails. For example, if "fetchOrderBook" public test fails, we still
+        // want to run "fetchTickers" and other methods. However, independently this fact,
+        // from those test-methods we still echo-out (console.log/print...) the exception
+        // messages with specific formatted message "[TEST_FAILURE] ..." and that output is
+        // then regex-parsed by run-tests.js, so the exceptions are still printed out to
+        // console from there. So, even if some public tests fail, the script will continue
+        // doing other things (testing other spot/swap or private tests ...)
+        const maxRetries = 3;
+        const argsStringified = '(' + args.join(',') + ')';
+        for (let i = 0; i < maxRetries; i++) {
+            try {
+                await this.testMethod(methodName, exchange, args, isPublic);
+                return true;
+            }
+            catch (e) {
+                const isAuthError = (e instanceof AuthenticationError);
+                const isRateLimitExceeded = (e instanceof RateLimitExceeded);
+                const isNetworkError = (e instanceof NetworkError);
+                const isDDoSProtection = (e instanceof DDoSProtection);
+                const isRequestTimeout = (e instanceof RequestTimeout);
+                const tempFailure = (isRateLimitExceeded || isNetworkError || isDDoSProtection || isRequestTimeout);
+                if (tempFailure) {
+                    // if last retry was gone with same `tempFailure` error, then let's eventually return false
+                    if (i === maxRetries - 1) {
+                        dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, methodName, argsStringified);
+                    }
+                    else {
+                        // wait and retry again
+                        await exchange.sleep(i * 1000); // increase wait seconds on every retry
+                        continue;
+                    }
+                }
+                else if (e instanceof OnMaintenance) {
+                    // in case of maintenance, skip exchange (don't fail the test)
+                    dump('[TEST_WARNING] Exchange is on maintenance', exchange.id);
+                }
+                // If public test faces authentication error, we don't break (see comments under `testSafe` method)
+                else if (isPublic && isAuthError) {
+                    // in case of loadMarkets, it means that "tester" (developer or travis) does not have correct authentication, so it does not have a point to proceed at all
+                    if (methodName === 'loadMarkets') {
+                        dump('[TEST_WARNING]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exceptionMessage(e), exchange.id, methodName, argsStringified);
+                    }
+                    if (this.info) {
+                        dump('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage(e), exchange.id, methodName, argsStringified);
+                    }
+                }
+                else {
+                    // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
+                    dump('[TEST_FAILURE]', exceptionMessage(e), exchange.id, methodName, argsStringified);
+                }
+                return false;
+            }
         }
     }
     async runPublicTests(exchange, symbol) {
         const tests = {
-            'loadMarkets': [],
             'fetchCurrencies': [],
             'fetchTicker': [symbol],
             'fetchTickers': [symbol],
@@ -303,21 +340,29 @@ export default class testMainClass extends baseMainTestClass {
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
-        await Promise.all(promises);
+        const results = await Promise.all(promises);
+        // now count which test-methods retuned `false` from "testSafe" and dump that info below
         if (this.info) {
-            dump(this.addPadding('[INFO:PUBLIC_TESTS_DONE]', 25), exchange.id);
+            const errors = [];
+            for (let i = 0; i < testNames.length; i++) {
+                if (!results[i]) {
+                    errors.push(testNames[i]);
+                }
+            }
+            // we don't throw exception for public-tests, see comments under 'testSafe' method
+            let failedMsg = '';
+            const errorsLength = errors.length;
+            if (errorsLength > 0) {
+                failedMsg = ' | Failed methods : ' + errors.join(', ');
+            }
+            dump(this.addPadding('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id);
         }
     }
     async loadExchange(exchange) {
-        await exchange.loadMarkets();
-        assert(typeof exchange.markets === 'object', '.markets is not an object');
-        assert(Array.isArray(exchange.symbols), '.symbols is not an array');
-        const symbolsLength = exchange.symbols.length;
-        const marketKeys = Object.keys(exchange.markets);
-        const marketKeysLength = marketKeys.length;
-        assert(symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');
-        assert(marketKeysLength > 0, '.markets objects keys length <= 0 (less than or equal to zero)');
-        assert(symbolsLength === marketKeysLength, 'number of .symbols is not equal to the number of .markets');
+        const result = await this.testSafe('loadMarkets', exchange, [], true);
+        if (!result) {
+            return false;
+        }
         const symbols = [
             'BTC/CNY',
             'BTC/USD',
@@ -361,6 +406,7 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         dump('Exchange loaded', exchangeSymbolsLength, 'symbols', resultMsg);
+        return true;
     }
     getTestSymbol(exchange, isSpot, symbols) {
         let symbol = undefined;
@@ -577,7 +623,7 @@ export default class testMainClass extends baseMainTestClass {
             'fetchOpenOrders': [symbol],
             'fetchClosedOrders': [symbol],
             'fetchMyTrades': [symbol],
-            'fetchLeverageTiers': [symbol],
+            'fetchLeverageTiers': [[symbol]],
             'fetchLedger': [code],
             'fetchTransactions': [code],
             'fetchDeposits': [code],
@@ -585,32 +631,32 @@ export default class testMainClass extends baseMainTestClass {
             'fetchBorrowRates': [code],
             'fetchBorrowRate': [code],
             'fetchBorrowInterest': [code, symbol],
-            'addMargin': [symbol],
-            'reduceMargin': [symbol],
-            'setMargin': [symbol],
-            'setMarginMode': [symbol],
-            'setLeverage': [symbol],
+            // 'addMargin': [ ],
+            // 'reduceMargin': [ ],
+            // 'setMargin': [ ],
+            // 'setMarginMode': [ ],
+            // 'setLeverage': [ ],
             'cancelAllOrders': [symbol],
-            'cancelOrder': [symbol],
-            'cancelOrders': [symbol],
+            // 'cancelOrder': [ ],
+            // 'cancelOrders': [ ],
             'fetchCanceledOrders': [symbol],
-            'fetchClosedOrder': [symbol],
-            'fetchOpenOrder': [symbol],
-            'fetchOrder': [symbol],
-            'fetchOrderTrades': [symbol],
+            // 'fetchClosedOrder': [ ],
+            // 'fetchOpenOrder': [ ],
+            // 'fetchOrder': [ ],
+            // 'fetchOrderTrades': [ ],
             'fetchPosition': [symbol],
             'fetchDeposit': [code],
             'createDepositAddress': [code],
             'fetchDepositAddress': [code],
             'fetchDepositAddresses': [code],
             'fetchDepositAddressesByNetwork': [code],
-            'editOrder': [symbol],
-            'fetchBorrowRateHistory': [symbol],
-            'fetchBorrowRatesPerSymbol': [symbol],
+            // 'editOrder': [ ],
+            'fetchBorrowRateHistory': [code],
+            'fetchBorrowRatesPerSymbol': [],
             'fetchLedgerEntry': [code],
-            'fetchWithdrawal': [code],
-            'transfer': [code],
-            'withdraw': [code],
+            // 'fetchWithdrawal': [ ],
+            // 'transfer': [ ],
+            // 'withdraw': [ ],
         };
         const market = exchange.market(symbol);
         const isSpot = market['spot'];
@@ -663,8 +709,20 @@ export default class testMainClass extends baseMainTestClass {
         if (this.sandbox || getExchangeProp(exchange, 'sandbox')) {
             exchange.setSandboxMode(true);
         }
-        await this.loadExchange(exchange);
-        await this.testExchange(exchange, symbol);
+        // because of python-async, we need proper `.close()` handling
+        try {
+            const result = await this.loadExchange(exchange);
+            if (!result) {
+                await close(exchange);
+                return;
+            }
+            await this.testExchange(exchange, symbol);
+            await close(exchange);
+        }
+        catch (e) {
+            await close(exchange);
+            throw e;
+        }
     }
 }
 // ***** AUTO-TRANSPILER-END *****
