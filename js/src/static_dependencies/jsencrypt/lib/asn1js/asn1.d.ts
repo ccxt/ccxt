@@ -12,7 +12,7 @@ export declare class Stream {
     parseStringUTF(start: number, end: number): string;
     parseStringBMP(start: number, end: number): string;
     parseTime(start: number, end: number, shortYear: boolean): string;
-    parseInteger(start: number, end: number): string | -1 | 0;
+    parseInteger(start: number, end: number): string | 0 | -1;
     parseBitString(start: number, end: number, maxLength: number): string;
     parseOctetString(start: number, end: number, maxLength: number): string;
     parseOID(start: number, end: number, maxLength: number): string;
@@ -25,7 +25,7 @@ export declare class ASN1 {
     private tag;
     sub: ASN1[];
     typeName(): string;
-    content(maxLength: number): string | -1 | 0;
+    content(maxLength: number): string | 0 | -1;
     toString(): string;
     toPrettyString(indent: string): string;
     posStart(): number;

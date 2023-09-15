@@ -29,7 +29,7 @@ export default class poloniex extends Exchange {
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<"closed" | "open">;
+    fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<"open" | "closed">;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
