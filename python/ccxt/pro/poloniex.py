@@ -622,13 +622,13 @@ class poloniex(ccxt.async_support.poloniex):
                     previousOrder['status'] = state
                     # update the newUpdates count
                     orders.append(previousOrder)
-                    marketIds.append(marketId)
+                marketIds.append(marketId)
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.market(marketId)
             symbol = market['symbol']
             messageHash = 'orders::' + symbol
-            client.resolve(orders[symbol], messageHash)
+            client.resolve(orders, messageHash)
         client.resolve(orders, 'orders')
         return message
 
