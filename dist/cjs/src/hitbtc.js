@@ -1107,7 +1107,7 @@ class hitbtc extends hitbtc$1 {
             request['symbols'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         if (since !== undefined) {
             request['from'] = since;

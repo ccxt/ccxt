@@ -444,7 +444,7 @@ class wazirx extends wazirx$1 {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // Default 500; max 1000.
+            request['limit'] = Math.min(limit, 1000); // Default 500; max 1000.
         }
         const method = this.safeString(this.options, 'fetchTradesMethod', 'publicGetTrades');
         const response = await this[method](this.extend(request, params));

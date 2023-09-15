@@ -2847,7 +2847,7 @@ class delta extends Exchange {
          * @param {int} [$since] timestamp in ms
          * @param {int} [$limit] number of records
          * @param {array} [$params] exchange specific $params
-         * @return {array[]} a list of [settlement history objects]
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
          */
         $this->load_markets();
         $market = null;

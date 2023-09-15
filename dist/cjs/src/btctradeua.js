@@ -363,6 +363,21 @@ class btctradeua extends btctradeua$1 {
         return timestamp - 10800000;
     }
     parseTrade(trade, market = undefined) {
+        //
+        // fetchTrades
+        //
+        //     {
+        //         "amnt_base": "2220.1204701750",
+        //         "order_id": 247644861,
+        //         "unixtime": 1694340398,
+        //         "price": "1019739.3229211044",
+        //         "amnt_trade": "0.0021771451",
+        //         "user": "Vasily1989",
+        //         "type": "sell",
+        //         "pub_date": "Sept. 10, 2023, 1:06 p.m.",
+        //         "id": 7498807
+        //     }
+        //
         const timestamp = this.parseExchangeSpecificDatetime(this.safeString(trade, 'pub_date'));
         const id = this.safeString(trade, 'id');
         const type = 'limit';
@@ -403,6 +418,21 @@ class btctradeua extends btctradeua$1 {
             'symbol': market['id'],
         };
         const response = await this.publicGetDealsSymbol(this.extend(request, params));
+        //
+        //    [
+        //        {
+        //            "amnt_base": "2220.1204701750",
+        //            "order_id": 247644861,
+        //            "unixtime": 1694340398,
+        //            "price": "1019739.3229211044",
+        //            "amnt_trade": "0.0021771451",
+        //            "user": "Vasily1989",
+        //            "type": "sell",
+        //            "pub_date": "Sept. 10, 2023, 1:06 p.m.",
+        //            "id": 7498807
+        //        },
+        //    ]
+        //
         // they report each trade twice (once for both of the two sides of the fill)
         // deduplicate trades for that reason
         const trades = [];

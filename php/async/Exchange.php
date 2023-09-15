@@ -40,11 +40,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.89';
+$version = '4.0.97';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.89';
+    const VERSION = '4.0.97';
 
     public $browser;
     public $marketsLoading = null;
@@ -508,6 +508,18 @@ class Exchange extends \ccxt\Exchange {
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchTrades() is not supported yet');
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTradesForSymbols() is not supported yet');
+    }
+
+    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOHLCVForSymbols() is not supported yet');
+    }
+
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOrderBookForSymbols() is not supported yet');
     }
 
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
@@ -1805,6 +1817,17 @@ class Exchange extends \ccxt\Exchange {
             // was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
             $percentageString = Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100');
             $position['percentage'] = $this->parse_number($percentageString);
+        }
+        // if $contractSize is null get from $market
+        $contractSize = $this->safe_number($position, 'contractSize');
+        $symbol = $this->safe_string($position, 'symbol');
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+        }
+        if ($contractSize === null && $market !== null) {
+            $contractSize = $this->safe_number($market, 'contractSize');
+            $position['contractSize'] = $contractSize;
         }
         return $position;
     }
@@ -3448,5 +3471,39 @@ class Exchange extends \ccxt\Exchange {
          * Typed wrapper for filterByArray that returns a list of positions
          */
         return $this->filter_by_array($objects, $key, $values, $indexed);
+    }
+
+    public function resolve_promise_if_messagehash_matches($client, string $prefix, string $symbol, $data) {
+        $messageHashes = $this->findMessageHashes ($client, $prefix);
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            if ($this->in_array($symbol, $symbols)) {
+                $client->resolve ($data, $messageHash);
+            }
+        }
+    }
+
+    public function resolve_multiple_ohlcv($client, string $prefix, string $symbol, string $timeframe, $data) {
+        $messageHashes = $this->findMessageHashes ($client, 'multipleOHLCV::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsAndTimeframes = $parts[1];
+            $splitted = explode(',', $symbolsAndTimeframes);
+            $id = $symbol . '#' . $timeframe;
+            if ($this->in_array($id, $splitted)) {
+                $client->resolve (array( $symbol, $timeframe, $data ), $messageHash);
+            }
+        }
+    }
+
+    public function create_ohlcv_object(string $symbol, string $timeframe, $data) {
+        $res = array();
+        $res[$symbol] = array();
+        $res[$symbol][$timeframe] = $data;
+        return $res;
     }
 }

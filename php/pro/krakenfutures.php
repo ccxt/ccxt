@@ -109,7 +109,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $symbol = $symbols[$i];
                 $marketIds[] = $this->market_id($symbol);
             }
-            if (strlen($symbols) === 1) {
+            $length = count($symbols);
+            if ($length === 1) {
                 $market = $this->market($marketIds[0]);
                 $messageHash = $messageHash . ':' . $market['symbol'];
             }
@@ -639,7 +640,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $symbols[$symbol] = true;
             $cachedOrders->append ($parsed);
         }
-        if (strlen($this->orders)) {
+        $length = count($this->orders);
+        if ($length > 0) {
             $client->resolve ($this->orders, 'orders');
             $keys = is_array($symbols) ? array_keys($symbols) : array();
             for ($i = 0; $i < count($keys); $i++) {

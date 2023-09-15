@@ -559,6 +559,17 @@ export default class Exchange {
                 'swap': undefined,
                 'transfer': undefined,
                 'withdraw': undefined,
+                'watchOrderBook': undefined,
+                'watchOrders': undefined,
+                'watchMyTrades': undefined,
+                'watchTickers': undefined,
+                'watchTicker': undefined,
+                'watchTrades': undefined,
+                'watchTradesForSymbols': undefined,
+                'watchOrderBookForSymbols': undefined,
+                'watchOHLCVForSymbols': undefined,
+                'watchBalance': undefined,
+                'watchOHLCV': undefined,
             },
             'httpExceptions': {
                 '400': ExchangeNotAvailable,
@@ -1570,6 +1581,18 @@ export default class Exchange {
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
+    }
+
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
+        throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        throw new NotSupported (this.id + ' watchOrderBookForSymbols() is not supported yet');
     }
 
     async fetchDepositAddresses (codes: string[] = undefined, params = {}): Promise<any> {
@@ -4460,6 +4483,40 @@ export default class Exchange {
          * @description Typed wrapper for filterByArray that returns a list of positions
          */
         return this.filterByArray (objects, key, values, indexed) as Position[];
+    }
+
+    resolvePromiseIfMessagehashMatches (client, prefix: string, symbol: string, data) {
+        const messageHashes = this.findMessageHashes (client, prefix);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            if (this.inArray (symbol, symbols)) {
+                client.resolve (data, messageHash);
+            }
+        }
+    }
+
+    resolveMultipleOHLCV (client, prefix: string, symbol: string, timeframe: string, data) {
+        const messageHashes = this.findMessageHashes (client, 'multipleOHLCV::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsAndTimeframes = parts[1];
+            const splitted = symbolsAndTimeframes.split (',');
+            const id = symbol + '#' + timeframe;
+            if (this.inArray (id, splitted)) {
+                client.resolve ([ symbol, timeframe, data ], messageHash);
+            }
+        }
+    }
+
+    createOHLCVObject (symbol: string, timeframe: string, data): Dictionary<Dictionary<OHLCV[]>> {
+        const res = {};
+        res[symbol] = {};
+        res[symbol][timeframe] = data;
+        return res;
     }
 }
 

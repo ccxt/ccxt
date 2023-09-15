@@ -1646,7 +1646,7 @@ class bitmex(Exchange, ImplicitAPI):
             # by default reverse=false, i.e. trades are fetched since the time of market inception(year 2015 for XBTUSD)
             request['reverse'] = True
         if limit is not None:
-            request['count'] = limit
+            request['count'] = min(limit, 1000)  # api maximum 1000
         response = self.publicGetTrade(self.extend(request, params))
         #
         #     [
@@ -2227,6 +2227,7 @@ class bitmex(Exchange, ImplicitAPI):
         params = self.omit(params, ['until', 'till'])
         if until is not None:
             request['endTime'] = self.iso8601(until)
+        request['reverse'] = True
         response = self.publicGetFunding(self.extend(request, params))
         #
         #    [

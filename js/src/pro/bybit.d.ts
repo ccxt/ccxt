@@ -9,13 +9,16 @@ export default class bybit extends bybitRest {
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<import("../base/types.js").OHLCV[]>>>;
     handleOHLCV(client: Client, message: any): void;
     parseWsOHLCV(ohlcv: any, market?: any): number[];
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     getPrivateType(url: any): "spot" | "unified" | "usdc";

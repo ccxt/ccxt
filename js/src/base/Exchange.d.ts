@@ -4,7 +4,7 @@ import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { CountedOrderBook, IndexedOrderBook, OrderBook as WsOrderBook } from './ws/OrderBook.js';
 import { Balance, Balances, Currency, DepositAddressResponse, Dictionary, IndexType, Int, Market, MinMax, OHLCV, OHLCVC, Order, OrderBook, OrderSide, OrderType, Position, Ticker, Trade } from './types.js';
-export { Fee, Market, Ticker, Trade } from './types.js';
+export { Fee, Market, Position, Ticker, Trade } from './types.js';
 /**
  * @class Exchange
  */
@@ -387,6 +387,17 @@ export default class Exchange {
             swap: any;
             transfer: any;
             withdraw: any;
+            watchOrderBook: any;
+            watchOrders: any;
+            watchMyTrades: any;
+            watchTickers: any;
+            watchTicker: any;
+            watchTrades: any;
+            watchTradesForSymbols: any;
+            watchOrderBookForSymbols: any;
+            watchOHLCVForSymbols: any;
+            watchBalance: any;
+            watchOHLCV: any;
         };
         httpExceptions: {
             '400': typeof ExchangeNotAvailable;
@@ -522,6 +533,9 @@ export default class Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<Dictionary<Dictionary<OHLCV[]>>>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     fetchDepositAddresses(codes?: string[], params?: {}): Promise<any>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchRestOrderBookSafe(symbol: any, limit?: any, params?: {}): Promise<OrderBook>;
@@ -785,5 +799,8 @@ export default class Exchange {
     parseWsOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): any[];
     fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     filterByArrayPositions(objects: any, key: IndexType, values?: any, indexed?: boolean): Position[];
+    resolvePromiseIfMessagehashMatches(client: any, prefix: string, symbol: string, data: any): void;
+    resolveMultipleOHLCV(client: any, prefix: string, symbol: string, timeframe: string, data: any): void;
+    createOHLCVObject(symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>>;
 }
 export { Exchange, };

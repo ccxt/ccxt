@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\async\abstract\bitmart as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
+use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
@@ -64,6 +66,8 @@ class bitmart extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -86,7 +90,7 @@ class bitmart extends Exchange {
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'repayMargin' => true,
-                'setLeverage' => false,
+                'setLeverage' => true,
                 'setMarginMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
@@ -209,6 +213,7 @@ class bitmart extends Exchange {
                         'spot/v1/margin/isolated/transfer' => 6,
                         // contract
                         'contract/private/trades' => 10,
+                        'contract/private/submit-leverage' => 2.5,
                     ),
                 ),
             ),
@@ -2067,6 +2072,9 @@ class bitmart extends Exchange {
             }
             list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
             if ($marginMode !== null) {
+                if ($marginMode !== 'isolated') {
+                    throw new NotSupported($this->id . ' only isolated margin is supported');
+                }
                 $method = 'privatePostSpotV1MarginSubmitOrder';
             }
             $response = Async\await($this->$method (array_merge($request, $query)));
@@ -3190,21 +3198,90 @@ class bitmart extends Exchange {
         );
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
-        /**
-         * @ignore
-         * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array} the $marginMode in lowercase
-         */
-        $marginMode = null;
-        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
-        if ($marginMode !== null) {
-            if ($marginMode !== 'isolated') {
-                throw new NotSupported($this->id . ' only isolated margin is supported');
+    public function fetch_open_interest(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * Retrieves the open interest of a currency
+             * @see https://developer-pro.bitmart.com/en/futures/#get-futures-openinterest
+             * @param {string} $symbol Unified CCXT $market $symbol
+             * @param {array} [$params] exchange specific parameters
+             * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure)
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
             }
-        }
-        return array( $marginMode, $params );
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetContractPublicOpenInterest (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => 1000,
+            //         "message" => "Ok",
+            //         "data" => array(
+            //             "timestamp" => 1694657502415,
+            //             "symbol" => "BTCUSDT",
+            //             "open_interest" => "265231.721368593081729069",
+            //             "open_interest_value" => "7006353.83988919"
+            //         ),
+            //         "trace" => "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_open_interest($data, $market);
+        }) ();
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //     {
+        //         "timestamp" => 1694657502415,
+        //         "symbol" => "BTCUSDT",
+        //         "open_interest" => "265231.721368593081729069",
+        //         "open_interest_value" => "7006353.83988919"
+        //     }
+        //
+        $timestamp = $this->safe_integer($interest, 'timestamp');
+        $id = $this->safe_string($interest, 'symbol');
+        return array(
+            'symbol' => $this->safe_symbol($id, $market),
+            'openInterestAmount' => $this->safe_number($interest, 'open_interest'),
+            'openInterestValue' => $this->safe_number($interest, 'open_interest_value'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        );
+    }
+
+    public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($leverage, $symbol, $params) {
+            /**
+             * set the level of $leverage for a $market
+             * @see https://developer-pro.bitmart.com/en/futures/#submit-$leverage-signed
+             * @param {float} $leverage the rate of $leverage
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the bitmart api endpoint
+             * @param {string} [$params->marginMode] 'isolated' or 'cross'
+             * @return {array} response from the exchange
+             */
+            $this->check_required_symbol('setLeverage', $symbol);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
+            $this->check_required_argument('setLeverage', $marginMode, 'marginMode', array( 'isolated', 'cross' ));
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                'leverage' => (string) $leverage,
+                'open_type' => $marginMode,
+            );
+            return Async\await($this->privatePostContractPrivateSubmitLeverage (array_merge($request, $params)));
+        }) ();
     }
 
     public function nonce() {

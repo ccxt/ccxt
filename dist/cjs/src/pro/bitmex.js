@@ -16,10 +16,12 @@ class bitmex extends bitmex$1 {
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
             },
             'urls': {
                 'test': {
@@ -517,6 +519,7 @@ class bitmex extends bitmex$1 {
                 stored.append(trades[j]);
             }
             client.resolve(stored, messageHash);
+            this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, stored);
         }
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -956,6 +959,47 @@ class bitmex extends bitmex$1 {
         const orderbook = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
         return orderbook.limit();
     }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        let table = undefined;
+        if (limit === undefined) {
+            table = this.safeString(this.options, 'watchOrderBookLevel', 'orderBookL2');
+        }
+        else if (limit === 25) {
+            table = 'orderBookL2_25';
+        }
+        else if (limit === 10) {
+            table = 'orderBookL10';
+        }
+        else {
+            throw new errors.ExchangeError(this.id + ' watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)');
+        }
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market(symbol);
+            const messageHash = table + ':' + market['id'];
+            topics.push(messageHash);
+        }
+        const messageHash = 'multipleOrderbook::' + symbols.join(',');
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': topics,
+        };
+        const orderbook = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
+        return orderbook.limit();
+    }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1178,6 +1222,7 @@ class bitmex extends bitmex$1 {
             }
             const messageHash = table + ':' + marketId;
             client.resolve(orderbook, messageHash);
+            this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbook::', symbol, orderbook);
         }
         else {
             const numUpdatesByMarketId = {};
@@ -1209,6 +1254,7 @@ class bitmex extends bitmex$1 {
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];
                 client.resolve(orderbook, messageHash);
+                this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbook::', symbol, orderbook);
             }
         }
     }
