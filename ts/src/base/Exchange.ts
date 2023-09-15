@@ -4543,14 +4543,19 @@ export default class Exchange {
             try {
                 if (since === undefined) {
                     // do it backwards, starting from the last
-                    const response = await this[method] (symbol, lastTimestamp, maxEntriesPerRequest, params);
+                    // UNTIL filtering is required in order to work
+                    if (lastTimestamp !== undefined) {
+                        params['until'] = lastTimestamp;
+                    }
+                    const response = await this[method] (symbol, undefined, maxEntriesPerRequest, params);
                     const responseLength = response.length;
+                    errors = 0;
+                    result = this.arrayConcat (result, response);
                     if (responseLength < maxEntriesPerRequest) {
                         break;
                     }
-                    errors = 0;
-                    result = this.arrayConcat (result, response);
-                    lastTimestamp = this.safeInteger (0, 'timestamp');
+                    const firstElement = this.safeValue (response, 0);
+                    lastTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
                     if (lastTimestamp <= since) {
                         break;
                     }
