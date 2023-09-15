@@ -131,6 +131,7 @@ export default class latoken extends latokenRest {
          * @ignore
          * @method
          * @description Connects to a websocket channel
+         * @see https://api.latoken.com/doc/ws/#section/Authorization-Using-API-Key-Signature
          * @param {string} name name of the channel
          * @param {boolean} isPrivate true for the authenticated url, false for the public url
          * @param {[string]|undefined} symbols CCXT market symbols
@@ -157,6 +158,7 @@ export default class latoken extends latokenRest {
          * @method
          * @name latoken#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://api.latoken.com/doc/ws/#section/Tickers
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the latoken api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -169,6 +171,7 @@ export default class latoken extends latokenRest {
          * @method
          * @name latoken#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://api.latoken.com/doc/ws/#section/Tickers
          * @param {string[]} symbols not used by latoken fetchTickers
          * @param {object} [params] extra parameters specific to the latoken api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -186,6 +189,7 @@ export default class latoken extends latokenRest {
          * @method
          * @name latoken#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://api.latoken.com/doc/ws/#section/Trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -205,6 +209,7 @@ export default class latoken extends latokenRest {
          * @method
          * @name latoken#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://api.latoken.com/doc/ws/#section/Books
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] not used by latoken watchOrderBook
          * @param {object} [params] extra parameters specific to the latoken api endpoint
@@ -219,6 +224,7 @@ export default class latoken extends latokenRest {
          * @method
          * @name latoken#watchOrders
          * @description watches information on multiple orders made by the user
+         * @see https://api.latoken.com/doc/ws/#section/Orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] not used by latoken watchOrders
          * @param {int} [limit] not used by latoken watchOrders
@@ -240,6 +246,7 @@ export default class latoken extends latokenRest {
          * @method
          * @name latoken#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://api.latoken.com/doc/ws/#section/Accounts
          * @param {object} [params] extra parameters specific to the latoken api endpoint
          * @param {string} [params.method] 'account' (default) or 'account/total'
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
