@@ -32,13 +32,13 @@ use ccxt\InvalidOrder;
 use ccxt\BadResponse;
 use ccxt\BadRequest;
 
+use ccxt\async\Throttler;
+
 use React;
 use React\Async;
 use React\EventLoop\Loop;
 
 use Exception;
-
-include 'Throttle.php';
 
 $version = '4.0.97';
 
