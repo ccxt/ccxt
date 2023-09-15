@@ -274,6 +274,9 @@ abstract class gateio extends \ccxt\gate {
     public function private_portfolio_get_spot_orders_order_id($params = array()) {
         return $this->request('spot/orders/{order_id}', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.5));
     }
+    public function private_portfolio_post_account_mode($params = array()) {
+        return $this->request('account_mode', array('private', 'portfolio'), 'POST', $params, null, null, array("cost" => 1.5));
+    }
     public function private_portfolio_post_loans($params = array()) {
         return $this->request('loans', array('private', 'portfolio'), 'POST', $params, null, null, array("cost" => 1.5));
     }
@@ -1005,6 +1008,9 @@ abstract class gateio extends \ccxt\gate {
     }
     public function privatePortfolioGetSpotOrdersOrderId($params = array()) {
         return $this->request('spot/orders/{order_id}', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.5));
+    }
+    public function privatePortfolioPostAccountMode($params = array()) {
+        return $this->request('account_mode', array('private', 'portfolio'), 'POST', $params, null, null, array("cost" => 1.5));
     }
     public function privatePortfolioPostLoans($params = array()) {
         return $this->request('loans', array('private', 'portfolio'), 'POST', $params, null, null, array("cost" => 1.5));

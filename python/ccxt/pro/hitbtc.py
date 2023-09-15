@@ -4,9 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+import hashlib
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
+from typing import List
+from ccxt.base.errors import AuthenticationError
 
 
 class hitbtc(ccxt.async_support.hitbtc):
@@ -16,140 +19,231 @@ class hitbtc(ccxt.async_support.hitbtc):
             'has': {
                 'ws': True,
                 'watchTicker': True,
-                'watchTickers': False,  # not available on exchange side
+                'watchTickers': True,
                 'watchTrades': True,
                 'watchOrderBook': True,
-                'watchBalance': False,  # not implemented yet
+                'watchBalance': True,
+                'watchOrders': True,
                 'watchOHLCV': True,
+                'watchMyTrades': False,
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.hitbtc.com/api/2/ws',
+                    'ws': {
+                        'public': 'wss://api.hitbtc.com/api/3/ws/public',
+                        'private': 'wss://api.hitbtc.com/api/3/ws/trading',
+                    },
                 },
             },
             'options': {
                 'tradesLimit': 1000,
-                'methods': {
-                    'orderbook': 'subscribeOrderbook',
-                    'ticker': 'subscribeTicker',
-                    'trades': 'subscribeTrades',
-                    'ohlcv': 'subscribeCandles',
+                'watchTicker': {
+                    'method': 'ticker/{speed}',  # 'ticker/{speed}' or 'ticker/price/{speed}'
                 },
+                'watchTickers': {
+                    'method': 'ticker/{speed}',  # 'ticker/{speed}','ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/{speed}/price/batch''
+                },
+                'watchOrderBook': {
+                    'method': 'orderbook/full',  # 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch'
+                },
+            },
+            'timeframes': {
+                '1m': 'M1',
+                '3m': 'M3',
+                '5m': 'M5',
+                '15m': 'M15',
+                '30m': 'M30',
+                '1h': 'H1',
+                '4h': 'H4',
+                '1d': 'D1',
+                '1w': 'D7',
+                '1M': '1M',
+            },
+            'streaming': {
+                'keepAlive': 4000,
             },
         })
 
-    async def watch_public(self, symbol: str, channel, timeframe=None, params={}):
+    async def authenticate(self):
+        """
+         * @ignore
+        authenticates the user to access private web socket channels
+        see https://api.hitbtc.com/#socket-authentication
+        :returns dict: response from exchange
+        """
+        self.check_required_credentials()
+        url = self.urls['api']['ws']['private']
+        messageHash = 'authenticated'
+        client = self.client(url)
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
+            timestamp = self.milliseconds()
+            signature = self.hmac(self.encode(self.number_to_string(timestamp)), self.encode(self.secret), hashlib.sha256, 'hex')
+            request = {
+                'method': 'login',
+                'params': {
+                    'type': 'HS256',
+                    'api_key': self.apiKey,
+                    'timestamp': timestamp,
+                    'signature': signature,
+                },
+            }
+            self.watch(url, messageHash, request, messageHash)
+            #
+            #    {
+            #        jsonrpc: '2.0',
+            #        result: True
+            #    }
+            #
+            #    # Failure to return results
+            #
+            #    {
+            #        jsonrpc: '2.0',
+            #        error: {
+            #            code: 1002,
+            #            message: 'Authorization is required or has been failed',
+            #            description: 'invalid signature format'
+            #        }
+            #    }
+            #
+        return future
+
+    async def subscribe_public(self, name: str, symbols: Optional[List[str]] = None, params={}):
+        """
+         * @ignore
+        :param str name: websocket endpoint name
+        :param [str] [symbols]: unified CCXT symbol(s)
+        :param dict [params]: extra parameters specific to the hitbtc api
+         * @returns
+        """
         await self.load_markets()
-        marketId = self.market_id(symbol)
-        url = self.urls['api']['ws']
-        messageHash = channel + ':' + marketId
-        if timeframe is not None:
-            messageHash += ':' + timeframe
-        methods = self.safe_value(self.options, 'methods', {})
-        method = self.safe_string(methods, channel, channel)
-        requestId = self.nonce()
+        url = self.urls['api']['ws']['public']
+        messageHash = name
+        if symbols is not None:
+            messageHash = messageHash + '::' + ','.join(symbols)
         subscribe = {
-            'method': method,
-            'params': {
-                'symbol': marketId,
-            },
-            'id': requestId,
+            'method': 'subscribe',
+            'id': self.nonce(),
+            'ch': name,
         }
-        request = self.deep_extend(subscribe, params)
+        request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
+
+    async def subscribe_private(self, name: str, symbol: Optional[str] = None, params={}):
+        """
+         * @ignore
+        :param str name: websocket endpoint name
+        :param str [symbol]: unified CCXT symbol
+        :param dict [params]: extra parameters specific to the hitbtc api
+         * @returns
+        """
+        await self.load_markets()
+        await self.authenticate()
+        url = self.urls['api']['ws']['private']
+        splitName = name.split('_subscribe')
+        messageHash = self.safe_string(splitName, 0)
+        if symbol is not None:
+            messageHash = messageHash + '::' + symbol
+        subscribe = {
+            'method': name,
+            'params': params,
+            'id': self.nonce(),
+        }
+        return await self.watch(url, messageHash, subscribe, messageHash)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://api.hitbtc.com/#subscribe-to-full-order-book
+        see https://api.hitbtc.com/#subscribe-to-partial-order-book
+        see https://api.hitbtc.com/#subscribe-to-partial-order-book-in-batches
+        see https://api.hitbtc.com/#subscribe-to-top-of-book
+        see https://api.hitbtc.com/#subscribe-to-top-of-book-in-batches
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param str [params.method]: 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch', 'orderbook/top/{speed}', or 'orderbook/top/{speed}/batch'
+        :param int [params.depth]: 5 , 10, or 20(default)
+        :param int [params.speed]: 100(default), 500, or 1000
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        orderbook = await self.watch_public(symbol, 'orderbook', None, params)
+        options = self.safe_value(self.options, 'watchOrderBook')
+        defaultMethod = self.safe_string(options, 'method', 'orderbook/full')
+        name = self.safe_string_2(params, 'method', 'defaultMethod', defaultMethod)
+        depth = self.safe_string(params, 'depth', '20')
+        speed = self.safe_string(params, 'depth', '100')
+        if name == 'orderbook/{depth}/{speed}':
+            name = 'orderbook/D' + depth + '/' + speed + 'ms'
+        elif name == 'orderbook/{depth}/{speed}/batch':
+            name = 'orderbook/D' + depth + '/' + speed + 'ms/batch'
+        elif name == 'orderbook/top/{speed}':
+            name = 'orderbook/top/' + speed + 'ms'
+        elif name == 'orderbook/top/{speed}/batch':
+            name = 'orderbook/top/' + speed + 'ms/batch'
+        market = self.market(symbol)
+        request = {
+            'params': {
+                'symbols': [market['id']],
+            },
+        }
+        orderbook = await self.subscribe_public(name, [symbol], self.deep_extend(request, params))
         return orderbook.limit()
 
-    def handle_order_book_snapshot(self, client: Client, message):
+    def handle_order_book(self, client: Client, message):
         #
-        #     {
-        #         jsonrpc: "2.0",
-        #         method: "snapshotOrderbook",
-        #         params: {
-        #             ask: [
-        #                 {price: "6927.75", size: "0.11991"},
-        #                 {price: "6927.76", size: "0.06200"},
-        #                 {price: "6927.85", size: "0.01000"},
-        #             ],
-        #             bid: [
-        #                 {price: "6926.18", size: "0.16898"},
-        #                 {price: "6926.17", size: "0.06200"},
-        #                 {price: "6925.97", size: "0.00125"},
-        #             ],
-        #             symbol: "BTCUSD",
-        #             sequence: 494854,
-        #             timestamp: "2020-04-03T08:58:53.460Z"
-        #         }
-        #     }
+        #    {
+        #        "ch": "orderbook/full",                 # Channel
+        #        "snapshot": {
+        #            "ETHBTC": {
+        #                "t": 1626866578796,             # Timestamp in milliseconds
+        #                "s": 27617207,                  # Sequence number
+        #                "a": [                         # Asks
+        #                    ["0.060506", "0"],
+        #                    ["0.060549", "12.6431"],
+        #                    ["0.060570", "0"],
+        #                    ["0.060612", "0"]
+        #                ],
+        #                "b": [                         # Bids
+        #                    ["0.060439", "4.4095"],
+        #                    ["0.060414", "0"],
+        #                    ["0.060407", "7.3349"],
+        #                    ["0.060390", "0"]
+        #                ]
+        #            }
+        #        }
+        #    }
         #
-        params = self.safe_value(message, 'params', {})
-        marketId = self.safe_string(params, 'symbol')
-        market = self.safe_market(marketId)
-        symbol = market['symbol']
-        timestamp = self.parse8601(self.safe_string(params, 'timestamp'))
-        nonce = self.safe_integer(params, 'sequence')
-        if symbol in self.orderbooks:
-            del self.orderbooks[symbol]
-        snapshot = self.parse_order_book(params, symbol, timestamp, 'bid', 'ask', 'price', 'size')
-        orderbook = self.order_book(snapshot)
-        orderbook['nonce'] = nonce
-        self.orderbooks[symbol] = orderbook
-        messageHash = 'orderbook:' + marketId
-        client.resolve(orderbook, messageHash)
-
-    def handle_order_book_update(self, client: Client, message):
-        #
-        #     {
-        #         jsonrpc: "2.0",
-        #         method: "updateOrderbook",
-        #         params: {
-        #             ask: [
-        #                 {price: "6940.65", size: "0.00000"},
-        #                 {price: "6940.66", size: "6.00000"},
-        #                 {price: "6943.52", size: "0.04707"},
-        #             ],
-        #             bid: [
-        #                 {price: "6938.40", size: "0.11991"},
-        #                 {price: "6938.39", size: "0.00073"},
-        #                 {price: "6936.65", size: "0.00000"},
-        #             ],
-        #             symbol: "BTCUSD",
-        #             sequence: 497872,
-        #             timestamp: "2020-04-03T09:03:56.685Z"
-        #         }
-        #     }
-        #
-        params = self.safe_value(message, 'params', {})
-        marketId = self.safe_string(params, 'symbol')
-        market = self.safe_market(marketId)
-        symbol = market['symbol']
-        if symbol in self.orderbooks:
-            timestamp = self.parse8601(self.safe_string(params, 'timestamp'))
-            nonce = self.safe_integer(params, 'sequence')
+        data = self.safe_value_2(message, 'snapshot', 'update', {})
+        marketIds = list(data.keys())
+        channel = self.safe_string(message, 'ch')
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            item = data[marketId]
+            messageHash = channel + '::' + symbol
+            if not (symbol in self.orderbooks):
+                subscription = self.safe_value(client.subscriptions, messageHash, {})
+                limit = self.safe_integer(subscription, 'limit')
+                self.orderbooks[symbol] = self.order_book({}, limit)
+            timestamp = self.safe_integer(item, 't')
+            nonce = self.safe_integer(item, 's')
             orderbook = self.orderbooks[symbol]
-            asks = self.safe_value(params, 'ask', [])
-            bids = self.safe_value(params, 'bid', [])
+            asks = self.safe_value(item, 'a', [])
+            bids = self.safe_value(item, 'b', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
             orderbook['nonce'] = nonce
+            orderbook['symbol'] = symbol
             self.orderbooks[symbol] = orderbook
-            messageHash = 'orderbook:' + marketId
             client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        price = self.safe_float(delta, 'price')
-        amount = self.safe_float(delta, 'size')
+        price = self.safe_number(delta, 0)
+        amount = self.safe_number(delta, 1)
         bookside.store(price, amount)
 
     def handle_deltas(self, bookside, deltas):
@@ -159,179 +253,678 @@ class hitbtc(ccxt.async_support.hitbtc):
     async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        see https://api.hitbtc.com/#subscribe-to-ticker
+        see https://api.hitbtc.com/#subscribe-to-ticker-in-batches
+        see https://api.hitbtc.com/#subscribe-to-mini-ticker
+        see https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param str [params.method]: 'ticker/{speed}'(default), or 'ticker/price/{speed}'
+        :param str [params.speed]: '1s'(default), or '3s'
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
-        return await self.watch_public(symbol, 'ticker', None, params)
+        options = self.safe_value(self.options, 'watchTicker')
+        defaultMethod = self.safe_string(options, 'method', 'ticker/{speed}')
+        method = self.safe_string_2(params, 'method', 'defaultMethod', defaultMethod)
+        speed = self.safe_string(params, 'speed', '1s')
+        name = self.implode_params(method, {'speed': speed})
+        params = self.omit(params, ['method', 'speed'])
+        market = self.market(symbol)
+        request = {
+            'params': {
+                'symbols': [market['id']],
+            },
+        }
+        return await self.subscribe_public(name, [symbol], self.deep_extend(request, params))
+
+    async def watch_tickers(self, symbols=None, params={}):
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :param str params['method']: 'ticker/{speed}'(default),'ticker/price/{speed}', 'ticker/{speed}/batch', or 'ticker/{speed}/price/batch''
+        :param str params['speed']: '1s'(default), or '3s'
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        options = self.safe_value(self.options, 'watchTicker')
+        defaultMethod = self.safe_string(options, 'method', 'ticker/{speed}')
+        method = self.safe_string_2(params, 'method', 'defaultMethod', defaultMethod)
+        speed = self.safe_string(params, 'speed', '1s')
+        name = self.implode_params(method, {'speed': speed})
+        params = self.omit(params, ['method', 'speed'])
+        marketIds = []
+        if symbols is None:
+            marketIds.append('*')
+        else:
+            for i in range(0, len(symbols)):
+                marketId = self.market_id(symbols[i])
+                marketIds.append(marketId)
+        request = {
+            'params': {
+                'symbols': marketIds,
+            },
+        }
+        tickers = await self.subscribe_public(name, symbols, self.deep_extend(request, params))
+        if self.newUpdates:
+            return tickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
         #
-        #     {
-        #         jsonrpc: '2.0',
-        #         method: 'ticker',
-        #         params: {
-        #             ask: '6983.22',
-        #             bid: '6980.77',
-        #             last: '6980.77',
-        #             open: '6650.05',
-        #             low: '6606.45',
-        #             high: '7223.11',
-        #             volume: '79264.33941',
-        #             volumeQuote: '540183372.5134832',
-        #             timestamp: '2020-04-03T10:02:18.943Z',
-        #             symbol: 'BTCUSD'
-        #         }
-        #     }
+        #    {
+        #        "ch": "ticker/1s",
+        #        "data": {
+        #            "ETHBTC": {
+        #                "t": 1614815872000,             # Timestamp in milliseconds
+        #                "a": "0.031175",                # Best ask
+        #                "A": "0.03329",                 # Best ask quantity
+        #                "b": "0.031148",                # Best bid
+        #                "B": "0.10565",                 # Best bid quantity
+        #                "c": "0.031210",                # Last price
+        #                "o": "0.030781",                # Open price
+        #                "h": "0.031788",                # High price
+        #                "l": "0.030733",                # Low price
+        #                "v": "62.587",                  # Base asset volume
+        #                "q": "1.951420577",             # Quote asset volume
+        #                "p": "0.000429",                # Price change
+        #                "P": "1.39",                    # Price change percent
+        #                "L": 1182694927                 # Last trade identifier
+        #            }
+        #        }
+        #    }
         #
-        params = self.safe_value(message, 'params')
-        marketId = self.safe_value(params, 'symbol')
-        market = self.safe_market(marketId)
-        symbol = market['symbol']
-        result = self.parse_ticker(params, market)
-        self.tickers[symbol] = result
-        method = self.safe_value(message, 'method')
-        messageHash = method + ':' + marketId
-        client.resolve(result, messageHash)
+        #    {
+        #        "ch": "ticker/price/1s",
+        #        "data": {
+        #            "BTCUSDT": {
+        #                "t": 1614815872030,
+        #                "o": "32636.79",
+        #                "c": "32085.51",
+        #                "h": "33379.92",
+        #                "l": "30683.28",
+        #                "v": "11.90667",
+        #                "q": "384081.1955629"
+        #            }
+        #        }
+        #    }
+        #
+        data = self.safe_value(message, 'data', {})
+        marketIds = list(data.keys())
+        channel = self.safe_string(message, 'ch')
+        newTickers = []
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            ticker = self.parse_ws_ticker(data[marketId], market)
+            self.tickers[symbol] = ticker
+            newTickers.append(ticker)
+            messageHash = channel + '::' + symbol
+            client.resolve(self.tickers[symbol], messageHash)
+        messageHashes = self.find_message_hashes(client, channel + '::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            tickers = self.filter_by_array(newTickers, 'symbol', symbols)
+            tickersSymbols = list(tickers.keys())
+            numTickers = len(tickersSymbols)
+            if numTickers > 0:
+                client.resolve(tickers, messageHash)
+        client.resolve(self.tickers, channel)
+        return message
+
+    def parse_ws_ticker(self, ticker, market=None):
+        #
+        #    {
+        #        "t": 1614815872000,             # Timestamp in milliseconds
+        #        "a": "0.031175",                # Best ask
+        #        "A": "0.03329",                 # Best ask quantity
+        #        "b": "0.031148",                # Best bid
+        #        "B": "0.10565",                 # Best bid quantity
+        #        "c": "0.031210",                # Last price
+        #        "o": "0.030781",                # Open price
+        #        "h": "0.031788",                # High price
+        #        "l": "0.030733",                # Low price
+        #        "v": "62.587",                  # Base asset volume
+        #        "q": "1.951420577",             # Quote asset volume
+        #        "p": "0.000429",                # Price change
+        #        "P": "1.39",                    # Price change percent
+        #        "L": 1182694927                 # Last trade identifier
+        #    }
+        #
+        #    {
+        #        "t": 1614815872030,
+        #        "o": "32636.79",
+        #        "c": "32085.51",
+        #        "h": "33379.92",
+        #        "l": "30683.28",
+        #        "v": "11.90667",
+        #        "q": "384081.1955629"
+        #    }
+        #
+        timestamp = self.safe_integer(ticker, 't')
+        symbol = self.safe_symbol(None, market)
+        last = self.safe_string(ticker, 'c')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, 'h'),
+            'low': self.safe_string(ticker, 'l'),
+            'bid': self.safe_string(ticker, 'b'),
+            'bidVolume': self.safe_string(ticker, 'B'),
+            'ask': self.safe_string(ticker, 'a'),
+            'askVolume': self.safe_string(ticker, 'A'),
+            'vwap': None,
+            'open': self.safe_string(ticker, 'o'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, 'v'),
+            'quoteVolume': self.safe_string(ticker, 'q'),
+            'info': ticker,
+        }, market)
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://api.hitbtc.com/#subscribe-to-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
-        trades = await self.watch_public(symbol, 'trades', None, params)
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'params': {
+                'symbols': [market['id']],
+            },
+        }
+        if limit is not None:
+            request['limit'] = limit
+        trades = await self.subscribe_public('trades', [symbol], self.deep_extend(request, params))
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
 
     def handle_trades(self, client: Client, message):
         #
-        #     {
-        #         jsonrpc: '2.0',
-        #         method: 'snapshotTrades',  # updateTrades
-        #         params: {
-        #             data: [
-        #                 {
-        #                     id: 814145791,
-        #                     price: '6957.20',
-        #                     quantity: '0.02779',
-        #                     side: 'buy',
-        #                     timestamp: '2020-04-03T10:28:20.032Z'
-        #                 },
-        #                 {
-        #                     id: 814145792,
-        #                     price: '6957.20',
-        #                     quantity: '0.12918',
-        #                     side: 'buy',
-        #                     timestamp: '2020-04-03T10:28:20.039Z'
-        #                 },
-        #             ],
-        #             symbol: 'BTCUSD'
-        #         }
-        #     }
+        #    {
+        #        "result": {
+        #            "ch": "trades",                           # Channel
+        #            "subscriptions": ["ETHBTC", "BTCUSDT"]
+        #        },
+        #        "id": 123
+        #    }
         #
-        params = self.safe_value(message, 'params', {})
-        data = self.safe_value(params, 'data', [])
-        marketId = self.safe_string(params, 'symbol')
-        market = self.safe_market(marketId)
-        symbol = market['symbol']
-        messageHash = 'trades:' + marketId
-        tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
-        stored = self.safe_value(self.trades, symbol)
-        if stored is None:
-            stored = ArrayCache(tradesLimit)
-            self.trades[symbol] = stored
-        if isinstance(data, list):
-            trades = self.parse_trades(data, market)
+        # Notification snapshot
+        #
+        #    {
+        #        "ch": "trades",                               # Channel
+        #        "snapshot": {
+        #            "BTCUSDT": [{
+        #                "t": 1626861109494,                   # Timestamp in milliseconds
+        #                "i": 1555634969,                      # Trade identifier
+        #                "p": "30881.96",                      # Price
+        #                "q": "12.66828",                      # Quantity
+        #                "s": "buy"                            # Side
+        #            }]
+        #        }
+        #    }
+        #
+        # Notification update
+        #
+        #    {
+        #        "ch": "trades",
+        #        "update": {
+        #            "BTCUSDT": [{
+        #                "t": 1626861123552,
+        #                "i": 1555634969,
+        #                "p": "30877.68",
+        #                "q": "0.00006",
+        #                "s": "sell"
+        #            }]
+        #        }
+        #    }
+        #
+        data = self.safe_value_2(message, 'snapshot', 'update', {})
+        marketIds = list(data.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId)
+            tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            symbol = market['symbol']
+            stored = self.safe_value(self.trades, symbol)
+            if stored is None:
+                stored = ArrayCache(tradesLimit)
+                self.trades[symbol] = stored
+            trades = self.parse_ws_trades(data[marketId], market)
             for i in range(0, len(trades)):
                 stored.append(trades[i])
-        else:
-            trade = self.parse_trade(message, market)
-            stored.append(trade)
-        client.resolve(stored, messageHash)
+            messageHash = 'trades::' + symbol
+            client.resolve(stored, messageHash)
         return message
+
+    def parse_ws_trades(self, trades, market: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        trades = self.to_array(trades)
+        result = []
+        for i in range(0, len(trades)):
+            trade = self.extend(self.parse_ws_trade(trades[i], market), params)
+            result.append(trade)
+        result = self.sort_by_2(result, 'timestamp', 'id')
+        symbol = self.safe_string(market, 'symbol')
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+
+    def parse_ws_trade(self, trade, market=None):
+        #
+        #    {
+        #        "t": 1626861123552,       # Timestamp in milliseconds
+        #        "i": 1555634969,          # Trade identifier
+        #        "p": "30877.68",          # Price
+        #        "q": "0.00006",           # Quantity
+        #        "s": "sell"               # Side
+        #    }
+        #
+        timestamp = self.safe_integer(trade, 't')
+        return self.safe_trade({
+            'info': trade,
+            'id': self.safe_string(trade, 'i'),
+            'order': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': self.safe_string(market, 'symbol'),
+            'type': None,
+            'side': self.safe_string(trade, 's'),
+            'takerOrMaker': None,
+            'price': self.safe_string(trade, 'p'),
+            'amount': self.safe_string(trade, 'q'),
+            'cost': None,
+            'fee': None,
+        }, market)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://api.hitbtc.com/#subscribe-to-candles
         :param str symbol: unified symbol of the market to fetch OHLCV data for
-        :param str timeframe: the length of time each candle represents
-        :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
+        :param str [timeframe]: the length of time each candle represents
+        :param int [since]: not used by hitbtc watchOHLCV
+        :param int [limit]: 0 – 1000, default value = 0(no history returned)
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
-        # if limit is None:
-        #     limit = 100
-        # }
         period = self.safe_string(self.timeframes, timeframe, timeframe)
+        name = 'candles/' + period
+        market = self.market(symbol)
         request = {
             'params': {
-                'period': period,
-                # 'limit': limit,
+                'symbols': [market['id']],
             },
         }
-        requestParams = self.deep_extend(request, params)
-        ohlcv = await self.watch_public(symbol, 'ohlcv', period, requestParams)
+        if limit is not None:
+            request['params']['limit'] = limit
+        ohlcv = await self.subscribe_public(name, [symbol], self.deep_extend(request, params))
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0)
 
     def handle_ohlcv(self, client: Client, message):
         #
-        #     {
-        #         jsonrpc: '2.0',
-        #         method: 'snapshotCandles',  # updateCandles
-        #         params: {
-        #             data: [
-        #                 {
-        #                     timestamp: '2020-04-05T00:06:00.000Z',
-        #                     open: '6869.40',
-        #                     close: '6867.16',
-        #                     min: '6863.17',
-        #                     max: '6869.4',
-        #                     volume: '0.08947',
-        #                     volumeQuote: '614.4195442'
-        #                 },
-        #                 {
-        #                     timestamp: '2020-04-05T00:07:00.000Z',
-        #                     open: '6867.54',
-        #                     close: '6859.26',
-        #                     min: '6858.85',
-        #                     max: '6867.54',
-        #                     volume: '1.7766',
-        #                     volumeQuote: '12191.5880395'
-        #                 },
-        #             ],
-        #             symbol: 'BTCUSD',
-        #             period: 'M1'
-        #         }
-        #     }
+        #    {
+        #        "ch": "candles/M1",                     # Channel
+        #        "snapshot": {
+        #            "BTCUSDT": [{
+        #                "t": 1626860340000,             # Message timestamp
+        #                "o": "30881.95",                # Open price
+        #                "c": "30890.96",                # Last price
+        #                "h": "30900.8",                 # High price
+        #                "l": "30861.27",                # Low price
+        #                "v": "1.27852",                 # Base asset volume
+        #                "q": "39493.9021811"            # Quote asset volume
+        #            }
+        #            ...
+        #            ]
+        #        }
+        #    }
         #
-        params = self.safe_value(message, 'params', {})
-        data = self.safe_value(params, 'data', [])
-        marketId = self.safe_string(params, 'symbol')
-        market = self.safe_market(marketId)
-        symbol = market['symbol']
-        period = self.safe_string(params, 'period')
+        #    {
+        #        "ch": "candles/M1",
+        #        "update": {
+        #            "ETHBTC": [{
+        #                "t": 1626860880000,
+        #                "o": "0.060711",
+        #                "c": "0.060749",
+        #                "h": "0.060749",
+        #                "l": "0.060711",
+        #                "v": "12.2800",
+        #                "q": "0.7455339675"
+        #          }]
+        #        }
+        #    }
+        #
+        data = self.safe_value_2(message, 'snapshot', 'update', {})
+        marketIds = list(data.keys())
+        channel = self.safe_string(message, 'ch')
+        splitChannel = channel.split('/')
+        period = self.safe_string(splitChannel, 1)
         timeframe = self.find_timeframe(period)
-        messageHash = 'ohlcv:' + marketId + ':' + period
-        for i in range(0, len(data)):
-            candle = data[i]
-            parsed = self.parse_ohlcv(candle, market)
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
             stored = self.safe_value(self.ohlcvs[symbol], timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
                 self.ohlcvs[symbol][timeframe] = stored
-            stored.append(parsed)
+            ohlcvs = self.parse_ws_ohlcvs(data[marketId], market)
+            for i in range(0, len(ohlcvs)):
+                stored.append(ohlcvs[i])
+            messageHash = channel + '::' + symbol
             client.resolve(stored, messageHash)
         return message
+
+    def parse_ws_ohlcv(self, ohlcv, market=None):
+        #
+        #    {
+        #        "t": 1626860340000,             # Message timestamp
+        #        "o": "30881.95",                # Open price
+        #        "c": "30890.96",                # Last price
+        #        "h": "30900.8",                 # High price
+        #        "l": "30861.27",                # Low price
+        #        "v": "1.27852",                 # Base asset volume
+        #        "q": "39493.9021811"            # Quote asset volume
+        #    }
+        #
+        return [
+            self.safe_integer(ohlcv, 't'),
+            self.safe_number(ohlcv, 'o'),
+            self.safe_number(ohlcv, 'h'),
+            self.safe_number(ohlcv, 'l'),
+            self.safe_number(ohlcv, 'c'),
+            self.safe_number(ohlcv, 'v'),
+        ]
+
+    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        watches information on multiple orders made by the user
+        see https://api.hitbtc.com/#subscribe-to-reports
+        see https://api.hitbtc.com/#subscribe-to-reports-2
+        see https://api.hitbtc.com/#subscribe-to-reports-3
+        :param str [symbol]: unified CCXT market symbol
+        :param int [since]: timestamp in ms of the earliest order to fetch
+        :param int [limit]: the maximum amount of orders to fetch
+        :param dict [params]: extra parameters specific to the hitbtc api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        marketType = None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        marketType, params = self.handle_market_type_and_params('watchOrders', market, params)
+        name = self.get_supported_mapping(marketType, {
+            'spot': 'spot_subscribe',
+            'margin': 'margin_subscribe',
+            'swap': 'futures_subscribe',
+            'future': 'futures_subscribe',
+        })
+        orders = await self.subscribe_private(name, symbol, params)
+        if self.newUpdates:
+            limit = orders.getLimit(symbol, limit)
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp')
+
+    def handle_order(self, client: Client, message):
+        #
+        #    {
+        #        "jsonrpc": "2.0",
+        #        "method": "spot_order",                            # "margin_order", "future_order"
+        #        "params": {
+        #            "id": 584244931496,
+        #            "client_order_id": "b5acd79c0a854b01b558665bcf379456",
+        #            "symbol": "BTCUSDT",
+        #            "side": "buy",
+        #            "status": "new",
+        #            "type": "limit",
+        #            "time_in_force": "GTC",
+        #            "quantity": "0.01000",
+        #            "quantity_cumulative": "0",
+        #            "price": "0.01",                              # only updates and snapshots
+        #            "post_only": False,
+        #            "reduce_only": False,                         # only margin and contract
+        #            "display_quantity": "0",                      # only updates and snapshot
+        #            "created_at": "2021-07-02T22:52:32.864Z",
+        #            "updated_at": "2021-07-02T22:52:32.864Z",
+        #            "trade_id": 1361977606,                       # only trades
+        #            "trade_quantity": "0.00001",                  # only trades
+        #            "trade_price": "49595.04",                    # only trades
+        #            "trade_fee": "0.001239876000",                # only trades
+        #            "trade_taker": True,                          # only trades, only spot
+        #            "trade_position_id": 485308,                  # only trades, only margin
+        #            "report_type": "new"                          # "trade", "status"(snapshot)
+        #        }
+        #    }
+        #
+        #    {
+        #       "jsonrpc": "2.0",
+        #       "method": "spot_orders",                            # "margin_orders", "future_orders"
+        #       "params": [
+        #            {
+        #                "id": 584244931496,
+        #                "client_order_id": "b5acd79c0a854b01b558665bcf379456",
+        #                "symbol": "BTCUSDT",
+        #                "side": "buy",
+        #                "status": "new",
+        #                "type": "limit",
+        #                "time_in_force": "GTC",
+        #                "quantity": "0.01000",
+        #                "quantity_cumulative": "0",
+        #                "price": "0.01",                              # only updates and snapshots
+        #                "post_only": False,
+        #                "reduce_only": False,                         # only margin and contract
+        #                "display_quantity": "0",                      # only updates and snapshot
+        #                "created_at": "2021-07-02T22:52:32.864Z",
+        #                "updated_at": "2021-07-02T22:52:32.864Z",
+        #                "trade_id": 1361977606,                       # only trades
+        #                "trade_quantity": "0.00001",                  # only trades
+        #                "trade_price": "49595.04",                    # only trades
+        #                "trade_fee": "0.001239876000",                # only trades
+        #                "trade_taker": True,                          # only trades, only spot
+        #                "trade_position_id": 485308,                  # only trades, only margin
+        #                "report_type": "new"                          # "trade", "status"(snapshot)
+        #            }
+        #        ]
+        #    }
+        #
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit')
+            self.orders = ArrayCacheBySymbolById(limit)
+        data = self.safe_value(message, 'params', [])
+        if isinstance(data, list):
+            for i in range(0, len(data)):
+                order = data[i]
+                self.handle_order_helper(client, message, order)
+        else:
+            self.handle_order_helper(client, message, data)
+        return message
+
+    def handle_order_helper(self, client: Client, message, order):
+        orders = self.orders
+        marketId = self.safe_string_lower_2(order, 'instrument', 'symbol')
+        method = self.safe_string(message, 'method')
+        splitMethod = method.split('_order')
+        messageHash = self.safe_string(splitMethod, 0)
+        symbol = self.safe_symbol(marketId)
+        parsed = self.parse_order(order)
+        orders.append(parsed)
+        client.resolve(orders, messageHash)
+        client.resolve(orders, messageHash + '::' + symbol)
+
+    def parse_ws_order_trade(self, trade, market=None):
+        #
+        #    {
+        #        "id": 584244931496,
+        #        "client_order_id": "b5acd79c0a854b01b558665bcf379456",
+        #        "symbol": "BTCUSDT",
+        #        "side": "buy",
+        #        "status": "new",
+        #        "type": "limit",
+        #        "time_in_force": "GTC",
+        #        "quantity": "0.01000",
+        #        "quantity_cumulative": "0",
+        #        "price": "0.01",                              # only updates and snapshots
+        #        "post_only": False,
+        #        "reduce_only": False,                         # only margin and contract
+        #        "display_quantity": "0",                      # only updates and snapshot
+        #        "created_at": "2021-07-02T22:52:32.864Z",
+        #        "updated_at": "2021-07-02T22:52:32.864Z",
+        #        "trade_id": 1361977606,                       # only trades
+        #        "trade_quantity": "0.00001",                  # only trades
+        #        "trade_price": "49595.04",                    # only trades
+        #        "trade_fee": "0.001239876000",                # only trades
+        #        "trade_taker": True,                          # only trades, only spot
+        #        "trade_position_id": 485308,                  # only trades, only margin
+        #        "report_type": "new"                          # "trade", "status"(snapshot)
+        #    }
+        #
+        timestamp = self.safe_integer(trade, 'created_at')
+        marketId = self.safe_string(trade, 'symbol')
+        return self.safe_trade({
+            'info': trade,
+            'id': self.safe_string(trade, 'trade_id'),
+            'order': self.safe_string(trade, 'id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': self.safe_market(marketId, market),
+            'type': None,
+            'side': self.safe_string(trade, 'side'),
+            'takerOrMaker': self.safe_string(trade, 'trade_taker'),
+            'price': self.safe_string(trade, 'trade_price'),
+            'amount': self.safe_string(trade, 'trade_quantity'),
+            'cost': None,
+            'fee': {
+                'cost': self.safe_string(trade, 'trade_fee'),
+                'currency': None,
+                'rate': None,
+            },
+        }, market)
+
+    def parse_ws_order(self, order, market=None):
+        #
+        #    {
+        #        "id": 584244931496,
+        #        "client_order_id": "b5acd79c0a854b01b558665bcf379456",
+        #        "symbol": "BTCUSDT",
+        #        "side": "buy",
+        #        "status": "new",
+        #        "type": "limit",
+        #        "time_in_force": "GTC",
+        #        "quantity": "0.01000",
+        #        "quantity_cumulative": "0",
+        #        "price": "0.01",                              # only updates and snapshots
+        #        "post_only": False,
+        #        "reduce_only": False,                         # only margin and contract
+        #        "display_quantity": "0",                      # only updates and snapshot
+        #        "created_at": "2021-07-02T22:52:32.864Z",
+        #        "updated_at": "2021-07-02T22:52:32.864Z",
+        #        "trade_id": 1361977606,                       # only trades
+        #        "trade_quantity": "0.00001",                  # only trades
+        #        "trade_price": "49595.04",                    # only trades
+        #        "trade_fee": "0.001239876000",                # only trades
+        #        "trade_taker": True,                          # only trades, only spot
+        #        "trade_position_id": 485308,                  # only trades, only margin
+        #        "report_type": "new"                          # "trade", "status"(snapshot)
+        #    }
+        #
+        timestamp = self.safe_string(order, 'created_at')
+        marketId = self.safe_symbol(order, 'symbol')
+        market = self.safe_market(marketId, market)
+        tradeId = self.safe_string(order, 'trade_id')
+        trades = None
+        if tradeId is not None:
+            trade = self.parse_ws_order_trade(order, market)
+            trades = [trade]
+        return self.safe_order({
+            'info': order,
+            'id': self.safe_string(order, 'id'),
+            'clientOrderId': self.safe_string(order, 'client_order_id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'symbol': market['symbol'],
+            'price': self.safe_string(order, 'price'),
+            'amount': self.safe_string(order, 'quantity'),
+            'type': self.safe_string(order, 'type'),
+            'side': self.safe_string_upper(order, 'side'),
+            'timeInForce': self.safe_string(order, 'time_in_force'),
+            'postOnly': self.safe_string(order, 'post_only'),
+            'reduceOnly': self.safe_value(order, 'reduce_only'),
+            'filled': None,
+            'remaining': None,
+            'cost': None,
+            'status': self.parse_order_status(self.safe_string(order, 'status')),
+            'average': None,
+            'trades': trades,
+            'fee': None,
+        }, market)
+
+    async def watch_balance(self, params={}):
+        """
+        watches balance updates, cannot subscribe to margin account balances
+        see https://api.hitbtc.com/#subscribe-to-spot-balances
+        see https://api.hitbtc.com/#subscribe-to-futures-balances
+        :param dict [params]: extra parameters specific to the hitbtc api endpoint
+        :param str [params.type]: 'spot', 'swap', or 'future'
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param str [params.mode]: 'updates' or 'batches'(default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
+        :returns [dict]: a list of `balance structures <https://docs.ccxt.com/#/?id=balance-structure>`
+        """
+        await self.load_markets()
+        type = None
+        type, params = self.handle_market_type_and_params('watchBalance', None, params)
+        name = self.get_supported_mapping(type, {
+            'spot': 'spot_balance_subscribe',
+            'swap': 'futures_balance_subscribe',
+            'future': 'futures_balance_subscribe',
+        })
+        mode = self.safe_string(params, 'mode', 'batches')
+        params = self.omit(params, 'mode')
+        request = {
+            'mode': mode,
+        }
+        return await self.subscribe_private(name, None, self.extend(request, params))
+
+    def handle_balance(self, client: Client, message):
+        #
+        #    {
+        #        "jsonrpc": "2.0",
+        #        "method": "futures_balance",
+        #        "params": [
+        #            {
+        #                "currency": "BCN",
+        #                "available": "100.000000000000",
+        #                "reserved": "0",
+        #                "reserved_margin": "0"
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        messageHash = self.safe_string(message, 'method')
+        params = self.safe_value(message, 'params')
+        balance = self.parse_balance(params)
+        self.balance = self.deep_extend(self.balance, balance)
+        client.resolve(self.balance, messageHash)
 
     def handle_notification(self, client: Client, message):
         #
@@ -340,18 +933,47 @@ class hitbtc(ccxt.async_support.hitbtc):
         return message
 
     def handle_message(self, client: Client, message):
-        methods = {
-            'snapshotOrderbook': self.handle_order_book_snapshot,
-            'updateOrderbook': self.handle_order_book_update,
-            'ticker': self.handle_ticker,
-            'snapshotTrades': self.handle_trades,
-            'updateTrades': self.handle_trades,
-            'snapshotCandles': self.handle_ohlcv,
-            'updateCandles': self.handle_ohlcv,
-        }
-        event = self.safe_string(message, 'method')
-        method = self.safe_value(methods, event)
-        if method is None:
-            self.handle_notification(client, message)
+        channel = self.safe_string_2(message, 'ch', 'method')
+        if channel is not None:
+            splitChannel = channel.split('/')
+            channel = self.safe_string(splitChannel, 0)
+            methods = {
+                'candles': self.handle_ohlcv,
+                'ticker': self.handle_ticker,
+                'trades': self.handle_trades,
+                'orderbook': self.handle_order_book,
+                'spot_order': self.handle_order,
+                'spot_orders': self.handle_order,
+                'margin_order': self.handle_order,
+                'margin_orders': self.handle_order,
+                'futures_order': self.handle_order,
+                'futures_orders': self.handle_order,
+                'spot_balance': self.handle_balance,
+                'futures_balance': self.handle_balance,
+            }
+            method = self.safe_value(methods, channel)
+            if method is not None:
+                method(client, message)
         else:
-            method(client, message)
+            success = self.safe_value(message, 'result')
+            if (success is True) and not ('id' in message):
+                self.handle_authenticate(client, message)
+
+    def handle_authenticate(self, client: Client, message):
+        #
+        #    {
+        #        jsonrpc: '2.0',
+        #        result: True
+        #    }
+        #
+        success = self.safe_value(message, 'result')
+        messageHash = 'authenticated'
+        if success:
+            future = self.safe_value(client.futures, messageHash)
+            future.resolve(True)
+        else:
+            error = AuthenticationError(self.id + ' ' + self.json(message))
+            client.reject(error, messageHash)
+            if messageHash in client.subscriptions:
+                del client.subscriptions[messageHash]
+        return message

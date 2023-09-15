@@ -1287,7 +1287,7 @@ class deribit(Exchange, ImplicitAPI):
         if since is not None:
             request['start_timestamp'] = since
         if limit is not None:
-            request['count'] = limit  # default 10
+            request['count'] = min(limit, 1000)  # default 10
         response = await getattr(self, method)(self.extend(request, params))
         #
         #      {

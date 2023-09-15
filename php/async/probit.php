@@ -788,7 +788,7 @@ class probit extends Exchange {
                 $request['start_time'] = $this->iso8601($since);
             }
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 10000);
             }
             $response = Async\await($this->publicGetTrade (array_merge($request, $params)));
             //

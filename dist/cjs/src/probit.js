@@ -773,7 +773,7 @@ class probit extends probit$1 {
             request['start_time'] = this.iso8601(since);
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 10000);
         }
         const response = await this.publicGetTrade(this.extend(request, params));
         //

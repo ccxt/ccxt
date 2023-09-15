@@ -1330,7 +1330,7 @@ class deribit extends Exchange {
                 $request['start_timestamp'] = $since;
             }
             if ($limit !== null) {
-                $request['count'] = $limit; // default 10
+                $request['count'] = min ($limit, 1000); // default 10
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //

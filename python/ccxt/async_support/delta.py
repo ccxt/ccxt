@@ -2766,7 +2766,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
         :param dict [params]: exchange specific params
-        :returns dict[]: a list of [settlement history objects]
+        :returns dict[]: a list of `settlement history objects <https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure>`
         """
         await self.load_markets()
         market = None

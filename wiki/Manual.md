@@ -1590,6 +1590,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchOpenInterest ([symbol[, params]])`
 - `fetchVolatilityHistory ([code[, params]])`
 - `fetchUnderlyingAssets ()`
+- `fetchSettlementHistory ([symbol[, since[, limit[, params]]]])`
 - ...
 
 ```text
@@ -2958,6 +2959,39 @@ Returns
 
 ```javascript
 [ 'BTC_USDT', 'ETH_USDT', 'DOGE_USDT' ]
+```
+
+## Settlement History
+
+*contract only*
+
+Use the `fetchSettlementHistory` method to get the public settlement history for a contract market from the exchange.
+
+```javascript
+fetchSettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT-230728-25500-P"`)
+- **since** (Integer) Timestamp for the earliest settlement (e.g. `1694073600000`)
+- **limit** (Integer) The maximum number of settlements to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [settlement history structures](#settlement-history-structure)
+
+### Settlement History Structure
+
+```javascript
+{
+    info: { ... },
+    symbol: 'BTC/USDT:USDT-230728-25500-P',
+    price: 25761.35807869,
+    timestamp: 1694073600000,
+    datetime: '2023-09-07T08:00:00.000Z',
+}
 ```
 
 # Private API

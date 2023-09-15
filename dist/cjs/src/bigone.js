@@ -134,6 +134,7 @@ class bigone extends bigone$1 {
             'options': {
                 'accountsByType': {
                     'spot': 'SPOT',
+                    'fund': 'FUND',
                     'funding': 'FUND',
                     'future': 'CONTRACT',
                     'swap': 'CONTRACT',
@@ -1593,7 +1594,7 @@ class bigone extends bigone$1 {
         const txid = this.safeString(transaction, 'txid');
         const address = this.safeString(transaction, 'target_address');
         const tag = this.safeString(transaction, 'memo');
-        const type = ('customer_id' in transaction) ? 'deposit' : 'withdrawal';
+        const type = ('customer_id' in transaction) ? 'withdrawal' : 'deposit';
         return {
             'info': transaction,
             'id': id,
@@ -1722,10 +1723,11 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://open.big.one/docs/spot_transfer.html#transfer-of-user
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
+         * @param {string} fromAccount 'SPOT', 'FUND', or 'CONTRACT'
+         * @param {string} toAccount 'SPOT', 'FUND', or 'CONTRACT'
          * @param {object} [params] extra parameters specific to the bigone api endpoint
          * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */

@@ -80,6 +80,8 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -102,7 +104,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'repayMargin': True,
-                'setLeverage': False,
+                'setLeverage': True,
                 'setMarginMode': False,
                 'transfer': True,
                 'withdraw': True,
@@ -225,6 +227,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'spot/v1/margin/isolated/transfer': 6,
                         # contract
                         'contract/private/trades': 10,
+                        'contract/private/submit-leverage': 2.5,
                     },
                 },
             },
@@ -1972,6 +1975,8 @@ class bitmart(Exchange, ImplicitAPI):
             request['type'] = 'ioc'
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if marginMode is not None:
+            if marginMode != 'isolated':
+                raise NotSupported(self.id + ' only isolated margin is supported')
             method = 'privatePostSpotV1MarginSubmitOrder'
         response = getattr(self, method)(self.extend(request, query))
         #
@@ -2988,19 +2993,82 @@ class bitmart(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+    def fetch_open_interest(self, symbol: str, params={}):
         """
-         * @ignore
-        marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
-        :param dict [params]: extra parameters specific to the exchange api endpoint
-        :returns array: the marginMode in lowercase
+        Retrieves the open interest of a currency
+        see https://developer-pro.bitmart.com/en/futures/#get-futures-openinterest
+        :param str symbol: Unified CCXT market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
         """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetContractPublicOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": {
+        #             "timestamp": 1694657502415,
+        #             "symbol": "BTCUSDT",
+        #             "open_interest": "265231.721368593081729069",
+        #             "open_interest_value": "7006353.83988919"
+        #         },
+        #         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_open_interest(data, market)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #     {
+        #         "timestamp": 1694657502415,
+        #         "symbol": "BTCUSDT",
+        #         "open_interest": "265231.721368593081729069",
+        #         "open_interest_value": "7006353.83988919"
+        #     }
+        #
+        timestamp = self.safe_integer(interest, 'timestamp')
+        id = self.safe_string(interest, 'symbol')
+        return {
+            'symbol': self.safe_symbol(id, market),
+            'openInterestAmount': self.safe_number(interest, 'open_interest'),
+            'openInterestValue': self.safe_number(interest, 'open_interest_value'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }
+
+    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+        """
+        set the level of leverage for a market
+        see https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :param str [params.marginMode]: 'isolated' or 'cross'
+        :returns dict: response from the exchange
+        """
+        self.check_required_symbol('setLeverage', symbol)
         marginMode = None
-        marginMode, params = super(bitmart, self).handle_margin_mode_and_params(methodName, params, defaultValue)
-        if marginMode is not None:
-            if marginMode != 'isolated':
-                raise NotSupported(self.id + ' only isolated margin is supported')
-        return [marginMode, params]
+        marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
+        self.check_required_argument('setLeverage', marginMode, 'marginMode', ['isolated', 'cross'])
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
+        request = {
+            'symbol': market['id'],
+            'leverage': str(leverage),
+            'open_type': marginMode,
+        }
+        return self.privatePostContractPrivateSubmitLeverage(self.extend(request, params))
 
     def nonce(self):
         return self.milliseconds()

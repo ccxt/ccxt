@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import coinbaseproRest from '../coinbasepro.js';
-import { AuthenticationError, ExchangeError, BadSymbol } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -17,9 +17,11 @@ export default class coinbasepro extends coinbaseproRest {
                 'ws': true,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchBalance': false,
                 'watchStatus': false,
                 'watchOrders': true,
@@ -160,6 +162,33 @@ export default class coinbasepro extends coinbaseproRest {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#watchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new BadRequest(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const name = 'matches';
+        const messageHash = 'multipleTrades::';
+        const trades = await this.subscribeMultiple(name, symbols, messageHash, params);
+        if (this.newUpdates) {
+            const first = this.safeValue(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+    }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -244,6 +273,44 @@ export default class coinbasepro extends coinbaseproRest {
         const orderbook = await this.watch(url, messageHash, this.extend(request, authentication), messageHash, subscription);
         return orderbook.limit();
     }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new BadRequest(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        const name = 'level2';
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const marketIds = this.marketIds(symbols);
+        const messageHash = 'multipleOrderbooks' + '::' + symbols.join(',');
+        const url = this.urls['api']['ws'];
+        const subscribe = {
+            'type': 'subscribe',
+            'product_ids': marketIds,
+            'channels': [
+                name,
+            ],
+        };
+        const request = this.extend(subscribe, params);
+        const subscription = {
+            'messageHash': messageHash,
+            'symbols': symbols,
+            'marketIds': marketIds,
+            'limit': limit,
+        };
+        const authentication = this.authenticate();
+        const orderbook = await this.watch(url, messageHash, this.extend(request, authentication), messageHash, subscription);
+        return orderbook.limit();
+    }
     handleTrade(client, message) {
         //
         //     {
@@ -276,6 +343,7 @@ export default class coinbasepro extends coinbaseproRest {
             }
             tradesArray.append(trade);
             client.resolve(tradesArray, messageHash);
+            this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, tradesArray);
         }
         return message;
     }
@@ -746,6 +814,7 @@ export default class coinbasepro extends coinbaseproRest {
             orderbook['datetime'] = undefined;
             orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
+            this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbooks::', symbol, orderbook);
         }
         else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];
@@ -767,6 +836,7 @@ export default class coinbasepro extends coinbaseproRest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
             client.resolve(orderbook, messageHash);
+            this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbooks::', symbol, orderbook);
         }
     }
     handleSubscriptionStatus(client, message) {

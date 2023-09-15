@@ -134,6 +134,7 @@ class bigone extends Exchange {
             'options' => array(
                 'accountsByType' => array(
                     'spot' => 'SPOT',
+                    'fund' => 'FUND',
                     'funding' => 'FUND',
                     'future' => 'CONTRACT',
                     'swap' => 'CONTRACT',
@@ -1608,7 +1609,7 @@ class bigone extends Exchange {
         $txid = $this->safe_string($transaction, 'txid');
         $address = $this->safe_string($transaction, 'target_address');
         $tag = $this->safe_string($transaction, 'memo');
-        $type = (is_array($transaction) && array_key_exists('customer_id', $transaction)) ? 'deposit' : 'withdrawal';
+        $type = (is_array($transaction) && array_key_exists('customer_id', $transaction)) ? 'withdrawal' : 'deposit';
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1739,10 +1740,11 @@ class bigone extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
+             * @see https://open.big.one/docs/spot_transfer.html#$transfer-of-user
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to $transfer
-             * @param {string} $fromAccount account to $transfer from
-             * @param {string} $toAccount account to $transfer to
+             * @param {string} $fromAccount 'SPOT', 'FUND', or 'CONTRACT'
+             * @param {string} $toAccount 'SPOT', 'FUND', or 'CONTRACT'
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$transfer-structure $transfer structure}
              */
