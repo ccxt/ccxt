@@ -4167,7 +4167,7 @@ class gate extends gate$1 {
             type = isMarketOrder ? 'market' : 'limit';
             side = Precise["default"].stringGt(amount, '0') ? 'buy' : 'sell';
         }
-        const rawStatus = this.safeStringN(order, ['status', 'finish_as', 'open']);
+        const rawStatus = this.safeStringN(order, ['finish_as', 'status', 'open']);
         let timestamp = this.safeInteger(order, 'create_time_ms');
         if (timestamp === undefined) {
             timestamp = this.safeTimestamp2(order, 'create_time', 'ctime');
