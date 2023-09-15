@@ -1268,7 +1268,7 @@ class bitfinex2 extends Exchange {
             $sort = '1';
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 120, max 5000
+            $request['limit'] = min ($limit, 10000); // default 120, max 10000
         }
         $request['sort'] = $sort;
         $response = $this->publicGetTradesSymbolHist (array_merge($request, $params));

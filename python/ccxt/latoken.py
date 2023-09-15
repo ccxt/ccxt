@@ -216,6 +216,7 @@ class latoken(Exchange, ImplicitAPI):
                 'defaultType': 'spot',
                 'types': {
                     'wallet': 'ACCOUNT_TYPE_WALLET',
+                    'funding': 'ACCOUNT_TYPE_WALLET',
                     'spot': 'ACCOUNT_TYPE_SPOT',
                 },
                 'accounts': {
@@ -776,10 +777,10 @@ class latoken(Exchange, ImplicitAPI):
             'currency': market['baseId'],
             'quote': market['quoteId'],
             # 'from': str(since),  # milliseconds
-            # 'limit': limit,  # default 100, max 1000
+            # 'limit': limit,  # default 100, limit 100
         }
         if limit is not None:
-            request['limit'] = limit  # default 100, max 1000
+            request['limit'] = min(limit, 100)  # default 100, limit 100
         response = self.publicGetTradeHistoryCurrencyQuote(self.extend(request, params))
         #
         #     [

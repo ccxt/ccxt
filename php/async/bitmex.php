@@ -1748,7 +1748,7 @@ class bitmex extends Exchange {
                 $request['reverse'] = true;
             }
             if ($limit !== null) {
-                $request['count'] = $limit;
+                $request['count'] = min ($limit, 1000); // api maximum 1000
             }
             $response = Async\await($this->publicGetTrade (array_merge($request, $params)));
             //
