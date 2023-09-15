@@ -203,6 +203,7 @@ export default class latoken extends Exchange {
                 'defaultType': 'spot',
                 'types': {
                     'wallet': 'ACCOUNT_TYPE_WALLET',
+                    'funding': 'ACCOUNT_TYPE_WALLET',
                     'spot': 'ACCOUNT_TYPE_SPOT',
                 },
                 'accounts': {
