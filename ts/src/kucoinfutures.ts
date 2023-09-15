@@ -1725,6 +1725,7 @@ export default class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchFundingRate
          * @description fetch the current funding rate
+         * @see https://docs.kucoin.com/futures/#get-current-funding-rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1748,12 +1749,16 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const previousFundingTimestamp = this.safeInteger (data, 'timePoint');
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (response, market = undefined) {
+        const previousFundingTimestamp = this.safeInteger (response, 'timePoint');
         // the website displays the previous funding rate as "funding rate"
-        const granularity = this.safeInteger (data, 'granularity');
+        const granularity = this.safeInteger (response, 'granularity');
         const fundingTimestamp = this.sum (previousFundingTimestamp, granularity);
         return {
-            'info': data,
+            'info': response,
             'symbol': market['symbol'],
             'markPrice': undefined,
             'indexPrice': undefined,
@@ -1761,13 +1766,13 @@ export default class kucoinfutures extends kucoin {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber (data, 'predictedValue'),
-            'fundingTimestamp': fundingTimestamp,
-            'fundingDatetime': this.iso8601 (fundingTimestamp),
-            'nextFundingRate': undefined,
-            'nextFundingTimestamp': undefined,
-            'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeNumber (data, 'value'),
+            'fundingRate': undefined,
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': this.safeNumber (response, 'predictedValue'),
+            'nextFundingTimestamp': fundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (fundingTimestamp),
+            'previousFundingRate': this.safeNumber (response, 'value'),
             'previousFundingTimestamp': previousFundingTimestamp,
             'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
         };
