@@ -4533,7 +4533,7 @@ export default class Exchange {
                     // do it backwards, starting from the last
                     // UNTIL filtering is required in order to work
                     if (lastTimestamp !== undefined) {
-                        params['until'] = lastTimestamp;
+                        params['until'] = lastTimestamp - 1;
                     }
                     const response = await this[method] (symbol, undefined, maxEntriesPerRequest, params);
                     const responseLength = response.length;
@@ -4576,7 +4576,7 @@ export default class Exchange {
         const tasks = [];
         const time = this.parseTimeframe (timeframe) * 1000;
         const step = time * maxEntriesPerRequest;
-        let currentSince = now - (maxCalls * step);
+        let currentSince = now - (maxCalls * step) - 1;
         if (since !== undefined) {
             currentSince = Math.max (currentSince, since);
         }
@@ -4586,7 +4586,7 @@ export default class Exchange {
             } else {
                 tasks.push (this[method] (symbol, currentSince, maxEntriesPerRequest, params));
             }
-            currentSince = currentSince + step;
+            currentSince = currentSince + step - 1;
         }
         const results = await Promise.all (tasks);
         let result = [];
