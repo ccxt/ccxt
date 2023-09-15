@@ -3896,6 +3896,6 @@ class kucoin(Exchange, ImplicitAPI):
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
-        if errorCode != '200000':
+        if errorCode != '200000' and errorCode != '200':
             raise ExchangeError(feedback)
         return None
