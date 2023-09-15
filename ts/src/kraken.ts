@@ -1167,11 +1167,6 @@ export default class kraken extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
-        const paginate = this.safeValue (params, 'paginate', false);
-        if (paginate) {
-            params = this.omit (params, 'paginate');
-            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params);
-        }
         const market = this.market (symbol);
         const id = market['id'];
         const request = {

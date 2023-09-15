@@ -1740,11 +1740,6 @@ export default class bitmex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const paginate = this.safeValue (params, 'paginate', false);
-        if (paginate) {
-            params = this.omit (params, 'paginate');
-            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params);
-        }
         const request = {
             'symbol': market['id'],
         };

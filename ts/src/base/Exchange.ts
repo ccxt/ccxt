@@ -4517,23 +4517,11 @@ export default class Exchange {
         return res;
     }
 
-    // safeMethodCall (call, maxRetries = 3) {
-    //     let i = 0;
-    //     while (true) {
-    //         try {
-    //             return call ();
-    //         } catch (e) {
-    //             if (i > maxRetries) {
-    //                 throw e;
-    //             }
-    //             i++;
-    //         }
-    //     }
-    // }
-
     async fetchPaginatedCallDynamic (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = 1000): Promise<any> {
-        const maxCalls = this.safeInteger (this.options, 'maxCalls', 10);
-        const maxRetries = this.safeInteger (this.options, 'maxRetries', 3);
+        let maxCalls = undefined;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 20);
+        let maxRetries = undefined;
+        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         let lastTimestamp = undefined;
         let calls = 0;
         let result = [];
@@ -4578,33 +4566,12 @@ export default class Exchange {
                 errors = errors + 1;
             }
         }
-        const uniqueResult = {};
-        for (let i = 0; i < result.length; i++) {
-            const entry = result[i];
-            const id = this.safeString (entry, 'id');
-            if (id !== undefined) {
-                if (this.safeString (uniqueResult, id) === undefined) {
-                    uniqueResult[id] = entry;
-                }
-            } else {
-                const timestamp = this.safeInteger (entry, 'timestamp', 0);
-                if (timestamp !== undefined) {
-                    if (this.safeString (uniqueResult, timestamp) === undefined) {
-                        uniqueResult[timestamp] = entry;
-                    }
-                }
-            }
-        }
-        const values = Object.values (uniqueResult);
-        const valuesLength = values.length;
-        if (valuesLength > 0) {
-            return values as any;
-        }
-        return result as any;
+        return this.removeRepeatedElementsFromArray (result);
     }
 
     async fetchPaginatedCallDeterministic (method: string, symbol: string = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = 1000): Promise<any> {
-        const maxCalls = this.safeInteger (this.options, 'maxCalls', 10);
+        let maxCalls = undefined;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 20);
         const now = this.milliseconds ();
         const tasks = [];
         const time = this.parseTimeframe (timeframe) * 1000;
@@ -4626,7 +4593,69 @@ export default class Exchange {
         for (let i = 0; i < results.length; i++) {
             result = result.concat (results[i]);
         }
+        return this.removeRepeatedElementsFromArray (result) as any;
+    }
+
+    async fetchPaginatedCallCursor (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, cursorKey = undefined, maxEntriesPerRequest = 1000): Promise<any> {
+        let maxCalls = undefined;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 20);
+        let maxRetries = undefined;
+        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        let cursorValue = undefined;
+        let i = 0;
+        let errors = 0;
+        let result = [];
+        while (i < maxCalls) {
+            try {
+                if (cursorValue !== undefined) {
+                    params[cursorKey] = cursorValue;
+                }
+                const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                errors = 0;
+                if (this.verbose) {
+                    console.log ('Pagination call', i, 'response length', response.length);
+                }
+                result = this.arrayConcat (result, response);
+                const last = this.safeValue (response, response.length - 1);
+                cursorValue = this.safeValue (last['info'], cursorKey);
+                if (cursorValue === undefined) {
+                    break;
+                }
+            } catch (e) {
+                if (i + 1 > maxRetries) {
+                    throw e;
+                }
+                errors = errors + 1;
+            }
+            i = i + 1;
+        }
         return result as any;
+    }
+
+    removeRepeatedElementsFromArray (input) {
+        const uniqueResult = {};
+        for (let i = 0; i < input.length; i++) {
+            const entry = input[i];
+            const id = this.safeString (entry, 'id');
+            if (id !== undefined) {
+                if (this.safeString (uniqueResult, id) === undefined) {
+                    uniqueResult[id] = entry;
+                }
+            } else {
+                const timestamp = this.safeInteger (entry, 'timestamp', 0);
+                if (timestamp !== undefined) {
+                    if (this.safeString (uniqueResult, timestamp) === undefined) {
+                        uniqueResult[timestamp] = entry;
+                    }
+                }
+            }
+        }
+        const values = Object.values (uniqueResult);
+        const valuesLength = values.length;
+        if (valuesLength > 0) {
+            return values as any;
+        }
+        return input;
     }
 }
 

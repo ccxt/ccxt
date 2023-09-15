@@ -1954,11 +1954,6 @@ export default class okx extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
-        const paginate = this.safeValue (params, 'paginate', false);
-        if (paginate) {
-            params = this.omit (params, 'paginate');
-            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, 100);
-        }
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],
@@ -3359,6 +3354,11 @@ export default class okx extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
+        const paginate = this.safeValue (params, 'paginate', false);
+        if (paginate) {
+            params = this.omit (params, 'paginate');
+            return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params);
+        }
         const request = {
             // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly': currency['id'],
@@ -3840,9 +3840,15 @@ export default class okx extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {int} [params.until] Timestamp in ms of the latest time to retrieve trades for
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
+        const paginate = this.safeValue (params, 'paginate', false);
+        if (paginate) {
+            params = this.omit (params, 'paginate');
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params);
+        }
         const request = {
             // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // 'uly': currency['id'],
@@ -3856,6 +3862,10 @@ export default class okx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
+        }
+        const until = this.safeInteger2 (params, 'end', 'until');
+        if (until !== undefined) {
+            request['end'] = until;
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         request['instType'] = this.convertToInstrumentType (type);

@@ -3021,15 +3021,16 @@ export default class gate extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest trade to fetch
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const paginate = this.safeValue (params, 'paginate', false);
         if (paginate) {
             params = this.omit (params, 'paginate');
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params);
         }
+        const market = this.market (symbol);
         //
         // spot
         //
@@ -3059,6 +3060,11 @@ export default class gate extends Exchange {
             'future': 'publicDeliveryGetSettleTrades',
             'option': 'publicOptionsGetTrades',
         });
+        const until = this.safeInteger2 (params, 'to', 'until');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'until' ]);
+            request['to'] = this.parseToInt (until / 1000);
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
