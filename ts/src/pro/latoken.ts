@@ -4,10 +4,9 @@ import latokenRest from '../latoken.js';
 import { AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
 // import { Precise } from '../base/Precise.js';
 // import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import Client from '../base/ws/Client.js';
-
 //  ---------------------------------------------------------------------------
 
 export default class latoken extends latokenRest {
@@ -45,7 +44,27 @@ export default class latoken extends latokenRest {
         let userId = this.safeString (this.options, 'userId');
         if (userId === undefined) {
             const response = await this.privateGetAuthUser ();
-            // TODO: response
+            //
+            //    {
+            //        id: 'a8c85783-59fc-4619-9c28-546f9b661e84',
+            //        status: 'ACTIVE',
+            //        role: 'INVESTOR',
+            //        email: 'sam.germain@usask.ca',
+            //        phone: '',
+            //        authorities: [
+            //          'VIEW_QUOTAS',
+            //          'VIEW_TRANSFERS',
+            //          'VIEW_ACCOUNT',
+            //          'PLACE_ORDER',
+            //          'VIEW_TRANSACTIONS',
+            //          'CANCEL_ORDER',
+            //          'VIEW_MARKET_DATA'
+            //        ],
+            //        forceChangePassword: null,
+            //        authType: 'API_KEY',
+            //        socials: []
+            //    }
+            //
             userId = this.safeString (response, 'id');
             this.options['userId'] = userId;
         }
@@ -147,7 +166,10 @@ export default class latoken extends latokenRest {
 
     async subscribe (name: string, channel: string, symbols: string[] = undefined, params = {}) {
         const messageHash = name + '::' + symbols.join (',');
-        const subscribe = {};
+        const subscribe = {
+            'X-LA-DIGEST': 'HMAC-SHA512',
+            'X-LA-SIGDATA': this.milliseconds (),
+        };
         const request = this.extend (subscribe, params);
         const url = this.urls['api']['ws'];
         return await this.watch (url + channel, messageHash, request, name);
