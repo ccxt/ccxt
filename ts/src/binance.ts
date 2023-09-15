@@ -4596,10 +4596,16 @@ export default class binance extends Exchange {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {int} [params.until] the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol ('fetchOrders', symbol);
         await this.loadMarkets ();
+        const paginate = this.safeValue (params, 'paginate', false);
+        if (paginate) {
+            params = this.omit (params, 'paginate');
+            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params);
+        }
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
@@ -4619,6 +4625,11 @@ export default class binance extends Exchange {
             if (marginMode === 'isolated') {
                 request['isIsolated'] = true;
             }
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['endTime'] = until;
         }
         if (since !== undefined) {
             request['startTime'] = since;

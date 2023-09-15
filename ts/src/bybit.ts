@@ -2951,11 +2951,6 @@ export default class bybit extends Exchange {
          */
         this.checkRequiredSymbol ('fetchTrades', symbol);
         await this.loadMarkets ();
-        const paginate = this.safeValue (params, 'paginate', false);
-        if (paginate) {
-            params = this.omit (params, 'paginate');
-            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params);
-        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],

@@ -4578,6 +4578,28 @@ export default class Exchange {
                 errors = errors + 1;
             }
         }
+        const uniqueResult = {};
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const id = this.safeString (entry, 'id');
+            if (id !== undefined) {
+                if (this.safeString (uniqueResult, id) === undefined) {
+                    uniqueResult[id] = entry;
+                }
+            } else {
+                const timestamp = this.safeInteger (entry, 'timestamp', 0);
+                if (timestamp !== undefined) {
+                    if (this.safeString (uniqueResult, timestamp) === undefined) {
+                        uniqueResult[timestamp] = entry;
+                    }
+                }
+            }
+        }
+        const values = Object.values (uniqueResult);
+        const valuesLength = values.length;
+        if (valuesLength > 0) {
+            return values as any;
+        }
         return result as any;
     }
 
