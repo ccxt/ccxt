@@ -3247,7 +3247,7 @@ export default class bitmart extends Exchange {
     async setLeverage (leverage, symbol: string = undefined, params = {}) {
         /**
          * @method
-         * @name bitget#setLeverage
+         * @name bitmart#setLeverage
          * @description set the level of leverage for a market
          * @see https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
          * @param {float} leverage the rate of leverage
