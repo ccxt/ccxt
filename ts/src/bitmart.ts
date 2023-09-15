@@ -3262,7 +3262,7 @@ export default class bitmart extends Exchange {
         this.checkRequiredArgument ('setLeverage', marginMode, 'marginMode', [ 'isolated', 'cross' ]);
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['type'] !== 'swap') {
+        if (!market['swap']) {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
         const request = {
