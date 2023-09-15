@@ -235,6 +235,9 @@ abstract class bitmart extends \ccxt\Exchange {
     public function private_post_contract_private_trades($params = array()) {
         return $this->request('contract/private/trades', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
+    public function private_post_contract_private_submit_leverage($params = array()) {
+        return $this->request('contract/private/submit-leverage', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
     public function publicGetSystemTime($params = array()) {
         return $this->request('system/time', 'public', 'GET', $params, null, null, array("cost" => 3));
     }
@@ -462,5 +465,8 @@ abstract class bitmart extends \ccxt\Exchange {
     }
     public function privatePostContractPrivateTrades($params = array()) {
         return $this->request('contract/private/trades', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostContractPrivateSubmitLeverage($params = array()) {
+        return $this->request('contract/private/submit-leverage', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
 }

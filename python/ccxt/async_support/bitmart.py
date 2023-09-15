@@ -104,7 +104,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'repayMargin': True,
-                'setLeverage': False,
+                'setLeverage': True,
                 'setMarginMode': False,
                 'transfer': True,
                 'withdraw': True,
@@ -227,6 +227,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'spot/v1/margin/isolated/transfer': 6,
                         # contract
                         'contract/private/trades': 10,
+                        'contract/private/submit-leverage': 2.5,
                     },
                 },
             },
@@ -1974,6 +1975,8 @@ class bitmart(Exchange, ImplicitAPI):
             request['type'] = 'ioc'
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if marginMode is not None:
+            if marginMode != 'isolated':
+                raise NotSupported(self.id + ' only isolated margin is supported')
             method = 'privatePostSpotV1MarginSubmitOrder'
         response = await getattr(self, method)(self.extend(request, query))
         #
@@ -3042,19 +3045,30 @@ class bitmart(Exchange, ImplicitAPI):
             'info': interest,
         }
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+    async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
-         * @ignore
-        marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
-        :param dict [params]: extra parameters specific to the exchange api endpoint
-        :returns array: the marginMode in lowercase
+        set the level of leverage for a market
+        see https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :param str [params.marginMode]: 'isolated' or 'cross'
+        :returns dict: response from the exchange
         """
+        self.check_required_symbol('setLeverage', symbol)
         marginMode = None
-        marginMode, params = super(bitmart, self).handle_margin_mode_and_params(methodName, params, defaultValue)
-        if marginMode is not None:
-            if marginMode != 'isolated':
-                raise NotSupported(self.id + ' only isolated margin is supported')
-        return [marginMode, params]
+        marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
+        self.check_required_argument('setLeverage', marginMode, 'marginMode', ['isolated', 'cross'])
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
+        request = {
+            'symbol': market['id'],
+            'leverage': str(leverage),
+            'open_type': marginMode,
+        }
+        return await self.privatePostContractPrivateSubmitLeverage(self.extend(request, params))
 
     def nonce(self):
         return self.milliseconds()

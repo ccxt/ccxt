@@ -88,7 +88,7 @@ export default class bitmart extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayMargin': true,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,
                 'withdraw': true,
@@ -211,6 +211,7 @@ export default class bitmart extends Exchange {
                         'spot/v1/margin/isolated/transfer': 6,
                         // contract
                         'contract/private/trades': 10,
+                        'contract/private/submit-leverage': 2.5,
                     },
                 },
             },
@@ -2055,6 +2056,9 @@ export default class bitmart extends Exchange {
         }
         const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
         if (marginMode !== undefined) {
+            if (marginMode !== 'isolated') {
+                throw new NotSupported(this.id + ' only isolated margin is supported');
+            }
             method = 'privatePostSpotV1MarginSubmitOrder';
         }
         const response = await this[method](this.extend(request, query));
@@ -3207,22 +3211,33 @@ export default class bitmart extends Exchange {
             'info': interest,
         };
     }
-    handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {
+    async setLeverage(leverage, symbol = undefined, params = {}) {
         /**
-         * @ignore
          * @method
-         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {array} the marginMode in lowercase
+         * @name bitmart#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {string} [params.marginMode] 'isolated' or 'cross'
+         * @returns {object} response from the exchange
          */
+        this.checkRequiredSymbol('setLeverage', symbol);
         let marginMode = undefined;
-        [marginMode, params] = super.handleMarginModeAndParams(methodName, params, defaultValue);
-        if (marginMode !== undefined) {
-            if (marginMode !== 'isolated') {
-                throw new NotSupported(this.id + ' only isolated margin is supported');
-            }
+        [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params);
+        this.checkRequiredArgument('setLeverage', marginMode, 'marginMode', ['isolated', 'cross']);
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new BadSymbol(this.id + ' setLeverage() supports swap contracts only');
         }
-        return [marginMode, params];
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage.toString(),
+            'open_type': marginMode,
+        };
+        return await this.privatePostContractPrivateSubmitLeverage(this.extend(request, params));
     }
     nonce() {
         return this.milliseconds();
