@@ -21,7 +21,10 @@ interface Exchange {
     publicSpotGetMarketCandles (params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketDepth (params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketSpotVipLevel (params?: {}): Promise<implicitReturnType>;
+    publicSpotGetMarketMergeDepth (params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketHistoryCandles (params?: {}): Promise<implicitReturnType>;
+    publicSpotGetPublicLoanCoinInfos (params?: {}): Promise<implicitReturnType>;
+    publicSpotGetPublicLoanHourInterest (params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketContracts (params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketDepth (params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketTicker (params?: {}): Promise<implicitReturnType>;
@@ -42,6 +45,7 @@ interface Exchange {
     publicMixGetMarketHistoryCandles (params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketHistoryIndexCandles (params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketHistoryMarkCandles (params?: {}): Promise<implicitReturnType>;
+    publicMixGetMarketMergeDepth (params?: {}): Promise<implicitReturnType>;
     publicMarginGetCrossPublicInterestRateAndLimit (params?: {}): Promise<implicitReturnType>;
     publicMarginGetIsolatedPublicInterestRateAndLimit (params?: {}): Promise<implicitReturnType>;
     publicMarginGetCrossPublicTierData (params?: {}): Promise<implicitReturnType>;
@@ -56,6 +60,11 @@ interface Exchange {
     privateSpotGetAccountTransferRecords (params?: {}): Promise<implicitReturnType>;
     privateSpotGetConvertCurrencies (params?: {}): Promise<implicitReturnType>;
     privateSpotGetConvertConvertRecord (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetLoanOngoingOrders (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetLoanRepayHistory (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetLoanReviseHistory (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetLoanBorrowHistory (params?: {}): Promise<implicitReturnType>;
+    privateSpotGetLoanDebts (params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletTransfer (params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletTransferV2 (params?: {}): Promise<implicitReturnType>;
     privateSpotPostWalletSubTransfer (params?: {}): Promise<implicitReturnType>;
@@ -84,6 +93,9 @@ interface Exchange {
     privateSpotPostPlanBatchCancelPlan (params?: {}): Promise<implicitReturnType>;
     privateSpotPostConvertQuotedPrice (params?: {}): Promise<implicitReturnType>;
     privateSpotPostConvertTrade (params?: {}): Promise<implicitReturnType>;
+    privateSpotPostLoanBorrow (params?: {}): Promise<implicitReturnType>;
+    privateSpotPostLoanRepay (params?: {}): Promise<implicitReturnType>;
+    privateSpotPostLoanRevisePledge (params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceOrderOrderCurrentList (params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceOrderOrderHistoryList (params?: {}): Promise<implicitReturnType>;
     privateSpotPostTraceOrderCloseTrackingOrder (params?: {}): Promise<implicitReturnType>;
@@ -199,6 +211,9 @@ interface Exchange {
     privateBrokerGetAccountSubEmail (params?: {}): Promise<implicitReturnType>;
     privateBrokerGetAccountSubSpotAssets (params?: {}): Promise<implicitReturnType>;
     privateBrokerGetAccountSubFutureAssets (params?: {}): Promise<implicitReturnType>;
+    privateBrokerGetAccountSubaccountTransfer (params?: {}): Promise<implicitReturnType>;
+    privateBrokerGetAccountSubaccountDeposit (params?: {}): Promise<implicitReturnType>;
+    privateBrokerGetAccountSubaccountWithdrawal (params?: {}): Promise<implicitReturnType>;
     privateBrokerGetAccountSubApiList (params?: {}): Promise<implicitReturnType>;
     privateBrokerPostAccountSubCreate (params?: {}): Promise<implicitReturnType>;
     privateBrokerPostAccountSubModify (params?: {}): Promise<implicitReturnType>;

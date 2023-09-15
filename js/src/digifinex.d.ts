@@ -237,6 +237,8 @@ export default class digifinex extends Exchange {
         leverage: number;
         marginRatio: number;
         percentage: any;
+        stopLossPrice: any;
+        takeProfitPrice: any;
     };
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

@@ -8,9 +8,12 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 import hashlib
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
+from typing import List
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
@@ -25,11 +28,14 @@ class bitget(ccxt.async_support.bitget):
                 'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
+                'watchOHLCVForSymbols': True,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
             },
             'urls': {
                 'api': {
@@ -60,7 +66,18 @@ class bitget(ccxt.async_support.bitget):
                 'ws': {
                     'exact': {
                         '30001': BadRequest,  # {"event":"error","code":30001,"msg":"instType:sp,channel:candleNone,instId:BTCUSDT doesn't exist"}
+                        '30002': AuthenticationError,  # illegal request
+                        '30003': BadRequest,  # invalid op
+                        '30004': AuthenticationError,  # requires login
+                        '30005': AuthenticationError,  # login failed
+                        '30006': RateLimitExceeded,  # too many requests
+                        '30007': RateLimitExceeded,  # request over limit,connection close
+                        '30011': AuthenticationError,  # invalid ACCESS_KEY
+                        '30012': AuthenticationError,  # invalid ACCESS_PASSPHRASE
+                        '30013': AuthenticationError,  # invalid ACCESS_TIMESTAMP
+                        '30014': BadRequest,  # Request timestamp expired
                         '30015': AuthenticationError,  # {event: 'error', code: 30015, msg: 'Invalid sign'}
+                        '30016': BadRequest,  # {event: 'error', code: 30016, msg: 'Param error'}
                     },
                 },
             },
@@ -99,7 +116,7 @@ class bitget(ccxt.async_support.bitget):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -259,6 +276,39 @@ class bitget(ccxt.async_support.bitget):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :returns dict: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        topics = []
+        hashes = []
+        for i in range(0, len(symbolsAndTimeframes)):
+            data = symbolsAndTimeframes[i]
+            symbol = self.safe_string(data, 0)
+            timeframe = self.safe_string(data, 1)
+            market = self.market(symbol)
+            interval = self.safe_string(self.options['timeframes'], timeframe)
+            instType = 'sp' if market['spot'] else 'mc'
+            args = {
+                'instType': instType,
+                'channel': 'candle' + interval,
+                'instId': self.get_ws_market_id(market),
+            }
+            topics.append(args)
+            hashes.append(symbol + '#' + timeframe)
+        messageHash = 'multipleOHLCV::' + ','.join(hashes)
+        symbol, timeframe, stored = await self.watch_public_multiple(messageHash, topics, params)
+        if self.newUpdates:
+            limit = stored.getLimit(symbol, limit)
+        filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
+        return self.create_ohlcv_object(symbol, timeframe, filtered)
+
     def handle_ohlcv(self, client: Client, message):
         #
         #   {
@@ -308,6 +358,7 @@ class bitget(ccxt.async_support.bitget):
             stored.append(parsed)
         messageHash = 'candles:' + timeframe + ':' + symbol
         client.resolve(stored, messageHash)
+        self.resolve_multiple_ohlcv(client, 'multipleOHLCV::', symbol, timeframe, stored)
 
     def parse_ws_ohlcv(self, ohlcv, market=None):
         #
@@ -335,7 +386,7 @@ class bitget(ccxt.async_support.bitget):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -353,6 +404,38 @@ class bitget(ccxt.async_support.bitget):
             'instId': self.get_ws_market_id(market),
         }
         orderbook = await self.watch_public(messageHash, args, params)
+        if incrementalFeed:
+            return orderbook.limit()
+        else:
+            return orderbook
+
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        channel = 'books'
+        incrementalFeed = True
+        if (limit == 5) or (limit == 15):
+            channel += str(limit)
+            incrementalFeed = False
+        topics = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            instType = 'sp' if market['spot'] else 'mc'
+            args = {
+                'instType': instType,
+                'channel': channel,
+                'instId': self.get_ws_market_id(market),
+            }
+            topics.append(args)
+        messageHash = 'multipleOrderbooks::' + ','.join(symbols)
+        orderbook = await self.watch_public_multiple(messageHash, topics, params)
         if incrementalFeed:
             return orderbook.limit()
         else:
@@ -435,6 +518,7 @@ class bitget(ccxt.async_support.bitget):
             storedOrderBook = self.parse_order_book(rawOrderBook, symbol, timestamp)
         self.orderbooks[symbol] = storedOrderBook
         client.resolve(storedOrderBook, messageHash)
+        self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbooks::', symbol, storedOrderBook)
 
     def handle_delta(self, bookside, delta):
         bidAsk = self.parse_bid_ask(delta, 0, 1)
@@ -454,7 +538,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -469,6 +553,38 @@ class bitget(ccxt.async_support.bitget):
         trades = await self.watch_public(messageHash, args, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
+        symbolsLength = len(symbols)
+        if symbolsLength == 0:
+            raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        topics = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            instType = 'sp' if market['spot'] else 'mc'
+            args = {
+                'instType': instType,
+                'channel': 'trade',
+                'instId': self.get_ws_market_id(market),
+            }
+            topics.append(args)
+        messageHash = 'multipleTrades::' + ','.join(symbols)
+        trades = await self.watch_public_multiple(messageHash, topics, params)
+        if self.newUpdates:
+            first = self.safe_value(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
@@ -504,6 +620,7 @@ class bitget(ccxt.async_support.bitget):
             stored.append(parsed)
         messageHash = 'trade:' + symbol
         client.resolve(stored, messageHash)
+        self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, stored)
 
     def parse_ws_trade(self, trade, market=None):
         #
@@ -544,7 +661,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
         """
         await self.load_markets()
         market = None
@@ -810,7 +927,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         # only contracts stream provides the trade info consistently in between order updates
         # the spot stream only provides on limit orders updates so we can't support it for spot
@@ -956,7 +1073,7 @@ class bitget(ccxt.async_support.bitget):
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param str [params.type]: spot or contract if not provided self.options['defaultType'] is used
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', None, params)
@@ -1032,13 +1149,23 @@ class bitget(ccxt.async_support.bitget):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def authenticate(self, params={}):
+    async def watch_public_multiple(self, messageHash, argsArray, params={}):
+        url = self.urls['api']['ws']
+        request = {
+            'op': 'subscribe',
+            'args': argsArray,
+        }
+        message = self.extend(request, params)
+        return await self.watch(url, messageHash, message, messageHash)
+
+    async def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             timestamp = str(self.seconds())
             auth = timestamp + 'GET' + '/user/verify'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
@@ -1055,8 +1182,7 @@ class bitget(ccxt.async_support.bitget):
                 ],
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, message, messageHash)
         return future
 
     async def watch_private(self, messageHash, subscriptionHash, args, params={}):
@@ -1074,7 +1200,8 @@ class bitget(ccxt.async_support.bitget):
         #  {event: 'login', code: 0}
         #
         messageHash = 'authenticated'
-        client.resolve(message, messageHash)
+        future = self.safe_value(client.futures, messageHash)
+        future.resolve(True)
 
     def handle_error_message(self, client: Client, message):
         #
@@ -1086,6 +1213,9 @@ class bitget(ccxt.async_support.bitget):
                 code = self.safe_string(message, 'code')
                 feedback = self.id + ' ' + self.json(message)
                 self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], code, feedback)
+                msg = self.safe_string(message, 'msg', '')
+                self.throw_broadly_matched_exception(self.exceptions['ws']['broad'], msg, feedback)
+                raise ExchangeError(feedback)
             return False
         except Exception as e:
             if isinstance(e, AuthenticationError):
@@ -1093,6 +1223,9 @@ class bitget(ccxt.async_support.bitget):
                 client.reject(e, messageHash)
                 if messageHash in client.subscriptions:
                     del client.subscriptions[messageHash]
+            else:
+                # Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue  #19041
+                client.reject(e)
             return True
 
     def handle_message(self, client: Client, message):

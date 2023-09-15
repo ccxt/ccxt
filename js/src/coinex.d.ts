@@ -39,6 +39,7 @@ export default class coinex extends Exchange {
     fetchMarginBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchSpotBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchSwapBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    fetchFinancialBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): import("./base/types.js").Order;
