@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/latoken.js';
-import { ExchangeError, AuthenticationError, ArgumentsRequired, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder } from './base/errors.js';
+import { ExchangeError, AuthenticationError, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
