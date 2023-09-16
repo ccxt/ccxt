@@ -1,8 +1,6 @@
 /* eslint-disable max-classes-per-file */
 // @ts-nocheck
 
-import { sortBy } from '../../base/functions.js'
-
 class BaseCache extends Array {
 
     constructor (maxSize = undefined) {
