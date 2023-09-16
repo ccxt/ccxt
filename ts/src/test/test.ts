@@ -14,7 +14,7 @@ process.on ('uncaughtException', (e) => {
 process.on ('unhandledRejection', (e: any) => {
     console.log (e, '<UNHANDLED REJECTION>', e.stack); process.exit (1);
 });
-const [ processPath, , exchangeId = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
+const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 const AuthenticationError = ccxt.AuthenticationError;
 const RateLimitExceeded = ccxt.RateLimitExceeded;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
@@ -737,4 +737,4 @@ export default class testMainClass extends baseMainTestClass {
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass ()).init (exchangeId, exchangeSymbol);
+(new testMainClass ()).init (exchangeIdFromArgv, exchangeSymbol);
