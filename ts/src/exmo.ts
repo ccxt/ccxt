@@ -2607,11 +2607,12 @@ export default class exmo extends Exchange {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        if ('error' in response) {
+        if ('error' in response && !('result' in response)) {
             // error: {
             //     code: '140434',
             //     msg: "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by '2.5 USDT'."
             // }
+            //
             const errorCode = this.safeValue (response, 'error', {});
             const messageError = this.safeString (errorCode, 'msg');
             const code = this.safeString (errorCode, 'code');
