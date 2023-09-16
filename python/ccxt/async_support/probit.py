@@ -431,8 +431,8 @@ class probit(Exchange, ImplicitAPI):
             networkList = {}
             for j in range(0, len(platformsByPriority)):
                 network = platformsByPriority[j]
-                id = self.safe_string(network, 'id')
-                networkCode = self.network_id_to_code(id)
+                networkId = self.safe_string(network, 'id')
+                networkCode = self.network_id_to_code(networkId)
                 currentDepositSuspended = self.safe_value(network, 'deposit_suspended')
                 currentWithdrawalSuspended = self.safe_value(network, 'withdrawal_suspended')
                 currentDeposit = not currentDepositSuspended
@@ -444,7 +444,7 @@ class probit(Exchange, ImplicitAPI):
                 withdrawFee = self.safe_value(network, 'withdrawal_fee', [])
                 fee = self.safe_value(withdrawFee, 0, {})
                 networkList[networkCode] = {
-                    'id': id,
+                    'id': networkId,
                     'network': networkCode,
                     'active': currentActive,
                     'deposit': currentDeposit,
@@ -760,7 +760,7 @@ class probit(Exchange, ImplicitAPI):
         if since is not None:
             request['start_time'] = self.iso8601(since)
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 10000)
         response = await self.publicGetTrade(self.extend(request, params))
         #
         #     {

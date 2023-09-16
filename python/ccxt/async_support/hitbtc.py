@@ -1085,7 +1085,7 @@ class hitbtc(Exchange, ImplicitAPI):
             # symbol is optional for hitbtc fetchTrades
             request['symbols'] = market['id']
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         if since is not None:
             request['from'] = since
         response = await self.publicGetPublicTrades(self.extend(request, params))

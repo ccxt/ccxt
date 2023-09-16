@@ -202,6 +202,7 @@ class latoken extends Exchange {
                 'defaultType' => 'spot',
                 'types' => array(
                     'wallet' => 'ACCOUNT_TYPE_WALLET',
+                    'funding' => 'ACCOUNT_TYPE_WALLET',
                     'spot' => 'ACCOUNT_TYPE_SPOT',
                 ),
                 'accounts' => array(
@@ -805,10 +806,10 @@ class latoken extends Exchange {
                 'currency' => $market['baseId'],
                 'quote' => $market['quoteId'],
                 // 'from' => (string) $since, // milliseconds
-                // 'limit' => $limit, // default 100, max 1000
+                // 'limit' => $limit, // default 100, $limit 100
             );
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 100, max 1000
+                $request['limit'] = min ($limit, 100); // default 100, $limit 100
             }
             $response = Async\await($this->publicGetTradeHistoryCurrencyQuote (array_merge($request, $params)));
             //

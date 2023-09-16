@@ -661,8 +661,8 @@ export default class poloniex extends poloniexRest {
                     previousOrder['status'] = state;
                     // update the newUpdates count
                     orders.append(previousOrder);
-                    marketIds.push(marketId);
                 }
+                marketIds.push(marketId);
             }
         }
         for (let i = 0; i < marketIds.length; i++) {
@@ -670,7 +670,7 @@ export default class poloniex extends poloniexRest {
             const market = this.market(marketId);
             const symbol = market['symbol'];
             const messageHash = 'orders::' + symbol;
-            client.resolve(orders[symbol], messageHash);
+            client.resolve(orders, messageHash);
         }
         client.resolve(orders, 'orders');
         return message;

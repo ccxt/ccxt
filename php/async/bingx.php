@@ -714,7 +714,7 @@ class bingx extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 100); // avoid API exception "limit should less than 100"
             }
             $response = null;
             $marketType = null;

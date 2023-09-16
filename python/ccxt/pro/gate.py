@@ -25,6 +25,7 @@ class gate(ccxt.async_support.gate):
                 'watchTicker': True,
                 'watchTickers': True,  # for now
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchBalance': True,
@@ -375,6 +376,30 @@ class gate(ccxt.async_support.gate):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the gate api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        marketIds = self.market_ids(symbols)
+        market = self.market(symbols[0])
+        messageType = self.get_type_by_market(market)
+        channel = messageType + '.trades'
+        messageHash = 'multipleTrades::' + ','.join(symbols)
+        url = self.get_url_by_market(market)
+        trades = await self.subscribe_public(url, messageHash, marketIds, channel, params)
+        if self.newUpdates:
+            first = self.safe_value(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
     def handle_trades(self, client: Client, message):
         #
         # {
@@ -407,6 +432,7 @@ class gate(ccxt.async_support.gate):
             cachedTrades.append(trade)
             hash = 'trades:' + symbol
             client.resolve(cachedTrades, hash)
+            self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, cachedTrades)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

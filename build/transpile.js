@@ -1570,6 +1570,7 @@ class Transpiler {
                 'any': 'Any',
                 'boolean': 'bool',
                 'Int': 'int',
+                'string[]': 'List[str]',
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {
