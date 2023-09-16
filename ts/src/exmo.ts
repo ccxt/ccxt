@@ -205,6 +205,7 @@ export default class exmo extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '140434': BadRequest,
                     '40005': AuthenticationError, // Authorization error, incorrect signature
                     '40009': InvalidNonce, //
                     '40015': ExchangeError, // API function do not exist
@@ -2218,6 +2219,19 @@ export default class exmo extends Exchange {
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
+        }
+        if ('error' in response) {
+            // error: {
+            //     code: '140434',
+            //     msg: "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by '2.5 USDT'."
+            // }
+            const errorCode = this.safeValue (response, 'error', {});
+            const messageError = this.safeString (errorCode, 'msg');
+            const code = this.safeString (errorCode, 'code');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], messageError, feedback);
+            throw new ExchangeError (feedback);
         }
         if (('result' in response) || ('errmsg' in response)) {
             //
