@@ -1118,7 +1118,7 @@ class hitbtc extends Exchange {
                 $request['symbols'] = $market['id'];
             }
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 1000);
             }
             if ($since !== null) {
                 $request['from'] = $since;

@@ -290,6 +290,7 @@ export default class gate extends Exchange {
                             'spot/orders/{order_id}': 1.5,
                         },
                         'post': {
+                            'account_mode': 1.5,
                             'loans': 1.5,
                             'spot/orders': 1.5,
                         },
@@ -4163,7 +4164,7 @@ export default class gate extends Exchange {
             type = isMarketOrder ? 'market' : 'limit';
             side = Precise.stringGt(amount, '0') ? 'buy' : 'sell';
         }
-        const rawStatus = this.safeStringN(order, ['status', 'finish_as', 'open']);
+        const rawStatus = this.safeStringN(order, ['finish_as', 'status', 'open']);
         let timestamp = this.safeInteger(order, 'create_time_ms');
         if (timestamp === undefined) {
             timestamp = this.safeTimestamp2(order, 'create_time', 'ctime');
@@ -5800,7 +5801,7 @@ export default class gate extends Exchange {
          * @param {int} [since] timestamp in ms
          * @param {int} [limit] number of records
          * @param {object} [params] exchange specific params
-         * @returns {object[]} a list of [settlement history objects]
+         * @returns {object[]} a list of [settlement history objects]{@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure}
          */
         this.checkRequiredSymbol('fetchSettlementHistory', symbol);
         await this.loadMarkets();

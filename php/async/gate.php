@@ -301,6 +301,7 @@ class gate extends Exchange {
                             'spot/orders/{order_id}' => 1.5,
                         ),
                         'post' => array(
+                            'account_mode' => 1.5,
                             'loans' => 1.5,
                             'spot/orders' => 1.5,
                         ),
@@ -4206,7 +4207,7 @@ class gate extends Exchange {
             $type = $isMarketOrder ? 'market' : 'limit';
             $side = Precise::string_gt($amount, '0') ? 'buy' : 'sell';
         }
-        $rawStatus = $this->safe_string_n($order, array( 'status', 'finish_as', 'open' ));
+        $rawStatus = $this->safe_string_n($order, array( 'finish_as', 'status', 'open' ));
         $timestamp = $this->safe_integer($order, 'create_time_ms');
         if ($timestamp === null) {
             $timestamp = $this->safe_timestamp_2($order, 'create_time', 'ctime');
@@ -5858,7 +5859,7 @@ class gate extends Exchange {
              * @param {int} [$since] timestamp in ms
              * @param {int} [$limit] number of records
              * @param {array} [$params] exchange specific $params
-             * @return {array[]} a list of [settlement history objects]
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
              */
             $this->check_required_symbol('fetchSettlementHistory', $symbol);
             Async\await($this->load_markets());

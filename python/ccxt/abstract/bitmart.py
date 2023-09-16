@@ -78,3 +78,4 @@ class ImplicitAPI:
     private_post_spot_v1_margin_isolated_repay = privatePostSpotV1MarginIsolatedRepay = Entry('spot/v1/margin/isolated/repay', 'private', 'POST', {'cost': 6})
     private_post_spot_v1_margin_isolated_transfer = privatePostSpotV1MarginIsolatedTransfer = Entry('spot/v1/margin/isolated/transfer', 'private', 'POST', {'cost': 6})
     private_post_contract_private_trades = privatePostContractPrivateTrades = Entry('contract/private/trades', 'private', 'POST', {'cost': 10})
+    private_post_contract_private_submit_leverage = privatePostContractPrivateSubmitLeverage = Entry('contract/private/submit-leverage', 'private', 'POST', {'cost': 2.5})

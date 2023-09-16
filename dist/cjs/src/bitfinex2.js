@@ -1274,7 +1274,7 @@ class bitfinex2 extends bitfinex2$1 {
             sort = '1';
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 120, max 5000
+            request['limit'] = Math.min(limit, 10000); // default 120, max 10000
         }
         request['sort'] = sort;
         const response = await this.publicGetTradesSymbolHist(this.extend(request, params));

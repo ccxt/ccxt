@@ -201,6 +201,7 @@ class latoken extends latoken$1 {
                 'defaultType': 'spot',
                 'types': {
                     'wallet': 'ACCOUNT_TYPE_WALLET',
+                    'funding': 'ACCOUNT_TYPE_WALLET',
                     'spot': 'ACCOUNT_TYPE_SPOT',
                 },
                 'accounts': {
@@ -795,10 +796,10 @@ class latoken extends latoken$1 {
             'currency': market['baseId'],
             'quote': market['quoteId'],
             // 'from': since.toString (), // milliseconds
-            // 'limit': limit, // default 100, max 1000
+            // 'limit': limit, // default 100, limit 100
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 1000
+            request['limit'] = Math.min(limit, 100); // default 100, limit 100
         }
         const response = await this.publicGetTradeHistoryCurrencyQuote(this.extend(request, params));
         //

@@ -110,9 +110,10 @@ class okx(ccxt.async_support.okx):
         # for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
         isSandbox = self.options['sandboxMode']
         sandboxSuffix = '?brokerId=9999' if isSandbox else ''
+        isBusiness = (access == 'business')
         isPublic = (access == 'public')
         url = self.urls['api']['ws']
-        if (channel.find('candle') > -1) or (channel == 'orders-algo'):
+        if isBusiness or (channel.find('candle') > -1) or (channel == 'orders-algo'):
             return url + '/business' + sandboxSuffix
         elif isPublic:
             return url + '/public' + sandboxSuffix
@@ -776,13 +777,13 @@ class okx(ccxt.async_support.okx):
         :param bool [params.stop]: True if fetching trigger or conditional trades
         :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
         """
-        await self.load_markets()
-        await self.authenticate()
         # By default, receive order updates from any instrument type
         type = None
         type, params = self.handle_option_and_params(params, 'watchMyTrades', 'type', 'ANY')
         isStop = self.safe_value(params, 'stop', False)
         params = self.omit(params, ['stop'])
+        await self.load_markets()
+        await self.authenticate({'access': 'business' if isStop else 'private'})
         channel = 'orders-algo' if isStop else 'orders'
         messageHash = channel + '::myTrades'
         market = None
@@ -813,13 +814,13 @@ class okx(ccxt.async_support.okx):
         :param bool [params.stop]: True if fetching trigger or conditional orders
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        await self.load_markets()
-        await self.authenticate()
         type = None
         # By default, receive order updates from any instrument type
         type, params = self.handle_option_and_params(params, 'watchOrders', 'type', 'ANY')
         isStop = self.safe_value(params, 'stop', False)
         params = self.omit(params, ['stop'])
+        await self.load_markets()
+        await self.authenticate({'access': 'business' if isStop else 'private'})
         market = None
         if symbol is not None:
             market = self.market(symbol)

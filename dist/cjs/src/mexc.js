@@ -833,7 +833,9 @@ class mexc extends mexc$1 {
             //
             //     {}
             //
-            status = Object.keys(response).length ? this.json(response) : 'ok';
+            const keys = Object.keys(response);
+            const length = keys.length;
+            status = length ? this.json(response) : 'ok';
         }
         else if (marketType === 'swap') {
             response = await this.contractPublicGetPing(query);

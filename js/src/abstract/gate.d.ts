@@ -90,6 +90,7 @@ interface Exchange {
     privatePortfolioGetInterestRecords(params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetSpotOrders(params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetSpotOrdersOrderId(params?: {}): Promise<implicitReturnType>;
+    privatePortfolioPostAccountMode(params?: {}): Promise<implicitReturnType>;
     privatePortfolioPostLoans(params?: {}): Promise<implicitReturnType>;
     privatePortfolioPostSpotOrders(params?: {}): Promise<implicitReturnType>;
     privatePortfolioDeleteSpotOrdersOrderId(params?: {}): Promise<implicitReturnType>;

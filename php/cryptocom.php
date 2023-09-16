@@ -2640,7 +2640,7 @@ class cryptocom extends Exchange {
          * @param {int} [$limit] number of records
          * @param {array} [$params] exchange specific $params
          * @param {int} [$params->type] 'future', 'option'
-         * @return {array[]} a list of [settlement history objects]
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
          */
         $this->load_markets();
         $market = null;
