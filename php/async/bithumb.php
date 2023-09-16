@@ -82,15 +82,14 @@ class bithumb extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'ticker/{currency}',
-                        'ticker/all',
-                        'ticker/ALL_BTC',
-                        'ticker/ALL_KRW',
-                        'orderbook/{currency}',
-                        'orderbook/all',
-                        'transaction_history/{currency}',
-                        'transaction_history/all',
-                        'candlestick/{currency}/{interval}',
+                        'ticker/ALL_{quoteId}',
+                        'ticker/{baseId}_{quoteId}',
+                        'orderbook/ALL_{quoteId}',
+                        'orderbook/{baseId}_{quoteId}',
+                        'transaction_history/{baseId}_{quoteId}',
+                        'assetsstatus/ALL',
+                        'assetsstatus/{baseId}',
+                        'candlestick/{baseId}_{quoteId}/{interval}',
                     ),
                 ),
                 'private' => array(
@@ -109,6 +108,7 @@ class bithumb extends Exchange {
                         'trade/krw_withdrawal',
                         'trade/market_buy',
                         'trade/market_sell',
+                        'trade/stop_limit',
                     ),
                 ),
             ),
@@ -199,8 +199,10 @@ class bithumb extends Exchange {
                 $quote = $quotes[$i];
                 $quoteId = $quote;
                 $extension = $this->safe_value($quoteCurrencies, $quote, array());
-                $method = 'publicGetTickerALL' . $quote;
-                $response = Async\await($this->$method ($params));
+                $request = array(
+                    'quoteId' => $quoteId,
+                );
+                $response = Async\await($this->publicGetTickerALLQuoteId (array_merge($request, $params)));
                 $data = $this->safe_value($response, 'data');
                 $currencyIds = is_array($data) ? array_keys($data) : array();
                 for ($j = 0; $j < count($currencyIds); $j++) {
@@ -314,12 +316,13 @@ class bithumb extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'currency' => $market['base'] . '_' . $market['quote'],
+                'baseId' => $market['baseId'],
+                'quoteId' => $market['quoteId'],
             );
             if ($limit !== null) {
                 $request['count'] = $limit; // default 30, max 30
             }
-            $response = Async\await($this->publicGetOrderbookCurrency (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderbookBaseIdQuoteId (array_merge($request, $params)));
             //
             //     {
             //         "status":"0000",
@@ -409,8 +412,11 @@ class bithumb extends Exchange {
             $quotes = is_array($quoteCurrencies) ? array_keys($quoteCurrencies) : array();
             for ($i = 0; $i < count($quotes); $i++) {
                 $quote = $quotes[$i];
-                $method = 'publicGetTickerALL' . $quote;
-                $response = Async\await($this->$method ($params));
+                $quoteId = $quote;
+                $request = array(
+                    'quoteId' => $quoteId,
+                );
+                $response = Async\await($this->publicGetTickerALLQuoteId (array_merge($request, $params)));
                 //
                 //     {
                 //         "status":"0000",
@@ -461,9 +467,10 @@ class bithumb extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'currency' => $market['base'],
+                'baseId' => $market['baseId'],
+                'quoteId' => $market['quoteId'],
             );
-            $response = Async\await($this->publicGetTickerCurrency (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickerBaseIdQuoteId (array_merge($request, $params)));
             //
             //     {
             //         "status":"0000",
@@ -523,10 +530,11 @@ class bithumb extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'currency' => $market['base'],
+                'baseId' => $market['baseId'],
+                'quoteId' => $market['quoteId'],
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            $response = Async\await($this->publicGetCandlestickCurrencyInterval (array_merge($request, $params)));
+            $response = Async\await($this->publicGetCandlestickBaseIdQuoteIdInterval (array_merge($request, $params)));
             //
             //     {
             //         'status' => '0000',
@@ -646,12 +654,13 @@ class bithumb extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'currency' => $market['base'] . '_' . $market['quote'],
+                'baseId' => $market['baseId'],
+                'quoteId' => $market['quoteId'],
             );
             if ($limit !== null) {
                 $request['count'] = $limit; // default 20, max 100
             }
-            $response = Async\await($this->publicGetTransactionHistoryCurrency (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTransactionHistoryBaseIdQuoteId (array_merge($request, $params)));
             //
             //     {
             //         "status":"0000",

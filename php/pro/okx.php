@@ -106,9 +106,10 @@ class okx extends \ccxt\async\okx {
         // for context => https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-$url
         $isSandbox = $this->options['sandboxMode'];
         $sandboxSuffix = $isSandbox ? '?brokerId=9999' : '';
+        $isBusiness = ($access === 'business');
         $isPublic = ($access === 'public');
         $url = $this->urls['api']['ws'];
-        if ((mb_strpos($channel, 'candle') > -1) || ($channel === 'orders-algo')) {
+        if ($isBusiness || (mb_strpos($channel, 'candle') > -1) || ($channel === 'orders-algo')) {
             return $url . '/business' . $sandboxSuffix;
         } elseif ($isPublic) {
             return $url . '/public' . $sandboxSuffix;
@@ -848,13 +849,13 @@ class okx extends \ccxt\async\okx {
              * @param {bool} [$params->stop] true if fetching trigger or conditional trades
              * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
              */
-            Async\await($this->load_markets());
-            Async\await($this->authenticate());
             // By default, receive order updates from any instrument $type
             $type = null;
             list($type, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'type', 'ANY');
             $isStop = $this->safe_value($params, 'stop', false);
             $params = $this->omit($params, array( 'stop' ));
+            Async\await($this->load_markets());
+            Async\await($this->authenticate(array( 'access' => $isStop ? 'business' : 'private' )));
             $channel = $isStop ? 'orders-algo' : 'orders';
             $messageHash = $channel . '::myTrades';
             $market = null;
@@ -891,13 +892,13 @@ class okx extends \ccxt\async\okx {
              * @param {bool} [$params->stop] true if fetching trigger or conditional $orders
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            Async\await($this->load_markets());
-            Async\await($this->authenticate());
             $type = null;
             // By default, receive order updates from any instrument $type
             list($type, $params) = $this->handle_option_and_params($params, 'watchOrders', 'type', 'ANY');
             $isStop = $this->safe_value($params, 'stop', false);
             $params = $this->omit($params, array( 'stop' ));
+            Async\await($this->load_markets());
+            Async\await($this->authenticate(array( 'access' => $isStop ? 'business' : 'private' )));
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);

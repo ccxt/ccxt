@@ -848,7 +848,9 @@ class mexc(Exchange, ImplicitAPI):
             #
             #     {}
             #
-            status = self.json(response) if response else 'ok'
+            keys = list(response.keys())
+            length = len(keys)
+            status = self.json(response) if length else 'ok'
         elif marketType == 'swap':
             response = await self.contractPublicGetPing(query)
             #

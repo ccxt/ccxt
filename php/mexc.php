@@ -829,7 +829,9 @@ class mexc extends Exchange {
             //
             //     array()
             //
-            $status = $response ? $this->json($response) : 'ok';
+            $keys = is_array($response) ? array_keys($response) : array();
+            $length = count($keys);
+            $status = $length ? $this->json($response) : 'ok';
         } elseif ($marketType === 'swap') {
             $response = $this->contractPublicGetPing ($query);
             //

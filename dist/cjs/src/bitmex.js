@@ -1722,7 +1722,7 @@ class bitmex extends bitmex$1 {
             request['reverse'] = true;
         }
         if (limit !== undefined) {
-            request['count'] = limit;
+            request['count'] = Math.min(limit, 1000); // api maximum 1000
         }
         const response = await this.publicGetTrade(this.extend(request, params));
         //

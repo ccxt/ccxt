@@ -1245,7 +1245,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             request['start'] = since
             sort = '1'
         if limit is not None:
-            request['limit'] = limit  # default 120, max 5000
+            request['limit'] = min(limit, 10000)  # default 120, max 10000
         request['sort'] = sort
         response = self.publicGetTradesSymbolHist(self.extend(request, params))
         #

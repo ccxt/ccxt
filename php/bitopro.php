@@ -109,40 +109,40 @@ class bitopro extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'order-book/{pair}',
-                        'tickers',
-                        'tickers/{pair}',
-                        'trades/{pair}',
-                        'provisioning/currencies',
-                        'provisioning/trading-pairs',
-                        'provisioning/limitations-and-fees',
-                        'trading-history/{pair}',
+                        'order-book/{pair}' => 1,
+                        'tickers' => 1,
+                        'tickers/{pair}' => 1,
+                        'trades/{pair}' => 1,
+                        'provisioning/currencies' => 1,
+                        'provisioning/trading-pairs' => 1,
+                        'provisioning/limitations-and-fees' => 1,
+                        'trading-history/{pair}' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'accounts/balance',
-                        'orders/history',
-                        'orders/all/{pair}',
-                        'orders/trades/{pair}',
-                        'orders/{pair}/{orderId}',
-                        'wallet/withdraw/{currency}/{serial}',
-                        'wallet/withdraw/{currency}/id/{id}',
-                        'wallet/depositHistory/{currency}',
-                        'wallet/withdrawHistory/{currency}',
+                        'accounts/balance' => 1,
+                        'orders/history' => 1,
+                        'orders/all/{pair}' => 1,
+                        'orders/trades/{pair}' => 1,
+                        'orders/{pair}/{orderId}' => 1,
+                        'wallet/withdraw/{currency}/{serial}' => 1,
+                        'wallet/withdraw/{currency}/id/{id}' => 1,
+                        'wallet/depositHistory/{currency}' => 1,
+                        'wallet/withdrawHistory/{currency}' => 1,
                     ),
                     'post' => array(
-                        'orders/{pair}',
-                        'orders/batch',
-                        'wallet/withdraw/{currency}',
+                        'orders/{pair}' => 1 / 2, // 1200/m => 20/s => 10/20 = 1/2
+                        'orders/batch' => 20 / 3, // 90/m => 1.5/s => 10/1.5 = 20/3
+                        'wallet/withdraw/{currency}' => 10, // 60/m => 1/s => 10/1 = 10
                     ),
                     'put' => array(
-                        'orders',
+                        'orders' => 5, // 2/s => 10/2 = 5
                     ),
                     'delete' => array(
-                        'orders/{pair}/{id}',
-                        'orders/all',
-                        'orders/{pair}',
+                        'orders/{pair}/{id}' => 2 / 3, // 900/m => 15/s => 10/15 = 2/3
+                        'orders/all' => 5, // 2/s => 10/2 = 5
+                        'orders/{pair}' => 5, // 2/s => 10/2 = 5
                     ),
                 ),
             ),

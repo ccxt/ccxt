@@ -241,8 +241,8 @@ class binance(ccxt.async_support.binance):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            messageHash = market['lowercaseId'] + '@' + name + '@' + watchOrderBookRate + 'ms'
-            subParams.append(messageHash)
+            symbolHash = market['lowercaseId'] + '@' + name + '@' + watchOrderBookRate + 'ms'
+            subParams.append(symbolHash)
         request = {
             'method': 'SUBSCRIBE',
             'params': subParams,
@@ -426,7 +426,7 @@ class binance(ccxt.async_support.binance):
             if symbol in self.orderbooks:
                 del self.orderbooks[symbol]
             self.orderbooks[symbol] = self.order_book({}, limit)
-            subscription['symbol'] = symbol
+            subscription = self.extend(subscription, {'symbol': symbol})
             # fetch the snapshot in a separate async call
             self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 

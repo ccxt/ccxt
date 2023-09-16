@@ -1346,7 +1346,7 @@ class digifinex extends Exchange {
             $request['symbol'] = $market['id'];
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = $market['swap'] ? min ($limit, 100) : $limit;
         }
         $response = $this->$method (array_merge($request, $params));
         //

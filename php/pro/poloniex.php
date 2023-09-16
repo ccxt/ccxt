@@ -680,8 +680,8 @@ class poloniex extends \ccxt\async\poloniex {
                     $previousOrder['status'] = $state;
                     // update the newUpdates count
                     $orders->append ($previousOrder);
-                    $marketIds[] = $marketId;
                 }
+                $marketIds[] = $marketId;
             }
         }
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -689,7 +689,7 @@ class poloniex extends \ccxt\async\poloniex {
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
             $messageHash = 'orders::' . $symbol;
-            $client->resolve ($orders[$symbol], $messageHash);
+            $client->resolve ($orders, $messageHash);
         }
         $client->resolve ($orders, 'orders');
         return $message;

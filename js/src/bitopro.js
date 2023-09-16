@@ -114,42 +114,42 @@ export default class bitopro extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'order-book/{pair}',
-                        'tickers',
-                        'tickers/{pair}',
-                        'trades/{pair}',
-                        'provisioning/currencies',
-                        'provisioning/trading-pairs',
-                        'provisioning/limitations-and-fees',
-                        'trading-history/{pair}',
-                    ],
+                    'get': {
+                        'order-book/{pair}': 1,
+                        'tickers': 1,
+                        'tickers/{pair}': 1,
+                        'trades/{pair}': 1,
+                        'provisioning/currencies': 1,
+                        'provisioning/trading-pairs': 1,
+                        'provisioning/limitations-and-fees': 1,
+                        'trading-history/{pair}': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts/balance',
-                        'orders/history',
-                        'orders/all/{pair}',
-                        'orders/trades/{pair}',
-                        'orders/{pair}/{orderId}',
-                        'wallet/withdraw/{currency}/{serial}',
-                        'wallet/withdraw/{currency}/id/{id}',
-                        'wallet/depositHistory/{currency}',
-                        'wallet/withdrawHistory/{currency}',
-                    ],
-                    'post': [
-                        'orders/{pair}',
-                        'orders/batch',
-                        'wallet/withdraw/{currency}',
-                    ],
-                    'put': [
-                        'orders',
-                    ],
-                    'delete': [
-                        'orders/{pair}/{id}',
-                        'orders/all',
-                        'orders/{pair}',
-                    ],
+                    'get': {
+                        'accounts/balance': 1,
+                        'orders/history': 1,
+                        'orders/all/{pair}': 1,
+                        'orders/trades/{pair}': 1,
+                        'orders/{pair}/{orderId}': 1,
+                        'wallet/withdraw/{currency}/{serial}': 1,
+                        'wallet/withdraw/{currency}/id/{id}': 1,
+                        'wallet/depositHistory/{currency}': 1,
+                        'wallet/withdrawHistory/{currency}': 1,
+                    },
+                    'post': {
+                        'orders/{pair}': 1 / 2,
+                        'orders/batch': 20 / 3,
+                        'wallet/withdraw/{currency}': 10, // 60/m => 1/s => 10/1 = 10
+                    },
+                    'put': {
+                        'orders': 5, // 2/s => 10/2 = 5
+                    },
+                    'delete': {
+                        'orders/{pair}/{id}': 2 / 3,
+                        'orders/all': 5,
+                        'orders/{pair}': 5, // 2/s => 10/2 = 5
+                    },
                 },
             },
             'fees': {

@@ -250,8 +250,8 @@ class binance extends \ccxt\async\binance {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $messageHash = $market['lowercaseId'] . '@' . $name . '@' . $watchOrderBookRate . 'ms';
-                $subParams[] = $messageHash;
+                $symbolHash = $market['lowercaseId'] . '@' . $name . '@' . $watchOrderBookRate . 'ms';
+                $subParams[] = $symbolHash;
             }
             $request = array(
                 'method' => 'SUBSCRIBE',
@@ -466,7 +466,7 @@ class binance extends \ccxt\async\binance {
                 unset($this->orderbooks[$symbol]);
             }
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
-            $subscription['symbol'] = $symbol;
+            $subscription = array_merge($subscription, array( 'symbol' => $symbol ));
             // fetch the snapshot in a separate async call
             $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
         }

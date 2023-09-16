@@ -106,7 +106,8 @@ export default class krakenfutures extends krakenfuturesRest {
             const symbol = symbols[i];
             marketIds.push(this.marketId(symbol));
         }
-        if (symbols.length === 1) {
+        const length = symbols.length;
+        if (length === 1) {
             const market = this.market(marketIds[0]);
             messageHash = messageHash + ':' + market['symbol'];
         }
@@ -624,7 +625,8 @@ export default class krakenfutures extends krakenfuturesRest {
             symbols[symbol] = true;
             cachedOrders.append(parsed);
         }
-        if (this.orders.length) {
+        const length = this.orders.length;
+        if (length > 0) {
             client.resolve(this.orders, 'orders');
             const keys = Object.keys(symbols);
             for (let i = 0; i < keys.length; i++) {

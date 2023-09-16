@@ -242,8 +242,8 @@ class binance extends binance$1 {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const messageHash = market['lowercaseId'] + '@' + name + '@' + watchOrderBookRate + 'ms';
-            subParams.push(messageHash);
+            const symbolHash = market['lowercaseId'] + '@' + name + '@' + watchOrderBookRate + 'ms';
+            subParams.push(symbolHash);
         }
         const request = {
             'method': 'SUBSCRIBE',
@@ -457,7 +457,7 @@ class binance extends binance$1 {
                 delete this.orderbooks[symbol];
             }
             this.orderbooks[symbol] = this.orderBook({}, limit);
-            subscription['symbol'] = symbol;
+            subscription = this.extend(subscription, { 'symbol': symbol });
             // fetch the snapshot in a separate async call
             this.spawn(this.fetchOrderBookSnapshot, client, message, subscription);
         }
