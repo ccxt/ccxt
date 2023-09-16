@@ -81,7 +81,12 @@
     "camelcase": "off",
     "no-lonely-if": "off",
     "no-mixed-operators": "off",
-    "no-shadow": "off",
+    "no-shadow": ["error", {
+      "builtinGlobals": true,
+      "hoist": "never",
+      "allow": [],
+      "ignoreOnInitialization": false
+    }],
     "no-useless-concat": "off",
     "no-continue": "off",
     "no-else-return": "off",
