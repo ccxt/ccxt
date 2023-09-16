@@ -196,7 +196,10 @@ class NewTranspiler {
         }
 
         if (wrappedType.startsWith('Dictionary<')) {
-            const type = wrappedType.substring(11, wrappedType.length - 1);
+            let type = wrappedType.substring(11, wrappedType.length - 1);
+            if (type.startsWith('Dictionary<')) {
+                type = this.convertJavascriptTypeToCsharpType(type) as any;
+            }
             return addTaskIfNeeded(`Dictionary<string, ${type}>`);
         }
 
@@ -298,7 +301,7 @@ class NewTranspiler {
         let returnStatement = "";
         if (unwrappedType.startsWith('List<')) {
             returnStatement = `return ((List<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
-        } else if (unwrappedType.startsWith('Dictionary<string,') && unwrappedType !== 'Dictionary<string, object>') {
+        } else if (unwrappedType.startsWith('Dictionary<string,') && unwrappedType !== 'Dictionary<string, object>' && !unwrappedType.startsWith('Dictionary')) {
             const type = this.unwrapDictionaryIfNeeded(unwrappedType);
             const returnParts = [
                 `var keys = ((Dictionary<string, object>)res).Keys.ToList();`,
@@ -472,7 +475,8 @@ class NewTranspiler {
 
         // custom transformations needed for c#
         baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
-        baseClass = baseClass.replace("((object)this).number = float;", "this.number = typeof(float);"); // tmp fix for c#
+        baseClass = baseClass.replaceAll("client.resolve", "// client.resolve"); // tmp fix for c#
+        baseClass = baseClass.replaceAll("((object)this).number = float;", "this.number = typeof(float);"); // tmp fix for c#
         // baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= new List<Task<object>> {");
         // baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
