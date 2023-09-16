@@ -83,7 +83,7 @@
     "no-mixed-operators": "off",
     "no-shadow": ["error", {
       "builtinGlobals": true,
-      "hoist": "never",
+      "hoist": "all",
       "allow": [],
       "ignoreOnInitialization": false
     }],
