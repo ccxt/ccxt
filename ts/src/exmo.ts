@@ -10,10 +10,10 @@ import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
-/**
- * @class exmo
- * @extends Exchange
- */
+// f
+// @class exmo
+// @extends Exchange
+//
 export default class exmo extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -1535,13 +1535,13 @@ export default class exmo extends Exchange {
         } else {
             if (stop) {
                 request['parent_order_id'] = id;
-                response = this.privatePostStopMarketOrderCancel (this.extend (request, params));
+                response = await this.privatePostStopMarketOrderCancel (this.extend (request, params));
                 //
                 //    {}
                 //
             } else {
                 request['order_id'] = id;
-                response = this.privatePostOrderCancel (this.extend (request, params));
+                response = await this.privatePostOrderCancel (this.extend (request, params));
                 //
                 //    {
                 //        'error': '',
