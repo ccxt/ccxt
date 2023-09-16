@@ -4500,7 +4500,7 @@ export default class binance extends Exchange {
         }
         const timeInForce = this.safeString (params, 'timeInForce');
         if (timeInForceIsRequired) {
-            if (!params['timeInForce']) {
+            if (!timeInForce) {
                 request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             } else {
                 request['timeInForce'] = timeInForce;
