@@ -145,6 +145,9 @@ class bitmart extends Exchange {
                         'account/sub-account/v1/transfer-history' => 7.5,
                         'account/sub-account/main/v1/wallet' => 5,
                         'account/sub-account/main/v1/subaccount-list' => 7.5,
+                        'account/contract/sub-account/main/v1/wallet' => 5,
+                        'account/contract/sub-account/main/v1/transfer-list' => 7.5,
+                        'account/contract/sub-account/v1/transfer-history' => 7.5,
                         // account
                         'account/v1/wallet' => 5,
                         'account/v1/currencies' => 30,
@@ -170,9 +173,11 @@ class bitmart extends Exchange {
                         'spot/v1/user_fee' => 6,
                         // contract
                         'contract/private/assets-detail' => 5,
-                        'contract/private/order' => 2,
+                        'contract/private/order' => 1.2,
                         'contract/private/order-history' => 10,
                         'contract/private/position' => 10,
+                        'contract/private/get-open-orders' => 1.2,
+                        'contract/private/trades' => 10,
                     ),
                     'post' => array(
                         // sub-account endpoints
@@ -181,6 +186,9 @@ class bitmart extends Exchange {
                         'account/sub-account/main/v1/main-to-sub' => 30,
                         'account/sub-account/sub/v1/sub-to-sub' => 30,
                         'account/sub-account/main/v1/sub-to-sub' => 30,
+                        'account/contract/sub-account/main/v1/sub-to-main' => 7.5,
+                        'account/contract/sub-account/main/v1/main-to-sub' => 7.5,
+                        'account/contract/sub-account/sub/v1/sub-to-main' => 7.5,
                         // account
                         'account/v1/withdraw/apply' => 7.5,
                         // transaction and trading
@@ -204,7 +212,13 @@ class bitmart extends Exchange {
                         'spot/v1/margin/isolated/repay' => 6,
                         'spot/v1/margin/isolated/transfer' => 6,
                         // contract
-                        'contract/private/trades' => 10,
+                        'account/v1/transfer-contract-list' => 60,
+                        'account/v1/transfer-contract' => 60,
+                        'contract/private/submit-order' => 2.5,
+                        'contract/private/cancel-order' => 1.5,
+                        'contract/private/cancel-orders' => 30,
+                        'contract/private/submit-plan-order' => 2.5,
+                        'contract/private/cancel-plan-order' => 1.5,
                         'contract/private/submit-leverage' => 2.5,
                     ),
                 ),

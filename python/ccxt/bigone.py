@@ -41,6 +41,7 @@ class bigone(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
@@ -142,6 +143,7 @@ class bigone(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': True,
                 'accountsByType': {
                     'spot': 'SPOT',
                     'fund': 'FUND',
@@ -1043,57 +1045,82 @@ class bigone(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
+    def parse_type(self, type: str):
+        types = {
+            'STOP_LIMIT': 'limit',
+            'STOP_MARKET': 'market',
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+        }
+        return self.safe_string(types, type, type)
+
     def parse_order(self, order, market=None):
         #
         #    {
-        #        "id": 10,
-        #        "asset_pair_name": "EOS-BTC",
-        #        "price": "10.00",
-        #        "amount": "10.00",
-        #        "filled_amount": "9.0",
-        #        "avg_deal_price": "12.0",
-        #        "side": "ASK",
-        #        "state": "FILLED",
-        #        "created_at":"2019-01-29T06:05:56Z",
-        #        "updated_at":"2019-01-29T06:05:56Z",
+        #        "id": '42154072251',
+        #        "asset_pair_name": 'SOL-USDT',
+        #        "price": '20',
+        #        "amount": '0.5',
+        #        "filled_amount": '0',
+        #        "avg_deal_price": '0',
+        #        "side": 'ASK',
+        #        "state": 'PENDING',
+        #        "created_at": '2023-09-13T03:42:00Z',
+        #        "updated_at": '2023-09-13T03:42:00Z',
+        #        "type": 'LIMIT',
+        #        "stop_price": '0',
+        #        "immediate_or_cancel": False,
+        #        "post_only": False,
+        #        "client_order_id": ''
         #    }
         #
         id = self.safe_string(order, 'id')
         marketId = self.safe_string(order, 'asset_pair_name')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        price = self.safe_string(order, 'price')
-        amount = self.safe_string(order, 'amount')
-        average = self.safe_string(order, 'avg_deal_price')
-        filled = self.safe_string(order, 'filled_amount')
-        status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'side')
         if side == 'BID':
             side = 'buy'
         else:
             side = 'sell'
-        lastTradeTimestamp = self.parse8601(self.safe_string(order, 'updated_at'))
+        triggerPrice = self.safe_string(order, 'stop_price')
+        if Precise.string_eq(triggerPrice, '0'):
+            triggerPrice = None
+        immediateOrCancel = self.safe_value(order, 'immediate_or_cancel')
+        timeInForce = None
+        if immediateOrCancel:
+            timeInForce = 'IOC'
+        type = self.parse_type(self.safe_string(order, 'type'))
+        price = self.safe_string(order, 'price')
+        amount = None
+        filled = None
+        cost = None
+        if type == 'market' and side == 'buy':
+            cost = self.safe_string(order, 'filled_amount')
+        else:
+            amount = self.safe_string(order, 'amount')
+            filled = self.safe_string(order, 'filled_amount')
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': self.safe_string(order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': self.parse8601(self.safe_string(order, 'updated_at')),
             'symbol': symbol,
-            'type': None,
-            'timeInForce': None,
-            'postOnly': None,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': self.safe_value(order, 'post_only'),
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
-            'cost': None,
-            'average': average,
+            'cost': cost,
+            'average': self.safe_string(order, 'avg_deal_price'),
             'filled': filled,
             'remaining': None,
-            'status': status,
+            'status': self.parse_order_status(self.safe_string(order, 'state')),
             'fee': None,
             'trades': None,
         }, market)
@@ -1101,41 +1128,68 @@ class bigone(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://open.big.one/docs/spot_orders.html#create-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bigone api endpoint
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
+        :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
+        :param str [params.timeInForce]: "GTC", "IOC", or "PO"
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param str operator: *stop order only* GTE or LTE(default)
+        :param str client_order_id: must match ^[a-zA-Z0-9-_]{1,36}$ self regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        requestSide = 'BID' if (side == 'buy') else 'ASK'
+        isBuy = (side == 'buy')
+        requestSide = 'BID' if isBuy else 'ASK'
         uppercaseType = type.upper()
+        isLimit = uppercaseType == 'LIMIT'
+        exchangeSpecificParam = self.safe_value(params, 'post_only')
+        postOnly = None
+        postOnly, params = self.handle_post_only((uppercaseType == 'MARKET'), exchangeSpecificParam, params)
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
         request = {
             'asset_pair_name': market['id'],  # asset pair name BTC-USDT, required
             'side': requestSide,  # order side one of "ASK"/"BID", required
             'amount': self.amount_to_precision(symbol, amount),  # order amount, string, required
             # 'price': self.price_to_precision(symbol, price),  # order price, string, required
-            'type': uppercaseType,
             # 'operator': 'GTE',  # stop orders only, GTE greater than and equal, LTE less than and equal
             # 'immediate_or_cancel': False,  # limit orders only, must be False when post_only is True
             # 'post_only': False,  # limit orders only, must be False when immediate_or_cancel is True
         }
-        if uppercaseType == 'LIMIT':
+        if isLimit or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
+            if isLimit:
+                timeInForce = self.safe_string(params, 'timeInForce')
+                if timeInForce == 'IOC':
+                    request['immediate_or_cancel'] = True
+                if postOnly:
+                    request['post_only'] = True
         else:
-            isStopLimit = (uppercaseType == 'STOP_LIMIT')
-            isStopMarket = (uppercaseType == 'STOP_MARKET')
-            if isStopLimit or isStopMarket:
-                stopPrice = self.safe_number_2(params, 'stop_price', 'stopPrice')
-                if stopPrice is None:
-                    raise ArgumentsRequired(self.id + ' createOrder() requires a stop_price parameter')
-                request['stop_price'] = self.price_to_precision(symbol, stopPrice)
-                params = self.omit(params, ['stop_price', 'stopPrice'])
-            if isStopLimit:
-                request['price'] = self.price_to_precision(symbol, price)
+            createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice')
+            if createMarketBuyOrderRequiresPrice and (side == 'buy'):
+                if price is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                else:
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    amount = self.parse_number(Precise.string_mul(amountString, priceString))
+        request['amount'] = self.amount_to_precision(symbol, amount)
+        if triggerPrice is not None:
+            request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
+            request['operator'] = 'GTE' if isBuy else 'LTE'
+            if isLimit:
+                uppercaseType = 'STOP_LIMIT'
+            elif uppercaseType == 'MARKET':
+                uppercaseType = 'STOP_MARKET'
+        request['type'] = uppercaseType
+        params = self.omit(params, ['stop_price', 'stopPrice', 'triggerPrice', 'timeInForce'])
         response = self.privatePostOrders(self.extend(request, params))
         #
         #    {

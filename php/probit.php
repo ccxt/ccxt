@@ -415,8 +415,8 @@ class probit extends Exchange {
             $networkList = array();
             for ($j = 0; $j < count($platformsByPriority); $j++) {
                 $network = $platformsByPriority[$j];
-                $id = $this->safe_string($network, 'id');
-                $networkCode = $this->network_id_to_code($id);
+                $networkId = $this->safe_string($network, 'id');
+                $networkCode = $this->network_id_to_code($networkId);
                 $currentDepositSuspended = $this->safe_value($network, 'deposit_suspended');
                 $currentWithdrawalSuspended = $this->safe_value($network, 'withdrawal_suspended');
                 $currentDeposit = !$currentDepositSuspended;
@@ -429,7 +429,7 @@ class probit extends Exchange {
                 $withdrawFee = $this->safe_value($network, 'withdrawal_fee', array());
                 $fee = $this->safe_value($withdrawFee, 0, array());
                 $networkList[$networkCode] = array(
-                    'id' => $id,
+                    'id' => $networkId,
                     'network' => $networkCode,
                     'active' => $currentActive,
                     'deposit' => $currentDeposit,
