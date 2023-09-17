@@ -533,8 +533,8 @@ export default class bybit extends bybitRest {
         const topics = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = this.market(symbol);
-            const topic = 'orderbook.' + limit.toString() + '.' + market['id'];
+            const currentMarket = this.market(symbol);
+            const topic = 'orderbook.' + limit.toString() + '.' + currentMarket['id'];
             topics.push(topic);
         }
         const messageHash = 'multipleOrderbook::' + symbols.join(',');
