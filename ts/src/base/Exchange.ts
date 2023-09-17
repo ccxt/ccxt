@@ -1956,7 +1956,7 @@ export default class Exchange {
             (this as any).number = String;
             const firstTrade = this.safeValue (rawTrades, 0);
             // parse trades if they haven't already been parsed
-            const tradesAreParsed = (firstTrade !== undefined && 'info' in firstTrade && 'id' in firstTrade)
+            const tradesAreParsed = ((firstTrade !== undefined) && ('info' in firstTrade) && ('id' in firstTrade));
             if (!tradesAreParsed) {
                 trades = this.parseTrades (rawTrades, market);
             }
