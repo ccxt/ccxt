@@ -1145,8 +1145,8 @@ class phemex extends \ccxt\async\phemex {
         }
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
-            $messageHash = 'orders' . ':' . $keys[$i];
-            $client->resolve ($this->orders, $messageHash);
+            $currentMessageHash = 'orders' . ':' . $keys[$i];
+            $client->resolve ($this->orders, $currentMessageHash);
         }
         // resolve generic subscription (spot or swap)
         $messageHash = 'orders:' . $type;
