@@ -1925,7 +1925,7 @@ export default class Exchange {
         return balance as any;
     }
 
-    safeOrder (order: object, market: object = undefined): Order {
+    safeOrder (order: object, market: object = undefined, tradesParser: string = 'parseTrades'): Order {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
         let amount = this.omitZero (this.safeString (order, 'amount'));
@@ -1954,7 +1954,9 @@ export default class Exchange {
             const oldNumber = this.number;
             // we parse trades as strings here!
             (this as any).number = String;
-            trades = this.parseTrades (rawTrades, market);
+            if (tradesParser !== undefined) {
+                trades = this[tradesParser] (rawTrades, market);
+            }
             this.number = oldNumber;
             let tradesLength = 0;
             const isArray = Array.isArray (trades);
