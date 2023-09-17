@@ -598,8 +598,8 @@ export default class lbank2 extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         if (market['swap']) {
-            const response = await this.fetchTickers([market['symbol']], params);
-            return this.safeValue(response, market['symbol']);
+            const responseForSwap = await this.fetchTickers([market['symbol']], params);
+            return this.safeValue(responseForSwap, market['symbol']);
         }
         const request = {
             'symbol': market['id'],

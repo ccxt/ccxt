@@ -598,8 +598,8 @@ class lbank2(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         if market['swap']:
-            response = await self.fetch_tickers([market['symbol']], params)
-            return self.safe_value(response, market['symbol'])
+            responseForSwap = await self.fetch_tickers([market['symbol']], params)
+            return self.safe_value(responseForSwap, market['symbol'])
         request = {
             'symbol': market['id'],
         }
