@@ -999,8 +999,8 @@ class bitmex extends \ccxt\async\bitmex {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $messageHash = $table . ':' . $market['id'];
-                $topics[] = $messageHash;
+                $currentMessageHash = $table . ':' . $market['id'];
+                $topics[] = $currentMessageHash;
             }
             $messageHash = 'multipleOrderbook::' . implode(',', $symbols);
             $url = $this->urls['api']['ws'];
