@@ -25,7 +25,6 @@ export default class bybit extends bybitRest {
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
-                'watchPosition': 'emulated',
                 'watchPositions': true,
                 'watchTradesForSymbols': true,
             },
