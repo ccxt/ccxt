@@ -996,7 +996,11 @@ class Exchange(BaseExchange):
             oldNumber = self.number
             # we parse trades here!
             self.number = str
-            trades = self.parse_trades(rawTrades, market)
+            firstTrade = self.safe_value(rawTrades, 0)
+            # parse trades if they haven't already been parsed
+            tradesAreParsed = ((firstTrade is not None) and ('info' in firstTrade) and ('id' in firstTrade))
+            if not tradesAreParsed:
+                trades = self.parse_trades(rawTrades, market)
             self.number = oldNumber
             tradesLength = 0
             isArray = isinstance(trades, list)
