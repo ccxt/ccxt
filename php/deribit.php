@@ -2497,12 +2497,12 @@ class deribit extends Exchange {
         $result = array();
         for ($i = 0; $i < count($volatilityResult); $i++) {
             $timestamp = $this->safe_integer($volatilityResult[$i], 0);
-            $volatility = $this->safe_number($volatilityResult[$i], 1);
+            $volatilityObj = $this->safe_number($volatilityResult[$i], 1);
             $result[] = array(
-                'info' => $volatility,
+                'info' => $volatilityObj,
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
-                'volatility' => $volatility,
+                'volatility' => $volatilityObj,
             );
         }
         return $result;
