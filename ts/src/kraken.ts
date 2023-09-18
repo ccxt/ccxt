@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1207,6 +1207,41 @@ export default class kraken extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    safeBalance (balance: object): Balances {
+        const balances = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]);
+        const codes = Object.keys (balances);
+        balance['free'] = {};
+        balance['used'] = {};
+        balance['total'] = {};
+        const debtBalance = {};
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const total = this.safeString (balance[code], 'balance');
+            const credit = balance[code].credit ? this.safeString (balance[code], 'credit') : 0;
+            const credit_used = balance[code].credit_used ? this.safeString (balance[code], 'credit_used') : 0;
+            const hold_trade = balance[code].hold_trade ? this.safeString (balance[code], 'hold_trade') : 0;
+            const free = this.parseNumber (total) + this.parseNumber (credit) - this.parseNumber (credit_used) - this.parseNumber (hold_trade);
+            const used = this.parseNumber (hold_trade) + this.parseNumber (credit_used);
+            const debt = this.safeString (balance[code], 'debt');
+            balance[code]['free'] = this.parseNumber (free);
+            balance[code]['used'] = this.parseNumber (used);
+            balance[code]['total'] = this.parseNumber (total);
+            balance['free'][code] = balance[code]['free'];
+            balance['used'][code] = balance[code]['used'];
+            balance['total'][code] = balance[code]['total'];
+            if (debt !== undefined) {
+                balance[code]['debt'] = this.parseNumber (debt);
+                debtBalance[code] = balance[code]['debt'];
+            }
+        }
+        const debtBalanceArray = Object.keys (debtBalance);
+        const length = debtBalanceArray.length;
+        if (length) {
+            balance['debt'] = debtBalance;
+        }
+        return balance as any;
+    }
+
     parseBalance (response) {
         const balances = this.safeValue (response, 'result', {});
         const result = {
@@ -1220,7 +1255,7 @@ export default class kraken extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['total'] = this.safeString (balances, currencyId);
-            result[code] = account;
+            result[code] = balances[currencyId];
         }
         return this.safeBalance (result);
     }
@@ -1234,7 +1269,7 @@ export default class kraken extends Exchange {
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
+        const response = await this.privatePostBalanceEx (params);
         //
         //     {
         //         "error":[],
