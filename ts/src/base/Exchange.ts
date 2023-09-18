@@ -4537,6 +4537,9 @@ export default class Exchange {
                     }
                     const response = await this[method] (symbol, undefined, maxEntriesPerRequest, params);
                     const responseLength = response.length;
+                    if (this.verbose) {
+                        console.log ('Dynamic pagination call', calls, 'response length', responseLength, 'method', method);
+                    }
                     errors = 0;
                     result = this.arrayConcat (result, response);
                     if (responseLength < maxEntriesPerRequest) {
@@ -4552,6 +4555,9 @@ export default class Exchange {
                     lastTimestamp = since;
                     const response = await this[method] (symbol, lastTimestamp, maxEntriesPerRequest, params);
                     const responseLength = response.length;
+                    if (this.verbose) {
+                        console.log ('Dynamic pagination call', calls, 'response length', responseLength, 'method', method);
+                    }
                     if (responseLength < maxEntriesPerRequest) {
                         break;
                     }
@@ -4613,7 +4619,7 @@ export default class Exchange {
                 const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
                 errors = 0;
                 if (this.verbose) {
-                    console.log ('Pagination call', i, 'response length', response.length);
+                    console.log ('Pagination call', i + 1, 'response length', response.length);
                 }
                 result = this.arrayConcat (result, response);
                 const last = this.safeValue (response, response.length - 1);
