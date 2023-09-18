@@ -412,7 +412,7 @@ export default class bitflyer extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades
+        // fetchTrades (public) v1
         //
         //      {
         //          "id": 39287,
