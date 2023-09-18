@@ -3292,8 +3292,8 @@ export default class binance extends Exchange {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
-        const paginate = this.safeValue (params, 'paginate', false);
-        params = this.omit (params, 'paginate');
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
         }
@@ -3618,9 +3618,9 @@ export default class binance extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
-        const paginate = this.safeValue (params, 'paginate', false);
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
-            params = this.omit (params, 'paginate');
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params);
         }
         const market = this.market (symbol);
@@ -4600,9 +4600,9 @@ export default class binance extends Exchange {
          */
         this.checkRequiredSymbol ('fetchOrders', symbol);
         await this.loadMarkets ();
-        const paginate = this.safeValue (params, 'paginate', false);
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            params = this.omit (params, 'paginate');
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params);
         }
         const market = this.market (symbol);
@@ -4952,9 +4952,9 @@ export default class binance extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        const paginate = this.safeValue (params, 'paginate', false);
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            params = this.omit (params, 'paginate');
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params);
         }
         const request = {};
@@ -6514,9 +6514,9 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         const request = {};
         let method = undefined;
-        const paginate = this.safeValue (params, 'paginate', false);
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            params = this.omit (params, 'paginate');
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params);
         }
         const defaultType = this.safeString2 (this.options, 'fetchFundingRateHistory', 'defaultType', 'future');

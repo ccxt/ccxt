@@ -2851,8 +2851,8 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const paginate = this.safeValue (params, 'paginate', false);
-        params = this.omit (params, 'paginate');
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
         }
@@ -3025,9 +3025,9 @@ export default class gate extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
-        const paginate = this.safeValue (params, 'paginate', false);
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
-            params = this.omit (params, 'paginate');
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params);
         }
         const market = this.market (symbol);

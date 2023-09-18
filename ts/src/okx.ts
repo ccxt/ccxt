@@ -2060,8 +2060,8 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const paginate = this.safeValue (params, 'paginate', false);
-        params = this.omit (params, 'paginate');
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 200);
         }
@@ -2143,9 +2143,9 @@ export default class okx extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const paginate = this.safeValue (params, 'paginate', false);
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            params = this.omit (params, 'paginate');
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params);
         }
         const market = this.market (symbol);
@@ -3354,9 +3354,9 @@ export default class okx extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        const paginate = this.safeValue (params, 'paginate', false);
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
-            params = this.omit (params, 'paginate');
             return await this.fetchPaginatedCallDynamic ('fetchOpenOrders', symbol, since, limit, params);
         }
         const request = {
@@ -3844,9 +3844,9 @@ export default class okx extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        const paginate = this.safeValue (params, 'paginate', false);
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            params = this.omit (params, 'paginate');
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params);
         }
         const request = {

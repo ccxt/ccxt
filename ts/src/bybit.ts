@@ -2390,8 +2390,8 @@ export default class bybit extends Exchange {
          */
         this.checkRequiredSymbol ('fetchOHLCV', symbol);
         await this.loadMarkets ();
-        const paginate = this.safeValue (params, 'paginate', false);
-        params = this.omit (params, 'paginate');
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
         }
@@ -2630,9 +2630,9 @@ export default class bybit extends Exchange {
         if (limit === undefined) {
             limit = 200;
         }
-        const paginate = this.safeValue (params, 'paginate', false);
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            params = this.omit (params, 'paginate');
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 200);
         }
         const request = {
@@ -4371,9 +4371,9 @@ export default class bybit extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        const paginate = this.safeValue (params, 'paginate', false);
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            params = this.omit (params, [ 'paginate' ]);
             return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'nextPageCursor', 50);
         }
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
@@ -4752,9 +4752,9 @@ export default class bybit extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        const paginate = this.safeValue (params, 'paginate', false);
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            params = this.omit (params, [ 'paginate' ]);
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'nextPageCursor', 100);
         }
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
