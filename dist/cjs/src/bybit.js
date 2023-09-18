@@ -5968,21 +5968,83 @@ class bybit extends bybit$1 {
         });
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#setMarginMode
+         * @description set margin mode (account) or trade mode (symbol)
+         * @see https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
+         * @see https://bybit-exchange.github.io/docs/v5/position/cross-isolate
+         * @param {string} marginMode account mode must be either [isolated, cross, portfolio], trade mode must be either [isolated, cross]
+         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {string} [params.leverage] the rate of leverage, is required if setting trade mode (symbol)
+         * @returns {object} response from the exchange
+         */
         await this.loadMarkets();
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        if (marginMode === 'ISOLATED_MARGIN') {
-            if (!isUnifiedAccount) {
-                throw new errors.NotSupported(this.id + ' setMarginMode() Normal Account not support ISOLATED_MARGIN');
+        let response = undefined;
+        if (symbol === undefined) {
+            if (marginMode === 'isolated') {
+                if (!isUnifiedAccount) {
+                    throw new errors.NotSupported(this.id + ' setMarginMode() Normal Account not support ISOLATED_MARGIN');
+                }
+                marginMode = 'ISOLATED_MARGIN';
             }
+            else if (marginMode === 'cross') {
+                marginMode = 'REGULAR_MARGIN';
+            }
+            else if (marginMode === 'portfolio') {
+                marginMode = 'PORTFOLIO_MARGIN';
+            }
+            else {
+                throw new errors.NotSupported(this.id + ' setMarginMode() marginMode must be either [isolated, cross, portfolio]');
+            }
+            const request = {
+                'setMarginMode': marginMode,
+            };
+            response = await this.privatePostV5AccountSetMarginMode(this.extend(request, params));
         }
-        else if ((marginMode !== 'REGULAR_MARGIN') && (marginMode !== 'PORTFOLIO_MARGIN')) {
-            throw new errors.NotSupported(this.id + ' setMarginMode() marginMode must be either ISOLATED_MARGIN or REGULAR_MARGIN or PORTFOLIO_MARGIN');
+        else {
+            const market = this.market(symbol);
+            let type = undefined;
+            [type, params] = this.getBybitType('setMarginMode', market, params);
+            if (type === 'linear') {
+                if (isUnifiedAccount) {
+                    throw new errors.NotSupported(this.id + ' setMarginMode() with symbol Unified Account only support inverse contract');
+                }
+                const isUsdtSettled = market['settle'] === 'USDT';
+                if (!isUsdtSettled) {
+                    throw new errors.NotSupported(this.id + ' setMarginMode() with symbol only support USDT perpetual / inverse contract');
+                }
+            }
+            else if (type !== 'inverse') {
+                throw new errors.NotSupported(this.id + ' setMarginMode() does not support this market type');
+            }
+            let tradeMode = undefined;
+            if (marginMode === 'cross') {
+                tradeMode = 0;
+            }
+            else if (marginMode === 'isolated') {
+                tradeMode = 1;
+            }
+            else {
+                throw new errors.NotSupported(this.id + ' setMarginMode() with symbol marginMode must be either [isolated, cross]');
+            }
+            const leverage = this.safeString(params, 'leverage');
+            params = this.omit(params, ['leverage']);
+            if (leverage === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' setMarginMode() with symbol requires leverage');
+            }
+            const request = {
+                'category': type,
+                'symbol': market['id'],
+                'tradeMode': tradeMode,
+                'buyLeverage': leverage,
+                'sellLeverage': leverage,
+            };
+            response = await this.privatePostV5PositionSwitchIsolated(this.extend(request, params));
         }
-        const request = {
-            'setMarginMode': marginMode,
-        };
-        const response = await this.privatePostV5AccountSetMarginMode(this.extend(request, params));
         return response;
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {

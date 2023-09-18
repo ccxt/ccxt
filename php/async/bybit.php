@@ -5987,20 +5987,74 @@ class bybit extends Exchange {
 
     public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
+            /**
+             * set margin mode (account) or trade mode ($symbol)
+             * @see https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
+             * @see https://bybit-exchange.github.io/docs/v5/position/cross-isolate
+             * @param {string} $marginMode account mode must be either [isolated, cross, portfolio], trade mode must be either [isolated, cross]
+             * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {string} [$params->leverage] the rate of $leverage, is required if setting trade mode ($symbol)
+             * @return {array} $response from the exchange
+             */
             Async\await($this->load_markets());
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
-            if ($marginMode === 'ISOLATED_MARGIN') {
-                if (!$isUnifiedAccount) {
-                    throw new NotSupported($this->id . ' setMarginMode() Normal Account not support ISOLATED_MARGIN');
+            $response = null;
+            if ($symbol === null) {
+                if ($marginMode === 'isolated') {
+                    if (!$isUnifiedAccount) {
+                        throw new NotSupported($this->id . ' setMarginMode() Normal Account not support ISOLATED_MARGIN');
+                    }
+                    $marginMode = 'ISOLATED_MARGIN';
+                } elseif ($marginMode === 'cross') {
+                    $marginMode = 'REGULAR_MARGIN';
+                } elseif ($marginMode === 'portfolio') {
+                    $marginMode = 'PORTFOLIO_MARGIN';
+                } else {
+                    throw new NotSupported($this->id . ' setMarginMode() $marginMode must be either [isolated, cross, portfolio]');
                 }
-            } elseif (($marginMode !== 'REGULAR_MARGIN') && ($marginMode !== 'PORTFOLIO_MARGIN')) {
-                throw new NotSupported($this->id . ' setMarginMode() $marginMode must be either ISOLATED_MARGIN or REGULAR_MARGIN or PORTFOLIO_MARGIN');
+                $request = array(
+                    'setMarginMode' => $marginMode,
+                );
+                $response = Async\await($this->privatePostV5AccountSetMarginMode (array_merge($request, $params)));
+            } else {
+                $market = $this->market($symbol);
+                $type = null;
+                list($type, $params) = $this->get_bybit_type('setMarginMode', $market, $params);
+                if ($type === 'linear') {
+                    if ($isUnifiedAccount) {
+                        throw new NotSupported($this->id . ' setMarginMode() with $symbol Unified Account only support inverse contract');
+                    }
+                    $isUsdtSettled = $market['settle'] === 'USDT';
+                    if (!$isUsdtSettled) {
+                        throw new NotSupported($this->id . ' setMarginMode() with $symbol only support USDT perpetual / inverse contract');
+                    }
+                } elseif ($type !== 'inverse') {
+                    throw new NotSupported($this->id . ' setMarginMode() does not support this $market type');
+                }
+                $tradeMode = null;
+                if ($marginMode === 'cross') {
+                    $tradeMode = 0;
+                } elseif ($marginMode === 'isolated') {
+                    $tradeMode = 1;
+                } else {
+                    throw new NotSupported($this->id . ' setMarginMode() with $symbol $marginMode must be either [isolated, cross]');
+                }
+                $leverage = $this->safe_string($params, 'leverage');
+                $params = $this->omit($params, array( 'leverage' ));
+                if ($leverage === null) {
+                    throw new ArgumentsRequired($this->id . ' setMarginMode() with $symbol requires leverage');
+                }
+                $request = array(
+                    'category' => $type,
+                    'symbol' => $market['id'],
+                    'tradeMode' => $tradeMode,
+                    'buyLeverage' => $leverage,
+                    'sellLeverage' => $leverage,
+                );
+                $response = Async\await($this->privatePostV5PositionSwitchIsolated (array_merge($request, $params)));
             }
-            $request = array(
-                'setMarginMode' => $marginMode,
-            );
-            $response = Async\await($this->privatePostV5AccountSetMarginMode (array_merge($request, $params)));
             return $response;
         }) ();
     }

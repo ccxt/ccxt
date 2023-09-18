@@ -5624,18 +5624,66 @@ class bybit(Exchange, ImplicitAPI):
         })
 
     async def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
+        """
+        set margin mode(account) or trade mode(symbol)
+        see https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
+        see https://bybit-exchange.github.io/docs/v5/position/cross-isolate
+        :param str marginMode: account mode must be either [isolated, cross, portfolio], trade mode must be either [isolated, cross]
+        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param str [params.leverage]: the rate of leverage, is required if setting trade mode(symbol)
+        :returns dict: response from the exchange
+        """
         await self.load_markets()
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
-        if marginMode == 'ISOLATED_MARGIN':
-            if not isUnifiedAccount:
-                raise NotSupported(self.id + ' setMarginMode() Normal Account not support ISOLATED_MARGIN')
-        elif (marginMode != 'REGULAR_MARGIN') and (marginMode != 'PORTFOLIO_MARGIN'):
-            raise NotSupported(self.id + ' setMarginMode() marginMode must be either ISOLATED_MARGIN or REGULAR_MARGIN or PORTFOLIO_MARGIN')
-        request = {
-            'setMarginMode': marginMode,
-        }
-        response = await self.privatePostV5AccountSetMarginMode(self.extend(request, params))
+        response = None
+        if symbol is None:
+            if marginMode == 'isolated':
+                if not isUnifiedAccount:
+                    raise NotSupported(self.id + ' setMarginMode() Normal Account not support ISOLATED_MARGIN')
+                marginMode = 'ISOLATED_MARGIN'
+            elif marginMode == 'cross':
+                marginMode = 'REGULAR_MARGIN'
+            elif marginMode == 'portfolio':
+                marginMode = 'PORTFOLIO_MARGIN'
+            else:
+                raise NotSupported(self.id + ' setMarginMode() marginMode must be either [isolated, cross, portfolio]')
+            request = {
+                'setMarginMode': marginMode,
+            }
+            response = await self.privatePostV5AccountSetMarginMode(self.extend(request, params))
+        else:
+            market = self.market(symbol)
+            type = None
+            type, params = self.get_bybit_type('setMarginMode', market, params)
+            if type == 'linear':
+                if isUnifiedAccount:
+                    raise NotSupported(self.id + ' setMarginMode() with symbol Unified Account only support inverse contract')
+                isUsdtSettled = market['settle'] == 'USDT'
+                if not isUsdtSettled:
+                    raise NotSupported(self.id + ' setMarginMode() with symbol only support USDT perpetual / inverse contract')
+            elif type != 'inverse':
+                raise NotSupported(self.id + ' setMarginMode() does not support self market type')
+            tradeMode = None
+            if marginMode == 'cross':
+                tradeMode = 0
+            elif marginMode == 'isolated':
+                tradeMode = 1
+            else:
+                raise NotSupported(self.id + ' setMarginMode() with symbol marginMode must be either [isolated, cross]')
+            leverage = self.safe_string(params, 'leverage')
+            params = self.omit(params, ['leverage'])
+            if leverage is None:
+                raise ArgumentsRequired(self.id + ' setMarginMode() with symbol requires leverage')
+            request = {
+                'category': type,
+                'symbol': market['id'],
+                'tradeMode': tradeMode,
+                'buyLeverage': leverage,
+                'sellLeverage': leverage,
+            }
+            response = await self.privatePostV5PositionSwitchIsolated(self.extend(request, params))
         return response
 
     async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
