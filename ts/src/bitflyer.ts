@@ -415,14 +415,14 @@ export default class bitflyer extends Exchange {
         // fetchTrades (public) v1
         //
         //      {
-        //          "id": 39287,
-        //          "side": "BUY",
-        //          "price": 31690,
-        //          "size": 27.04,
-        //          "exec_date": "2015-07-08T02:43:34.823",
-        //          "buy_child_order_acceptance_id": "JRF20150707-200203-452209",
-        //          "sell_child_order_acceptance_id": "JRF20150708-024334-060234"
-        //      },
+        //          "id":2278466664,
+        //          "side":"SELL",
+        //          "price":56810.7,
+        //          "size":0.08798,
+        //          "exec_date":"2021-11-19T11:46:39.323",
+        //          "buy_child_order_acceptance_id":"JRF20211119-114209-236525",
+        //          "sell_child_order_acceptance_id":"JRF20211119-114639-236919"
+        //      }
         //
         // fetchMyTrades
         //
