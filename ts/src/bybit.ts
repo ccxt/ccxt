@@ -5993,6 +5993,17 @@ export default class bybit extends Exchange {
             const market = this.market (symbol);
             let type = undefined;
             [ type, params ] = this.getBybitType ('setMarginMode', market, params);
+            if (type === 'linear') {
+                if (isUnifiedAccount) {
+                    throw new NotSupported (this.id + ' setMarginMode() with symbol Unified Account only support inverse contract');
+                }
+                const isUsdtSettled = market['settle'] === 'USDT';
+                if (!isUsdtSettled) {
+                    throw new NotSupported (this.id + ' setMarginMode() with symbol only support USDT perpetual / inverse contract');
+                }
+            } else if (type !== 'inverse') {
+                throw new NotSupported (this.id + ' setMarginMode() not support this market type');
+            }
             let tradeMode = undefined;
             if (marginMode === 'cross') {
                 tradeMode = 0;
@@ -6002,6 +6013,7 @@ export default class bybit extends Exchange {
                 throw new NotSupported (this.id + ' setMarginMode() with symbol marginMode must be either [isolated, cross]');
             }
             const leverage = this.safeString (params, 'leverage');
+            params = this.omit (params, [ 'leverage' ]);
             if (leverage === undefined) {
                 throw new ArgumentsRequired (this.id + ' setMarginMode() with symbol requires leverage');
             }
