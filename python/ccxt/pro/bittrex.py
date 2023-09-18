@@ -624,8 +624,8 @@ class bittrex(ccxt.async_support.bittrex):
                 # unroll the accumulated deltas
                 # 3. Playback the cached Level 2 data flow.
                 for i in range(0, len(messages)):
-                    message = messages[i]
-                    self.handle_order_book_message(client, message, orderbook)
+                    messageItem = messages[i]
+                    self.handle_order_book_message(client, messageItem, orderbook)
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
         except Exception as e:

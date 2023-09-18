@@ -1065,8 +1065,8 @@ class phemex(ccxt.async_support.phemex):
             marketIds[symbol] = True
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
-            messageHash = 'orders' + ':' + keys[i]
-            client.resolve(self.orders, messageHash)
+            currentMessageHash = 'orders' + ':' + keys[i]
+            client.resolve(self.orders, currentMessageHash)
         # resolve generic subscription(spot or swap)
         messageHash = 'orders:' + type
         client.resolve(self.orders, messageHash)

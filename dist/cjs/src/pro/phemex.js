@@ -1123,8 +1123,8 @@ class phemex extends phemex$1 {
         }
         const keys = Object.keys(marketIds);
         for (let i = 0; i < keys.length; i++) {
-            const messageHash = 'orders' + ':' + keys[i];
-            client.resolve(this.orders, messageHash);
+            const currentMessageHash = 'orders' + ':' + keys[i];
+            client.resolve(this.orders, currentMessageHash);
         }
         // resolve generic subscription (spot or swap)
         const messageHash = 'orders:' + type;

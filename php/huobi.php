@@ -2514,7 +2514,7 @@ class huobi extends Exchange {
         }
         $request[$fieldName] = $market['id'];
         if ($limit !== null) {
-            $request['size'] = $limit; // max 2000
+            $request['size'] = min ($limit, 2000); // max 2000
         }
         $response = $this->$method (array_merge($request, $params));
         //

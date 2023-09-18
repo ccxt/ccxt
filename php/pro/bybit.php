@@ -538,8 +538,8 @@ class bybit extends \ccxt\async\bybit {
             $topics = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $topic = 'orderbook.' . (string) $limit . '.' . $market['id'];
+                $currentMarket = $this->market($symbol);
+                $topic = 'orderbook.' . (string) $limit . '.' . $currentMarket['id'];
                 $topics[] = $topic;
             }
             $messageHash = 'multipleOrderbook::' . implode(',', $symbols);

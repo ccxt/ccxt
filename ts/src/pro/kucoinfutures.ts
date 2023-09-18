@@ -402,9 +402,9 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const deltaEnd = this.safeInteger (data, 'sequence');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            const topicParts = topic.split (':');
-            const topicSymbol = this.safeString (topicParts, 1);
-            const topicChannel = this.safeString (topicParts, 0);
+            const topicPartsNew = topic.split (':');
+            const topicSymbol = this.safeString (topicPartsNew, 1);
+            const topicChannel = this.safeString (topicPartsNew, 0);
             const subscriptions = Object.keys (client.subscriptions);
             let subscription = undefined;
             for (let i = 0; i < subscriptions.length; i++) {
