@@ -3647,7 +3647,8 @@ export default class binance extends Exchange {
             }
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default = 500, maximum = 1000
+            const isFutureOrSwap = (market['swap'] || market['future']);
+            request['limit'] = isFutureOrSwap ? Math.min (limit, 1000) : limit; // default = 500, maximum = 1000
         }
         params = this.omit (params, [ 'until', 'fetchTradesMethod' ]);
         //
