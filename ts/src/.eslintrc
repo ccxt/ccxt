@@ -83,7 +83,7 @@
     "no-mixed-operators": "off",
     "no-shadow": ["error", {
       "builtinGlobals": true, // prevent shadowing global vars (i.e. Object, Array, Number, etc...)
-      "hoist": "all", // we should refrain from all, becasue codes in other langs (py, php ...) would lead to unexpected behaviors, as sub-block variable declarations can leak out of their scopes
+      "hoist": "all", // just for cleanest practices
       "allow": [], // no need to allow any
       "ignoreOnInitialization": false // don't ignore lambdas and etc.
     }],
