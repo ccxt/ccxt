@@ -36,7 +36,7 @@ export default class binance extends Exchange {
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': undefined,
+                'cancelOrders': true,  // contract only
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -4177,6 +4177,11 @@ export default class binance extends Exchange {
         //         "mmp": false
         //     }
         //
+        const code = this.safeString (order, 'code');
+        if (code === '-2011') {
+            const message = this.safeString (order, 'message');
+            throw new OrderNotFound (message);
+        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const marketType = ('closePosition' in order) ? 'contract' : 'spot';
@@ -4902,14 +4907,19 @@ export default class binance extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['type'] !== 'swap') {
+        if (!market['contract']) {
             throw new BadRequest (this.id + ' cancelOrders is only supported for swap markets.');
         }
         const request = {
             'symbol': market['id'],
             'orderidlist': ids,
         };
-        const response = await this.fapiPrivateDeleteBatchOrders (this.extend (request, params));
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.fapiPrivateDeleteBatchOrders (this.extend (request, params));
+        } else if (market['inverse']) {
+            response = await this.dapiPrivateDeleteBatchOrders (this.extend (request, params));
+        }
         //
         //    [
         //        {
@@ -8109,7 +8119,7 @@ export default class binance extends Exchange {
             }
             let query = undefined;
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
-            const extendedParams = this.extend ({
+            let extendedParams = this.extend ({
                 'timestamp': this.nonce (),
             }, params);
             if (defaultRecvWindow !== undefined) {
@@ -8122,7 +8132,22 @@ export default class binance extends Exchange {
             if ((api === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
             } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf ('staking') >= 0)) {
-                query = this.rawencode (extendedParams);
+                if (method === 'DELETE') {
+                    const orderidlist = this.safeValue (extendedParams, 'orderidlist', []);
+                    const origclientorderidlist = this.safeValue (extendedParams, 'origclientorderidlist', []);
+                    extendedParams = this.omit (extendedParams, [ 'orderidlist', 'origclientorderidlist' ]);
+                    query = this.rawencode (extendedParams);
+                    const orderidlistLength = orderidlist.length;
+                    const origclientorderidlistLength = orderidlist.length;
+                    if (orderidlistLength > 0) {
+                        query = query + '&orderidlist=[' + orderidlist.join (',') + ']';
+                    }
+                    if (origclientorderidlistLength > 0) {
+                        query = query + '&origclientorderidlist=[' + origclientorderidlist.join (',') + ']';
+                    }
+                } else {
+                    query = this.rawencode (extendedParams);
+                }
             } else {
                 query = this.urlencode (extendedParams);
             }
