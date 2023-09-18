@@ -1447,6 +1447,11 @@ export default class kucoinfutures extends kucoin {
          * @returns An [array of order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchOrdersByStatus', symbol, since, limit, params);
+        }
         const stop = this.safeValue (params, 'stop');
         const until = this.safeInteger2 (params, 'until', 'till');
         params = this.omit (params, [ 'stop', 'until', 'till' ]);
@@ -1915,9 +1920,15 @@ export default class kucoinfutures extends kucoin {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
+         * @param {int} [params.until] End time in ms
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params);
+        }
         const request = {
             // orderId (String) [optional] Fills for a specific order (other parameters can be ignored if specified)
             // symbol (String) [optional] Symbol of the contract
@@ -1933,6 +1944,11 @@ export default class kucoinfutures extends kucoin {
         }
         if (since !== undefined) {
             request['startAt'] = since;
+        }
+        const until = this.safeInteger2 (params, 'until', 'endAt');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'until' ]);
+            request['endAt'] = until;
         }
         const response = await this.futuresPrivateGetFills (this.extend (request, params));
         //
