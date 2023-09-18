@@ -414,7 +414,7 @@ export default class lbank extends Exchange {
             request['time'] = since;
         }
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min (limit, 600);
         }
         const response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);

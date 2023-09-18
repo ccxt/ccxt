@@ -290,10 +290,10 @@ class bitget(ccxt.async_support.bitget):
         hashes = []
         for i in range(0, len(symbolsAndTimeframes)):
             data = symbolsAndTimeframes[i]
-            symbol = self.safe_string(data, 0)
-            timeframe = self.safe_string(data, 1)
-            market = self.market(symbol)
-            interval = self.safe_string(self.options['timeframes'], timeframe)
+            currentSymbol = self.safe_string(data, 0)
+            currentTimeframe = self.safe_string(data, 1)
+            market = self.market(currentSymbol)
+            interval = self.safe_string(self.options['timeframes'], currentTimeframe)
             instType = 'sp' if market['spot'] else 'mc'
             args = {
                 'instType': instType,
@@ -301,7 +301,7 @@ class bitget(ccxt.async_support.bitget):
                 'instId': self.get_ws_market_id(market),
             }
             topics.append(args)
-            hashes.append(symbol + '#' + timeframe)
+            hashes.append(currentSymbol + '#' + currentSymbol)
         messageHash = 'multipleOHLCV::' + ','.join(hashes)
         symbol, timeframe, stored = await self.watch_public_multiple(messageHash, topics, params)
         if self.newUpdates:

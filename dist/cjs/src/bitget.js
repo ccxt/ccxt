@@ -2981,12 +2981,12 @@ class bitget extends bitget$1 {
             }
             else if (isStopLossOrTakeProfit) {
                 if (isStopLoss) {
-                    const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice');
-                    request['presetStopLossPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                    const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice');
+                    request['presetStopLossPrice'] = this.priceToPrecision(symbol, slTriggerPrice);
                 }
                 if (isTakeProfit) {
-                    const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
-                    request['presetTakeProfitPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                    const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
+                    request['presetTakeProfitPrice'] = this.priceToPrecision(symbol, tpTriggerPrice);
                 }
             }
         }

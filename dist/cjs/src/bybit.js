@@ -2401,20 +2401,14 @@ class bybit extends bybit$1 {
             request['limit'] = limit; // max 1000, default 1000
         }
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
-        let method = undefined;
+        let response = undefined;
         if (market['spot']) {
             request['category'] = 'spot';
-            method = 'publicGetV5MarketKline';
+            response = await this.publicGetV5MarketKline(this.extend(request, params));
         }
         else {
             const price = this.safeString(params, 'price');
             params = this.omit(params, 'price');
-            const methods = {
-                'mark': 'publicGetV5MarketMarkPriceKline',
-                'index': 'publicGetV5MarketIndexPriceKline',
-                'premiumIndex': 'publicGetV5MarketPremiumIndexPriceKline',
-            };
-            method = this.safeValue(methods, price, 'publicGetV5MarketKline');
             if (market['linear']) {
                 request['category'] = 'linear';
             }
@@ -2424,8 +2418,19 @@ class bybit extends bybit$1 {
             else {
                 throw new errors.NotSupported(this.id + ' fetchOHLCV() is not supported for option markets');
             }
+            if (price === 'mark') {
+                response = await this.publicGetV5MarketMarkPriceKline(this.extend(request, params));
+            }
+            else if (price === 'index') {
+                response = await this.publicGetV5MarketIndexPriceKline(this.extend(request, params));
+            }
+            else if (price === 'premiumIndex') {
+                response = await this.publicGetV5MarketPremiumIndexPriceKline(this.extend(request, params));
+            }
+            else {
+                response = await this.publicGetV5MarketKline(this.extend(request, params));
+            }
         }
-        const response = await this[method](this.extend(request, params));
         //
         //     {
         //         "retCode": 0,
@@ -3851,8 +3856,13 @@ class bybit extends bybit$1 {
             request['orderLinkId'] = this.uuid16();
         }
         params = this.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId']);
-        const method = market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (market['option']) {
+            response = await this.privatePostOptionUsdcOpenapiPrivateV1PlaceOrder(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder(this.extend(request, params));
+        }
         //
         //     {
         //         "retCode":0,
@@ -3894,12 +3904,11 @@ class bybit extends bybit$1 {
         if (price !== undefined) {
             request['orderPrice'] = this.priceToPrecision(symbol, price);
         }
-        let method = undefined;
+        let response = undefined;
         if (market['option']) {
-            method = 'privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder';
+            response = await this.privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder(this.extend(request, params));
         }
         else {
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder';
             const isStop = this.safeValue(params, 'stop', false);
             const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
             const stopLossPrice = this.safeValue(params, 'stopLossPrice');
@@ -3920,8 +3929,8 @@ class bybit extends bybit$1 {
                 }
             }
             params = this.omit(params, ['stop', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         //    {
         //        "retCode": 0,
@@ -4055,18 +4064,17 @@ class bybit extends bybit$1 {
         };
         const isStop = this.safeValue(params, 'stop', false);
         params = this.omit(params, ['stop']);
-        let method = undefined;
         if (id !== undefined) { // The user can also use argument params["order_link_id"]
             request['orderId'] = id;
         }
+        let response = undefined;
         if (market['option']) {
-            method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder';
+            response = await this.privatePostOptionUsdcOpenapiPrivateV1CancelOrder(this.extend(request, params));
         }
         else {
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder';
             request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
+            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         //     {
         //         "retCode": 0,
@@ -5239,7 +5247,6 @@ class bybit extends bybit$1 {
                 request['start_date'] = this.yyyymmdd(since);
             }
         }
-        const method = (enableUnified[1]) ? 'privateGetV5AccountTransactionLog' : 'privateGetV2PrivateWalletFundRecords';
         if (code !== undefined) {
             currency = this.currency(code);
             request[currencyKey] = currency['id'];
@@ -5247,7 +5254,13 @@ class bybit extends bybit$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (enableUnified[1]) {
+            response = await this.privateGetV5AccountTransactionLog(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetV2PrivateWalletFundRecords(this.extend(request, params));
+        }
         //
         //     {
         //         "ret_code": 0,
@@ -5968,21 +5981,83 @@ class bybit extends bybit$1 {
         });
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#setMarginMode
+         * @description set margin mode (account) or trade mode (symbol)
+         * @see https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
+         * @see https://bybit-exchange.github.io/docs/v5/position/cross-isolate
+         * @param {string} marginMode account mode must be either [isolated, cross, portfolio], trade mode must be either [isolated, cross]
+         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {string} [params.leverage] the rate of leverage, is required if setting trade mode (symbol)
+         * @returns {object} response from the exchange
+         */
         await this.loadMarkets();
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        if (marginMode === 'ISOLATED_MARGIN') {
-            if (!isUnifiedAccount) {
-                throw new errors.NotSupported(this.id + ' setMarginMode() Normal Account not support ISOLATED_MARGIN');
+        let response = undefined;
+        if (symbol === undefined) {
+            if (marginMode === 'isolated') {
+                if (!isUnifiedAccount) {
+                    throw new errors.NotSupported(this.id + ' setMarginMode() Normal Account not support ISOLATED_MARGIN');
+                }
+                marginMode = 'ISOLATED_MARGIN';
             }
+            else if (marginMode === 'cross') {
+                marginMode = 'REGULAR_MARGIN';
+            }
+            else if (marginMode === 'portfolio') {
+                marginMode = 'PORTFOLIO_MARGIN';
+            }
+            else {
+                throw new errors.NotSupported(this.id + ' setMarginMode() marginMode must be either [isolated, cross, portfolio]');
+            }
+            const request = {
+                'setMarginMode': marginMode,
+            };
+            response = await this.privatePostV5AccountSetMarginMode(this.extend(request, params));
         }
-        else if ((marginMode !== 'REGULAR_MARGIN') && (marginMode !== 'PORTFOLIO_MARGIN')) {
-            throw new errors.NotSupported(this.id + ' setMarginMode() marginMode must be either ISOLATED_MARGIN or REGULAR_MARGIN or PORTFOLIO_MARGIN');
+        else {
+            const market = this.market(symbol);
+            let type = undefined;
+            [type, params] = this.getBybitType('setMarginMode', market, params);
+            if (type === 'linear') {
+                if (isUnifiedAccount) {
+                    throw new errors.NotSupported(this.id + ' setMarginMode() with symbol Unified Account only support inverse contract');
+                }
+                const isUsdtSettled = market['settle'] === 'USDT';
+                if (!isUsdtSettled) {
+                    throw new errors.NotSupported(this.id + ' setMarginMode() with symbol only support USDT perpetual / inverse contract');
+                }
+            }
+            else if (type !== 'inverse') {
+                throw new errors.NotSupported(this.id + ' setMarginMode() does not support this market type');
+            }
+            let tradeMode = undefined;
+            if (marginMode === 'cross') {
+                tradeMode = 0;
+            }
+            else if (marginMode === 'isolated') {
+                tradeMode = 1;
+            }
+            else {
+                throw new errors.NotSupported(this.id + ' setMarginMode() with symbol marginMode must be either [isolated, cross]');
+            }
+            const leverage = this.safeString(params, 'leverage');
+            params = this.omit(params, ['leverage']);
+            if (leverage === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' setMarginMode() with symbol requires leverage');
+            }
+            const request = {
+                'category': type,
+                'symbol': market['id'],
+                'tradeMode': tradeMode,
+                'buyLeverage': leverage,
+                'sellLeverage': leverage,
+            };
+            response = await this.privatePostV5PositionSwitchIsolated(this.extend(request, params));
         }
-        const request = {
-            'setMarginMode': marginMode,
-        };
-        const response = await this.privatePostV5AccountSetMarginMode(this.extend(request, params));
         return response;
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
@@ -6014,15 +6089,14 @@ class bybit extends bybit$1 {
             'buyLeverage': leverage,
             'sellLeverage': leverage,
         };
-        let method = undefined;
+        let response = undefined;
         if (isUsdcSettled && !isUnifiedAccount) {
             request['leverage'] = leverage;
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
+            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave(this.extend(request, params));
         }
         else {
             request['buyLeverage'] = leverage;
             request['sellLeverage'] = leverage;
-            method = 'privatePostV5PositionSetLeverage';
             if (market['linear']) {
                 request['category'] = 'linear';
             }
@@ -6032,8 +6106,9 @@ class bybit extends bybit$1 {
             else {
                 throw new errors.NotSupported(this.id + ' setLeverage() only support linear and inverse market');
             }
+            response = await this.privatePostV5PositionSetLeverage(this.extend(request, params));
         }
-        return await this[method](this.extend(request, params));
+        return response;
     }
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         /**

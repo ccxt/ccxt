@@ -302,10 +302,10 @@ class bitget extends \ccxt\async\bitget {
             $hashes = array();
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
                 $data = $symbolsAndTimeframes[$i];
-                $symbol = $this->safe_string($data, 0);
-                $timeframe = $this->safe_string($data, 1);
-                $market = $this->market($symbol);
-                $interval = $this->safe_string($this->options['timeframes'], $timeframe);
+                $currentSymbol = $this->safe_string($data, 0);
+                $currentTimeframe = $this->safe_string($data, 1);
+                $market = $this->market($currentSymbol);
+                $interval = $this->safe_string($this->options['timeframes'], $currentTimeframe);
                 $instType = $market['spot'] ? 'sp' : 'mc';
                 $args = array(
                     'instType' => $instType,
@@ -313,7 +313,7 @@ class bitget extends \ccxt\async\bitget {
                     'instId' => $this->get_ws_market_id($market),
                 );
                 $topics[] = $args;
-                $hashes[] = $symbol . '#' . $timeframe;
+                $hashes[] = $currentSymbol . '#' . $currentSymbol;
             }
             $messageHash = 'multipleOHLCV::' . implode(',', $hashes);
             list($symbol, $timeframe, $stored) = Async\await($this->watch_public_multiple($messageHash, $topics, $params));

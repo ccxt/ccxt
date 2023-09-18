@@ -532,8 +532,8 @@ class hitbtc extends hitbtc$1 {
                 this.trades[symbol] = stored;
             }
             const trades = this.parseWsTrades(data[marketId], market);
-            for (let i = 0; i < trades.length; i++) {
-                stored.append(trades[i]);
+            for (let j = 0; j < trades.length; j++) {
+                stored.append(trades[j]);
             }
             const messageHash = 'trades::' + symbol;
             client.resolve(stored, messageHash);
@@ -660,8 +660,8 @@ class hitbtc extends hitbtc$1 {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             const ohlcvs = this.parseWsOHLCVs(data[marketId], market);
-            for (let i = 0; i < ohlcvs.length; i++) {
-                stored.append(ohlcvs[i]);
+            for (let j = 0; j < ohlcvs.length; j++) {
+                stored.append(ohlcvs[j]);
             }
             const messageHash = channel + '::' + symbol;
             client.resolve(stored, messageHash);

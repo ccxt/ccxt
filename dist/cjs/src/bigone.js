@@ -31,6 +31,7 @@ class bigone extends bigone$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
@@ -132,6 +133,7 @@ class bigone extends bigone$1 {
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'accountsByType': {
                     'spot': 'SPOT',
                     'fund': 'FUND',
@@ -1088,30 +1090,39 @@ class bigone extends bigone$1 {
         //
         return this.parseBalance(response);
     }
+    parseType(type) {
+        const types = {
+            'STOP_LIMIT': 'limit',
+            'STOP_MARKET': 'market',
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+        };
+        return this.safeString(types, type, type);
+    }
     parseOrder(order, market = undefined) {
         //
         //    {
-        //        "id": 10,
-        //        "asset_pair_name": "EOS-BTC",
-        //        "price": "10.00",
-        //        "amount": "10.00",
-        //        "filled_amount": "9.0",
-        //        "avg_deal_price": "12.0",
-        //        "side": "ASK",
-        //        "state": "FILLED",
-        //        "created_at":"2019-01-29T06:05:56Z",
-        //        "updated_at":"2019-01-29T06:05:56Z",
+        //        "id": '42154072251',
+        //        "asset_pair_name": 'SOL-USDT',
+        //        "price": '20',
+        //        "amount": '0.5',
+        //        "filled_amount": '0',
+        //        "avg_deal_price": '0',
+        //        "side": 'ASK',
+        //        "state": 'PENDING',
+        //        "created_at": '2023-09-13T03:42:00Z',
+        //        "updated_at": '2023-09-13T03:42:00Z',
+        //        "type": 'LIMIT',
+        //        "stop_price": '0',
+        //        "immediate_or_cancel": false,
+        //        "post_only": false,
+        //        "client_order_id": ''
         //    }
         //
         const id = this.safeString(order, 'id');
         const marketId = this.safeString(order, 'asset_pair_name');
         const symbol = this.safeSymbol(marketId, market, '-');
         const timestamp = this.parse8601(this.safeString(order, 'created_at'));
-        const price = this.safeString(order, 'price');
-        const amount = this.safeString(order, 'amount');
-        const average = this.safeString(order, 'avg_deal_price');
-        const filled = this.safeString(order, 'filled_amount');
-        const status = this.parseOrderStatus(this.safeString(order, 'state'));
         let side = this.safeString(order, 'side');
         if (side === 'BID') {
             side = 'buy';
@@ -1119,28 +1130,48 @@ class bigone extends bigone$1 {
         else {
             side = 'sell';
         }
-        const lastTradeTimestamp = this.parse8601(this.safeString(order, 'updated_at'));
+        let triggerPrice = this.safeString(order, 'stop_price');
+        if (Precise["default"].stringEq(triggerPrice, '0')) {
+            triggerPrice = undefined;
+        }
+        const immediateOrCancel = this.safeValue(order, 'immediate_or_cancel');
+        let timeInForce = undefined;
+        if (immediateOrCancel) {
+            timeInForce = 'IOC';
+        }
+        const type = this.parseType(this.safeString(order, 'type'));
+        const price = this.safeString(order, 'price');
+        let amount = undefined;
+        let filled = undefined;
+        let cost = undefined;
+        if (type === 'market' && side === 'buy') {
+            cost = this.safeString(order, 'filled_amount');
+        }
+        else {
+            amount = this.safeString(order, 'amount');
+            filled = this.safeString(order, 'filled_amount');
+        }
         return this.safeOrder({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString(order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': this.parse8601(this.safeString(order, 'updated_at')),
             'symbol': symbol,
-            'type': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': this.safeValue(order, 'post_only'),
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
-            'cost': undefined,
-            'average': average,
+            'cost': cost,
+            'average': this.safeString(order, 'avg_deal_price'),
             'filled': filled,
             'remaining': undefined,
-            'status': status,
+            'status': this.parseOrderStatus(this.safeString(order, 'state')),
             'fee': undefined,
             'trades': undefined,
         }, market);
@@ -1150,46 +1181,79 @@ class bigone extends bigone$1 {
          * @method
          * @name bigone#createOrder
          * @description create a trade order
+         * @see https://open.big.one/docs/spot_orders.html#create-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bigone api endpoint
+         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} operator *stop order only* GTE or LTE (default)
+         * @param {string} client_order_id must match ^[a-zA-Z0-9-_]{1,36}$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const requestSide = (side === 'buy') ? 'BID' : 'ASK';
-        const uppercaseType = type.toUpperCase();
+        const isBuy = (side === 'buy');
+        const requestSide = isBuy ? 'BID' : 'ASK';
+        let uppercaseType = type.toUpperCase();
+        const isLimit = uppercaseType === 'LIMIT';
+        const exchangeSpecificParam = this.safeValue(params, 'post_only');
+        let postOnly = undefined;
+        [postOnly, params] = this.handlePostOnly((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
         const request = {
             'asset_pair_name': market['id'],
             'side': requestSide,
-            'amount': this.amountToPrecision(symbol, amount),
+            'amount': this.amountToPrecision(symbol, amount), // order amount, string, required
             // 'price': this.priceToPrecision (symbol, price), // order price, string, required
-            'type': uppercaseType,
             // 'operator': 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
             // 'immediate_or_cancel': false, // limit orders only, must be false when post_only is true
             // 'post_only': false, // limit orders only, must be false when immediate_or_cancel is true
         };
-        if (uppercaseType === 'LIMIT') {
+        if (isLimit || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision(symbol, price);
+            if (isLimit) {
+                const timeInForce = this.safeString(params, 'timeInForce');
+                if (timeInForce === 'IOC') {
+                    request['immediate_or_cancel'] = true;
+                }
+                if (postOnly) {
+                    request['post_only'] = true;
+                }
+            }
         }
         else {
-            const isStopLimit = (uppercaseType === 'STOP_LIMIT');
-            const isStopMarket = (uppercaseType === 'STOP_MARKET');
-            if (isStopLimit || isStopMarket) {
-                const stopPrice = this.safeNumber2(params, 'stop_price', 'stopPrice');
-                if (stopPrice === undefined) {
-                    throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a stop_price parameter');
+            const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice');
+            if (createMarketBuyOrderRequiresPrice && (side === 'buy')) {
+                if (price === undefined) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
                 }
-                request['stop_price'] = this.priceToPrecision(symbol, stopPrice);
-                params = this.omit(params, ['stop_price', 'stopPrice']);
-            }
-            if (isStopLimit) {
-                request['price'] = this.priceToPrecision(symbol, price);
+                else {
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    amount = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
+                }
             }
         }
+        request['amount'] = this.amountToPrecision(symbol, amount);
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
+            request['operator'] = isBuy ? 'GTE' : 'LTE';
+            if (isLimit) {
+                uppercaseType = 'STOP_LIMIT';
+            }
+            else if (uppercaseType === 'MARKET') {
+                uppercaseType = 'STOP_MARKET';
+            }
+        }
+        request['type'] = uppercaseType;
+        params = this.omit(params, ['stop_price', 'stopPrice', 'triggerPrice', 'timeInForce']);
         const response = await this.privatePostOrders(this.extend(request, params));
         //
         //    {

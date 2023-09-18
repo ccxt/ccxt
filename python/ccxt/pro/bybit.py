@@ -501,8 +501,8 @@ class bybit(ccxt.async_support.bybit):
         topics = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            market = self.market(symbol)
-            topic = 'orderbook.' + str(limit) + '.' + market['id']
+            currentMarket = self.market(symbol)
+            topic = 'orderbook.' + str(limit) + '.' + currentMarket['id']
             topics.append(topic)
         messageHash = 'multipleOrderbook::' + ','.join(symbols)
         orderbook = await self.watch_topics(url, messageHash, topics, params)

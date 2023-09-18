@@ -1423,13 +1423,13 @@ export default class okx extends Exchange {
                 promises.push(this.publicGetPublicInstruments(this.extend(request, params)));
             }
             const promisesResult = await Promise.all(promises);
-            let data = [];
+            let markets = [];
             for (let i = 0; i < promisesResult.length; i++) {
                 const res = this.safeValue(promisesResult, i, {});
                 const options = this.safeValue(res, 'data', []);
-                data = this.arrayConcat(data, options);
+                markets = this.arrayConcat(markets, options);
             }
-            return this.parseMarkets(data);
+            return this.parseMarkets(markets);
         }
         const response = await this.publicGetPublicInstruments(this.extend(request, params));
         //

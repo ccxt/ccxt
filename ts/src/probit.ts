@@ -435,14 +435,14 @@ export default class probit extends Exchange {
                 }
                 const precision = this.parsePrecision (this.safeString (network, 'precision'));
                 const withdrawFee = this.safeValue (network, 'withdrawal_fee', []);
-                const feeInner = this.safeValue (withdrawFee, 0, {});
+                const networkfee = this.safeValue (withdrawFee, 0, {});
                 networkList[networkCode] = {
                     'id': idInner,
                     'network': networkCode,
                     'active': currentActive,
                     'deposit': currentDeposit,
                     'withdraw': currentWithdraw,
-                    'fee': this.safeNumber (feeInner, 'amount'),
+                    'fee': this.safeNumber (networkfee, 'amount'),
                     'precision': this.parseNumber (precision),
                     'limits': {
                         'withdraw': {

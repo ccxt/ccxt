@@ -602,8 +602,8 @@ class lbank2 extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             if ($market['swap']) {
-                $response = Async\await($this->fetch_tickers([ $market['symbol'] ], $params));
-                return $this->safe_value($response, $market['symbol']);
+                $responseForSwap = Async\await($this->fetch_tickers([ $market['symbol'] ], $params));
+                return $this->safe_value($responseForSwap, $market['symbol']);
             }
             $request = array(
                 'symbol' => $market['id'],

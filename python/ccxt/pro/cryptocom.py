@@ -95,8 +95,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            messageHash = 'book' + '.' + market['id']
-            topics.append(messageHash)
+            currentMessageHash = 'book' + '.' + market['id']
+            topics.append(currentMessageHash)
         messageHash = 'multipleOrderbooks::' + ','.join(symbols)
         orderbook = await self.watch_public_multiple(messageHash, topics, params)
         return orderbook.limit()
@@ -176,8 +176,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            messageHash = 'trade' + '.' + market['id']
-            topics.append(messageHash)
+            currentMessageHash = 'trade' + '.' + market['id']
+            topics.append(currentMessageHash)
         messageHash = 'multipleTrades::' + ','.join(symbols)
         trades = await self.watch_public_multiple(messageHash, topics, params)
         if self.newUpdates:

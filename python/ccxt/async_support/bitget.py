@@ -2861,11 +2861,11 @@ class bitget(Exchange, ImplicitAPI):
                 method = 'privateMixPostPlanPlacePositionsTPSL'
             elif isStopLossOrTakeProfit:
                 if isStopLoss:
-                    stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
-                    request['presetStopLossPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                    slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
+                    request['presetStopLossPrice'] = self.price_to_precision(symbol, slTriggerPrice)
                 if isTakeProfit:
-                    takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
-                    request['presetTakeProfitPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                    tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
+                    request['presetTakeProfitPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
         if postOnly:
             request[timeInForceKey] = 'post_only'
         elif timeInForce == 'gtc':
