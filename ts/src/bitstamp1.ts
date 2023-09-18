@@ -221,6 +221,17 @@ export default class bitstamp1 extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // public trade
+        //
+        //        {
+        //            "amount": "0.00114000",
+        //            "date": "1694287856",
+        //            "price": "25865",
+        //            "tid": 298730788,
+        //            "type": 0
+        //        }
+        //
         const timestamp = this.safeTimestamp2 (trade, 'date', 'datetime');
         const side = (trade['type'] === 0) ? 'buy' : 'sell';
         const orderId = this.safeString (trade, 'order_id');
@@ -266,6 +277,17 @@ export default class bitstamp1 extends Exchange {
             'time': 'minute',
         };
         const response = await this.publicGetTransactions (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "amount": "0.00114000",
+        //            "date": "1694287856",
+        //            "price": "25865",
+        //            "tid": 298730788,
+        //            "type": 0
+        //        },
+        //    ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
