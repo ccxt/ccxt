@@ -4648,7 +4648,7 @@ export default class Exchange {
                     uniqueResult[id] = entry;
                 }
             } else {
-                const timestamp = this.safeInteger (entry, 'timestamp', 0);
+                const timestamp = this.safeInteger2 (entry, 'timestamp', 0);
                 if (timestamp !== undefined) {
                     if (this.safeString (uniqueResult, timestamp) === undefined) {
                         uniqueResult[timestamp] = entry;
