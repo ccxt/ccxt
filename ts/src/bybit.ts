@@ -5965,7 +5965,7 @@ export default class bybit extends Exchange {
          * @param {string} marginMode account mode must be either [isolated, cross, portfolio], trade mode must be either [isolated, cross]
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @param {string|undefined} leverage the rate of leverage, it required if setting trade mode (symbol)
+         * @param {string} [params.leverage] the rate of leverage, is required if setting trade mode (symbol)
          * @returns {object} response from the exchange
          */
         await this.loadMarkets ();
@@ -6002,7 +6002,7 @@ export default class bybit extends Exchange {
                     throw new NotSupported (this.id + ' setMarginMode() with symbol only support USDT perpetual / inverse contract');
                 }
             } else if (type !== 'inverse') {
-                throw new NotSupported (this.id + ' setMarginMode() not support this market type');
+                throw new NotSupported (this.id + ' setMarginMode() does not support this market type');
             }
             let tradeMode = undefined;
             if (marginMode === 'cross') {
