@@ -2947,12 +2947,12 @@ class bitget extends Exchange {
                 $method = 'privateMixPostPlanPlacePositionsTPSL';
             } elseif ($isStopLossOrTakeProfit) {
                 if ($isStopLoss) {
-                    $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
-                    $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                    $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
+                    $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
                 }
                 if ($isTakeProfit) {
-                    $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
-                    $request['presetTakeProfitPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                    $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
+                    $request['presetTakeProfitPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                 }
             }
         }
