@@ -2337,26 +2337,27 @@ class bybit(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # max 1000, default 1000
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
-        method = None
+        response = None
         if market['spot']:
             request['category'] = 'spot'
-            method = 'publicGetV5MarketKline'
+            response = self.publicGetV5MarketKline(self.extend(request, params))
         else:
             price = self.safe_string(params, 'price')
             params = self.omit(params, 'price')
-            methods = {
-                'mark': 'publicGetV5MarketMarkPriceKline',
-                'index': 'publicGetV5MarketIndexPriceKline',
-                'premiumIndex': 'publicGetV5MarketPremiumIndexPriceKline',
-            }
-            method = self.safe_value(methods, price, 'publicGetV5MarketKline')
             if market['linear']:
                 request['category'] = 'linear'
             elif market['inverse']:
                 request['category'] = 'inverse'
             else:
                 raise NotSupported(self.id + ' fetchOHLCV() is not supported for option markets')
-        response = getattr(self, method)(self.extend(request, params))
+            if price == 'mark':
+                response = self.publicGetV5MarketMarkPriceKline(self.extend(request, params))
+            elif price == 'index':
+                response = self.publicGetV5MarketIndexPriceKline(self.extend(request, params))
+            elif price == 'premiumIndex':
+                response = self.publicGetV5MarketPremiumIndexPriceKline(self.extend(request, params))
+            else:
+                response = self.publicGetV5MarketKline(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
@@ -3669,8 +3670,11 @@ class bybit(Exchange, ImplicitAPI):
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
         params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
-        method = 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' if market['option'] else 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder'
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if market['option']:
+            response = self.privatePostOptionUsdcOpenapiPrivateV1PlaceOrder(self.extend(request, params))
+        else:
+            response = self.privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder(self.extend(request, params))
         #
         #     {
         #         "retCode":0,
@@ -3710,11 +3714,10 @@ class bybit(Exchange, ImplicitAPI):
             request['orderQty'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['orderPrice'] = self.price_to_precision(symbol, price)
-        method = None
+        response = None
         if market['option']:
-            method = 'privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder'
+            response = self.privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder(self.extend(request, params))
         else:
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder'
             isStop = self.safe_value(params, 'stop', False)
             triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
             stopLossPrice = self.safe_value(params, 'stopLossPrice')
@@ -3731,7 +3734,7 @@ class bybit(Exchange, ImplicitAPI):
                 if takeProfitPrice is not None:
                     request['takeProfit'] = self.price_to_precision(symbol, takeProfitPrice)
             params = self.omit(params, ['stop', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder(self.extend(request, params))
         #
         #    {
         #        "retCode": 0,
@@ -3850,15 +3853,14 @@ class bybit(Exchange, ImplicitAPI):
         }
         isStop = self.safe_value(params, 'stop', False)
         params = self.omit(params, ['stop'])
-        method = None
         if id is not None:  # The user can also use argument params["order_link_id"]
             request['orderId'] = id
+        response = None
         if market['option']:
-            method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder'
+            response = self.privatePostOptionUsdcOpenapiPrivateV1CancelOrder(self.extend(request, params))
         else:
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder'
             request['orderFilter'] = 'StopOrder' if isStop else 'Order'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
@@ -4936,13 +4938,16 @@ class bybit(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['start_date'] = self.yyyymmdd(since)
-        method = 'privateGetV5AccountTransactionLog' if (enableUnified[1]) else 'privateGetV2PrivateWalletFundRecords'
         if code is not None:
             currency = self.currency(code)
             request[currencyKey] = currency['id']
         if limit is not None:
             request['limit'] = limit
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if enableUnified[1]:
+            response = self.privateGetV5AccountTransactionLog(self.extend(request, params))
+        else:
+            response = self.privateGetV2PrivateWalletFundRecords(self.extend(request, params))
         #
         #     {
         #         "ret_code": 0,
@@ -5712,21 +5717,21 @@ class bybit(Exchange, ImplicitAPI):
             'buyLeverage': leverage,
             'sellLeverage': leverage,
         }
-        method = None
+        response = None
         if isUsdcSettled and not isUnifiedAccount:
             request['leverage'] = leverage
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave'
+            response = self.privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave(self.extend(request, params))
         else:
             request['buyLeverage'] = leverage
             request['sellLeverage'] = leverage
-            method = 'privatePostV5PositionSetLeverage'
             if market['linear']:
                 request['category'] = 'linear'
             elif market['inverse']:
                 request['category'] = 'inverse'
             else:
                 raise NotSupported(self.id + ' setLeverage() only support linear and inverse market')
-        return getattr(self, method)(self.extend(request, params))
+            response = self.privatePostV5PositionSetLeverage(self.extend(request, params))
+        return response
 
     def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
         """
