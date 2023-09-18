@@ -2446,7 +2446,7 @@ class huobi(Exchange, ImplicitAPI):
             fieldName = 'contract_code'
         request[fieldName] = market['id']
         if limit is not None:
-            request['size'] = limit  # max 2000
+            request['size'] = min(limit, 2000)  # max 2000
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
