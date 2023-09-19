@@ -63,23 +63,23 @@ export default class Exchange {
     walletAddress: string;
     token: string;
     balance: {};
+    myTrades: any;
+    ohlcvs: any;
     orderbooks: {};
-    tickers: {};
     orders: any;
+    positions: {};
+    tickers: {};
     trades: any;
     transactions: {};
-    ohlcvs: any;
-    myTrades: any;
-    positions: {};
     urls: {
-        logo?: string;
         api?: string | Dictionary<string>;
+        api_management?: string;
+        doc?: string[];
+        fees?: string;
+        logo?: string;
+        referral?: string;
         test?: string | Dictionary<string>;
         www?: string;
-        doc?: string[];
-        api_management?: string;
-        fees?: string;
-        referral?: string;
     };
     precision: {
         amount: number | undefined;
@@ -285,14 +285,14 @@ export default class Exchange {
             };
         };
         has: {
+            CORS: any;
             addMargin: any;
             cancelAllOrders: any;
             cancelAllOrdersWs: any;
             cancelOrder: boolean;
+            cancelOrderWs: any;
             cancelOrders: any;
             cancelOrdersWs: any;
-            cancelOrderWs: any;
-            CORS: any;
             createDepositAddress: any;
             createLimitOrder: boolean;
             createMarketOrder: boolean;
@@ -334,9 +334,9 @@ export default class Exchange {
             fetchLedger: any;
             fetchLedgerEntry: any;
             fetchLeverageTiers: any;
+            fetchMarkOHLCV: any;
             fetchMarketLeverageTiers: any;
             fetchMarkets: boolean;
-            fetchMarkOHLCV: any;
             fetchMyTrades: any;
             fetchOHLCV: any;
             fetchOpenInterest: any;
@@ -347,9 +347,9 @@ export default class Exchange {
             fetchOrder: any;
             fetchOrderBook: boolean;
             fetchOrderBooks: any;
-            fetchOrders: any;
             fetchOrderTrades: any;
             fetchOrderWs: any;
+            fetchOrders: any;
             fetchPermissions: any;
             fetchPosition: any;
             fetchPositions: any;
@@ -386,18 +386,18 @@ export default class Exchange {
             spot: any;
             swap: any;
             transfer: any;
-            withdraw: any;
-            watchOrderBook: any;
-            watchOrders: any;
+            watchBalance: any;
             watchMyTrades: any;
-            watchTickers: any;
+            watchOHLCV: any;
+            watchOHLCVForSymbols: any;
+            watchOrderBook: any;
+            watchOrderBookForSymbols: any;
+            watchOrders: any;
             watchTicker: any;
+            watchTickers: any;
             watchTrades: any;
             watchTradesForSymbols: any;
-            watchOrderBookForSymbols: any;
-            watchOHLCVForSymbols: any;
-            watchBalance: any;
-            watchOHLCV: any;
+            withdraw: any;
         };
         httpExceptions: {
             '400': typeof ExchangeNotAvailable;

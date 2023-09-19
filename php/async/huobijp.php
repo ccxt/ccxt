@@ -888,7 +888,7 @@ class huobijp extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['size'] = $limit;
+                $request['size'] = min ($limit, 2000);
             }
             $response = Async\await($this->marketGetHistoryTrade (array_merge($request, $params)));
             //

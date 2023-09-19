@@ -508,7 +508,7 @@ class idex extends idex$1 {
             request['start'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         // [
         //   {

@@ -288,10 +288,10 @@ export default class binance extends binanceRest {
             // unroll the accumulated deltas
             const messages = orderbook.cache;
             for (let i = 0; i < messages.length; i++) {
-                const message = messages[i];
-                const U = this.safeInteger(message, 'U');
-                const u = this.safeInteger(message, 'u');
-                const pu = this.safeInteger(message, 'pu');
+                const messageItem = messages[i];
+                const U = this.safeInteger(messageItem, 'U');
+                const u = this.safeInteger(messageItem, 'u');
+                const pu = this.safeInteger(messageItem, 'pu');
                 if (type === 'future') {
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
                     if (u < orderbook['nonce']) {
@@ -299,7 +299,7 @@ export default class binance extends binanceRest {
                     }
                     // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                     if ((U <= orderbook['nonce']) && (u >= orderbook['nonce']) || (pu === orderbook['nonce'])) {
-                        this.handleOrderBookMessage(client, message, orderbook);
+                        this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
                 }
                 else {
@@ -309,7 +309,7 @@ export default class binance extends binanceRest {
                     }
                     // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
                     if (((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce'])) {
-                        this.handleOrderBookMessage(client, message, orderbook);
+                        this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
                 }
             }
@@ -450,8 +450,8 @@ export default class binance extends binanceRest {
     handleOrderBookSubscription(client, message, subscription) {
         const defaultLimit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
-        const symbol = this.safeString(subscription, 'symbol'); // watchOrderBook
-        const symbols = this.safeValue(subscription, 'symbols', [symbol]); // watchOrderBookForSymbols
+        const symbolOfSubscription = this.safeString(subscription, 'symbol'); // watchOrderBook
+        const symbols = this.safeValue(subscription, 'symbols', [symbolOfSubscription]); // watchOrderBookForSymbols
         const limit = this.safeInteger(subscription, 'limit', defaultLimit);
         // handle list of symbols
         for (let i = 0; i < symbols.length; i++) {
@@ -1158,12 +1158,12 @@ export default class binance extends binanceRest {
             client.resolve(result, '!' + 'bookTicker@arr');
             const messageHashes = this.findMessageHashes(client, 'tickers::');
             for (let i = 0; i < messageHashes.length; i++) {
-                const messageHash = messageHashes[i];
-                const parts = messageHash.split('::');
+                const currentMessageHash = messageHashes[i];
+                const parts = currentMessageHash.split('::');
                 const symbolsString = parts[1];
                 const symbols = symbolsString.split(',');
                 if (this.inArray(symbol, symbols)) {
-                    client.resolve(result, messageHash);
+                    client.resolve(result, currentMessageHash);
                 }
             }
         }

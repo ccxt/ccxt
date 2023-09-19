@@ -1437,13 +1437,13 @@ export default class okx extends Exchange {
                 promises.push (this.publicGetPublicInstruments (this.extend (request, params)));
             }
             const promisesResult = await Promise.all (promises);
-            let data = [];
+            let markets = [];
             for (let i = 0; i < promisesResult.length; i++) {
                 const res = this.safeValue (promisesResult, i, {});
                 const options = this.safeValue (res, 'data', []);
-                data = this.arrayConcat (data, options);
+                markets = this.arrayConcat (markets, options);
             }
-            return this.parseMarkets (data);
+            return this.parseMarkets (markets);
         }
         const response = await this.publicGetPublicInstruments (this.extend (request, params));
         //
@@ -6726,8 +6726,8 @@ export default class okx extends Exchange {
             const entry = settlements[i];
             const timestamp = this.safeInteger (entry, 'ts');
             const details = this.safeValue (entry, 'details', []);
-            for (let i = 0; i < details.length; i++) {
-                const settlement = this.parseSettlement (details[i], market);
+            for (let j = 0; j < details.length; j++) {
+                const settlement = this.parseSettlement (details[j], market);
                 result.push (this.extend (settlement, {
                     'timestamp': timestamp,
                     'datetime': this.iso8601 (timestamp),

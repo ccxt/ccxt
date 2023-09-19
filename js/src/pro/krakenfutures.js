@@ -514,9 +514,9 @@ export default class krakenfutures extends krakenfuturesRest {
                 let totalAmount = '0';
                 const trades = previousOrder['trades'];
                 for (let i = 0; i < trades.length; i++) {
-                    const trade = trades[i];
-                    totalCost = Precise.stringAdd(totalCost, this.numberToString(trade['cost']));
-                    totalAmount = Precise.stringAdd(totalAmount, this.numberToString(trade['amount']));
+                    const currentTrade = trades[i];
+                    totalCost = Precise.stringAdd(totalCost, this.numberToString(currentTrade['cost']));
+                    totalAmount = Precise.stringAdd(totalAmount, this.numberToString(currentTrade['amount']));
                 }
                 if (Precise.stringGt(totalAmount, '0')) {
                     previousOrder['average'] = Precise.stringDiv(totalCost, totalAmount);
@@ -551,13 +551,13 @@ export default class krakenfutures extends krakenfuturesRest {
             if (isCancel) {
                 // get order without symbol
                 for (let i = 0; i < orders.length; i++) {
-                    const order = orders[i];
-                    if (order['id'] === message['order_id']) {
-                        orders[i] = this.extend(order, {
+                    const currentOrder = orders[i];
+                    if (currentOrder['id'] === message['order_id']) {
+                        orders[i] = this.extend(currentOrder, {
                             'status': 'canceled',
                         });
                         client.resolve(orders, 'orders');
-                        client.resolve(orders, 'orders:' + order['symbol']);
+                        client.resolve(orders, 'orders:' + currentOrder['symbol']);
                         break;
                     }
                 }

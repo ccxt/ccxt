@@ -319,6 +319,17 @@ export default class bitbank extends Exchange {
         return this.parseOrderBook(orderbook, market['symbol'], timestamp);
     }
     parseTrade(trade, market = undefined) {
+        //
+        // fetchTrades
+        //
+        //    {
+        //        "transaction_id": "1143247037",
+        //        "side": "buy",
+        //        "price": "3836025",
+        //        "amount": "0.0005",
+        //        "executed_at": "1694249441593"
+        //    }
+        //
         const timestamp = this.safeInteger(trade, 'executed_at');
         market = this.safeMarket(undefined, market);
         const priceString = this.safeString(trade, 'price');

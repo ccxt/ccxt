@@ -409,9 +409,9 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         $deltaEnd = $this->safe_integer($data, 'sequence');
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
-            $topicParts = explode(':', $topic);
-            $topicSymbol = $this->safe_string($topicParts, 1);
-            $topicChannel = $this->safe_string($topicParts, 0);
+            $topicPartsNew = explode(':', $topic);
+            $topicSymbol = $this->safe_string($topicPartsNew, 1);
+            $topicChannel = $this->safe_string($topicPartsNew, 0);
             $subscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
             $subscription = null;
             for ($i = 0; $i < count($subscriptions); $i++) {

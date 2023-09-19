@@ -1422,12 +1422,12 @@ class okx(Exchange, ImplicitAPI):
                 request['uly'] = underlying
                 promises.append(self.publicGetPublicInstruments(self.extend(request, params)))
             promisesResult = await asyncio.gather(*promises)
-            data = []
+            markets = []
             for i in range(0, len(promisesResult)):
                 res = self.safe_value(promisesResult, i, {})
                 options = self.safe_value(res, 'data', [])
-                data = self.array_concat(data, options)
-            return self.parse_markets(data)
+                markets = self.array_concat(markets, options)
+            return self.parse_markets(markets)
         response = await self.publicGetPublicInstruments(self.extend(request, params))
         #
         # spot, future, swap, option
@@ -6280,8 +6280,8 @@ class okx(Exchange, ImplicitAPI):
             entry = settlements[i]
             timestamp = self.safe_integer(entry, 'ts')
             details = self.safe_value(entry, 'details', [])
-            for i in range(0, len(details)):
-                settlement = self.parse_settlement(details[i], market)
+            for j in range(0, len(details)):
+                settlement = self.parse_settlement(details[j], market)
                 result.append(self.extend(settlement, {
                     'timestamp': timestamp,
                     'datetime': self.iso8601(timestamp),

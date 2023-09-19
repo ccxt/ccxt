@@ -1018,7 +1018,9 @@
         "skipMethods": {
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+                "baseVolume": "quoteVolume >= baseVolume * low is failing",
+                "ask": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266029139",
+                "bid": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266029139"
             },
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",

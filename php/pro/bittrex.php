@@ -721,8 +721,8 @@ class bittrex extends \ccxt\async\bittrex {
                     // unroll the accumulated deltas
                     // 3. Playback the cached Level 2 data flow.
                     for ($i = 0; $i < count($messages); $i++) {
-                        $message = $messages[$i];
-                        $this->handle_order_book_message($client, $message, $orderbook);
+                        $messageItem = $messages[$i];
+                        $this->handle_order_book_message($client, $messageItem, $orderbook);
                     }
                     $this->orderbooks[$symbol] = $orderbook;
                     $client->resolve ($orderbook, $messageHash);

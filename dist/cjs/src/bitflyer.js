@@ -406,7 +406,7 @@ class bitflyer extends bitflyer$1 {
         //
         // fetchTrades (public) v1
         //
-        //     {
+        //      {
         //          "id":2278466664,
         //          "side":"SELL",
         //          "price":56810.7,
@@ -416,16 +416,18 @@ class bitflyer extends bitflyer$1 {
         //          "sell_child_order_acceptance_id":"JRF20211119-114639-236919"
         //      }
         //
+        // fetchMyTrades
+        //
         //      {
-        //          "id":2278463423,
-        //          "side":"BUY",
-        //          "price":56757.83,
-        //          "size":0.6003,"exec_date":"2021-11-19T11:28:00.523",
-        //          "buy_child_order_acceptance_id":"JRF20211119-112800-236526",
-        //          "sell_child_order_acceptance_id":"JRF20211119-112734-062017"
-        //      }
-        //
-        //
+        //          "id": 37233,
+        //          "side": "BUY",
+        //          "price": 33470,
+        //          "size": 0.01,
+        //          "exec_date": "2015-07-07T09:57:40.397",
+        //          "child_order_id": "JOR20150707-060559-021935",
+        //          "child_order_acceptance_id": "JRF20150707-060559-396699"
+        //          "commission": 0,
+        //      },
         //
         let side = this.safeStringLower(trade, 'side');
         if (side !== undefined) {
@@ -484,6 +486,19 @@ class bitflyer extends bitflyer$1 {
             request['count'] = limit;
         }
         const response = await this.publicGetGetexecutions(this.extend(request, params));
+        //
+        //    [
+        //     {
+        //       "id": 39287,
+        //       "side": "BUY",
+        //       "price": 31690,
+        //       "size": 27.04,
+        //       "exec_date": "2015-07-08T02:43:34.823",
+        //       "buy_child_order_acceptance_id": "JRF20150707-200203-452209",
+        //       "sell_child_order_acceptance_id": "JRF20150708-024334-060234"
+        //     },
+        //    ]
+        //
         return this.parseTrades(response, market, since, limit);
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -720,6 +735,20 @@ class bitflyer extends bitflyer$1 {
             request['count'] = limit;
         }
         const response = await this.privateGetGetexecutions(this.extend(request, params));
+        //
+        //    [
+        //     {
+        //       "id": 37233,
+        //       "side": "BUY",
+        //       "price": 33470,
+        //       "size": 0.01,
+        //       "exec_date": "2015-07-07T09:57:40.397",
+        //       "child_order_id": "JOR20150707-060559-021935",
+        //       "child_order_acceptance_id": "JRF20150707-060559-396699"
+        //       "commission": 0,
+        //     },
+        //    ]
+        //
         return this.parseTrades(response, market, since, limit);
     }
     async fetchPositions(symbols = undefined, params = {}) {

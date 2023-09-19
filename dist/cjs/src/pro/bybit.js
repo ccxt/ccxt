@@ -361,17 +361,17 @@ class bybit extends bybit$1 {
         let firstSymbol = undefined;
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
-            let symbol = this.safeString(data, 0);
-            const timeframe = this.safeString(data, 1);
-            const market = this.market(symbol);
-            symbol = market['symbol'];
+            let symbolString = this.safeString(data, 0);
+            const timeframeString = this.safeString(data, 1);
+            const market = this.market(symbolString);
+            symbolString = market['symbol'];
             if (i === 0) {
                 firstSymbol = market['symbol'];
             }
-            const timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
+            const timeframeId = this.safeString(this.timeframes, timeframeString, timeframeString);
             const topic = 'kline.' + timeframeId + '.' + market['id'];
             topics.push(topic);
-            hashes.push(symbol + '#' + timeframe);
+            hashes.push(symbolString + '#' + timeframeString);
         }
         const messageHash = 'multipleOHLCV::' + hashes.join(',');
         const url = this.getUrlByMarketType(firstSymbol, false, params);
@@ -530,8 +530,8 @@ class bybit extends bybit$1 {
         const topics = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = this.market(symbol);
-            const topic = 'orderbook.' + limit.toString() + '.' + market['id'];
+            const currentMarket = this.market(symbol);
+            const topic = 'orderbook.' + limit.toString() + '.' + currentMarket['id'];
             topics.push(topic);
         }
         const messageHash = 'multipleOrderbook::' + symbols.join(',');
@@ -918,8 +918,8 @@ class bybit extends bybit$1 {
         }
         const keys = Object.keys(symbols);
         for (let i = 0; i < keys.length; i++) {
-            const messageHash = 'myTrades:' + keys[i];
-            client.resolve(trades, messageHash);
+            const currentMessageHash = 'myTrades:' + keys[i];
+            client.resolve(trades, currentMessageHash);
         }
         // non-symbol specific
         const messageHash = 'myTrades';
@@ -1068,8 +1068,8 @@ class bybit extends bybit$1 {
         }
         const symbolsArray = Object.keys(symbols);
         for (let i = 0; i < symbolsArray.length; i++) {
-            const messageHash = 'orders:' + symbolsArray[i];
-            client.resolve(orders, messageHash);
+            const currentMessageHash = 'orders:' + symbolsArray[i];
+            client.resolve(orders, currentMessageHash);
         }
         const messageHash = 'orders';
         client.resolve(orders, messageHash);
