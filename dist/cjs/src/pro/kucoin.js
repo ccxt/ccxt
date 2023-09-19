@@ -235,15 +235,15 @@ class kucoin extends kucoin$1 {
         client.resolve(ticker, 'tickers');
         const messageHashes = this.findMessageHashes(client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split('::');
+            const currentMessageHash = messageHashes[i];
+            const parts = currentMessageHash.split('::');
             const symbolsString = parts[1];
             const symbols = symbolsString.split(',');
             const tickers = this.filterByArray(this.tickers, 'symbol', symbols);
             const tickersSymbols = Object.keys(tickers);
             const numTickers = tickersSymbols.length;
             if (numTickers > 0) {
-                client.resolve(tickers, messageHash);
+                client.resolve(tickers, currentMessageHash);
             }
         }
     }
