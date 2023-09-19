@@ -1167,6 +1167,7 @@ export default class Exchange {
                     'agent': this.agent,
                 }
             }, wsOptions);
+            this.checkWsProxySettings ();
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
         }
         return this.clients[url];
