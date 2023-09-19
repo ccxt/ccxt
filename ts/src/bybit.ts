@@ -5996,6 +5996,9 @@ export default class bybit extends Exchange {
             };
             response = await this.privatePostV5AccountSetMarginMode (this.extend (request, params));
         } else {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol parameter for non unified account');
+            }
             market = this.market (symbol);
             const isUsdcSettled = market['settle'] === 'USDC';
             if (isUsdcSettled) {
