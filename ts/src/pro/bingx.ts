@@ -18,6 +18,7 @@ export default class bingx extends bingxRest {
                 'watchOrderBook': true,
                 'watchOHLCV': true,
                 'watchOrders': true,
+                'watchMyTrades': true,
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchBalance': true,
@@ -438,6 +439,49 @@ export default class bingx extends bingxRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
+    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#watchMyTrades
+         * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
+         * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to trades orders for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        let type = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const subscriptionHash = (type === 'spot') ? 'spot:private' : 'swap:private';
+        let messageHash = (type === 'spot') ? 'spot:mytrades' : 'swap:mytrades';
+        if (market !== undefined) {
+            messageHash += ':' + symbol;
+        }
+        const url = this.urls['api']['ws'][type] + '?listenKey=' + this.options['listenKey'];
+        let request = undefined;
+        const uuid = this.uuid ();
+        if (type === 'spot') {
+            request = {
+                'id': uuid,
+                'dataType': 'spot.executionReport',
+            };
+        }
+        const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
     async watchBalance (params = {}) {
         /**
          * @method
@@ -567,6 +611,55 @@ export default class bingx extends bingxRest {
         client.resolve (stored, messageHash + ':' + symbol);
     }
 
+    handleMyTrades (client: Client, message) {
+        //
+        //
+        //      {
+        //         code: 0,
+        //         dataType: 'spot.executionReport',
+        //         data: {
+        //           e: 'executionReport',
+        //           E: 1694681809302,
+        //           s: 'LTC-USDT',
+        //           S: 'BUY',
+        //           o: 'MARKET',
+        //           q: 0,
+        //           p: 62.29,
+        //           x: 'TRADE',
+        //           X: 'FILLED',
+        //           i: '1702245001712369664',
+        //           l: 0.0802,
+        //           z: 0.0802,
+        //           L: 62.308,
+        //           n: -0.0000802,
+        //           N: 'LTC',
+        //           T: 1694681809256,
+        //           t: 38259147,
+        //           O: 1694681809248,
+        //           Z: 4.9971016,
+        //           Y: 4.9971016,
+        //           Q: 5,
+        //           m: false
+        //         }
+        //       }
+        //
+        //
+        const result = this.safeValue (message, 'data');
+        let cachedTrades = this.myTrades;
+        if (cachedTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            cachedTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = cachedTrades;
+        }
+        const parsed = this.parseTrade (result);
+        const symbol = parsed['symbol'];
+        const market = this.market (symbol);
+        const messageHash = (market['spot']) ? 'spot:mytrades' : 'swap:mytrades';
+        cachedTrades.append (parsed);
+        client.resolve (cachedTrades, messageHash);
+        client.resolve (cachedTrades, messageHash + ':' + symbol);
+    }
+
     handleMessage (client: Client, message) {
         // public subscriptions
         const dataType = this.safeString (message, 'dataType');
@@ -586,20 +679,12 @@ export default class bingx extends bingxRest {
             return;
         }
         if (dataType.indexOf ('executionReport') >= 0) {
+            const data = this.safeValue (message, 'data', {});
+            const type = this.safeString (data, 'x');
+            if (type === 'TRADE') {
+                this.handleMyTrades (client, message);
+            }
             this.handleOrder (client, message);
-            return;
-        }
-        // private subscriptions
-        const eventType = this.safeString (message, 'e');
-        const eventTypes = {
-            'ORDER': this.handleOrder,
-            // 'DEPOSIT': this.handleBalance,
-            // 'WITHDRAW': this.handleBalance,
-            // 'ASSET_TRANSFER': this.handleBalance,
-        };
-        const method = this.safeValue (eventTypes, eventType);
-        if (method !== undefined) {
-            method.call (this, client, message);
         }
     }
 }
