@@ -3370,6 +3370,18 @@ class binance extends Exchange {
         //         "M" => true           // Was the $trade the best $price match?
         //     }
         //
+        // REST => aggregate trades for swap & future (both linear and inverse)
+        //
+        //     {
+        //         "a" => "269772814",
+        //         "p" => "25864.1",
+        //         "q" => "3",
+        //         "f" => "662149354",
+        //         "l" => "662149355",
+        //         "T" => "1694209776022",
+        //         "m" => false,
+        //     }
+        //
         // recent public trades and old public trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-$trade-lookup-market_data
@@ -3617,7 +3629,8 @@ class binance extends Exchange {
             }
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default = 500, maximum = 1000
+            $isFutureOrSwap = ($market['swap'] || $market['future']);
+            $request['limit'] = $isFutureOrSwap ? min ($limit, 1000) : $limit; // default = 500, maximum = 1000
         }
         $params = $this->omit($params, array( 'until', 'fetchTradesMethod' ));
         //
@@ -3644,6 +3657,20 @@ class binance extends Exchange {
         //             "m" => true,          // Was the buyer the maker?
         //             "M" => true           // Was the trade the best price match?
         //         }
+        //     )
+        //
+        // inverse (swap & future)
+        //
+        //     array(
+        //      array(
+        //         "a" => "269772814",
+        //         "p" => "25864.1",
+        //         "q" => "3",
+        //         "f" => "662149354",
+        //         "l" => "662149355",
+        //         "T" => "1694209776022",
+        //         "m" => false,
+        //      ),
         //     )
         //
         // recent public trades and historical public trades

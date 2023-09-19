@@ -926,7 +926,7 @@ class lbank2 extends Exchange {
                 $request['time'] = $since;
             }
             if ($limit !== null) {
-                $request['size'] = $limit;
+                $request['size'] = min ($limit, 600);
             } else {
                 $request['size'] = 600; // max
             }

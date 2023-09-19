@@ -248,6 +248,16 @@ class bl3p extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades
+        //
+        //     {
+        //         "trade_id" => "2518789",
+        //         "date" => "1694348697745",
+        //         "amount_int" => "2959153",
+        //         "price_int" => "2416231440"
+        //     }
+        //
         $id = $this->safe_string($trade, 'trade_id');
         $timestamp = $this->safe_integer($trade, 'date');
         $price = $this->safe_string($trade, 'price_int');
@@ -284,6 +294,20 @@ class bl3p extends Exchange {
             $response = Async\await($this->publicGetMarketTrades (array_merge(array(
                 'market' => $market['id'],
             ), $params)));
+            //
+            //    {
+            //        "result" => "success",
+            //        "data" => {
+            //            "trades" => array(
+            //                array(
+            //                    "trade_id" => "2518789",
+            //                    "date" => "1694348697745",
+            //                    "amount_int" => "2959153",
+            //                    "price_int" => "2416231440"
+            //                ),
+            //            )
+            //        }
+            //     }
             $result = $this->parse_trades($response['data']['trades'], $market, $since, $limit);
             return $result;
         }) ();

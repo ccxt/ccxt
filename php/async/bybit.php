@@ -732,7 +732,7 @@ class bybit extends Exchange {
                     '110023' => '\\ccxt\\InvalidOrder', // This contract only supports position reduction operation, please contact customer service for details
                     '110024' => '\\ccxt\\InvalidOrder', // You have an existing position, so position mode cannot be switched
                     '110025' => '\\ccxt\\InvalidOrder', // Position mode is not modified
-                    '110026' => '\\ccxt\\InvalidOrder', // Cross/isolated margin mode is not modified
+                    '110026' => '\\ccxt\\BadRequest', // Cross/isolated margin mode is not modified
                     '110027' => '\\ccxt\\InvalidOrder', // Margin is not modified
                     '110028' => '\\ccxt\\InvalidOrder', // Open orders exist, so you cannot change position mode
                     '110029' => '\\ccxt\\InvalidOrder', // Hedge mode is not available for this symbol
@@ -3614,6 +3614,7 @@ class bybit extends Exchange {
              * @param {boolean} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
              * @param {string} [$params->tpslMode] *contract only* 'full' or 'partial'
              * @param {string} [$params->mmp] *option only* $market maker protection
+             * @param {int} [$params->triggerDirection] *contract only* conditional orders, 1 => triggered when $market $price rises to $triggerPrice, 2 => triggered when $market $price falls to $triggerPrice
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
             Async\await($this->load_markets());
@@ -3712,7 +3713,6 @@ class bybit extends Exchange {
             $isBuy = $side === 'buy';
             $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
             if ($triggerPrice !== null) {
-                $request['triggerDirection'] = $ascending ? 2 : 1;
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                 $request['triggerDirection'] = $ascending ? 2 : 1;

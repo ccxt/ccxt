@@ -742,7 +742,7 @@ class bybit(Exchange, ImplicitAPI):
                     '110023': InvalidOrder,  # This contract only supports position reduction operation, please contact customer service for details
                     '110024': InvalidOrder,  # You have an existing position, so position mode cannot be switched
                     '110025': InvalidOrder,  # Position mode is not modified
-                    '110026': InvalidOrder,  # Cross/isolated margin mode is not modified
+                    '110026': BadRequest,  # Cross/isolated margin mode is not modified
                     '110027': InvalidOrder,  # Margin is not modified
                     '110028': InvalidOrder,  # Open orders exist, so you cannot change position mode
                     '110029': InvalidOrder,  # Hedge mode is not available for self symbol
@@ -3460,6 +3460,7 @@ class bybit(Exchange, ImplicitAPI):
         :param boolean [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
         :param str [params.tpslMode]: *contract only* 'full' or 'partial'
         :param str [params.mmp]: *option only* market maker protection
+        :param int [params.triggerDirection]: *contract only* conditional orders, 1: triggered when market price rises to triggerPrice, 2: triggered when market price falls to triggerPrice
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
@@ -3550,7 +3551,6 @@ class bybit(Exchange, ImplicitAPI):
         isBuy = side == 'buy'
         ascending = not isBuy if stopLossTriggerPrice else isBuy
         if triggerPrice is not None:
-            request['triggerDirection'] = 2 if ascending else 1
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
             request['triggerDirection'] = 2 if ascending else 1

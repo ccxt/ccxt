@@ -213,6 +213,17 @@ class bitstamp1(Exchange, ImplicitAPI):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # public trade
+        #
+        #        {
+        #            "amount": "0.00114000",
+        #            "date": "1694287856",
+        #            "price": "25865",
+        #            "tid": 298730788,
+        #            "type": 0
+        #        }
+        #
         timestamp = self.safe_timestamp_2(trade, 'date', 'datetime')
         side = 'buy' if (trade['type'] == 0) else 'sell'
         orderId = self.safe_string(trade, 'order_id')
@@ -254,6 +265,17 @@ class bitstamp1(Exchange, ImplicitAPI):
             'time': 'minute',
         }
         response = await self.publicGetTransactions(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "amount": "0.00114000",
+        #            "date": "1694287856",
+        #            "price": "25865",
+        #            "tid": 298730788,
+        #            "type": 0
+        #        },
+        #    ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def parse_balance(self, response):

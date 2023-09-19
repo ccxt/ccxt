@@ -2149,7 +2149,7 @@ class bitget extends bitget$1 {
         //         "fillTime": "1692073691000"
         //     }
         //
-        // swap
+        // swap (public trades)
         //
         //     {
         //         "tradeId": "1075199767891652609",
@@ -2281,6 +2281,16 @@ class bitget extends bitget$1 {
             params = this.omit(params, 'method');
             if (swapMethod === 'publicMixGetMarketFillsHistory') {
                 response = await this.publicMixGetMarketFillsHistory(this.extend(request, params));
+                //
+                //     {
+                //         "tradeId": "1084459062491590657",
+                //         "price": "25874",
+                //         "size": "1.624",
+                //         "side": "Buy",
+                //         "timestamp": "1694281109000",
+                //         "symbol": "BTCUSDT_UMCBL",
+                //     }
+                //
             }
             else if (swapMethod === 'publicMixGetMarketFills') {
                 response = await this.publicMixGetMarketFills(this.extend(request, params));

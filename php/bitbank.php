@@ -313,6 +313,17 @@ class bitbank extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades
+        //
+        //    {
+        //        "transaction_id" => "1143247037",
+        //        "side" => "buy",
+        //        "price" => "3836025",
+        //        "amount" => "0.0005",
+        //        "executed_at" => "1694249441593"
+        //    }
+        //
         $timestamp = $this->safe_integer($trade, 'executed_at');
         $market = $this->safe_market(null, $market);
         $priceString = $this->safe_string($trade, 'price');
