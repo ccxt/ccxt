@@ -1308,6 +1308,12 @@ export default class bitrue extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
+         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} newClientOrderId a unique id for the order, automatically generated if not sent
+         * @param {decimal} icebergQty
+         * @param {long} recvWindow
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
