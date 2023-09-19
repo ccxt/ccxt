@@ -728,7 +728,7 @@ export default class bybit extends Exchange {
                     '110023': InvalidOrder, // This contract only supports position reduction operation, please contact customer service for details
                     '110024': InvalidOrder, // You have an existing position, so position mode cannot be switched
                     '110025': InvalidOrder, // Position mode is not modified
-                    '110026': InvalidOrder, // Cross/isolated margin mode is not modified
+                    '110026': BadRequest, // Cross/isolated margin mode is not modified
                     '110027': InvalidOrder, // Margin is not modified
                     '110028': InvalidOrder, // Open orders exist, so you cannot change position mode
                     '110029': InvalidOrder, // Hedge mode is not available for this symbol
