@@ -3699,7 +3699,6 @@ export default class bybit extends Exchange {
         const isBuy = side === 'buy';
         const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
         if (triggerPrice !== undefined) {
-            request['triggerDirection'] = ascending ? 2 : 1;
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
             request['triggerDirection'] = ascending ? 2 : 1;
