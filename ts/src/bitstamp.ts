@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bitstamp.js';
-import { AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } from './base/errors.js';
+import { AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -37,9 +37,9 @@ export default class bitstamp extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
-                'createStopLimitOrder': false,
+                'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
-                'createStopOrder': false,
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -1335,35 +1335,86 @@ export default class bitstamp extends Exchange {
          * @method
          * @name bitstamp#createOrder
          * @description create a trade order
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantBuyOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketBuyOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitBuyOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantSellOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketSellOrder
+         * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitSellOrder
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {string} [params.triggerPrice] *stop limit only* the price a trigger order is triggered at
+         * @param {string} [params.timeInForce] "FOC", "IOC", "GTD" (good till date), or "MOC" (maker or cancel)
+         * @param {string} [params.clientOrderId] unique client order id set by client, client order id needs to be unique string, client order id value can only be used once
+         * @param {Int} [params.expireTime] *required when params["timeInForce"] == "GTD"* unix timestamp (ms)
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {boolean} [params.daily_order] opens buy limit order which will be canceled at 0:00 utc unless it already has been executed.
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'privatePost' + this.capitalize (side);
+        const isMarket = type === 'market';
+        const isInstant = type === 'instant';
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const timeInForce = this.safeString (params, 'timeInForce');
         const request = {
             'pair': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'market') {
-            method += 'Market';
-        } else if (type === 'instant') {
-            method += 'Instant';
-        } else {
+        if (!isMarket && !isInstant) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        method += 'Pair';
-        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
         }
-        const response = await this[method] (this.extend (request, params));
+        if (triggerPrice !== undefined) {
+            if (isInstant || isMarket) {
+                throw new BadRequest (this.id + ' createOrder cannot place stop market orders, only stop limit');
+            }
+            request['limit_price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, triggerPrice);
+        }
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'FOK') {
+                request['fok_order'] = true;
+            } else if (timeInForce === 'GTD') {
+                request['gtd_order'] = true;
+                const expireTime = this.safeInteger2 (params, 'expireTime', 'expire_time');
+                if (expireTime === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder () requires an extra argument params["expireTime"] when params["timeInForce"] is "GTC"');
+                }
+                request['expire_time'] = expireTime;
+            } else if (timeInForce === 'IOC') {
+                request['ioc_order'] = true;
+            } else if (timeInForce === 'MOC') {
+                request['moc_order'] = true;
+            }
+        }
+        params = this.omit (params, [ 'clientOrderId', 'triggerPrice', 'stopPrice', 'timeInForce' ]);
+        let response = undefined;
+        if (side === 'buy') {
+            if (isMarket) {
+                response = await this.privatePostBuyMarketPair (this.extend (request, params));
+            } else if (isInstant) {
+                response = await this.privatePostBuyInstantPair (this.extend (request, params));
+            } else {
+                response = await this.privatePostBuyPair (this.extend (request, params));
+            }
+        } else {
+            if (isMarket) {
+                response = await this.privatePostSellMarketPair (this.extend (request, params));
+            } else if (isInstant) {
+                response = await this.privatePostSellInstantPair (this.extend (request, params));
+            } else {
+                response = await this.privatePostSellPair (this.extend (request, params));
+            }
+        }
         const order = this.parseOrder (response, market);
         return this.extend (order, {
             'type': type,
