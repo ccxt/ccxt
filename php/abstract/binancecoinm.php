@@ -589,6 +589,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function sapi_get_portfolio_repay_futures_switch($params = array()) {
         return $this->request('portfolio/repay-futures-switch', 'sapi', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function sapi_get_portfolio_margin_asset_leverage($params = array()) {
+        return $this->request('portfolio/margin-asset-leverage', 'sapi', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function sapi_get_staking_productlist($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -621,6 +624,21 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function sapi_get_lending_auto_invest_history_list($params = array()) {
         return $this->request('lending/auto-invest/history/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_index_info($params = array()) {
+        return $this->request('lending/auto-invest/index/info', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_index_user_summary($params = array()) {
+        return $this->request('lending/auto-invest/index/user-summary', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_one_off_status($params = array()) {
+        return $this->request('lending/auto-invest/one-off/status', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_redeem_history($params = array()) {
+        return $this->request('lending/auto-invest/redeem/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_rebalance_history($params = array()) {
+        return $this->request('lending/auto-invest/rebalance/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
     public function sapi_get_simple_earn_flexible_list($params = array()) {
         return $this->request('simple-earn/flexible/list', 'sapi', 'GET', $params, null, null, array("cost" => 15));
@@ -966,6 +984,12 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function sapi_post_lending_auto_invest_plan_edit_status($params = array()) {
         return $this->request('lending/auto-invest/plan/edit-status', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_post_lending_auto_invest_one_off($params = array()) {
+        return $this->request('lending/auto-invest/one-off', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_post_lending_auto_invest_redeem($params = array()) {
+        return $this->request('lending/auto-invest/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapi_post_simple_earn_flexible_subscribe($params = array()) {
         return $this->request('simple-earn/flexible/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
@@ -2530,6 +2554,9 @@ abstract class binancecoinm extends \ccxt\binance {
     public function sapiGetPortfolioRepayFuturesSwitch($params = array()) {
         return $this->request('portfolio/repay-futures-switch', 'sapi', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function sapiGetPortfolioMarginAssetLeverage($params = array()) {
+        return $this->request('portfolio/margin-asset-leverage', 'sapi', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function sapiGetStakingProductList($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -2562,6 +2589,21 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function sapiGetLendingAutoInvestHistoryList($params = array()) {
         return $this->request('lending/auto-invest/history/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestIndexInfo($params = array()) {
+        return $this->request('lending/auto-invest/index/info', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestIndexUserSummary($params = array()) {
+        return $this->request('lending/auto-invest/index/user-summary', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestOneOffStatus($params = array()) {
+        return $this->request('lending/auto-invest/one-off/status', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestRedeemHistory($params = array()) {
+        return $this->request('lending/auto-invest/redeem/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestRebalanceHistory($params = array()) {
+        return $this->request('lending/auto-invest/rebalance/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
     public function sapiGetSimpleEarnFlexibleList($params = array()) {
         return $this->request('simple-earn/flexible/list', 'sapi', 'GET', $params, null, null, array("cost" => 15));
@@ -2907,6 +2949,12 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function sapiPostLendingAutoInvestPlanEditStatus($params = array()) {
         return $this->request('lending/auto-invest/plan/edit-status', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiPostLendingAutoInvestOneOff($params = array()) {
+        return $this->request('lending/auto-invest/one-off', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiPostLendingAutoInvestRedeem($params = array()) {
+        return $this->request('lending/auto-invest/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapiPostSimpleEarnFlexibleSubscribe($params = array()) {
         return $this->request('simple-earn/flexible/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));

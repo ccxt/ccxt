@@ -353,16 +353,16 @@ class bybit(ccxt.async_support.bybit):
         firstSymbol = None
         for i in range(0, len(symbolsAndTimeframes)):
             data = symbolsAndTimeframes[i]
-            symbol = self.safe_string(data, 0)
-            timeframe = self.safe_string(data, 1)
-            market = self.market(symbol)
-            symbol = market['symbol']
+            symbolString = self.safe_string(data, 0)
+            timeframeString = self.safe_string(data, 1)
+            market = self.market(symbolString)
+            symbolString = market['symbol']
             if i == 0:
                 firstSymbol = market['symbol']
-            timeframeId = self.safe_string(self.timeframes, timeframe, timeframe)
+            timeframeId = self.safe_string(self.timeframes, timeframeString, timeframeString)
             topic = 'kline.' + timeframeId + '.' + market['id']
             topics.append(topic)
-            hashes.append(symbol + '#' + timeframe)
+            hashes.append(symbolString + '#' + timeframeString)
         messageHash = 'multipleOHLCV::' + ','.join(hashes)
         url = self.get_url_by_market_type(firstSymbol, False, params)
         symbol, timeframe, stored = await self.watch_topics(url, messageHash, topics, params)
@@ -861,8 +861,8 @@ class bybit(ccxt.async_support.bybit):
             trades.append(parsed)
         keys = list(symbols.keys())
         for i in range(0, len(keys)):
-            messageHash = 'myTrades:' + keys[i]
-            client.resolve(trades, messageHash)
+            currentMessageHash = 'myTrades:' + keys[i]
+            client.resolve(trades, currentMessageHash)
         # non-symbol specific
         messageHash = 'myTrades'
         client.resolve(trades, messageHash)
@@ -988,22 +988,22 @@ class bybit(ccxt.async_support.bybit):
         first = self.safe_value(rawOrders, 0, {})
         category = self.safe_string(first, 'category')
         isSpot = category == 'spot'
-        parser = None
-        if isSpot:
-            parser = 'parseWsSpotOrder'
-        else:
-            parser = 'parseContractOrder'
+        if not isSpot:
             rawOrders = self.safe_value(rawOrders, 'result', rawOrders)
         symbols = {}
         for i in range(0, len(rawOrders)):
-            parsed = getattr(self, parser)(rawOrders[i])
+            parsed = None
+            if isSpot:
+                parsed = self.parse_ws_spot_order(rawOrders[i])
+            else:
+                parsed = self.parse_order(rawOrders[i])
             symbol = parsed['symbol']
             symbols[symbol] = True
             orders.append(parsed)
         symbolsArray = list(symbols.keys())
         for i in range(0, len(symbolsArray)):
-            messageHash = 'orders:' + symbolsArray[i]
-            client.resolve(orders, messageHash)
+            currentMessageHash = 'orders:' + symbolsArray[i]
+            client.resolve(orders, currentMessageHash)
         messageHash = 'orders'
         client.resolve(orders, messageHash)
 

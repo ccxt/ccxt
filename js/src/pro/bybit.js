@@ -364,17 +364,17 @@ export default class bybit extends bybitRest {
         let firstSymbol = undefined;
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
-            let symbol = this.safeString(data, 0);
-            const timeframe = this.safeString(data, 1);
-            const market = this.market(symbol);
-            symbol = market['symbol'];
+            let symbolString = this.safeString(data, 0);
+            const timeframeString = this.safeString(data, 1);
+            const market = this.market(symbolString);
+            symbolString = market['symbol'];
             if (i === 0) {
                 firstSymbol = market['symbol'];
             }
-            const timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
+            const timeframeId = this.safeString(this.timeframes, timeframeString, timeframeString);
             const topic = 'kline.' + timeframeId + '.' + market['id'];
             topics.push(topic);
-            hashes.push(symbol + '#' + timeframe);
+            hashes.push(symbolString + '#' + timeframeString);
         }
         const messageHash = 'multipleOHLCV::' + hashes.join(',');
         const url = this.getUrlByMarketType(firstSymbol, false, params);
@@ -921,8 +921,8 @@ export default class bybit extends bybitRest {
         }
         const keys = Object.keys(symbols);
         for (let i = 0; i < keys.length; i++) {
-            const messageHash = 'myTrades:' + keys[i];
-            client.resolve(trades, messageHash);
+            const currentMessageHash = 'myTrades:' + keys[i];
+            client.resolve(trades, currentMessageHash);
         }
         // non-symbol specific
         const messageHash = 'myTrades';
@@ -1054,25 +1054,26 @@ export default class bybit extends bybitRest {
         const first = this.safeValue(rawOrders, 0, {});
         const category = this.safeString(first, 'category');
         const isSpot = category === 'spot';
-        let parser = undefined;
-        if (isSpot) {
-            parser = 'parseWsSpotOrder';
-        }
-        else {
-            parser = 'parseContractOrder';
+        if (!isSpot) {
             rawOrders = this.safeValue(rawOrders, 'result', rawOrders);
         }
         const symbols = {};
         for (let i = 0; i < rawOrders.length; i++) {
-            const parsed = this[parser](rawOrders[i]);
+            let parsed = undefined;
+            if (isSpot) {
+                parsed = this.parseWsSpotOrder(rawOrders[i]);
+            }
+            else {
+                parsed = this.parseOrder(rawOrders[i]);
+            }
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             orders.append(parsed);
         }
         const symbolsArray = Object.keys(symbols);
         for (let i = 0; i < symbolsArray.length; i++) {
-            const messageHash = 'orders:' + symbolsArray[i];
-            client.resolve(orders, messageHash);
+            const currentMessageHash = 'orders:' + symbolsArray[i];
+            client.resolve(orders, currentMessageHash);
         }
         const messageHash = 'orders';
         client.resolve(orders, messageHash);

@@ -502,8 +502,8 @@ class binance extends binance$1 {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const messageHash = market['lowercaseId'] + '@' + name;
-            subParams.push(messageHash);
+            const currentMessageHash = market['lowercaseId'] + '@' + name;
+            subParams.push(currentMessageHash);
         }
         const messageHash = 'multipleTrades::' + symbols.join(',');
         const query = this.omit(params, 'type');
@@ -821,10 +821,10 @@ class binance extends binance$1 {
         const hashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
-            const symbol = data[0];
-            const timeframe = data[1];
-            const interval = this.safeString(this.timeframes, timeframe, timeframe);
-            const market = this.market(symbol);
+            const symbolString = data[0];
+            const timeframeString = data[1];
+            const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            const market = this.market(symbolString);
             let marketId = market['lowercaseId'];
             if (name === 'indexPriceKline') {
                 // weird behavior for index price kline we can't use the perp suffix
@@ -832,7 +832,7 @@ class binance extends binance$1 {
             }
             const topic = marketId + '@' + name + '_' + interval;
             subParams.push(topic);
-            hashes.push(symbol + '#' + timeframe);
+            hashes.push(symbolString + '#' + timeframeString);
         }
         const messageHash = 'multipleOHLCV::' + hashes.join(',');
         const url = this.urls['api']['ws'][type] + '/' + this.stream(type, messageHash);

@@ -3721,12 +3721,12 @@ class bybit extends bybit$1 {
         }
         else if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                request['stopLoss'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision(symbol, slTriggerPrice);
             }
             if (isTakeProfit) {
-                const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                request['takeProfit'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision(symbol, tpTriggerPrice);
             }
         }
         if (market['spot']) {
@@ -3835,12 +3835,12 @@ class bybit extends bybit$1 {
             }
             else if (isStopLoss || isTakeProfit) {
                 if (isStopLoss) {
-                    const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                    request['stopLoss'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                    const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                    request['stopLoss'] = this.priceToPrecision(symbol, slTriggerPrice);
                 }
                 if (isTakeProfit) {
-                    const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                    request['takeProfit'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                    const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                    request['takeProfit'] = this.priceToPrecision(symbol, tpTriggerPrice);
                 }
             }
             else {
@@ -4021,12 +4021,12 @@ class bybit extends bybit$1 {
         }
         if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                request['stopLoss'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision(symbol, slTriggerPrice);
             }
             if (isTakeProfit) {
-                const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                request['takeProfit'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision(symbol, tpTriggerPrice);
             }
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -5996,12 +5996,10 @@ class bybit extends bybit$1 {
         await this.loadMarkets();
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
+        let market = undefined;
         let response = undefined;
-        if (symbol === undefined) {
+        if (isUnifiedAccount) {
             if (marginMode === 'isolated') {
-                if (!isUnifiedAccount) {
-                    throw new errors.NotSupported(this.id + ' setMarginMode() Normal Account not support ISOLATED_MARGIN');
-                }
                 marginMode = 'ISOLATED_MARGIN';
             }
             else if (marginMode === 'cross') {
@@ -6019,44 +6017,70 @@ class bybit extends bybit$1 {
             response = await this.privatePostV5AccountSetMarginMode(this.extend(request, params));
         }
         else {
-            const market = this.market(symbol);
-            let type = undefined;
-            [type, params] = this.getBybitType('setMarginMode', market, params);
-            if (type === 'linear') {
-                if (isUnifiedAccount) {
-                    throw new errors.NotSupported(this.id + ' setMarginMode() with symbol Unified Account only support inverse contract');
+            if (symbol === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol parameter for non unified account');
+            }
+            market = this.market(symbol);
+            const isUsdcSettled = market['settle'] === 'USDC';
+            if (isUsdcSettled) {
+                if (marginMode === 'cross') {
+                    marginMode = 'REGULAR_MARGIN';
                 }
-                const isUsdtSettled = market['settle'] === 'USDT';
-                if (!isUsdtSettled) {
-                    throw new errors.NotSupported(this.id + ' setMarginMode() with symbol only support USDT perpetual / inverse contract');
+                else if (marginMode === 'portfolio') {
+                    marginMode = 'PORTFOLIO_MARGIN';
                 }
-            }
-            else if (type !== 'inverse') {
-                throw new errors.NotSupported(this.id + ' setMarginMode() does not support this market type');
-            }
-            let tradeMode = undefined;
-            if (marginMode === 'cross') {
-                tradeMode = 0;
-            }
-            else if (marginMode === 'isolated') {
-                tradeMode = 1;
+                else {
+                    throw new errors.NotSupported(this.id + ' setMarginMode() for usdc market marginMode must be either [cross, portfolio]');
+                }
+                const request = {
+                    'setMarginMode': marginMode,
+                };
+                response = await this.privatePostV5AccountSetMarginMode(this.extend(request, params));
             }
             else {
-                throw new errors.NotSupported(this.id + ' setMarginMode() with symbol marginMode must be either [isolated, cross]');
+                let type = undefined;
+                [type, params] = this.getBybitType('setPositionMode', market, params);
+                let tradeMode = undefined;
+                if (marginMode === 'cross') {
+                    tradeMode = 0;
+                }
+                else if (marginMode === 'isolated') {
+                    tradeMode = 1;
+                }
+                else {
+                    throw new errors.NotSupported(this.id + ' setMarginMode() with symbol marginMode must be either [isolated, cross]');
+                }
+                let sellLeverage = undefined;
+                let buyLeverage = undefined;
+                const leverage = this.safeString(params, 'leverage');
+                if (leverage === undefined) {
+                    sellLeverage = this.safeString2(params, 'sell_leverage', 'sellLeverage');
+                    buyLeverage = this.safeString2(params, 'buy_leverage', 'buyLeverage');
+                    if (sellLeverage === undefined && buyLeverage === undefined) {
+                        throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
+                    }
+                    if (buyLeverage === undefined) {
+                        buyLeverage = sellLeverage;
+                    }
+                    if (sellLeverage === undefined) {
+                        sellLeverage = buyLeverage;
+                    }
+                    params = this.omit(params, ['buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage']);
+                }
+                else {
+                    sellLeverage = leverage;
+                    buyLeverage = leverage;
+                    params = this.omit(params, 'leverage');
+                }
+                const request = {
+                    'category': type,
+                    'symbol': market['id'],
+                    'tradeMode': tradeMode,
+                    'buyLeverage': buyLeverage,
+                    'sellLeverage': sellLeverage,
+                };
+                response = await this.privatePostV5PositionSwitchIsolated(this.extend(request, params));
             }
-            const leverage = this.safeString(params, 'leverage');
-            params = this.omit(params, ['leverage']);
-            if (leverage === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' setMarginMode() with symbol requires leverage');
-            }
-            const request = {
-                'category': type,
-                'symbol': market['id'],
-                'tradeMode': tradeMode,
-                'buyLeverage': leverage,
-                'sellLeverage': leverage,
-            };
-            response = await this.privatePostV5PositionSwitchIsolated(this.extend(request, params));
         }
         return response;
     }

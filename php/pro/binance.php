@@ -512,8 +512,8 @@ class binance extends \ccxt\async\binance {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $messageHash = $market['lowercaseId'] . '@' . $name;
-                $subParams[] = $messageHash;
+                $currentMessageHash = $market['lowercaseId'] . '@' . $name;
+                $subParams[] = $currentMessageHash;
             }
             $messageHash = 'multipleTrades::' . implode(',', $symbols);
             $query = $this->omit($params, 'type');
@@ -836,10 +836,10 @@ class binance extends \ccxt\async\binance {
             $hashes = array();
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
                 $data = $symbolsAndTimeframes[$i];
-                $symbol = $data[0];
-                $timeframe = $data[1];
-                $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-                $market = $this->market($symbol);
+                $symbolString = $data[0];
+                $timeframeString = $data[1];
+                $interval = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
+                $market = $this->market($symbolString);
                 $marketId = $market['lowercaseId'];
                 if ($name === 'indexPriceKline') {
                     // weird behavior for index price kline we can't use the perp suffix
@@ -847,7 +847,7 @@ class binance extends \ccxt\async\binance {
                 }
                 $topic = $marketId . '@' . $name . '_' . $interval;
                 $subParams[] = $topic;
-                $hashes[] = $symbol . '#' . $timeframe;
+                $hashes[] = $symbolString . '#' . $timeframeString;
             }
             $messageHash = 'multipleOHLCV::' . implode(',', $hashes);
             $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
