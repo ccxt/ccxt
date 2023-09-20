@@ -871,28 +871,20 @@ export default class Exchange {
         console.log (... args)
     }
 
-    async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
+    httpProxyAgentModule:any = undefined;
+    httpsProxyAgentModule:any = undefined;
+    socksProxyAgentModule:any = undefined;
 
-
-        // ##### PROXY & HEADERS #####
-        headers = this.extend (this.headers, headers);
-        const [ proxyUrl, httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
-        if (proxyUrl !== undefined) {
-            // in node we need to set header to *
-            if (isNode) {
-                headers = this.extend ({ 'Origin': this.origin }, headers)
-            }
-            url = proxyUrl + url;
-        } else if (httpProxy !== undefined) {
-            const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js')
-            const proxyAgent = new module.HttpProxyAgent(httpProxy);
-            this.agent = proxyAgent;
-        }  else if (httpsProxy !== undefined) {
-            const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js')
-            const proxyAgent = new module.HttpsProxyAgent(httpsProxy);
-            proxyAgent.keepAlive = true;
-            this.agent = proxyAgent;
-        } else if (socksProxy !== undefined) {
+    async checkNeededProxyImports () {
+        // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
+        const [ proxyUrl, httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings ();
+        if (httpProxy !== undefined && this.httpProxyAgentModule === undefined) {
+            this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
+        }
+        if (httpsProxy !== undefined && this.httpsProxyAgentModule === undefined) {
+            this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+        }
+        if (socksProxy !== undefined && this.socksProxyAgentModule === undefined) {
             let module = undefined;
             try {
                 // @ts-ignore
@@ -900,20 +892,49 @@ export default class Exchange {
             } catch (e) {
                 throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" ');
             }
-            this.agent = new module.SocksProxyAgent(socksProxy);
+            this.socksProxyAgentModule = module;
         }
+    }
 
+    applyProxySettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
+        const [ proxyUrl, httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
+        if (httpProxy !== undefined) {
+            const proxyAgent = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
+            this.agent = proxyAgent;
+        }  else if (httpsProxy !== undefined) {
+            const proxyAgent = new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy);
+            proxyAgent.keepAlive = true;
+            this.agent = proxyAgent;
+        } else if (socksProxy !== undefined) {
+            this.agent = new this.socksProxyAgentModule.SocksProxyAgent(socksProxy);
+        }
+        return [ url, headers ];
+    }
+
+    async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
+
+        headers = this.extend (this.headers, headers);
+        await this.checkNeededProxyImports ();
+        const [ proxyUrl, httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
+        if (proxyUrl !== undefined) {
+            // in node we need to set header to *
+            if (isNode) {
+                headers = this.extend ({ 'Origin': this.origin }, headers);
+            }
+            url = proxyUrl + url;
+        }
+        this.applyProxySettings (url, method, headers, body);
+        // user-agent
         const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
         if (userAgent && isNode) {
             if (typeof userAgent === 'string') {
-                headers = this.extend ({ 'User-Agent': userAgent }, headers)
+                headers = this.extend ({ 'User-Agent': userAgent }, headers);
             } else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
-                headers = this.extend (userAgent, headers)
+                headers = this.extend (userAgent, headers);
             }
         }
-        headers = this.setHeaders (headers)
-        // ######## end of proxies ########
-
+        headers = this.setHeaders (headers);
+        //
         if (this.verbose) {
             this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
         }
@@ -1167,13 +1188,13 @@ export default class Exchange {
                     'agent': this.agent,
                 }
             }, wsOptions);
-            this.checkWsProxySettings ();
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
         }
         return this.clients[url];
     }
 
     watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
+        this.applyProxySettings ();
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1402,7 +1423,7 @@ export default class Exchange {
         return undefined;
     }
 
-    checkProxySettings (url, method, headers, body) {
+    checkProxySettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
         let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
         const proxyUrlCallback = (this.proxyUrlCallback !== undefined) ? this.proxyUrlCallback : this.proxy_url_callback;
         if (proxyUrlCallback !== undefined) {
