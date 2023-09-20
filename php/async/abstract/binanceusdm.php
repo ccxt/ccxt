@@ -589,6 +589,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function sapi_get_portfolio_repay_futures_switch($params = array()) {
         return $this->request('portfolio/repay-futures-switch', 'sapi', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function sapi_get_portfolio_margin_asset_leverage($params = array()) {
+        return $this->request('portfolio/margin-asset-leverage', 'sapi', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function sapi_get_staking_productlist($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -621,6 +624,21 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function sapi_get_lending_auto_invest_history_list($params = array()) {
         return $this->request('lending/auto-invest/history/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_index_info($params = array()) {
+        return $this->request('lending/auto-invest/index/info', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_index_user_summary($params = array()) {
+        return $this->request('lending/auto-invest/index/user-summary', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_one_off_status($params = array()) {
+        return $this->request('lending/auto-invest/one-off/status', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_redeem_history($params = array()) {
+        return $this->request('lending/auto-invest/redeem/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_lending_auto_invest_rebalance_history($params = array()) {
+        return $this->request('lending/auto-invest/rebalance/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
     public function sapi_get_simple_earn_flexible_list($params = array()) {
         return $this->request('simple-earn/flexible/list', 'sapi', 'GET', $params, null, null, array("cost" => 15));
@@ -967,6 +985,12 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function sapi_post_lending_auto_invest_plan_edit_status($params = array()) {
         return $this->request('lending/auto-invest/plan/edit-status', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
+    public function sapi_post_lending_auto_invest_one_off($params = array()) {
+        return $this->request('lending/auto-invest/one-off', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_post_lending_auto_invest_redeem($params = array()) {
+        return $this->request('lending/auto-invest/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
     public function sapi_post_simple_earn_flexible_subscribe($params = array()) {
         return $this->request('simple-earn/flexible/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
@@ -1123,6 +1147,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function dapipublic_get_markpriceklines($params = array()) {
         return $this->request('markPriceKlines', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
     }
+    public function dapipublic_get_premiumindexklines($params = array()) {
+        return $this->request('premiumIndexKlines', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
+    }
     public function dapipublic_get_ticker_24hr($params = array()) {
         return $this->request('ticker/24hr', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
@@ -1155,6 +1182,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function dapiprivate_get_positionside_dual($params = array()) {
         return $this->request('positionSide/dual', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function dapiprivate_get_orderamendment($params = array()) {
+        return $this->request('orderAmendment', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function dapiprivate_get_order($params = array()) {
         return $this->request('order', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 1));
@@ -1195,11 +1225,20 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function dapiprivate_get_adlquantile($params = array()) {
         return $this->request('adlQuantile', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function dapiprivate_get_orderamendment($params = array()) {
-        return $this->request('orderAmendment', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    public function dapiprivate_get_commissionrate($params = array()) {
+        return $this->request('commissionRate', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function dapiprivate_get_income_asyn($params = array()) {
+        return $this->request('income/asyn', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function dapiprivate_get_income_asyn_id($params = array()) {
+        return $this->request('income/asyn/id', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function dapiprivate_get_pmexchangeinfo($params = array()) {
+        return $this->request('pmExchangeInfo', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 0.5));
     }
     public function dapiprivate_get_pmaccountinfo($params = array()) {
-        return $this->request('pmAccountInfo', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('pmAccountInfo', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 0.5));
     }
     public function dapiprivate_post_positionside_dual($params = array()) {
         return $this->request('positionSide/dual', 'dapiPrivate', 'POST', $params, null, null, array("cost" => 1));
@@ -2515,6 +2554,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function sapiGetPortfolioRepayFuturesSwitch($params = array()) {
         return $this->request('portfolio/repay-futures-switch', 'sapi', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function sapiGetPortfolioMarginAssetLeverage($params = array()) {
+        return $this->request('portfolio/margin-asset-leverage', 'sapi', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function sapiGetStakingProductList($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -2547,6 +2589,21 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function sapiGetLendingAutoInvestHistoryList($params = array()) {
         return $this->request('lending/auto-invest/history/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestIndexInfo($params = array()) {
+        return $this->request('lending/auto-invest/index/info', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestIndexUserSummary($params = array()) {
+        return $this->request('lending/auto-invest/index/user-summary', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestOneOffStatus($params = array()) {
+        return $this->request('lending/auto-invest/one-off/status', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestRedeemHistory($params = array()) {
+        return $this->request('lending/auto-invest/redeem/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetLendingAutoInvestRebalanceHistory($params = array()) {
+        return $this->request('lending/auto-invest/rebalance/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
     public function sapiGetSimpleEarnFlexibleList($params = array()) {
         return $this->request('simple-earn/flexible/list', 'sapi', 'GET', $params, null, null, array("cost" => 15));
@@ -2893,6 +2950,12 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function sapiPostLendingAutoInvestPlanEditStatus($params = array()) {
         return $this->request('lending/auto-invest/plan/edit-status', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiPostLendingAutoInvestOneOff($params = array()) {
+        return $this->request('lending/auto-invest/one-off', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiPostLendingAutoInvestRedeem($params = array()) {
+        return $this->request('lending/auto-invest/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
     public function sapiPostSimpleEarnFlexibleSubscribe($params = array()) {
         return $this->request('simple-earn/flexible/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
@@ -3049,6 +3112,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function dapiPublicGetMarkPriceKlines($params = array()) {
         return $this->request('markPriceKlines', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
     }
+    public function dapiPublicGetPremiumIndexKlines($params = array()) {
+        return $this->request('premiumIndexKlines', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
+    }
     public function dapiPublicGetTicker24hr($params = array()) {
         return $this->request('ticker/24hr', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
@@ -3081,6 +3147,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function dapiPrivateGetPositionSideDual($params = array()) {
         return $this->request('positionSide/dual', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function dapiPrivateGetOrderAmendment($params = array()) {
+        return $this->request('orderAmendment', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function dapiPrivateGetOrder($params = array()) {
         return $this->request('order', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 1));
@@ -3121,11 +3190,20 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function dapiPrivateGetAdlQuantile($params = array()) {
         return $this->request('adlQuantile', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function dapiPrivateGetOrderAmendment($params = array()) {
-        return $this->request('orderAmendment', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    public function dapiPrivateGetCommissionRate($params = array()) {
+        return $this->request('commissionRate', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function dapiPrivateGetIncomeAsyn($params = array()) {
+        return $this->request('income/asyn', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function dapiPrivateGetIncomeAsynId($params = array()) {
+        return $this->request('income/asyn/id', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function dapiPrivateGetPmExchangeInfo($params = array()) {
+        return $this->request('pmExchangeInfo', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 0.5));
     }
     public function dapiPrivateGetPmAccountInfo($params = array()) {
-        return $this->request('pmAccountInfo', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('pmAccountInfo', 'dapiPrivate', 'GET', $params, null, null, array("cost" => 0.5));
     }
     public function dapiPrivatePostPositionSideDual($params = array()) {
         return $this->request('positionSide/dual', 'dapiPrivate', 'POST', $params, null, null, array("cost" => 1));

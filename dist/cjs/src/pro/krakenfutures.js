@@ -103,7 +103,8 @@ class krakenfutures extends krakenfutures$1 {
             const symbol = symbols[i];
             marketIds.push(this.marketId(symbol));
         }
-        if (symbols.length === 1) {
+        const length = symbols.length;
+        if (length === 1) {
             const market = this.market(marketIds[0]);
             messageHash = messageHash + ':' + market['symbol'];
         }
@@ -510,9 +511,9 @@ class krakenfutures extends krakenfutures$1 {
                 let totalAmount = '0';
                 const trades = previousOrder['trades'];
                 for (let i = 0; i < trades.length; i++) {
-                    const trade = trades[i];
-                    totalCost = Precise["default"].stringAdd(totalCost, this.numberToString(trade['cost']));
-                    totalAmount = Precise["default"].stringAdd(totalAmount, this.numberToString(trade['amount']));
+                    const currentTrade = trades[i];
+                    totalCost = Precise["default"].stringAdd(totalCost, this.numberToString(currentTrade['cost']));
+                    totalAmount = Precise["default"].stringAdd(totalAmount, this.numberToString(currentTrade['amount']));
                 }
                 if (Precise["default"].stringGt(totalAmount, '0')) {
                     previousOrder['average'] = Precise["default"].stringDiv(totalCost, totalAmount);
@@ -547,13 +548,13 @@ class krakenfutures extends krakenfutures$1 {
             if (isCancel) {
                 // get order without symbol
                 for (let i = 0; i < orders.length; i++) {
-                    const order = orders[i];
-                    if (order['id'] === message['order_id']) {
-                        orders[i] = this.extend(order, {
+                    const currentOrder = orders[i];
+                    if (currentOrder['id'] === message['order_id']) {
+                        orders[i] = this.extend(currentOrder, {
                             'status': 'canceled',
                         });
                         client.resolve(orders, 'orders');
-                        client.resolve(orders, 'orders:' + order['symbol']);
+                        client.resolve(orders, 'orders:' + currentOrder['symbol']);
                         break;
                     }
                 }
@@ -621,7 +622,8 @@ class krakenfutures extends krakenfutures$1 {
             symbols[symbol] = true;
             cachedOrders.append(parsed);
         }
-        if (this.orders.length) {
+        const length = this.orders.length;
+        if (length > 0) {
             client.resolve(this.orders, 'orders');
             const keys = Object.keys(symbols);
             for (let i = 0; i < keys.length; i++) {

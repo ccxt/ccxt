@@ -799,6 +799,17 @@ class coinbasepro(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # default 100
         response = self.publicGetProductsIdTrades(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "trade_id": "15035219",
+        #            "side": "sell",
+        #            "size": "0.27426731",
+        #            "price": "25820.42000000",
+        #            "time": "2023-09-10T13:47:41.447577Z"
+        #        },
+        #    ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def fetch_trading_fees(self, params={}):

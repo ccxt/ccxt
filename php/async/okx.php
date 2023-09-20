@@ -1443,13 +1443,13 @@ class okx extends Exchange {
                     $promises[] = $this->publicGetPublicInstruments (array_merge($request, $params));
                 }
                 $promisesResult = Async\await(Promise\all($promises));
-                $data = array();
+                $markets = array();
                 for ($i = 0; $i < count($promisesResult); $i++) {
                     $res = $this->safe_value($promisesResult, $i, array());
                     $options = $this->safe_value($res, 'data', array());
-                    $data = $this->array_concat($data, $options);
+                    $markets = $this->array_concat($markets, $options);
                 }
-                return $this->parse_markets($data);
+                return $this->parse_markets($markets);
             }
             $response = Async\await($this->publicGetPublicInstruments (array_merge($request, $params)));
             //
@@ -2592,7 +2592,7 @@ class okx extends Exchange {
                 } else {
                     $request['slOrdPx'] = '-1'; // $market sl order
                 }
-                $stopLossTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'slTriggerPxType');
+                $stopLossTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last');
                 if ($stopLossTriggerPriceType !== null) {
                     if (($stopLossTriggerPriceType !== 'last') && ($stopLossTriggerPriceType !== 'index') && ($stopLossTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder($this->id . ' createOrder() stop loss $trigger $price $type must be one of "last", "index" or "mark"');
@@ -2627,7 +2627,7 @@ class okx extends Exchange {
                 } else {
                     $request['tpOrdPx'] = '-1'; // $market tp order
                 }
-                $takeProfitTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'tpTriggerPxType');
+                $takeProfitTriggerPriceType = $this->safe_string_2($takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last');
                 if ($takeProfitTriggerPriceType !== null) {
                     if (($takeProfitTriggerPriceType !== 'last') && ($takeProfitTriggerPriceType !== 'index') && ($takeProfitTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder($this->id . ' createOrder() take profit $trigger $price $type must be one of "last", "index" or "mark"');
@@ -6654,7 +6654,7 @@ class okx extends Exchange {
              * @param {int} [$since] timestamp in ms
              * @param {int} [$limit] number of records
              * @param {array} [$params] exchange specific $params
-             * @return {array[]} a list of [settlement history objects]
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
              */
             $this->check_required_symbol('fetchSettlementHistory', $symbol);
             Async\await($this->load_markets());
@@ -6736,8 +6736,8 @@ class okx extends Exchange {
             $entry = $settlements[$i];
             $timestamp = $this->safe_integer($entry, 'ts');
             $details = $this->safe_value($entry, 'details', array());
-            for ($i = 0; $i < count($details); $i++) {
-                $settlement = $this->parse_settlement($details[$i], $market);
+            for ($j = 0; $j < count($details); $j++) {
+                $settlement = $this->parse_settlement($details[$j], $market);
                 $result[] = array_merge($settlement, array(
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),

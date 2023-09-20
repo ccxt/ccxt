@@ -4141,7 +4141,7 @@ class kucoin extends kucoin$1 {
         this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-        if (errorCode !== '200000') {
+        if (errorCode !== '200000' && errorCode !== '200') {
             throw new errors.ExchangeError(feedback);
         }
         return undefined;

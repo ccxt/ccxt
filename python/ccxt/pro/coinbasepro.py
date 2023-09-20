@@ -10,6 +10,7 @@ from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import AuthenticationError
 
@@ -22,9 +23,11 @@ class coinbasepro(ccxt.async_support.coinbasepro):
                 'ws': True,
                 'watchOHLCV': False,  # missing on the exchange side
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
                 'watchBalance': False,
                 'watchStatus': False,  # for now
                 'watchOrders': True,
@@ -152,6 +155,29 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the coinbase api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
+        symbolsLength = len(symbols)
+        if symbolsLength == 0:
+            raise BadRequest(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        name = 'matches'
+        messageHash = 'multipleTrades::'
+        trades = await self.subscribe_multiple(name, symbols, messageHash, params)
+        if self.newUpdates:
+            first = self.safe_value(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user
@@ -227,6 +253,41 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         orderbook = await self.watch(url, messageHash, self.extend(request, authentication), messageHash, subscription)
         return orderbook.limit()
 
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        symbolsLength = len(symbols)
+        if symbolsLength == 0:
+            raise BadRequest(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
+        name = 'level2'
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        marketIds = self.market_ids(symbols)
+        messageHash = 'multipleOrderbooks' + '::' + ','.join(symbols)
+        url = self.urls['api']['ws']
+        subscribe = {
+            'type': 'subscribe',
+            'product_ids': marketIds,
+            'channels': [
+                name,
+            ],
+        }
+        request = self.extend(subscribe, params)
+        subscription = {
+            'messageHash': messageHash,
+            'symbols': symbols,
+            'marketIds': marketIds,
+            'limit': limit,
+        }
+        authentication = self.authenticate()
+        orderbook = await self.watch(url, messageHash, self.extend(request, authentication), messageHash, subscription)
+        return orderbook.limit()
+
     def handle_trade(self, client: Client, message):
         #
         #     {
@@ -258,6 +319,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
                 self.trades[symbol] = tradesArray
             tradesArray.append(trade)
             client.resolve(tradesArray, messageHash)
+            self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, tradesArray)
         return message
 
     def handle_my_trade(self, client: Client, message):
@@ -434,11 +496,11 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         #         reason: 'filled'
         #     }
         #
-        orders = self.orders
-        if orders is None:
+        currentOrders = self.orders
+        if currentOrders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-            orders = ArrayCacheBySymbolById(limit)
-            self.orders = orders
+            currentOrders = ArrayCacheBySymbolById(limit)
+            self.orders = currentOrders
         type = self.safe_string(message, 'type')
         marketId = self.safe_string(message, 'product_id')
         if marketId is not None:
@@ -471,9 +533,9 @@ class coinbasepro(ccxt.async_support.coinbasepro):
                         totalAmount = 0
                         trades = previousOrder['trades']
                         for i in range(0, len(trades)):
-                            trade = trades[i]
-                            totalCost = self.sum(totalCost, trade['cost'])
-                            totalAmount = self.sum(totalAmount, trade['amount'])
+                            tradeEntry = trades[i]
+                            totalCost = self.sum(totalCost, tradeEntry['cost'])
+                            totalAmount = self.sum(totalAmount, tradeEntry['amount'])
                         if totalAmount > 0:
                             previousOrder['average'] = totalCost / totalAmount
                         previousOrder['cost'] = totalCost
@@ -584,12 +646,12 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             client.resolve(ticker, messageHash)
             messageHashes = self.find_message_hashes(client, 'tickers::')
             for i in range(0, len(messageHashes)):
-                messageHash = messageHashes[i]
-                parts = messageHash.split('::')
+                currentMessageHash = messageHashes[i]
+                parts = currentMessageHash.split('::')
                 symbolsString = parts[1]
                 symbols = symbolsString.split(',')
                 if self.in_array(symbol, symbols):
-                    client.resolve(ticker, messageHash)
+                    client.resolve(ticker, currentMessageHash)
         return message
 
     def parse_ticker(self, ticker, market=None):
@@ -696,6 +758,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             orderbook['datetime'] = None
             orderbook['symbol'] = symbol
             client.resolve(orderbook, messageHash)
+            self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbooks::', symbol, orderbook)
         elif type == 'l2update':
             orderbook = self.orderbooks[symbol]
             timestamp = self.parse8601(self.safe_string(message, 'time'))
@@ -715,6 +778,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
             client.resolve(orderbook, messageHash)
+            self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbooks::', symbol, orderbook)
 
     def handle_subscription_status(self, client: Client, message):
         #

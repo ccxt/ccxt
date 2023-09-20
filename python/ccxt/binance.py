@@ -425,6 +425,7 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/interest-history': 0.6667,
                         'portfolio/asset-index-price': 0.1,
                         'portfolio/repay-futures-switch': 3,  # Weight(IP): 30 => cost = 0.1 * 30 = 3
+                        'portfolio/margin-asset-leverage': 5,  # Weight(IP): 50 => cost = 0.1 * 50 = 5
                         # staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -437,6 +438,11 @@ class binance(Exchange, ImplicitAPI):
                         'lending/auto-invest/plan/list': 0.1,
                         'lending/auto-invest/plan/id': 0.1,
                         'lending/auto-invest/history/list': 0.1,
+                        'lending/auto-invest/index/info': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/index/user-summary': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/one-off/status': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/redeem/history': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/rebalance/history': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         # simple earn
                         'simple-earn/flexible/list': 15,
                         'simple-earn/locked/list': 15,
@@ -564,6 +570,8 @@ class binance(Exchange, ImplicitAPI):
                         'lending/auto-invest/plan/add': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/one-off': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/redeem': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         # simple earn
                         'simple-earn/flexible/subscribe': 0.1,
                         'simple-earn/locked/subscribe': 0.1,
@@ -650,6 +658,7 @@ class binance(Exchange, ImplicitAPI):
                         'continuousKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'indexPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'markPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
+                        'premiumIndexKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'ticker/24hr': {'cost': 1, 'noSymbol': 40},
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
                         'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
@@ -669,6 +678,7 @@ class binance(Exchange, ImplicitAPI):
                 'dapiPrivate': {
                     'get': {
                         'positionSide/dual': 30,
+                        'orderAmendment': 1,
                         'order': 1,
                         'openOrder': 1,
                         'openOrders': {'cost': 1, 'noSymbol': 5},
@@ -682,8 +692,11 @@ class binance(Exchange, ImplicitAPI):
                         'leverageBracket': 1,
                         'forceOrders': {'cost': 20, 'noSymbol': 50},
                         'adlQuantile': 5,
-                        'orderAmendment': 1,
-                        'pmAccountInfo': 5,
+                        'commissionRate': 20,
+                        'income/asyn': 5,
+                        'income/asyn/id': 5,
+                        'pmExchangeInfo': 0.5,  # Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'pmAccountInfo': 0.5,  # Weight(IP): 5 => cost = 0.1 * 5 = 0.5
                     },
                     'post': {
                         'positionSide/dual': 1,
@@ -3293,6 +3306,18 @@ class binance(Exchange, ImplicitAPI):
         #         "M": True           # Was the trade the best price match?
         #     }
         #
+        # REST: aggregate trades for swap & future(both linear and inverse)
+        #
+        #     {
+        #         "a": "269772814",
+        #         "p": "25864.1",
+        #         "q": "3",
+        #         "f": "662149354",
+        #         "l": "662149355",
+        #         "T": "1694209776022",
+        #         "m": False,
+        #     }
+        #
         # recent public trades and old public trades
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-trade-lookup-market_data
@@ -3524,7 +3549,8 @@ class binance(Exchange, ImplicitAPI):
             if until is not None:
                 request['endTime'] = until
         if limit is not None:
-            request['limit'] = limit  # default = 500, maximum = 1000
+            isFutureOrSwap = (market['swap'] or market['future'])
+            request['limit'] = min(limit, 1000) if isFutureOrSwap else limit  # default = 500, maximum = 1000
         params = self.omit(params, ['until', 'fetchTradesMethod'])
         #
         # Caveats:
@@ -3550,6 +3576,20 @@ class binance(Exchange, ImplicitAPI):
         #             "m": True,          # Was the buyer the maker?
         #             "M": True           # Was the trade the best price match?
         #         }
+        #     ]
+        #
+        # inverse(swap & future)
+        #
+        #     [
+        #      {
+        #         "a": "269772814",
+        #         "p": "25864.1",
+        #         "q": "3",
+        #         "f": "662149354",
+        #         "l": "662149355",
+        #         "T": "1694209776022",
+        #         "m": False,
+        #      },
         #     ]
         #
         # recent public trades and historical public trades
@@ -7166,7 +7206,7 @@ class binance(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms
         :param int [limit]: number of records, default 100, max 100
         :param dict [params]: exchange specific params
-        :returns dict[]: a list of [settlement history objects]
+        :returns dict[]: a list of `settlement history objects <https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure>`
         """
         self.load_markets()
         market = None if (symbol is None) else self.market(symbol)

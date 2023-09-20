@@ -2446,7 +2446,7 @@ class huobi(Exchange, ImplicitAPI):
             fieldName = 'contract_code'
         request[fieldName] = market['id']
         if limit is not None:
-            request['size'] = limit  # max 2000
+            request['size'] = min(limit, 2000)  # max 2000
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -4481,10 +4481,10 @@ class huobi(Exchange, ImplicitAPI):
                 if price is not None:
                     request['tp_order_price'] = self.price_to_precision(symbol, price)
         else:
-            clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
+            clientOrderId = self.safe_integer_2(params, 'client_order_id', 'clientOrderId')
             if clientOrderId is not None:
                 request['client_order_id'] = clientOrderId
-                params = self.omit(params, ['client_order_id', 'clientOrderId'])
+                params = self.omit(params, ['clientOrderId'])
             if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
                 request['price'] = self.price_to_precision(symbol, price)
         if not isStopLossTriggerOrder and not isTakeProfitTriggerOrder:
@@ -7243,7 +7243,7 @@ class huobi(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms, value range = start_time -> current time，default = current time
         :param int [params.page_index]: page index, default page 1 if not filled
         :param int [params.code]: unified currency code, can be used when symbol is None
-        :returns: A list of settlement history objects
+        :returns dict[]: a list of `settlement history objects <https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure>`
         """
         code = self.safe_string(params, 'code')
         until = self.safe_integer_2(params, 'until', 'till')

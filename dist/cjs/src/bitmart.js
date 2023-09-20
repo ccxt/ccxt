@@ -57,10 +57,15 @@ class bitmart extends bitmart$1 {
                 'fetchDepositWithdrawFee': true,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': undefined,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -83,7 +88,7 @@ class bitmart extends bitmart$1 {
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayMargin': true,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,
                 'withdraw': true,
@@ -146,6 +151,9 @@ class bitmart extends bitmart$1 {
                         'account/sub-account/v1/transfer-history': 7.5,
                         'account/sub-account/main/v1/wallet': 5,
                         'account/sub-account/main/v1/subaccount-list': 7.5,
+                        'account/contract/sub-account/main/v1/wallet': 5,
+                        'account/contract/sub-account/main/v1/transfer-list': 7.5,
+                        'account/contract/sub-account/v1/transfer-history': 7.5,
                         // account
                         'account/v1/wallet': 5,
                         'account/v1/currencies': 30,
@@ -171,9 +179,11 @@ class bitmart extends bitmart$1 {
                         'spot/v1/user_fee': 6,
                         // contract
                         'contract/private/assets-detail': 5,
-                        'contract/private/order': 2,
+                        'contract/private/order': 1.2,
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
+                        'contract/private/get-open-orders': 1.2,
+                        'contract/private/trades': 10,
                     },
                     'post': {
                         // sub-account endpoints
@@ -182,6 +192,9 @@ class bitmart extends bitmart$1 {
                         'account/sub-account/main/v1/main-to-sub': 30,
                         'account/sub-account/sub/v1/sub-to-sub': 30,
                         'account/sub-account/main/v1/sub-to-sub': 30,
+                        'account/contract/sub-account/main/v1/sub-to-main': 7.5,
+                        'account/contract/sub-account/main/v1/main-to-sub': 7.5,
+                        'account/contract/sub-account/sub/v1/sub-to-main': 7.5,
                         // account
                         'account/v1/withdraw/apply': 7.5,
                         // transaction and trading
@@ -205,7 +218,14 @@ class bitmart extends bitmart$1 {
                         'spot/v1/margin/isolated/repay': 6,
                         'spot/v1/margin/isolated/transfer': 6,
                         // contract
-                        'contract/private/trades': 10,
+                        'account/v1/transfer-contract-list': 60,
+                        'account/v1/transfer-contract': 60,
+                        'contract/private/submit-order': 2.5,
+                        'contract/private/cancel-order': 1.5,
+                        'contract/private/cancel-orders': 30,
+                        'contract/private/submit-plan-order': 2.5,
+                        'contract/private/cancel-plan-order': 1.5,
+                        'contract/private/submit-leverage': 2.5,
                     },
                 },
             },
@@ -2050,6 +2070,9 @@ class bitmart extends bitmart$1 {
         }
         const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
         if (marginMode !== undefined) {
+            if (marginMode !== 'isolated') {
+                throw new errors.NotSupported(this.id + ' only isolated margin is supported');
+            }
             method = 'privatePostSpotV1MarginSubmitOrder';
         }
         const response = await this[method](this.extend(request, query));
@@ -3147,22 +3170,154 @@ class bitmart extends bitmart$1 {
             'info': info,
         };
     }
-    handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {
+    async fetchOpenInterest(symbol, params = {}) {
         /**
-         * @ignore
          * @method
-         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {array} the marginMode in lowercase
+         * @name bitmart#fetchOpenInterest
+         * @description Retrieves the open interest of a currency
+         * @see https://developer-pro.bitmart.com/en/futures/#get-futures-openinterest
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} [params] exchange specific parameters
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
          */
-        let marginMode = undefined;
-        [marginMode, params] = super.handleMarginModeAndParams(methodName, params, defaultValue);
-        if (marginMode !== undefined) {
-            if (marginMode !== 'isolated') {
-                throw new errors.NotSupported(this.id + ' only isolated margin is supported');
-            }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['contract']) {
+            throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
-        return [marginMode, params];
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetContractPublicOpenInterest(this.extend(request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "timestamp": 1694657502415,
+        //             "symbol": "BTCUSDT",
+        //             "open_interest": "265231.721368593081729069",
+        //             "open_interest_value": "7006353.83988919"
+        //         },
+        //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        return this.parseOpenInterest(data, market);
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //     {
+        //         "timestamp": 1694657502415,
+        //         "symbol": "BTCUSDT",
+        //         "open_interest": "265231.721368593081729069",
+        //         "open_interest_value": "7006353.83988919"
+        //     }
+        //
+        const timestamp = this.safeInteger(interest, 'timestamp');
+        const id = this.safeString(interest, 'symbol');
+        return {
+            'symbol': this.safeSymbol(id, market),
+            'openInterestAmount': this.safeNumber(interest, 'open_interest'),
+            'openInterestValue': this.safeNumber(interest, 'open_interest_value'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'info': interest,
+        };
+    }
+    async setLeverage(leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {string} [params.marginMode] 'isolated' or 'cross'
+         * @returns {object} response from the exchange
+         */
+        this.checkRequiredSymbol('setLeverage', symbol);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params);
+        this.checkRequiredArgument('setLeverage', marginMode, 'marginMode', ['isolated', 'cross']);
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.BadSymbol(this.id + ' setLeverage() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage.toString(),
+            'open_type': marginMode,
+        };
+        return await this.privatePostContractPrivateSubmitLeverage(this.extend(request, params));
+    }
+    async fetchFundingRate(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://developer-pro.bitmart.com/en/futures/#get-current-funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetContractPublicFundingRate(this.extend(request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "timestamp": 1695184410697,
+        //             "symbol": "BTCUSDT",
+        //             "rate_value": "-0.00002614",
+        //             "expected_rate": "-0.00002"
+        //         },
+        //         "trace": "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        return this.parseFundingRate(data, market);
+    }
+    parseFundingRate(contract, market = undefined) {
+        //
+        //     {
+        //         "timestamp": 1695184410697,
+        //         "symbol": "BTCUSDT",
+        //         "rate_value": "-0.00002614",
+        //         "expected_rate": "-0.00002"
+        //     }
+        //
+        const marketId = this.safeString(contract, 'symbol');
+        const timestamp = this.safeInteger(contract, 'timestamp');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol(marketId, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'fundingRate': this.safeNumber(contract, 'expected_rate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': this.safeNumber(contract, 'rate_value'),
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
     }
     nonce() {
         return this.milliseconds();

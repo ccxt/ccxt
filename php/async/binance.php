@@ -408,6 +408,7 @@ class binance extends Exchange {
                         'portfolio/interest-history' => 0.6667,
                         'portfolio/asset-index-price' => 0.1,
                         'portfolio/repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
+                        'portfolio/margin-asset-leverage' => 5, // Weight(IP) => 50 => cost = 0.1 * 50 = 5
                         // staking
                         'staking/productList' => 0.1,
                         'staking/position' => 0.1,
@@ -420,6 +421,11 @@ class binance extends Exchange {
                         'lending/auto-invest/plan/list' => 0.1,
                         'lending/auto-invest/plan/id' => 0.1,
                         'lending/auto-invest/history/list' => 0.1,
+                        'lending/auto-invest/index/info' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/index/user-summary' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/one-off/status' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/redeem/history' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/rebalance/history' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         // simple earn
                         'simple-earn/flexible/list' => 15,
                         'simple-earn/locked/list' => 15,
@@ -547,6 +553,8 @@ class binance extends Exchange {
                         'lending/auto-invest/plan/add' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/one-off' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/redeem' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         // simple earn
                         'simple-earn/flexible/subscribe' => 0.1,
                         'simple-earn/locked/subscribe' => 0.1,
@@ -633,6 +641,7 @@ class binance extends Exchange {
                         'continuousKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'indexPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'markPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
+                        'premiumIndexKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
@@ -652,6 +661,7 @@ class binance extends Exchange {
                 'dapiPrivate' => array(
                     'get' => array(
                         'positionSide/dual' => 30,
+                        'orderAmendment' => 1,
                         'order' => 1,
                         'openOrder' => 1,
                         'openOrders' => array( 'cost' => 1, 'noSymbol' => 5 ),
@@ -665,8 +675,11 @@ class binance extends Exchange {
                         'leverageBracket' => 1,
                         'forceOrders' => array( 'cost' => 20, 'noSymbol' => 50 ),
                         'adlQuantile' => 5,
-                        'orderAmendment' => 1,
-                        'pmAccountInfo' => 5,
+                        'commissionRate' => 20,
+                        'income/asyn' => 5,
+                        'income/asyn/id' => 5,
+                        'pmExchangeInfo' => 0.5, // Weight(IP) => 5 => cost = 0.1 * 5 = 0.5
+                        'pmAccountInfo' => 0.5, // Weight(IP) => 5 => cost = 0.1 * 5 = 0.5
                     ),
                     'post' => array(
                         'positionSide/dual' => 1,
@@ -3399,6 +3412,18 @@ class binance extends Exchange {
         //         "M" => true           // Was the $trade the best $price match?
         //     }
         //
+        // REST => aggregate trades for swap & future (both linear and inverse)
+        //
+        //     {
+        //         "a" => "269772814",
+        //         "p" => "25864.1",
+        //         "q" => "3",
+        //         "f" => "662149354",
+        //         "l" => "662149355",
+        //         "T" => "1694209776022",
+        //         "m" => false,
+        //     }
+        //
         // recent public trades and old public trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-$trade-lookup-market_data
@@ -3647,7 +3672,8 @@ class binance extends Exchange {
                 }
             }
             if ($limit !== null) {
-                $request['limit'] = $limit; // default = 500, maximum = 1000
+                $isFutureOrSwap = ($market['swap'] || $market['future']);
+                $request['limit'] = $isFutureOrSwap ? min ($limit, 1000) : $limit; // default = 500, maximum = 1000
             }
             $params = $this->omit($params, array( 'until', 'fetchTradesMethod' ));
             //
@@ -3674,6 +3700,20 @@ class binance extends Exchange {
             //             "m" => true,          // Was the buyer the maker?
             //             "M" => true           // Was the trade the best price match?
             //         }
+            //     )
+            //
+            // inverse (swap & future)
+            //
+            //     array(
+            //      array(
+            //         "a" => "269772814",
+            //         "p" => "25864.1",
+            //         "q" => "3",
+            //         "f" => "662149354",
+            //         "l" => "662149355",
+            //         "T" => "1694209776022",
+            //         "m" => false,
+            //      ),
             //     )
             //
             // recent public trades and historical public trades
@@ -7672,7 +7712,7 @@ class binance extends Exchange {
              * @param {int} [$since] timestamp in ms
              * @param {int} [$limit] number of records, default 100, max 100
              * @param {array} [$params] exchange specific $params
-             * @return {array[]} a list of [settlement history objects]
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
              */
             Async\await($this->load_markets());
             $market = ($symbol === null) ? null : $this->market($symbol);

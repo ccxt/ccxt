@@ -2106,7 +2106,7 @@ class bitget(Exchange, ImplicitAPI):
         #         "fillTime": "1692073691000"
         #     }
         #
-        # swap
+        # swap(public trades)
         #
         #     {
         #         "tradeId": "1075199767891652609",
@@ -2228,6 +2228,16 @@ class bitget(Exchange, ImplicitAPI):
             params = self.omit(params, 'method')
             if swapMethod == 'publicMixGetMarketFillsHistory':
                 response = self.publicMixGetMarketFillsHistory(self.extend(request, params))
+                #
+                #     {
+                #         "tradeId": "1084459062491590657",
+                #         "price": "25874",
+                #         "size": "1.624",
+                #         "side": "Buy",
+                #         "timestamp": "1694281109000",
+                #         "symbol": "BTCUSDT_UMCBL",
+                #     }
+                #
             elif swapMethod == 'publicMixGetMarketFills':
                 response = self.publicMixGetMarketFills(self.extend(request, params))
         #
@@ -2860,11 +2870,11 @@ class bitget(Exchange, ImplicitAPI):
                 method = 'privateMixPostPlanPlacePositionsTPSL'
             elif isStopLossOrTakeProfit:
                 if isStopLoss:
-                    stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
-                    request['presetStopLossPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                    slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
+                    request['presetStopLossPrice'] = self.price_to_precision(symbol, slTriggerPrice)
                 if isTakeProfit:
-                    takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
-                    request['presetTakeProfitPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                    tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
+                    request['presetTakeProfitPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
         if postOnly:
             request[timeInForceKey] = 'post_only'
         elif timeInForce == 'gtc':

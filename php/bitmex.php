@@ -1710,7 +1710,7 @@ class bitmex extends Exchange {
             $request['reverse'] = true;
         }
         if ($limit !== null) {
-            $request['count'] = $limit;
+            $request['count'] = min ($limit, 1000); // api maximum 1000
         }
         $response = $this->publicGetTrade (array_merge($request, $params));
         //
@@ -2327,6 +2327,7 @@ class bitmex extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $this->iso8601($until);
         }
+        $request['reverse'] = true;
         $response = $this->publicGetFunding (array_merge($request, $params));
         //
         //    array(

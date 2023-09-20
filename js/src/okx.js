@@ -1429,13 +1429,13 @@ export default class okx extends Exchange {
                 promises.push(this.publicGetPublicInstruments(this.extend(request, params)));
             }
             const promisesResult = await Promise.all(promises);
-            let data = [];
+            let markets = [];
             for (let i = 0; i < promisesResult.length; i++) {
                 const res = this.safeValue(promisesResult, i, {});
                 const options = this.safeValue(res, 'data', []);
-                data = this.arrayConcat(data, options);
+                markets = this.arrayConcat(markets, options);
             }
-            return this.parseMarkets(data);
+            return this.parseMarkets(markets);
         }
         const response = await this.publicGetPublicInstruments(this.extend(request, params));
         //
@@ -2580,7 +2580,7 @@ export default class okx extends Exchange {
                 else {
                     request['slOrdPx'] = '-1'; // market sl order
                 }
-                const stopLossTriggerPriceType = this.safeString2(stopLoss, 'triggerPriceType', 'slTriggerPxType');
+                const stopLossTriggerPriceType = this.safeString2(stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last');
                 if (stopLossTriggerPriceType !== undefined) {
                     if ((stopLossTriggerPriceType !== 'last') && (stopLossTriggerPriceType !== 'index') && (stopLossTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder(this.id + ' createOrder() stop loss trigger price type must be one of "last", "index" or "mark"');
@@ -2620,7 +2620,7 @@ export default class okx extends Exchange {
                 else {
                     request['tpOrdPx'] = '-1'; // market tp order
                 }
-                const takeProfitTriggerPriceType = this.safeString2(stopLoss, 'triggerPriceType', 'tpTriggerPxType');
+                const takeProfitTriggerPriceType = this.safeString2(takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last');
                 if (takeProfitTriggerPriceType !== undefined) {
                     if ((takeProfitTriggerPriceType !== 'last') && (takeProfitTriggerPriceType !== 'index') && (takeProfitTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder(this.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"');
@@ -6615,7 +6615,7 @@ export default class okx extends Exchange {
          * @param {int} [since] timestamp in ms
          * @param {int} [limit] number of records
          * @param {object} [params] exchange specific params
-         * @returns {object[]} a list of [settlement history objects]
+         * @returns {object[]} a list of [settlement history objects]{@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure}
          */
         this.checkRequiredSymbol('fetchSettlementHistory', symbol);
         await this.loadMarkets();
@@ -6694,8 +6694,8 @@ export default class okx extends Exchange {
             const entry = settlements[i];
             const timestamp = this.safeInteger(entry, 'ts');
             const details = this.safeValue(entry, 'details', []);
-            for (let i = 0; i < details.length; i++) {
-                const settlement = this.parseSettlement(details[i], market);
+            for (let j = 0; j < details.length; j++) {
+                const settlement = this.parseSettlement(details[j], market);
                 result.push(this.extend(settlement, {
                     'timestamp': timestamp,
                     'datetime': this.iso8601(timestamp),

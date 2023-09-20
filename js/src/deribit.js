@@ -1320,7 +1320,7 @@ export default class deribit extends Exchange {
             request['start_timestamp'] = since;
         }
         if (limit !== undefined) {
-            request['count'] = limit; // default 10
+            request['count'] = Math.min(limit, 1000); // default 10
         }
         const response = await this[method](this.extend(request, params));
         //
@@ -2540,12 +2540,12 @@ export default class deribit extends Exchange {
         const result = [];
         for (let i = 0; i < volatilityResult.length; i++) {
             const timestamp = this.safeInteger(volatilityResult[i], 0);
-            const volatility = this.safeNumber(volatilityResult[i], 1);
+            const volatilityObj = this.safeNumber(volatilityResult[i], 1);
             result.push({
-                'info': volatility,
+                'info': volatilityObj,
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
-                'volatility': volatility,
+                'volatility': volatilityObj,
             });
         }
         return result;

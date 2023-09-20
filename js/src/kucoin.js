@@ -4144,7 +4144,7 @@ export default class kucoin extends Exchange {
         this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-        if (errorCode !== '200000') {
+        if (errorCode !== '200000' && errorCode !== '200') {
             throw new ExchangeError(feedback);
         }
         return undefined;

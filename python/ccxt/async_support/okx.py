@@ -1422,12 +1422,12 @@ class okx(Exchange, ImplicitAPI):
                 request['uly'] = underlying
                 promises.append(self.publicGetPublicInstruments(self.extend(request, params)))
             promisesResult = await asyncio.gather(*promises)
-            data = []
+            markets = []
             for i in range(0, len(promisesResult)):
                 res = self.safe_value(promisesResult, i, {})
                 options = self.safe_value(res, 'data', [])
-                data = self.array_concat(data, options)
-            return self.parse_markets(data)
+                markets = self.array_concat(markets, options)
+            return self.parse_markets(markets)
         response = await self.publicGetPublicInstruments(self.extend(request, params))
         #
         # spot, future, swap, option
@@ -2483,7 +2483,7 @@ class okx(Exchange, ImplicitAPI):
                     request['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)  # limit sl order
                 else:
                     request['slOrdPx'] = '-1'  # market sl order
-                stopLossTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'slTriggerPxType')
+                stopLossTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last')
                 if stopLossTriggerPriceType is not None:
                     if (stopLossTriggerPriceType != 'last') and (stopLossTriggerPriceType != 'index') and (stopLossTriggerPriceType != 'mark'):
                         raise InvalidOrder(self.id + ' createOrder() stop loss trigger price type must be one of "last", "index" or "mark"')
@@ -2511,7 +2511,7 @@ class okx(Exchange, ImplicitAPI):
                     request['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)  # limit tp order
                 else:
                     request['tpOrdPx'] = '-1'  # market tp order
-                takeProfitTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'tpTriggerPxType')
+                takeProfitTriggerPriceType = self.safe_string_2(takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last')
                 if takeProfitTriggerPriceType is not None:
                     if (takeProfitTriggerPriceType != 'last') and (takeProfitTriggerPriceType != 'index') and (takeProfitTriggerPriceType != 'mark'):
                         raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"')
@@ -6204,7 +6204,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
         :param dict [params]: exchange specific params
-        :returns dict[]: a list of [settlement history objects]
+        :returns dict[]: a list of `settlement history objects <https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure>`
         """
         self.check_required_symbol('fetchSettlementHistory', symbol)
         await self.load_markets()
@@ -6280,8 +6280,8 @@ class okx(Exchange, ImplicitAPI):
             entry = settlements[i]
             timestamp = self.safe_integer(entry, 'ts')
             details = self.safe_value(entry, 'details', [])
-            for i in range(0, len(details)):
-                settlement = self.parse_settlement(details[i], market)
+            for j in range(0, len(details)):
+                settlement = self.parse_settlement(details[j], market)
                 result.append(self.extend(settlement, {
                     'timestamp': timestamp,
                     'datetime': self.iso8601(timestamp),

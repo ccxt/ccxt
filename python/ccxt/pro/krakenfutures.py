@@ -105,7 +105,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             marketIds.append(self.market_id(symbol))
-        if len(symbols) == 1:
+        length = len(symbols)
+        if length == 1:
             market = self.market(marketIds[0])
             messageHash = messageHash + ':' + market['symbol']
         subscribe['product_ids'] = marketIds
@@ -481,9 +482,9 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 totalAmount = '0'
                 trades = previousOrder['trades']
                 for i in range(0, len(trades)):
-                    trade = trades[i]
-                    totalCost = Precise.string_add(totalCost, self.number_to_string(trade['cost']))
-                    totalAmount = Precise.string_add(totalAmount, self.number_to_string(trade['amount']))
+                    currentTrade = trades[i]
+                    totalCost = Precise.string_add(totalCost, self.number_to_string(currentTrade['cost']))
+                    totalAmount = Precise.string_add(totalAmount, self.number_to_string(currentTrade['amount']))
                 if Precise.string_gt(totalAmount, '0'):
                     previousOrder['average'] = Precise.string_div(totalCost, totalAmount)
                 previousOrder['cost'] = totalCost
@@ -510,13 +511,13 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             if isCancel:
                 # get order without symbol
                 for i in range(0, len(orders)):
-                    order = orders[i]
-                    if order['id'] == message['order_id']:
-                        orders[i] = self.extend(order, {
+                    currentOrder = orders[i]
+                    if currentOrder['id'] == message['order_id']:
+                        orders[i] = self.extend(currentOrder, {
                             'status': 'canceled',
                         })
                         client.resolve(orders, 'orders')
-                        client.resolve(orders, 'orders:' + order['symbol'])
+                        client.resolve(orders, 'orders:' + currentOrder['symbol'])
                         break
         return message
 
@@ -579,7 +580,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             symbol = parsed['symbol']
             symbols[symbol] = True
             cachedOrders.append(parsed)
-        if len(self.orders):
+        length = len(self.orders)
+        if length > 0:
             client.resolve(self.orders, 'orders')
             keys = list(symbols.keys())
             for i in range(0, len(keys)):

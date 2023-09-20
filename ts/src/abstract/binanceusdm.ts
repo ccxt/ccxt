@@ -203,6 +203,7 @@ interface binance {
     sapiGetPortfolioInterestHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioAssetIndexPrice (params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioRepayFuturesSwitch (params?: {}): Promise<implicitReturnType>;
+    sapiGetPortfolioMarginAssetLeverage (params?: {}): Promise<implicitReturnType>;
     sapiGetStakingProductList (params?: {}): Promise<implicitReturnType>;
     sapiGetStakingPosition (params?: {}): Promise<implicitReturnType>;
     sapiGetStakingStakingRecord (params?: {}): Promise<implicitReturnType>;
@@ -214,6 +215,11 @@ interface binance {
     sapiGetLendingAutoInvestPlanList (params?: {}): Promise<implicitReturnType>;
     sapiGetLendingAutoInvestPlanId (params?: {}): Promise<implicitReturnType>;
     sapiGetLendingAutoInvestHistoryList (params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestIndexInfo (params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestIndexUserSummary (params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestOneOffStatus (params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestRedeemHistory (params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestRebalanceHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetSimpleEarnFlexibleList (params?: {}): Promise<implicitReturnType>;
     sapiGetSimpleEarnLockedList (params?: {}): Promise<implicitReturnType>;
     sapiGetSimpleEarnFlexiblePersonalLeftQuota (params?: {}): Promise<implicitReturnType>;
@@ -329,6 +335,8 @@ interface binance {
     sapiPostLendingAutoInvestPlanAdd (params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanEdit (params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanEditStatus (params?: {}): Promise<implicitReturnType>;
+    sapiPostLendingAutoInvestOneOff (params?: {}): Promise<implicitReturnType>;
+    sapiPostLendingAutoInvestRedeem (params?: {}): Promise<implicitReturnType>;
     sapiPostSimpleEarnFlexibleSubscribe (params?: {}): Promise<implicitReturnType>;
     sapiPostSimpleEarnLockedSubscribe (params?: {}): Promise<implicitReturnType>;
     sapiPostSimpleEarnFlexibleRedeem (params?: {}): Promise<implicitReturnType>;
@@ -381,6 +389,7 @@ interface binance {
     dapiPublicGetContinuousKlines (params?: {}): Promise<implicitReturnType>;
     dapiPublicGetIndexPriceKlines (params?: {}): Promise<implicitReturnType>;
     dapiPublicGetMarkPriceKlines (params?: {}): Promise<implicitReturnType>;
+    dapiPublicGetPremiumIndexKlines (params?: {}): Promise<implicitReturnType>;
     dapiPublicGetTicker24hr (params?: {}): Promise<implicitReturnType>;
     dapiPublicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
     dapiPublicGetTickerBookTicker (params?: {}): Promise<implicitReturnType>;
@@ -392,6 +401,7 @@ interface binance {
     dapiDataGetTakerBuySellVol (params?: {}): Promise<implicitReturnType>;
     dapiDataGetBasis (params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetPositionSideDual (params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetOrderAmendment (params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetOrder (params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetOpenOrder (params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
@@ -405,7 +415,10 @@ interface binance {
     dapiPrivateGetLeverageBracket (params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetForceOrders (params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetAdlQuantile (params?: {}): Promise<implicitReturnType>;
-    dapiPrivateGetOrderAmendment (params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetCommissionRate (params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetIncomeAsyn (params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetIncomeAsynId (params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetPmExchangeInfo (params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetPmAccountInfo (params?: {}): Promise<implicitReturnType>;
     dapiPrivatePostPositionSideDual (params?: {}): Promise<implicitReturnType>;
     dapiPrivatePostOrder (params?: {}): Promise<implicitReturnType>;

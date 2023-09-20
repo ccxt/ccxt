@@ -2551,7 +2551,7 @@ class huobi extends Exchange {
             }
             $request[$fieldName] = $market['id'];
             if ($limit !== null) {
-                $request['size'] = $limit; // max 2000
+                $request['size'] = min ($limit, 2000); // max 2000
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
@@ -4759,10 +4759,10 @@ class huobi extends Exchange {
                     }
                 }
             } else {
-                $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
+                $clientOrderId = $this->safe_integer_2($params, 'client_order_id', 'clientOrderId');
                 if ($clientOrderId !== null) {
                     $request['client_order_id'] = $clientOrderId;
-                    $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
+                    $params = $this->omit($params, array( 'clientOrderId' ));
                 }
                 if ($type === 'limit' || $type === 'ioc' || $type === 'fok' || $type === 'post_only') {
                     $request['price'] = $this->price_to_precision($symbol, $price);
@@ -7760,7 +7760,7 @@ class huobi extends Exchange {
              * @param {int} [$params->until] timestamp in ms, value range = start_time -> current time，default = current time
              * @param {int} [$params->page_index] page index, default page 1 if not filled
              * @param {int} [$params->code] unified currency $code, can be used when $symbol is null
-             * @return A list of settlement history objects
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
              */
             $code = $this->safe_string($params, 'code');
             $until = $this->safe_integer_2($params, 'until', 'till');
