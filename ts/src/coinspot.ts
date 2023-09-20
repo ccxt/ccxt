@@ -51,6 +51,7 @@ export default class coinspot extends Exchange {
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
                 'fetchMarkOHLCV': false,
+                'fetchMyTrades': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
@@ -357,6 +358,73 @@ export default class coinspot extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinspot#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitbank api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (since !== undefined) {
+            request['startdate'] = this.yyyymmdd (since);
+        }
+        const response = await this.privatePostRoMyTransactions (this.extend (request, params));
+        //  {
+        //   status: 'ok',
+        //   buyorders: [
+        //     {
+        //       otc: false,
+        //       market: 'ALGO/AUD',
+        //       amount: 386.95197925,
+        //       created: '2022-10-20T09:56:44.502Z',
+        //       audfeeExGst: 1.80018002,
+        //       audGst: 0.180018,
+        //       audtotal: 200
+        //     },
+        //   ],
+        //   sellorders: [
+        //     {
+        //       otc: false,
+        //       market: 'SOLO/ALGO',
+        //       amount: 154.52345614,
+        //       total: 115.78858204658796,
+        //       created: '2022-04-16T09:36:43.698Z',
+        //       audfeeExGst: 1.08995731,
+        //       audGst: 0.10899573,
+        //       audtotal: 118.7
+        //     },
+        //   ]
+        // }
+        const buyTrades = this.safeValue (response, 'buyorders', []);
+        for (let i = 0; i < buyTrades.length; i++) {
+            buyTrades[i]['side'] = 'buy';
+            const audTotal = this.safeNumber (buyTrades[i], 'audtotal');
+            buyTrades[i]['total'] = audTotal;
+            const total = this.safeNumber (buyTrades[i], 'total');
+            const amount = this.safeNumber (buyTrades[i], 'amount');
+            buyTrades[i]['price'] = total / amount;
+        }
+        const sellTrades = this.safeValue (response, 'sellorders', []);
+        for (let i = 0; i < sellTrades.length; i++) {
+            sellTrades[i]['side'] = 'sell';
+            const total = this.safeNumber (sellTrades[i], 'total');
+            const amount = this.safeNumber (sellTrades[i], 'amount');
+            sellTrades[i]['price'] = total / amount;
+        }
+        const trades = this.arrayConcat (buyTrades, sellTrades);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
     parseTrade (trade, market = undefined) {
         //
         // public fetchTrades
@@ -370,10 +438,41 @@ export default class coinspot extends Exchange {
         //         "market":"BTC/AUD"
         //     }
         //
-        const priceString = this.safeString (trade, 'rate');
+        // private fetchMyTrades
+        //     {
+        //       otc: false,
+        //       market: 'ALGO/AUD',
+        //       amount: 386.95197925,
+        //       created: '2022-10-20T09:56:44.502Z',
+        //       audfeeExGst: 1.80018002,
+        //       audGst: 0.180018,
+        //       audtotal: 200,
+        //       total: 200,
+        //       side: 'buy',
+        //       price: 0.5168600000125209
+        //     }
+        let priceString = undefined;
+        let timestamp = undefined;
+        let side = undefined;
+        let fee = undefined;
+        const feeCurrencyId = 'AUD';
+        const solddate = this.safeInteger (trade, 'solddate');
+        if (solddate !== undefined) {
+            priceString = this.safeString (trade, 'rate');
+            timestamp = solddate;
+        } else {
+            priceString = this.safeString (trade, 'price');
+            side = this.safeString (trade, 'side');
+            const createdString = this.safeString (trade, 'created');
+            timestamp = this.parse8601 (createdString);
+            const feeCost = this.safeNumber (trade, 'audfeeExGst');
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+            };
+        }
         const amountString = this.safeString (trade, 'amount');
         const costString = this.safeNumber (trade, 'total');
-        const timestamp = this.safeInteger (trade, 'solddate');
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market, '/');
         return this.safeTrade ({
@@ -384,12 +483,12 @@ export default class coinspot extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'order': undefined,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
             'cost': costString,
-            'fee': undefined,
+            'fee': fee,
         }, market);
     }
 
