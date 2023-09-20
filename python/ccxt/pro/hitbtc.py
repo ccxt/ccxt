@@ -507,8 +507,8 @@ class hitbtc(ccxt.async_support.hitbtc):
                 stored = ArrayCache(tradesLimit)
                 self.trades[symbol] = stored
             trades = self.parse_ws_trades(data[marketId], market)
-            for i in range(0, len(trades)):
-                stored.append(trades[i])
+            for j in range(0, len(trades)):
+                stored.append(trades[j])
             messageHash = 'trades::' + symbol
             client.resolve(stored, messageHash)
         return message
@@ -627,8 +627,8 @@ class hitbtc(ccxt.async_support.hitbtc):
                 stored = ArrayCacheByTimestamp(limit)
                 self.ohlcvs[symbol][timeframe] = stored
             ohlcvs = self.parse_ws_ohlcvs(data[marketId], market)
-            for i in range(0, len(ohlcvs)):
-                stored.append(ohlcvs[i])
+            for j in range(0, len(ohlcvs)):
+                stored.append(ohlcvs[j])
             messageHash = channel + '::' + symbol
             client.resolve(stored, messageHash)
         return message

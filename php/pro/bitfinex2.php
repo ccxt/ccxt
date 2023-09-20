@@ -614,9 +614,9 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                     $size = ($delta[2] < 0) ? -$delta[2] : $delta[2];
                     $side = ($delta[2] < 0) ? 'asks' : 'bids';
                     $bookside = $orderbook[$side];
-                    $id = $this->safe_string($delta, 0);
+                    $idString = $this->safe_string($delta, 0);
                     $price = $this->safe_float($delta, 1);
-                    $bookside->store ($price, $size, $id);
+                    $bookside->store ($price, $size, $idString);
                 }
             } else {
                 $deltas = $message[1];
@@ -634,12 +634,12 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             $client->resolve ($orderbook, $messageHash);
         } else {
             $deltas = $message[1];
-            $orderbook = $this->orderbooks[$symbol];
+            $orderbookItem = $this->orderbooks[$symbol];
             if ($isRaw) {
                 $price = $this->safe_string($deltas, 1);
                 $size = ($deltas[2] < 0) ? -$deltas[2] : $deltas[2];
                 $side = ($deltas[2] < 0) ? 'asks' : 'bids';
-                $bookside = $orderbook[$side];
+                $bookside = $orderbookItem[$side];
                 // $price = 0 means that you have to remove the order from your book
                 $amount = Precise::string_gt($price, '0') ? $size : '0';
                 $bookside->store ($this->parse_number($price), $this->parse_number($amount), $id);
@@ -649,7 +649,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 $price = $this->safe_string($deltas, 0);
                 $size = Precise::string_lt($amount, '0') ? Precise::string_neg($amount) : $amount;
                 $side = Precise::string_lt($amount, '0') ? 'asks' : 'bids';
-                $bookside = $orderbook[$side];
+                $bookside = $orderbookItem[$side];
                 $bookside->store ($this->parse_number($price), $this->parse_number($size), $this->parse_number($counter));
             }
             $client->resolve ($orderbook, $messageHash);

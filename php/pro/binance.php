@@ -296,10 +296,10 @@ class binance extends \ccxt\async\binance {
                 // unroll the accumulated deltas
                 $messages = $orderbook->cache;
                 for ($i = 0; $i < count($messages); $i++) {
-                    $message = $messages[$i];
-                    $U = $this->safe_integer($message, 'U');
-                    $u = $this->safe_integer($message, 'u');
-                    $pu = $this->safe_integer($message, 'pu');
+                    $messageItem = $messages[$i];
+                    $U = $this->safe_integer($messageItem, 'U');
+                    $u = $this->safe_integer($messageItem, 'u');
+                    $pu = $this->safe_integer($messageItem, 'pu');
                     if ($type === 'future') {
                         // 4. Drop any event where $u is < lastUpdateId in the $snapshot
                         if ($u < $orderbook['nonce']) {
@@ -307,7 +307,7 @@ class binance extends \ccxt\async\binance {
                         }
                         // 5. The first processed event should have $U <= lastUpdateId AND $u >= lastUpdateId
                         if (($U <= $orderbook['nonce']) && ($u >= $orderbook['nonce']) || ($pu === $orderbook['nonce'])) {
-                            $this->handle_order_book_message($client, $message, $orderbook);
+                            $this->handle_order_book_message($client, $messageItem, $orderbook);
                         }
                     } else {
                         // 4. Drop any event where $u is <= lastUpdateId in the $snapshot
@@ -316,7 +316,7 @@ class binance extends \ccxt\async\binance {
                         }
                         // 5. The first processed event should have $U <= lastUpdateId+1 AND $u >= lastUpdateId+1
                         if ((($U - 1) <= $orderbook['nonce']) && (($u - 1) >= $orderbook['nonce'])) {
-                            $this->handle_order_book_message($client, $message, $orderbook);
+                            $this->handle_order_book_message($client, $messageItem, $orderbook);
                         }
                     }
                 }
@@ -456,8 +456,8 @@ class binance extends \ccxt\async\binance {
     public function handle_order_book_subscription(Client $client, $message, $subscription) {
         $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
         // $messageHash = $this->safe_string($subscription, 'messageHash');
-        $symbol = $this->safe_string($subscription, 'symbol'); // watchOrderBook
-        $symbols = $this->safe_value($subscription, 'symbols', array( $symbol )); // watchOrderBookForSymbols
+        $symbolOfSubscription = $this->safe_string($subscription, 'symbol'); // watchOrderBook
+        $symbols = $this->safe_value($subscription, 'symbols', array( $symbolOfSubscription )); // watchOrderBookForSymbols
         $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
         // handle list of $symbols
         for ($i = 0; $i < count($symbols); $i++) {
@@ -1172,12 +1172,12 @@ class binance extends \ccxt\async\binance {
             $client->resolve ($result, '!' . 'bookTicker@arr');
             $messageHashes = $this->find_message_hashes($client, 'tickers::');
             for ($i = 0; $i < count($messageHashes); $i++) {
-                $messageHash = $messageHashes[$i];
-                $parts = explode('::', $messageHash);
+                $currentMessageHash = $messageHashes[$i];
+                $parts = explode('::', $currentMessageHash);
                 $symbolsString = $parts[1];
                 $symbols = explode(',', $symbolsString);
                 if ($this->in_array($symbol, $symbols)) {
-                    $client->resolve ($result, $messageHash);
+                    $client->resolve ($result, $currentMessageHash);
                 }
             }
         }

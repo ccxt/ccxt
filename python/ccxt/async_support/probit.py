@@ -442,14 +442,14 @@ class probit(Exchange, ImplicitAPI):
                     platform = network
                 precision = self.parse_precision(self.safe_string(network, 'precision'))
                 withdrawFee = self.safe_value(network, 'withdrawal_fee', [])
-                fee = self.safe_value(withdrawFee, 0, {})
+                networkfee = self.safe_value(withdrawFee, 0, {})
                 networkList[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
                     'active': currentActive,
                     'deposit': currentDeposit,
                     'withdraw': currentWithdraw,
-                    'fee': self.safe_number(fee, 'amount'),
+                    'fee': self.safe_number(networkfee, 'amount'),
                     'precision': self.parse_number(precision),
                     'limits': {
                         'withdraw': {

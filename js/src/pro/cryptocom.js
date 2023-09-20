@@ -93,8 +93,8 @@ export default class cryptocom extends cryptocomRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const messageHash = 'book' + '.' + market['id'];
-            topics.push(messageHash);
+            const currentMessageHash = 'book' + '.' + market['id'];
+            topics.push(currentMessageHash);
         }
         const messageHash = 'multipleOrderbooks::' + symbols.join(',');
         const orderbook = await this.watchPublicMultiple(messageHash, topics, params);
@@ -181,8 +181,8 @@ export default class cryptocom extends cryptocomRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const messageHash = 'trade' + '.' + market['id'];
-            topics.push(messageHash);
+            const currentMessageHash = 'trade' + '.' + market['id'];
+            topics.push(currentMessageHash);
         }
         const messageHash = 'multipleTrades::' + symbols.join(',');
         const trades = await this.watchPublicMultiple(messageHash, topics, params);

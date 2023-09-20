@@ -296,10 +296,10 @@ export default class bitget extends bitgetRest {
         const hashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
-            const symbol = this.safeString(data, 0);
-            const timeframe = this.safeString(data, 1);
-            const market = this.market(symbol);
-            const interval = this.safeString(this.options['timeframes'], timeframe);
+            const currentSymbol = this.safeString(data, 0);
+            const currentTimeframe = this.safeString(data, 1);
+            const market = this.market(currentSymbol);
+            const interval = this.safeString(this.options['timeframes'], currentTimeframe);
             const instType = market['spot'] ? 'sp' : 'mc';
             const args = {
                 'instType': instType,
@@ -307,7 +307,7 @@ export default class bitget extends bitgetRest {
                 'instId': this.getWsMarketId(market),
             };
             topics.push(args);
-            hashes.push(symbol + '#' + timeframe);
+            hashes.push(currentSymbol + '#' + currentSymbol);
         }
         const messageHash = 'multipleOHLCV::' + hashes.join(',');
         const [symbol, timeframe, stored] = await this.watchPublicMultiple(messageHash, topics, params);

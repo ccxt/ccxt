@@ -2138,7 +2138,7 @@ class bitget extends Exchange {
         //         "fillTime" => "1692073691000"
         //     }
         //
-        // swap
+        // swap (public trades)
         //
         //     {
         //         "tradeId" => "1075199767891652609",
@@ -2267,6 +2267,16 @@ class bitget extends Exchange {
             $params = $this->omit($params, 'method');
             if ($swapMethod === 'publicMixGetMarketFillsHistory') {
                 $response = $this->publicMixGetMarketFillsHistory (array_merge($request, $params));
+                //
+                //     {
+                //         "tradeId" => "1084459062491590657",
+                //         "price" => "25874",
+                //         "size" => "1.624",
+                //         "side" => "Buy",
+                //         "timestamp" => "1694281109000",
+                //         "symbol" => "BTCUSDT_UMCBL",
+                //     }
+                //
             } elseif ($swapMethod === 'publicMixGetMarketFills') {
                 $response = $this->publicMixGetMarketFills (array_merge($request, $params));
             }
@@ -2947,12 +2957,12 @@ class bitget extends Exchange {
                 $method = 'privateMixPostPlanPlacePositionsTPSL';
             } elseif ($isStopLossOrTakeProfit) {
                 if ($isStopLoss) {
-                    $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
-                    $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                    $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
+                    $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
                 }
                 if ($isTakeProfit) {
-                    $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
-                    $request['presetTakeProfitPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                    $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
+                    $request['presetTakeProfitPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                 }
             }
         }

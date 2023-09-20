@@ -237,6 +237,16 @@ class bl3p(Exchange, ImplicitAPI):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades
+        #
+        #     {
+        #         "trade_id": "2518789",
+        #         "date": "1694348697745",
+        #         "amount_int": "2959153",
+        #         "price_int": "2416231440"
+        #     }
+        #
         id = self.safe_string(trade, 'trade_id')
         timestamp = self.safe_integer(trade, 'date')
         price = self.safe_string(trade, 'price_int')
@@ -271,6 +281,20 @@ class bl3p(Exchange, ImplicitAPI):
         response = self.publicGetMarketTrades(self.extend({
             'market': market['id'],
         }, params))
+        #
+        #    {
+        #        "result": "success",
+        #        "data": {
+        #            "trades": [
+        #                {
+        #                    "trade_id": "2518789",
+        #                    "date": "1694348697745",
+        #                    "amount_int": "2959153",
+        #                    "price_int": "2416231440"
+        #                },
+        #            ]
+        #        }
+        #     }
         result = self.parse_trades(response['data']['trades'], market, since, limit)
         return result
 

@@ -241,6 +241,16 @@ class bl3p extends bl3p$1 {
         return this.parseTicker(ticker, market);
     }
     parseTrade(trade, market = undefined) {
+        //
+        // fetchTrades
+        //
+        //     {
+        //         "trade_id": "2518789",
+        //         "date": "1694348697745",
+        //         "amount_int": "2959153",
+        //         "price_int": "2416231440"
+        //     }
+        //
         const id = this.safeString(trade, 'trade_id');
         const timestamp = this.safeInteger(trade, 'date');
         const price = this.safeString(trade, 'price_int');
@@ -277,6 +287,20 @@ class bl3p extends bl3p$1 {
         const response = await this.publicGetMarketTrades(this.extend({
             'market': market['id'],
         }, params));
+        //
+        //    {
+        //        "result": "success",
+        //        "data": {
+        //            "trades": [
+        //                {
+        //                    "trade_id": "2518789",
+        //                    "date": "1694348697745",
+        //                    "amount_int": "2959153",
+        //                    "price_int": "2416231440"
+        //                },
+        //            ]
+        //        }
+        //     }
         const result = this.parseTrades(response['data']['trades'], market, since, limit);
         return result;
     }

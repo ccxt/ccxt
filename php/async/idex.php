@@ -514,7 +514,7 @@ class idex extends Exchange {
                 $request['start'] = $since;
             }
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 1000);
             }
             // array(
             //   array(

@@ -408,7 +408,7 @@ class lbank extends Exchange {
                 $request['time'] = $since;
             }
             if ($limit !== null) {
-                $request['size'] = $limit;
+                $request['size'] = min ($limit, 600);
             }
             $response = Async\await($this->publicGetTrades (array_merge($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);

@@ -8,8 +8,8 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\exmo as Exchange;
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
 
@@ -205,6 +205,7 @@ class exmo extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
+                    '140434' => '\\ccxt\\BadRequest',
                     '40005' => '\\ccxt\\AuthenticationError', // Authorization error, incorrect signature
                     '40009' => '\\ccxt\\InvalidNonce', //
                     '40015' => '\\ccxt\\ExchangeError', // API function do not exist
@@ -1403,34 +1404,42 @@ class exmo extends Exchange {
             /**
              * create a trade order
              * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#de6f4321-eeac-468c-87f7-c4ad7062e265  // stop $market
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#3561b86c-9ff1-436e-8e68-ac926b7eb523  // margin
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exmo api endpoint
+             * @param {float} [$params->stopPrice] the $price at which a trigger order is triggered at
+             * @param {string} [$params->timeInForce] *spot only* 'fok', 'ioc' or 'post_only'
+             * @param {boolean} [$params->postOnly] *spot only* true for post only orders
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $prefix = ($type === 'market') ? ($type . '_') : '';
-            $orderType = $prefix . $side;
             $isMarket = ($type === 'market') && ($price === null);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+            if ($marginMode === 'cross') {
+                throw new BadRequest($this->id . ' only supports isolated margin');
+            }
+            $isSpot = ($marginMode !== 'isolated');
+            $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
             $request = array(
                 'pair' => $market['id'],
                 // 'leverage' => 2,
                 'quantity' => $this->amount_to_precision($market['symbol'], $amount),
                 // spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
                 // margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
-                'type' => $orderType,
-                'price' => $isMarket ? 0 : $this->price_to_precision($market['symbol'], $price),
-                // 'stop_price' => $this->price_to_precision($symbol, $stopPrice),
+                // 'stop_price' => $this->price_to_precision($symbol, stopPrice),
                 // 'distance' => 0, // distance for trailing stop orders
                 // 'expire' => 0, // expiration timestamp in UTC timezone for the order, unless expire is 0
                 // 'client_id' => 123, // optional, must be a positive integer
                 // 'comment' => '', // up to 50 latin symbols, whitespaces, underscores
             );
-            $method = 'privatePostOrderCreate';
+            $method = $isSpot ? 'privatePostOrderCreate' : 'privatePostMarginUserOrderCreate';
             $clientOrderId = $this->safe_value_2($params, 'client_id', 'clientOrderId');
             if ($clientOrderId !== null) {
                 $clientOrderId = $this->safe_integer_2($params, 'client_id', 'clientOrderId');
@@ -1439,17 +1448,58 @@ class exmo extends Exchange {
                 } else {
                     $request['client_id'] = $clientOrderId;
                 }
-                $params = $this->omit($params, array( 'client_id', 'clientOrderId' ));
             }
-            if (($type === 'stop') || ($type === 'stop_limit') || ($type === 'trailing_stop')) {
-                $stopPrice = $this->safe_number_2($params, 'stop_price', 'stopPrice');
-                if ($stopPrice === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice extra param for a ' . $type . ' order');
+            $leverage = $this->safe_number($params, 'leverage');
+            if (!$isSpot && ($leverage === null)) {
+                throw new ArgumentsRequired($this->id . ' createOrder requires an extra param $params["leverage"] for margin orders');
+            }
+            $params = $this->omit($params, array( 'stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId' ));
+            if ($triggerPrice !== null) {
+                if ($isSpot) {
+                    if ($type === 'limit') {
+                        throw new BadRequest($this->id . ' createOrder () cannot create stop limit orders for spot, only stop market');
+                    } else {
+                        $method = 'privatePostStopMarketOrderCreate';
+                        $request['type'] = $side;
+                        $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
+                    }
                 } else {
-                    $params = $this->omit($params, array( 'stopPrice', 'stop_price' ));
-                    $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
-                    $method = 'privatePostMarginUserOrderCreate';
+                    $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
+                    if ($type === 'limit') {
+                        $request['type'] = 'stop_limit_' . $side;
+                    } elseif ($type === 'market') {
+                        $request['type'] = 'stop_' . $side;
+                    } else {
+                        $request['type'] = $type;
+                    }
                 }
+            } else {
+                if ($isSpot) {
+                    $execType = $this->safe_string($params, 'exec_type');
+                    $isPostOnly = null;
+                    list($isPostOnly, $params) = $this->handle_post_only($type === 'market', $execType === 'post_only', $params);
+                    $timeInForce = $this->safe_string($params, 'timeInForce');
+                    $request['price'] = $isMarket ? 0 : $this->price_to_precision($market['symbol'], $price);
+                    if ($type === 'limit') {
+                        $request['type'] = $side;
+                    } elseif ($type === 'market') {
+                        $request['type'] = 'market_' . $side;
+                    }
+                    if ($isPostOnly) {
+                        $request['exec_type'] = 'post_only';
+                    } elseif ($timeInForce !== null) {
+                        $request['exec_type'] = $timeInForce;
+                    }
+                } else {
+                    if ($type === 'limit' || $type === 'market') {
+                        $request['type'] = $type . '_' . $side;
+                    } else {
+                        $request['type'] = $type;
+                    }
+                }
+            }
+            if ($price !== null) {
+                $request['price'] = $this->price_to_precision($market['symbol'], $price);
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             return $this->parse_order($response, $market);
@@ -2273,6 +2323,19 @@ class exmo extends Exchange {
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
+        }
+        if (is_array($response) && array_key_exists('error', $response)) {
+            // error => {
+            //     $code => '140434',
+            //     msg => "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by '2.5 USDT'."
+            // }
+            $errorCode = $this->safe_value($response, 'error', array());
+            $messageError = $this->safe_string($errorCode, 'msg');
+            $code = $this->safe_string($errorCode, 'code');
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageError, $feedback);
+            throw new ExchangeError($feedback);
         }
         if ((is_array($response) && array_key_exists('result', $response)) || (is_array($response) && array_key_exists('errmsg', $response))) {
             //

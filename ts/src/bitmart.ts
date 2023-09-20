@@ -59,6 +59,9 @@ export default class bitmart extends Exchange {
                 'fetchDepositWithdrawFee': true,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': undefined,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -3285,6 +3288,74 @@ export default class bitmart extends Exchange {
             'open_type': marginMode,
         };
         return await this.privatePostContractPrivateSubmitLeverage (this.extend (request, params));
+    }
+
+    async fetchFundingRate (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://developer-pro.bitmart.com/en/futures/#get-current-funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetContractPublicFundingRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "timestamp": 1695184410697,
+        //             "symbol": "BTCUSDT",
+        //             "rate_value": "-0.00002614",
+        //             "expected_rate": "-0.00002"
+        //         },
+        //         "trace": "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "timestamp": 1695184410697,
+        //         "symbol": "BTCUSDT",
+        //         "rate_value": "-0.00002614",
+        //         "expected_rate": "-0.00002"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const timestamp = this.safeInteger (contract, 'timestamp');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.safeNumber (contract, 'expected_rate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': this.safeNumber (contract, 'rate_value'),
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
     }
 
     nonce () {

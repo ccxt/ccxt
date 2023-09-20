@@ -850,7 +850,7 @@ class huobijp(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['size'] = limit
+            request['size'] = min(limit, 2000)
         response = await self.marketGetHistoryTrade(self.extend(request, params))
         #
         #     {

@@ -2152,7 +2152,7 @@ export default class bitget extends Exchange {
         //         "fillTime": "1692073691000"
         //     }
         //
-        // swap
+        // swap (public trades)
         //
         //     {
         //         "tradeId": "1075199767891652609",
@@ -2284,6 +2284,16 @@ export default class bitget extends Exchange {
             params = this.omit(params, 'method');
             if (swapMethod === 'publicMixGetMarketFillsHistory') {
                 response = await this.publicMixGetMarketFillsHistory(this.extend(request, params));
+                //
+                //     {
+                //         "tradeId": "1084459062491590657",
+                //         "price": "25874",
+                //         "size": "1.624",
+                //         "side": "Buy",
+                //         "timestamp": "1694281109000",
+                //         "symbol": "BTCUSDT_UMCBL",
+                //     }
+                //
             }
             else if (swapMethod === 'publicMixGetMarketFills') {
                 response = await this.publicMixGetMarketFills(this.extend(request, params));
@@ -2984,12 +2994,12 @@ export default class bitget extends Exchange {
             }
             else if (isStopLossOrTakeProfit) {
                 if (isStopLoss) {
-                    const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice');
-                    request['presetStopLossPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                    const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice');
+                    request['presetStopLossPrice'] = this.priceToPrecision(symbol, slTriggerPrice);
                 }
                 if (isTakeProfit) {
-                    const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
-                    request['presetTakeProfitPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                    const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
+                    request['presetTakeProfitPrice'] = this.priceToPrecision(symbol, tpTriggerPrice);
                 }
             }
         }

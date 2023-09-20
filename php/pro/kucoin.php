@@ -19,7 +19,7 @@ class kucoin extends \ccxt\async\kucoin {
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => true,
-                'watchTickers' => false, // for now
+                'watchTickers' => true,
                 'watchTicker' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
@@ -146,6 +146,30 @@ class kucoin extends \ccxt\async\kucoin {
         }) ();
     }
 
+    public function watch_tickers(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $messageHash = 'tickers';
+            if ($symbols !== null) {
+                $messageHash = 'tickers::' . implode(',', $symbols);
+            }
+            $url = Async\await($this->negotiate(false));
+            $topic = '/market/ticker:all';
+            $tickers = Async\await($this->subscribe($url, $messageHash, $topic, $params));
+            if ($this->newUpdates) {
+                return $tickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }) ();
+    }
+
     public function handle_ticker(Client $client, $message) {
         //
         // market/snapshot
@@ -205,7 +229,13 @@ class kucoin extends \ccxt\async\kucoin {
         $market = null;
         if ($topic !== null) {
             $parts = explode(':', $topic);
-            $marketId = $this->safe_string($parts, 1);
+            $first = $this->safe_string($parts, 1);
+            $marketId = null;
+            if ($first === 'all') {
+                $marketId = $this->safe_string($message, 'subject');
+            } else {
+                $marketId = $first;
+            }
             $market = $this->safe_market($marketId, $market, '-');
         }
         $data = $this->safe_value($message, 'data', array());
@@ -215,6 +245,21 @@ class kucoin extends \ccxt\async\kucoin {
         $this->tickers[$symbol] = $ticker;
         $messageHash = 'ticker:' . $symbol;
         $client->resolve ($ticker, $messageHash);
+        // watchTickers
+        $client->resolve ($ticker, 'tickers');
+        $messageHashes = $this->find_message_hashes($client, 'tickers::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $currentMessageHash = $messageHashes[$i];
+            $parts = explode('::', $currentMessageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $tickers = $this->filter_by_array($this->tickers, 'symbol', $symbols);
+            $tickersSymbols = is_array($tickers) ? array_keys($tickers) : array();
+            $numTickers = count($tickersSymbols);
+            if ($numTickers > 0) {
+                $client->resolve ($tickers, $currentMessageHash);
+            }
+        }
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -916,6 +961,10 @@ class kucoin extends \ccxt\async\kucoin {
         //         }
         //     }
         //
+        $topic = $this->safe_string($message, 'topic');
+        if ($topic === '/market/ticker:all') {
+            return $this->handle_ticker($client, $message);
+        }
         $subject = $this->safe_string($message, 'subject');
         $methods = array(
             'trade.l2update' => array($this, 'handle_order_book'),

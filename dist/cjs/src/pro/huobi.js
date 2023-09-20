@@ -405,8 +405,7 @@ class huobi extends huobi$1 {
                 orderbook.reset(snapshot);
                 // unroll the accumulated deltas
                 for (let i = 0; i < messages.length; i++) {
-                    const message = messages[i];
-                    this.handleOrderBookMessage(client, message, orderbook);
+                    this.handleOrderBookMessage(client, messages[i], orderbook);
                 }
                 this.orderbooks[symbol] = orderbook;
                 client.resolve(orderbook, messageHash);
@@ -1667,14 +1666,14 @@ class huobi extends huobi$1 {
             const action = this.safeString(message, 'action');
             if (action === 'ping') {
                 const data = this.safeValue(message, 'data');
-                const ping = this.safeInteger(data, 'ts');
-                await client.send({ 'action': 'pong', 'data': { 'ts': ping } });
+                const pingTs = this.safeInteger(data, 'ts');
+                await client.send({ 'action': 'pong', 'data': { 'ts': pingTs } });
                 return;
             }
             const op = this.safeString(message, 'op');
             if (op === 'ping') {
-                const ping = this.safeInteger(message, 'ts');
-                await client.send({ 'op': 'pong', 'ts': ping });
+                const pingTs = this.safeInteger(message, 'ts');
+                await client.send({ 'op': 'pong', 'ts': pingTs });
             }
         }
         catch (e) {
@@ -2143,7 +2142,7 @@ class huobi extends huobi$1 {
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
             let request = undefined;
             if (type === 'spot') {
-                const params = {
+                const newParams = {
                     'authType': 'api',
                     'accessKey': this.apiKey,
                     'signatureMethod': 'HmacSHA256',
@@ -2152,7 +2151,7 @@ class huobi extends huobi$1 {
                     'signature': signature,
                 };
                 request = {
-                    'params': params,
+                    'params': newParams,
                     'action': 'req',
                     'ch': 'auth',
                 };
