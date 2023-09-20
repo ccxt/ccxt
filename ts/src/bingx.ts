@@ -138,6 +138,7 @@ export default class bingx extends Exchange {
                                 'quote/klines': 1,
                                 'quote/openInterest': 1,
                                 'quote/ticker': 1,
+                                'quote/bookTicker': 1,
                             },
                         },
                         'private': {
@@ -189,11 +190,17 @@ export default class bingx extends Exchange {
                         'private': {
                             'get': {
                                 'capital/config/getall': 3,
+                                'capital/deposit/address': 1,
+                                'capital/innerTransfer/records': 1,
+                                'capital/subAccount/deposit/address': 1,
+                                'capital/deposit/subHisrec': 1,
+                                'capital/subAccount/innerTransfer/records': 1,
                             },
                             'post': {
                                 'capital/withdraw/apply': 3,
                                 'capital/innerTransfer/apply': 3,
                                 'capital/subAccountInnerTransfer/apply': 3,
+                                'capital/deposit/createSubAddress': 1,
                             },
                         },
                     },
@@ -204,6 +211,7 @@ export default class bingx extends Exchange {
                             'get': {
                                 'list': 3,
                                 'assets': 3,
+                                'apiKey/query': 1,
                             },
                             'post': {
                                 'create': 3,
@@ -218,9 +226,38 @@ export default class bingx extends Exchange {
                 'account': {
                     'v1': {
                         'private': {
+                            'get': {
+                                'uid': 1,
+                            },
                             'post': {
-                                'uid': 3,
                                 'innerTransfer/authorizeSubAccount': 3,
+                            },
+                        },
+                    },
+                },
+                'copyTrading': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'swap/trace/currentTrack': 1,
+                            },
+                            'post': {
+                                'swap/trace/closeTrackOrder': 1,
+                                'swap/trace/setTPSL': 1,
+                            },
+                        },
+                    },
+                },
+                'api': {
+                    'v3': {
+                        'private': {
+                            'get': {
+                                'asset/transfer': 1,
+                                'capital/deposit/hisrec': 1,
+                                'capital/withdraw/history': 1,
+                            },
+                            'post': {
+                                'post/asset/transfer': 1,
                             },
                         },
                     },
