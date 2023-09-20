@@ -2013,64 +2013,81 @@ export default class bitmart extends Exchange {
          * @description create a trade order
          * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {bool} [params.postOnly] true or false whether the order is post-only
+         * @param {string} [params.timeInForce] for spot 'IOC' or 'PO', for swap 'GTC', 'FOK', 'IOC' or 'PO'
+         * @param {string} [params.clientOrderId] client order id
          * @param {string} [params.marginMode] 'cross' or 'isolated'
+         * @param {string} [params.leverage] *swap only* the amount of leverage for the order
+         * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce-only
+         * @param {float} [params.triggerPrice] *swap only* the price that a trigger order is triggered at
+         * @param {int} [params.price_way] *swap only* the trigger direction required for stop orders, 1: price_way_long, 2: price_way_short
+         * @param {int} [params.price_type] *swap only* the trigger price type, 1: last_price, 2: fair_price
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        symbol = market['symbol'];
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.createSpotOrder (symbol, type, side, amount, price, params);
+        } else if (market['swap']) {
+            response = await this.createSwapOrder (symbol, type, side, amount, price, params);
+        }
+        return response;
+    }
+
+    async createSpotOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'side': side,
+            'type': type,
+        };
         const timeInForce = this.safeString (params, 'timeInForce');
         if (timeInForce === 'FOK') {
             throw new InvalidOrder (this.id + ' createOrder() only accepts timeInForce parameter values of IOC or PO');
         }
-        const mode = this.safeInteger (params, 'mode'); // only for swap
         const isMarketOrder = type === 'market';
         let postOnly = undefined;
-        const isExchangeSpecificPo = (type === 'limit_maker') || (mode === 4);
+        const isExchangeSpecificPo = (type === 'limit_maker');
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, isExchangeSpecificPo, params);
         params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
         const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
         const isLimitOrder = (type === 'limit') || postOnly || ioc;
-        let method = undefined;
-        if (market['spot']) {
-            request['symbol'] = market['id'];
-            request['side'] = side;
-            request['type'] = type;
-            method = 'privatePostSpotV2SubmitOrder';
-            if (isLimitOrder) {
-                request['size'] = this.amountToPrecision (symbol, amount);
-                request['price'] = this.priceToPrecision (symbol, price);
-            } else if (isMarketOrder) {
-                // for market buy it requires the amount of quote currency to spend
-                if (side === 'buy') {
-                    let notional = this.safeNumber (params, 'notional');
-                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
-                    if (createMarketBuyOrderRequiresPrice) {
-                        if (price !== undefined) {
-                            if (notional === undefined) {
-                                const amountString = this.numberToString (amount);
-                                const priceString = this.numberToString (price);
-                                notional = this.parseNumber (Precise.stringMul (amountString, priceString));
-                            }
-                        } else if (notional === undefined) {
-                            throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
+        if (isLimitOrder) {
+            request['size'] = this.amountToPrecision (symbol, amount);
+            request['price'] = this.priceToPrecision (symbol, price);
+        } else if (isMarketOrder) {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                let notional = this.safeNumber (params, 'notional');
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price !== undefined) {
+                        if (notional === undefined) {
+                            const amountString = this.numberToString (amount);
+                            const priceString = this.numberToString (price);
+                            notional = this.parseNumber (Precise.stringMul (amountString, priceString));
                         }
-                    } else {
-                        notional = (notional === undefined) ? amount : notional;
+                    } else if (notional === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
                     }
-                    request['notional'] = this.decimalToPrecision (notional, TRUNCATE, market['precision']['price'], this.precisionMode);
-                } else if (side === 'sell') {
-                    request['size'] = this.amountToPrecision (symbol, amount);
+                } else {
+                    notional = (notional === undefined) ? amount : notional;
                 }
+                request['notional'] = this.decimalToPrecision (notional, TRUNCATE, market['precision']['price'], this.precisionMode);
+            } else if (side === 'sell') {
+                request['size'] = this.amountToPrecision (symbol, amount);
             }
-        } else if (market['swap']) {
-            throw new NotSupported (this.id + ' createOrder() does not accept swap orders, only spot orders are allowed');
         }
         if (postOnly) {
             request['type'] = 'limit_maker';
@@ -2078,14 +2095,26 @@ export default class bitmart extends Exchange {
         if (ioc) {
             request['type'] = 'ioc';
         }
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
+        let response = undefined;
+        let marginMode = undefined;
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         if (marginMode !== undefined) {
             if (marginMode !== 'isolated') {
                 throw new NotSupported (this.id + ' only isolated margin is supported');
             }
-            method = 'privatePostSpotV1MarginSubmitOrder';
+            if (clientOrderId !== undefined) {
+                request['clientOrderId'] = clientOrderId;
+            }
+            params = this.omit (params, 'client_order_id');
+            response = await this.privatePostSpotV1MarginSubmitOrder (this.extend (request, params));
+        } else {
+            if (clientOrderId !== undefined) {
+                request['client_order_id'] = clientOrderId;
+            }
+            params = this.omit (params, 'clientOrderId');
+            response = await this.privatePostSpotV2SubmitOrder (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, query));
         //
         // spot and margin
         //
@@ -2106,6 +2135,74 @@ export default class bitmart extends Exchange {
             'amount': amount,
             'price': price,
         });
+    }
+
+    async createSwapOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        this.checkRequiredArgument ('createOrder', marginMode, 'marginMode', [ 'isolated', 'cross' ]);
+        const leverage = this.safeString (params, 'leverage');
+        this.checkRequiredArgument ('createOrder', leverage, 'leverage');
+        const request = {
+            'symbol': market['id'],
+            'type': type,
+            'size': this.amountToPrecision (symbol, amount), // number of contracts
+            'open_type': marginMode,
+            'leverage': leverage,
+        };
+        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        if (reduceOnly) {
+            request['side'] = (side === 'buy') ? 2 : 3;
+        } else {
+            request['side'] = (side === 'buy') ? 1 : 4;
+        }
+        const mode = this.safeInteger (params, 'mode');
+        const isMarketOrder = type === 'market';
+        const isExchangeSpecificPo = (mode === 4);
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, isExchangeSpecificPo, params);
+        const timeInForce = this.safeString (params, 'timeInForce');
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'GTC') {
+                request['mode'] = 1;
+            } else if (timeInForce === 'FOK') {
+                request['mode'] = 2;
+            } else if (timeInForce === 'IOC') {
+                request['mode'] = 3;
+            } else if (postOnly) {
+                request['mode'] = 4;
+            } else {
+                request['mode'] = timeInForce;
+            }
+        }
+        const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'trigger_price' ]);
+        params = this.omit (params, [ 'reduceOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
+        let response = undefined;
+        if (stopPrice) {
+            const priceWay = this.safeInteger (params, 'price_way');
+            this.checkRequiredArgument ('createOrder', priceWay, 'price_way', [ 1, 2 ]);
+            request['price_way'] = priceWay;
+            request['price_type'] = this.safeInteger (params, 'price_type', 1);
+            request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
+            if (type !== 'market') {
+                request['executive_price'] = this.priceToPrecision (symbol, price);
+            }
+            response = await this.privatePostContractPrivateSubmitPlanOrder (this.extend (request, params));
+        } else {
+            if (type !== 'market') {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+            if (clientOrderId !== undefined) {
+                request['client_order_id'] = clientOrderId;
+            }
+            params = this.omit (params, 'clientOrderId');
+            response = await this.privatePostContractPrivateSubmitOrder (this.extend (request, params));
+        }
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
