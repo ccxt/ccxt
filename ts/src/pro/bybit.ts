@@ -1065,16 +1065,17 @@ export default class bybit extends bybitRest {
         const first = this.safeValue (rawOrders, 0, {});
         const category = this.safeString (first, 'category');
         const isSpot = category === 'spot';
-        let parser = undefined;
-        if (isSpot) {
-            parser = 'parseWsSpotOrder';
-        } else {
-            parser = 'parseContractOrder';
+        if (!isSpot) {
             rawOrders = this.safeValue (rawOrders, 'result', rawOrders);
         }
         const symbols = {};
         for (let i = 0; i < rawOrders.length; i++) {
-            const parsed = this[parser] (rawOrders[i]);
+            let parsed = undefined;
+            if (isSpot) {
+                parsed = this.parseWsSpotOrder (rawOrders[i]);
+            } else {
+                parsed = this.parseOrder (rawOrders[i]);
+            }
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             orders.append (parsed);
