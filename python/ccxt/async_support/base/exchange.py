@@ -224,6 +224,8 @@ class Exchange(BaseExchange):
             return json_response
         if self.is_text_response(headers):
             return http_response
+        if http_response == '' or http_response is None:
+            return http_response
         return response.content
 
     async def load_markets_helper(self, reload=False, params={}):
