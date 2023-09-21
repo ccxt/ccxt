@@ -737,14 +737,15 @@ export default class kucoin extends kucoinRest {
         const side = this.safeStringLower (order, 'side');
         // find previous trades in order
         const stored = this.orders;
-        const ordersById = this.safeValue (stored, symbol, {});
+        const ordersById = this.safeValue (stored.hashmap, symbol, {});
         const storedOrder = this.safeValue (ordersById, id);
         const trades = this.safeValue (storedOrder, 'trades', []);
         if (rawType === 'match') { // order is executed
             trades.push (this.safeTrade ({
+                'tradeId': this.safeString (order, 'tradeId'),
                 'symbol': symbol,
                 'side': side,
-                'takerOrMaker': this.safeString (order, 'liquidity'),
+                'liquidity': this.safeString (order, 'liquidity'),
                 'price': this.safeNumber (order, 'matchPrice'),
                 'amount': this.safeNumber (order, 'matchSize'),
             }));
