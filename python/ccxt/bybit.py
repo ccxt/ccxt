@@ -741,7 +741,7 @@ class bybit(Exchange, ImplicitAPI):
                     '110023': InvalidOrder,  # This contract only supports position reduction operation, please contact customer service for details
                     '110024': InvalidOrder,  # You have an existing position, so position mode cannot be switched
                     '110025': InvalidOrder,  # Position mode is not modified
-                    '110026': InvalidOrder,  # Cross/isolated margin mode is not modified
+                    '110026': BadRequest,  # Cross/isolated margin mode is not modified
                     '110027': InvalidOrder,  # Margin is not modified
                     '110028': InvalidOrder,  # Open orders exist, so you cannot change position mode
                     '110029': InvalidOrder,  # Hedge mode is not available for self symbol
@@ -2337,26 +2337,27 @@ class bybit(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # max 1000, default 1000
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
-        method = None
+        response = None
         if market['spot']:
             request['category'] = 'spot'
-            method = 'publicGetV5MarketKline'
+            response = self.publicGetV5MarketKline(self.extend(request, params))
         else:
             price = self.safe_string(params, 'price')
             params = self.omit(params, 'price')
-            methods = {
-                'mark': 'publicGetV5MarketMarkPriceKline',
-                'index': 'publicGetV5MarketIndexPriceKline',
-                'premiumIndex': 'publicGetV5MarketPremiumIndexPriceKline',
-            }
-            method = self.safe_value(methods, price, 'publicGetV5MarketKline')
             if market['linear']:
                 request['category'] = 'linear'
             elif market['inverse']:
                 request['category'] = 'inverse'
             else:
                 raise NotSupported(self.id + ' fetchOHLCV() is not supported for option markets')
-        response = getattr(self, method)(self.extend(request, params))
+            if price == 'mark':
+                response = self.publicGetV5MarketMarkPriceKline(self.extend(request, params))
+            elif price == 'index':
+                response = self.publicGetV5MarketIndexPriceKline(self.extend(request, params))
+            elif price == 'premiumIndex':
+                response = self.publicGetV5MarketPremiumIndexPriceKline(self.extend(request, params))
+            else:
+                response = self.publicGetV5MarketKline(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
@@ -3458,6 +3459,7 @@ class bybit(Exchange, ImplicitAPI):
         :param boolean [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
         :param str [params.tpslMode]: *contract only* 'full' or 'partial'
         :param str [params.mmp]: *option only* market maker protection
+        :param int [params.triggerDirection]: *contract only* conditional orders, 1: triggered when market price rises to triggerPrice, 2: triggered when market price falls to triggerPrice
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
@@ -3548,7 +3550,6 @@ class bybit(Exchange, ImplicitAPI):
         isBuy = side == 'buy'
         ascending = not isBuy if stopLossTriggerPrice else isBuy
         if triggerPrice is not None:
-            request['triggerDirection'] = 2 if ascending else 1
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
             request['triggerDirection'] = 2 if ascending else 1
@@ -3557,11 +3558,11 @@ class bybit(Exchange, ImplicitAPI):
             request['reduceOnly'] = True
         elif isStopLoss or isTakeProfit:
             if isStopLoss:
-                stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
-                request['stopLoss'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
+                request['stopLoss'] = self.price_to_precision(symbol, slTriggerPrice)
             if isTakeProfit:
-                takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
-                request['takeProfit'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
+                request['takeProfit'] = self.price_to_precision(symbol, tpTriggerPrice)
         if market['spot']:
             # only works for spot market
             if triggerPrice is not None:
@@ -3655,11 +3656,11 @@ class bybit(Exchange, ImplicitAPI):
                 request['basePrice'] = Precise.string_sub(preciseStopPrice, delta) if isStopLossTriggerOrder else Precise.string_add(preciseStopPrice, delta)
             elif isStopLoss or isTakeProfit:
                 if isStopLoss:
-                    stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
-                    request['stopLoss'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                    slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
+                    request['stopLoss'] = self.price_to_precision(symbol, slTriggerPrice)
                 if isTakeProfit:
-                    takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
-                    request['takeProfit'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                    tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
+                    request['takeProfit'] = self.price_to_precision(symbol, tpTriggerPrice)
             else:
                 request['orderFilter'] = 'Order'
         clientOrderId = self.safe_string(params, 'clientOrderId')
@@ -3669,8 +3670,11 @@ class bybit(Exchange, ImplicitAPI):
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
         params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
-        method = 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' if market['option'] else 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder'
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if market['option']:
+            response = self.privatePostOptionUsdcOpenapiPrivateV1PlaceOrder(self.extend(request, params))
+        else:
+            response = self.privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder(self.extend(request, params))
         #
         #     {
         #         "retCode":0,
@@ -3710,11 +3714,10 @@ class bybit(Exchange, ImplicitAPI):
             request['orderQty'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['orderPrice'] = self.price_to_precision(symbol, price)
-        method = None
+        response = None
         if market['option']:
-            method = 'privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder'
+            response = self.privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder(self.extend(request, params))
         else:
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder'
             isStop = self.safe_value(params, 'stop', False)
             triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
             stopLossPrice = self.safe_value(params, 'stopLossPrice')
@@ -3731,7 +3734,7 @@ class bybit(Exchange, ImplicitAPI):
                 if takeProfitPrice is not None:
                     request['takeProfit'] = self.price_to_precision(symbol, takeProfitPrice)
             params = self.omit(params, ['stop', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder(self.extend(request, params))
         #
         #    {
         #        "retCode": 0,
@@ -3811,11 +3814,11 @@ class bybit(Exchange, ImplicitAPI):
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         if isStopLoss or isTakeProfit:
             if isStopLoss:
-                stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
-                request['stopLoss'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
+                request['stopLoss'] = self.price_to_precision(symbol, slTriggerPrice)
             if isTakeProfit:
-                takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
-                request['takeProfit'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
+                request['takeProfit'] = self.price_to_precision(symbol, tpTriggerPrice)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -3850,15 +3853,14 @@ class bybit(Exchange, ImplicitAPI):
         }
         isStop = self.safe_value(params, 'stop', False)
         params = self.omit(params, ['stop'])
-        method = None
         if id is not None:  # The user can also use argument params["order_link_id"]
             request['orderId'] = id
+        response = None
         if market['option']:
-            method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder'
+            response = self.privatePostOptionUsdcOpenapiPrivateV1CancelOrder(self.extend(request, params))
         else:
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder'
             request['orderFilter'] = 'StopOrder' if isStop else 'Order'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
@@ -4936,13 +4938,16 @@ class bybit(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['start_date'] = self.yyyymmdd(since)
-        method = 'privateGetV5AccountTransactionLog' if (enableUnified[1]) else 'privateGetV2PrivateWalletFundRecords'
         if code is not None:
             currency = self.currency(code)
             request[currencyKey] = currency['id']
         if limit is not None:
             request['limit'] = limit
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if enableUnified[1]:
+            response = self.privateGetV5AccountTransactionLog(self.extend(request, params))
+        else:
+            response = self.privateGetV2PrivateWalletFundRecords(self.extend(request, params))
         #
         #     {
         #         "ret_code": 0,
@@ -5623,18 +5628,85 @@ class bybit(Exchange, ImplicitAPI):
         })
 
     def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
+        """
+        set margin mode(account) or trade mode(symbol)
+        see https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
+        see https://bybit-exchange.github.io/docs/v5/position/cross-isolate
+        :param str marginMode: account mode must be either [isolated, cross, portfolio], trade mode must be either [isolated, cross]
+        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param str [params.leverage]: the rate of leverage, is required if setting trade mode(symbol)
+        :returns dict: response from the exchange
+        """
         self.load_markets()
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
-        if marginMode == 'ISOLATED_MARGIN':
-            if not isUnifiedAccount:
-                raise NotSupported(self.id + ' setMarginMode() Normal Account not support ISOLATED_MARGIN')
-        elif (marginMode != 'REGULAR_MARGIN') and (marginMode != 'PORTFOLIO_MARGIN'):
-            raise NotSupported(self.id + ' setMarginMode() marginMode must be either ISOLATED_MARGIN or REGULAR_MARGIN or PORTFOLIO_MARGIN')
-        request = {
-            'setMarginMode': marginMode,
-        }
-        response = self.privatePostV5AccountSetMarginMode(self.extend(request, params))
+        market = None
+        response = None
+        if isUnifiedAccount:
+            if marginMode == 'isolated':
+                marginMode = 'ISOLATED_MARGIN'
+            elif marginMode == 'cross':
+                marginMode = 'REGULAR_MARGIN'
+            elif marginMode == 'portfolio':
+                marginMode = 'PORTFOLIO_MARGIN'
+            else:
+                raise NotSupported(self.id + ' setMarginMode() marginMode must be either [isolated, cross, portfolio]')
+            request = {
+                'setMarginMode': marginMode,
+            }
+            response = self.privatePostV5AccountSetMarginMode(self.extend(request, params))
+        else:
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol parameter for non unified account')
+            market = self.market(symbol)
+            isUsdcSettled = market['settle'] == 'USDC'
+            if isUsdcSettled:
+                if marginMode == 'cross':
+                    marginMode = 'REGULAR_MARGIN'
+                elif marginMode == 'portfolio':
+                    marginMode = 'PORTFOLIO_MARGIN'
+                else:
+                    raise NotSupported(self.id + ' setMarginMode() for usdc market marginMode must be either [cross, portfolio]')
+                request = {
+                    'setMarginMode': marginMode,
+                }
+                response = self.privatePostV5AccountSetMarginMode(self.extend(request, params))
+            else:
+                type = None
+                type, params = self.get_bybit_type('setPositionMode', market, params)
+                tradeMode = None
+                if marginMode == 'cross':
+                    tradeMode = 0
+                elif marginMode == 'isolated':
+                    tradeMode = 1
+                else:
+                    raise NotSupported(self.id + ' setMarginMode() with symbol marginMode must be either [isolated, cross]')
+                sellLeverage = None
+                buyLeverage = None
+                leverage = self.safe_string(params, 'leverage')
+                if leverage is None:
+                    sellLeverage = self.safe_string_2(params, 'sell_leverage', 'sellLeverage')
+                    buyLeverage = self.safe_string_2(params, 'buy_leverage', 'buyLeverage')
+                    if sellLeverage is None and buyLeverage is None:
+                        raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters')
+                    if buyLeverage is None:
+                        buyLeverage = sellLeverage
+                    if sellLeverage is None:
+                        sellLeverage = buyLeverage
+                    params = self.omit(params, ['buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage'])
+                else:
+                    sellLeverage = leverage
+                    buyLeverage = leverage
+                    params = self.omit(params, 'leverage')
+                request = {
+                    'category': type,
+                    'symbol': market['id'],
+                    'tradeMode': tradeMode,
+                    'buyLeverage': buyLeverage,
+                    'sellLeverage': sellLeverage,
+                }
+                response = self.privatePostV5PositionSwitchIsolated(self.extend(request, params))
         return response
 
     def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
@@ -5664,21 +5736,21 @@ class bybit(Exchange, ImplicitAPI):
             'buyLeverage': leverage,
             'sellLeverage': leverage,
         }
-        method = None
+        response = None
         if isUsdcSettled and not isUnifiedAccount:
             request['leverage'] = leverage
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave'
+            response = self.privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave(self.extend(request, params))
         else:
             request['buyLeverage'] = leverage
             request['sellLeverage'] = leverage
-            method = 'privatePostV5PositionSetLeverage'
             if market['linear']:
                 request['category'] = 'linear'
             elif market['inverse']:
                 request['category'] = 'inverse'
             else:
                 raise NotSupported(self.id + ' setLeverage() only support linear and inverse market')
-        return getattr(self, method)(self.extend(request, params))
+            response = self.privatePostV5PositionSetLeverage(self.extend(request, params))
+        return response
 
     def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
         """

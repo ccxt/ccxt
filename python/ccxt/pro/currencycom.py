@@ -508,13 +508,13 @@ class currencycom(ccxt.async_support.currencycom):
             subscription = self.safe_value(subscriptionsById, requestId)
             if subscription is not None:
                 if status == 'OK':
-                    destination = self.safe_string(subscription, 'destination')
-                    if destination is not None:
+                    subscriptionDestination = self.safe_string(subscription, 'destination')
+                    if subscriptionDestination is not None:
                         methods = {
                             '/api/v1/ticker/24hr': self.handle_ticker,
                             '/api/v1/account': self.handle_balance,
                         }
-                        method = self.safe_value(methods, destination)
+                        method = self.safe_value(methods, subscriptionDestination)
                         if method is None:
                             return message
                         else:

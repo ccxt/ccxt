@@ -830,6 +830,17 @@ class coinbasepro extends Exchange {
                 $request['limit'] = $limit; // default 100
             }
             $response = Async\await($this->publicGetProductsIdTrades (array_merge($request, $params)));
+            //
+            //    array(
+            //        array(
+            //            "trade_id" => "15035219",
+            //            "side" => "sell",
+            //            "size" => "0.27426731",
+            //            "price" => "25820.42000000",
+            //            "time" => "2023-09-10T13:47:41.447577Z"
+            //        ),
+            //    )
+            //
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }

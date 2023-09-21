@@ -595,8 +595,8 @@ class lbank2 extends lbank2$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         if (market['swap']) {
-            const response = await this.fetchTickers([market['symbol']], params);
-            return this.safeValue(response, market['symbol']);
+            const responseForSwap = await this.fetchTickers([market['symbol']], params);
+            return this.safeValue(responseForSwap, market['symbol']);
         }
         const request = {
             'symbol': market['id'],
@@ -918,7 +918,7 @@ class lbank2 extends lbank2$1 {
             request['time'] = since;
         }
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min(limit, 600);
         }
         else {
             request['size'] = 600; // max

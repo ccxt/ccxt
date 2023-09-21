@@ -482,9 +482,9 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 totalAmount = '0'
                 trades = previousOrder['trades']
                 for i in range(0, len(trades)):
-                    trade = trades[i]
-                    totalCost = Precise.string_add(totalCost, self.number_to_string(trade['cost']))
-                    totalAmount = Precise.string_add(totalAmount, self.number_to_string(trade['amount']))
+                    currentTrade = trades[i]
+                    totalCost = Precise.string_add(totalCost, self.number_to_string(currentTrade['cost']))
+                    totalAmount = Precise.string_add(totalAmount, self.number_to_string(currentTrade['amount']))
                 if Precise.string_gt(totalAmount, '0'):
                     previousOrder['average'] = Precise.string_div(totalCost, totalAmount)
                 previousOrder['cost'] = totalCost
@@ -511,13 +511,13 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             if isCancel:
                 # get order without symbol
                 for i in range(0, len(orders)):
-                    order = orders[i]
-                    if order['id'] == message['order_id']:
-                        orders[i] = self.extend(order, {
+                    currentOrder = orders[i]
+                    if currentOrder['id'] == message['order_id']:
+                        orders[i] = self.extend(currentOrder, {
                             'status': 'canceled',
                         })
                         client.resolve(orders, 'orders')
-                        client.resolve(orders, 'orders:' + order['symbol'])
+                        client.resolve(orders, 'orders:' + currentOrder['symbol'])
                         break
         return message
 

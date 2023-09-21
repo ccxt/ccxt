@@ -1443,13 +1443,13 @@ class okx extends Exchange {
                     $promises[] = $this->publicGetPublicInstruments (array_merge($request, $params));
                 }
                 $promisesResult = Async\await(Promise\all($promises));
-                $data = array();
+                $markets = array();
                 for ($i = 0; $i < count($promisesResult); $i++) {
                     $res = $this->safe_value($promisesResult, $i, array());
                     $options = $this->safe_value($res, 'data', array());
-                    $data = $this->array_concat($data, $options);
+                    $markets = $this->array_concat($markets, $options);
                 }
-                return $this->parse_markets($data);
+                return $this->parse_markets($markets);
             }
             $response = Async\await($this->publicGetPublicInstruments (array_merge($request, $params)));
             //
@@ -6736,8 +6736,8 @@ class okx extends Exchange {
             $entry = $settlements[$i];
             $timestamp = $this->safe_integer($entry, 'ts');
             $details = $this->safe_value($entry, 'details', array());
-            for ($i = 0; $i < count($details); $i++) {
-                $settlement = $this->parse_settlement($details[$i], $market);
+            for ($j = 0; $j < count($details); $j++) {
+                $settlement = $this->parse_settlement($details[$j], $market);
                 $result[] = array_merge($settlement, array(
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),

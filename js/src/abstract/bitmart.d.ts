@@ -30,6 +30,9 @@ interface Exchange {
     privateGetAccountSubAccountV1TransferHistory(params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubAccountMainV1Wallet(params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubAccountMainV1SubaccountList(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountContractSubAccountMainV1Wallet(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountContractSubAccountMainV1TransferList(params?: {}): Promise<implicitReturnType>;
+    privateGetAccountContractSubAccountV1TransferHistory(params?: {}): Promise<implicitReturnType>;
     privateGetAccountV1Wallet(params?: {}): Promise<implicitReturnType>;
     privateGetAccountV1Currencies(params?: {}): Promise<implicitReturnType>;
     privateGetSpotV1Wallet(params?: {}): Promise<implicitReturnType>;
@@ -53,11 +56,16 @@ interface Exchange {
     privateGetContractPrivateOrder(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateOrderHistory(params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivatePosition(params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivateGetOpenOrders(params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivateTrades(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1SubToMain(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountSubV1SubToMain(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1MainToSub(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountSubV1SubToSub(params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1SubToSub(params?: {}): Promise<implicitReturnType>;
+    privatePostAccountContractSubAccountMainV1SubToMain(params?: {}): Promise<implicitReturnType>;
+    privatePostAccountContractSubAccountMainV1MainToSub(params?: {}): Promise<implicitReturnType>;
+    privatePostAccountContractSubAccountSubV1SubToMain(params?: {}): Promise<implicitReturnType>;
     privatePostAccountV1WithdrawApply(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV1SubmitOrder(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV1BatchOrders(params?: {}): Promise<implicitReturnType>;
@@ -76,7 +84,13 @@ interface Exchange {
     privatePostSpotV1MarginIsolatedBorrow(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV1MarginIsolatedRepay(params?: {}): Promise<implicitReturnType>;
     privatePostSpotV1MarginIsolatedTransfer(params?: {}): Promise<implicitReturnType>;
-    privatePostContractPrivateTrades(params?: {}): Promise<implicitReturnType>;
+    privatePostAccountV1TransferContractList(params?: {}): Promise<implicitReturnType>;
+    privatePostAccountV1TransferContract(params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateSubmitOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateCancelOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateCancelOrders(params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateSubmitPlanOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostContractPrivateCancelPlanOrder(params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateSubmitLeverage(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {

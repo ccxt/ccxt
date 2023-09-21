@@ -1123,8 +1123,8 @@ class phemex extends phemex$1 {
         }
         const keys = Object.keys(marketIds);
         for (let i = 0; i < keys.length; i++) {
-            const messageHash = 'orders' + ':' + keys[i];
-            client.resolve(this.orders, messageHash);
+            const currentMessageHash = 'orders' + ':' + keys[i];
+            client.resolve(this.orders, currentMessageHash);
         }
         // resolve generic subscription (spot or swap)
         const messageHash = 'orders:' + type;
@@ -1406,8 +1406,8 @@ class phemex extends phemex$1 {
                 return method.call(this, client, message);
             }
         }
-        const method = this.safeString(message, 'method', '');
-        if (('market24h' in message) || ('spot_market24h' in message) || (method.indexOf('perp_market24h_pack_p') >= 0)) {
+        const methodName = this.safeString(message, 'method', '');
+        if (('market24h' in message) || ('spot_market24h' in message) || (methodName.indexOf('perp_market24h_pack_p') >= 0)) {
             return this.handleTicker(client, message);
         }
         else if (('trades' in message) || ('trades_p' in message)) {

@@ -136,6 +136,7 @@ class bingx extends bingx$1 {
                                 'quote/klines': 1,
                                 'quote/openInterest': 1,
                                 'quote/ticker': 1,
+                                'quote/bookTicker': 1,
                             },
                         },
                         'private': {
@@ -187,11 +188,17 @@ class bingx extends bingx$1 {
                         'private': {
                             'get': {
                                 'capital/config/getall': 3,
+                                'capital/deposit/address': 1,
+                                'capital/innerTransfer/records': 1,
+                                'capital/subAccount/deposit/address': 1,
+                                'capital/deposit/subHisrec': 1,
+                                'capital/subAccount/innerTransfer/records': 1,
                             },
                             'post': {
                                 'capital/withdraw/apply': 3,
                                 'capital/innerTransfer/apply': 3,
                                 'capital/subAccountInnerTransfer/apply': 3,
+                                'capital/deposit/createSubAddress': 1,
                             },
                         },
                     },
@@ -202,6 +209,7 @@ class bingx extends bingx$1 {
                             'get': {
                                 'list': 3,
                                 'assets': 3,
+                                'apiKey/query': 1,
                             },
                             'post': {
                                 'create': 3,
@@ -216,9 +224,38 @@ class bingx extends bingx$1 {
                 'account': {
                     'v1': {
                         'private': {
+                            'get': {
+                                'uid': 1,
+                            },
                             'post': {
-                                'uid': 3,
                                 'innerTransfer/authorizeSubAccount': 3,
+                            },
+                        },
+                    },
+                },
+                'copyTrading': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'swap/trace/currentTrack': 1,
+                            },
+                            'post': {
+                                'swap/trace/closeTrackOrder': 1,
+                                'swap/trace/setTPSL': 1,
+                            },
+                        },
+                    },
+                },
+                'api': {
+                    'v3': {
+                        'private': {
+                            'get': {
+                                'asset/transfer': 1,
+                                'capital/deposit/hisrec': 1,
+                                'capital/withdraw/history': 1,
+                            },
+                            'post': {
+                                'post/asset/transfer': 1,
                             },
                         },
                     },
@@ -1486,9 +1523,9 @@ class bingx extends bingx$1 {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {bool} [params.postOnly] true to place a post only order
-         * @param {object} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered (swap markets only)
-         * @param {float} [params.stopLossPrice] stop loss trigger price (swap markets only)
-         * @param {float} [params.takeProfitPrice] take profit trigger price (swap markets only)
+         * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
+         * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
+         * @param {float} [params.takeProfitPrice] *swap only* take profit trigger price
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();

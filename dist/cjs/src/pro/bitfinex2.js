@@ -595,9 +595,9 @@ class bitfinex2 extends bitfinex2$1 {
                     const size = (delta[2] < 0) ? -delta[2] : delta[2];
                     const side = (delta[2] < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
-                    const id = this.safeString(delta, 0);
+                    const idString = this.safeString(delta, 0);
                     const price = this.safeFloat(delta, 1);
-                    bookside.store(price, size, id);
+                    bookside.store(price, size, idString);
                 }
             }
             else {
@@ -617,12 +617,12 @@ class bitfinex2 extends bitfinex2$1 {
         }
         else {
             const deltas = message[1];
-            const orderbook = this.orderbooks[symbol];
+            const orderbookItem = this.orderbooks[symbol];
             if (isRaw) {
                 const price = this.safeString(deltas, 1);
                 const size = (deltas[2] < 0) ? -deltas[2] : deltas[2];
                 const side = (deltas[2] < 0) ? 'asks' : 'bids';
-                const bookside = orderbook[side];
+                const bookside = orderbookItem[side];
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise["default"].stringGt(price, '0') ? size : '0';
                 bookside.store(this.parseNumber(price), this.parseNumber(amount), id);
@@ -633,7 +633,7 @@ class bitfinex2 extends bitfinex2$1 {
                 const price = this.safeString(deltas, 0);
                 const size = Precise["default"].stringLt(amount, '0') ? Precise["default"].stringNeg(amount) : amount;
                 const side = Precise["default"].stringLt(amount, '0') ? 'asks' : 'bids';
-                const bookside = orderbook[side];
+                const bookside = orderbookItem[side];
                 bookside.store(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter));
             }
             client.resolve(orderbook, messageHash);

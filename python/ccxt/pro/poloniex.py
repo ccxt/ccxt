@@ -590,8 +590,8 @@ class poloniex(ccxt.async_support.poloniex):
                     totalCost = '0'
                     totalAmount = '0'
                     previousOrderTrades = previousOrder['trades']
-                    for i in range(0, len(previousOrderTrades)):
-                        previousOrderTrade = previousOrderTrades[i]
+                    for j in range(0, len(previousOrderTrades)):
+                        previousOrderTrade = previousOrderTrades[j]
                         cost = self.number_to_string(previousOrderTrade['cost'])
                         amount = self.number_to_string(previousOrderTrade['amount'])
                         totalCost = Precise.string_add(totalCost, cost)
@@ -815,14 +815,14 @@ class poloniex(ccxt.async_support.poloniex):
                     self.orderbooks[symbol] = self.order_book({}, limit)
                 orderbook = self.orderbooks[symbol]
                 if bids is not None:
-                    for i in range(0, len(bids)):
-                        bid = self.safe_value(bids, i)
+                    for j in range(0, len(bids)):
+                        bid = self.safe_value(bids, j)
                         price = self.safe_number(bid, 0)
                         amount = self.safe_number(bid, 1)
                         orderbook['bids'].store(price, amount)
                 if asks is not None:
-                    for i in range(0, len(asks)):
-                        ask = self.safe_value(asks, i)
+                    for j in range(0, len(asks)):
+                        ask = self.safe_value(asks, j)
                         price = self.safe_number(ask, 0)
                         amount = self.safe_number(ask, 1)
                         orderbook['asks'].store(price, amount)

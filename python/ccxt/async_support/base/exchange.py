@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.97'
+__version__ = '4.0.102'
 
 # -----------------------------------------------------------------------------
 
@@ -223,6 +223,8 @@ class Exchange(BaseExchange):
         if json_response is not None:
             return json_response
         if self.is_text_response(headers):
+            return http_response
+        if http_response == '' or http_response is None:
             return http_response
         return response.content
 
@@ -996,7 +998,11 @@ class Exchange(BaseExchange):
             oldNumber = self.number
             # we parse trades here!
             self.number = str
-            trades = self.parse_trades(rawTrades, market)
+            firstTrade = self.safe_value(rawTrades, 0)
+            # parse trades if they haven't already been parsed
+            tradesAreParsed = ((firstTrade is not None) and ('info' in firstTrade) and ('id' in firstTrade))
+            if not tradesAreParsed:
+                trades = self.parse_trades(rawTrades, market)
             self.number = oldNumber
             tradesLength = 0
             isArray = isinstance(trades, list)

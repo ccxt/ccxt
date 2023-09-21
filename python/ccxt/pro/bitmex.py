@@ -953,8 +953,8 @@ class bitmex(ccxt.async_support.bitmex):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            messageHash = table + ':' + market['id']
-            topics.append(messageHash)
+            currentMessageHash = table + ':' + market['id']
+            topics.append(currentMessageHash)
         messageHash = 'multipleOrderbook::' + ','.join(symbols)
         url = self.urls['api']['ws']
         request = {

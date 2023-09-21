@@ -523,11 +523,11 @@ class coinbasepro extends coinbasepro$1 {
         //         reason: 'filled'
         //     }
         //
-        let orders = this.orders;
-        if (orders === undefined) {
+        let currentOrders = this.orders;
+        if (currentOrders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
-            orders = new Cache.ArrayCacheBySymbolById(limit);
-            this.orders = orders;
+            currentOrders = new Cache.ArrayCacheBySymbolById(limit);
+            this.orders = currentOrders;
         }
         const type = this.safeString(message, 'type');
         const marketId = this.safeString(message, 'product_id');
@@ -564,9 +564,9 @@ class coinbasepro extends coinbasepro$1 {
                         let totalAmount = 0;
                         const trades = previousOrder['trades'];
                         for (let i = 0; i < trades.length; i++) {
-                            const trade = trades[i];
-                            totalCost = this.sum(totalCost, trade['cost']);
-                            totalAmount = this.sum(totalAmount, trade['amount']);
+                            const tradeEntry = trades[i];
+                            totalCost = this.sum(totalCost, tradeEntry['cost']);
+                            totalAmount = this.sum(totalAmount, tradeEntry['amount']);
                         }
                         if (totalAmount > 0) {
                             previousOrder['average'] = totalCost / totalAmount;
@@ -694,12 +694,12 @@ class coinbasepro extends coinbasepro$1 {
             client.resolve(ticker, messageHash);
             const messageHashes = this.findMessageHashes(client, 'tickers::');
             for (let i = 0; i < messageHashes.length; i++) {
-                const messageHash = messageHashes[i];
-                const parts = messageHash.split('::');
+                const currentMessageHash = messageHashes[i];
+                const parts = currentMessageHash.split('::');
                 const symbolsString = parts[1];
                 const symbols = symbolsString.split(',');
                 if (this.inArray(symbol, symbols)) {
-                    client.resolve(ticker, messageHash);
+                    client.resolve(ticker, currentMessageHash);
                 }
             }
         }

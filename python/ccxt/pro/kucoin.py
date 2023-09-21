@@ -21,7 +21,7 @@ class kucoin(ccxt.async_support.kucoin):
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchMyTrades': True,
-                'watchTickers': False,  # for now
+                'watchTickers': True,
                 'watchTicker': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
@@ -133,6 +133,25 @@ class kucoin(ccxt.async_support.kucoin):
         messageHash = 'ticker:' + symbol
         return await self.subscribe(url, messageHash, topic, query)
 
+    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the kucoin api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        messageHash = 'tickers'
+        if symbols is not None:
+            messageHash = 'tickers::' + ','.join(symbols)
+        url = await self.negotiate(False)
+        topic = '/market/ticker:all'
+        tickers = await self.subscribe(url, messageHash, topic, params)
+        if self.newUpdates:
+            return tickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
+
     def handle_ticker(self, client: Client, message):
         #
         # market/snapshot
@@ -192,7 +211,12 @@ class kucoin(ccxt.async_support.kucoin):
         market = None
         if topic is not None:
             parts = topic.split(':')
-            marketId = self.safe_string(parts, 1)
+            first = self.safe_string(parts, 1)
+            marketId = None
+            if first == 'all':
+                marketId = self.safe_string(message, 'subject')
+            else:
+                marketId = first
             market = self.safe_market(marketId, market, '-')
         data = self.safe_value(message, 'data', {})
         rawTicker = self.safe_value(data, 'data', data)
@@ -201,6 +225,19 @@ class kucoin(ccxt.async_support.kucoin):
         self.tickers[symbol] = ticker
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
+        # watchTickers
+        client.resolve(ticker, 'tickers')
+        messageHashes = self.find_message_hashes(client, 'tickers::')
+        for i in range(0, len(messageHashes)):
+            currentMessageHash = messageHashes[i]
+            parts = currentMessageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            tickers = self.filter_by_array(self.tickers, 'symbol', symbols)
+            tickersSymbols = list(tickers.keys())
+            numTickers = len(tickersSymbols)
+            if numTickers > 0:
+                client.resolve(tickers, currentMessageHash)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -828,6 +865,9 @@ class kucoin(ccxt.async_support.kucoin):
         #         }
         #     }
         #
+        topic = self.safe_string(message, 'topic')
+        if topic == '/market/ticker:all':
+            return self.handle_ticker(client, message)
         subject = self.safe_string(message, 'subject')
         methods = {
             'trade.l2update': self.handle_order_book,
