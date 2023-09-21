@@ -537,6 +537,7 @@
         }
     },
     "coinbasepro": {
+        "skipPhpAsync": true,
         "skipMethods": {
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
@@ -546,6 +547,7 @@
         }
     },
     "coinbaseprime": {
+        "skipPhpAsync": true,
         "skipMethods": {
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
