@@ -708,6 +708,11 @@ export default class protondex extends Exchange {
             type = parts[0];
         }
         const side = this.safeString (order, 'order_side');
+        const currency = (side === '2') ? market.info.ask_token.code.toString () : market.info.bid_token.code.toString ();
+        const fee = {
+            'cost': this.safeString (market, 'maker'),
+            'currency': currency,
+        };
         return this.safeOrder ({
             'id': this.safeString (order, 'order_id'),
             'clientOrderId': this.safeString (order, 'ordinal_order_id'),
@@ -722,7 +727,7 @@ export default class protondex extends Exchange {
             'cost': undefined,
             'amount': amountString,
             'remaining': remainingString,
-            'fee': undefined,
+            'fee': fee,
         }, market);
     }
 
@@ -1145,7 +1150,7 @@ export default class protondex extends Exchange {
         const orderSide = parseInt (side);
         const orderFillType = this.safeValue (params, 'filltype');
         const orderAmount = amount;
-        const triggerPrice = this.safeValue (params, 'triggerprice');
+        const triggerPrice = (this.safeValue (params, 'triggerprice') !== undefined) ? this.safeValue (params, 'triggerprice') : 0;
         const referrerName = (params['referrer'] !== undefined) ? params['referrer'] : '';
         const bidTokenPrecision = this.parseToInt (market.info.bid_token.precision);
         const askTokenPrecision = this.parseToInt (market.info.ask_token.precision);
@@ -1158,7 +1163,10 @@ export default class protondex extends Exchange {
         const bidTotal = (orderAmount * Math.pow (10, bidTokenPrecision)).toFixed (0);
         const askTotal = (orderAmount * Math.pow (10, askTokenPrecision)).toFixed (0);
         const quantity = (orderSide === 2) ? bidTotal.toString () : askTotal.toString ();
-        const orderPrice = Number (price) * Number (Math.pow (10, askTokenPrecision).toFixed (0));
+        let orderPrice = Number (price) * Number (Math.pow (10, askTokenPrecision).toFixed (0));
+        if ((orderSide === 2 && orderFillType === 1 && price === 1) || (orderSide === 1 && orderFillType === 1 && price === '9223372036854775806')) {
+            orderPrice = price;
+        }
         const auth = { 'actor': accountName, 'permission': 'active' };
         const action1 = {
             'account': tokenContract,
