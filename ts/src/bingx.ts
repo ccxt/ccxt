@@ -2404,6 +2404,7 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
