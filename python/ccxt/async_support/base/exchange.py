@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.101'
+__version__ = '4.0.102'
 
 # -----------------------------------------------------------------------------
 
@@ -223,6 +223,8 @@ class Exchange(BaseExchange):
         if json_response is not None:
             return json_response
         if self.is_text_response(headers):
+            return http_response
+        if http_response == '' or http_response is None:
             return http_response
         return response.content
 

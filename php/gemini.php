@@ -218,6 +218,7 @@ class gemini extends Exchange {
                     'InsufficientFunds' => '\\ccxt\\InsufficientFunds', // The order was rejected because of insufficient funds
                     'InvalidJson' => '\\ccxt\\BadRequest', // The JSON provided is invalid
                     'InvalidNonce' => '\\ccxt\\InvalidNonce', // The nonce was not greater than the previously used nonce, or was not present
+                    'InvalidApiKey' => '\\ccxt\\AuthenticationError', // Invalid API key
                     'InvalidOrderType' => '\\ccxt\\InvalidOrder', // An unknown order type was provided
                     'InvalidPrice' => '\\ccxt\\InvalidOrder', // For new orders, the price was invalid
                     'InvalidQuantity' => '\\ccxt\\InvalidOrder', // A negative or otherwise invalid quantity was specified

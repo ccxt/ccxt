@@ -225,6 +225,44 @@ export default class bitmart extends Exchange {
         info: any;
     };
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<{
+        info: any;
+        symbol: any;
+        markPrice: any;
+        indexPrice: any;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: any;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: number;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    }>;
+    parseFundingRate(contract: any, market?: any): {
+        info: any;
+        symbol: any;
+        markPrice: any;
+        indexPrice: any;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: any;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: number;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    };
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

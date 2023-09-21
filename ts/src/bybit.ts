@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/bybit.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, BadSymbol } from './base/errors.js';
+import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, BadSymbol, MarginModeAlreadySet, NoChange } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -726,12 +726,12 @@ export default class bybit extends Exchange {
                     '110021': InvalidOrder, // Open Interest exceeded
                     '110022': InvalidOrder, // qty has been limited, cannot modify the order to add qty
                     '110023': InvalidOrder, // This contract only supports position reduction operation, please contact customer service for details
-                    '110024': InvalidOrder, // You have an existing position, so position mode cannot be switched
-                    '110025': InvalidOrder, // Position mode is not modified
-                    '110026': BadRequest, // Cross/isolated margin mode is not modified
-                    '110027': InvalidOrder, // Margin is not modified
-                    '110028': InvalidOrder, // Open orders exist, so you cannot change position mode
-                    '110029': InvalidOrder, // Hedge mode is not available for this symbol
+                    '110024': BadRequest, // You have an existing position, so position mode cannot be switched
+                    '110025': NoChange, // Position mode is not modified
+                    '110026': MarginModeAlreadySet, // Cross/isolated margin mode is not modified
+                    '110027': NoChange, // Margin is not modified
+                    '110028': BadRequest, // Open orders exist, so you cannot change position mode
+                    '110029': BadRequest, // Hedge mode is not available for this symbol
                     '110030': InvalidOrder, // Duplicate orderId
                     '110031': InvalidOrder, // risk limit info does not exists
                     '110032': InvalidOrder, // Illegal order

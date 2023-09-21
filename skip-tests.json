@@ -537,7 +537,7 @@
         }
     },
     "coinbasepro": {
-		"skipPhpAsync":true,
+        "skipPhpAsync": true,
         "skipMethods": {
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
@@ -547,7 +547,7 @@
         }
     },
     "coinbaseprime": {
-		"skipPhpAsync":true,
+        "skipPhpAsync": true,
         "skipMethods": {
             "fetchStatus": "request timeout",
             "fetchCurrencies": {
@@ -780,7 +780,6 @@
         "skipWs": true
     },
     "huobi": {
-		"skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -1038,9 +1037,7 @@
         }
     },
     "mexc": {
-	"skip": "OnMaintenance https://www.mexc.com/support/articles/17827791510263",
         "skipWs": true,
-        "skipPhpAsync": "Connection ended before receiving response...",
         "skipMethods": {
             "loadMarkets":{
                 "currencyIdAndCode": "messed"
@@ -1285,7 +1282,6 @@
         }
     },
 	"woo": {
-		"skipPhpAsync": true,
         "skipMethods":{
             "loadMarkets":{
                 "active": "undefined",
