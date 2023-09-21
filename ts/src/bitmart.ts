@@ -568,6 +568,7 @@ export default class bitmart extends Exchange {
                 },
                 'accountsByType': {
                     'spot': 'spot',
+                    'swap': 'swap',
                 },
                 'createMarketBuyOrderRequiresPrice': true,
             },
@@ -3073,7 +3074,8 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#transfer
          * @description transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
-         * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer
+         * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#transfer-signed
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -3091,15 +3093,30 @@ export default class bitmart extends Exchange {
         const fromId = this.convertTypeToAccount (fromAccount);
         const toId = this.convertTypeToAccount (toAccount);
         if (fromAccount === 'spot') {
-            request['side'] = 'in';
-            request['symbol'] = toId;
+            if (toAccount === 'margin') {
+                request['side'] = 'in';
+                request['symbol'] = toId;
+            } else if (toAccount === 'swap') {
+                request['type'] = 'spot_to_contract';
+            }
         } else if (toAccount === 'spot') {
-            request['side'] = 'out';
-            request['symbol'] = fromId;
+            if (fromAccount === 'margin') {
+                request['side'] = 'out';
+                request['symbol'] = fromId;
+            } else if (fromAccount === 'swap') {
+                request['type'] = 'contract_to_spot';
+            }
         } else {
             throw new ArgumentsRequired (this.id + ' transfer() requires either fromAccount or toAccount to be spot');
         }
-        const response = await this.privatePostSpotV1MarginIsolatedTransfer (this.extend (request, params));
+        let response = undefined;
+        if ((fromAccount === 'margin') || (toAccount === 'margin')) {
+            response = await this.privatePostSpotV1MarginIsolatedTransfer (this.extend (request, params));
+        } else if ((fromAccount === 'swap') || (toAccount === 'swap')) {
+            response = await this.privatePostAccountV1TransferContract (this.extend (request, params));
+        }
+        //
+        // margin
         //
         //     {
         //         "message": "OK",
@@ -3107,6 +3124,18 @@ export default class bitmart extends Exchange {
         //         "trace": "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
         //         "data": {
         //             "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        //         }
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "4cad858074667097ac6ba5257c57305d.68.16953302431189455",
+        //         "data": {
+        //             "currency": "USDT",
+        //             "amount": "5"
         //         }
         //     }
         //
@@ -3127,6 +3156,8 @@ export default class bitmart extends Exchange {
 
     parseTransfer (transfer, currency = undefined) {
         //
+        // margin
+        //
         //     {
         //         "message": "OK",
         //         "code": 1000,
@@ -3136,13 +3167,26 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
+        // swap
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "4cad858074667097ac6ba5257c57305d.68.16953302431189455",
+        //         "data": {
+        //             "currency": "USDT",
+        //             "amount": "5"
+        //         }
+        //     }
+        //
         const data = this.safeValue (transfer, 'data', {});
+        const currencyId = this.safeString (transfer, 'currency');
         return {
             'id': this.safeString (data, 'transfer_id'),
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': this.safeCurrencyCode (undefined, currency),
-            'amount': undefined,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': undefined,
             'toAccount': undefined,
             'status': this.parseTransferStatus (this.safeString2 (transfer, 'code', 'message')),
