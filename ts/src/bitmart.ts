@@ -1236,6 +1236,8 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://developer-pro.bitmart.com/en/spot/#get-depth-v3
+         * @see https://developer-pro.bitmart.com/en/futures/#get-market-depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
@@ -1243,41 +1245,68 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['spot']) {
-            throw new NotSupported (this.id + ' fetchOrderBook() does not support ' + market['type'] + ' markets, only spot markets are accepted');
-        }
         const request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            request['size'] = limit; // default 50, max 200
+        let response = undefined;
+        if (market['spot']) {
+            if (limit !== undefined) {
+                request['limit'] = limit; // default 35, max 50
+            }
+            response = await this.publicGetSpotQuotationV3Books (this.extend (request, params));
+        } else if (market['swap']) {
+            response = await this.publicGetContractPublicDepth (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchOrderBook() does not support ' + market['type'] + ' markets, only spot and swap markets are accepted');
         }
-        // request['precision'] = 4; // optional price precision / depth level whose range is defined in symbol details
-        const response = await this.publicGetSpotV1SymbolsBook (this.extend (request, params));
         //
         // spot
         //
         //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"8254f8fc-431d-404f-ad9a-e716339f66c7",
-        //         "data":{
-        //             "buys":[
-        //                 {"amount":"4.7091","total":"4.71","price":"0.034047","count":"1"},
-        //                 {"amount":"5.7439","total":"10.45","price":"0.034039","count":"1"},
-        //                 {"amount":"2.5249","total":"12.98","price":"0.032937","count":"1"},
+        //         "code": 1000,
+        //         "message": "success",
+        //         "data": {
+        //             "ts": "1695264191808",
+        //             "symbol": "BTC_USDT",
+        //             "asks": [
+        //                 ["26942.57","0.06492"],
+        //                 ["26942.73","0.05447"],
+        //                 ["26943.00","0.07154"]
         //             ],
-        //             "sells":[
-        //                 {"amount":"41.4365","total":"41.44","price":"0.034174","count":"1"},
-        //                 {"amount":"4.2317","total":"45.67","price":"0.034183","count":"1"},
-        //                 {"amount":"0.3000","total":"45.97","price":"0.034240","count":"1"},
+        //             "bids": [
+        //                 ["26942.45","0.00074"],
+        //                 ["26941.53","0.00371"],
+        //                 ["26940.94","0.08992"]
         //             ]
-        //         }
+        //         },
+        //         "trace": "430a7f69581d4258a8e4b424dfb10782.73.16952341919017619"
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "asks": [
+        //                 ["26938.3","3499","3499"],
+        //                 ["26938.5","14702","18201"],
+        //                 ["26938.6","20457","38658"]
+        //             ],
+        //             "bids": [
+        //                 ["26938.2","20","20"],
+        //                 ["26937.9","1913","1933"],
+        //                 ["26937.8","2588","4521"]
+        //             ],
+        //             "timestamp": 1695264383999,
+        //             "symbol": "BTCUSDT"
+        //         },
+        //         "trace": "4cad855074664097ac6ba5258c47305d.72.16952643834721135"
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const timestamp = this.safeInteger (data, 'timestamp');
-        return this.parseOrderBook (data, symbol, timestamp, 'buys', 'sells', 'price', 'amount');
+        const timestamp = this.safeInteger2 (data, 'ts', 'timestamp');
+        return this.parseOrderBook (data, market['symbol'], timestamp);
     }
 
     parseTrade (trade, market = undefined) {
