@@ -14,6 +14,7 @@ function testCurrency (exchange, skippedProperties, method, entry) {
     if (isNative) {
         format['info'] = {};
         // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
+        // these two fields are being dynamically added a bit below
         // format['withdraw'] = true; // withdraw enabled
         // format['deposit'] = true; // deposit enabled
         format['precision'] = exchange.parseNumber ('0.0001'); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
