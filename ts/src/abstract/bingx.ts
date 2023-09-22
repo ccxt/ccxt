@@ -37,6 +37,7 @@ interface Exchange {
     swapV2PublicGetQuoteKlines (params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetQuoteOpenInterest (params?: {}): Promise<implicitReturnType>;
     swapV2PublicGetQuoteTicker (params?: {}): Promise<implicitReturnType>;
+    swapV2PublicGetQuoteBookTicker (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetUserBalance (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetUserPositions (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetUserIncome (params?: {}): Promise<implicitReturnType>;
@@ -64,18 +65,32 @@ interface Exchange {
     contractV1PrivateGetAllOrders (params?: {}): Promise<implicitReturnType>;
     contractV1PrivateGetBalance (params?: {}): Promise<implicitReturnType>;
     walletsV1PrivateGetCapitalConfigGetall (params?: {}): Promise<implicitReturnType>;
+    walletsV1PrivateGetCapitalDepositAddress (params?: {}): Promise<implicitReturnType>;
+    walletsV1PrivateGetCapitalInnerTransferRecords (params?: {}): Promise<implicitReturnType>;
+    walletsV1PrivateGetCapitalSubAccountDepositAddress (params?: {}): Promise<implicitReturnType>;
+    walletsV1PrivateGetCapitalDepositSubHisrec (params?: {}): Promise<implicitReturnType>;
+    walletsV1PrivateGetCapitalSubAccountInnerTransferRecords (params?: {}): Promise<implicitReturnType>;
     walletsV1PrivatePostCapitalWithdrawApply (params?: {}): Promise<implicitReturnType>;
     walletsV1PrivatePostCapitalInnerTransferApply (params?: {}): Promise<implicitReturnType>;
     walletsV1PrivatePostCapitalSubAccountInnerTransferApply (params?: {}): Promise<implicitReturnType>;
+    walletsV1PrivatePostCapitalDepositCreateSubAddress (params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivateGetList (params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivateGetAssets (params?: {}): Promise<implicitReturnType>;
+    subAccountV1PrivateGetApiKeyQuery (params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivatePostCreate (params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivatePostApiKeyCreate (params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivatePostApiKeyEdit (params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivatePostApiKeyDel (params?: {}): Promise<implicitReturnType>;
     subAccountV1PrivatePostUpdateStatus (params?: {}): Promise<implicitReturnType>;
-    accountV1PrivatePostUid (params?: {}): Promise<implicitReturnType>;
+    accountV1PrivateGetUid (params?: {}): Promise<implicitReturnType>;
     accountV1PrivatePostInnerTransferAuthorizeSubAccount (params?: {}): Promise<implicitReturnType>;
+    copyTradingV1PrivateGetSwapTraceCurrentTrack (params?: {}): Promise<implicitReturnType>;
+    copyTradingV1PrivatePostSwapTraceCloseTrackOrder (params?: {}): Promise<implicitReturnType>;
+    copyTradingV1PrivatePostSwapTraceSetTPSL (params?: {}): Promise<implicitReturnType>;
+    apiV3PrivateGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
+    apiV3PrivateGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType>;
+    apiV3PrivateGetCapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
+    apiV3PrivatePostPostAssetTransfer (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

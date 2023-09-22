@@ -195,6 +195,7 @@ interface Exchange {
     sapiGetPortfolioInterestHistory(params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioAssetIndexPrice(params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioRepayFuturesSwitch(params?: {}): Promise<implicitReturnType>;
+    sapiGetPortfolioMarginAssetLeverage(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingProductList(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingPosition(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingStakingRecord(params?: {}): Promise<implicitReturnType>;
@@ -206,6 +207,11 @@ interface Exchange {
     sapiGetLendingAutoInvestPlanList(params?: {}): Promise<implicitReturnType>;
     sapiGetLendingAutoInvestPlanId(params?: {}): Promise<implicitReturnType>;
     sapiGetLendingAutoInvestHistoryList(params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestIndexInfo(params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestIndexUserSummary(params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestOneOffStatus(params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestRedeemHistory(params?: {}): Promise<implicitReturnType>;
+    sapiGetLendingAutoInvestRebalanceHistory(params?: {}): Promise<implicitReturnType>;
     sapiGetSimpleEarnFlexibleList(params?: {}): Promise<implicitReturnType>;
     sapiGetSimpleEarnLockedList(params?: {}): Promise<implicitReturnType>;
     sapiGetSimpleEarnFlexiblePersonalLeftQuota(params?: {}): Promise<implicitReturnType>;
@@ -321,6 +327,8 @@ interface Exchange {
     sapiPostLendingAutoInvestPlanAdd(params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanEdit(params?: {}): Promise<implicitReturnType>;
     sapiPostLendingAutoInvestPlanEditStatus(params?: {}): Promise<implicitReturnType>;
+    sapiPostLendingAutoInvestOneOff(params?: {}): Promise<implicitReturnType>;
+    sapiPostLendingAutoInvestRedeem(params?: {}): Promise<implicitReturnType>;
     sapiPostSimpleEarnFlexibleSubscribe(params?: {}): Promise<implicitReturnType>;
     sapiPostSimpleEarnLockedSubscribe(params?: {}): Promise<implicitReturnType>;
     sapiPostSimpleEarnFlexibleRedeem(params?: {}): Promise<implicitReturnType>;

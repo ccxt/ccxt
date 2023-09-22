@@ -318,6 +318,17 @@ class bitbank(Exchange, ImplicitAPI):
         return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades
+        #
+        #    {
+        #        "transaction_id": "1143247037",
+        #        "side": "buy",
+        #        "price": "3836025",
+        #        "amount": "0.0005",
+        #        "executed_at": "1694249441593"
+        #    }
+        #
         timestamp = self.safe_integer(trade, 'executed_at')
         market = self.safe_market(None, market)
         priceString = self.safe_string(trade, 'price')

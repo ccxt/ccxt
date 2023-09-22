@@ -54,6 +54,9 @@ class bitmart extends Exchange {
                 'fetchDepositWithdrawFee' => true,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => null,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -3208,6 +3211,72 @@ class bitmart extends Exchange {
             'open_type' => $marginMode,
         );
         return $this->privatePostContractPrivateSubmitLeverage (array_merge($request, $params));
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @see https://developer-pro.bitmart.com/en/futures/#get-current-funding-rate
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the bitmart api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetContractPublicFundingRate (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "Ok",
+        //         "data" => array(
+        //             "timestamp" => 1695184410697,
+        //             "symbol" => "BTCUSDT",
+        //             "rate_value" => "-0.00002614",
+        //             "expected_rate" => "-0.00002"
+        //         ),
+        //         "trace" => "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_funding_rate($data, $market);
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //     {
+        //         "timestamp" => 1695184410697,
+        //         "symbol" => "BTCUSDT",
+        //         "rate_value" => "-0.00002614",
+        //         "expected_rate" => "-0.00002"
+        //     }
+        //
+        $marketId = $this->safe_string($contract, 'symbol');
+        $timestamp = $this->safe_integer($contract, 'timestamp');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $this->safe_number($contract, 'expected_rate'),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => $this->safe_number($contract, 'rate_value'),
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
     }
 
     public function nonce() {

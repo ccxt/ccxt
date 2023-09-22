@@ -137,6 +137,7 @@ class bingx extends Exchange {
                                 'quote/klines' => 1,
                                 'quote/openInterest' => 1,
                                 'quote/ticker' => 1,
+                                'quote/bookTicker' => 1,
                             ),
                         ),
                         'private' => array(
@@ -188,11 +189,17 @@ class bingx extends Exchange {
                         'private' => array(
                             'get' => array(
                                 'capital/config/getall' => 3,
+                                'capital/deposit/address' => 1,
+                                'capital/innerTransfer/records' => 1,
+                                'capital/subAccount/deposit/address' => 1,
+                                'capital/deposit/subHisrec' => 1,
+                                'capital/subAccount/innerTransfer/records' => 1,
                             ),
                             'post' => array(
                                 'capital/withdraw/apply' => 3,
                                 'capital/innerTransfer/apply' => 3,
                                 'capital/subAccountInnerTransfer/apply' => 3,
+                                'capital/deposit/createSubAddress' => 1,
                             ),
                         ),
                     ),
@@ -203,6 +210,7 @@ class bingx extends Exchange {
                             'get' => array(
                                 'list' => 3,
                                 'assets' => 3,
+                                'apiKey/query' => 1,
                             ),
                             'post' => array(
                                 'create' => 3,
@@ -217,9 +225,38 @@ class bingx extends Exchange {
                 'account' => array(
                     'v1' => array(
                         'private' => array(
+                            'get' => array(
+                                'uid' => 1,
+                            ),
                             'post' => array(
-                                'uid' => 3,
                                 'innerTransfer/authorizeSubAccount' => 3,
+                            ),
+                        ),
+                    ),
+                ),
+                'copyTrading' => array(
+                    'v1' => array(
+                        'private' => array(
+                            'get' => array(
+                                'swap/trace/currentTrack' => 1,
+                            ),
+                            'post' => array(
+                                'swap/trace/closeTrackOrder' => 1,
+                                'swap/trace/setTPSL' => 1,
+                            ),
+                        ),
+                    ),
+                ),
+                'api' => array(
+                    'v3' => array(
+                        'private' => array(
+                            'get' => array(
+                                'asset/transfer' => 1,
+                                'capital/deposit/hisrec' => 1,
+                                'capital/withdraw/history' => 1,
+                            ),
+                            'post' => array(
+                                'post/asset/transfer' => 1,
                             ),
                         ),
                     ),
@@ -1475,9 +1512,9 @@ class bingx extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the bingx api endpoint
          * @param {bool} [$params->postOnly] true to place a post only order
-         * @param {array} [$params->triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered (swap markets only)
-         * @param {float} [$params->stopLossPrice] stop loss trigger $price (swap markets only)
-         * @param {float} [$params->takeProfitPrice] take profit trigger $price (swap markets only)
+         * @param {float} [$params->triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
+         * @param {float} [$params->stopLossPrice] *swap only* stop loss trigger $price
+         * @param {float} [$params->takeProfitPrice] *swap only* take profit trigger $price
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();

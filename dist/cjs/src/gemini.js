@@ -221,6 +221,7 @@ class gemini extends gemini$1 {
                     'InsufficientFunds': errors.InsufficientFunds,
                     'InvalidJson': errors.BadRequest,
                     'InvalidNonce': errors.InvalidNonce,
+                    'InvalidApiKey': errors.AuthenticationError,
                     'InvalidOrderType': errors.InvalidOrder,
                     'InvalidPrice': errors.InvalidOrder,
                     'InvalidQuantity': errors.InvalidOrder,
