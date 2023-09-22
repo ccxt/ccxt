@@ -1130,11 +1130,6 @@ export default class kucoin extends Exchange {
             }
             // kucoin has determined 'fiat' currencies with below logic
             const isFiat = (rawPrecision === '2') && (chainsLength === 0);
-            // temporary exception/buggy currencies from api: https://t.me/KuCoin_API/173118
-            if (this.inArray (code, [ '00', 'MOOV' ])) {
-                isWithdrawEnabled = false;
-                isDepositEnabled = false;
-            }
             result[code] = {
                 'id': id,
                 'name': name,
