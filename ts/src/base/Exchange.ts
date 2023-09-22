@@ -874,19 +874,27 @@ export default class Exchange {
     httpProxyAgentModule:any = undefined;
     httpsProxyAgentModule:any = undefined;
     socksProxyAgentModule:any = undefined;
+    socksProxyAgentModuleChecked:boolean = false;
 
     async initializeProxies () {
         // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-        this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
-        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
-        try {
-            // @ts-ignore
-            this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
-        } catch (e) {}
+        if (this.httpProxyAgentModule === undefined) {
+            this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
+        }
+        if (this.httpsProxyAgentModule === undefined) {
+            this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+        }
+        if (this.socksProxyAgentModule === undefined && this.socksProxyAgentModuleChecked === false) {
+            this.socksProxyAgentModuleChecked = true;
+            try {
+                // @ts-ignore
+                this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
+            } catch (e) {}
+        }
     }
 
-    applyProxySettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
-        const [ proxyUrl, httpProxy, httpsProxy, socksProxy ] = this.extractProxySettings (url, method, headers, body);
+    setProxyAgent () {
+        const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings ();
         if (httpProxy !== undefined) {
             this.agent = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
         }  else if (httpsProxy !== undefined) {
@@ -898,17 +906,20 @@ export default class Exchange {
     }
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
-
         headers = this.extend (this.headers, headers);
-        const [ proxyUrl, httpProxy, httpsProxy, socksProxy ] = this.extractProxySettings (url, method, headers, body);
+        await this.initializeProxies ();
+        this.setProxyAgent ();
+        const proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
         if (proxyUrl !== undefined) {
+            if (this.agent !== undefined) {
+                throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+            }
             // in node we need to set header to *
             if (isNode) {
                 headers = this.extend ({ 'Origin': this.origin }, headers);
             }
             url = proxyUrl + url;
         }
-        this.applyProxySettings (url, method, headers, body);
         // user-agent
         const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
         if (userAgent && isNode) {
@@ -1179,7 +1190,6 @@ export default class Exchange {
     }
 
     watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
-        this.applyProxySettings ();
         //
         // Without comments the code of this method is short and easy:
         //
@@ -1408,7 +1418,7 @@ export default class Exchange {
         return undefined;
     }
 
-    extractProxySettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
+    checkProxyUrlSettings (url, method, headers, body) {
         let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
         const proxyUrlCallback = (this.proxyUrlCallback !== undefined) ? this.proxyUrlCallback : this.proxy_url_callback;
         if (proxyUrlCallback !== undefined) {
@@ -1422,6 +1432,20 @@ export default class Exchange {
                 proxyUrl = this.proxy;
             }
         }
+        let val = 0;
+        if (proxyUrl !== undefined) {
+            val = val + 1;
+        }
+        if (proxyUrlCallback !== undefined) {
+            val = val + 1;
+        }
+        if (val > 1) {
+            throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
+        return proxyUrl;
+    }
+
+    checkProxySettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
         let httpProxy = (this.httpProxy !== undefined) ? this.httpProxy : this.http_proxy;
         const httpProxyCallback = (this.httpProxyCallback !== undefined) ? this.httpProxyCallback : this.http_proxy_callback;
         if (httpProxyCallback !== undefined) {
@@ -1438,12 +1462,6 @@ export default class Exchange {
             socksProxy = socksProxyCallback (url, method, headers, body);
         }
         let val = 0;
-        if (proxyUrl !== undefined) {
-            val = val + 1;
-        }
-        if (proxyUrlCallback !== undefined) {
-            val = val + 1;
-        }
         if (httpProxy !== undefined) {
             val = val + 1;
         }
@@ -1463,7 +1481,7 @@ export default class Exchange {
             val = val + 1;
         }
         if (val > 1) {
-            throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent');
+            throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
         // check loaded dependencies
         if (this.httpProxy !== undefined && this.httpProxyAgentModule === undefined) {
@@ -1475,7 +1493,7 @@ export default class Exchange {
         if (this.socksProxy !== undefined && this.socksProxyAgentModule === undefined) {
             throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `.initializeProxies()` method');
         }
-        return [ proxyUrl, httpProxy, httpsProxy, socksProxy ];
+        return [ httpProxy, httpsProxy, socksProxy ];
     }
 
     findMessageHashes (client, element: string): string[] {
