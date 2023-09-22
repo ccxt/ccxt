@@ -1939,13 +1939,14 @@ export default class bitfinex2 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 25, max 1000
         }
-        let method = 'privatePostAuthRTradesHist';
+        let response = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            method = 'privatePostAuthRTradesSymbolHist';
+            response = await this.privatePostAuthRTradesSymbolHist (this.extend (request, params));
+        } else {
+            response = await this.privatePostAuthRTradesHist (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -2311,19 +2312,20 @@ export default class bitfinex2 extends Exchange {
         await this.loadMarkets ();
         let currency = undefined;
         const request = {};
-        let method = 'privatePostAuthRMovementsHist';
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['uppercaseId'];
-            method = 'privatePostAuthRMovementsCurrencyHist';
-        }
         if (since !== undefined) {
             request['start'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['uppercaseId'];
+            response = await this.privatePostAuthRMovementsCurrencyHist (this.extend (request, params));
+        } else {
+            response = await this.privatePostAuthRMovementsHist (this.extend (request, params));
+        }
         //
         //     [
         //         [
@@ -2709,19 +2711,20 @@ export default class bitfinex2 extends Exchange {
         await this.loadMarkets ();
         let currency = undefined;
         const request = {};
-        let method = 'privatePostAuthRLedgersHist';
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['uppercaseId'];
-            method = 'privatePostAuthRLedgersCurrencyHist';
-        }
         if (since !== undefined) {
             request['start'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // max 2500
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['uppercaseId'];
+            response = await this.privatePostAuthRLedgersCurrencyHist (this.extend (request, params));
+        } else {
+            response = await this.privatePostAuthRLedgersHist (this.extend (request, params));
+        }
         //
         //     [
         //         [
