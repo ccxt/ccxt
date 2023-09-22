@@ -85,7 +85,7 @@ export default class bitmart extends Exchange {
                 'fetchTransactionFee': true,
                 'fetchTransactionFees': false,
                 'fetchTransfer': false,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawAddressesByNetwork': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -569,6 +569,7 @@ export default class bitmart extends Exchange {
                 },
                 'accountsByType': {
                     'spot': 'spot',
+                    'swap': 'swap',
                 },
                 'createMarketBuyOrderRequiresPrice': true,
             },
@@ -1228,6 +1229,8 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://developer-pro.bitmart.com/en/spot/#get-depth-v3
+         * @see https://developer-pro.bitmart.com/en/futures/#get-market-depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
@@ -1235,41 +1238,70 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['spot']) {
-            throw new NotSupported(this.id + ' fetchOrderBook() does not support ' + market['type'] + ' markets, only spot markets are accepted');
-        }
         const request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            request['size'] = limit; // default 50, max 200
+        let response = undefined;
+        if (market['spot']) {
+            if (limit !== undefined) {
+                request['limit'] = limit; // default 35, max 50
+            }
+            response = await this.publicGetSpotQuotationV3Books(this.extend(request, params));
         }
-        // request['precision'] = 4; // optional price precision / depth level whose range is defined in symbol details
-        const response = await this.publicGetSpotV1SymbolsBook(this.extend(request, params));
+        else if (market['swap']) {
+            response = await this.publicGetContractPublicDepth(this.extend(request, params));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOrderBook() does not support ' + market['type'] + ' markets, only spot and swap markets are accepted');
+        }
         //
         // spot
         //
         //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"8254f8fc-431d-404f-ad9a-e716339f66c7",
-        //         "data":{
-        //             "buys":[
-        //                 {"amount":"4.7091","total":"4.71","price":"0.034047","count":"1"},
-        //                 {"amount":"5.7439","total":"10.45","price":"0.034039","count":"1"},
-        //                 {"amount":"2.5249","total":"12.98","price":"0.032937","count":"1"},
+        //         "code": 1000,
+        //         "message": "success",
+        //         "data": {
+        //             "ts": "1695264191808",
+        //             "symbol": "BTC_USDT",
+        //             "asks": [
+        //                 ["26942.57","0.06492"],
+        //                 ["26942.73","0.05447"],
+        //                 ["26943.00","0.07154"]
         //             ],
-        //             "sells":[
-        //                 {"amount":"41.4365","total":"41.44","price":"0.034174","count":"1"},
-        //                 {"amount":"4.2317","total":"45.67","price":"0.034183","count":"1"},
-        //                 {"amount":"0.3000","total":"45.97","price":"0.034240","count":"1"},
+        //             "bids": [
+        //                 ["26942.45","0.00074"],
+        //                 ["26941.53","0.00371"],
+        //                 ["26940.94","0.08992"]
         //             ]
-        //         }
+        //         },
+        //         "trace": "430a7f69581d4258a8e4b424dfb10782.73.16952341919017619"
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "asks": [
+        //                 ["26938.3","3499","3499"],
+        //                 ["26938.5","14702","18201"],
+        //                 ["26938.6","20457","38658"]
+        //             ],
+        //             "bids": [
+        //                 ["26938.2","20","20"],
+        //                 ["26937.9","1913","1933"],
+        //                 ["26937.8","2588","4521"]
+        //             ],
+        //             "timestamp": 1695264383999,
+        //             "symbol": "BTCUSDT"
+        //         },
+        //         "trace": "4cad855074664097ac6ba5258c47305d.72.16952643834721135"
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const timestamp = this.safeInteger(data, 'timestamp');
-        return this.parseOrderBook(data, symbol, timestamp, 'buys', 'sells', 'price', 'amount');
+        const timestamp = this.safeInteger2(data, 'ts', 'timestamp');
+        return this.parseOrderBook(data, market['symbol'], timestamp);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -3016,7 +3048,8 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#transfer
          * @description transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
-         * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer
+         * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#transfer-signed
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -3034,17 +3067,35 @@ export default class bitmart extends Exchange {
         const fromId = this.convertTypeToAccount(fromAccount);
         const toId = this.convertTypeToAccount(toAccount);
         if (fromAccount === 'spot') {
-            request['side'] = 'in';
-            request['symbol'] = toId;
+            if (toAccount === 'margin') {
+                request['side'] = 'in';
+                request['symbol'] = toId;
+            }
+            else if (toAccount === 'swap') {
+                request['type'] = 'spot_to_contract';
+            }
         }
         else if (toAccount === 'spot') {
-            request['side'] = 'out';
-            request['symbol'] = fromId;
+            if (fromAccount === 'margin') {
+                request['side'] = 'out';
+                request['symbol'] = fromId;
+            }
+            else if (fromAccount === 'swap') {
+                request['type'] = 'contract_to_spot';
+            }
         }
         else {
             throw new ArgumentsRequired(this.id + ' transfer() requires either fromAccount or toAccount to be spot');
         }
-        const response = await this.privatePostSpotV1MarginIsolatedTransfer(this.extend(request, params));
+        let response = undefined;
+        if ((fromAccount === 'margin') || (toAccount === 'margin')) {
+            response = await this.privatePostSpotV1MarginIsolatedTransfer(this.extend(request, params));
+        }
+        else if ((fromAccount === 'swap') || (toAccount === 'swap')) {
+            response = await this.privatePostAccountV1TransferContract(this.extend(request, params));
+        }
+        //
+        // margin
         //
         //     {
         //         "message": "OK",
@@ -3055,41 +3106,146 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        return this.extend(this.parseTransfer(response, currency), {
-            'amount': this.parseNumber(amountToPrecision),
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+        // swap
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "4cad858074667097ac6ba5257c57305d.68.16953302431189455",
+        //         "data": {
+        //             "currency": "USDT",
+        //             "amount": "5"
+        //         }
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        return this.extend(this.parseTransfer(data, currency), {
+            'status': this.parseTransferStatus(this.safeString2(response, 'code', 'message')),
         });
     }
     parseTransferStatus(status) {
         const statuses = {
             '1000': 'ok',
             'OK': 'ok',
+            'FINISHED': 'ok',
         };
         return this.safeString(statuses, status, status);
     }
+    parseTransferToAccount(type) {
+        const types = {
+            'contract_to_spot': 'spot',
+            'spot_to_contract': 'swap',
+        };
+        return this.safeString(types, type, type);
+    }
+    parseTransferFromAccount(type) {
+        const types = {
+            'contract_to_spot': 'swap',
+            'spot_to_contract': 'spot',
+        };
+        return this.safeString(types, type, type);
+    }
     parseTransfer(transfer, currency = undefined) {
+        //
+        // margin
+        //
+        //     {
+        //         "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "currency": "USDT",
+        //         "amount": "5"
+        //     }
+        //
+        // fetchTransfers
+        //
+        //     {
+        //         "transfer_id": "902463535961567232",
+        //         "currency": "USDT",
+        //         "amount": "5",
+        //         "type": "contract_to_spot",
+        //         "state": "FINISHED",
+        //         "timestamp": 1695330539565
+        //     }
+        //
+        const currencyId = this.safeString(transfer, 'currency');
+        const timestamp = this.safeInteger(transfer, 'timestamp');
+        return {
+            'id': this.safeString(transfer, 'transfer_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'currency': this.safeCurrencyCode(currencyId, currency),
+            'amount': this.safeNumber(transfer, 'amount'),
+            'fromAccount': this.parseTransferFromAccount(this.safeString(transfer, 'type')),
+            'toAccount': this.parseTransferToAccount(this.safeString(transfer, 'type')),
+            'status': this.parseTransferStatus(this.safeString(transfer, 'state')),
+        };
+    }
+    async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchTransfers
+         * @description fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
+         * @see https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for
+         * @param {int} [limit] the maximum number of transfer structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {int} [params.page] the required number of pages, default is 1, max is 1000
+         * @param {int} [params.until] the latest time in ms to fetch transfers for
+         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         */
+        await this.loadMarkets();
+        if (limit === undefined) {
+            limit = 10;
+        }
+        const request = {
+            'page': this.safeInteger(params, 'page', 1),
+            'limit': limit, // default is 10, max is 100
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['time_start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger2(params, 'until', 'till'); // unified in milliseconds
+        const endTime = this.safeInteger(params, 'time_end', until); // exchange-specific in milliseconds
+        params = this.omit(params, ['till', 'until']);
+        if (endTime !== undefined) {
+            request['time_end'] = endTime;
+        }
+        const response = await this.privatePostAccountV1TransferContractList(this.extend(request, params));
         //
         //     {
         //         "message": "OK",
         //         "code": 1000,
-        //         "trace": "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        //         "trace": "7f9d93e10f9g4513bc08a7btc2a5559a.69.16953325693032193",
         //         "data": {
-        //             "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        //             "records": [
+        //                 {
+        //                     "transfer_id": "902463535961567232",
+        //                     "currency": "USDT",
+        //                     "amount": "5",
+        //                     "type": "contract_to_spot",
+        //                     "state": "FINISHED",
+        //                     "timestamp": 1695330539565
+        //                 },
+        //             ]
         //         }
         //     }
         //
-        const data = this.safeValue(transfer, 'data', {});
-        return {
-            'id': this.safeString(data, 'transfer_id'),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'currency': this.safeCurrencyCode(undefined, currency),
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
-            'status': this.parseTransferStatus(this.safeString2(transfer, 'code', 'message')),
-        };
+        const data = this.safeValue(response, 'data', {});
+        const records = this.safeValue(data, 'records', []);
+        return this.parseTransfers(records, currency, since, limit);
     }
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

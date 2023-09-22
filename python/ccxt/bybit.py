@@ -15,6 +15,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import MarginModeAlreadySet
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -23,6 +24,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NoChange
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -739,12 +741,12 @@ class bybit(Exchange, ImplicitAPI):
                     '110021': InvalidOrder,  # Open Interest exceeded
                     '110022': InvalidOrder,  # qty has been limited, cannot modify the order to add qty
                     '110023': InvalidOrder,  # This contract only supports position reduction operation, please contact customer service for details
-                    '110024': InvalidOrder,  # You have an existing position, so position mode cannot be switched
-                    '110025': InvalidOrder,  # Position mode is not modified
-                    '110026': BadRequest,  # Cross/isolated margin mode is not modified
-                    '110027': InvalidOrder,  # Margin is not modified
-                    '110028': InvalidOrder,  # Open orders exist, so you cannot change position mode
-                    '110029': InvalidOrder,  # Hedge mode is not available for self symbol
+                    '110024': BadRequest,  # You have an existing position, so position mode cannot be switched
+                    '110025': NoChange,  # Position mode is not modified
+                    '110026': MarginModeAlreadySet,  # Cross/isolated margin mode is not modified
+                    '110027': NoChange,  # Margin is not modified
+                    '110028': BadRequest,  # Open orders exist, so you cannot change position mode
+                    '110029': BadRequest,  # Hedge mode is not available for self symbol
                     '110030': InvalidOrder,  # Duplicate orderId
                     '110031': InvalidOrder,  # risk limit info does not exists
                     '110032': InvalidOrder,  # Illegal order

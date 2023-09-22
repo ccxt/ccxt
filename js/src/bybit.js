@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bybit.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, BadSymbol } from './base/errors.js';
+import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, BadSymbol, MarginModeAlreadySet, NoChange } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -727,12 +727,12 @@ export default class bybit extends Exchange {
                     '110021': InvalidOrder,
                     '110022': InvalidOrder,
                     '110023': InvalidOrder,
-                    '110024': InvalidOrder,
-                    '110025': InvalidOrder,
-                    '110026': BadRequest,
-                    '110027': InvalidOrder,
-                    '110028': InvalidOrder,
-                    '110029': InvalidOrder,
+                    '110024': BadRequest,
+                    '110025': NoChange,
+                    '110026': MarginModeAlreadySet,
+                    '110027': NoChange,
+                    '110028': BadRequest,
+                    '110029': BadRequest,
                     '110030': InvalidOrder,
                     '110031': InvalidOrder,
                     '110032': InvalidOrder,

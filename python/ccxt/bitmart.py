@@ -101,7 +101,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchTransactionFee': True,
                 'fetchTransactionFees': False,
                 'fetchTransfer': False,
-                'fetchTransfers': False,
+                'fetchTransfers': True,
                 'fetchWithdrawAddressesByNetwork': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
@@ -585,6 +585,7 @@ class bitmart(Exchange, ImplicitAPI):
                 },
                 'accountsByType': {
                     'spot': 'spot',
+                    'swap': 'swap',
                 },
                 'createMarketBuyOrderRequiresPrice': True,
             },
@@ -1209,6 +1210,8 @@ class bitmart(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://developer-pro.bitmart.com/en/spot/#get-depth-v3
+        see https://developer-pro.bitmart.com/en/futures/#get-market-depth
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bitmart api endpoint
@@ -1216,39 +1219,66 @@ class bitmart(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
-            raise NotSupported(self.id + ' fetchOrderBook() does not support ' + market['type'] + ' markets, only spot markets are accepted')
         request = {
             'symbol': market['id'],
         }
-        if limit is not None:
-            request['size'] = limit  # default 50, max 200
-        # request['precision'] = 4  # optional price precision / depth level whose range is defined in symbol details
-        response = self.publicGetSpotV1SymbolsBook(self.extend(request, params))
+        response = None
+        if market['spot']:
+            if limit is not None:
+                request['limit'] = limit  # default 35, max 50
+            response = self.publicGetSpotQuotationV3Books(self.extend(request, params))
+        elif market['swap']:
+            response = self.publicGetContractPublicDepth(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchOrderBook() does not support ' + market['type'] + ' markets, only spot and swap markets are accepted')
         #
         # spot
         #
         #     {
-        #         "message":"OK",
-        #         "code":1000,
-        #         "trace":"8254f8fc-431d-404f-ad9a-e716339f66c7",
-        #         "data":{
-        #             "buys":[
-        #                 {"amount":"4.7091","total":"4.71","price":"0.034047","count":"1"},
-        #                 {"amount":"5.7439","total":"10.45","price":"0.034039","count":"1"},
-        #                 {"amount":"2.5249","total":"12.98","price":"0.032937","count":"1"},
+        #         "code": 1000,
+        #         "message": "success",
+        #         "data": {
+        #             "ts": "1695264191808",
+        #             "symbol": "BTC_USDT",
+        #             "asks": [
+        #                 ["26942.57","0.06492"],
+        #                 ["26942.73","0.05447"],
+        #                 ["26943.00","0.07154"]
         #             ],
-        #             "sells":[
-        #                 {"amount":"41.4365","total":"41.44","price":"0.034174","count":"1"},
-        #                 {"amount":"4.2317","total":"45.67","price":"0.034183","count":"1"},
-        #                 {"amount":"0.3000","total":"45.97","price":"0.034240","count":"1"},
+        #             "bids": [
+        #                 ["26942.45","0.00074"],
+        #                 ["26941.53","0.00371"],
+        #                 ["26940.94","0.08992"]
         #             ]
-        #         }
+        #         },
+        #         "trace": "430a7f69581d4258a8e4b424dfb10782.73.16952341919017619"
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": {
+        #             "asks": [
+        #                 ["26938.3","3499","3499"],
+        #                 ["26938.5","14702","18201"],
+        #                 ["26938.6","20457","38658"]
+        #             ],
+        #             "bids": [
+        #                 ["26938.2","20","20"],
+        #                 ["26937.9","1913","1933"],
+        #                 ["26937.8","2588","4521"]
+        #             ],
+        #             "timestamp": 1695264383999,
+        #             "symbol": "BTCUSDT"
+        #         },
+        #         "trace": "4cad855074664097ac6ba5258c47305d.72.16952643834721135"
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        timestamp = self.safe_integer(data, 'timestamp')
-        return self.parse_order_book(data, symbol, timestamp, 'buys', 'sells', 'price', 'amount')
+        timestamp = self.safe_integer_2(data, 'ts', 'timestamp')
+        return self.parse_order_book(data, market['symbol'], timestamp)
 
     def parse_trade(self, trade, market=None):
         #
@@ -2861,7 +2891,8 @@ class bitmart(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
-        see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer
+        see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
+        see https://developer-pro.bitmart.com/en/futures/#transfer-signed
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -2879,14 +2910,26 @@ class bitmart(Exchange, ImplicitAPI):
         fromId = self.convert_type_to_account(fromAccount)
         toId = self.convert_type_to_account(toAccount)
         if fromAccount == 'spot':
-            request['side'] = 'in'
-            request['symbol'] = toId
+            if toAccount == 'margin':
+                request['side'] = 'in'
+                request['symbol'] = toId
+            elif toAccount == 'swap':
+                request['type'] = 'spot_to_contract'
         elif toAccount == 'spot':
-            request['side'] = 'out'
-            request['symbol'] = fromId
+            if fromAccount == 'margin':
+                request['side'] = 'out'
+                request['symbol'] = fromId
+            elif fromAccount == 'swap':
+                request['type'] = 'contract_to_spot'
         else:
             raise ArgumentsRequired(self.id + ' transfer() requires either fromAccount or toAccount to be spot')
-        response = self.privatePostSpotV1MarginIsolatedTransfer(self.extend(request, params))
+        response = None
+        if (fromAccount == 'margin') or (toAccount == 'margin'):
+            response = self.privatePostSpotV1MarginIsolatedTransfer(self.extend(request, params))
+        elif (fromAccount == 'swap') or (toAccount == 'swap'):
+            response = self.privatePostAccountV1TransferContract(self.extend(request, params))
+        #
+        # margin
         #
         #     {
         #         "message": "OK",
@@ -2897,41 +2940,139 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.extend(self.parse_transfer(response, currency), {
-            'amount': self.parse_number(amountToPrecision),
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+        # swap
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "4cad858074667097ac6ba5257c57305d.68.16953302431189455",
+        #         "data": {
+        #             "currency": "USDT",
+        #             "amount": "5"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.extend(self.parse_transfer(data, currency), {
+            'status': self.parse_transfer_status(self.safe_string_2(response, 'code', 'message')),
         })
 
     def parse_transfer_status(self, status):
         statuses = {
             '1000': 'ok',
             'OK': 'ok',
+            'FINISHED': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_transfer_to_account(self, type):
+        types = {
+            'contract_to_spot': 'spot',
+            'spot_to_contract': 'swap',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_transfer_from_account(self, type):
+        types = {
+            'contract_to_spot': 'swap',
+            'spot_to_contract': 'spot',
+        }
+        return self.safe_string(types, type, type)
+
     def parse_transfer(self, transfer, currency=None):
+        #
+        # margin
+        #
+        #     {
+        #         "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "currency": "USDT",
+        #         "amount": "5"
+        #     }
+        #
+        # fetchTransfers
+        #
+        #     {
+        #         "transfer_id": "902463535961567232",
+        #         "currency": "USDT",
+        #         "amount": "5",
+        #         "type": "contract_to_spot",
+        #         "state": "FINISHED",
+        #         "timestamp": 1695330539565
+        #     }
+        #
+        currencyId = self.safe_string(transfer, 'currency')
+        timestamp = self.safe_integer(transfer, 'timestamp')
+        return {
+            'id': self.safe_string(transfer, 'transfer_id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': self.parse_transfer_from_account(self.safe_string(transfer, 'type')),
+            'toAccount': self.parse_transfer_to_account(self.safe_string(transfer, 'type')),
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'state')),
+        }
+
+    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
+        see https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
+        :param str code: unified currency code of the currency transferred
+        :param int [since]: the earliest time in ms to fetch transfers for
+        :param int [limit]: the maximum number of transfer structures to retrieve
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :param int [params.page]: the required number of pages, default is 1, max is 1000
+        :param int [params.until]: the latest time in ms to fetch transfers for
+        :returns dict[]: a list of `transfer structures <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
+        """
+        self.load_markets()
+        if limit is None:
+            limit = 10
+        request = {
+            'page': self.safe_integer(params, 'page', 1),  # default is 1, max is 1000
+            'limit': limit,  # default is 10, max is 100
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['time_start'] = since
+        if limit is not None:
+            request['limit'] = limit
+        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        endTime = self.safe_integer(params, 'time_end', until)  # exchange-specific in milliseconds
+        params = self.omit(params, ['till', 'until'])
+        if endTime is not None:
+            request['time_end'] = endTime
+        response = self.privatePostAccountV1TransferContractList(self.extend(request, params))
         #
         #     {
         #         "message": "OK",
         #         "code": 1000,
-        #         "trace": "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        #         "trace": "7f9d93e10f9g4513bc08a7btc2a5559a.69.16953325693032193",
         #         "data": {
-        #             "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        #             "records": [
+        #                 {
+        #                     "transfer_id": "902463535961567232",
+        #                     "currency": "USDT",
+        #                     "amount": "5",
+        #                     "type": "contract_to_spot",
+        #                     "state": "FINISHED",
+        #                     "timestamp": 1695330539565
+        #                 },
+        #             ]
         #         }
         #     }
         #
-        data = self.safe_value(transfer, 'data', {})
-        return {
-            'id': self.safe_string(data, 'transfer_id'),
-            'timestamp': None,
-            'datetime': None,
-            'currency': self.safe_currency_code(None, currency),
-            'amount': None,
-            'fromAccount': None,
-            'toAccount': None,
-            'status': self.parse_transfer_status(self.safe_string_2(transfer, 'code', 'message')),
-        }
+        data = self.safe_value(response, 'data', {})
+        records = self.safe_value(data, 'records', [])
+        return self.parse_transfers(records, currency, since, limit)
 
     def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

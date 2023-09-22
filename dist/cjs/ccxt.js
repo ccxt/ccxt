@@ -179,7 +179,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.0.102';
+const version = '4.0.103';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -378,6 +378,7 @@ exports.InvalidNonce = errors.InvalidNonce;
 exports.InvalidOrder = errors.InvalidOrder;
 exports.MarginModeAlreadySet = errors.MarginModeAlreadySet;
 exports.NetworkError = errors.NetworkError;
+exports.NoChange = errors.NoChange;
 exports.NotSupported = errors.NotSupported;
 exports.NullResponse = errors.NullResponse;
 exports.OnMaintenance = errors.OnMaintenance;
