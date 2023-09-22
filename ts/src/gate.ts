@@ -143,7 +143,8 @@ export default class gate extends Exchange {
                 'withdraw': true,
             },
             'api': {
-                'public': { // All public endpoints 200r/10s per endpoint
+                'public': {
+                    // All public endpoints 200r/10s per endpoint
                     'wallet': {
                         'get': {
                             'currency_chains': 1,
@@ -228,7 +229,8 @@ export default class gate extends Exchange {
                         },
                     },
                 },
-                'private': { // private endpoints default is 150r/10s per endpoint
+                'private': {
+                    // private endpoints default is 150r/10s per endpoint
                     'withdrawals': {
                         'post': {
                             'withdrawals': 20, // 1r/s cost = 20 / 1 = 20
@@ -304,7 +306,8 @@ export default class gate extends Exchange {
                             'spot/orders/{order_id}': 20 / 15,
                         },
                     },
-                    'spot': { // default is 200r/10s
+                    'spot': {
+                        // default is 200r/10s
                         'get': {
                             'fee': 1,
                             'batch_fee': 1,
