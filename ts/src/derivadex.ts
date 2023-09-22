@@ -77,22 +77,19 @@ export default class derivadex extends Exchange {
             },
             'timeframes': {
                 '1m': '1m',
+                '15m': '15m',
                 '1h': '1h',
                 '1d': '1d',
             },
             'urls': {
                 'test': {
-                    'public': 'https://beta.derivadex.io',
-                    'private': 'https://beta.derivadex.io',
-                    'stats': 'https://beta.derivadex.io/stats',
-                    'v2': 'http://op1.ddx.one:15080/v2', // TODO: DELETE THIS
-                    'op1': 'http://op1.ddx.one:15080/stats', // TODO: delete this before submitting
-                    'raw': 'http://op1.ddx.one:15080', // TODO: delete this before submitting
+                    'public': 'https://testnet.derivadex.io',
+                    'stats': 'https://testnet.derivadex.io/stats',
+                    'v2': 'https://testnet.derivadex.io/v2',
                 },
                 'logo': 'https://gitlab.com/dexlabs/assets/-/raw/main/light-round.png',
                 'api': {
                     'public': 'https://exchange.derivadex.com',
-                    'private': 'https://exchange.derivadex.com',
                     'stats': 'https://exchange.derivadex.com/stats',
                     'v2': 'https://exchange.derivadex.com/v2',
                 },
@@ -149,11 +146,6 @@ export default class derivadex extends Exchange {
                         'request': 1,
                     },
                 },
-                'raw': {
-                    'get': {
-                        'snapshot/addresses': 1,
-                    },
-                },
             },
             'requiredCredentials': {
                 'walletAddress': true,
@@ -182,6 +174,7 @@ export default class derivadex extends Exchange {
                 },
             },
             'encryptionKey': undefined,
+            'addresses': undefined,
         });
     }
 
@@ -1139,13 +1132,15 @@ export default class derivadex extends Exchange {
             encryptionKey = await (this as any).v2GetEncryptionKey ();
             (this as any).encryptionKey = encryptionKey;
         }
-        // const addressesResponse = this.rawGetSnapshotAddresses ({ 'contractDeployment': 'beta' }); // TODO: switch to mainnet deployment
+        let addresses = (this as any).addresses;
+        if (addresses === undefined) {
+            addresses = await (this as any).publicGetSnapshotAddresses ({ 'contractDeployment': 'mainnet' });
+            (this as any).addresses = addresses;
+        }
         const orderIntentData = this.getOrderIntentTypedData (
             scaledOrderIntent,
-            // addressesResponse['chainId'],
-            100, // TODO: use mainnet chainId
-            // addressesResponse['addresses']['derivaDEXAddress']
-            '0x48bacb9266a570d521063ef5dd96e61686dbe788', // TODO: use mainnet derivaDEXAddress
+            addresses['chainId'],
+            addresses['addresses']['derivaDEXAddress'],
             requestType
         );
         // const typedData = this.transformTypedDataForEthers (orderIntentData);
@@ -1511,7 +1506,11 @@ export default class derivadex extends Exchange {
          * @param {object} params extra parameters specific to the derivadex api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
-        const addresses = await (this as any).rawGetSnapshotAddresses ({ 'contractDeployment': 'beta' }); // TODO: switch to mainnet
+        let addresses = (this as any).addresses;
+        if (addresses === undefined) {
+            addresses = await (this as any).publicGetSnapshotAddresses ({ 'contractDeployment': 'mainnet' });
+            (this as any).addresses = addresses;
+        }
         if (code !== 'USDC' && code !== 'DDX') {
             throw new BadSymbol (this.id + ' fetchDepositAddress() does not support ' + code);
         }
@@ -1666,7 +1665,7 @@ export default class derivadex extends Exchange {
 
     sign (path, api = 'stats', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const implodedPath = this.implodeParams (path, params);
-        let query = ((api === 'v2' || api === 'raw') ? '' : '/api/') + ((api === 'v2' || api === 'raw') ? '' : this.version) + '/' + implodedPath;
+        let query = (api === 'v2' ? '' : '/api/') + (api === 'v2' ? '' : this.version) + '/' + implodedPath;
         if (method === 'GET') {
             if (params['orderHash'] !== undefined) {
                 let orderHashParam = '';
@@ -1695,16 +1694,7 @@ export default class derivadex extends Exchange {
                 params = this.omit (params, '_format');
             }
         }
-        // TODO: SWITCH TO MAINNET URL, CLEANUP
-        let testApi = '';
-        if (api === 'v2') {
-            testApi = 'v2';
-        } else if (api === 'raw') {
-            testApi = 'raw';
-        } else {
-            testApi = 'op1';
-        }
-        const url = this.urls['test'][testApi] + query; // TODO: SWITCH TO MAINNET URL
+        const url = this.urls['api'][api] + query;
         if (api === 'public' || api === 'v2') {
             headers = {
                 'Content-Type': 'application/json',
