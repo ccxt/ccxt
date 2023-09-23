@@ -93,6 +93,7 @@ class Exchange extends \ccxt\Exchange {
             include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
             $proxy = new \Clue\React\HttpProxy\ProxyConnector($httpProxy);
             $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
+            $this->set_request_browser($request_browser_options);
             return true;
         }  else if ($httpsProxy !== null) {
             include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
@@ -119,7 +120,6 @@ class Exchange extends \ccxt\Exchange {
 
             // ##### PROXY & HEADERS #####
             $headers = array_merge($this->headers, $headers ? $headers : array());
-
             // proxy "url"
             $proxyUrl = $this->check_proxy_url_settings($url, $method, $headers, $body);
             if ($proxyUrl !== null) {
