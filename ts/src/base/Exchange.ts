@@ -906,19 +906,21 @@ export default class Exchange {
     }
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
+
         headers = this.extend (this.headers, headers);
-        await this.initializeProxies ();
-        this.setProxyAgent ();
+        // "url" proxy
         const proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
         if (proxyUrl !== undefined) {
-            if (this.agent !== undefined) {
-                throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
-            }
             // in node we need to set header to *
             if (isNode) {
                 headers = this.extend ({ 'Origin': this.origin }, headers);
             }
             url = proxyUrl + url;
+        }
+        await this.initializeProxies ();
+        this.setProxyAgent ();
+        if (proxyUrl !== undefined && this.agent !== undefined) {
+            throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
         // user-agent
         const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
@@ -931,6 +933,7 @@ export default class Exchange {
         }
         headers = this.setHeaders (headers);
         //
+
         if (this.verbose) {
             this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
         }
