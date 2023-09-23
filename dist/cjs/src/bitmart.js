@@ -2199,8 +2199,10 @@ class bitmart extends bitmart$1 {
          * @name bitmart#cancelAllOrders
          * @description cancel all open orders in a market
          * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
+         * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {string} [params.side] *spot only* 'buy' or 'sell'
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -2210,23 +2212,32 @@ class bitmart extends bitmart$1 {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
+        let response = undefined;
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
-        if (type !== 'spot') {
-            throw new errors.NotSupported(this.id + ' cancelAllOrders() does not support ' + type + ' orders, only spot orders are accepted');
+        if (type === 'spot') {
+            response = await this.privatePostSpotV1CancelOrders(this.extend(request, params));
         }
-        const side = this.safeString(params, 'side');
-        if (side !== undefined) {
-            request['side'] = side;
-            params = this.omit(params, 'side');
+        else if (type === 'swap') {
+            this.checkRequiredSymbol('cancelAllOrders', symbol);
+            response = await this.privatePostContractPrivateCancelOrders(this.extend(request, params));
         }
-        const response = await this.privatePostSpotV1CancelOrders(this.extend(request, params));
+        //
+        // spot
         //
         //     {
         //         "code": 1000,
         //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         //         "message": "OK",
         //         "data": {}
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
         //     }
         //
         return response;

@@ -2106,8 +2106,10 @@ class bitmart(Exchange, ImplicitAPI):
         """
         cancel all open orders in a market
         see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
+        see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :param str [params.side]: *spot only* 'buy' or 'sell'
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
@@ -2116,21 +2118,30 @@ class bitmart(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        response = None
         type = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
-        if type != 'spot':
-            raise NotSupported(self.id + ' cancelAllOrders() does not support ' + type + ' orders, only spot orders are accepted')
-        side = self.safe_string(params, 'side')
-        if side is not None:
-            request['side'] = side
-            params = self.omit(params, 'side')
-        response = self.privatePostSpotV1CancelOrders(self.extend(request, params))
+        if type == 'spot':
+            response = self.privatePostSpotV1CancelOrders(self.extend(request, params))
+        elif type == 'swap':
+            self.check_required_symbol('cancelAllOrders', symbol)
+            response = self.privatePostContractPrivateCancelOrders(self.extend(request, params))
+        #
+        # spot
         #
         #     {
         #         "code": 1000,
         #         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         #         "message": "OK",
         #         "data": {}
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
         #     }
         #
         return response

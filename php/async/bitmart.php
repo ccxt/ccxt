@@ -2217,8 +2217,10 @@ class bitmart extends Exchange {
             /**
              * cancel all open orders in a $market
              * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
+             * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the bitmart api endpoint
+             * @param {string} [$params->side] *spot only* 'buy' or 'sell'
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
@@ -2228,23 +2230,31 @@ class bitmart extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
+            $response = null;
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
-            if ($type !== 'spot') {
-                throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $type . ' orders, only spot orders are accepted');
+            if ($type === 'spot') {
+                $response = Async\await($this->privatePostSpotV1CancelOrders (array_merge($request, $params)));
+            } elseif ($type === 'swap') {
+                $this->check_required_symbol('cancelAllOrders', $symbol);
+                $response = Async\await($this->privatePostContractPrivateCancelOrders (array_merge($request, $params)));
             }
-            $side = $this->safe_string($params, 'side');
-            if ($side !== null) {
-                $request['side'] = $side;
-                $params = $this->omit($params, 'side');
-            }
-            $response = Async\await($this->privatePostSpotV1CancelOrders (array_merge($request, $params)));
+            //
+            // spot
             //
             //     {
             //         "code" => 1000,
             //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
             //         "message" => "OK",
             //         "data" => array()
+            //     }
+            //
+            // swap
+            //
+            //     {
+            //         "code" => 1000,
+            //         "message" => "Ok",
+            //         "trace" => "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
             //     }
             //
             return $response;
