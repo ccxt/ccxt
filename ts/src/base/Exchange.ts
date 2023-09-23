@@ -921,7 +921,7 @@ export default class Exchange {
         // proxy agents
         await this.initializeProxies ();
         this.setProxyAgent ();
-        if (proxyUrl !== undefined && this.agent !== undefined) {
+        if (this.agent !== undefined && proxyUrl !== undefined) {
             throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
         // user-agent
