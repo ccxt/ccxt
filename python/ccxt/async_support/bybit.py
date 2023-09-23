@@ -3462,7 +3462,6 @@ class bybit(Exchange, ImplicitAPI):
         :param boolean [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
         :param str [params.tpslMode]: *contract only* 'full' or 'partial'
         :param str [params.mmp]: *option only* market maker protection
-        :param int [params.triggerDirection]: *contract only* conditional orders, 1: triggered when market price rises to triggerPrice, 2: triggered when market price falls to triggerPrice
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
@@ -3553,6 +3552,7 @@ class bybit(Exchange, ImplicitAPI):
         isBuy = side == 'buy'
         ascending = not isBuy if stopLossTriggerPrice else isBuy
         if triggerPrice is not None:
+            request['triggerDirection'] = 2 if ascending else 1
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
             request['triggerDirection'] = 2 if ascending else 1

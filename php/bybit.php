@@ -3569,7 +3569,6 @@ class bybit extends Exchange {
          * @param {boolean} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [$params->tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [$params->mmp] *option only* $market maker protection
-         * @param {int} [$params->triggerDirection] *contract only* conditional orders, 1 => triggered when $market $price rises to $triggerPrice, 2 => triggered when $market $price falls to $triggerPrice
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
         $this->load_markets();
@@ -3668,6 +3667,7 @@ class bybit extends Exchange {
         $isBuy = $side === 'buy';
         $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
         if ($triggerPrice !== null) {
+            $request['triggerDirection'] = $ascending ? 2 : 1;
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
             $request['triggerDirection'] = $ascending ? 2 : 1;
