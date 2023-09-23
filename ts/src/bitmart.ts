@@ -2214,6 +2214,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {string} [params.side] *spot only* 'buy' or 'sell'
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -2227,11 +2228,6 @@ export default class bitmart extends Exchange {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         if (type === 'spot') {
-            const side = this.safeString (params, 'side');
-            if (side !== undefined) {
-                request['side'] = side;
-                params = this.omit (params, 'side');
-            }
             response = await this.privatePostSpotV1CancelOrders (this.extend (request, params));
         } else if (type === 'swap') {
             this.checkRequiredSymbol ('cancelAllOrders', symbol);
