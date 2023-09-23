@@ -907,8 +907,9 @@ export default class Exchange {
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
 
+        // ##### PROXY & HEADERS #####
         headers = this.extend (this.headers, headers);
-        // "url" proxy
+        // proxy "url"
         const proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
         if (proxyUrl !== undefined) {
             // in node we need to set header to *
@@ -917,6 +918,7 @@ export default class Exchange {
             }
             url = proxyUrl + url;
         }
+        // proxy agents
         await this.initializeProxies ();
         this.setProxyAgent ();
         if (proxyUrl !== undefined && this.agent !== undefined) {

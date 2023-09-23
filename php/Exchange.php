@@ -1352,12 +1352,13 @@ class Exchange {
 
         // ##### PROXY & HEADERS #####
         $headers = array_merge($this->headers, $headers ? $headers : array());
-        // "url" proxy
+        // proxy "url"
         $proxyUrl = $this->check_proxy_url_settings($url, $method, $headers, $body);
         if ($proxyUrl !== null) {
             $headers['Origin'] = $this->origin;
             $url = $proxyUrl . $url;
         }
+        // proxy agents
         $proxy_set = $this->set_proxy_agent();
         if ($proxy_set && $proxyUrl !== null) {
             throw new ExchangeError ($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
