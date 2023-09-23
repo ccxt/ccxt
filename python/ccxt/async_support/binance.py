@@ -235,6 +235,8 @@ class binance(Exchange, ImplicitAPI):
                         'asset/tradeFee': 0.1,
                         'asset/ledger-transfer/cloud-mining/queryByPage': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'asset/convert-transfer/queryByPage': 0.033335,
+                        'asset/wallet/balance': 6,  # Weight(IP): 60 => cost = 0.1 * 60 = 6
+                        'asset/custody/transfer-history': 6,  # Weight(IP): 60 => cost = 0.1 * 60 = 6
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,

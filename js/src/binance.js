@@ -212,6 +212,8 @@ export default class binance extends Exchange {
                         'asset/tradeFee': 0.1,
                         'asset/ledger-transfer/cloud-mining/queryByPage': 4.0002,
                         'asset/convert-transfer/queryByPage': 0.033335,
+                        'asset/wallet/balance': 6,
+                        'asset/custody/transfer-history': 6,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
