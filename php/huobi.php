@@ -6,20 +6,20 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\abstract\huobi as Exchange;
+use ccxt\abstract\btctradex as Exchange;
 
-class huobi extends Exchange {
+class btctradex extends Exchange {
 
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
-            'id' => 'huobi',
-            'name' => 'Huobi',
+            'id' => 'btctradex',
+            'name' => 'btctradex',
             'countries' => array( 'CN' ),
             'rateLimit' => 100,
             'userAgent' => $this->userAgents['chrome100'],
             'certified' => true,
             'version' => 'v1',
-            'hostname' => 'api.huobi.pro', // api.testnet.huobi.pro
+            'hostname' => 'api.btctradex.info', // api.testnet.btctradex.info
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -127,28 +127,28 @@ class huobi extends Exchange {
             ),
             'urls' => array(
                 // 'test' => array(
-                //     'market' => 'https://api.testnet.huobi.pro',
-                //     'public' => 'https://api.testnet.huobi.pro',
-                //     'private' => 'https://api.testnet.huobi.pro',
+                //     'market' => 'https://api.testnet.btctradex.info',
+                //     'public' => 'https://api.testnet.btctradex.info',
+                //     'private' => 'https://api.testnet.btctradex.info',
                 // ),
-                'logo' => 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
+                'logo' => '"D:\BTCTRADEX LOGO2.png"',
                 'hostnames' => array(
                     'contract' => 'api.hbdm.com',
-                    'spot' => 'api.huobi.pro',
+                    'spot' => 'api.btctradex.info',
                     'status' => array(
-                        'spot' => 'status.huobigroup.com',
+                        'spot' => 'status.btctradexgroup.com',
                         'future' => array(
-                            'inverse' => 'status-dm.huobigroup.com',
-                            'linear' => 'status-linear-swap.huobigroup.com', // USDT-Margined Contracts
+                            'inverse' => 'status-dm.btctradexgroup.com',
+                            'linear' => 'status-linear-swap.btctradexgroup.com', // USDT-Margined Contracts
                         ),
                         'swap' => array(
-                            'inverse' => 'status-swap.huobigroup.com',
-                            'linear' => 'status-linear-swap.huobigroup.com', // USDT-Margined Contracts
+                            'inverse' => 'status-swap.btctradexgroup.com',
+                            'linear' => 'status-linear-swap.btctradexgroup.com', // USDT-Margined Contracts
                         ),
                     ),
                     // recommended for AWS
                     // 'contract' => 'api.hbdm.vn',
-                    // 'spot' => 'api-aws.huobi.pro',
+                    // 'spot' => 'api-aws.btctradex.info',
                 ),
                 'api' => array(
                     'status' => 'https://{hostname}',
@@ -159,19 +159,19 @@ class huobi extends Exchange {
                     'v2Public' => 'https://{hostname}',
                     'v2Private' => 'https://{hostname}',
                 ),
-                'www' => 'https://www.huobi.com',
+                'www' => 'https://www.btctradex.info',
                 'referral' => array(
-                    'url' => 'https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223',
+                    'url' => 'https://www.btctradex.info/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223',
                     'discount' => 0.15,
                 ),
                 'doc' => array(
-                    'https://huobiapi.github.io/docs/spot/v1/en/',
-                    'https://huobiapi.github.io/docs/dm/v1/en/',
-                    'https://huobiapi.github.io/docs/coin_margined_swap/v1/en/',
-                    'https://huobiapi.github.io/docs/usdt_swap/v1/en/',
-                    'https://www.huobi.com/en-us/opend/newApiPages/',
+                    'https://btctradexapi.github.io/docs/spot/v1/en/',
+                    'https://btctradexapi.github.io/docs/dm/v1/en/',
+                    'https://btctradexapi.github.io/docs/coin_margined_swap/v1/en/',
+                    'https://btctradexapi.github.io/docs/usdt_swap/v1/en/',
+                    'https://www.btctradex.info/en-us/opend/newApiPages/',
                 ),
-                'fees' => 'https://www.huobi.com/about/fee/',
+                'fees' => 'https://www.btctradex.info/about/fee/',
             ),
             'api' => array(
                 // ------------------------------------------------------------
@@ -307,10 +307,10 @@ class huobi extends Exchange {
                 ),
                 // ------------------------------------------------------------
                 // new api definitions
-                // 'https://status.huobigroup.com/api/v2/summary.json' => 1,
-                // 'https://status-dm.huobigroup.com/api/v2/summary.json' => 1,
-                // 'https://status-swap.huobigroup.com/api/v2/summary.json' => 1,
-                // 'https://status-linear-swap.huobigroup.com/api/v2/summary.json' => 1,
+                // 'https://status.btctradexgroup.com/api/v2/summary.json' => 1,
+                // 'https://status-dm.btctradexgroup.com/api/v2/summary.json' => 1,
+                // 'https://status-swap.btctradexgroup.com/api/v2/summary.json' => 1,
+                // 'https://status-linear-swap.btctradexgroup.com/api/v2/summary.json' => 1,
                 'status' => array(
                     'public' => array(
                         'spot' => array(
@@ -1086,8 +1086,8 @@ class huobi extends Exchange {
         //      {
         //          "page" => array(
         //              "id":"mn7l2lw8pz4p",
-        //              "name":"Huobi Futures-USDT-margined Swaps",
-        //              "url":"https://status-linear-swap.huobigroup.com",
+        //              "name":"btctradex Futures-USDT-margined Swaps",
+        //              "url":"https://status-linear-swap.btctradexgroup.com",
         //              "time_zone":"Asia/Singapore",
         //              "updated_at":"2022-04-29T12:47:21.319+08:00"),
         //              "components" => array(
@@ -1269,7 +1269,7 @@ class huobi extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $options = $this->safe_value($this->options, 'fetchTime', array());
@@ -1316,7 +1316,7 @@ class huobi extends Exchange {
         /**
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structure}
          */
         $this->load_markets();
@@ -1418,7 +1418,7 @@ class huobi extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
-         * retrieves data on all markets for huobi
+         * retrieves data on all markets for btctradex
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -1849,7 +1849,7 @@ class huobi extends Exchange {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
          */
         $this->load_markets();
@@ -1924,12 +1924,12 @@ class huobi extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-$tickers-for-all-pairs
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-$market-data-overview
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-$market-data-overview
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-$market-data-overview-v2
+         * @see https://btctradexapi.github.io/docs/spot/v1/en/#get-latest-$tickers-for-all-pairs
+         * @see https://btctradexapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-$market-data-overview
+         * @see https://btctradexapi.github.io/docs/dm/v1/en/#get-a-batch-of-$market-data-overview
+         * @see https://btctradexapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-$market-data-overview-v2
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
          */
         $this->load_markets();
@@ -2077,7 +2077,7 @@ class huobi extends Exchange {
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
@@ -2107,7 +2107,7 @@ class huobi extends Exchange {
             }
         } else {
             if ($limit !== null) {
-                // Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-$market-depth
+                // Valid depths are 5, 10, 20 or empty https://btctradexapi.github.io/docs/spot/v1/en/#get-$market-depth
                 if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 150)) {
                     throw new BadRequest($this->id . ' fetchOrderBook() $limit argument must be null, 5, 10, 20, or 150, default is 150');
                 }
@@ -2302,7 +2302,7 @@ class huobi extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $market = null;
@@ -2332,7 +2332,7 @@ class huobi extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->load_markets();
@@ -2486,7 +2486,7 @@ class huobi extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest $trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades $trade structures}
          */
         $this->load_markets();
@@ -2580,15 +2580,15 @@ class huobi extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-kline-$data
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-$data
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-$data
+         * @see https://btctradexapi.github.io/docs/spot/v1/en/#get-klines-candles
+         * @see https://btctradexapi.github.io/docs/dm/v1/en/#get-kline-$data
+         * @see https://btctradexapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-$data
+         * @see https://btctradexapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-$data
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -2667,7 +2667,7 @@ class huobi extends Exchange {
         if ($market['contract']) {
             if ($limit !== null) {
                 $request['size'] = $limit; // when using $limit from and to are ignored
-                // https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-$data
+                // https://btctradexapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-$data
             } else {
                 $limit = 2000; // only used for from/to calculation
             }
@@ -2705,7 +2705,7 @@ class huobi extends Exchange {
     public function fetch_accounts($params = array ()) {
         /**
          * fetch all the accounts associated with a profile
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure account structures} indexed by the account type
          */
         $this->load_markets();
@@ -2777,7 +2777,7 @@ class huobi extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} an associative dictionary of currencies
          */
         $response = $this->spotPublicGetV2ReferenceCurrencies ($params);
@@ -2928,7 +2928,7 @@ class huobi extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * query for $balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @param {bool} [$params->unified] provide this parameter if you have a recent $account with unified $cross+$isolated $margin $account
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$balance-structure $balance structure}
          */
@@ -3204,7 +3204,7 @@ class huobi extends Exchange {
                     $currency = $this->safe_currency($currencyId);
                     $code = $this->safe_string($market, 'settle', $currency['code']);
                     // the exchange outputs positions for delisted markets
-                    // https://www.huobi.com/support/en-us/detail/74882968522337
+                    // https://www.btctradex.info/support/en-us/detail/74882968522337
                     // we skip it if the $market was delisted
                     if ($code !== null) {
                         $account = $this->account();
@@ -3244,7 +3244,7 @@ class huobi extends Exchange {
         /**
          * fetches information on an $order made by the user
          * @param {string} $symbol unified $symbol of the $market the $order was made in
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
         $this->load_markets();
@@ -3767,7 +3767,7 @@ class huobi extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @param {bool} [$params->stop] *$contract only* if the orders are stop trigger orders or not
          * @param {bool} [$params->stopLossTakeProfit] *$contract only* if the orders are stop-loss or take-profit orders
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
@@ -3798,7 +3798,7 @@ class huobi extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
@@ -3823,7 +3823,7 @@ class huobi extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @param {bool} [$params->stop] *contract only* if the $orders are $stop trigger $orders or not
          * @param {bool} [$params->stopLossTakeProfit] *contract only* if the $orders are $stop-loss or take-profit $orders
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
@@ -4469,21 +4469,21 @@ class huobi extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        // coin-m swap
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   // coin-m swap trigger
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           // usdt-m swap cross
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      // usdt-m swap cross trigger
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        // usdt-m swap isolated
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   // usdt-m swap isolated trigger
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        // coin-m futures
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   // coin-m futures contract trigger
+         * @see https://btctradexapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
+         * @see https://btctradexapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        // coin-m swap
+         * @see https://btctradexapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   // coin-m swap trigger
+         * @see https://btctradexapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           // usdt-m swap cross
+         * @see https://btctradexapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      // usdt-m swap cross trigger
+         * @see https://btctradexapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        // usdt-m swap isolated
+         * @see https://btctradexapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   // usdt-m swap isolated trigger
+         * @see https://btctradexapi.github.io/docs/dm/v1/en/#place-an-order                        // coin-m futures
+         * @see https://btctradexapi.github.io/docs/dm/v1/en/#place-trigger-order                   // coin-m futures contract trigger
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @param {float} [$params->stopPrice] the $price a trigger order is triggered at
          * @param {string} [$params->triggerType] *contract trigger orders only* ge => greater than or equal to, le => less than or equal to
          * @param {float} [$params->stopLossPrice] *contract only* the $price a stop-loss order is triggered at
@@ -4510,13 +4510,13 @@ class huobi extends Exchange {
         /**
          * @ignore
          * create a spot trade order
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order
+         * @see https://btctradexapi.github.io/docs/spot/v1/en/#place-a-new-order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the huobi api endpoint
+         * @param {array} $params extra parameters specific to the btctradex api endpoint
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
@@ -4637,16 +4637,16 @@ class huobi extends Exchange {
         /**
          * @ignore
          * create a contract trade order
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order
+         * @see https://btctradexapi.github.io/docs/dm/v1/en/#place-an-order
+         * @see https://btctradexapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order
+         * @see https://btctradexapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order
+         * @see https://btctradexapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the huobi api endpoint
+         * @param {array} $params extra parameters specific to the btctradex api endpoint
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $market = $this->market($symbol);
@@ -4797,7 +4797,7 @@ class huobi extends Exchange {
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @param {bool} [$params->stop] *contract only* if the order is a $stop trigger order or not
          * @param {bool} [$params->stopLossTakeProfit] *contract only* if the order is a $stop-loss or take-profit order
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
@@ -4922,7 +4922,7 @@ class huobi extends Exchange {
          * cancel multiple orders
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol, default is null
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @param {bool} [$params->stop] *contract only* if the orders are $stop trigger orders or not
          * @param {bool} [$params->stopLossTakeProfit] *contract only* if the orders are $stop-loss or take-profit orders
          * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
@@ -5082,7 +5082,7 @@ class huobi extends Exchange {
         /**
          * cancel all open orders
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @param {bool} [$params->stop] *contract only* if the orders are $stop trigger orders or not
          * @param {bool} [$params->stopLossTakeProfit] *contract only* if the orders are $stop-loss or take-profit orders
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
@@ -5223,7 +5223,7 @@ class huobi extends Exchange {
         /**
          * fetch a dictionary of addresses for a $currency, indexed by network
          * @param {string} $code unified $currency $code of the $currency for the deposit address
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structures} indexed by the network
          */
         $this->load_markets();
@@ -5254,7 +5254,7 @@ class huobi extends Exchange {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
          */
         $this->load_markets();
@@ -5306,7 +5306,7 @@ class huobi extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         if ($limit === null || $limit > 100) {
@@ -5364,7 +5364,7 @@ class huobi extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         if ($limit === null || $limit > 100) {
@@ -5537,7 +5537,7 @@ class huobi extends Exchange {
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
@@ -5616,18 +5616,18 @@ class huobi extends Exchange {
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated
+         * @see https://btctradexapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
+         * @see https://btctradexapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
+         * @see https://btctradexapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
+         * @see https://btctradexapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross
+         * @see https://btctradexapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated
+         * @see https://btctradexapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross
+         * @see https://btctradexapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from 'spot', 'future', 'swap'
          * @param {string} $toAccount account to transfer to 'spot', 'future', 'swap'
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @param {string} [$params->symbol] used for isolated margin transfer
          * @param {string} [$params->subType] 'linear' or 'inverse', only used when transfering to/from swap accounts
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structure}
@@ -5705,7 +5705,7 @@ class huobi extends Exchange {
     public function fetch_borrow_rates_per_symbol($params = array ()) {
         /**
          * fetch borrow $rates for $currencies within individual markets
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-$rate-structure borrow $rate structures} indexed by market $symbol
          */
         $this->load_markets();
@@ -5770,7 +5770,7 @@ class huobi extends Exchange {
     public function fetch_borrow_rates($params = array ()) {
         /**
          * fetch the borrow interest $rates of all $currencies
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structures}
          */
         $this->load_markets();
@@ -5829,9 +5829,9 @@ class huobi extends Exchange {
         /**
          * fetches historical funding rate prices
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-         * @param {int} [$since] not used by huobi, but filtered internally by ccxt
-         * @param {int} [$limit] not used by huobi, but filtered internally by ccxt
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {int} [$since] not used by btctradex, but filtered internally by ccxt
+         * @param {int} [$limit] not used by btctradex, but filtered internally by ccxt
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
          */
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
@@ -5937,7 +5937,7 @@ class huobi extends Exchange {
         /**
          * fetch the current funding rate
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
          */
         $this->load_markets();
@@ -5977,7 +5977,7 @@ class huobi extends Exchange {
         /**
          * fetch the funding rate for multiple markets
          * @param {string[]|null} $symbols list of unified market $symbols
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure funding rates structures}, indexe by market $symbols
          */
         $this->load_markets();
@@ -6025,7 +6025,7 @@ class huobi extends Exchange {
          * @param {string} $symbol unified $market $symbol when fetch $interest in isolated markets
          * @param {int} [$since] the earliest time in ms to fetch borrrow $interest for
          * @param {int} [$limit] the maximum number of structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-$interest-structure borrow $interest structures}
          */
         $this->load_markets();
@@ -6300,13 +6300,13 @@ class huobi extends Exchange {
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this account
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-$query-account-financial-records-via-multiple-fields-new   // linear swaps
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#$query-financial-records-via-multiple-fields-new                          // coin-m futures
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#$query-financial-records-via-multiple-fields-new          // coin-m swaps
+         * @see https://btctradexapi.github.io/docs/usdt_swap/v1/en/#general-$query-account-financial-records-via-multiple-fields-new   // linear swaps
+         * @see https://btctradexapi.github.io/docs/dm/v1/en/#$query-financial-records-via-multiple-fields-new                          // coin-m futures
+         * @see https://btctradexapi.github.io/docs/coin_margined_swap/v1/en/#$query-financial-records-via-multiple-fields-new          // coin-m swaps
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structure}
          */
         $this->load_markets();
@@ -6390,7 +6390,7 @@ class huobi extends Exchange {
          * set the level of $leverage for a $market
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} $response from the exchange
          */
         $this->check_required_symbol('setLeverage', $symbol);
@@ -6576,7 +6576,7 @@ class huobi extends Exchange {
         /**
          * fetch all open positions
          * @param {string[]|null} $symbols list of unified $market $symbols
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$position-structure $position structure}
          */
         $this->load_markets();
@@ -6704,7 +6704,7 @@ class huobi extends Exchange {
         /**
          * fetch $data on a single open contract trade $position
          * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$position-structure $position structure}
          */
         $this->load_markets();
@@ -7019,7 +7019,7 @@ class huobi extends Exchange {
          * @param {string} $code unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entrys to return, default is null
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
          */
         $this->load_markets();
@@ -7086,7 +7086,7 @@ class huobi extends Exchange {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {string[]|null} $symbols list of unified market $symbols
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
          */
         $this->load_markets();
@@ -7128,7 +7128,7 @@ class huobi extends Exchange {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-$tiers-structure leverage $tiers structure}
          */
         $this->load_markets();
@@ -7212,12 +7212,12 @@ class huobi extends Exchange {
     public function fetch_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * Retrieves the open interest history of a currency
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
+         * @see https://btctradexapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
+         * @see https://btctradexapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
+         * @see https://btctradexapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $timeframe '1h', '4h', '12h', or '1d'
-         * @param {int} [$since] Not used by huobi api, but $response parsed by CCXT
+         * @param {int} [$since] Not used by btctradex api, but $response parsed by CCXT
          * @param {int} [$limit] Default：48，Data Range [1,200]
          * @param {array} [$params] Exchange specific parameters
          * @param {int} [$params->amount_type] *required* Open interest unit. 1-cont，2-cryptocurrency
@@ -7326,9 +7326,9 @@ class huobi extends Exchange {
     public function fetch_open_interest(string $symbol, $params = array ()) {
         /**
          * Retrieves the open interest of a currency
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+         * @see https://btctradexapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+         * @see https://btctradexapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+         * @see https://btctradexapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
          * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure)
@@ -7497,12 +7497,12 @@ class huobi extends Exchange {
     public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-isolated
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-cross
+         * @see https://btctradexapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-isolated
+         * @see https://btctradexapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-cross
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
          * @param {string} $symbol unified $market $symbol, required for isolated margin
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
          */
         $this->load_markets();
@@ -7548,11 +7548,11 @@ class huobi extends Exchange {
     public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-$loan-cross-isolated
+         * @see https://btctradexapi.github.io/docs/spot/v1/en/#repay-margin-$loan-cross-isolated
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {string} $symbol unified market $symbol
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-$loan-structure margin $loan structure}
          */
         $this->load_markets();
@@ -7732,9 +7732,9 @@ class huobi extends Exchange {
     public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
+         * @see https://btctradexapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
          * @param {string[]|null} $codes list of unified currency $codes
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the btctradex api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fees structures}
          */
         $this->load_markets();
