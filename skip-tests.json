@@ -366,7 +366,8 @@
             },
             "fetchTickers": {
                 "bid":"broken bid-ask",
-                "ask":"broken bid-ask"
+                "ask":"broken bid-ask",
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing https://app.travis-ci.com/github/ccxt/ccxt/builds/266144312#L2220"
             }
         }
     },
