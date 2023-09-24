@@ -156,7 +156,7 @@ class ascendex extends \ccxt\async\ascendex {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -218,7 +218,7 @@ class ascendex extends \ccxt\async\ascendex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -280,8 +280,8 @@ class ascendex extends \ccxt\async\ascendex {
         // unroll the accumulated deltas
         $messages = $orderbook->cache;
         for ($i = 0; $i < count($messages); $i++) {
-            $message = $messages[$i];
-            $this->handle_order_book_message($client, $message, $orderbook);
+            $messageItem = $messages[$i];
+            $this->handle_order_book_message($client, $messageItem, $orderbook);
         }
         $this->orderbooks[$symbol] = $orderbook;
         $client->resolve ($orderbook, $messageHash);
@@ -369,9 +369,9 @@ class ascendex extends \ccxt\async\ascendex {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * $query for balance and get the amount of funds available for trading or funds locked in orders
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             list($type, $query) = $this->handle_market_type_and_params('watchBalance', null, $params);
@@ -497,7 +497,7 @@ class ascendex extends \ccxt\async\ascendex {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $market = null;

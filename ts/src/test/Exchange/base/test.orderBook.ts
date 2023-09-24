@@ -25,6 +25,9 @@ function testOrderBook (exchange, skippedProperties, method, entry, symbol) {
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
     const logText = testSharedMethods.logTemplate (exchange, method, entry);
     //
+    if (('bid' in skippedProperties) || ('ask' in skippedProperties)) {
+        return;
+    }
     const bids = entry['bids'];
     const bidsLength = bids.length;
     for (let i = 0; i < bidsLength; i++) {

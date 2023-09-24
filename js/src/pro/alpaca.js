@@ -54,7 +54,7 @@ export default class alpaca extends alpacaRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate(url);
@@ -186,7 +186,7 @@ export default class alpaca extends alpacaRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return.
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate(url);
@@ -262,11 +262,11 @@ export default class alpaca extends alpacaRest {
          * @method
          * @name alpaca#watchTrades
          * @description watches information on multiple trades made in a market
-         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate(url);
@@ -314,12 +314,12 @@ export default class alpaca extends alpacaRest {
          * @method
          * @name alpaca#watchMyTrades
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
          * @param {boolean} [params.unifiedMargin] use unified margin account
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate(url);
@@ -350,7 +350,7 @@ export default class alpaca extends alpacaRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
          */
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate(url);
@@ -566,9 +566,9 @@ export default class alpaca extends alpacaRest {
         this.checkRequiredCredentials();
         const messageHash = 'authenticated';
         const client = this.client(url);
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future('authenticated');
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             let request = {
                 'action': 'auth',
                 'key': this.apiKey,
@@ -584,9 +584,9 @@ export default class alpaca extends alpacaRest {
                     },
                 };
             }
-            this.spawn(this.watch, url, messageHash, request, messageHash, future);
+            this.watch(url, messageHash, request, messageHash, future);
         }
-        return await future;
+        return future;
     }
     handleErrorMessage(client, message) {
         //
@@ -684,7 +684,8 @@ export default class alpaca extends alpacaRest {
         const data = this.safeValue(message, 'data', {});
         const status = this.safeString(data, 'status');
         if (T === 'success' || status === 'authorized') {
-            client.resolve(message, 'authenticated');
+            const promise = client.futures['authenticated'];
+            promise.resolve(message);
             return;
         }
         throw new AuthenticationError(this.id + ' failed to authenticate.');

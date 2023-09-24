@@ -152,7 +152,7 @@ export default class poloniex extends poloniexRest {
             subscribe['symbols'] = marketIds;
         }
         const request = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, request, name);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -189,7 +189,7 @@ export default class poloniex extends poloniexRest {
          * @see https://docs.poloniex.com/#public-channels-market-data-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -205,7 +205,7 @@ export default class poloniex extends poloniexRest {
          * @see https://docs.poloniex.com/#public-channels-market-data-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         const name = 'ticker';
@@ -227,7 +227,7 @@ export default class poloniex extends poloniexRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -248,7 +248,7 @@ export default class poloniex extends poloniexRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] not used by poloniex watchOrderBook
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const watchOrderBookOptions = this.safeValue (this.options, 'watchOrderBook');
@@ -268,7 +268,7 @@ export default class poloniex extends poloniexRest {
          * @param {int} [since] not used by poloniex watchOrders
          * @param {int} [limit] not used by poloniex watchOrders
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const name = 'orders';
@@ -294,7 +294,7 @@ export default class poloniex extends poloniexRest {
          * @param {int} [since] not used by poloniex watchMyTrades
          * @param {int} [limit] not used by poloniex watchMyTrades
          * @param {object} [params] extra parameters specific to the poloniex strean
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
         const name = 'orders';
@@ -314,14 +314,11 @@ export default class poloniex extends poloniexRest {
     async watchBalance (params = {}) {
         /**
          * @method
-         * @name poloniex#watchOrders
-         * @description watches information on multiple orders made by the user
+         * @name poloniex#watchBalance
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.poloniex.com/#authenticated-channels-market-data-balances
-         * @param {string} symbol not used by poloniex watchBalance
-         * @param {int} [since] not used by poloniex watchBalance
-         * @param {int} [limit] not used by poloniex watchBalance
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
         const name = 'balances';
@@ -640,8 +637,8 @@ export default class poloniex extends poloniexRest {
                     let totalCost = '0';
                     let totalAmount = '0';
                     const previousOrderTrades = previousOrder['trades'];
-                    for (let i = 0; i < previousOrderTrades.length; i++) {
-                        const previousOrderTrade = previousOrderTrades[i];
+                    for (let j = 0; j < previousOrderTrades.length; j++) {
+                        const previousOrderTrade = previousOrderTrades[j];
                         const cost = this.numberToString (previousOrderTrade['cost']);
                         const amount = this.numberToString (previousOrderTrade['amount']);
                         totalCost = Precise.stringAdd (totalCost, cost);
@@ -678,8 +675,8 @@ export default class poloniex extends poloniexRest {
                     previousOrder['status'] = state;
                     // update the newUpdates count
                     orders.append (previousOrder);
-                    marketIds.push (marketId);
                 }
+                marketIds.push (marketId);
             }
         }
         for (let i = 0; i < marketIds.length; i++) {
@@ -687,7 +684,7 @@ export default class poloniex extends poloniexRest {
             const market = this.market (marketId);
             const symbol = market['symbol'];
             const messageHash = 'orders::' + symbol;
-            client.resolve (orders[symbol], messageHash);
+            client.resolve (orders, messageHash);
         }
         client.resolve (orders, 'orders');
         return message;
@@ -884,16 +881,16 @@ export default class poloniex extends poloniexRest {
                 }
                 const orderbook = this.orderbooks[symbol];
                 if (bids !== undefined) {
-                    for (let i = 0; i < bids.length; i++) {
-                        const bid = this.safeValue (bids, i);
+                    for (let j = 0; j < bids.length; j++) {
+                        const bid = this.safeValue (bids, j);
                         const price = this.safeNumber (bid, 0);
                         const amount = this.safeNumber (bid, 1);
                         orderbook['bids'].store (price, amount);
                     }
                 }
                 if (asks !== undefined) {
-                    for (let i = 0; i < asks.length; i++) {
-                        const ask = this.safeValue (asks, i);
+                    for (let j = 0; j < asks.length; j++) {
+                        const ask = this.safeValue (asks, j);
                         const price = this.safeNumber (ask, 0);
                         const amount = this.safeNumber (ask, 1);
                         orderbook['asks'].store (price, amount);

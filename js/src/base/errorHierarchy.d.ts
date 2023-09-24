@@ -11,6 +11,7 @@ declare const errorHierarchy: {
             BadRequest: {
                 BadSymbol: {};
                 MarginModeAlreadySet: {};
+                NoChange: {};
             };
             BadResponse: {
                 NullResponse: {};
@@ -26,6 +27,7 @@ declare const errorHierarchy: {
                 OrderImmediatelyFillable: {};
                 OrderNotFillable: {};
                 DuplicateOrderId: {};
+                ContractUnavailable: {};
             };
             NotSupported: {};
         };

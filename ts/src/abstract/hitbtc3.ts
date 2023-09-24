@@ -6,9 +6,9 @@
 // -------------------------------------------------------------------------------
 
 import { implicitReturnType } from '../base/types.js';
-import { Exchange as _Exchange } from '../base/Exchange.js';
+import _hitbtc from '../hitbtc.js';
 
-interface Exchange {
+interface hitbtc {
     publicGetPublicCurrency (params?: {}): Promise<implicitReturnType>;
     publicGetPublicSymbol (params?: {}): Promise<implicitReturnType>;
     publicGetPublicTicker (params?: {}): Promise<implicitReturnType>;
@@ -89,6 +89,6 @@ interface Exchange {
     privatePutFuturesAccountIsolatedSymbol (params?: {}): Promise<implicitReturnType>;
     privatePutWalletCryptoWithdrawId (params?: {}): Promise<implicitReturnType>;
 }
-abstract class Exchange extends _Exchange {}
+abstract class hitbtc extends _hitbtc {}
 
-export default Exchange
+export default hitbtc

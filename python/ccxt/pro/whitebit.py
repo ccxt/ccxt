@@ -134,7 +134,7 @@ class whitebit(ccxt.async_support.whitebit):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the whitebit api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -229,7 +229,7 @@ class whitebit(ccxt.async_support.whitebit):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the whitebit api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -272,8 +272,8 @@ class whitebit(ccxt.async_support.whitebit):
         # watchTickers
         messageHashes = list(client.futures.keys())
         for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
-            if messageHash.find('tickers') >= 0 and messageHash.find(symbol) >= 0:
+            currentMessageHash = messageHashes[i]
+            if currentMessageHash.find('tickers') >= 0 and currentMessageHash.find(symbol) >= 0:
                 # Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
                 # the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'
                 # since we only have access to a single symbol at a time
@@ -283,7 +283,7 @@ class whitebit(ccxt.async_support.whitebit):
                 # user might have multiple watchTickers promises
                 # watchTickers( ['LTC/USDT', 'ETH/USDT'] ), watchTickers( ['ETC/USDT', 'DOGE/USDT'] )
                 # and we want to make sure we resolve only the correct ones
-                client.resolve(ticker, messageHash)
+                client.resolve(ticker, currentMessageHash)
         return message
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -293,7 +293,7 @@ class whitebit(ccxt.async_support.whitebit):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the whitebit api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -354,7 +354,7 @@ class whitebit(ccxt.async_support.whitebit):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the whitebit api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades requires a symbol argument')
@@ -447,7 +447,7 @@ class whitebit(ccxt.async_support.whitebit):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the whitebit api endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
@@ -605,10 +605,10 @@ class whitebit(ccxt.async_support.whitebit):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
+        watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the whitebit api endpoint
         :param str [params.type]: spot or contract if not provided self.options['defaultType'] is used
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         type = None
@@ -706,14 +706,14 @@ class whitebit(ccxt.async_support.whitebit):
                 return await self.watch(url, messageHash, request, method, subscription)
             else:
                 # resubscribe
-                marketIds = []
-                marketIds = list(subscription.keys())
+                marketIdsNew = []
+                marketIdsNew = list(subscription.keys())
                 if isNested:
-                    marketIds = [marketIds]
+                    marketIdsNew = [marketIdsNew]
                 resubRequest = {
                     'id': id,
                     'method': method,
-                    'params': marketIds,
+                    'params': marketIdsNew,
                 }
                 if method in client.subscriptions:
                     del client.subscriptions[method]

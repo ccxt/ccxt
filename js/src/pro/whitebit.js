@@ -137,7 +137,7 @@ export default class whitebit extends whitebitRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -240,7 +240,7 @@ export default class whitebit extends whitebitRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -283,8 +283,8 @@ export default class whitebit extends whitebitRest {
         // watchTickers
         const messageHashes = Object.keys(client.futures);
         for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            if (messageHash.indexOf('tickers') >= 0 && messageHash.indexOf(symbol) >= 0) {
+            const currentMessageHash = messageHashes[i];
+            if (currentMessageHash.indexOf('tickers') >= 0 && currentMessageHash.indexOf(symbol) >= 0) {
                 // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
                 // the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'
                 // since we only have access to a single symbol at a time
@@ -294,7 +294,7 @@ export default class whitebit extends whitebitRest {
                 // user might have multiple watchTickers promises
                 // watchTickers ( ['LTC/USDT', 'ETH/USDT'] ), watchTickers ( ['ETC/USDT', 'DOGE/USDT'] )
                 // and we want to make sure we resolve only the correct ones
-                client.resolve(ticker, messageHash);
+                client.resolve(ticker, currentMessageHash);
             }
         }
         return message;
@@ -308,7 +308,7 @@ export default class whitebit extends whitebitRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -374,7 +374,7 @@ export default class whitebit extends whitebitRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' watchMyTrades requires a symbol argument');
@@ -473,7 +473,7 @@ export default class whitebit extends whitebitRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' watchOrders requires a symbol argument');
@@ -643,10 +643,10 @@ export default class whitebit extends whitebitRest {
         /**
          * @method
          * @name whitebit#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         let type = undefined;
@@ -752,15 +752,15 @@ export default class whitebit extends whitebitRest {
             }
             else {
                 // resubscribe
-                let marketIds = [];
-                marketIds = Object.keys(subscription);
+                let marketIdsNew = [];
+                marketIdsNew = Object.keys(subscription);
                 if (isNested) {
-                    marketIds = [marketIds];
+                    marketIdsNew = [marketIdsNew];
                 }
                 const resubRequest = {
                     'id': id,
                     'method': method,
-                    'params': marketIds,
+                    'params': marketIdsNew,
                 };
                 if (method in client.subscriptions) {
                     delete client.subscriptions[method];

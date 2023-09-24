@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.37'
+__version__ = '4.0.105'
 
 # -----------------------------------------------------------------------------
 
@@ -30,6 +30,7 @@ from ccxt.base.errors import ArgumentsRequired                        # noqa: F4
 from ccxt.base.errors import BadRequest                               # noqa: F401
 from ccxt.base.errors import BadSymbol                                # noqa: F401
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
+from ccxt.base.errors import NoChange                                 # noqa: F401
 from ccxt.base.errors import BadResponse                              # noqa: F401
 from ccxt.base.errors import NullResponse                             # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
@@ -42,6 +43,7 @@ from ccxt.base.errors import CancelPending                            # noqa: F4
 from ccxt.base.errors import OrderImmediatelyFillable                 # noqa: F401
 from ccxt.base.errors import OrderNotFillable                         # noqa: F401
 from ccxt.base.errors import DuplicateOrderId                         # noqa: F401
+from ccxt.base.errors import ContractUnavailable                      # noqa: F401
 from ccxt.base.errors import NotSupported                             # noqa: F401
 from ccxt.base.errors import NetworkError                             # noqa: F401
 from ccxt.base.errors import DDoSProtection                           # noqa: F401
@@ -84,7 +86,6 @@ from ccxt.async_support.bitstamp import bitstamp                                
 from ccxt.async_support.bitstamp1 import bitstamp1                              # noqa: F401
 from ccxt.async_support.bittrex import bittrex                                  # noqa: F401
 from ccxt.async_support.bitvavo import bitvavo                                  # noqa: F401
-from ccxt.async_support.bkex import bkex                                        # noqa: F401
 from ccxt.async_support.bl3p import bl3p                                        # noqa: F401
 from ccxt.async_support.blockchaincom import blockchaincom                      # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                                # noqa: F401
@@ -192,7 +193,6 @@ exchanges = [
     'bitstamp1',
     'bittrex',
     'bitvavo',
-    'bkex',
     'bl3p',
     'blockchaincom',
     'btcalpha',

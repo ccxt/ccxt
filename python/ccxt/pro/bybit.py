@@ -8,7 +8,9 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 import hashlib
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import AuthenticationError
 
@@ -22,11 +24,14 @@ class bybit(ccxt.async_support.bybit):
                 'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
+                'watchOHLCVForSymbols': True,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': False,  # for now
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
                 'watchPosition': None,
             },
             'urls': {
@@ -160,7 +165,7 @@ class bybit(ccxt.async_support.bybit):
         see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -280,7 +285,8 @@ class bybit(ccxt.async_support.bybit):
         topic = self.safe_string(message, 'topic', '')
         updateType = self.safe_string(message, 'type', '')
         data = self.safe_value(message, 'data', {})
-        isSpot = self.safe_string(data, 's') is not None
+        isSpot = self.safe_string(data, 'openInterestValue') is None
+        type = 'spot' if isSpot else 'contract'
         symbol = None
         parsed = None
         if (updateType == 'snapshot') or isSpot:
@@ -290,7 +296,7 @@ class bybit(ccxt.async_support.bybit):
             topicParts = topic.split('.')
             topicLength = len(topicParts)
             marketId = self.safe_string(topicParts, topicLength - 1)
-            market = self.market(marketId)
+            market = self.safe_market(marketId, None, None, type)
             symbol = market['symbol']
             # update the info in place
             ticker = self.safe_value(self.tickers, symbol, {})
@@ -330,6 +336,41 @@ class bybit(ccxt.async_support.bybit):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+        see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :returns dict: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        topics = []
+        hashes = []
+        firstSymbol = None
+        for i in range(0, len(symbolsAndTimeframes)):
+            data = symbolsAndTimeframes[i]
+            symbolString = self.safe_string(data, 0)
+            timeframeString = self.safe_string(data, 1)
+            market = self.market(symbolString)
+            symbolString = market['symbol']
+            if i == 0:
+                firstSymbol = market['symbol']
+            timeframeId = self.safe_string(self.timeframes, timeframeString, timeframeString)
+            topic = 'kline.' + timeframeId + '.' + market['id']
+            topics.append(topic)
+            hashes.append(symbolString + '#' + timeframeString)
+        messageHash = 'multipleOHLCV::' + ','.join(hashes)
+        url = self.get_url_by_market_type(firstSymbol, False, params)
+        symbol, timeframe, stored = await self.watch_topics(url, messageHash, topics, params)
+        if self.newUpdates:
+            limit = stored.getLimit(symbol, limit)
+        filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
+        return self.create_ohlcv_object(symbol, timeframe, filtered)
+
     def handle_ohlcv(self, client: Client, message):
         #
         #     {
@@ -358,6 +399,7 @@ class bybit(ccxt.async_support.bybit):
         topicParts = topic.split('.')
         topicLength = len(topicParts)
         timeframeId = self.safe_string(topicParts, 1)
+        timeframe = self.find_timeframe(timeframeId)
         marketId = self.safe_string(topicParts, topicLength - 1)
         isSpot = client.url.find('spot') > -1
         marketType = 'spot' if isSpot else 'contract'
@@ -366,16 +408,17 @@ class bybit(ccxt.async_support.bybit):
         ohlcvsByTimeframe = self.safe_value(self.ohlcvs, symbol)
         if ohlcvsByTimeframe is None:
             self.ohlcvs[symbol] = {}
-        stored = self.safe_value(ohlcvsByTimeframe, timeframeId)
+        stored = self.safe_value(ohlcvsByTimeframe, timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
-            self.ohlcvs[symbol][timeframeId] = stored
+            self.ohlcvs[symbol][timeframe] = stored
         for i in range(0, len(data)):
             parsed = self.parse_ws_ohlcv(data[i])
             stored.append(parsed)
         messageHash = 'kline' + ':' + timeframeId + ':' + symbol
         client.resolve(stored, messageHash)
+        self.resolve_multiple_ohlcv(client, 'multipleOHLCV::', symbol, timeframe, stored)
 
     def parse_ws_ohlcv(self, ohlcv, market=None):
         #
@@ -409,7 +452,7 @@ class bybit(ccxt.async_support.bybit):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -428,6 +471,40 @@ class bybit(ccxt.async_support.bybit):
                 if (limit != 1) and (limit != 50) and (limit != 200) and (limit != 500):
                     raise BadRequest(self.id + ' watchOrderBook() can only use limit 1, 50, 200 and 500.')
         topics = ['orderbook.' + str(limit) + '.' + market['id']]
+        orderbook = await self.watch_topics(url, messageHash, topics, params)
+        return orderbook.limit()
+
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: the maximum amount of order book entries to return.
+        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        symbolsLength = len(symbols)
+        if symbolsLength == 0:
+            raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
+        symbols = self.market_symbols(symbols)
+        url = self.get_url_by_market_type(symbols[0], False, params)
+        params = self.clean_params(params)
+        market = self.market(symbols[0])
+        if limit is None:
+            limit = 50 if (market['spot']) else 500
+        else:
+            if not market['spot']:
+                # bybit only support limit 1, 50, 200, 500 for contract
+                if (limit != 1) and (limit != 50) and (limit != 200) and (limit != 500):
+                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500.')
+        topics = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            currentMarket = self.market(symbol)
+            topic = 'orderbook.' + str(limit) + '.' + currentMarket['id']
+            topics.append(topic)
+        messageHash = 'multipleOrderbook::' + ','.join(symbols)
         orderbook = await self.watch_topics(url, messageHash, topics, params)
         return orderbook.limit()
 
@@ -490,6 +567,8 @@ class bybit(ccxt.async_support.bybit):
         messageHash = 'orderbook' + ':' + symbol
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
+        # handle watchOrderBookForSymbols
+        self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbook::', symbol, orderbook)
 
     def handle_delta(self, bookside, delta):
         bidAsk = self.parse_bid_ask(delta, 0, 1)
@@ -503,11 +582,11 @@ class bybit(ccxt.async_support.bybit):
         """
         watches information on multiple trades made in a market
         see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param str symbol: unified market symbol of the market trades were made in
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -519,6 +598,37 @@ class bybit(ccxt.async_support.bybit):
         trades = await self.watch_topics(url, messageHash, [topic], params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        get the list of most recent trades for a list of symbols
+        see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+        :param str[] symbols: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        symbolsLength = len(symbols)
+        if symbolsLength == 0:
+            raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
+        url = self.get_url_by_market_type(symbols[0], False, params)
+        topics = []
+        params = self.clean_params(params)
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            topic = 'publicTrade.' + market['id']
+            topics.append(topic)
+        messageHash = 'multipleTrades::' + ','.join(symbols)
+        trades = await self.watch_topics(url, messageHash, topics, params)
+        if self.newUpdates:
+            first = self.safe_value(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client: Client, message):
@@ -560,6 +670,8 @@ class bybit(ccxt.async_support.bybit):
             stored.append(parsed)
         messageHash = 'trade' + ':' + symbol
         client.resolve(stored, messageHash)
+        # handle watchTradesForSymbols part
+        self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, stored)
 
     def parse_ws_trade(self, trade, market=None):
         #
@@ -646,7 +758,7 @@ class bybit(ccxt.async_support.bybit):
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :param boolean [params.unifiedMargin]: use unified margin account
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
         """
         method = 'watchMyTrades'
         messageHash = 'myTrades'
@@ -665,7 +777,7 @@ class bybit(ccxt.async_support.bybit):
         trades = await self.watch_topics(url, messageHash, [topic], params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trades(self, client: Client, message):
         #
@@ -749,8 +861,8 @@ class bybit(ccxt.async_support.bybit):
             trades.append(parsed)
         keys = list(symbols.keys())
         for i in range(0, len(keys)):
-            messageHash = 'myTrades:' + keys[i]
-            client.resolve(trades, messageHash)
+            currentMessageHash = 'myTrades:' + keys[i]
+            client.resolve(trades, currentMessageHash)
         # non-symbol specific
         messageHash = 'myTrades'
         client.resolve(trades, messageHash)
@@ -763,7 +875,7 @@ class bybit(ccxt.async_support.bybit):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
         """
         await self.load_markets()
         method = 'watchOrders'
@@ -868,30 +980,30 @@ class bybit(ccxt.async_support.bybit):
         #         ]
         #     }
         #
-        type = self.safe_string(message, 'type', '')
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
-        rawOrders = []
-        parser = None
-        if type == 'snapshot':
-            rawOrders = self.safe_value(message, 'data', [])
-            parser = 'parseWsSpotOrder'
-        else:
-            parser = 'parseContractOrder'
-            rawOrders = self.safe_value(message, 'data', [])
+        rawOrders = self.safe_value(message, 'data', [])
+        first = self.safe_value(rawOrders, 0, {})
+        category = self.safe_string(first, 'category')
+        isSpot = category == 'spot'
+        if not isSpot:
             rawOrders = self.safe_value(rawOrders, 'result', rawOrders)
         symbols = {}
         for i in range(0, len(rawOrders)):
-            parsed = getattr(self, parser)(rawOrders[i])
+            parsed = None
+            if isSpot:
+                parsed = self.parse_ws_spot_order(rawOrders[i])
+            else:
+                parsed = self.parse_order(rawOrders[i])
             symbol = parsed['symbol']
             symbols[symbol] = True
             orders.append(parsed)
         symbolsArray = list(symbols.keys())
         for i in range(0, len(symbolsArray)):
-            messageHash = 'orders:' + symbolsArray[i]
-            client.resolve(orders, messageHash)
+            currentMessageHash = 'orders:' + symbolsArray[i]
+            client.resolve(orders, currentMessageHash)
         messageHash = 'orders'
         client.resolve(orders, messageHash)
 
@@ -925,31 +1037,72 @@ class bybit(ccxt.async_support.bybit):
         #        v: '0',  # leverage
         #        d: 'NO_LIQ'
         #    }
+        # v5
+        #    {
+        #        "category":"spot",
+        #        "symbol":"LTCUSDT",
+        #        "orderId":"1474764674982492160",
+        #        "orderLinkId":"1690541649154749",
+        #        "blockTradeId":"",
+        #        "side":"Buy",
+        #        "positionIdx":0,
+        #        "orderStatus":"Cancelled",
+        #        "cancelType":"UNKNOWN",
+        #        "rejectReason":"EC_NoError",
+        #        "timeInForce":"GTC",
+        #        "isLeverage":"0",
+        #        "price":"0",
+        #        "qty":"5.00000",
+        #        "avgPrice":"0",
+        #        "leavesQty":"0.00000",
+        #        "leavesValue":"5.0000000",
+        #        "cumExecQty":"0.00000",
+        #        "cumExecValue":"0.0000000",
+        #        "cumExecFee":"",
+        #        "orderType":"Market",
+        #        "stopOrderType":"",
+        #        "orderIv":"",
+        #        "triggerPrice":"0.000",
+        #        "takeProfit":"",
+        #        "stopLoss":"",
+        #        "triggerBy":"",
+        #        "tpTriggerBy":"",
+        #        "slTriggerBy":"",
+        #        "triggerDirection":0,
+        #        "placeType":"",
+        #        "lastPriceOnCreated":"0.000",
+        #        "closeOnTrigger":false,
+        #        "reduceOnly":false,
+        #        "smpGroup":0,
+        #        "smpType":"None",
+        #        "smpOrderId":"",
+        #        "createdTime":"1690541649160",
+        #        "updatedTime":"1690541649168"
+        #     }
         #
-        id = self.safe_string(order, 'i')
-        marketId = self.safe_string(order, 's')
+        id = self.safe_string_2(order, 'i', 'orderId')
+        marketId = self.safe_string_2(order, 's', 'symbol')
         symbol = self.safe_symbol(marketId, market, None, 'spot')
-        timestamp = self.safe_integer(order, 'O')
-        price = self.safe_string(order, 'p')
+        timestamp = self.safe_integer_2(order, 'O', 'createdTime')
+        price = self.safe_string_2(order, 'p', 'price')
         if price == '0':
             price = None  # market orders
-        filled = self.safe_string(order, 'z')
-        status = self.parse_order_status(self.safe_string(order, 'X'))
-        side = self.safe_string_lower(order, 'S')
-        lastTradeTimestamp = self.safe_string(order, 'E')
-        timeInForce = self.safe_string(order, 'f')
+        filled = self.safe_string_2(order, 'z', 'cumExecQty')
+        status = self.parse_order_status(self.safe_string_2(order, 'X', 'orderStatus'))
+        side = self.safe_string_lower_2(order, 'S', 'side')
+        lastTradeTimestamp = self.safe_string_2(order, 'E', 'updatedTime')
+        timeInForce = self.safe_string_2(order, 'f', 'timeInForce')
         amount = None
-        cost = self.safe_string(order, 'Z')
-        q = self.safe_string(order, 'q')
-        type = self.safe_string_lower(order, 'o')
-        if type.find('quote') >= 0:
+        cost = self.safe_string_2(order, 'Z', 'cumExecValue')
+        type = self.safe_string_lower_2(order, 'o', 'orderType')
+        if (type is not None) and (type.find('market') >= 0):
+            type = 'market'
+        if type == 'market' and side == 'buy':
             amount = filled
         else:
-            amount = q
-        if type.find('market') >= 0:
-            type = 'market'
+            amount = self.safe_string_2(order, 'orderQty', 'qty')
         fee = None
-        feeCost = self.safe_string(order, 'n')
+        feeCost = self.safe_string_2(order, 'n', 'cumExecFee')
         if feeCost is not None and feeCost != '0':
             feeCurrencyId = self.safe_string(order, 'N')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -957,10 +1110,11 @@ class bybit(ccxt.async_support.bybit):
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
+        triggerPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': self.safe_string(order, 'c'),
+            'clientOrderId': self.safe_string_2(order, 'c', 'orderLinkId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -970,11 +1124,14 @@ class bybit(ccxt.async_support.bybit):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'takeProfitPrice': self.safe_string(order, 'takeProfit'),
+            'stopLossPrice': self.safe_string(order, 'stopLoss'),
+            'reduceOnly': self.safe_value(order, 'reduceOnly'),
             'amount': amount,
             'cost': cost,
-            'average': None,
+            'average': self.safe_string(order, 'avgPrice'),
             'filled': filled,
             'remaining': None,
             'status': status,
@@ -983,10 +1140,10 @@ class bybit(ccxt.async_support.bybit):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
+        watch balance and get the amount of funds available for trading or funds locked in orders
         see https://bybit-exchange.github.io/docs/v5/websocket/private/wallet
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         method = 'watchBalance'
@@ -1261,12 +1418,13 @@ class bybit(ccxt.async_support.bybit):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def authenticate(self, url, params={}):
+    async def authenticate(self, url, params={}):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             expiresInt = self.milliseconds() + 10000
             expires = str(expiresInt)
             path = 'GET/realtime'
@@ -1279,8 +1437,7 @@ class bybit(ccxt.async_support.bybit):
                 ],
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, message, messageHash)
         return future
 
     def handle_error_message(self, client: Client, message):
@@ -1420,7 +1577,8 @@ class bybit(ccxt.async_support.bybit):
         success = self.safe_value(message, 'success')
         messageHash = 'authenticated'
         if success:
-            client.resolve(message, messageHash)
+            future = self.safe_value(client.futures, messageHash)
+            future.resolve(True)
         else:
             error = AuthenticationError(self.id + ' ' + self.json(message))
             client.reject(error, messageHash)
