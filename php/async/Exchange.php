@@ -87,7 +87,7 @@ class Exchange extends \ccxt\Exchange {
     private $socksProxyAgentModule = null;
     private $socksProxyAgentModuleChecked = false;
 
-    public function set_proxy_agent($url, $method = 'GET', $headers = null, $body = null) {
+    public function set_proxy_agent($url, $method, $headers, $body) {
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
         if ($httpProxy !== null) {
             include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
