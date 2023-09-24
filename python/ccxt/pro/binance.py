@@ -466,8 +466,8 @@ class binance(ccxt.async_support.binance):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            messageHash = market['lowercaseId'] + '@' + name
-            subParams.append(messageHash)
+            currentMessageHash = market['lowercaseId'] + '@' + name
+            subParams.append(currentMessageHash)
         messageHash = 'multipleTrades::' + ','.join(symbols)
         query = self.omit(params, 'type')
         url = self.urls['api']['ws'][type] + '/' + self.stream(type, messageHash)
@@ -763,17 +763,17 @@ class binance(ccxt.async_support.binance):
         hashes = []
         for i in range(0, len(symbolsAndTimeframes)):
             data = symbolsAndTimeframes[i]
-            symbol = data[0]
-            timeframe = data[1]
-            interval = self.safe_string(self.timeframes, timeframe, timeframe)
-            market = self.market(symbol)
+            symbolString = data[0]
+            timeframeString = data[1]
+            interval = self.safe_string(self.timeframes, timeframeString, timeframeString)
+            market = self.market(symbolString)
             marketId = market['lowercaseId']
             if name == 'indexPriceKline':
                 # weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace('_perp', '')
             topic = marketId + '@' + name + '_' + interval
             subParams.append(topic)
-            hashes.append(symbol + '#' + timeframe)
+            hashes.append(symbolString + '#' + timeframeString)
         messageHash = 'multipleOHLCV::' + ','.join(hashes)
         url = self.urls['api']['ws'][type] + '/' + self.stream(type, messageHash)
         requestId = self.request_id(url)

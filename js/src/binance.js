@@ -212,6 +212,8 @@ export default class binance extends Exchange {
                         'asset/tradeFee': 0.1,
                         'asset/ledger-transfer/cloud-mining/queryByPage': 4.0002,
                         'asset/convert-transfer/queryByPage': 0.033335,
+                        'asset/wallet/balance': 6,
+                        'asset/custody/transfer-history': 6,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -403,6 +405,7 @@ export default class binance extends Exchange {
                         'portfolio/interest-history': 0.6667,
                         'portfolio/asset-index-price': 0.1,
                         'portfolio/repay-futures-switch': 3,
+                        'portfolio/margin-asset-leverage': 5,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -415,6 +418,11 @@ export default class binance extends Exchange {
                         'lending/auto-invest/plan/list': 0.1,
                         'lending/auto-invest/plan/id': 0.1,
                         'lending/auto-invest/history/list': 0.1,
+                        'lending/auto-invest/index/info': 0.1,
+                        'lending/auto-invest/index/user-summary': 0.1,
+                        'lending/auto-invest/one-off/status': 0.1,
+                        'lending/auto-invest/redeem/history': 0.1,
+                        'lending/auto-invest/rebalance/history': 0.1,
                         // simple earn
                         'simple-earn/flexible/list': 15,
                         'simple-earn/locked/list': 15,
@@ -542,6 +550,8 @@ export default class binance extends Exchange {
                         'lending/auto-invest/plan/add': 0.1,
                         'lending/auto-invest/plan/edit': 0.1,
                         'lending/auto-invest/plan/edit-status': 0.1,
+                        'lending/auto-invest/one-off': 0.1,
+                        'lending/auto-invest/redeem': 0.1,
                         // simple earn
                         'simple-earn/flexible/subscribe': 0.1,
                         'simple-earn/locked/subscribe': 0.1,

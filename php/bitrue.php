@@ -1273,12 +1273,19 @@ class bitrue extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#signed-endpoint-examples-for-post-apiv1order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the bitrue api endpoint
+         * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
+         * @param {string} [$params->clientOrderId] a unique id for the order, automatically generated if not sent
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {decimal} [$params->icebergQty]
+         * @param {long} [$params->recvWindow]
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();

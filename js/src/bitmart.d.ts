@@ -186,16 +186,19 @@ export default class bitmart extends Exchange {
     parseBorrowRates(info: any, codeKey: any): any[];
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     parseTransferStatus(status: any): string;
+    parseTransferToAccount(type: any): string;
+    parseTransferFromAccount(type: any): string;
     parseTransfer(transfer: any, currency?: any): {
         id: string;
-        timestamp: any;
-        datetime: any;
+        timestamp: number;
+        datetime: string;
         currency: any;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
+        amount: number;
+        fromAccount: string;
+        toAccount: string;
         status: string;
     };
+    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         symbol: string;
@@ -225,6 +228,44 @@ export default class bitmart extends Exchange {
         info: any;
     };
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<{
+        info: any;
+        symbol: any;
+        markPrice: any;
+        indexPrice: any;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: any;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: number;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    }>;
+    parseFundingRate(contract: any, market?: any): {
+        info: any;
+        symbol: any;
+        markPrice: any;
+        indexPrice: any;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: any;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: number;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    };
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

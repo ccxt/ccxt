@@ -2569,6 +2569,9 @@ export default class bitget extends Exchange {
                 response = await this.publicMixGetMarketHistoryCandles(this.extend(request, params));
             }
         }
+        if (response === '') {
+            return []; // happens when a new token is listed
+        }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
         const data = this.safeValue(response, 'data', response);
         return this.parseOHLCVs(data, market, timeframe, since, limit);

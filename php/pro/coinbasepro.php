@@ -548,11 +548,11 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         //         reason => 'filled'
         //     }
         //
-        $orders = $this->orders;
-        if ($orders === null) {
+        $currentOrders = $this->orders;
+        if ($currentOrders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $orders = new ArrayCacheBySymbolById ($limit);
-            $this->orders = $orders;
+            $currentOrders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = $currentOrders;
         }
         $type = $this->safe_string($message, 'type');
         $marketId = $this->safe_string($message, 'product_id');
@@ -588,9 +588,9 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                         $totalAmount = 0;
                         $trades = $previousOrder['trades'];
                         for ($i = 0; $i < count($trades); $i++) {
-                            $trade = $trades[$i];
-                            $totalCost = $this->sum($totalCost, $trade['cost']);
-                            $totalAmount = $this->sum($totalAmount, $trade['amount']);
+                            $tradeEntry = $trades[$i];
+                            $totalCost = $this->sum($totalCost, $tradeEntry['cost']);
+                            $totalAmount = $this->sum($totalAmount, $tradeEntry['amount']);
                         }
                         if ($totalAmount > 0) {
                             $previousOrder['average'] = $totalCost / $totalAmount;
@@ -718,12 +718,12 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $client->resolve ($ticker, $messageHash);
             $messageHashes = $this->find_message_hashes($client, 'tickers::');
             for ($i = 0; $i < count($messageHashes); $i++) {
-                $messageHash = $messageHashes[$i];
-                $parts = explode('::', $messageHash);
+                $currentMessageHash = $messageHashes[$i];
+                $parts = explode('::', $currentMessageHash);
                 $symbolsString = $parts[1];
                 $symbols = explode(',', $symbolsString);
                 if ($this->in_array($symbol, $symbols)) {
-                    $client->resolve ($ticker, $messageHash);
+                    $client->resolve ($ticker, $currentMessageHash);
                 }
             }
         }

@@ -35,6 +35,7 @@ export default class bingx extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -323,6 +324,7 @@ export default class bingx extends Exchange {
                     'PFUTURES': 'swap',
                     'SFUTURES': 'future',
                 },
+                'recvWindow': 5 * 1000, // 5 sec
             },
         });
     }
@@ -1541,9 +1543,9 @@ export default class bingx extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {bool} [params.postOnly] true to place a post only order
-         * @param {object} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered (swap markets only)
-         * @param {float} [params.stopLossPrice] stop loss trigger price (swap markets only)
-         * @param {float} [params.takeProfitPrice] take profit trigger price (swap markets only)
+         * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
+         * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
+         * @param {float} [params.takeProfitPrice] *swap only* take profit trigger price
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -2394,6 +2396,76 @@ export default class bingx extends Exchange {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
             'status': status,
+        };
+    }
+
+    async fetchDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
+        const recvWindow = this.safeInteger (this.parseParams, 'recvWindow', defaultRecvWindow);
+        const request = {
+            'coin': currency['id'],
+            'offset': 0,
+            'limit': 1000,
+            'recvWindow': recvWindow,
+        };
+        const response = await this.walletsV1PrivateGetCapitalDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         code: '0',
+        //         timestamp: '1695200226859',
+        //         data: {
+        //           data: [
+        //             {
+        //               coinId: '799',
+        //               coin: 'USDT',
+        //               network: 'BEP20',
+        //               address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
+        //               tag: ''
+        //             }
+        //           ],
+        //           total: '1'
+        //         }
+        //     }
+        //
+        const data = this.safeValue (this.safeValue (response, 'data'), 'data');
+        const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
+        return this.indexBy (parsed, 'network');
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         coinId: '799',
+        //         coin: 'USDT',
+        //         network: 'BEP20',
+        //         address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
+        //         tag: ''
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString (depositAddress, 'tag');
+        const currencyId = this.safeString (depositAddress, 'coin');
+        currency = this.safeCurrency (currencyId, currency);
+        const code = currency['code'];
+        const network = this.safeString (depositAddress, 'network');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': network,
+            'info': depositAddress,
         };
     }
 

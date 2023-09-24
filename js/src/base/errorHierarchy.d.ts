@@ -11,6 +11,7 @@ declare const errorHierarchy: {
             BadRequest: {
                 BadSymbol: {};
                 MarginModeAlreadySet: {};
+                NoChange: {};
             };
             BadResponse: {
                 NullResponse: {};

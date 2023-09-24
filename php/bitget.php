@@ -2542,6 +2542,9 @@ class bitget extends Exchange {
                 $response = $this->publicMixGetMarketHistoryCandles (array_merge($request, $params));
             }
         }
+        if ($response === '') {
+            return array(); // happens when a new token is listed
+        }
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
         $data = $this->safe_value($response, 'data', $response);
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
