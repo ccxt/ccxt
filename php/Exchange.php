@@ -1315,8 +1315,8 @@ class Exchange {
         return (is_string($response_body) && $this->quoteJsonNumbers) ? preg_replace('/":([+.0-9eE-]+)([,}])/', '":"$1"$2', $response_body) : $response_body;
     }
 
-    public function set_proxy_agent () {
-        [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings();
+    public function set_proxy_agent($url, $method, $headers, $body) {
+        [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
         if ($httpProxy !== null) {
             curl_setopt($this->curl, CURLOPT_PROXY, $httpProxy);
             curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
@@ -1359,7 +1359,7 @@ class Exchange {
             $url = $proxyUrl . $url;
         }
         // proxy agents
-        $proxy_set = $this->set_proxy_agent();
+        $proxy_set = $this->set_proxy_agent($url, $method, $headers, $body);
         if ($proxy_set && $proxyUrl !== null) {
             throw new ExchangeError ($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
