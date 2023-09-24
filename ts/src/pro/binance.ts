@@ -2451,6 +2451,12 @@ export default class binance extends binanceRest {
         // and has exactly one subscriptionhash which is the account type
         const subscriptions = Object.keys (client.subscriptions);
         const accountType = subscriptions[0];
+        if (this.positions === undefined) {
+            this.positions = {};
+        }
+        if (!(accountType in this.positions)) {
+            this.positions[accountType] = new ArrayCacheBySymbolBySide ();
+        }
         const messageHash = accountType + ':positions';
         const cache = this.positions[accountType];
         const data = this.safeValue (message, 'a', {});

@@ -2895,7 +2895,7 @@ export default class Exchange {
         const symbol = this.safeString (position, 'symbol');
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            market = this.safeValue (this.markets, symbol);
         }
         if (contractSize === undefined && market !== undefined) {
             contractSize = this.safeNumber (market, 'contractSize');

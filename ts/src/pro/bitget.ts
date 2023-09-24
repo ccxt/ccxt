@@ -721,8 +721,9 @@ export default class bitget extends bitgetRest {
         let market = undefined;
         let messageHash = '';
         const subscriptionHash = 'positions';
-        let instType = 'dmcbl';
+        let instType = 'umcbl';
         if (!this.isEmpty (symbols)) {
+            instType = 'dmcbl';
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
             if (market['settle'] === 'USDT') {

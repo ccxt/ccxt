@@ -968,7 +968,7 @@ export default class bybit extends bybitRest {
         const cache = this.positions;
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) { // TODO fix check
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
         }
@@ -984,7 +984,6 @@ export default class bybit extends bybitRest {
         if (this.positions !== undefined) {
             return this.positions;
         }
-        this.positions = {};
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         if (fetchPositionsSnapshot) {
             const messageHash = 'fetchPositionsSnapshot';
@@ -998,13 +997,12 @@ export default class bybit extends bybitRest {
     }
 
     async loadPositionsSnapshot (client, messageHash, symbols) {
+        // as only one ws channel gives positions for all types, for snapshot must load all positions
         const fetchFunctions = [
+            this.fetchPositions (symbols, { 'type': 'swap', 'subType': 'linear' }),
+            this.fetchPositions (symbols, { 'type': 'swap', 'subType': 'inverse' }),
             this.fetchPositions (symbols, { 'type': 'option' }),
         ];
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        if (enableUnifiedMargin || enableUnifiedAccount) {
-            fetchFunctions.push (this.fetchPositions (symbols));
-        }
         const promises = await Promise.all (fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1061,6 +1059,9 @@ export default class bybit extends bybitRest {
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
         const messageHash = 'positions';
         const cache = this.positions;
         const newPositions = [];

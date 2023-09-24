@@ -794,6 +794,9 @@ export default class gate extends gateRest {
         let type = undefined;
         let query = undefined;
         [ type, query ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
+        if (type === 'spot') {
+            type = 'swap';
+        }
         const typeId = this.getSupportedMapping (type, {
             'future': 'futures',
             'swap': 'futures',
@@ -824,7 +827,7 @@ export default class gate extends gateRest {
     }
 
     setPositionsCache (client: Client, type, symbols: string[] = undefined) {
-        if (this.positions !== undefined) {
+        if (this.positions === undefined) {
             this.positions = {};
         }
         if (type in this.positions) {
@@ -908,7 +911,7 @@ export default class gate extends gateRest {
                 client.resolve (positions, messageHash);
             }
         }
-        client.resolve (cache, type + ':positions');
+        client.resolve (newPositions, type + ':positions');
     }
 
     async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
