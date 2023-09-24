@@ -398,4 +398,3 @@ assert (cache.getLimit (symbol, outsideLimit) === 1); // watch by symbol
 assert (cache.getLimit (undefined, outsideLimit) === 2); // watch all positions
 cache.append ({ 'symbol': symbol2, 'side': 'long', 'contracts': 3 }); // update second position
 assert (cache.getLimit (undefined, outsideLimit) === 1); // watch all positions
-
