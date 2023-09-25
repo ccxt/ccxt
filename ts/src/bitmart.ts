@@ -2414,16 +2414,25 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchOrder
          * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
+         * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {string} [params.clientOrderId] fetch the order by client order id instead of order id
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        const request = {
-            'orderId': id,
-        };
-        const response = await this.privatePostSpotV4QueryOrder (this.extend (request, params));
+        const request = {};
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (!clientOrderId) {
+            request['orderId'] = id;
+        }
+        let response = undefined;
+        if (clientOrderId !== undefined) {
+            response = await this.privatePostSpotV4QueryClientOrder (this.extend (request, params));
+        } else {
+            response = await this.privatePostSpotV4QueryOrder (this.extend (request, params));
+        }
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, undefined);
     }
