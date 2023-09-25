@@ -59,7 +59,7 @@ class binance(Exchange, ImplicitAPI):
                 'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'cancelOrders': None,
+                'cancelOrders': True,  # contract only
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
@@ -4678,6 +4678,70 @@ class binance(Exchange, ImplicitAPI):
         else:
             return response
 
+    def cancel_orders(self, ids: List[int], symbol: Optional[str] = None, params={}):
+        """
+        cancel multiple orders
+        see https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
+        :param [str] ids: order ids
+        :param str [symbol]: unified market symbol
+        :param dict [params]: extra parameters specific to the bingx api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param [str] [params.origClientOrderIdList]: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+        :param [int] [params.recvWindow]:
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.check_required_symbol('cancelOrders', symbol)
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' cancelOrders is only supported for swap markets.')
+        request = {
+            'symbol': market['id'],
+            'orderidlist': ids,
+        }
+        response = None
+        if market['linear']:
+            response = self.fapiPrivateDeleteBatchOrders(self.extend(request, params))
+        elif market['inverse']:
+            response = self.dapiPrivateDeleteBatchOrders(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "clientOrderId": "myOrder1",
+        #            "cumQty": "0",
+        #            "cumQuote": "0",
+        #            "executedQty": "0",
+        #            "orderId": 283194212,
+        #            "origQty": "11",
+        #            "origType": "TRAILING_STOP_MARKET",
+        #            "price": "0",
+        #            "reduceOnly": False,
+        #            "side": "BUY",
+        #            "positionSide": "SHORT",
+        #            "status": "CANCELED",
+        #            "stopPrice": "9300",                  # please ignore when order type is TRAILING_STOP_MARKET
+        #            "closePosition": False,               # if Close-All
+        #            "symbol": "BTCUSDT",
+        #            "timeInForce": "GTC",
+        #            "type": "TRAILING_STOP_MARKET",
+        #            "activatePrice": "9020",              # activation price, only return with TRAILING_STOP_MARKET order
+        #            "priceRate": "0.3",                   # callback rate, only return with TRAILING_STOP_MARKET order
+        #            "updateTime": 1571110484038,
+        #            "workingType": "CONTRACT_PRICE",
+        #            "priceProtect": False,                # if conditional order trigger is protected
+        #            "priceMatch": "NONE",                 # price match mode
+        #            "selfTradePreventionMode": "NONE",    # self trading preventation mode
+        #            "goodTillDate": 0                     # order pre-set auot cancel time for TIF GTD order
+        #        },
+        #        {
+        #            "code": -2011,
+        #            "msg": "Unknown order sent."
+        #        }
+        #    ]
+        #
+        return self.parse_orders(response, market)
+
     def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
@@ -7564,7 +7628,19 @@ class binance(Exchange, ImplicitAPI):
             if (api == 'sapi') and (path == 'asset/dust'):
                 query = self.urlencode_with_array_repeat(extendedParams)
             elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply') or (path.find('staking') >= 0):
-                query = self.rawencode(extendedParams)
+                if (method == 'DELETE') and (path == 'batchOrders'):
+                    orderidlist = self.safe_value(extendedParams, 'orderidlist', [])
+                    origclientorderidlist = self.safe_value(extendedParams, 'origclientorderidlist', [])
+                    extendedParams = self.omit(extendedParams, ['orderidlist', 'origclientorderidlist'])
+                    query = self.rawencode(extendedParams)
+                    orderidlistLength = len(orderidlist)
+                    origclientorderidlistLength = len(orderidlist)
+                    if orderidlistLength > 0:
+                        query = query + '&orderidlist=[' + ','.join(orderidlist) + ']'
+                    if origclientorderidlistLength > 0:
+                        query = query + '&origclientorderidlist=[' + ','.join(origclientorderidlist) + ']'
+                else:
+                    query = self.rawencode(extendedParams)
             else:
                 query = self.urlencode(extendedParams)
             signature = None
@@ -7643,6 +7719,14 @@ class binance(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         if not success:
             raise ExchangeError(self.id + ' ' + body)
+        if isinstance(response, list):
+            # cancelOrders returns an array like self: [{"code":-2011,"msg":"Unknown order sent."}]
+            numElements = len(response)
+            if numElements > 0:
+                firstElement = response[0]
+                error = self.safe_string(firstElement, 'code')
+                if error is not None:
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], error, self.id + ' ' + body)
         return None
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):

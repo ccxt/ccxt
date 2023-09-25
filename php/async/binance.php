@@ -42,7 +42,7 @@ class binance extends Exchange {
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => null,
+                'cancelOrders' => true,  // contract only
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -4930,6 +4930,75 @@ class binance extends Exchange {
         }) ();
     }
 
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple orders
+             * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
+             * @param {[string]} $ids order $ids
+             * @param {string} [$symbol] unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the bingx api endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {[string]} [$params->origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+             * @param {[int]} [$params->recvWindow]
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            $this->check_required_symbol('cancelOrders', $symbol);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . ' cancelOrders is only supported for swap markets.');
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                'orderidlist' => $ids,
+            );
+            $response = null;
+            if ($market['linear']) {
+                $response = Async\await($this->fapiPrivateDeleteBatchOrders (array_merge($request, $params)));
+            } elseif ($market['inverse']) {
+                $response = Async\await($this->dapiPrivateDeleteBatchOrders (array_merge($request, $params)));
+            }
+            //
+            //    array(
+            //        array(
+            //            "clientOrderId" => "myOrder1",
+            //            "cumQty" => "0",
+            //            "cumQuote" => "0",
+            //            "executedQty" => "0",
+            //            "orderId" => 283194212,
+            //            "origQty" => "11",
+            //            "origType" => "TRAILING_STOP_MARKET",
+            //            "price" => "0",
+            //            "reduceOnly" => false,
+            //            "side" => "BUY",
+            //            "positionSide" => "SHORT",
+            //            "status" => "CANCELED",
+            //            "stopPrice" => "9300",                  // please ignore when order type is TRAILING_STOP_MARKET
+            //            "closePosition" => false,               // if Close-All
+            //            "symbol" => "BTCUSDT",
+            //            "timeInForce" => "GTC",
+            //            "type" => "TRAILING_STOP_MARKET",
+            //            "activatePrice" => "9020",              // activation price, only return with TRAILING_STOP_MARKET order
+            //            "priceRate" => "0.3",                   // callback rate, only return with TRAILING_STOP_MARKET order
+            //            "updateTime" => 1571110484038,
+            //            "workingType" => "CONTRACT_PRICE",
+            //            "priceProtect" => false,                // if conditional order trigger is protected
+            //            "priceMatch" => "NONE",                 // price match mode
+            //            "selfTradePreventionMode" => "NONE",    // self trading preventation mode
+            //            "goodTillDate" => 0                     // order pre-set auot cancel time for TIF GTD order
+            //        ),
+            //        {
+            //            "code" => -2011,
+            //            "msg" => "Unknown order sent."
+            //        }
+            //    )
+            //
+            return $this->parse_orders($response, $market);
+        }) ();
+    }
+
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
@@ -8105,7 +8174,22 @@ class binance extends Exchange {
             if (($api === 'sapi') && ($path === 'asset/dust')) {
                 $query = $this->urlencode_with_array_repeat($extendedParams);
             } elseif (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false) || ($path === 'capital/withdraw/apply') || (mb_strpos($path, 'staking') !== false)) {
-                $query = $this->rawencode($extendedParams);
+                if (($method === 'DELETE') && ($path === 'batchOrders')) {
+                    $orderidlist = $this->safe_value($extendedParams, 'orderidlist', array());
+                    $origclientorderidlist = $this->safe_value($extendedParams, 'origclientorderidlist', array());
+                    $extendedParams = $this->omit($extendedParams, array( 'orderidlist', 'origclientorderidlist' ));
+                    $query = $this->rawencode($extendedParams);
+                    $orderidlistLength = count($orderidlist);
+                    $origclientorderidlistLength = count($orderidlist);
+                    if ($orderidlistLength > 0) {
+                        $query = $query . '&$orderidlist=[' . implode(',', $orderidlist) . ']';
+                    }
+                    if ($origclientorderidlistLength > 0) {
+                        $query = $query . '&$origclientorderidlist=[' . implode(',', $origclientorderidlist) . ']';
+                    }
+                } else {
+                    $query = $this->rawencode($extendedParams);
+                }
             } else {
                 $query = $this->urlencode($extendedParams);
             }
@@ -8205,6 +8289,17 @@ class binance extends Exchange {
         }
         if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
+        }
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+            // cancelOrders returns an array like this => [array("code":-2011,"msg":"Unknown order sent.")]
+            $numElements = count($response);
+            if ($numElements > 0) {
+                $firstElement = $response[0];
+                $error = $this->safe_string($firstElement, 'code');
+                if ($error !== null) {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $this->id . ' ' . $body);
+                }
+            }
         }
         return null;
     }
