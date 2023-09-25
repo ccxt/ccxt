@@ -2413,49 +2413,19 @@ export default class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#fetchOrder
+         * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (!market['spot']) {
-            throw new NotSupported (this.id + ' fetchOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
-        }
         const request = {
-            'symbol': market['id'],
-            'order_id': id,
+            'orderId': id,
         };
-        const response = await this.privateGetSpotV2OrderDetail (this.extend (request, params));
-        //
-        // spot
-        //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"a27c2cb5-ead4-471d-8455-1cfeda054ea6",
-        //         "data": {
-        //             "order_id":1736871726781,
-        //             "symbol":"BTC_USDT",
-        //             "create_time":1591096004000,
-        //             "side":"sell",
-        //             "type":"market",
-        //             "price":"0.00",
-        //             "price_avg":"0.00",
-        //             "size":"0.02000",
-        //             "notional":"0.00000000",
-        //             "filled_notional":"0.00000000",
-        //             "filled_size":"0.00000",
-        //             "status":"8"
-        //         }
-        //     }
-        //
+        const response = await this.privatePostSpotV4QueryOrder (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data, market);
+        return this.parseOrder (data, undefined);
     }
 
     async fetchDepositAddress (code: string, params = {}) {
