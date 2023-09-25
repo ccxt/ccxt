@@ -373,9 +373,9 @@ outsideLimit = 5;
 cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 1 }); // create first position
 assert (cache.getLimit (undefined, outsideLimit) === 1); // watch all positions
 cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 0 }); // first position is closed
-assert (cache.getLimit (undefined, outsideLimit) === 1) // watch all positions
+assert (cache.getLimit (undefined, outsideLimit) === 1); // watch all positions
 cache.append ({ 'symbol': symbol, 'side': 'long', 'contracts': 3 }); // create second position
-assert (cache.getLimit (undefined, outsideLimit) === 1 ); // watch all positions
+assert (cache.getLimit (undefined, outsideLimit) === 1); // watch all positions
 cache.append ({ 'symbol': symbol, 'side': 'long', 'contracts': 2 }); // second position is reduced
 cache.append ({ 'symbol': symbol, 'side': 'long', 'contracts': 1 }); // second position is reduced
 assert (cache.getLimit (undefined, outsideLimit) === 1); // watch all orders
