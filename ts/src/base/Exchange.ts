@@ -3158,6 +3158,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPositionsBySymbol() is not supported yet');
     }
 
+    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<Position[]> {
+        throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
+    }
+
     async fetchPositionsRisk (symbols: string[] = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
     }
