@@ -8132,7 +8132,7 @@ export default class binance extends Exchange {
             if ((api === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
             } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf ('staking') >= 0)) {
-                if (method === 'DELETE') {
+                if ((method === 'DELETE') && (path === 'batchOrders')) {
                     const orderidlist = this.safeValue (extendedParams, 'orderidlist', []);
                     const origclientorderidlist = this.safeValue (extendedParams, 'origclientorderidlist', []);
                     extendedParams = this.omit (extendedParams, [ 'orderidlist', 'origclientorderidlist' ]);
