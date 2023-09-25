@@ -38,6 +38,7 @@ export default class exmo extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
@@ -1501,20 +1502,60 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#cancelOrder
          * @description cancels an open order
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#1f710d4b-75bc-4b65-ad68-006f863a3f26
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a4d0aae8-28f7-41ac-94fd-c4030130453d  // stop market
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
          * @param {string} id order id
          * @param {string} symbol not used by exmo cancelOrder ()
          * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {boolean} [params.trigger] true to cancel a trigger order
+         * @param {string} [params.marginMode] set to 'cross' or 'isolated' to cancel a margin order
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
-        const request = { 'order_id': id };
-        return await this.privatePostOrderCancel(this.extend(request, params));
+        const request = {};
+        const stop = this.safeValue2(params, 'trigger', 'stop');
+        params = this.omit(params, ['trigger', 'stop']);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
+        if (marginMode === 'cross') {
+            throw new BadRequest(this.id + ' only supports isolated margin');
+        }
+        let response = undefined;
+        if ((marginMode === 'isolated')) {
+            request['order_id'] = id;
+            response = await this.privatePostMarginUserOrderCancel(this.extend(request, params));
+            //
+            //    {}
+            //
+        }
+        else {
+            if (stop) {
+                request['parent_order_id'] = id;
+                response = await this.privatePostStopMarketOrderCancel(this.extend(request, params));
+                //
+                //    {}
+                //
+            }
+            else {
+                request['order_id'] = id;
+                response = await this.privatePostOrderCancel(this.extend(request, params));
+                //
+                //    {
+                //        'error': '',
+                //        'result': True
+                //    }
+                //
+            }
+        }
+        return this.parseOrder(response);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchOrder
-         * @description fetches information on an order made by the user
+         * @description *spot only* fetches information on an order made by the user
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
          * @param {string} symbol not used by exmo fetchOrder
          * @param {object} [params] extra parameters specific to the exmo api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
@@ -1633,30 +1674,123 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#0e135370-daa4-4689-8acd-b6876dee9ba1  // spot open orders
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a7cfd4f0-476e-4675-b33f-22a46902f245  // margin
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {string} [params.marginMode] set to "isolated" for margin orders
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market(symbol);
+            market = this.market(symbol);
             symbol = market['symbol'];
         }
-        const response = await this.privatePostUserOpenOrders(params);
-        const marketIds = Object.keys(response);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
+        const isMargin = ((marginMode === 'cross') || (marginMode === 'isolated'));
+        let response = undefined;
         let orders = [];
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const market = this.safeMarket(marketId);
+        if (isMargin) {
+            response = await this.privatePostMarginUserOrderList(params);
+            //
+            //    {
+            //        "orders": [
+            //            {
+            //                "client_id": "0",
+            //                "comment": "",
+            //                "created": "1619068707985325495",
+            //                "distance": "0",
+            //                "expire": 0,
+            //                "funding_currency": "BTC",
+            //                "funding_quantity": "0.01",
+            //                "funding_rate": "0.02",
+            //                "leverage": "2",
+            //                "order_id": "123",
+            //                "pair": "BTC_USD",
+            //                "previous_type": "limit_sell",
+            //                "price": "58000",
+            //                "quantity": "0.01",
+            //                "src": 0,
+            //                "stop_price": "0",
+            //                "trigger_price": "58000",
+            //                "type": "limit_sell",
+            //                "updated": 1619068707989411800
+            //            }
+            //        ]
+            //    }
+            //
             params = this.extend(params, {
                 'status': 'open',
             });
-            const parsedOrders = this.parseOrders(response[marketId], market, since, limit, params);
-            orders = this.arrayConcat(orders, parsedOrders);
+            const responseOrders = this.safeValue(response, 'orders');
+            orders = this.parseOrders(responseOrders, market, since, limit, params);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        else {
+            response = await this.privatePostUserOpenOrders(params);
+            //
+            //    {
+            //        "USDT_USD": [
+            //            {
+            //                "parent_order_id": "507061384740151010",
+            //                "client_id": "100500",
+            //                "created": "1589547391",
+            //                "type": "stop_market_buy",
+            //                "pair": "USDT_USD",
+            //                "quantity": "1",
+            //                "trigger_price": "5",
+            //                "amount": "5"
+            //            }
+            //        ],
+            //        ...
+            //    }
+            //
+            const marketIds = Object.keys(response);
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const market = this.safeMarket(marketId);
+                params = this.extend(params, {
+                    'status': 'open',
+                });
+                const parsedOrders = this.parseOrders(response[marketId], market, since, limit, params);
+                orders = this.arrayConcat(orders, parsedOrders);
+            }
+        }
+        return orders;
+    }
+    parseStatus(status) {
+        if (status === undefined) {
+            return undefined;
+        }
+        const statuses = {
+            'cancel_started': 'canceled',
+        };
+        if (status.indexOf('cancel') >= 0) {
+            status = 'canceled';
+        }
+        return this.safeString(statuses, status, status);
+    }
+    parseSide(orderType) {
+        const side = {
+            'limit_buy': 'buy',
+            'limit_sell': 'sell',
+            'market_buy': 'buy',
+            'market_sell': 'sell',
+            'stop_buy': 'buy',
+            'stop_sell': 'sell',
+            'stop_limit_buy': 'buy',
+            'stop_limit_sell': 'sell',
+            'trailing_stop_buy': 'buy',
+            'trailing_stop_sell': 'sell',
+            'stop_market_sell': 'sell',
+            'stop_market_buy': 'buy',
+            'buy': 'buy',
+            'sell': 'sell',
+        };
+        return this.safeString(side, orderType, orderType);
     }
     parseOrder(order, market = undefined) {
         //
@@ -1694,9 +1828,55 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const id = this.safeString(order, 'order_id');
-        const timestamp = this.safeTimestamp(order, 'created');
-        const side = this.safeString(order, 'type');
+        // Margin fetchOpenOrders
+        //
+        //    {
+        //        "client_id": "0",
+        //        "comment": "",
+        //        "created": "1619068707985325495",
+        //        "distance": "0",
+        //        "expire": 0,
+        //        "funding_currency": "BTC",
+        //        "funding_quantity": "0.01",
+        //        "funding_rate": "0.02",
+        //        "leverage": "2",
+        //        "order_id": "123",
+        //        "pair": "BTC_USD",
+        //        "previous_type": "limit_sell",
+        //        "price": "58000",
+        //        "quantity": "0.01",
+        //        "src": 0,
+        //        "stop_price": "0",
+        //        "trigger_price": "58000",
+        //        "type": "limit_sell",
+        //        "updated": 1619068707989411800
+        //    }
+        //
+        // Margin fetchClosedOrders
+        //
+        //    {
+        //        "distance": "0",
+        //        "event_id": "692842802860022508",
+        //        "event_time": "1619069531190173720",
+        //        "event_type": "OrderCancelStarted",
+        //        "order_id": "123",
+        //        "order_status": "cancel_started",
+        //        "order_type": "limit_sell",
+        //        "pair": "BTC_USD",
+        //        "price": "54115",
+        //        "quantity": "0.001",
+        //        "stop_price": "0",
+        //        "trade_id": "0",
+        //        "trade_price": "0",
+        //        "trade_quantity": "0",
+        //        "trade_type": ""
+        //    },
+        //
+        const id = this.safeString2(order, 'order_id', 'parent_order_id');
+        const eventTime = this.safeIntegerProduct2(order, 'event_time', 'created', 0.000001);
+        const timestamp = this.safeTimestamp(order, 'created', eventTime);
+        const orderType = this.safeString2(order, 'type', 'order_type');
+        const side = this.parseSide(orderType);
         let marketId = undefined;
         if ('pair' in order) {
             marketId = order['pair'];
@@ -1720,21 +1900,29 @@ export default class exmo extends Exchange {
         const cost = this.safeString(order, 'amount');
         const transactions = this.safeValue(order, 'trades', []);
         const clientOrderId = this.safeInteger(order, 'client_id');
+        let triggerPrice = this.safeString(order, 'stop_price');
+        if (triggerPrice === '0') {
+            triggerPrice = undefined;
+        }
+        let type = undefined;
+        if ((orderType !== 'buy') && (orderType !== 'sell')) {
+            type = orderType;
+        }
         return this.safeOrder({
             'id': id,
             'clientOrderId': clientOrderId,
             'datetime': this.iso8601(timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': undefined,
+            'lastTradeTimestamp': this.safeIntegerProduct(order, 'updated', 0.000001),
+            'status': this.parseStatus(this.safeString(order, 'order_status')),
             'symbol': symbol,
-            'type': undefined,
+            'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'cost': cost,
             'amount': amount,
             'filled': undefined,
@@ -1750,41 +1938,143 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#1d2524dd-ae6d-403a-a067-77b50d13fbe5  // margin
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a51be1d0-af5f-44e4-99d7-f7b04c6067d0  // spot canceled orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] max number of orders to return, default is undefined
          * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {string} [params.marginMode] set to "isolated" for margin orders
          * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
-        const request = {};
-        if (since !== undefined) {
-            request['offset'] = limit;
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchOrders', params);
+        if (marginMode === 'cross') {
+            throw new BadRequest(this.id + ' only supports isolated margin');
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        if (limit === undefined) {
+            limit = 100;
         }
+        const isSpot = (marginMode !== 'isolated');
+        if (symbol !== undefined) {
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+        }
+        const request = {
+            'limit': limit,
+        };
+        request['offset'] = (since !== undefined) ? limit : 0;
+        request['limit'] = limit;
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const response = await this.privatePostUserCancelledOrders(this.extend(request, params));
-        //
-        //     [{
-        //         "order_id": "27056153840",
-        //         "client_id": "0",
-        //         "created": "1653428646",
-        //         "type": "buy",
-        //         "pair": "BTC_USDT",
-        //         "quantity": "0.1",
-        //         "price": "10",
-        //         "amount": "1"
-        //     }]
-        //
-        params = this.extend(params, {
-            'status': 'canceled',
-        });
-        return this.parseOrders(response, market, since, limit, params);
+        let response = undefined;
+        if (isSpot) {
+            response = await this.privatePostUserCancelledOrders(this.extend(request, params));
+            //
+            //    [
+            //        {
+            //            "order_id": "27056153840",
+            //            "client_id": "0",
+            //            "created": "1653428646",
+            //            "type": "buy",
+            //            "pair": "BTC_USDT",
+            //            "quantity": "0.1",
+            //            "price": "10",
+            //            "amount": "1"
+            //        }
+            //    ]
+            //
+            params = this.extend(params, {
+                'status': 'canceled',
+            });
+            return this.parseOrders(response, market, since, limit, params);
+        }
+        else {
+            const response = await this.privatePostMarginUserOrderHistory(this.extend(request, params));
+            //
+            //    {
+            //        "items": [
+            //            {
+            //                "event_id": "692862104574106858",
+            //                "event_time": "1694116400173489405",
+            //                "event_type": "OrderCancelStarted",
+            //                "order_id": "692862104561289319",
+            //                "order_type": "stop_limit_sell",
+            //                "order_status": "cancel_started",
+            //                "trade_id": "0",
+            //                "trade_type":"",
+            //                "trade_quantity": "0",
+            //                "trade_price": "0",
+            //                "pair": "ADA_USDT",
+            //                "quantity": "12",
+            //                "price": "0.23",
+            //                "stop_price": "0.22",
+            //                "distance": "0"
+            //            }
+            //            ...
+            //        ]
+            //    }
+            //
+            const items = this.safeValue(response, 'items');
+            const orders = this.parseOrders(items, market, since, limit, params);
+            const result = [];
+            for (let i = 0; i < orders.length; i++) {
+                const order = orders[i];
+                if (order['status'] === 'canceled') {
+                    result.push(order);
+                }
+            }
+            return result;
+        }
+    }
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#editOrder
+         * @description *margin only* edit a trade order
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#f27ee040-c75f-4b59-b608-d05bd45b7899  // margin
+         * @param {string} id order id
+         * @param {string} symbol unified CCXT market symbol
+         * @param {string} type not used by exmo editOrder
+         * @param {string} side not used by exmo editOrder
+         * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {float} [params.triggerPrice] stop price for stop-market and stop-limit orders
+         * @param {string} params.marginMode must be set to isolated
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.distance] distance for trailing stop orders
+         * @param {int} [params.expire] expiration timestamp in UTC timezone for the order. order will not be expired if expire is 0
+         * @param {string} [params.comment] optional comment for order. up to 50 latin symbols, whitespaces, underscores
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('editOrder', params);
+        if (marginMode !== 'isolated') {
+            throw new BadRequest(this.id + ' editOrder() can only be used for isolated margin orders');
+        }
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
+        params = this.omit(params, ['triggerPrice', 'stopPrice']);
+        const request = {
+            'order_id': id, // id of the open order
+        };
+        if (amount !== undefined) {
+            request['quantity'] = amount;
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision(market['symbol'], price);
+        }
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision(market['symbol'], triggerPrice);
+        }
+        const response = await this.privatePostMarginUserOrderUpdate(this.extend(request, params));
+        return this.parseOrder(response);
     }
     async fetchDepositAddress(code, params = {}) {
         /**
@@ -2301,11 +2591,12 @@ export default class exmo extends Exchange {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        if ('error' in response) {
+        if (('error' in response) && !('result' in response)) {
             // error: {
             //     code: '140434',
             //     msg: "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by '2.5 USDT'."
             // }
+            //
             const errorCode = this.safeValue(response, 'error', {});
             const messageError = this.safeString(errorCode, 'msg');
             const code = this.safeString(errorCode, 'code');
