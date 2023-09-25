@@ -8244,6 +8244,17 @@ export default class binance extends Exchange {
         if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
         }
+        if (Array.isArray (response)) {
+            // cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
+            const numElements = response.length;
+            if (numElements > 0) {
+                const firstElement = response[0];
+                const error = this.safeString (firstElement, 'code');
+                if (error !== undefined) {
+                    this.throwExactlyMatchedException (this.exceptions['exact'], error, this.id + ' ' + body);
+                }
+            }
+        }
         return undefined;
     }
 
