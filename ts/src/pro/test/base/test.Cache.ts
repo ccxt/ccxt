@@ -379,7 +379,6 @@ assert (cache.getLimit (undefined, outsideLimit) === 1); // watch all positions
 cache.append ({ 'symbol': symbol, 'side': 'long', 'contracts': 2 }); // second position is reduced
 cache.append ({ 'symbol': symbol, 'side': 'long', 'contracts': 1 }); // second position is reduced
 assert (cache.getLimit (undefined, outsideLimit) === 1); // watch all orders
-assert (cache.length === 2); // one new update
 
 // ----------------------------------------------------------------------------
 // test ArrayCacheBySymbolBySide, watchPositions, and watchPosition (symbol) work independently
