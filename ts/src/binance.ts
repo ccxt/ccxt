@@ -4900,6 +4900,7 @@ export default class binance extends Exchange {
          * @param {[int]} [params.recvWindow]
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        this.checkRequiredSymbol ('cancelOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['contract']) {
