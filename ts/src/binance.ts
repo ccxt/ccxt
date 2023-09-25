@@ -4177,11 +4177,6 @@ export default class binance extends Exchange {
         //         "mmp": false
         //     }
         //
-        const code = this.safeString (order, 'code');
-        if (code === '-2011') {
-            const message = this.safeString (order, 'message');
-            throw new OrderNotFound (message);
-        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const marketType = ('closePosition' in order) ? 'contract' : 'spot';
