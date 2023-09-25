@@ -362,7 +362,7 @@ cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 1 }); // create 
 cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 0 }); // first position is closed
 assert (cache.getLimit (symbol, outsideLimit) === 1); // limit position
 cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 1 }); // create first position
-assert (cache.getLimit (symbol, outsideLimit) === 1) // watch all positions
+assert (cache.getLimit (symbol, outsideLimit) === 1); // watch all positions
 
 // ----------------------------------------------------------------------------
 // test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id gets updated
