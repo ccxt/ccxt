@@ -1665,6 +1665,7 @@ export default class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#fetchOrderTrades
+         * @see https://developer-pro.bitmart.com/en/spot/#order-trade-list-v4-signed
          * @description fetch all the trades made from a single order
          * @param {string} id order id
          * @param {string} symbol unified market symbol
@@ -1673,55 +1674,13 @@ export default class bitmart extends Exchange {
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (!market['spot']) {
-            throw new NotSupported (this.id + ' fetchOrderTrades() does not support ' + market['type'] + ' orders, only spot orders are accepted');
-        }
-        const options = this.safeValue (this.options, 'fetchOrderTrades', {});
-        const defaultLimit = this.safeInteger (options, 'limit', 200);
-        if (limit === undefined) {
-            limit = defaultLimit;
-        }
         const request = {
-            'symbol': market['id'],
-            'order_id': id,
-            'N': limit,
+            'orderId': id,
         };
-        const response = await this.privateGetSpotV2Trades (this.extend (request, params));
-        //
-        // spot
-        //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"a06a5c53-8e6f-42d6-8082-2ff4718d221c",
-        //         "data":{
-        //             "current_page":1,
-        //             "trades":[
-        //                 {
-        //                     "detail_id":256348632,
-        //                     "order_id":2147484350,
-        //                     "symbol":"BTC_USDT",
-        //                     "create_time":1590462303000,
-        //                     "side":"buy",
-        //                     "fees":"0.00001350",
-        //                     "fee_coin_name":"BTC",
-        //                     "notional":"88.00000000",
-        //                     "price_avg":"8800.00",
-        //                     "size":"0.01000",
-        //                     "exec_type":"M"
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
+        const response = await this.privatePostSpotV4QueryOrderTrades (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue (data, 'trades', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (data, undefined, since, limit);
     }
 
     customParseBalance (response, marketType): Balances {
