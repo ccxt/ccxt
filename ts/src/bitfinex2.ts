@@ -1318,6 +1318,7 @@ export default class bitfinex2 extends Exchange {
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          */
         await this.loadMarkets ();
         let paginate = false;
