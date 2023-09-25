@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.105'
+__version__ = '4.0.106'
 
 # -----------------------------------------------------------------------------
 
@@ -1528,8 +1528,15 @@ class Exchange(BaseExchange):
             result.append(self.market_id(symbols[i]))
         return result
 
-    def market_symbols(self, symbols, type: Optional[str] = None):
+    def market_symbols(self, symbols, type: Optional[str] = None, allowEmpty=True):
         if symbols is None:
+            if not allowEmpty:
+                raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
+            return symbols
+        symbolsLength = len(symbols)
+        if symbolsLength == 0:
+            if not allowEmpty:
+                raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
             return symbols
         result = []
         for i in range(0, len(symbols)):

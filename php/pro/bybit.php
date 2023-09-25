@@ -26,7 +26,7 @@ class bybit extends \ccxt\async\bybit {
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
                 'watchTicker' => true,
-                'watchTickers' => false, // for now
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'watchPosition' => null,
@@ -189,6 +189,37 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
+    public function watch_tickers(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * n watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-$ticker
+             * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $messageHash = 'tickers::' . implode(',', $symbols);
+            $url = $this->get_url_by_market_type($symbols[0], false, $params);
+            $params = $this->clean_params($params);
+            $options = $this->safe_value($this->options, 'watchTickers', array());
+            $topic = $this->safe_string($options, 'name', 'tickers');
+            $marketIds = $this->market_ids($symbols);
+            $topics = [ ];
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $topics[] = $topic . '.' . $marketId;
+            }
+            $ticker = Async\await($this->watch_topics($url, $messageHash, $topics, $params));
+            if ($this->newUpdates) {
+                return $ticker;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }) ();
+    }
+
     public function handle_ticker(Client $client, $message) {
         //
         // linear
@@ -318,6 +349,17 @@ class bybit extends \ccxt\async\bybit {
         $this->tickers[$symbol] = $parsed;
         $messageHash = 'ticker:' . $symbol;
         $client->resolve ($this->tickers[$symbol], $messageHash);
+        // watchTickers part
+        $messageHashes = $this->find_message_hashes($client, 'tickers::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            if ($this->in_array($parsed['symbol'], $symbols)) {
+                $client->resolve ($parsed, $messageHash);
+            }
+        }
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
