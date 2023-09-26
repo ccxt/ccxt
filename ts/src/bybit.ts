@@ -4374,6 +4374,7 @@ export default class bybit extends Exchange {
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
@@ -4984,7 +4985,12 @@ export default class bybit extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
         */
         await this.loadMarkets ();
-        const request = {
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'nextPageCursor', 50);
+        }
+        let request = {
             // 'coin': currency['id'],
             // 'limit': 20, // max 50
             // 'cursor': '',
@@ -5000,6 +5006,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        [ params, request ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.privateGetV5AssetDepositQueryRecord (this.extend (request, params));
         //
         //     {
@@ -5042,10 +5049,17 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'nextPageCursor', 50);
+        }
+        let request = {
             // 'coin': currency['id'],
             // 'limit': 20, // max 50
             // 'cusor': '',
@@ -5061,6 +5075,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        [ params, request ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.privateGetV5AssetWithdrawQueryRecord (this.extend (request, params));
         //
         //     {
@@ -6543,11 +6558,18 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of  transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, params, 'nextPageCursor', 50);
+        }
         let currency = undefined;
-        const request = {};
+        let request = {};
         if (code !== undefined) {
             currency = this.safeCurrencyCode (code);
             request['coin'] = currency;
@@ -6558,6 +6580,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.privateGetV5AssetTransferQueryInterTransferList (this.extend (request, params));
         //
         //     {

@@ -5339,7 +5339,7 @@ export default class binance extends Exchange {
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {bool} [params.fiat] if true, only fiat deposits will be returned
-         * @param {int} [params.until] the latest time in ms to fetch deposits for
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();

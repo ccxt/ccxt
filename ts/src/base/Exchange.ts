@@ -4680,6 +4680,15 @@ export default class Exchange {
         }
         return input;
     }
+
+    handleUntilOption (key, request, params) {
+        const until = this.safeValue (params, 'until');
+        if (until !== undefined) {
+            request[key] = until;
+            params = this.omit (params, 'until');
+        }
+        return [ params, request ];
+    }
 }
 
 export {
