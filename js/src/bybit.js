@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bybit.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, BadSymbol } from './base/errors.js';
+import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, BadSymbol, MarginModeAlreadySet, NoChange } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -721,12 +721,12 @@ export default class bybit extends Exchange {
                     '110021': InvalidOrder,
                     '110022': InvalidOrder,
                     '110023': InvalidOrder,
-                    '110024': InvalidOrder,
-                    '110025': InvalidOrder,
-                    '110026': BadRequest,
-                    '110027': InvalidOrder,
-                    '110028': InvalidOrder,
-                    '110029': InvalidOrder,
+                    '110024': BadRequest,
+                    '110025': NoChange,
+                    '110026': MarginModeAlreadySet,
+                    '110027': NoChange,
+                    '110028': BadRequest,
+                    '110029': BadRequest,
                     '110030': InvalidOrder,
                     '110031': InvalidOrder,
                     '110032': InvalidOrder,
@@ -3600,7 +3600,6 @@ export default class bybit extends Exchange {
          * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [params.mmp] *option only* market maker protection
-         * @param {int} [params.triggerDirection] *contract only* conditional orders, 1: triggered when market price rises to triggerPrice, 2: triggered when market price falls to triggerPrice
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -3708,6 +3707,7 @@ export default class bybit extends Exchange {
         const isBuy = side === 'buy';
         const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
         if (triggerPrice !== undefined) {
+            request['triggerDirection'] = ascending ? 2 : 1;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {

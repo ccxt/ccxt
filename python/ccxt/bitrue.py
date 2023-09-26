@@ -1252,12 +1252,19 @@ class bitrue(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://github.com/Bitrue-exchange/Spot-official-api-docs#signed-endpoint-examples-for-post-apiv1order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bitrue api endpoint
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
+        :param str [params.clientOrderId]: a unique id for the order, automatically generated if not sent
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param decimal [params.icebergQty]:
+        :param long [params.recvWindow]:
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()

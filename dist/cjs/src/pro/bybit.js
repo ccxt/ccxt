@@ -20,7 +20,7 @@ class bybit extends bybit$1 {
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchPosition': undefined,
@@ -182,6 +182,36 @@ class bybit extends bybit$1 {
         const topics = [topic];
         return await this.watchTopics(url, messageHash, topics, params);
     }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#watchTickers
+         * @description n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const messageHash = 'tickers::' + symbols.join(',');
+        const url = this.getUrlByMarketType(symbols[0], false, params);
+        params = this.cleanParams(params);
+        const options = this.safeValue(this.options, 'watchTickers', {});
+        const topic = this.safeString(options, 'name', 'tickers');
+        const marketIds = this.marketIds(symbols);
+        const topics = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            topics.push(topic + '.' + marketId);
+        }
+        const ticker = await this.watchTopics(url, messageHash, topics, params);
+        if (this.newUpdates) {
+            return ticker;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
     handleTicker(client, message) {
         //
         // linear
@@ -312,6 +342,17 @@ class bybit extends bybit$1 {
         this.tickers[symbol] = parsed;
         const messageHash = 'ticker:' + symbol;
         client.resolve(this.tickers[symbol], messageHash);
+        // watchTickers part
+        const messageHashes = this.findMessageHashes(client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            if (this.inArray(parsed['symbol'], symbols)) {
+                client.resolve(parsed, messageHash);
+            }
+        }
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**

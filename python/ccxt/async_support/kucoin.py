@@ -1093,6 +1093,10 @@ class kucoin(Exchange, ImplicitAPI):
             rawPrecision = self.safe_string(entry, 'precision')
             precision = self.parse_number(self.parse_precision(rawPrecision))
             chainsLength = len(chains)
+            if not chainsLength:
+                # https://t.me/KuCoin_API/173118
+                isWithdrawEnabled = False
+                isDepositEnabled = False
             for j in range(0, chainsLength):
                 chain = chains[j]
                 chainId = self.safe_string(chain, 'chain')

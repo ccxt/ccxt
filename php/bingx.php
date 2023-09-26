@@ -34,6 +34,7 @@ class bingx extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
@@ -322,6 +323,7 @@ class bingx extends Exchange {
                     'PFUTURES' => 'swap',
                     'SFUTURES' => 'future',
                 ),
+                'recvWindow' => 5 * 1000, // 5 sec
             ),
         ));
     }
@@ -2349,6 +2351,74 @@ class bingx extends Exchange {
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
             'status' => $status,
+        );
+    }
+
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         * @see https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the bingx api endpoint
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
+        $recvWindow = $this->safe_integer(array($this, 'parse_params'), 'recvWindow', $defaultRecvWindow);
+        $request = array(
+            'coin' => $currency['id'],
+            'offset' => 0,
+            'limit' => 1000,
+            'recvWindow' => $recvWindow,
+        );
+        $response = $this->walletsV1PrivateGetCapitalDepositAddress (array_merge($request, $params));
+        //
+        //     {
+        //         $code => '0',
+        //         timestamp => '1695200226859',
+        //         $data => {
+        //           $data => array(
+        //             {
+        //               coinId => '799',
+        //               coin => 'USDT',
+        //               network => 'BEP20',
+        //               address => '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
+        //               tag => ''
+        //             }
+        //           ),
+        //           total => '1'
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($this->safe_value($response, 'data'), 'data');
+        $parsed = $this->parse_deposit_addresses($data, [ $currency['code'] ], false);
+        return $this->index_by($parsed, 'network');
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //     {
+        //         coinId => '799',
+        //         coin => 'USDT',
+        //         $network => 'BEP20',
+        //         $address => '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
+        //         $tag => ''
+        //     }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        $tag = $this->safe_string($depositAddress, 'tag');
+        $currencyId = $this->safe_string($depositAddress, 'coin');
+        $currency = $this->safe_currency($currencyId, $currency);
+        $code = $currency['code'];
+        $network = $this->safe_string($depositAddress, 'network');
+        $this->check_address($address);
+        return array(
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'network' => $network,
+            'info' => $depositAddress,
         );
     }
 

@@ -2484,6 +2484,8 @@ class bitget(Exchange, ImplicitAPI):
                 response = await self.publicMixGetMarketCandles(self.extend(request, params))
             elif swapMethod == 'publicMixGetMarketHistoryCandles':
                 response = await self.publicMixGetMarketHistoryCandles(self.extend(request, params))
+        if response == '':
+            return []  # happens when a new token is listed
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
         data = self.safe_value(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)

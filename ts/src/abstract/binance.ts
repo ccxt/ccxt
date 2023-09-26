@@ -23,6 +23,8 @@ interface Exchange {
     sapiGetAssetTradeFee (params?: {}): Promise<implicitReturnType>;
     sapiGetAssetLedgerTransferCloudMiningQueryByPage (params?: {}): Promise<implicitReturnType>;
     sapiGetAssetConvertTransferQueryByPage (params?: {}): Promise<implicitReturnType>;
+    sapiGetAssetWalletBalance (params?: {}): Promise<implicitReturnType>;
+    sapiGetAssetCustodyTransferHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginLoan (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginRepay (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAccount (params?: {}): Promise<implicitReturnType>;

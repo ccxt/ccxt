@@ -23,7 +23,7 @@ export default class bitget extends bitgetRest {
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
             },
@@ -130,6 +130,39 @@ export default class bitget extends bitgetRest {
         return await this.watchPublic (messageHash, args, params);
     }
 
+    async watchTickers (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const market = this.market (symbols[0]);
+        const instType = market['spot'] ? 'sp' : 'mc';
+        const messageHash = 'tickers::' + symbols.join (',');
+        const marketIds = this.marketIds (symbols);
+        const topics = [ ];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.market (marketId);
+            const args = {
+                'instType': instType,
+                'channel': 'ticker',
+                'instId': this.getWsMarketId (market),
+            };
+            topics.push (args);
+        }
+        const tickers = await this.watchPublicMultiple (messageHash, topics, params);
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
     handleTicker (client: Client, message) {
         //
         //   {
@@ -157,6 +190,17 @@ export default class bitget extends bitgetRest {
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
+        // watchTickers part
+        const messageHashes = this.findMessageHashes (client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            if (this.inArray (symbol, symbols)) {
+                client.resolve (ticker, messageHash);
+            }
+        }
         return message;
     }
 

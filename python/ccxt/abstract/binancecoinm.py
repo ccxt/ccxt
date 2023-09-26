@@ -16,6 +16,8 @@ class ImplicitAPI:
     sapi_get_asset_tradefee = sapiGetAssetTradeFee = Entry('asset/tradeFee', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_asset_ledger_transfer_cloud_mining_querybypage = sapiGetAssetLedgerTransferCloudMiningQueryByPage = Entry('asset/ledger-transfer/cloud-mining/queryByPage', 'sapi', 'GET', {'cost': 4.0002})
     sapi_get_asset_convert_transfer_querybypage = sapiGetAssetConvertTransferQueryByPage = Entry('asset/convert-transfer/queryByPage', 'sapi', 'GET', {'cost': 0.033335})
+    sapi_get_asset_wallet_balance = sapiGetAssetWalletBalance = Entry('asset/wallet/balance', 'sapi', 'GET', {'cost': 6})
+    sapi_get_asset_custody_transfer_history = sapiGetAssetCustodyTransferHistory = Entry('asset/custody/transfer-history', 'sapi', 'GET', {'cost': 6})
     sapi_get_margin_loan = sapiGetMarginLoan = Entry('margin/loan', 'sapi', 'GET', {'cost': 1})
     sapi_get_margin_repay = sapiGetMarginRepay = Entry('margin/repay', 'sapi', 'GET', {'cost': 1})
     sapi_get_margin_account = sapiGetMarginAccount = Entry('margin/account', 'sapi', 'GET', {'cost': 1})

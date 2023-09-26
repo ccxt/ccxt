@@ -49,6 +49,12 @@ abstract class binancecoinm extends \ccxt\binance {
     public function sapi_get_asset_convert_transfer_querybypage($params = array()) {
         return $this->request('asset/convert-transfer/queryByPage', 'sapi', 'GET', $params, null, null, array("cost" => 0.033335));
     }
+    public function sapi_get_asset_wallet_balance($params = array()) {
+        return $this->request('asset/wallet/balance', 'sapi', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function sapi_get_asset_custody_transfer_history($params = array()) {
+        return $this->request('asset/custody/transfer-history', 'sapi', 'GET', $params, null, null, array("cost" => 6));
+    }
     public function sapi_get_margin_loan($params = array()) {
         return $this->request('margin/loan', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2013,6 +2019,12 @@ abstract class binancecoinm extends \ccxt\binance {
     }
     public function sapiGetAssetConvertTransferQueryByPage($params = array()) {
         return $this->request('asset/convert-transfer/queryByPage', 'sapi', 'GET', $params, null, null, array("cost" => 0.033335));
+    }
+    public function sapiGetAssetWalletBalance($params = array()) {
+        return $this->request('asset/wallet/balance', 'sapi', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function sapiGetAssetCustodyTransferHistory($params = array()) {
+        return $this->request('asset/custody/transfer-history', 'sapi', 'GET', $params, null, null, array("cost" => 6));
     }
     public function sapiGetMarginLoan($params = array()) {
         return $this->request('margin/loan', 'sapi', 'GET', $params, null, null, array("cost" => 1));

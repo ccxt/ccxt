@@ -33,6 +33,7 @@ class bingx extends bingx$1 {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -319,6 +320,7 @@ class bingx extends bingx$1 {
                     'PFUTURES': 'swap',
                     'SFUTURES': 'future',
                 },
+                'recvWindow': 5 * 1000, // 5 sec
             },
         });
     }
@@ -2377,6 +2379,74 @@ class bingx extends bingx$1 {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
             'status': status,
+        };
+    }
+    async fetchDepositAddress(code, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
+        const recvWindow = this.safeInteger(this.parseParams, 'recvWindow', defaultRecvWindow);
+        const request = {
+            'coin': currency['id'],
+            'offset': 0,
+            'limit': 1000,
+            'recvWindow': recvWindow,
+        };
+        const response = await this.walletsV1PrivateGetCapitalDepositAddress(this.extend(request, params));
+        //
+        //     {
+        //         code: '0',
+        //         timestamp: '1695200226859',
+        //         data: {
+        //           data: [
+        //             {
+        //               coinId: '799',
+        //               coin: 'USDT',
+        //               network: 'BEP20',
+        //               address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
+        //               tag: ''
+        //             }
+        //           ],
+        //           total: '1'
+        //         }
+        //     }
+        //
+        const data = this.safeValue(this.safeValue(response, 'data'), 'data');
+        const parsed = this.parseDepositAddresses(data, [currency['code']], false);
+        return this.indexBy(parsed, 'network');
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //     {
+        //         coinId: '799',
+        //         coin: 'USDT',
+        //         network: 'BEP20',
+        //         address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
+        //         tag: ''
+        //     }
+        //
+        const address = this.safeString(depositAddress, 'address');
+        const tag = this.safeString(depositAddress, 'tag');
+        const currencyId = this.safeString(depositAddress, 'coin');
+        currency = this.safeCurrency(currencyId, currency);
+        const code = currency['code'];
+        const network = this.safeString(depositAddress, 'network');
+        this.checkAddress(address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': network,
+            'info': depositAddress,
         };
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {

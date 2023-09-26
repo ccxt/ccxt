@@ -156,6 +156,7 @@ class bitbank extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for bitbank
+             * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-$pairs-info
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing market $data
              */
@@ -284,6 +285,7 @@ class bitbank extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#ticker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the bitbank api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
@@ -303,6 +305,7 @@ class bitbank extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#depth
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the bitbank api endpoint
@@ -370,6 +373,7 @@ class bitbank extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#transactions
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -392,6 +396,7 @@ class bitbank extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
+             * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-$pairs-info
              * @param {array} [$params] extra parameters specific to the bitbank api endpoint
              * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures} indexed by $market symbols
              */
@@ -471,6 +476,7 @@ class bitbank extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical $candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#$candlestick
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -544,6 +550,7 @@ class bitbank extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#assets
              * @param {array} [$params] extra parameters specific to the bitbank api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
@@ -640,6 +647,7 @@ class bitbank extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#create-new-order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -669,6 +677,7 @@ class bitbank extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#cancel-order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the bitbank api endpoint
@@ -690,6 +699,7 @@ class bitbank extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-order-information
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the bitbank api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
@@ -710,6 +720,7 @@ class bitbank extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
+             * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-active-$orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open $orders for
              * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
@@ -738,6 +749,7 @@ class bitbank extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
+             * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-trade-history
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -768,6 +780,7 @@ class bitbank extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
+             * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-withdrawal-$accounts
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the bitbank api endpoint
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
@@ -797,6 +810,7 @@ class bitbank extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#new-withdrawal-$request
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
