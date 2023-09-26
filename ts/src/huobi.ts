@@ -940,44 +940,6 @@ export default class huobi extends Exchange {
                     'BTC': 'BTC',
                     'USDT': 'TRC20',
                 },
-                'networks': {
-                    // by displaynames
-                    'ALGO': 'ALGO',
-                    'ALGORAND': 'ALGO',
-                    'BEP20': 'BEP20',
-                    'BSC': 'BEP20',
-                    'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
-                    'AVALANCHE': 'AVAXCCHAIN',
-                    'AVAX': 'AVAXCCHAIN',
-                    'HRC20': 'HECO',
-                    'HECO': 'HECO',
-                    // 'HT': 'HECO', // HT is not acceptable networkcode for unification
-                    'TRC20': 'TRC20',
-                    'TRX': 'TRC20',
-                    'BTC': 'BTC',
-                    'BITCOIN': 'BTC',
-                    'ARBITRUM': 'ARB',
-                    'ARB': 'ARB',
-                    'SOLANA': 'SOL',
-                    'SOL': 'SOL',
-                    'SPL': 'SOL',
-                    'PRC20': 'PRC20',
-                    'POLYGON': 'PRC20',
-                    'MATIC': 'PRC20',
-                },
-                'networksById': {
-                    'ALGO': 'ALGO',
-                    'BEP20': 'BEP20',
-                    'ERC20': 'ERC20',
-                    'AVAXCCHAIN': 'AVALANCHE',
-                    'HECO': 'HRC20',
-                    'TRC20': 'TRC20',
-                    'BTC': 'BTC',
-                    'ARB': 'ARBITRUM',
-                    'SOL': 'SOLANA',
-                    'PRC20': 'POLYGON',
-                },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'createMarketBuyOrderRequiresPrice': true,
@@ -2811,122 +2773,125 @@ export default class huobi extends Exchange {
          */
         const response = await this.spotPublicGetV1SettingsCommonChains (params);
         debugger;
-
-
-        // const response = await this.spotPublicGetV2ReferenceCurrencies (params);
         //
         //    {
-        //        "code": 200,
+        //        "status": "ok",
         //        "data": [
         //            {
-        //                "currency": "sxp",
-        //                "assetType": "1",
-        //                "chains": [
-        //                    {
-        //                        "chain": "sxp",
-        //                        "displayName": "ERC20",
-        //                        "baseChain": "ETH",
-        //                        "baseChainProtocol": "ERC20",
-        //                        "isDynamic": true,
-        //                        "numOfConfirmations": "12",
-        //                        "numOfFastConfirmations": "12",
-        //                        "depositStatus": "allowed",
-        //                        "minDepositAmt": "0.23",
-        //                        "withdrawStatus": "allowed",
-        //                        "minWithdrawAmt": "0.23",
-        //                        "withdrawPrecision": "8",
-        //                        "maxWithdrawAmt": "227000.000000000000000000",
-        //                        "withdrawQuotaPerDay": "227000.000000000000000000",
-        //                        "withdrawQuotaPerYear": null,
-        //                        "withdrawQuotaTotal": null,
-        //                        "withdrawFeeType": "fixed",
-        //                        "transactFeeWithdraw": "11.1653",
-        //                        "addrWithTag": false,
-        //                        "addrDepositTag": false
-        //                    }
-        //                ],
-        //                "instStatus": "normal"
-        //            }
-        //        ]
-        //    }
+        //                "currency": "usdt", // currency
+        //                "ac": "eth", // chain
+        //                "ct": "live", // chain type. plain, live, old, new, legal, tooold
+        //                "chain": "usdterc20", // chain id
+        //                "default": "0", // is default
+        //                "dma": "1", // deposit min amount
+        //                "wma": "1", // withdraw min amount
+        //                "de": true, // deposit enabled
+        //                "we": true, // withdraw enabled
+        //                "wp": "6", // withdraw precision
+        //                "ft": "eth", // fee type
+        //                "adt": false, // address needs deposit tag
+        //                "deposit-desc": "Please don’t deposit any other digital assets except USDT(USDTERC20) to the above address. Otherwise, you may lose your assets permanently. !>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 32 confirmations, and it will be available to withdraw after 64 confirmations. !>_<!Minimum deposit amount: 1 USDT(USDTERC20). Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.!>_<!Please make sure that your computer and browser are secure, and your information is protected from being tampered with or leaked.", // deposit description
+        //                "withdraw-desc": "Minimum withdrawal amount: 1 USDT (ERC20). !>_<!To ensure the safety of your funds, your withdrawal request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked."
+        //                "deposit-tips-desc":"", // deposit tip extra description
+        //                "withdraw-tips-desc":"", // withdraw tip extra description
+        //                "sda": "", // announcement if deposit is suspended
+        //                "swa": "", // announcement if withdraw is suspended
+        //                "suspend-deposit-desc": "", // further description for suspended deposits
+        //                "suspend-withdraw-desc": "", // further description for suspended withdrawals
+        //                //
+        //                // below fields are not much important
+        //                //
+        //                "dn": "USDTERC20", // display name
+        //                "ca": "dac17f958d2ee523a2206206994597c13d831ec7", // contract address
+        //                "cct": "1", // contract chain type 0; coin; 1: token
+        //                "replace-chain-info-desc":"", //
+        //                "replace-chain-notification-desc": "", //
+        //                "awt": false, // addr with tag
+        //                "ao": false, // addr oneoff
+        //                "fc": "32", // fast-confirms
+        //                "sc": "64", // safe-confirms
+        //                "fn": "", // unknown
+        //                "code": "usdterc20", // obsolete
+        //                "v": true, // is visible
+        //                "suspend-visible-desc": "", // descirption if visible is suspended
+        //            },
+        //        ],
+        //        "ts": "1695716421757",
+        //        "full": "1"
         //    }
         //
         const data = this.safeValue (response, 'data', []);
+        const dataByCurrencyId = this.groupBy (data, 'currency');
         const result = {};
-        this.options['networkChainIdsByNames'] = {};
-        this.options['networkNamesByChainIds'] = {};
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const currencyId = this.safeString (entry, 'currency');
+        const currencyIds = Object.keys (dataByCurrencyId);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            this.options['networkChainIdsByNames'][code] = {};
-            const chains = this.safeValue (entry, 'chains', []);
+            const chains = dataByCurrencyId[currencyId];
             const networks = {};
-            const instStatus = this.safeString (entry, 'instStatus');
-            const currencyActive = instStatus === 'normal';
+            let currencyActive = false;
+            let depositEnabled = false;
+            let withdrawEnabled = false;
             let minPrecision = undefined;
-            let minWithdraw = undefined;
-            let maxWithdraw = undefined;
-            let deposit = false;
-            let withdraw = false;
+            let isFiat = false;
             for (let j = 0; j < chains.length; j++) {
-                const chainEntry = chains[j];
-                const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
-                const title = this.safeString (chainEntry, 'displayName');
-                this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
-                this.options['networkNamesByChainIds'][uniqueChainId] = title;
-                const networkCode = this.networkIdToCode (title, code);
-                minWithdraw = this.safeNumber (chainEntry, 'minWithdrawAmt');
-                maxWithdraw = this.safeNumber (chainEntry, 'maxWithdrawAmt');
-                const withdrawStatus = this.safeString (chainEntry, 'withdrawStatus');
-                const depositStatus = this.safeString (chainEntry, 'depositStatus');
-                const withdrawEnabled = (withdrawStatus === 'allowed');
-                const depositEnabled = (depositStatus === 'allowed');
-                withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
-                deposit = (depositEnabled) ? depositEnabled : deposit;
-                const active = withdrawEnabled && depositEnabled;
-                const precision = this.parsePrecision (this.safeString (chainEntry, 'withdrawPrecision'));
-                if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'chain');
+                const networkName = this.safeString (chain, 'ac');
+                const chainType = this.safeString (chain, 'ct');
+                if (chainType === 'legal') {
+                    isFiat = true;
                 }
-                const fee = this.safeNumber (chainEntry, 'transactFeeWithdraw');
-                networks[networkCode] = {
-                    'info': chainEntry,
-                    'id': uniqueChainId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': minWithdraw,
-                            'max': maxWithdraw,
+                const defaultChain = this.safeInteger (chain, 'default');
+                const isDefault = defaultChain === 1;
+                const canDeposit = this.safeValue (chain, 'de');
+                depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
+                const canWithdraw = this.safeValue (chain, 'we');
+                withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
+                currencyActive = (canDeposit && canWithdraw) ? true : currencyActive;
+                if (networkId !== undefined) {
+                    const networkCode = this.networkIdToCode (networkName);
+                    const precision = this.parsePrecision (this.safeString (chain, 'wp'));
+                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (minPrecision, precision);
+                    networks[networkCode] = {
+                        'id': networkId,
+                        'network': networkCode,
+                        'active': (canDeposit && canWithdraw),
+                        'deposit': canDeposit,
+                        'withdraw': canWithdraw,
+                        'fee': undefined,
+                        'precision': this.parseNumber (precision),
+                        'limits': {
+                            'deposit': {
+                                'min': this.safeNumber (chain, 'dma'),
+                                'max': undefined,
+                            },
+                            'withdraw': {
+                                'min': this.safeNumber (chain, 'wma'),
+                                'max': undefined,
+                            },
                         },
-                    },
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'fee': fee,
-                    'precision': this.parseNumber (precision),
-                };
+                        'depositTagNeeded': this.safeValue (chain, 'adt'),
+                        'info': chain,
+                    };
+                }
             }
             result[code] = {
-                'info': entry,
+                'info': undefined,
                 'code': code,
                 'id': currencyId,
-                'active': currencyActive,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': undefined,
                 'name': undefined,
+                'active': currencyActive,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'fee': undefined,
+                'precision': this.parseNumber (minPrecision),
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': minWithdraw,
-                        'max': maxWithdraw,
-                    },
                 },
-                'precision': this.parseNumber (minPrecision),
                 'networks': networks,
             };
         }
