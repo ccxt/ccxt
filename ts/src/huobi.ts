@@ -2899,7 +2899,6 @@ export default class huobi extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.spotPublicGetV1SettingsCommonChains (params);
-        debugger;
         //
         //    {
         //        "status": "ok",
@@ -2964,53 +2963,52 @@ export default class huobi extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
-                const networkName = this.safeString (chain, 'ac');
+                const networkName = this.safeString (chain, 'ac', ''); // empty names are for some exceptional FIAT currencies
                 const chainType = this.safeString (chain, 'ct');
                 if (chainType === 'legal') {
                     isFiat = true;
                 }
-                const defaultChain = this.safeInteger (chain, 'default');
-                const isDefault = defaultChain === 1;
+                const isDefaultChain = this.safeInteger (chain, 'default') === 1;
                 const canDeposit = this.safeValue (chain, 'de');
-                depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
+                depositEnabled = canDeposit ? true : depositEnabled;
                 const canWithdraw = this.safeValue (chain, 'we');
-                withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
+                withdrawEnabled = canWithdraw ? true : withdrawEnabled;
                 currencyActive = (canDeposit && canWithdraw) ? true : currencyActive;
-                if (networkId !== undefined) {
-                    const networkCode = this.networkIdToCode (networkName);
-                    const precision = this.parsePrecision (this.safeString (chain, 'wp'));
-                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (minPrecision, precision);
-                    networks[networkCode] = {
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': (canDeposit && canWithdraw),
-                        'deposit': canDeposit,
-                        'withdraw': canWithdraw,
-                        'fee': undefined,
-                        'precision': this.parseNumber (precision),
-                        'limits': {
-                            'deposit': {
-                                'min': this.safeNumber (chain, 'dma'),
-                                'max': undefined,
-                            },
-                            'withdraw': {
-                                'min': this.safeNumber (chain, 'wma'),
-                                'max': undefined,
-                            },
+                const networkCode = this.networkIdToCode (networkName);
+                const precision = this.parsePrecision (this.safeString (chain, 'wp'));
+                minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (minPrecision, precision);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': (canDeposit && canWithdraw),
+                    'deposit': canDeposit,
+                    'withdraw': canWithdraw,
+                    'fee': undefined,
+                    'precision': this.parseNumber (precision),
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber (chain, 'dma'),
+                            'max': undefined,
                         },
-                        'depositTagNeeded': this.safeValue (chain, 'adt'),
-                        'info': chain,
-                    };
-                }
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'wma'),
+                            'max': undefined,
+                        },
+                    },
+                    'depositTagNeeded': this.safeValue (chain, 'adt'),
+                    'isDefault': isDefaultChain,
+                    'info': chain,
+                };
             }
             result[code] = {
-                'info': undefined,
+                'info': chains,
                 'code': code,
                 'id': currencyId,
                 'name': undefined,
                 'active': currencyActive,
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
+                'type': (isFiat ? 'fiat' : 'crypto'),
                 'fee': undefined,
                 'precision': this.parseNumber (minPrecision),
                 'limits': {
@@ -3023,17 +3021,6 @@ export default class huobi extends Exchange {
             };
         }
         return result;
-    }
-
-    networkIdToCode (networkId, currencyCode = undefined) {
-        // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
-        const keys = Object.keys (this.options['networkNamesByChainIds']);
-        const keysLength = keys.length;
-        if (keysLength === 0) {
-            throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
-        }
-        const networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId, networkId);
-        return super.networkIdToCode (networkTitle);
     }
 
     networkCodeToId (networkCode, currencyCode = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
