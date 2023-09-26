@@ -146,11 +146,11 @@ class bitget(ccxt.async_support.bitget):
         topics = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = self.market(marketId)
+            marketInner = self.market(marketId)
             args = {
                 'instType': instType,
                 'channel': 'ticker',
-                'instId': self.get_ws_market_id(market),
+                'instId': self.get_ws_market_id(marketInner),
             }
             topics.append(args)
         tickers = await self.watch_public_multiple(messageHash, topics, params)
@@ -188,12 +188,12 @@ class bitget(ccxt.async_support.bitget):
         # watchTickers part
         messageHashes = self.find_message_hashes(client, 'tickers::')
         for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
-            parts = messageHash.split('::')
+            messageHashTicker = messageHashes[i]
+            parts = messageHashTicker.split('::')
             symbolsString = parts[1]
             symbols = symbolsString.split(',')
             if self.in_array(symbol, symbols):
-                client.resolve(ticker, messageHash)
+                client.resolve(ticker, messageHashTicker)
         return message
 
     def parse_ws_ticker(self, message, market=None):

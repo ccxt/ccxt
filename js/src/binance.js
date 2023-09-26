@@ -8378,9 +8378,9 @@ export default class binance extends Exchange {
             const numElements = response.length;
             if (numElements > 0) {
                 const firstElement = response[0];
-                const error = this.safeString(firstElement, 'code');
-                if (error !== undefined) {
-                    this.throwExactlyMatchedException(this.exceptions['exact'], error, this.id + ' ' + body);
+                const errorCode = this.safeString(firstElement, 'code');
+                if (errorCode !== undefined) {
+                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, this.id + ' ' + body);
                 }
             }
         }

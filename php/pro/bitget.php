@@ -152,11 +152,11 @@ class bitget extends \ccxt\async\bitget {
             $topics = [ ];
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
-                $market = $this->market($marketId);
+                $marketInner = $this->market($marketId);
                 $args = array(
                     'instType' => $instType,
                     'channel' => 'ticker',
-                    'instId' => $this->get_ws_market_id($market),
+                    'instId' => $this->get_ws_market_id($marketInner),
                 );
                 $topics[] = $args;
             }
@@ -198,12 +198,12 @@ class bitget extends \ccxt\async\bitget {
         // watchTickers part
         $messageHashes = $this->find_message_hashes($client, 'tickers::');
         for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
-            $parts = explode('::', $messageHash);
+            $messageHashTicker = $messageHashes[$i];
+            $parts = explode('::', $messageHashTicker);
             $symbolsString = $parts[1];
             $symbols = explode(',', $symbolsString);
             if ($this->in_array($symbol, $symbols)) {
-                $client->resolve ($ticker, $messageHash);
+                $client->resolve ($ticker, $messageHashTicker);
             }
         }
         return $message;

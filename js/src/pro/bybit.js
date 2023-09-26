@@ -348,12 +348,12 @@ export default class bybit extends bybitRest {
         // watchTickers part
         const messageHashes = this.findMessageHashes(client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split('::');
+            const messageHashTicker = messageHashes[i];
+            const parts = messageHashTicker.split('::');
             const symbolsString = parts[1];
             const symbols = symbolsString.split(',');
             if (this.inArray(parsed['symbol'], symbols)) {
-                client.resolve(parsed, messageHash);
+                client.resolve(parsed, messageHashTicker);
             }
         }
     }

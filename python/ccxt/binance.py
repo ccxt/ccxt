@@ -7721,9 +7721,9 @@ class binance(Exchange, ImplicitAPI):
             numElements = len(response)
             if numElements > 0:
                 firstElement = response[0]
-                error = self.safe_string(firstElement, 'code')
-                if error is not None:
-                    self.throw_exactly_matched_exception(self.exceptions['exact'], error, self.id + ' ' + body)
+                errorCode = self.safe_string(firstElement, 'code')
+                if errorCode is not None:
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.id + ' ' + body)
         return None
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
