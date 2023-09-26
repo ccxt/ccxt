@@ -5006,7 +5006,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ params, request ] = this.handleUntilOption ('endTime', request, params);
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.privateGetV5AssetDepositQueryRecord (this.extend (request, params));
         //
         //     {
@@ -5075,7 +5075,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ params, request ] = this.handleUntilOption ('endTime', request, params);
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.privateGetV5AssetWithdrawQueryRecord (this.extend (request, params));
         //
         //     {

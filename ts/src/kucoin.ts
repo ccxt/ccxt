@@ -2584,7 +2584,7 @@ export default class kucoin extends Exchange {
         } else {
             throw new ExchangeError (this.id + ' fetchMyTradesMethod() invalid method');
         }
-        [ params, request ] = this.handleUntilOption ('endAt', request, params);
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -3064,7 +3064,7 @@ export default class kucoin extends Exchange {
                 request['startAt'] = since;
             }
         }
-        [ params, request ] = this.handleUntilOption ('endAt', request, params);
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -3148,7 +3148,7 @@ export default class kucoin extends Exchange {
                 request['startAt'] = since;
             }
         }
-        [ params, request ] = this.handleUntilOption ('endAt', request, params);
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -3669,7 +3669,7 @@ export default class kucoin extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        [ params, request ] = this.handleUntilOption ('endAt', request, params);
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
         const response = await this.privateGetAccountsLedgers (this.extend (request, params));
         //
         //     {

@@ -1586,7 +1586,7 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        [ params, request ] = this.handleUntilOption ('endTime', request, params);
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.privateSpotGetWalletDepositList (this.extend (request, params));
         //
         //      {
@@ -1723,7 +1723,7 @@ export default class bitget extends Exchange {
             'startTime': since,
             'endTime': this.milliseconds (),
         };
-        [ params, request ] = this.handleUntilOption ('endTime', params, request);
+        [ request, params ] = this.handleUntilOption ('endTime', params, request);
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
@@ -3834,7 +3834,7 @@ export default class bitget extends Exchange {
         if (since !== undefined) {
             request['before'] = since;
         }
-        [ params, request ] = this.handleUntilOption ('after', params, request);
+        [ request, params ] = this.handleUntilOption ('after', params, request);
         const response = await this.privateSpotPostAccountBills (this.extend (request, params));
         //
         //     {
@@ -4839,7 +4839,7 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ params, request ] = this.handleUntilOption ('after', params, request);
+        [ request, params ] = this.handleUntilOption ('after', params, request);
         const response = await this.privateSpotGetAccountTransferRecords (this.extend (request, params));
         //
         //     {

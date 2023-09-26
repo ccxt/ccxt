@@ -4687,7 +4687,7 @@ export default class Exchange {
             request[key] = until;
             params = this.omit (params, [ 'until', 'till' ]);
         }
-        return [ params, request ];
+        return [ request, params ];
     }
 }
 

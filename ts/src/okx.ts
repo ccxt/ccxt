@@ -3873,7 +3873,7 @@ export default class okx extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
-        [ params, request ] = this.handleUntilOption ('end', params, request);
+        [ request, params ] = this.handleUntilOption ('end', params, request);
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         request['instType'] = this.convertToInstrumentType (type);
         if (limit !== undefined) {
@@ -3993,7 +3993,7 @@ export default class okx extends Exchange {
             currency = this.currency (code);
             request['ccy'] = currency['id'];
         }
-        [ params, request ] = this.handleUntilOption ('end', params, request);
+        [ request, params ] = this.handleUntilOption ('end', params, request);
         const response = await this[method] (this.extend (request, query));
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
@@ -4438,7 +4438,7 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        [ params, request ] = this.handleUntilOption ('after', params, request);
+        [ request, params ] = this.handleUntilOption ('after', params, request);
         const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
         //
         //     {

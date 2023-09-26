@@ -3472,7 +3472,7 @@ export default class gate extends Exchange {
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
-        [ params, request ] = this.handleUntilOption ('to', request, params);
+        [ request, params ] = this.handleUntilOption ('to', request, params);
         const response = await this.privateWalletGetDeposits (this.extend (request, params));
         return this.parseTransactions (response, currency);
     }
@@ -3510,7 +3510,7 @@ export default class gate extends Exchange {
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
-        [ params, request ] = this.handleUntilOption ('to', request, params);
+        [ request, params ] = this.handleUntilOption ('to', request, params);
         const response = await this.privateWalletGetWithdrawals (this.extend (request, params));
         return this.parseTransactions (response, currency);
     }
@@ -6108,7 +6108,7 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ params, request ] = this.handleUntilOption ('to', request, params);
+        [ request, params ] = this.handleUntilOption ('to', request, params);
         if (type === 'spot') {
             response = await this.privateSpotGetAccountBook (this.extend (request, params));
         } else if (type === 'margin') {

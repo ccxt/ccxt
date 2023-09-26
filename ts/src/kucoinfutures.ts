@@ -1951,7 +1951,7 @@ export default class kucoinfutures extends kucoin {
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        [ params, request ] = this.handleUntilOption ('endAt', request, params);
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
         const response = await this.futuresPrivateGetFills (this.extend (request, params));
         //
         //    {
