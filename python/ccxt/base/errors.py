@@ -6,12 +6,11 @@ error_hierarchy = {
                     'AccountNotEnabled': {},
                 },
                 'AccountSuspended': {},
+                'AccountNotVerified': {},
             },
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
-                'MarginModeAlreadySet': {},
-                'NoChange': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -27,7 +26,7 @@ error_hierarchy = {
                 'OrderImmediatelyFillable': {},
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
-                'ContractUnavailable': {},
+                'TradesNotFound': {}
             },
             'NotSupported': {},
         },
@@ -69,6 +68,10 @@ class AccountSuspended(AuthenticationError):
     pass
 
 
+class AccountNotVerified(AuthenticationError):
+    pass
+
+
 class ArgumentsRequired(ExchangeError):
     pass
 
@@ -78,14 +81,6 @@ class BadRequest(ExchangeError):
 
 
 class BadSymbol(BadRequest):
-    pass
-
-
-class MarginModeAlreadySet(BadRequest):
-    pass
-
-
-class NoChange(BadRequest):
     pass
 
 
@@ -117,6 +112,10 @@ class OrderNotFound(InvalidOrder):
     pass
 
 
+class TradesNotFound(InvalidOrder):
+    pass
+
+
 class OrderNotCached(InvalidOrder):
     pass
 
@@ -137,10 +136,6 @@ class DuplicateOrderId(InvalidOrder):
     pass
 
 
-class ContractUnavailable(InvalidOrder):
-    pass
-
-
 class NotSupported(ExchangeError):
     pass
 
@@ -154,6 +149,10 @@ class DDoSProtection(NetworkError):
 
 
 class RateLimitExceeded(DDoSProtection):
+    pass
+
+
+class SameLeverage(ExchangeError):
     pass
 
 
@@ -173,19 +172,36 @@ class RequestTimeout(NetworkError):
     pass
 
 
+class OrderCancelled(InvalidOrder):
+    """Raised when you are trying to fetch or cancel a non-existent order"""
+    pass
+
+
+class MaxStopAllowed(ExchangeError):
+    """"Raised when an exchange server replies with an error in JSON"""
+    pass
+
+
+class PositionNotFound(ExchangeError):
+    pass
+
+
+class NotChanged(BaseError):
+    pass
+
+
 __all__ = [
     'error_hierarchy',
-    'BaseError',
     'ExchangeError',
+    'SameLeverage',
     'AuthenticationError',
     'PermissionDenied',
     'AccountNotEnabled',
     'AccountSuspended',
+    'AccountNotVerified',
     'ArgumentsRequired',
     'BadRequest',
     'BadSymbol',
-    'MarginModeAlreadySet',
-    'NoChange',
     'BadResponse',
     'NullResponse',
     'InsufficientFunds',
@@ -193,12 +209,12 @@ __all__ = [
     'AddressPending',
     'InvalidOrder',
     'OrderNotFound',
+    'TradesNotFound',
     'OrderNotCached',
     'CancelPending',
     'OrderImmediatelyFillable',
     'OrderNotFillable',
     'DuplicateOrderId',
-    'ContractUnavailable',
     'NotSupported',
     'NetworkError',
     'DDoSProtection',
@@ -206,5 +222,9 @@ __all__ = [
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
-    'RequestTimeout'
+    'RequestTimeout',
+    'OrderCancelled',
+    'MaxStopAllowed',
+    'PositionNotFound',
+    'NotChanged'
 ]

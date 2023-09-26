@@ -4,12 +4,8 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-from ccxt.abstract.bitpanda import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
-from typing import Optional
-from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -19,12 +15,9 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import AuthenticationError
-from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
-class bitpanda(Exchange, ImplicitAPI):
+class bitpanda(Exchange):
 
     def describe(self):
         return self.deep_extend(super(bitpanda, self).describe(), {
@@ -33,82 +26,34 @@ class bitpanda(Exchange, ImplicitAPI):
             'countries': ['AT'],  # Austria
             'rateLimit': 300,
             'version': 'v1',
-            'pro': True,
             # new metainfo interface
             'has': {
-                'CORS': None,
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'addMargin': False,
+                'CORS': False,
+                'publicAPI': True,
+                'privateAPI': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createDepositAddress': True,
                 'createOrder': True,
-                'createReduceOnlyOrder': False,
-                'createStopLimitOrder': True,
-                'createStopMarketOrder': False,
-                'createStopOrder': True,
-                'fetchAccounts': False,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
-                'fetchBorrowRateHistories': False,
-                'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
-                'fetchDeposit': False,
-                'fetchDepositAddress': True,
-                'fetchDepositAddresses': False,
                 'fetchDeposits': True,
-                'fetchDepositsWithdrawals': False,
-                'fetchFundingHistory': False,
-                'fetchFundingRate': False,
-                'fetchFundingRateHistory': False,
-                'fetchFundingRates': False,
-                'fetchIndexOHLCV': False,
-                'fetchLedger': False,
-                'fetchLeverage': False,
-                'fetchMarginMode': False,
+                'fetchDepositAddress': True,
                 'fetchMarkets': True,
-                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
-                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': False,
                 'fetchOrderTrades': True,
-                'fetchPosition': False,
-                'fetchPositionMode': False,
-                'fetchPositions': False,
-                'fetchPositionsRisk': False,
-                'fetchPremiumIndexOHLCV': False,
-                'fetchTicker': True,
-                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': False,
                 'fetchTradingFees': True,
-                'fetchTransactionFee': False,
-                'fetchTransactionFees': False,
-                'fetchTransactions': False,
-                'fetchTransfer': False,
-                'fetchTransfers': False,
-                'fetchWithdrawal': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchWithdrawals': True,
-                'reduceMargin': False,
-                'setLeverage': False,
-                'setMargin': False,
-                'setMarginMode': False,
-                'setPositionMode': False,
-                'transfer': False,
-                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1/MINUTES',
@@ -180,30 +125,30 @@ class bitpanda(Exchange, ImplicitAPI):
             },
             'fees': {
                 'trading': {
-                    'tierBased': True,
+                    'tierBased': False,
                     'percentage': True,
-                    'taker': self.parse_number('0.0015'),
-                    'maker': self.parse_number('0.001'),
+                    'taker': 0.15 / 100,
+                    'maker': 0.10 / 100,
                     'tiers': [
                         # volume in BTC
                         {
                             'taker': [
-                                [self.parse_number('0'), self.parse_number('0.0015')],
-                                [self.parse_number('100'), self.parse_number('0.0013')],
-                                [self.parse_number('250'), self.parse_number('0.0013')],
-                                [self.parse_number('1000'), self.parse_number('0.001')],
-                                [self.parse_number('5000'), self.parse_number('0.0009')],
-                                [self.parse_number('10000'), self.parse_number('0.00075')],
-                                [self.parse_number('20000'), self.parse_number('0.00065')],
+                                [0, 0.15 / 100],
+                                [100, 0.13 / 100],
+                                [250, 0.13 / 100],
+                                [1000, 0.1 / 100],
+                                [5000, 0.09 / 100],
+                                [10000, 0.075 / 100],
+                                [20000, 0.065 / 100],
                             ],
                             'maker': [
-                                [self.parse_number('0'), self.parse_number('0.001')],
-                                [self.parse_number('100'), self.parse_number('0.001')],
-                                [self.parse_number('250'), self.parse_number('0.0009')],
-                                [self.parse_number('1000'), self.parse_number('0.00075')],
-                                [self.parse_number('5000'), self.parse_number('0.0006')],
-                                [self.parse_number('10000'), self.parse_number('0.0005')],
-                                [self.parse_number('20000'), self.parse_number('0.0005')],
+                                [0, 0.1 / 100],
+                                [100, 0.1 / 100],
+                                [250, 0.09 / 100],
+                                [1000, 0.075 / 100],
+                                [5000, 0.06 / 100],
+                                [10000, 0.05 / 100],
+                                [20000, 0.05 / 100],
                             ],
                         },
                     ],
@@ -213,7 +158,12 @@ class bitpanda(Exchange, ImplicitAPI):
                 'apiKey': True,
                 'secret': False,
             },
-            'precisionMode': TICK_SIZE,
+            # exchange-specific options
+            'options': {
+                'fetchTradingFees': {
+                    'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
+                },
+            },
             'exceptions': {
                 'exact': {
                     'INVALID_CLIENT_UUID': InvalidOrder,
@@ -300,21 +250,9 @@ class bitpanda(Exchange, ImplicitAPI):
             'commonCurrencies': {
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
             },
-            # exchange-specific options
-            'options': {
-                'fetchTradingFees': {
-                    'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
-                },
-                'fiat': ['EUR', 'CHF'],
-            },
         })
 
     async def fetch_time(self, params={}):
-        """
-        fetches the current integer timestamp in milliseconds from the exchange server
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns int: the current integer timestamp in milliseconds from the exchange server
-        """
         response = await self.publicGetTime(params)
         #
         #     {
@@ -325,11 +263,6 @@ class bitpanda(Exchange, ImplicitAPI):
         return self.safe_integer(response, 'epoch_millis')
 
     async def fetch_currencies(self, params={}):
-        """
-        fetches all available currencies on an exchange
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: an associative dictionary of currencies
-        """
         response = await self.publicGetCurrencies(params)
         #
         #     [
@@ -351,23 +284,17 @@ class bitpanda(Exchange, ImplicitAPI):
                 'info': currency,  # the original payload
                 'active': None,
                 'fee': None,
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
-                'withdraw': None,
-                'deposit': None,
+                'precision': self.safe_integer(currency, 'precision'),
                 'limits': {
                     'amount': {'min': None, 'max': None},
+                    'price': {'min': None, 'max': None},
+                    'cost': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
                 },
-                'networks': {},
             }
         return result
 
     async def fetch_markets(self, params={}):
-        """
-        retrieves data on all markets for bitpanda
-        :param dict [params]: extra parameters specific to the exchange api endpoint
-        :returns dict[]: an array of objects representing market data
-        """
         response = await self.publicGetInstruments(params)
         #
         #     [
@@ -391,63 +318,42 @@ class bitpanda(Exchange, ImplicitAPI):
             id = baseId + '_' + quoteId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+            precision = {
+                'amount': self.safe_integer(market, 'amount_precision'),
+                'price': self.safe_integer(market, 'market_precision'),
+            }
+            limits = {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': self.safe_float(market, 'min_size'),
+                    'max': None,
+                },
+            }
             state = self.safe_string(market, 'state')
+            active = (state == 'ACTIVE')
             result.append({
                 'id': id,
-                'symbol': base + '/' + quote,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': (state == 'ACTIVE'),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'market_precision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': self.safe_number(market, 'min_size'),
-                        'max': None,
-                    },
-                },
+                'precision': precision,
+                'limits': limits,
                 'info': market,
+                'active': active,
             })
         return result
 
     async def fetch_trading_fees(self, params={}):
-        """
-        fetch the trading fees for multiple markets
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
-        """
         method = self.safe_string(params, 'method')
         params = self.omit(params, 'method')
         if method is None:
@@ -477,22 +383,41 @@ class bitpanda(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        first = self.safe_value(response, 0, {})
-        feeTiers = self.safe_value(first, 'fee_tiers')
-        tiers = self.parse_fee_tiers(feeTiers)
-        firstTier = self.safe_value(feeTiers, 0, {})
+        feeGroupsById = self.index_by(response, 'fee_group_id')
+        feeGroupId = self.safe_value(self.options, 'fee_group_id', 'default')
+        feeGroup = self.safe_value(feeGroupsById, feeGroupId, {})
+        feeTiers = self.safe_value(feeGroup, 'fee_tiers')
         result = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
-            result[symbol] = {
-                'info': first,
+            fee = {
+                'info': feeGroup,
                 'symbol': symbol,
-                'maker': self.safe_number(firstTier, 'maker_fee'),
-                'taker': self.safe_number(firstTier, 'taker_fee'),
+                'maker': None,
+                'taker': None,
                 'percentage': True,
                 'tierBased': True,
-                'tiers': tiers,
             }
+            takerFees = []
+            makerFees = []
+            for i in range(0, len(feeTiers)):
+                tier = feeTiers[i]
+                volume = self.safe_float(tier, 'volume')
+                taker = self.safe_float(tier, 'taker_fee')
+                maker = self.safe_float(tier, 'maker_fee')
+                taker /= 100
+                maker /= 100
+                takerFees.append([volume, taker])
+                makerFees.append([volume, maker])
+                if i == 0:
+                    fee['taker'] = taker
+                    fee['maker'] = maker
+            tiers = {
+                'taker': takerFees,
+                'maker': makerFees,
+            }
+            fee['tiers'] = tiers
+            result[symbol] = fee
         return result
 
     async def fetch_private_trading_fees(self, params={}):
@@ -520,42 +445,31 @@ class bitpanda(Exchange, ImplicitAPI):
         #     }
         #
         activeFeeTier = self.safe_value(response, 'active_fee_tier', {})
-        makerFee = self.safe_string(activeFeeTier, 'maker_fee')
-        takerFee = self.safe_string(activeFeeTier, 'taker_fee')
-        makerFee = Precise.string_div(makerFee, '100')
-        takerFee = Precise.string_div(takerFee, '100')
+        result = {
+            'info': response,
+            'maker': self.safe_float(activeFeeTier, 'maker_fee'),
+            'taker': self.safe_float(activeFeeTier, 'taker_fee'),
+            'percentage': True,
+            'tierBased': True,
+        }
         feeTiers = self.safe_value(response, 'fee_tiers')
-        result = {}
-        tiers = self.parse_fee_tiers(feeTiers)
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
-            result[symbol] = {
-                'info': response,
-                'symbol': symbol,
-                'maker': self.parse_number(makerFee),
-                'taker': self.parse_number(takerFee),
-                'percentage': True,
-                'tierBased': True,
-                'tiers': tiers,
-            }
-        return result
-
-    def parse_fee_tiers(self, feeTiers, market=None):
         takerFees = []
         makerFees = []
         for i in range(0, len(feeTiers)):
             tier = feeTiers[i]
-            volume = self.safe_number(tier, 'volume')
-            taker = self.safe_string(tier, 'taker_fee')
-            maker = self.safe_string(tier, 'maker_fee')
-            maker = Precise.string_div(maker, '100')
-            taker = Precise.string_div(taker, '100')
-            makerFees.append([volume, self.parse_number(maker)])
-            takerFees.append([volume, self.parse_number(taker)])
-        return {
-            'maker': makerFees,
+            volume = self.safe_float(tier, 'volume')
+            taker = self.safe_float(tier, 'taker_fee')
+            maker = self.safe_float(tier, 'maker_fee')
+            taker /= 100
+            maker /= 100
+            takerFees.append([volume, taker])
+            makerFees.append([volume, maker])
+        tiers = {
             'taker': takerFees,
+            'maker': makerFees,
         }
+        result['tiers'] = tiers
+        return result
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -580,42 +494,54 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
         marketId = self.safe_string(ticker, 'instrument_code')
-        symbol = self.safe_symbol(marketId, market, '_')
-        last = self.safe_string(ticker, 'last_price')
-        percentage = self.safe_string(ticker, 'price_change_percentage')
-        change = self.safe_string(ticker, 'price_change')
-        baseVolume = self.safe_string(ticker, 'base_volume')
-        quoteVolume = self.safe_string(ticker, 'quote_volume')
-        return self.safe_ticker({
+        symbol = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            elif marketId is not None:
+                baseId, quoteId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+        last = self.safe_float(ticker, 'last_price')
+        percentage = self.safe_float(ticker, 'price_change_percentage')
+        change = self.safe_float(ticker, 'price_change')
+        open = None
+        average = None
+        if (last is not None) and (change is not None):
+            open = last - change
+            average = self.sum(last, open) / 2
+        baseVolume = self.safe_float(ticker, 'base_volume')
+        quoteVolume = self.safe_float(ticker, 'quote_volume')
+        vwap = None
+        if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume != 0):
+            vwap = quoteVolume / baseVolume
+        return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'high'),
-            'low': self.safe_string(ticker, 'low'),
-            'bid': self.safe_string(ticker, 'best_bid'),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'best_bid'),
             'bidVolume': None,
-            'ask': self.safe_string(ticker, 'best_ask'),
+            'ask': self.safe_float(ticker, 'best_ask'),
             'askVolume': None,
-            'vwap': None,
-            'open': None,
+            'vwap': vwap,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
             'change': change,
             'percentage': percentage,
-            'average': None,
+            'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }
 
-    async def fetch_ticker(self, symbol: str, params={}):
-        """
-        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
-        """
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -642,16 +568,9 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
-        """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
-        """
+    async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        symbols = self.market_symbols(symbols)
-        response = await self.publicGetMarketTicker(params)
+        tickers = await self.publicGetMarketTicker(params)
         #
         #     [
         #         {
@@ -673,24 +592,16 @@ class bitpanda(Exchange, ImplicitAPI):
         #     ]
         #
         result = {}
-        for i in range(0, len(response)):
-            ticker = self.parse_ticker(response[i])
+        for i in range(0, len(tickers)):
+            ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return result
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
-        """
-        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
-        """
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        market = self.market(symbol)
         request = {
-            'instrument_code': market['id'],
+            'instrument_code': self.market_id(symbol),
             # level 1 means only the best bid and ask
             # level 2 is a compiled order book up to market precision
             # level 3 is a full orderbook
@@ -757,7 +668,7 @@ class bitpanda(Exchange, ImplicitAPI):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(response, 'time'))
-        return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -789,28 +700,20 @@ class bitpanda(Exchange, ImplicitAPI):
         durationInSeconds = self.parse_timeframe(timeframe)
         duration = durationInSeconds * 1000
         timestamp = self.parse8601(self.safe_string(ohlcv, 'time'))
-        alignedTimestamp = duration * self.parse_to_int(timestamp / duration)
+        modulo = self.integer_modulo(timestamp, duration)
+        alignedTimestamp = timestamp - modulo
         options = self.safe_value(self.options, 'fetchOHLCV', {})
         volumeField = self.safe_string(options, 'volume', 'total_amount')
         return [
             alignedTimestamp,
-            self.safe_number(ohlcv, 'open'),
-            self.safe_number(ohlcv, 'high'),
-            self.safe_number(ohlcv, 'low'),
-            self.safe_number(ohlcv, 'close'),
-            self.safe_number(ohlcv, volumeField),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, volumeField),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :param str symbol: unified symbol of the market to fetch OHLCV data for
-        :param str timeframe: the length of time each candle represents
-        :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
-        """
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         periodUnit = self.safe_string(self.timeframes, timeframe)
@@ -858,7 +761,7 @@ class bitpanda(Exchange, ImplicitAPI):
         #         "sequence":603047
         #     }
         #
-        # fetchMyTrades, fetchOrder, fetchOpenOrders, fetchClosedOrders trades(private)
+        # fetchOrder, fetchOpenOrders, fetchClosedOrders trades(private)
         #
         #     {
         #         "fee": {
@@ -884,29 +787,40 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         feeInfo = self.safe_value(trade, 'fee', {})
         trade = self.safe_value(trade, 'trade', trade)
-        timestamp = self.safe_integer(trade, 'trade_timestamp')
-        if timestamp is None:
-            timestamp = self.parse8601(self.safe_string(trade, 'time'))
+        timestamp = self.parse8601(self.safe_string(trade, 'time'))
         side = self.safe_string_lower_2(trade, 'side', 'taker_side')
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'amount')
-        costString = self.safe_string(trade, 'volume')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = self.safe_float(trade, 'volume')
+        if (cost is None) and (amount is not None) and (price is not None):
+            cost = amount * price
         marketId = self.safe_string(trade, 'instrument_code')
-        symbol = self.safe_symbol(marketId, market, '_')
-        feeCostString = self.safe_string(feeInfo, 'fee_amount')
+        symbol = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (market is not None) and (symbol is None):
+            symbol = market['symbol']
+        feeCost = self.safe_float(feeInfo, 'fee_amount')
         takerOrMaker = None
         fee = None
-        if feeCostString is not None:
+        if feeCost is not None:
             feeCurrencyId = self.safe_string(feeInfo, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            feeRateString = self.safe_string(feeInfo, 'fee_percentage')
+            feeRate = self.safe_float(feeInfo, 'fee_percentage')
             fee = {
-                'cost': feeCostString,
+                'cost': feeCost,
                 'currency': feeCurrencyCode,
-                'rate': feeRateString,
+                'rate': feeRate,
             }
             takerOrMaker = self.safe_string_lower(feeInfo, 'fee_type')
-        return self.safe_trade({
+        return {
             'id': self.safe_string_2(trade, 'trade_id', 'sequence'),
             'order': self.safe_string(trade, 'order_id'),
             'timestamp': timestamp,
@@ -914,23 +828,15 @@ class bitpanda(Exchange, ImplicitAPI):
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': priceString,
-            'amount': amountString,
-            'cost': costString,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        }, market)
+        }
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        get the list of most recent trades for a particular symbol
-        :param str symbol: unified symbol of the market to fetch trades for
-        :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
-        """
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -960,25 +866,7 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_balance(self, response):
-        balances = self.safe_value(response, 'balances', [])
-        result = {'info': response}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'currency_code')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'available')
-            account['used'] = self.safe_string(balance, 'locked')
-            result[code] = account
-        return self.safe_balance(result)
-
     async def fetch_balance(self, params={}):
-        """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
-        """
         await self.load_markets()
         response = await self.privateGetAccountBalances(params)
         #
@@ -997,7 +885,17 @@ class bitpanda(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        return self.parse_balance(response)
+        balances = self.safe_value(response, 'balances', [])
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency_code')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'locked')
+            result[code] = account
+        return self.parse_balance(result)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         code = None
@@ -1010,17 +908,10 @@ class bitpanda(Exchange, ImplicitAPI):
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': None,
             'info': depositAddress,
         }
 
-    async def create_deposit_address(self, code: str, params={}):
-        """
-        create a currency deposit address
-        :param str code: unified currency code of the currency for the deposit address
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
-        """
+    async def create_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1037,13 +928,7 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    async def fetch_deposit_address(self, code: str, params={}):
-        """
-        fetch the deposit address for a currency associated with self account
-        :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
-        """
+    async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1061,15 +946,7 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        fetch all deposits made to an account
-        :param str code: unified currency code
-        :param int [since]: the earliest time in ms to fetch deposits for
-        :param int [limit]: the maximum number of deposits structures to retrieve
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
-        """
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
             # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
@@ -1083,7 +960,7 @@ class bitpanda(Exchange, ImplicitAPI):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchDeposits() requires a "to" iso8601 string param with the since argument is specified')
+                raise ArgumentsRequired(self.id + ' fetchDeposits requires a "to" iso8601 string param with the since argument is specified')
             request['from'] = self.iso8601(since)
         response = await self.privateGetAccountDeposits(self.extend(request, params))
         #
@@ -1119,15 +996,7 @@ class bitpanda(Exchange, ImplicitAPI):
         depositHistory = self.safe_value(response, 'deposit_history', [])
         return self.parse_transactions(depositHistory, currency, since, limit, {'type': 'deposit'})
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        fetch all withdrawals made from an account
-        :param str code: unified currency code
-        :param int [since]: the earliest time in ms to fetch withdrawals for
-        :param int [limit]: the maximum number of withdrawals structures to retrieve
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
-        """
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
             # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
@@ -1141,7 +1010,7 @@ class bitpanda(Exchange, ImplicitAPI):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a "to" iso8601 string param with the since argument is specified')
+                raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a "to" iso8601 string param with the since argument is specified')
             request['from'] = self.iso8601(since)
         response = await self.privateGetAccountWithdrawals(self.extend(request, params))
         #
@@ -1178,61 +1047,6 @@ class bitpanda(Exchange, ImplicitAPI):
         withdrawalHistory = self.safe_value(response, 'withdrawal_history', [])
         return self.parse_transactions(withdrawalHistory, currency, since, limit, {'type': 'withdrawal'})
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
-        """
-        make a withdrawal
-        :param str code: unified currency code
-        :param float amount: the amount to withdraw
-        :param str address: the address to withdraw to
-        :param str tag:
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
-        """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
-        await self.load_markets()
-        currency = self.currency(code)
-        request = {
-            'currency': code,
-            'amount': self.currency_to_precision(code, amount),
-            # 'payout_account_id': '66756a10-3e86-48f4-9678-b634c4b135b2',  # fiat only
-            # 'recipient': { # crypto only
-            #     'address': address,
-            #     # 'destination_tag': '',
-            # },
-        }
-        options = self.safe_value(self.options, 'fiat', [])
-        isFiat = self.in_array(code, options)
-        method = 'privatePostAccountWithdrawFiat' if isFiat else 'privatePostAccountWithdrawCrypto'
-        if isFiat:
-            payoutAccountId = self.safe_string(params, 'payout_account_id')
-            if payoutAccountId is None:
-                raise ArgumentsRequired(self.id + ' withdraw() requires a payout_account_id param for fiat ' + code + ' withdrawals')
-        else:
-            recipient = {'address': address}
-            if tag is not None:
-                recipient['destination_tag'] = tag
-            request['recipient'] = recipient
-        response = await getattr(self, method)(self.extend(request, params))
-        #
-        # crypto
-        #
-        #     {
-        #         "amount": "1234.5678",
-        #         "fee": "1234.5678",
-        #         "recipient": "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
-        #         "destination_tag": "",
-        #         "transaction_id": "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
-        #     }
-        #
-        # fiat
-        #
-        #     {
-        #         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
-        #     }
-        #
-        return self.parse_transaction(response, currency)
-
     def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits, fetchWithdrawals
@@ -1251,37 +1065,16 @@ class bitpanda(Exchange, ImplicitAPI):
         #         "related_transaction_id": "e298341a-3855-405e-bce3-92db368a3157"
         #     }
         #
-        # withdraw
-        #
-        #
-        #     crypto
-        #
-        #     {
-        #         "amount": "1234.5678",
-        #         "fee": "1234.5678",
-        #         "recipient": "3NacQ7rzZdhfyAtfJ5a11k8jFPdcMP2Bq7",
-        #         "destination_tag": "",
-        #         "transaction_id": "d0f8529f-f832-4e6a-9dc5-b8d5797badb2"
-        #     }
-        #
-        #     fiat
-        #
-        #     {
-        #         "transaction_id": "54236cd0-4413-11e9-93fb-5fea7e5b5df6"
-        #     }
-        #
         id = self.safe_string(transaction, 'transaction_id')
-        amount = self.safe_number(transaction, 'amount')
+        amount = self.safe_float(transaction, 'amount')
         timestamp = self.parse8601(self.safe_string(transaction, 'time'))
         currencyId = self.safe_string(transaction, 'currency')
-        currency = self.safe_currency(currencyId, currency)
-        status = 'ok'  # the exchange returns cleared transactions only
-        feeCost = self.safe_number_2(transaction, 'fee_amount', 'fee')
+        code = self.safe_currency_code(currencyId, currency)
+        status = None
+        feeCost = self.safe_float(transaction, 'fee_amount')
         fee = None
-        addressTo = self.safe_string(transaction, 'recipient')
-        tagTo = self.safe_string(transaction, 'destination_tag')
         if feeCost is not None:
-            feeCurrencyId = self.safe_string(transaction, 'fee_currency', currencyId)
+            feeCurrencyId = self.safe_string(transaction, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
@@ -1290,15 +1083,14 @@ class bitpanda(Exchange, ImplicitAPI):
         return {
             'info': transaction,
             'id': id,
-            'currency': currency['code'],
+            'currency': code,
             'amount': amount,
-            'network': None,
-            'address': addressTo,
+            'address': None,
             'addressFrom': None,
-            'addressTo': addressTo,
-            'tag': tagTo,
+            'addressTo': None,
+            'tag': None,
             'tagFrom': None,
-            'tagTo': tagTo,
+            'tagTo': None,
             'status': status,
             'type': None,
             'updated': None,
@@ -1389,76 +1181,113 @@ class bitpanda(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        rawOrder = self.safe_value(order, 'order', order)
-        id = self.safe_string(rawOrder, 'order_id')
-        clientOrderId = self.safe_string(rawOrder, 'client_id')
-        timestamp = self.parse8601(self.safe_string(rawOrder, 'time'))
-        rawStatus = self.parse_order_status(self.safe_string(rawOrder, 'status'))
-        status = self.parse_order_status(rawStatus)
-        marketId = self.safe_string(rawOrder, 'instrument_code')
-        symbol = self.safe_symbol(marketId, market, '_')
-        price = self.safe_string(rawOrder, 'price')
-        amount = self.safe_string(rawOrder, 'amount')
-        filled = self.safe_string(rawOrder, 'filled_amount')
-        side = self.safe_string_lower(rawOrder, 'side')
-        type = self.safe_string_lower(rawOrder, 'type')
-        timeInForce = self.parse_time_in_force(self.safe_string(rawOrder, 'time_in_force'))
-        stopPrice = self.safe_number(rawOrder, 'trigger_price')
-        postOnly = self.safe_value(rawOrder, 'is_post_only')
         rawTrades = self.safe_value(order, 'trades', [])
-        return self.safe_order({
+        order = self.safe_value(order, 'order', order)
+        id = self.safe_string(order, 'order_id')
+        clientOrderId = self.safe_string(order, 'client_id')
+        timestamp = self.parse8601(self.safe_string(order, 'time'))
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        symbol = None
+        marketId = self.safe_string(order, 'instrument_code')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'amount')
+        cost = None
+        filled = self.safe_float(order, 'filled_amount')
+        remaining = None
+        if filled is not None:
+            if amount is not None:
+                remaining = max(0, amount - filled)
+                if status is None:
+                    if remaining > 0:
+                        status = 'open'
+                    else:
+                        status = 'closed'
+        side = self.safe_string_lower(order, 'side')
+        type = self.safe_string_lower(order, 'type')
+        trades = self.parse_trades(rawTrades, market, None, None)
+        fees = []
+        numTrades = len(trades)
+        lastTradeTimestamp = None
+        tradeCost = None
+        tradeAmount = None
+        if numTrades > 0:
+            lastTradeTimestamp = trades[0]['timestamp']
+            tradeCost = 0
+            tradeAmount = 0
+            for i in range(0, len(trades)):
+                trade = trades[i]
+                fees.append(trade['fee'])
+                lastTradeTimestamp = max(lastTradeTimestamp, trade['timestamp'])
+                tradeCost = self.sum(tradeCost, trade['cost'])
+                tradeAmount = self.sum(tradeAmount, trade['amount'])
+        average = self.safe_float(order, 'average_price')
+        if average is None:
+            if (tradeCost is not None) and (tradeAmount is not None) and (tradeAmount != 0):
+                average = tradeCost / tradeAmount
+        if cost is None:
+            if (average is not None) and (filled is not None):
+                cost = average * filled
+        result = {
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
             'amount': amount,
-            'cost': None,
-            'average': None,
+            'cost': cost,
+            'average': average,
             'filled': filled,
-            'remaining': None,
+            'remaining': remaining,
             'status': status,
             # 'fee': None,
-            'trades': rawTrades,
-        }, market)
-
-    def parse_time_in_force(self, timeInForce):
-        timeInForces = {
-            'GOOD_TILL_CANCELLED': 'GTC',
-            'GOOD_TILL_TIME': 'GTT',
-            'IMMEDIATE_OR_CANCELLED': 'IOC',
-            'FILL_OR_KILL': 'FOK',
+            'trades': trades,
         }
-        return self.safe_string(timeInForces, timeInForce, timeInForce)
+        numFees = len(fees)
+        if numFees > 0:
+            if numFees == 1:
+                result['fee'] = fees[0]
+            else:
+                feesByCurrency = self.group_by(fees, 'currency')
+                feeCurrencies = list(feesByCurrency.keys())
+                numFeesByCurrency = len(feeCurrencies)
+                if numFeesByCurrency == 1:
+                    feeCurrency = feeCurrencies[0]
+                    feeArray = self.safe_value(feesByCurrency, feeCurrency)
+                    feeCost = 0
+                    for i in range(0, len(feeArray)):
+                        feeCost = self.sum(feeCost, feeArray[i]['cost'])
+                    result['fee'] = {
+                        'cost': feeCost,
+                        'currency': feeCurrency,
+                    }
+                else:
+                    result['fees'] = fees
+        else:
+            result['fee'] = None
+        return result
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
-        """
-        create a trade order
-        see https://docs.onetrading.com/#create-order
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :param float [params.triggerPrice]: bitpanda only does stop limit orders and does not do stop market
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
         request = {
             'instrument_code': market['id'],
-            'type': uppercaseType,  # LIMIT, MARKET, STOP
+            'type': type.upper(),  # LIMIT, MARKET, STOP
             'side': side.upper(),  # or SELL
             'amount': self.amount_to_precision(symbol, amount),
             # "price": "1234.5678",  # required for LIMIT and STOP orders
@@ -1471,15 +1300,12 @@ class bitpanda(Exchange, ImplicitAPI):
         priceIsRequired = False
         if uppercaseType == 'LIMIT' or uppercaseType == 'STOP':
             priceIsRequired = True
-        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'trigger_price', 'stopPrice'])
-        if triggerPrice is not None:
-            if uppercaseType == 'MARKET':
-                raise BadRequest(self.id + ' createOrder() cannot place stop market orders, only stop limit')
+        if uppercaseType == 'STOP':
+            triggerPrice = self.safe_float(params, 'trigger_price')
+            if triggerPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder requires a trigger_price param for ' + type + ' orders')
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
-            request['type'] = 'STOP'
-            params = self.omit(params, ['triggerPrice', 'trigger_price', 'stopPrice'])
-        elif uppercaseType == 'STOP':
-            raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice param for ' + type + ' orders')
+            params = self.omit(params, 'trigger_price')
         if priceIsRequired:
             request['price'] = self.price_to_precision(symbol, price)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
@@ -1504,14 +1330,7 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
-        """
-        cancels an open order
-        :param str id: order id
-        :param str symbol: not used by bitmex cancelOrder()
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
+    async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderId', 'client_id'])
@@ -1528,13 +1347,7 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         return response
 
-    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
-        """
-        cancel all open orders
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
+    async def cancel_all_orders(self, symbol=None, params={}):
         await self.load_markets()
         request = {}
         if symbol is not None:
@@ -1548,14 +1361,7 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         return response
 
-    async def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
-        """
-        cancel multiple orders
-        :param str[] ids: order ids
-        :param str symbol: unified market symbol, default is None
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
+    async def cancel_orders(self, ids, symbol=None, params={}):
         await self.load_markets()
         request = {
             'ids': ','.join(ids),
@@ -1568,13 +1374,7 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
-        """
-        fetches information on an order made by the user
-        :param str symbol: not used by bitpanda fetchOrder
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
+    async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         request = {
             'order_id': id,
@@ -1623,21 +1423,13 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        fetch all unfilled currently open orders
-        :param str symbol: unified market symbol
-        :param int [since]: the earliest time in ms to fetch open orders for
-        :param int [limit]: the maximum number of  open orders structures to retrieve
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
             # 'from': self.iso8601(since),
             # 'to': self.iso8601(self.milliseconds()),  # max range is 100 days
             # 'instrument_code': market['id'],
-            # 'with_cancelled_and_rejected': False,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            # 'with_cancelled_and_rejected': False,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
             # 'with_just_filled_inactive': False,  # orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
             # 'with_just_orders': False,  # do not return any trades corresponsing to the orders, it may be significanly faster and should be used if user is not interesting in trade information
             # 'max_page_size': 100,
@@ -1650,7 +1442,7 @@ class bitpanda(Exchange, ImplicitAPI):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
+                raise ArgumentsRequired(self.id + ' fetchOrders requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['max_page_size'] = limit
@@ -1737,30 +1529,13 @@ class bitpanda(Exchange, ImplicitAPI):
         orderHistory = self.safe_value(response, 'order_history', [])
         return self.parse_orders(orderHistory, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        fetches information on multiple closed orders made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {
-            'with_cancelled_and_rejected': True,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            'with_cancelled_and_rejected': True,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         }
         return await self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        fetch all the trades made from a single order
-        :param str id: order id
-        :param str symbol: unified market symbol
-        :param int [since]: the earliest time in ms to fetch trades for
-        :param int [limit]: the maximum number of trades to retrieve
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
-        """
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
             'order_id': id,
@@ -1806,15 +1581,7 @@ class bitpanda(Exchange, ImplicitAPI):
             market = self.market(symbol)
         return self.parse_trades(tradeHistory, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        fetch all trades made by the user
-        :param str symbol: unified market symbol
-        :param int [since]: the earliest time in ms to fetch trades for
-        :param int [limit]: the maximum number of trades structures to retrieve
-        :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
-        """
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {
             # 'from': self.iso8601(since),
@@ -1830,7 +1597,7 @@ class bitpanda(Exchange, ImplicitAPI):
         if since is not None:
             to = self.safe_string(params, 'to')
             if to is None:
-                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
+                raise ArgumentsRequired(self.id + ' fetchMyTrades requires a "to" iso8601 string param with the since argument is specified, max range is 100 days')
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['max_page_size'] = limit
@@ -1890,16 +1657,15 @@ class bitpanda(Exchange, ImplicitAPI):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
-            return None
+            return
         #
         #     {"error":"MISSING_FROM_PARAM"}
         #     {"error":"MISSING_TO_PARAM"}
         #     {"error":"CANDLESTICKS_TIME_RANGE_TOO_BIG"}
         #
+        feedback = self.id + ' ' + body
         message = self.safe_string(response, 'error')
         if message is not None:
-            feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
-        return None

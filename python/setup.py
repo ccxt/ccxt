@@ -27,14 +27,6 @@ with open(readme, encoding='utf-8') as f:
 with open(package_json, encoding='utf-8') as f:
     package = json.load(f)
 
-project_urls = {
-    'Homepage': 'https://ccxt.com',
-    'Documentation': 'https://github.com/ccxt/ccxt/wiki',
-    'Discord': 'https://discord.gg/ccxt',
-    'Twitter': 'https://twitter.com/ccxt_official',
-    'Funding': 'https://opencollective.com/ccxt',
-}
-
 setup(
 
     name=package['name'],
@@ -65,10 +57,10 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
         'Programming Language :: JavaScript',
         'Programming Language :: PHP',
         'Operating System :: OS Independent',
@@ -79,7 +71,7 @@ setup(
     packages=find_packages(exclude=['ccxt.async_support*'] if is_python_2 else []),
 
     install_requires=[
-        'setuptools>=60.9.0',
+        'setuptools>=38.5.1',
         'certifi>=2018.1.18',
         'requests>=2.18.4',
         'cryptography>=2.6.1'
@@ -87,13 +79,15 @@ setup(
 
     extras_require={
         ':python_version>="3.5.2"': [
-            'aiohttp>=3.8',
-            'aiodns>=1.1.1',
-            'yarl>=1.7.2',
+            'aiohttp==3.8.3',
+            'aiodns==1.1.1',
+            'yarl==1.1.0',
         ],
         'qa': [
-            'flake8==3.7.9',
+            'flake8==3.7.9'
         ],
-    },
-    project_urls=project_urls,
+        'doc': [
+            'Sphinx==1.7.0'
+        ]
+    }
 )

@@ -6,6 +6,7 @@ import binascii
 from hashlib import sha256
 from . import der
 from .curves import orderlen
+from six import PY3, int2byte, b, next
 
 # RFC5480:
 #   The "unrestricted" algorithm identifier is:
@@ -68,7 +69,11 @@ class PRNG:
 
     def __call__(self, numbytes):
         a = [next(self.generator) for i in range(numbytes)]
-        return bytes(a)
+
+        if PY3:
+            return bytes(a)
+        else:
+            return "".join(a)
 
     def block_generator(self, seed):
         counter = 0
@@ -136,7 +141,7 @@ def randrange_from_seed__truncate_bits(seed, order, hashmod=sha256):
     base = "\x00" * (maxbytes - len(base)) + base
     topbits = 8 * maxbytes - bits
     if topbits:
-        base = int.to_bytes(ord(base[0]) & lsb_of_ones(topbits), 1, 'big') + base[1:]
+        base = int2byte(ord(base[0]) & lsb_of_ones(topbits)) + base[1:]
     number = 1 + int(binascii.hexlify(base), 16)
     assert 1 <= number < order
     return number
@@ -153,9 +158,9 @@ def randrange_from_seed__trytryagain(seed, order):
     bits, bytes, extrabits = bits_and_bytes(order)
     generate = PRNG(seed)
     while True:
-        extrabyte = b''
+        extrabyte = b("")
         if extrabits:
-            extrabyte = int.to_bytes(ord(generate(1)) & lsb_of_ones(extrabits), 1, 'big')
+            extrabyte = int2byte(ord(generate(1)) & lsb_of_ones(extrabits))
         guess = string_to_number(extrabyte + generate(bytes)) + 1
         if 1 <= guess < order:
             return guess
@@ -255,12 +260,12 @@ def sigdecode_strings(rs_strings, order):
 def sigdecode_der(sig_der, order):
     # return der.encode_sequence(der.encode_integer(r), der.encode_integer(s))
     rs_strings, empty = der.remove_sequence(sig_der)
-    if empty != b'':
+    if empty != b(""):
         raise der.UnexpectedDER("trailing junk after DER sig: %s" %
                                 binascii.hexlify(empty))
     r, rest = der.remove_integer(rs_strings)
     s, empty = der.remove_integer(rest)
-    if empty != b'':
+    if empty != b(""):
         raise der.UnexpectedDER("trailing junk after DER numbers: %s" %
                                 binascii.hexlify(empty))
     return r, s

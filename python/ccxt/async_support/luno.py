@@ -4,87 +4,44 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
-from typing import Optional
-from typing import List
+import base64
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
-from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
-class luno(Exchange, ImplicitAPI):
+class luno(Exchange):
 
     def describe(self):
         return self.deep_extend(super(luno, self).describe(), {
             'id': 'luno',
             'name': 'luno',
             'countries': ['GB', 'SG', 'ZA'],
-            # 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
-            'rateLimit': 200,
+            'rateLimit': 1000,
             'version': '1',
-            'pro': True,
             'has': {
-                'CORS': None,
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'addMargin': False,
                 'cancelOrder': True,
+                'CORS': False,
                 'createOrder': True,
-                'createReduceOnlyOrder': False,
                 'fetchAccounts': True,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
-                'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
-                'fetchFundingHistory': False,
-                'fetchFundingRate': False,
-                'fetchFundingRateHistory': False,
-                'fetchFundingRates': False,
-                'fetchIndexOHLCV': False,
                 'fetchLedger': True,
-                'fetchLeverage': False,
-                'fetchLeverageTiers': False,
-                'fetchMarginMode': False,
                 'fetchMarkets': True,
-                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
-                'fetchOHLCV': False,  # overload of base fetchOHLCV, doesn't hasattr(self, work) exchange
-                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
-                'fetchPosition': False,
-                'fetchPositionMode': False,
-                'fetchPositions': False,
-                'fetchPositionsRisk': False,
-                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
-                'fetchTradingFees': False,
-                'reduceMargin': False,
-                'setLeverage': False,
-                'setMarginMode': False,
-                'setPositionMode': False,
+                'fetchTradingFees': True,
             },
             'urls': {
                 'referral': 'https://www.luno.com/invite/44893A',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
-                'api': {
-                    'public': 'https://api.luno.com/api',
-                    'private': 'https://api.luno.com/api',
-                    'exchange': 'https://api.luno.com/api/exchange',
-                },
+                'api': 'https://api.luno.com/api',
                 'www': 'https://www.luno.com',
                 'doc': [
                     'https://www.luno.com/en/api',
@@ -93,166 +50,80 @@ class luno(Exchange, ImplicitAPI):
                 ],
             },
             'api': {
-                'exchange': {
-                    'get': {
-                        'markets': 1,
-                    },
-                },
                 'public': {
-                    'get': {
-                        'orderbook': 1,
-                        'orderbook_top': 1,
-                        'ticker': 1,
-                        'tickers': 1,
-                        'trades': 1,
-                    },
+                    'get': [
+                        'orderbook',
+                        'orderbook_top',
+                        'ticker',
+                        'tickers',
+                        'trades',
+                    ],
                 },
                 'private': {
-                    'get': {
-                        'accounts/{id}/pending': 1,
-                        'accounts/{id}/transactions': 1,
-                        'balance': 1,
-                        'beneficiaries': 1,
-                        'fee_info': 1,
-                        'funding_address': 1,
-                        'listorders': 1,
-                        'listtrades': 1,
-                        'send_fee': 1,
-                        'orders/{id}': 1,
-                        'withdrawals': 1,
-                        'withdrawals/{id}': 1,
-                        'transfers': 1,
-                        # GET /api/exchange/1/move
-                        # GET /api/exchange/1/move/list_moves
-                        # GET /api/exchange/1/candles
-                        # GET /api/exchange/1/transfers
-                        # GET /api/exchange/2/listorders
-                        # GET /api/exchange/2/orders/{id}
-                        # GET /api/exchange/3/order
-                    },
-                    'post': {
-                        'accounts': 1,
-                        'address/validate': 1,
-                        'postorder': 1,
-                        'marketorder': 1,
-                        'stoporder': 1,
-                        'funding_address': 1,
-                        'withdrawals': 1,
-                        'send': 1,
-                        'oauth2/grant': 1,
-                        # POST /api/exchange/1/move
-                    },
-                    'put': {
-                        'accounts/{id}/name': 1,
-                    },
-                    'delete': {
-                        'withdrawals/{id}': 1,
-                    },
+                    'get': [
+                        'accounts/{id}/pending',
+                        'accounts/{id}/transactions',
+                        'balance',
+                        'beneficiaries',
+                        'fee_info',
+                        'funding_address',
+                        'listorders',
+                        'listtrades',
+                        'orders/{id}',
+                        'quotes/{id}',
+                        'withdrawals',
+                        'withdrawals/{id}',
+                    ],
+                    'post': [
+                        'accounts',
+                        'accounts/{id}/name',
+                        'postorder',
+                        'marketorder',
+                        'stoporder',
+                        'funding_address',
+                        'withdrawals',
+                        'send',
+                        'quotes',
+                        'oauth2/grant',
+                    ],
+                    'put': [
+                        'accounts/{id}/name',
+                        'quotes/{id}',
+                    ],
+                    'delete': [
+                        'quotes/{id}',
+                        'withdrawals/{id}',
+                    ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': True,  # based on volume from your primary currency(not the same for everyone)
-                    'percentage': True,
-                    'taker': self.parse_number('0.001'),
-                    'maker': self.parse_number('0'),
-                },
-            },
-            'precisionMode': TICK_SIZE,
         })
 
     async def fetch_markets(self, params={}):
-        """
-        retrieves data on all markets for luno
-        :param dict [params]: extra parameters specific to the exchange api endpoint
-        :returns dict[]: an array of objects representing market data
-        """
-        response = await self.exchangeGetMarkets(params)
-        #
-        #     {
-        #         "markets":[
-        #             {
-        #                 "market_id":"BCHXBT",
-        #                 "trading_status":"ACTIVE",
-        #                 "base_currency":"BCH",
-        #                 "counter_currency":"XBT",
-        #                 "min_volume":"0.01",
-        #                 "max_volume":"100.00",
-        #                 "volume_scale":2,
-        #                 "min_price":"0.0001",
-        #                 "max_price":"1.00",
-        #                 "price_scale":6,
-        #                 "fee_scale":8,
-        #             },
-        #         ]
-        #     }
-        #
+        response = await self.publicGetTickers(params)
         result = []
-        markets = self.safe_value(response, 'markets', [])
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = self.safe_string(market, 'market_id')
-            baseId = self.safe_string(market, 'base_currency')
-            quoteId = self.safe_string(market, 'counter_currency')
+        for i in range(0, len(response['tickers'])):
+            market = response['tickers'][i]
+            id = market['pair']
+            baseId = id[0:3]
+            quoteId = id[3:6]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            status = self.safe_string(market, 'trading_status')
+            symbol = base + '/' + quote
             result.append({
                 'id': id,
-                'symbol': base + '/' + quote,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': (status == 'ACTIVE'),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'volume_scale'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_scale'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(market, 'min_volume'),
-                        'max': self.safe_number(market, 'max_volume'),
-                    },
-                    'price': {
-                        'min': self.safe_number(market, 'min_price'),
-                        'max': self.safe_number(market, 'max_price'),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
                 'info': market,
+                'active': None,
+                'precision': self.precision,
+                'limits': self.limits,
             })
         return result
 
     async def fetch_accounts(self, params={}):
-        """
-        fetch all the accounts associated with a profile
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns dict: a dictionary of `account structures <https://github.com/ccxt/ccxt/wiki/Manual#account-structure>` indexed by the account type
-        """
         response = await self.privateGetBalance(params)
         wallets = self.safe_value(response, 'balance', [])
         result = []
@@ -269,79 +140,36 @@ class luno(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    async def fetch_balance(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetBalance(params)
         wallets = self.safe_value(response, 'balance', [])
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
+        result = {'info': response}
         for i in range(0, len(wallets)):
             wallet = wallets[i]
             currencyId = self.safe_string(wallet, 'asset')
             code = self.safe_currency_code(currencyId)
-            reserved = self.safe_string(wallet, 'reserved')
-            unconfirmed = self.safe_string(wallet, 'unconfirmed')
-            balance = self.safe_string(wallet, 'balance')
-            reservedUnconfirmed = Precise.string_add(reserved, unconfirmed)
-            balanceUnconfirmed = Precise.string_add(balance, unconfirmed)
-            if code in result:
-                result[code]['used'] = Precise.string_add(result[code]['used'], reservedUnconfirmed)
-                result[code]['total'] = Precise.string_add(result[code]['total'], balanceUnconfirmed)
-            else:
-                account = self.account()
-                account['used'] = reservedUnconfirmed
-                account['total'] = balanceUnconfirmed
-                result[code] = account
-        return self.safe_balance(result)
+            reserved = self.safe_float(wallet, 'reserved')
+            unconfirmed = self.safe_float(wallet, 'unconfirmed')
+            balance = self.safe_float(wallet, 'balance')
+            account = self.account()
+            account['used'] = self.sum(reserved, unconfirmed)
+            account['total'] = self.sum(balance, unconfirmed)
+            result[code] = account
+        return self.parse_balance(result)
 
-    async def fetch_balance(self, params={}):
-        """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
-        """
-        await self.load_markets()
-        response = await self.privateGetBalance(params)
-        #
-        #     {
-        #         'balance': [
-        #             {'account_id': '119...1336','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
-        #             {'account_id': '66...289','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
-        #             {'account_id': '718...5300','asset': 'ETH','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
-        #             {'account_id': '818...7072','asset': 'ZAR','balance': '0.001417','reserved': '0.00','unconfirmed': '0.00'}]}
-        #         ]
-        #     }
-        #
-        return self.parse_balance(response)
-
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
-        """
-        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
-        """
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         method = 'publicGetOrderbook'
         if limit is not None:
             if limit <= 100:
                 method += 'Top'  # get just the top of the orderbook when limit is low
-        market = self.market(symbol)
         request = {
-            'pair': market['id'],
+            'pair': self.market_id(symbol),
         }
         response = await getattr(self, method)(self.extend(request, params))
         timestamp = self.safe_integer(response, 'timestamp')
-        return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
-
-    def parse_order_status(self, status):
-        statuses = {
-            # todo add other statuses
-            'PENDING': 'open',
-        }
-        return self.safe_string(statuses, status, status)
+        return self.parse_order_book(response, timestamp, 'bids', 'asks', 'price', 'volume')
 
     def parse_order(self, order, market=None):
         #
@@ -362,66 +190,56 @@ class luno(Exchange, ImplicitAPI):
         #     }
         #
         timestamp = self.safe_integer(order, 'creation_timestamp')
-        status = self.parse_order_status(self.safe_string(order, 'state'))
-        status = status if (status == 'open') else status
-        side = None
-        orderType = self.safe_string(order, 'type')
-        if (orderType == 'ASK') or (orderType == 'SELL'):
-            side = 'sell'
-        elif (orderType == 'BID') or (orderType == 'BUY'):
-            side = 'buy'
+        status = 'open' if (order['state'] == 'PENDING') else 'closed'
+        side = 'sell' if (order['type'] == 'ASK') else 'buy'
         marketId = self.safe_string(order, 'pair')
-        market = self.safe_market(marketId, market)
-        price = self.safe_string(order, 'limit_price')
-        amount = self.safe_string(order, 'limit_volume')
-        quoteFee = self.safe_number(order, 'fee_counter')
-        baseFee = self.safe_number(order, 'fee_base')
-        filled = self.safe_string(order, 'base')
-        cost = self.safe_string(order, 'counter')
-        fee = None
-        if quoteFee is not None:
-            fee = {
-                'cost': quoteFee,
-                'currency': market['quote'],
-            }
-        elif baseFee is not None:
-            fee = {
-                'cost': baseFee,
-                'currency': market['base'],
-            }
+        symbol = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
+        price = self.safe_float(order, 'limit_price')
+        amount = self.safe_float(order, 'limit_volume')
+        quoteFee = self.safe_float(order, 'fee_counter')
+        baseFee = self.safe_float(order, 'fee_base')
+        filled = self.safe_float(order, 'base')
+        cost = self.safe_float(order, 'counter')
+        remaining = None
+        if amount is not None:
+            if filled is not None:
+                remaining = max(0, amount - filled)
+        fee = {'currency': None}
+        if quoteFee:
+            fee['cost'] = quoteFee
+            if market is not None:
+                fee['currency'] = market['quote']
+        else:
+            fee['cost'] = baseFee
+            if market is not None:
+                fee['currency'] = market['base']
         id = self.safe_string(order, 'order_id')
-        return self.safe_order({
+        return {
             'id': id,
             'clientOrderId': None,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
-            'timeInForce': None,
-            'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
             'amount': amount,
             'filled': filled,
             'cost': cost,
-            'remaining': None,
+            'remaining': remaining,
             'trades': None,
             'fee': fee,
             'info': order,
             'average': None,
-        }, market)
+        }
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
-        """
-        fetches information on an order made by the user
-        :param str symbol: not used by luno fetchOrder
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
+    async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         request = {
             'id': id,
@@ -429,7 +247,7 @@ class luno(Exchange, ImplicitAPI):
         response = await self.privateGetOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
-    async def fetch_orders_by_state(self, state=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders_by_state(self, state=None, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
         market = None
@@ -442,62 +260,30 @@ class luno(Exchange, ImplicitAPI):
         orders = self.safe_value(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        fetches information on multiple orders made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         return await self.fetch_orders_by_state(None, symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        fetch all unfilled currently open orders
-        :param str symbol: unified market symbol
-        :param int [since]: the earliest time in ms to fetch open orders for
-        :param int [limit]: the maximum number of  open orders structures to retrieve
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         return await self.fetch_orders_by_state('PENDING', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        fetches information on multiple closed orders made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         return await self.fetch_orders_by_state('COMPLETE', symbol, since, limit, params)
 
     def parse_ticker(self, ticker, market=None):
-        # {
-        #     "pair":"XBTAUD",
-        #     "timestamp":1642201439301,
-        #     "bid":"59972.30000000",
-        #     "ask":"59997.99000000",
-        #     "last_trade":"59997.99000000",
-        #     "rolling_24_hour_volume":"1.89510000",
-        #     "status":"ACTIVE"
-        # }
         timestamp = self.safe_integer(ticker, 'timestamp')
-        marketId = self.safe_string(ticker, 'pair')
-        symbol = self.safe_symbol(marketId, market)
-        last = self.safe_string(ticker, 'last_trade')
-        return self.safe_ticker({
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        last = self.safe_float(ticker, 'last_trade')
+        return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_string(ticker, 'bid'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_string(ticker, 'ask'),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -507,99 +293,43 @@ class luno(Exchange, ImplicitAPI):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'rolling_24_hour_volume'),
+            'baseVolume': self.safe_float(ticker, 'rolling_24_hour_volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
-        """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
-        """
+    async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        symbols = self.market_symbols(symbols)
         response = await self.publicGetTickers(params)
         tickers = self.index_by(response['tickers'], 'pair')
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.safe_market(id)
+            market = self.markets_by_id[id]
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return result
 
-    async def fetch_ticker(self, symbol: str, params={}):
-        """
-        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
-        """
+    async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
-        # {
-        #     "pair":"XBTAUD",
-        #     "timestamp":1642201439301,
-        #     "bid":"59972.30000000",
-        #     "ask":"59997.99000000",
-        #     "last_trade":"59997.99000000",
-        #     "rolling_24_hour_volume":"1.89510000",
-        #     "status":"ACTIVE"
-        # }
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market=None):
-        #
-        # fetchTrades(public)
-        #
-        #      {
-        #          "sequence":276989,
-        #          "timestamp":1648651276949,
-        #          "price":"35773.20000000",
-        #          "volume":"0.00300000",
-        #          "is_buy":false
-        #      }
-        #
-        # fetchMyTrades(private)
-        #
-        #      {
-        #          "pair":"LTCXBT",
-        #          "sequence":3256813,
-        #          "order_id":"BXEX6XHHDT5EGW2",
-        #          "type":"ASK",
-        #          "timestamp":1648652135235,
-        #          "price":"0.002786",
-        #          "volume":"0.10",
-        #          "base":"0.10",
-        #          "counter":"0.0002786",
-        #          "fee_base":"0.0001",
-        #          "fee_counter":"0.00",
-        #          "is_buy":false,
-        #          "client_order_id":""
-        #      }
-        #
+    def parse_trade(self, trade, market):
         # For public trade data(is_buy is True) indicates 'buy' side but for private trade data
         # is_buy indicates maker or taker. The value of "type"(ASK/BID) indicate sell/buy side.
         # Private trade data includes ID field which public trade data does not.
         orderId = self.safe_string(trade, 'order_id')
-        id = self.safe_string(trade, 'sequence')
         takerOrMaker = None
         side = None
         if orderId is not None:
-            type = self.safe_string(trade, 'type')
-            if (type == 'ASK') or (type == 'SELL'):
-                side = 'sell'
-            elif (type == 'BID') or (type == 'BUY'):
-                side = 'buy'
+            side = 'sell' if (trade['type'] == 'ASK') else 'buy'
             if side == 'sell' and trade['is_buy']:
                 takerOrMaker = 'maker'
             elif side == 'buy' and not trade['is_buy']:
@@ -608,22 +338,22 @@ class luno(Exchange, ImplicitAPI):
                 takerOrMaker = 'taker'
         else:
             side = 'buy' if trade['is_buy'] else 'sell'
-        feeBaseString = self.safe_string(trade, 'fee_base')
-        feeCounterString = self.safe_string(trade, 'fee_counter')
+        feeBase = self.safe_float(trade, 'fee_base')
+        feeCounter = self.safe_float(trade, 'fee_counter')
         feeCurrency = None
         feeCost = None
-        if feeBaseString is not None:
-            if not Precise.string_equals(feeBaseString, '0.0'):
+        if feeBase is not None:
+            if feeBase != 0.0:
                 feeCurrency = market['base']
-                feeCost = feeBaseString
-        elif feeCounterString is not None:
-            if not Precise.string_equals(feeCounterString, '0.0'):
+                feeCost = feeBase
+        elif feeCounter is not None:
+            if feeCounter != 0.0:
                 feeCurrency = market['quote']
-                feeCost = feeCounterString
+                feeCost = feeCounter
         timestamp = self.safe_integer(trade, 'timestamp')
-        return self.safe_trade({
+        return {
             'info': trade,
-            'id': id,
+            'id': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
@@ -631,25 +361,17 @@ class luno(Exchange, ImplicitAPI):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': self.safe_string(trade, 'price'),
-            'amount': self.safe_string_2(trade, 'volume', 'base'),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'volume'),
             # Does not include potential fee costs
-            'cost': self.safe_string(trade, 'counter'),
+            'cost': self.safe_float(trade, 'counter'),
             'fee': {
                 'cost': feeCost,
                 'currency': feeCurrency,
             },
-        }, market)
+        }
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        get the list of most recent trades for a particular symbol
-        :param str symbol: unified symbol of the market to fetch trades for
-        :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
-        """
+    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -658,33 +380,12 @@ class luno(Exchange, ImplicitAPI):
         if since is not None:
             request['since'] = since
         response = await self.publicGetTrades(self.extend(request, params))
-        #
-        #      {
-        #          "trades":[
-        #              {
-        #                  "sequence":276989,
-        #                  "timestamp":1648651276949,
-        #                  "price":"35773.20000000",
-        #                  "volume":"0.00300000",
-        #                  "is_buy":false
-        #              },...
-        #          ]
-        #      }
-        #
         trades = self.safe_value(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        fetch all trades made by the user
-        :param str symbol: unified market symbol
-        :param int [since]: the earliest time in ms to fetch trades for
-        :param int [limit]: the maximum number of trades structures to retrieve
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
-        """
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -695,113 +396,51 @@ class luno(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetListtrades(self.extend(request, params))
-        #
-        #      {
-        #          "trades":[
-        #              {
-        #                  "pair":"LTCXBT",
-        #                  "sequence":3256813,
-        #                  "order_id":"BXEX6XHHDT5EGW2",
-        #                  "type":"ASK",
-        #                  "timestamp":1648652135235,
-        #                  "price":"0.002786",
-        #                  "volume":"0.10",
-        #                  "base":"0.10",
-        #                  "counter":"0.0002786",
-        #                  "fee_base":"0.0001",
-        #                  "fee_counter":"0.00",
-        #                  "is_buy":false,
-        #                  "client_order_id":""
-        #              },...
-        #          ]
-        #      }
-        #
         trades = self.safe_value(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_trading_fee(self, symbol: str, params={}):
-        """
-        fetch the trading fees for a market
-        :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
-        """
+    async def fetch_trading_fees(self, params={}):
         await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'pair': market['id'],
-        }
-        response = await self.privateGetFeeInfo(self.extend(request, params))
-        #
-        #     {
-        #          "maker_fee": "0.00250000",
-        #          "taker_fee": "0.00500000",
-        #          "thirty_day_volume": "0"
-        #     }
-        #
+        response = await self.privateGetFeeInfo(params)
         return {
             'info': response,
-            'symbol': symbol,
-            'maker': self.safe_number(response, 'maker_fee'),
-            'taker': self.safe_number(response, 'taker_fee'),
+            'maker': self.safe_float(response, 'maker_fee'),
+            'taker': self.safe_float(response, 'taker_fee'),
         }
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
-        """
-        create a trade order
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         method = 'privatePost'
-        market = self.market(symbol)
         request = {
-            'pair': market['id'],
+            'pair': self.market_id(symbol),
         }
         if type == 'market':
             method += 'Marketorder'
             request['type'] = side.upper()
-            # todo add createMarketBuyOrderRequires price logic is implemented in the other exchanges
             if side == 'buy':
-                request['counter_volume'] = self.amount_to_precision(market['symbol'], amount)
+                request['counter_volume'] = amount
             else:
-                request['base_volume'] = self.amount_to_precision(market['symbol'], amount)
+                request['base_volume'] = amount
         else:
             method += 'Postorder'
-            request['volume'] = self.amount_to_precision(market['symbol'], amount)
-            request['price'] = self.price_to_precision(market['symbol'], price)
+            request['volume'] = amount
+            request['price'] = price
             request['type'] = 'BID' if (side == 'buy') else 'ASK'
         response = await getattr(self, method)(self.extend(request, params))
-        return self.safe_order({
+        return {
             'info': response,
             'id': response['order_id'],
-        }, market)
+        }
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
-        """
-        cancels an open order
-        :param str id: order id
-        :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
+    async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         request = {
             'order_id': id,
         }
         return await self.privatePostStoporder(self.extend(request, params))
 
-    async def fetch_ledger_by_entries(self, code: Optional[str] = None, entry=None, limit=None, params={}):
+    async def fetch_ledger_by_entries(self, code=None, entry=-1, limit=1, params={}):
         # by default without entry number or limit number, return most recent entry
-        if entry is None:
-            entry = -1
-        if limit is None:
-            limit = 1
         since = None
         request = {
             'min_row': entry,
@@ -809,15 +448,7 @@ class luno(Exchange, ImplicitAPI):
         }
         return await self.fetch_ledger(code, since, limit, self.extend(request, params))
 
-    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        """
-        fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :param str code: unified currency code, default is None
-        :param int [since]: timestamp in ms of the earliest ledger entry, default is None
-        :param int [limit]: max number of ledger entrys to return, default is None
-        :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns dict: a `ledger structure <https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure>`
-        """
+    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         await self.load_accounts()
         currency = None
@@ -887,33 +518,33 @@ class luno(Exchange, ImplicitAPI):
         # details = self.safe_value(entry, 'details', {})
         id = self.safe_string(entry, 'row_index')
         account_id = self.safe_string(entry, 'account_id')
-        timestamp = self.safe_integer(entry, 'timestamp')
+        timestamp = self.safe_value(entry, 'timestamp')
         currencyId = self.safe_string(entry, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        available_delta = self.safe_string(entry, 'available_delta')
-        balance_delta = self.safe_string(entry, 'balance_delta')
-        after = self.safe_string(entry, 'balance')
+        available_delta = self.safe_float(entry, 'available_delta')
+        balance_delta = self.safe_float(entry, 'balance_delta')
+        after = self.safe_float(entry, 'balance')
         comment = self.safe_string(entry, 'description')
         before = after
-        amount = '0.0'
+        amount = 0.0
         result = self.parse_ledger_comment(comment)
         type = result['type']
         referenceId = result['referenceId']
         direction = None
         status = None
-        if not Precise.string_equals(balance_delta, '0.0'):
-            before = Precise.string_sub(after, balance_delta)
+        if balance_delta != 0.0:
+            before = after - balance_delta  # TODO: float precision
             status = 'ok'
-            amount = Precise.string_abs(balance_delta)
-        elif Precise.string_lt(available_delta, '0.0'):
+            amount = abs(balance_delta)
+        elif available_delta < 0.0:
             status = 'pending'
-            amount = Precise.string_abs(available_delta)
-        elif Precise.string_gt(available_delta, '0.0'):
+            amount = abs(available_delta)
+        elif available_delta > 0.0:
             status = 'canceled'
-            amount = Precise.string_abs(available_delta)
-        if Precise.string_gt(balance_delta, '0') or Precise.string_gt(available_delta, '0'):
+            amount = abs(available_delta)
+        if balance_delta > 0 or available_delta > 0:
             direction = 'in'
-        elif Precise.string_lt(balance_delta, '0') or Precise.string_lt(available_delta, '0'):
+        elif balance_delta < 0 or available_delta < 0:
             direction = 'out'
         return {
             'id': id,
@@ -923,33 +554,30 @@ class luno(Exchange, ImplicitAPI):
             'referenceAccount': None,
             'type': type,
             'currency': code,
-            'amount': self.parse_number(amount),
+            'amount': amount,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'before': self.parse_number(before),
-            'after': self.parse_number(after),
+            'before': before,
+            'after': after,
             'status': status,
             'fee': None,
             'info': entry,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:
             url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()
-            auth = self.string_to_base64(self.apiKey + ':' + self.secret)
-            headers = {
-                'Authorization': 'Basic ' + auth,
-            }
+            auth = self.encode(self.apiKey + ':' + self.secret)
+            auth = base64.b64encode(auth)
+            headers = {'Authorization': 'Basic ' + self.decode(auth)}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if response is None:
-            return None
-        error = self.safe_value(response, 'error')
-        if error is not None:
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
+        if 'error' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
-        return None
+        return response
