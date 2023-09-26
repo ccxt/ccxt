@@ -24,6 +24,8 @@ export default class woo extends wooRest {
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleOrderUpdate(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
+    watchBalance(params?: {}): Promise<any>;
+    handleBalance(client: any, message: any): void;
     handleMessage(client: Client, message: any): any;
     ping(client: any): {
         event: string;

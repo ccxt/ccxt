@@ -1,3 +1,92 @@
+## 4.0.105 (2023-09-24)
+
+*  feat(bitmart): cancelAllOrders, add swap support [49d66e88ff](https://github.com/ccxt/ccxt/commits/49d66e88ff59d67e049bb865510ede6f04524cc5)
+*  Revert "Bybit: createOrder, remove stop order trigger direction" [4473c6dba2](https://github.com/ccxt/ccxt/commits/4473c6dba2b8575ec5d2bfb02b25a09315109030)
+*  cr fix [d9bdc10aff](https://github.com/ccxt/ccxt/commits/d9bdc10affa161c5bb625aa0583c15dbe7969003)
+*  4.0.105 [421594122c](https://github.com/ccxt/ccxt/commits/421594122c5124fccf6181385096f58ab25db5dc)
+
+
+## 4.0.104 (2023-09-23)
+
+*  bitbank: add @see [fb67a63ea8](https://github.com/ccxt/ccxt/commits/fb67a63ea8ce42a5d5669f075665778b815bc9a6)
+*  bitfinex2: add @see [21681a82d9](https://github.com/ccxt/ccxt/commits/21681a82d969386c87631ca98b06aeab0eda321d)
+*  bitfinex2: remove method usage [ddad84c6e8](https://github.com/ccxt/ccxt/commits/ddad84c6e898b6a5cb0f383d68b0c0f3aae0a9ba)
+*  binance: add apis [a084e93423](https://github.com/ccxt/ccxt/commits/a084e934238af22c9c16d189d4ef4deafe7f76f0)
+*  4.0.104 [fc9d86915e](https://github.com/ccxt/ccxt/commits/fc9d86915ede9e40223e0fff9f142ec81cb9b804)
+
+
+## 4.0.103 (2023-09-22)
+
+*  fix(bybit): error mapping [53c0356a25](https://github.com/ccxt/ccxt/commits/53c0356a25290f0197d875e0339d4626a7db76f8)
+*  update errors [85e6a2f513](https://github.com/ccxt/ccxt/commits/85e6a2f513e09b793592d94081866241d0ae54ef)
+*  add NoChange error [8ff3986544](https://github.com/ccxt/ccxt/commits/8ff39865446d437f12d40aaf67d3be2c887bcca5)
+*  add error to errorExports [d7d0c5175f](https://github.com/ccxt/ccxt/commits/d7d0c5175fab05503d7ffe28e4cb0445b1ce819c)
+*  missing import [e0a7564d38](https://github.com/ccxt/ccxt/commits/e0a7564d38394061ce99315d68e55b9223152bf0)
+*  feat(bitmart): fetchOrderBook, add swap support [74f1b8de27](https://github.com/ccxt/ccxt/commits/74f1b8de27ff24d70bfa10ade7c16d0d84c665c5)
+*  bingx: add fetchDepositAddress [f37b4eee93](https://github.com/ccxt/ccxt/commits/f37b4eee934d099b42964edd7ead1c4ba5514ae5)
+*  bingx: add @see [db5ea43f44](https://github.com/ccxt/ccxt/commits/db5ea43f44869ae51c26c327dc66652cf4ead4c4)
+*  wavesexchange: update toPrecision [52fafc735f](https://github.com/ccxt/ccxt/commits/52fafc735f43592830099e501dc7265bb68b5af7)
+*  update error hierarchy [87838749d7](https://github.com/ccxt/ccxt/commits/87838749d7965ab7969227b57ff4800aecbcfee3)
+*  fix(Exchange.py): handle empty/none response properly [12efe19c06](https://github.com/ccxt/ccxt/commits/12efe19c06aa9695a944952c63768ae97a2f736b)
+*  fix(bitget): handle empty OHLCV [550f347db5](https://github.com/ccxt/ccxt/commits/550f347db505a00bd0efdb58b28c396243bc3b78)
+*  feat(bitmart): transfer, add swap support [20b24883fa](https://github.com/ccxt/ccxt/commits/20b24883fa51a995a1538b8c3a53d15b1d1548f0)
+*  feat(bitmart): fetchTransfers [a61a9033cd](https://github.com/ccxt/ccxt/commits/a61a9033cdeeeb75233a017e2931c2de6de98f71)
+*  fix(gate): update rate limits [63f75fdfda](https://github.com/ccxt/ccxt/commits/63f75fdfdaf32c5055ec57b9bfe314d0bf62c93f)
+*  fix(gate): python linting [fc53bd03ab](https://github.com/ccxt/ccxt/commits/fc53bd03abd7b72a099ccdc5d03c861c03c658d3)
+*  4.0.103 [ce7ee6b69f](https://github.com/ccxt/ccxt/commits/ce7ee6b69fb1d5bc86bc802a95add226a59a9d3d)
+
+
+## 4.0.102 (2023-09-20)
+
+*  dummy trigger retest [5e0ef5ef54](https://github.com/ccxt/ccxt/commits/5e0ef5ef54792b16292c8e89674cd708758f4e21)
+*  bybit: patch setMarginMode [5e06409366](https://github.com/ccxt/ccxt/commits/5e064093665b141efe9950da36d305ff9ede9a8d)
+*  revert [72668e7c67](https://github.com/ccxt/ccxt/commits/72668e7c673c56deef31b102f885829d9c210827)
+*  add symbol check [744bea41d3](https://github.com/ccxt/ccxt/commits/744bea41d3db2d604c44624006a6f2e6f61283e4)
+*  fix!(bkex): delist bkex [478c3d62b6](https://github.com/ccxt/ccxt/commits/478c3d62b6bbb2acc4faffda433858181e8e8aaf)
+*  remove bkex from ccxt.ts [bebc827555](https://github.com/ccxt/ccxt/commits/bebc827555b9f89951fa9fab56a22d2b1f02570f)
+*  bl3p.has: createStopOrder == false [fb3bd34694](https://github.com/ccxt/ccxt/commits/fb3bd346941db471632fc61337edc33a8023d449)
+*  gemini: add AuthenticationError [0292a7e582](https://github.com/ccxt/ccxt/commits/0292a7e58266c43bc73abe1b4013b1a477b3d991)
+*  feat(bitmart): fetchFundingRate [6e54fcba77](https://github.com/ccxt/ccxt/commits/6e54fcba77d6f626e112d6eca6bbde958add64af)
+*  binance: add apis [106099b9b6](https://github.com/ccxt/ccxt/commits/106099b9b6c33c8888bb0164abbec19f3f7c768a)
+*  bingx: add apis [c64d976c58](https://github.com/ccxt/ccxt/commits/c64d976c58ba57016097c6b49bcb362d0aa03dae)
+*  fix(bybit): watchOrders swap parsing [9f936e88c5](https://github.com/ccxt/ccxt/commits/9f936e88c5da1f1ae55299a0d5099737aee321be)
+*  4.0.102 [7e7db36086](https://github.com/ccxt/ccxt/commits/7e7db36086110343c4913d41bac257253535915f)
+
+
+## 4.0.101 (2023-09-19)
+
+*  Update binance.ts [12bf729ca8](https://github.com/ccxt/ccxt/commits/12bf729ca8d61bfea7f8e93520ec4d0561b37480)
+*  fix(kucoin): fetchPosion and realizedPnl [0739cdbdbc](https://github.com/ccxt/ccxt/commits/0739cdbdbc7578f06d05396eb7276edeabe6c0f2)
+*  bybit: remove method usage [e0cf93f0eb](https://github.com/ccxt/ccxt/commits/e0cf93f0eb4e3d1bd621fab4eb48005408734941)
+*  bybit: update setMarginMode [acaaffeee9](https://github.com/ccxt/ccxt/commits/acaaffeee918564429fce1773ea47959693f851f)
+*  bybit: update setMarginMode [5cdb0a114a](https://github.com/ccxt/ccxt/commits/5cdb0a114afecfcc1d2c9464a60f0b95c0f53fab)
+*  fix docs [57c094c7d8](https://github.com/ccxt/ccxt/commits/57c094c7d808bbc5ef335bfec193ca72b221d1fd)
+*  feat(kucoin): add watchTickers [fee4ed80a6](https://github.com/ccxt/ccxt/commits/fee4ed80a69cb1e84ba71ef543e89c4e3f1714a8)
+*  binance [5e40903afa](https://github.com/ccxt/ccxt/commits/5e40903afaec24931bc2e9cc2f5d22788b01efe9)
+*  bitbank [1218c051fc](https://github.com/ccxt/ccxt/commits/1218c051fcd7f5a582661697ae662a0f9f66115d)
+*  biflyer [49abaf6f35](https://github.com/ccxt/ccxt/commits/49abaf6f35d472c30a8765872ef17581385a5ddd)
+*  bitget [2ef437a9db](https://github.com/ccxt/ccxt/commits/2ef437a9db86017e4d5846986507846ff154cdb7)
+*  bitfinex [b93bb629b0](https://github.com/ccxt/ccxt/commits/b93bb629b03f7bee122e2a2d16ed59509b1ab4ef)
+*  bitstamp1 [fbb127be4b](https://github.com/ccxt/ccxt/commits/fbb127be4b786973cd40f15b834e5ded3ecbe3de)
+*  bitforex [e96e3b39fb](https://github.com/ccxt/ccxt/commits/e96e3b39fbd22f850b21b627639217919d9933a8)
+*  coinbasepro [80267d457a](https://github.com/ccxt/ccxt/commits/80267d457a3c50f3194df730f2e89c99d5b0b8bf)
+*  bl3p [f0faf57e50](https://github.com/ccxt/ccxt/commits/f0faf57e505c95a35c42eee813c14c5e4dd62229)
+*  Update bitflyer.ts [250f4bde0f](https://github.com/ccxt/ccxt/commits/250f4bde0fec7c5646e40835bdd8ede891882680)
+*  Update bitflyer.ts [0c9b5629fa](https://github.com/ccxt/ccxt/commits/0c9b5629fa7446cf6071fa02a1391d9851879aeb)
+*  fix(bybit): createOrder, stop orders remove triggerDirection [d2f99c806b](https://github.com/ccxt/ccxt/commits/d2f99c806ba7a010a6843aa1a6303e8e47c4b822)
+*  add triggerDirection param to createOrder docstring [480cac0077](https://github.com/ccxt/ccxt/commits/480cac00773dcd26aeb6bbf4bf7ca583815c1da8)
+*  fix(bybit): error mapping [d23a8cf711](https://github.com/ccxt/ccxt/commits/d23a8cf711df51509cc0e27b8d00770c18dd7a98)
+*  4.0.101 [c11b6302ef](https://github.com/ccxt/ccxt/commits/c11b6302ef15575146575f7695311ecf609d88bf)
+
+
+## 4.0.100 (2023-09-18)
+
+*  mkts [befa94c001](https://github.com/ccxt/ccxt/commits/befa94c001786a9b913cce0e73ff9561c65cb1e5)
+*  safeOrder check for parsedTrades [07b9cf8561](https://github.com/ccxt/ccxt/commits/07b9cf8561ca978012aeeab817dfed267b0de507)
+*  fix build [1be39a3b46](https://github.com/ccxt/ccxt/commits/1be39a3b4681d0e321167c78908479e44f62041d)
+*  4.0.100 [2b4aaca2ce](https://github.com/ccxt/ccxt/commits/2b4aaca2ce70901dca9d80362be5148b35fb6131)
+
+
 ## 4.0.99 (2023-09-17)
 
 *  fix error handling [31ee79f75d](https://github.com/ccxt/ccxt/commits/31ee79f75d3803b4a12afcd33da377bed88a8d03)

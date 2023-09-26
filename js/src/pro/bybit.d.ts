@@ -7,6 +7,7 @@ export default class bybit extends bybitRest {
     getUrlByMarketType(symbol?: string, isPrivate?: boolean, method?: any, params?: {}): any;
     cleanParams(params: any): any;
     watchTicker(symbol: string, params?: {}): Promise<any>;
+    watchTickers(symbols?: string[], params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<import("../base/types.js").OHLCV[]>>>;

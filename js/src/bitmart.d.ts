@@ -73,6 +73,7 @@ export default class bitmart extends Exchange {
         taker: number;
     }>;
     parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    parseOrderSide(side: any): string;
     parseOrderStatusByType(type: any, status: any): string;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
