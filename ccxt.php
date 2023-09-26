@@ -67,6 +67,7 @@ require_once PATH_TO_CCXT . 'ArgumentsRequired.php';
 require_once PATH_TO_CCXT . 'BadRequest.php';
 require_once PATH_TO_CCXT . 'BadSymbol.php';
 require_once PATH_TO_CCXT . 'MarginModeAlreadySet.php';
+require_once PATH_TO_CCXT . 'NoChange.php';
 require_once PATH_TO_CCXT . 'BadResponse.php';
 require_once PATH_TO_CCXT . 'NullResponse.php';
 require_once PATH_TO_CCXT . 'InsufficientFunds.php';

@@ -255,7 +255,7 @@ export default class Exchange {
     urlencodeNested: (object: any) => string;
     parseDate: (x: any) => number;
     ymd: (timestamp: any, infix: any, fullYear?: boolean) => string;
-    isArray: (arg: any) => arg is any[];
+    isArray: (needle: any, haystack: any) => any;
     base64ToString: (string: any) => string;
     crc32: typeof functions.crc32;
     describe(): {
@@ -620,7 +620,7 @@ export default class Exchange {
     convertOHLCVToTradingView(ohlcvs: any, timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): {};
     fetchWebEndpoint(method: any, endpointMethod: any, returnAsJson: any, startRegex?: any, endRegex?: any): Promise<any>;
     marketIds(symbols: any): any;
-    marketSymbols(symbols: any, type?: string): any;
+    marketSymbols(symbols: any, type?: string, allowEmpty?: boolean): any;
     marketCodes(codes: any): any;
     parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType): any[];
     fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;

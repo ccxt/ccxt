@@ -598,8 +598,8 @@ class lbank2(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         if market['swap']:
-            response = await self.fetch_tickers([market['symbol']], params)
-            return self.safe_value(response, market['symbol'])
+            responseForSwap = await self.fetch_tickers([market['symbol']], params)
+            return self.safe_value(responseForSwap, market['symbol'])
         request = {
             'symbol': market['id'],
         }
@@ -895,7 +895,7 @@ class lbank2(Exchange, ImplicitAPI):
         if since is not None:
             request['time'] = since
         if limit is not None:
-            request['size'] = limit
+            request['size'] = min(limit, 600)
         else:
             request['size'] = 600  # max
         method = self.safe_string(params, 'method')

@@ -272,8 +272,8 @@ class whitebit(ccxt.async_support.whitebit):
         # watchTickers
         messageHashes = list(client.futures.keys())
         for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
-            if messageHash.find('tickers') >= 0 and messageHash.find(symbol) >= 0:
+            currentMessageHash = messageHashes[i]
+            if currentMessageHash.find('tickers') >= 0 and currentMessageHash.find(symbol) >= 0:
                 # Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
                 # the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'
                 # since we only have access to a single symbol at a time
@@ -283,7 +283,7 @@ class whitebit(ccxt.async_support.whitebit):
                 # user might have multiple watchTickers promises
                 # watchTickers( ['LTC/USDT', 'ETH/USDT'] ), watchTickers( ['ETC/USDT', 'DOGE/USDT'] )
                 # and we want to make sure we resolve only the correct ones
-                client.resolve(ticker, messageHash)
+                client.resolve(ticker, currentMessageHash)
         return message
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -706,14 +706,14 @@ class whitebit(ccxt.async_support.whitebit):
                 return await self.watch(url, messageHash, request, method, subscription)
             else:
                 # resubscribe
-                marketIds = []
-                marketIds = list(subscription.keys())
+                marketIdsNew = []
+                marketIdsNew = list(subscription.keys())
                 if isNested:
-                    marketIds = [marketIds]
+                    marketIdsNew = [marketIdsNew]
                 resubRequest = {
                     'id': id,
                     'method': method,
-                    'params': marketIds,
+                    'params': marketIdsNew,
                 }
                 if method in client.subscriptions:
                     del client.subscriptions[method]

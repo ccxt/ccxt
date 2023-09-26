@@ -1204,7 +1204,8 @@ class krakenfutures extends Exchange {
         $statusId = null;
         $price = null;
         $trades = array();
-        if (strlen($orderEvents)) {
+        $orderEventsLength = count($orderEvents);
+        if ($orderEventsLength) {
             $executions = array();
             for ($i = 0; $i < count($orderEvents); $i++) {
                 $item = $orderEvents[$i];
@@ -1308,7 +1309,7 @@ class krakenfutures extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => $this->safe_string_2($details, 'clientOrderId', 'clientId'),
+            'clientOrderId' => $this->safe_string_n($details, array( 'clientOrderId', 'clientId', 'cliOrdId' )),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,

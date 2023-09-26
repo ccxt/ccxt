@@ -285,10 +285,10 @@ class binance extends binance$1 {
             // unroll the accumulated deltas
             const messages = orderbook.cache;
             for (let i = 0; i < messages.length; i++) {
-                const message = messages[i];
-                const U = this.safeInteger(message, 'U');
-                const u = this.safeInteger(message, 'u');
-                const pu = this.safeInteger(message, 'pu');
+                const messageItem = messages[i];
+                const U = this.safeInteger(messageItem, 'U');
+                const u = this.safeInteger(messageItem, 'u');
+                const pu = this.safeInteger(messageItem, 'pu');
                 if (type === 'future') {
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
                     if (u < orderbook['nonce']) {
@@ -296,7 +296,7 @@ class binance extends binance$1 {
                     }
                     // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                     if ((U <= orderbook['nonce']) && (u >= orderbook['nonce']) || (pu === orderbook['nonce'])) {
-                        this.handleOrderBookMessage(client, message, orderbook);
+                        this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
                 }
                 else {
@@ -306,7 +306,7 @@ class binance extends binance$1 {
                     }
                     // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
                     if (((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce'])) {
-                        this.handleOrderBookMessage(client, message, orderbook);
+                        this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
                 }
             }
@@ -447,8 +447,8 @@ class binance extends binance$1 {
     handleOrderBookSubscription(client, message, subscription) {
         const defaultLimit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
-        const symbol = this.safeString(subscription, 'symbol'); // watchOrderBook
-        const symbols = this.safeValue(subscription, 'symbols', [symbol]); // watchOrderBookForSymbols
+        const symbolOfSubscription = this.safeString(subscription, 'symbol'); // watchOrderBook
+        const symbols = this.safeValue(subscription, 'symbols', [symbolOfSubscription]); // watchOrderBookForSymbols
         const limit = this.safeInteger(subscription, 'limit', defaultLimit);
         // handle list of symbols
         for (let i = 0; i < symbols.length; i++) {
@@ -502,8 +502,8 @@ class binance extends binance$1 {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const messageHash = market['lowercaseId'] + '@' + name;
-            subParams.push(messageHash);
+            const currentMessageHash = market['lowercaseId'] + '@' + name;
+            subParams.push(currentMessageHash);
         }
         const messageHash = 'multipleTrades::' + symbols.join(',');
         const query = this.omit(params, 'type');
@@ -821,10 +821,10 @@ class binance extends binance$1 {
         const hashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
-            const symbol = data[0];
-            const timeframe = data[1];
-            const interval = this.safeString(this.timeframes, timeframe, timeframe);
-            const market = this.market(symbol);
+            const symbolString = data[0];
+            const timeframeString = data[1];
+            const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            const market = this.market(symbolString);
             let marketId = market['lowercaseId'];
             if (name === 'indexPriceKline') {
                 // weird behavior for index price kline we can't use the perp suffix
@@ -832,7 +832,7 @@ class binance extends binance$1 {
             }
             const topic = marketId + '@' + name + '_' + interval;
             subParams.push(topic);
-            hashes.push(symbol + '#' + timeframe);
+            hashes.push(symbolString + '#' + timeframeString);
         }
         const messageHash = 'multipleOHLCV::' + hashes.join(',');
         const url = this.urls['api']['ws'][type] + '/' + this.stream(type, messageHash);
@@ -1155,12 +1155,12 @@ class binance extends binance$1 {
             client.resolve(result, '!' + 'bookTicker@arr');
             const messageHashes = this.findMessageHashes(client, 'tickers::');
             for (let i = 0; i < messageHashes.length; i++) {
-                const messageHash = messageHashes[i];
-                const parts = messageHash.split('::');
+                const currentMessageHash = messageHashes[i];
+                const parts = currentMessageHash.split('::');
                 const symbolsString = parts[1];
                 const symbols = symbolsString.split(',');
                 if (this.inArray(symbol, symbols)) {
-                    client.resolve(result, messageHash);
+                    client.resolve(result, currentMessageHash);
                 }
             }
         }

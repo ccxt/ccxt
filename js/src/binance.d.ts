@@ -132,6 +132,7 @@ export default class binance extends Exchange {
     fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
+    cancelOrders(ids: Int[], symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyDustTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

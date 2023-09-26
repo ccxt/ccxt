@@ -40,11 +40,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.97';
+$version = '4.0.107';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.97';
+    const VERSION = '4.0.107';
 
     public $browser;
     public $marketsLoading = null;
@@ -908,7 +908,12 @@ class Exchange extends \ccxt\Exchange {
             $oldNumber = $this->number;
             // we parse $trades here!
             $this->number = 'strval';
-            $trades = $this->parse_trades($rawTrades, $market);
+            $firstTrade = $this->safe_value($rawTrades, 0);
+            // parse $trades if they haven't already been parsed
+            $tradesAreParsed = (($firstTrade !== null) && (is_array($firstTrade) && array_key_exists('info', $firstTrade)) && (is_array($firstTrade) && array_key_exists('id', $firstTrade)));
+            if (!$tradesAreParsed) {
+                $trades = $this->parse_trades($rawTrades, $market);
+            }
             $this->number = $oldNumber;
             $tradesLength = 0;
             $isArray = gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades));
@@ -1071,12 +1076,12 @@ class Exchange extends \ccxt\Exchange {
             $entry['amount'] = $this->safe_number($entry, 'amount');
             $entry['price'] = $this->safe_number($entry, 'price');
             $entry['cost'] = $this->safe_number($entry, 'cost');
-            $fee = $this->safe_value($entry, 'fee', array());
-            $fee['cost'] = $this->safe_number($fee, 'cost');
-            if (is_array($fee) && array_key_exists('rate', $fee)) {
-                $fee['rate'] = $this->safe_number($fee, 'rate');
+            $tradeFee = $this->safe_value($entry, 'fee', array());
+            $tradeFee['cost'] = $this->safe_number($tradeFee, 'cost');
+            if (is_array($tradeFee) && array_key_exists('rate', $tradeFee)) {
+                $tradeFee['rate'] = $this->safe_number($tradeFee, 'rate');
             }
-            $entry['fee'] = $fee;
+            $entry['fee'] = $tradeFee;
         }
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = $this->safe_value($order, 'postOnly');
@@ -1546,8 +1551,18 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function market_symbols($symbols, ?string $type = null) {
+    public function market_symbols($symbols, ?string $type = null, $allowEmpty = true) {
         if ($symbols === null) {
+            if (!$allowEmpty) {
+                throw new ArgumentsRequired($this->id . ' empty list of $symbols is not supported');
+            }
+            return $symbols;
+        }
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            if (!$allowEmpty) {
+                throw new ArgumentsRequired($this->id . ' empty list of $symbols is not supported');
+            }
             return $symbols;
         }
         $result = array();
@@ -2180,9 +2195,9 @@ class Exchange extends \ccxt\Exchange {
                     }
                     $inferredMarketType = ($marketType === null) ? $market['type'] : $marketType;
                     for ($i = 0; $i < count($markets); $i++) {
-                        $market = $markets[$i];
-                        if ($market[$inferredMarketType]) {
-                            return $market;
+                        $currentMarket = $markets[$i];
+                        if ($currentMarket[$inferredMarketType]) {
+                            return $currentMarket;
                         }
                     }
                 }

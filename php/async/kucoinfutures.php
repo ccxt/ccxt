@@ -885,58 +885,53 @@ class kucoinfutures extends kucoin {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->futuresPrivateGetPositions (array_merge($request, $params)));
+            $response = Async\await($this->futuresPrivateGetPosition (array_merge($request, $params)));
             //
-            //     {
-            //         "code" => "200000",
-            //         "data" => array(
-            //             {
-            //                 "id" => "63b3599e6c41f50001c47d44",
-            //                 "symbol" => "XBTUSDTM",
-            //                 "autoDeposit" => false,
-            //                 "maintMarginReq" => 0.004,
-            //                 "riskLimit" => 25000,
-            //                 "realLeverage" => 5.0,
-            //                 "crossMode" => false,
-            //                 "delevPercentage" => 0.57,
-            //                 "openingTimestamp" => 1684000025528,
-            //                 "currentTimestamp" => 1684000052160,
-            //                 "currentQty" => 1,
-            //                 "currentCost" => 26.821,
-            //                 "currentComm" => 0.0160926,
-            //                 "unrealisedCost" => 26.821,
-            //                 "realisedGrossCost" => 0.0,
-            //                 "realisedCost" => 0.0160926,
-            //                 "isOpen" => true,
-            //                 "markPrice" => 26821.13,
-            //                 "markValue" => 26.82113,
-            //                 "posCost" => 26.821,
-            //                 "posCross" => 0.0,
-            //                 "posCrossMargin" => 0.0,
-            //                 "posInit" => 5.3642,
-            //                 "posComm" => 0.01931112,
-            //                 "posCommCommon" => 0.01931112,
-            //                 "posLoss" => 0.0,
-            //                 "posMargin" => 5.38351112,
-            //                 "posMaint" => 0.12927722,
-            //                 "maintMargin" => 5.38364112,
-            //                 "realisedGrossPnl" => 0.0,
-            //                 "realisedPnl" => -0.0160926,
-            //                 "unrealisedPnl" => 1.3E-4,
-            //                 "unrealisedPnlPcnt" => 0.0,
-            //                 "unrealisedRoePcnt" => 0.0,
-            //                 "avgEntryPrice" => 26821.0,
-            //                 "liquidationPrice" => 21567.0,
-            //                 "bankruptPrice" => 21456.0,
-            //                 "settleCurrency" => "USDT",
-            //                 "isInverse" => false,
-            //                 "maintainMargin" => 0.004
-            //             }
-            //         )
-            //     }
+            //    {
+            //        "code" => "200000",
+            //        "data" => {
+            //            "id" => "6505ee6eaff4070001f651c4",
+            //            "symbol" => "XBTUSDTM",
+            //            "autoDeposit" => false,
+            //            "maintMarginReq" => 0,
+            //            "riskLimit" => 200,
+            //            "realLeverage" => 0.0,
+            //            "crossMode" => false,
+            //            "delevPercentage" => 0.0,
+            //            "currentTimestamp" => 1694887534594,
+            //            "currentQty" => 0,
+            //            "currentCost" => 0.0,
+            //            "currentComm" => 0.0,
+            //            "unrealisedCost" => 0.0,
+            //            "realisedGrossCost" => 0.0,
+            //            "realisedCost" => 0.0,
+            //            "isOpen" => false,
+            //            "markPrice" => 26611.71,
+            //            "markValue" => 0.0,
+            //            "posCost" => 0.0,
+            //            "posCross" => 0,
+            //            "posInit" => 0.0,
+            //            "posComm" => 0.0,
+            //            "posLoss" => 0.0,
+            //            "posMargin" => 0.0,
+            //            "posMaint" => 0.0,
+            //            "maintMargin" => 0.0,
+            //            "realisedGrossPnl" => 0.0,
+            //            "realisedPnl" => 0.0,
+            //            "unrealisedPnl" => 0.0,
+            //            "unrealisedPnlPcnt" => 0,
+            //            "unrealisedRoePcnt" => 0,
+            //            "avgEntryPrice" => 0.0,
+            //            "liquidationPrice" => 0.0,
+            //            "bankruptPrice" => 0.0,
+            //            "settleCurrency" => "USDT",
+            //            "maintainMargin" => 0,
+            //            "riskLimitLevel" => 1
+            //        }
+            //    }
             //
             $data = $this->safe_value($response, 'data', array());
-            return $this->parse_position($data[0], $market);
+            return $this->parse_position($data, $market);
         }) ();
     }
 
@@ -1084,7 +1079,7 @@ class kucoinfutures extends kucoin {
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'contracts' => $this->parse_number(Precise::string_abs($size)),
             'contractSize' => $this->safe_value($market, 'contractSize'),
-            'realizedPnl' => $this->safe_number($position, 'realised_pnl'),
+            'realizedPnl' => $this->safe_number($position, 'realisedPnl'),
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'markPrice' => $this->safe_number($position, 'markPrice'),

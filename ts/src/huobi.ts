@@ -2537,7 +2537,7 @@ export default class huobi extends Exchange {
         }
         request[fieldName] = market['id'];
         if (limit !== undefined) {
-            request['size'] = limit; // max 2000
+            request['size'] = Math.min (limit, 2000); // max 2000
         }
         const response = await this[method] (this.extend (request, params));
         //

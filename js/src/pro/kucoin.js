@@ -17,7 +17,7 @@ export default class kucoin extends kucoinRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTicker': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
@@ -135,6 +135,29 @@ export default class kucoin extends kucoinRest {
         const messageHash = 'ticker:' + symbol;
         return await this.subscribe(url, messageHash, topic, query);
     }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the kucoin api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        let messageHash = 'tickers';
+        if (symbols !== undefined) {
+            messageHash = 'tickers::' + symbols.join(',');
+        }
+        const url = await this.negotiate(false);
+        const topic = '/market/ticker:all';
+        const tickers = await this.subscribe(url, messageHash, topic, params);
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
     handleTicker(client, message) {
         //
         // market/snapshot
@@ -194,7 +217,14 @@ export default class kucoin extends kucoinRest {
         let market = undefined;
         if (topic !== undefined) {
             const parts = topic.split(':');
-            const marketId = this.safeString(parts, 1);
+            const first = this.safeString(parts, 1);
+            let marketId = undefined;
+            if (first === 'all') {
+                marketId = this.safeString(message, 'subject');
+            }
+            else {
+                marketId = first;
+            }
             market = this.safeMarket(marketId, market, '-');
         }
         const data = this.safeValue(message, 'data', {});
@@ -204,6 +234,21 @@ export default class kucoin extends kucoinRest {
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
         client.resolve(ticker, messageHash);
+        // watchTickers
+        client.resolve(ticker, 'tickers');
+        const messageHashes = this.findMessageHashes(client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const currentMessageHash = messageHashes[i];
+            const parts = currentMessageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const tickers = this.filterByArray(this.tickers, 'symbol', symbols);
+            const tickersSymbols = Object.keys(tickers);
+            const numTickers = tickersSymbols.length;
+            if (numTickers > 0) {
+                client.resolve(tickers, currentMessageHash);
+            }
+        }
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
@@ -883,6 +928,10 @@ export default class kucoin extends kucoinRest {
         //         }
         //     }
         //
+        const topic = this.safeString(message, 'topic');
+        if (topic === '/market/ticker:all') {
+            return this.handleTicker(client, message);
+        }
         const subject = this.safeString(message, 'subject');
         const methods = {
             'trade.l2update': this.handleOrderBook,

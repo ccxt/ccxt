@@ -9,6 +9,8 @@ var WsClient = require('./ws/WsClient.js');
 var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
 var totp = require('./functions/totp.js');
+var generic = require('./functions/generic.js');
+var misc = require('./functions/misc.js');
 
 function _interopNamespace(e) {
     if (e && e.__esModule) return e;
@@ -29,7 +31,7 @@ function _interopNamespace(e) {
 }
 
 // ----------------------------------------------------------------------------
-const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS } = functions;
+const { isNode, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS } = functions;
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -112,8 +114,8 @@ class Exchange {
         this.streaming = {};
         this.deepExtend = deepExtend;
         this.isNode = isNode;
-        this.keys = keys;
-        this.values = values;
+        this.keys = generic.keys;
+        this.values = generic.values;
         this.extend = extend;
         this.clone = clone;
         this.flatten = flatten;
@@ -149,7 +151,7 @@ class Exchange {
         this.implodeParams = implodeParams;
         this.extractParams = extractParams;
         this.json = json;
-        this.vwap = vwap;
+        this.vwap = misc.vwap;
         this.merge = merge;
         this.binaryConcat = binaryConcat;
         this.hash = hash;
@@ -204,7 +206,7 @@ class Exchange {
         this.urlencodeNested = urlencodeNested;
         this.parseDate = parseDate;
         this.ymd = ymd;
-        this.isArray = isArray;
+        this.isArray = generic.inArray;
         this.base64ToString = base64ToString;
         this.crc32 = crc32;
         Object.assign(this, functions);
@@ -1666,7 +1668,12 @@ class Exchange {
             const oldNumber = this.number;
             // we parse trades as strings here!
             this.number = String;
-            trades = this.parseTrades(rawTrades, market);
+            const firstTrade = this.safeValue(rawTrades, 0);
+            // parse trades if they haven't already been parsed
+            const tradesAreParsed = ((firstTrade !== undefined) && ('info' in firstTrade) && ('id' in firstTrade));
+            if (!tradesAreParsed) {
+                trades = this.parseTrades(rawTrades, market);
+            }
             this.number = oldNumber;
             let tradesLength = 0;
             const isArray = Array.isArray(trades);
@@ -1837,12 +1844,12 @@ class Exchange {
             entry['amount'] = this.safeNumber(entry, 'amount');
             entry['price'] = this.safeNumber(entry, 'price');
             entry['cost'] = this.safeNumber(entry, 'cost');
-            const fee = this.safeValue(entry, 'fee', {});
-            fee['cost'] = this.safeNumber(fee, 'cost');
-            if ('rate' in fee) {
-                fee['rate'] = this.safeNumber(fee, 'rate');
+            const tradeFee = this.safeValue(entry, 'fee', {});
+            tradeFee['cost'] = this.safeNumber(tradeFee, 'cost');
+            if ('rate' in tradeFee) {
+                tradeFee['rate'] = this.safeNumber(tradeFee, 'rate');
             }
-            entry['fee'] = fee;
+            entry['fee'] = tradeFee;
         }
         let timeInForce = this.safeString(order, 'timeInForce');
         let postOnly = this.safeValue(order, 'postOnly');
@@ -2309,8 +2316,18 @@ class Exchange {
         }
         return result;
     }
-    marketSymbols(symbols, type = undefined) {
+    marketSymbols(symbols, type = undefined, allowEmpty = true) {
         if (symbols === undefined) {
+            if (!allowEmpty) {
+                throw new errors.ArgumentsRequired(this.id + ' empty list of symbols is not supported');
+            }
+            return symbols;
+        }
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            if (!allowEmpty) {
+                throw new errors.ArgumentsRequired(this.id + ' empty list of symbols is not supported');
+            }
             return symbols;
         }
         const result = [];
@@ -2891,9 +2908,9 @@ class Exchange {
                     }
                     const inferredMarketType = (marketType === undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
-                        const market = markets[i];
-                        if (market[inferredMarketType]) {
-                            return market;
+                        const currentMarket = markets[i];
+                        if (currentMarket[inferredMarketType]) {
+                            return currentMarket;
                         }
                     }
                 }

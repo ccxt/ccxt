@@ -872,7 +872,7 @@ export default class huobijp extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min(limit, 2000);
         }
         const response = await this.marketGetHistoryTrade(this.extend(request, params));
         //

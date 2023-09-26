@@ -524,13 +524,13 @@ class currencycom extends currencycom$1 {
             const subscription = this.safeValue(subscriptionsById, requestId);
             if (subscription !== undefined) {
                 if (status === 'OK') {
-                    const destination = this.safeString(subscription, 'destination');
-                    if (destination !== undefined) {
+                    const subscriptionDestination = this.safeString(subscription, 'destination');
+                    if (subscriptionDestination !== undefined) {
                         const methods = {
                             '/api/v1/ticker/24hr': this.handleTicker,
                             '/api/v1/account': this.handleBalance,
                         };
-                        const method = this.safeValue(methods, destination);
+                        const method = this.safeValue(methods, subscriptionDestination);
                         if (method === undefined) {
                             return message;
                         }

@@ -752,7 +752,7 @@ class testMainClass extends baseMainTestClass {
     }
 
     public function start_test($exchange, $symbol) {
-        // we don't need to test aliases
+        // we do not need to test aliases
         if ($exchange->alias) {
             return;
         }
