@@ -7,14 +7,14 @@ import errorsHierarchy from '../base/errorHierarchy.js';
 
 
 // js specific codes //
-const __dirname = fileURLToPath (new URL ('.', import.meta.url));
+const DIR_NAME = fileURLToPath (new URL ('.', import.meta.url));
 process.on ('uncaughtException', (e) => {
     console.log (e, '<UNHANDLED EXCEPTION>', e.stack); process.exit (1);
 });
 process.on ('unhandledRejection', (e: any) => {
     console.log (e, '<UNHANDLED REJECTION>', e.stack); process.exit (1);
 });
-const [ processPath, , exchangeId = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
+const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 const AuthenticationError = ccxt.AuthenticationError;
 const RateLimitExceeded = ccxt.RateLimitExceeded;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
@@ -36,8 +36,8 @@ class baseMainTestClass {
     testFiles = {};
     publicTests = {};
 }
-const rootDir = __dirname + '/../../../';
-const rootDirForSkips = __dirname + '/../../../';
+const rootDir = DIR_NAME + '/../../../';
+const rootDirForSkips = DIR_NAME + '/../../../';
 const envVars = process.env;
 const ext = import.meta.url.split ('.')[1];
 
@@ -95,7 +95,7 @@ async function setTestFiles (holderClass, properties) {
     // exchange tests
     for (let i = 0; i < properties.length; i++) {
         const name = properties[i];
-        const filePathWoExt = __dirname + '/Exchange/test.' + name;
+        const filePathWoExt = DIR_NAME + '/Exchange/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             holderClass.testFiles[name] = await importTestFile (filePathWoExt);
@@ -105,7 +105,7 @@ async function setTestFiles (holderClass, properties) {
     const errorHierarchyKeys = Object.keys (errorsHierarchy);
     for (let i = 0; i < errorHierarchyKeys.length; i++) {
         const name = errorHierarchyKeys[i];
-        const filePathWoExt = __dirname + '/base/errors/test.' + name;
+        const filePathWoExt = DIR_NAME + '/base/errors/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             holderClass.testFiles[name] = await importTestFile (filePathWoExt);
@@ -737,4 +737,4 @@ export default class testMainClass extends baseMainTestClass {
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
-(new testMainClass ()).init (exchangeId, exchangeSymbol);
+(new testMainClass ()).init (exchangeIdFromArgv, exchangeSymbol);
