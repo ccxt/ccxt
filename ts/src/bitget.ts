@@ -1561,9 +1561,16 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.pageNo] pageNo default 1
          * @param {string} [params.pageSize] pageSize default 20. Max 100
+         * @param {int} [params.until] end tim in ms
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
+        }
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a `code` argument');
         }
@@ -1571,7 +1578,7 @@ export default class bitget extends Exchange {
         if (since === undefined) {
             since = this.milliseconds () - 31556952000; // 1yr
         }
-        const request = {
+        let request = {
             'coin': currency['code'],
             'startTime': since,
             'endTime': this.milliseconds (),
@@ -1579,6 +1586,7 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
+        [ params, request ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.privateSpotGetWalletDepositList (this.extend (request, params));
         //
         //      {
@@ -1693,9 +1701,16 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.pageNo] pageNo default 1
          * @param {string} [params.pageSize] pageSize default 20. Max 100
+         * @param {int} [params.until] end time in ms
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
+        }
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a `code` argument');
         }
@@ -1703,11 +1718,12 @@ export default class bitget extends Exchange {
         if (since === undefined) {
             since = this.milliseconds () - 31556952000; // 1yr
         }
-        const request = {
+        let request = {
             'coin': currency['code'],
             'startTime': since,
             'endTime': this.milliseconds (),
         };
+        [ params, request ] = this.handleUntilOption ('endTime', params, request);
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
@@ -3793,20 +3809,32 @@ export default class bitget extends Exchange {
         /**
          * @method
          * @name bitget#fetchLedger
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-bills
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {int} [params.until] end tim in ms
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params);
+        }
         let currency = undefined;
-        const request = {};
+        let request = {};
         if (code !== undefined) {
             currency = this.currency (code);
             request['coinId'] = currency['id'];
         }
+        if (since !== undefined) {
+            request['before'] = since;
+        }
+        [ params, request ] = this.handleUntilOption ('after', params, request);
         const response = await this.privateSpotPostAccountBills (this.extend (request, params));
         //
         //     {
@@ -4297,6 +4325,7 @@ export default class bitget extends Exchange {
         /**
          * @method
          * @name bitget#fetchFundingRateHistory
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-funding-rate
          * @description fetches historical funding rate prices
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
@@ -4780,16 +4809,23 @@ export default class bitget extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of  transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params);
+        }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
         const fromAccount = this.safeString (params, 'fromAccount', type);
         params = this.omit (params, 'fromAccount');
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         type = this.safeString (accountsByType, fromAccount);
-        const request = {
+        let request = {
             'fromType': type,
         };
         let currency = undefined;
@@ -4803,6 +4839,7 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        [ params, request ] = this.handleUntilOption ('after', params, request);
         const response = await this.privateSpotGetAccountTransferRecords (this.extend (request, params));
         //
         //     {

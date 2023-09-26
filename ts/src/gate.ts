@@ -3447,11 +3447,18 @@ export default class gate extends Exchange {
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {int} [params.until] end time in ms
          * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
+        }
+        let request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -3465,6 +3472,7 @@ export default class gate extends Exchange {
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
+        [ params, request ] = this.handleUntilOption ('to', request, params);
         const response = await this.privateWalletGetDeposits (this.extend (request, params));
         return this.parseTransactions (response, currency);
     }
@@ -3478,10 +3486,17 @@ export default class gate extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @param {int} [params.until] end time in ms
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
+        }
+        let request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -3495,6 +3510,7 @@ export default class gate extends Exchange {
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
+        [ params, request ] = this.handleUntilOption ('to', request, params);
         const response = await this.privateWalletGetWithdrawals (this.extend (request, params));
         return this.parseTransactions (response, currency);
     }
@@ -5790,6 +5806,11 @@ export default class gate extends Exchange {
          * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenInterestHistory', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 100);
+        }
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports swap markets only');
@@ -6054,13 +6075,20 @@ export default class gate extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @param {int} [params.until] end time in ms
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params);
+        }
         let type = undefined;
         let currency = undefined;
         let response = undefined;
-        const request = {};
+        let request = {};
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         if ((type === 'spot') || (type === 'margin')) {
             if (code !== undefined) {
@@ -6080,6 +6108,7 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        [ params, request ] = this.handleUntilOption ('to', request, params);
         if (type === 'spot') {
             response = await this.privateSpotGetAccountBook (this.extend (request, params));
         } else if (type === 'margin') {
