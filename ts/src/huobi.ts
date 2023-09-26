@@ -3033,13 +3033,13 @@ export default class huobi extends Exchange {
             this.options['networkNamesByChainIds'] = {};
             const currencyCodes = Object.keys (this.currencies);
             for (let i = 0; i < currencyCodes.length; i++) {
-                const currencyCode = currencyCodes[i];
-                const networkValues = this.values (this.currencies[currencyCode]['networks']);
+                const code = currencyCodes[i];
+                const networkValues = this.values (this.currencies[code]['networks']);
                 for (let j = 0; j < networkValues.length; j++) {
                     const network = networkValues[j];
-                    const networkId = network['id'];
-                    const networkCode = network['network'];
-                    this.options['networkNamesByChainIds'][networkId] = networkCode;
+                    const currentNetworkId = network['id'];
+                    const currentNetworkCode = network['network'];
+                    this.options['networkNamesByChainIds'][currentNetworkId] = currentNetworkCode;
                 }
             }
         }
