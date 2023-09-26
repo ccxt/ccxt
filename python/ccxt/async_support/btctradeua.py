@@ -22,6 +22,7 @@ class btctradeua(Exchange, ImplicitAPI):
             'name': 'BTC Trade UA',
             'countries': ['UA'],  # Ukraine,
             'rateLimit': 3000,
+            'pro': False,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -65,6 +66,7 @@ class btctradeua(Exchange, ImplicitAPI):
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'signIn': True,
+                'ws': False,
             },
             'urls': {
                 'referral': 'https://btc-trade.com.ua/registration/22689',
@@ -129,7 +131,7 @@ class btctradeua(Exchange, ImplicitAPI):
     async def sign_in(self, params={}):
         """
         sign in, must be called prior to using other authenticated methods
-        :param dict params: extra parameters specific to the btctradeua api endpoint
+        :param dict [params]: extra parameters specific to the btctradeua api endpoint
         :returns: response from exchange
         """
         return await self.privatePostAuth(params)
@@ -149,8 +151,8 @@ class btctradeua(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the btctradeua api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :param dict [params]: extra parameters specific to the btctradeua api endpoint
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         response = await self.privatePostBalance(params)
@@ -160,9 +162,9 @@ class btctradeua(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the btctradeua api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the btctradeua api endpoint
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -241,8 +243,8 @@ class btctradeua(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the btctradeua api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :param dict [params]: extra parameters specific to the btctradeua api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -335,6 +337,21 @@ class btctradeua(Exchange, ImplicitAPI):
         return timestamp - 10800000
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades
+        #
+        #     {
+        #         "amnt_base": "2220.1204701750",
+        #         "order_id": 247644861,
+        #         "unixtime": 1694340398,
+        #         "price": "1019739.3229211044",
+        #         "amnt_trade": "0.0021771451",
+        #         "user": "Vasily1989",
+        #         "type": "sell",
+        #         "pub_date": "Sept. 10, 2023, 1:06 p.m.",
+        #         "id": 7498807
+        #     }
+        #
         timestamp = self.parse_exchange_specific_datetime(self.safe_string(trade, 'pub_date'))
         id = self.safe_string(trade, 'id')
         type = 'limit'
@@ -362,10 +379,10 @@ class btctradeua(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the btctradeua api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the btctradeua api endpoint
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -373,6 +390,21 @@ class btctradeua(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = await self.publicGetDealsSymbol(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "amnt_base": "2220.1204701750",
+        #            "order_id": 247644861,
+        #            "unixtime": 1694340398,
+        #            "price": "1019739.3229211044",
+        #            "amnt_trade": "0.0021771451",
+        #            "user": "Vasily1989",
+        #            "type": "sell",
+        #            "pub_date": "Sept. 10, 2023, 1:06 p.m.",
+        #            "id": 7498807
+        #        },
+        #    ]
+        #
         # they report each trade twice(once for both of the two sides of the fill)
         # deduplicate trades for that reason
         trades = []
@@ -389,9 +421,9 @@ class btctradeua(Exchange, ImplicitAPI):
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the btctradeua api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the btctradeua api endpoint
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if type == 'market':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
@@ -410,9 +442,9 @@ class btctradeua(Exchange, ImplicitAPI):
         """
         cancels an open order
         :param str id: order id
-        :param str|None symbol: not used by btctradeua cancelOrder()
-        :param dict params: extra parameters specific to the btctradeua api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: not used by btctradeua cancelOrder()
+        :param dict [params]: extra parameters specific to the btctradeua api endpoint
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         request = {
             'id': id,
@@ -455,10 +487,10 @@ class btctradeua(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the btctradeua api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the btctradeua api endpoint
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')

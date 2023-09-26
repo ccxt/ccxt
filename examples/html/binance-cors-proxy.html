@@ -11,7 +11,7 @@
                 const exchange = new ccxt.binance ({
                     'apiKey': 'YOUR_API_KEY',
                     'secret': 'YOUR_API_SECRET',
-                    'proxy': 'https://cors-anywhere.herokuapp.com/',
+                    'proxyUrl': 'https://cors-anywhere.herokuapp.com/',
                 })
                 const response = await exchange.fetchBalance ()
                 console.log (response)

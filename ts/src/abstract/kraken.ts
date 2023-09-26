@@ -41,6 +41,7 @@ interface Exchange {
     privatePostQueryTrades (params?: {}): Promise<implicitReturnType>;
     privatePostRetrieveExport (params?: {}): Promise<implicitReturnType>;
     privatePostRemoveExport (params?: {}): Promise<implicitReturnType>;
+    privatePostBalanceEx (params?: {}): Promise<implicitReturnType>;
     privatePostTradeBalance (params?: {}): Promise<implicitReturnType>;
     privatePostTradesHistory (params?: {}): Promise<implicitReturnType>;
     privatePostTradeVolume (params?: {}): Promise<implicitReturnType>;
@@ -48,6 +49,7 @@ interface Exchange {
     privatePostWithdrawCancel (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawInfo (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawStatus (params?: {}): Promise<implicitReturnType>;
+    privatePostWalletTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostStake (params?: {}): Promise<implicitReturnType>;
     privatePostUnstake (params?: {}): Promise<implicitReturnType>;
     privatePostStakingAssets (params?: {}): Promise<implicitReturnType>;

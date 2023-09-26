@@ -9,18 +9,22 @@ export default class coinbasepro extends coinbaseproRest {
         signature: any;
         passphrase: string;
     };
-    subscribe(name: any, symbol: any, messageHashStart: any, params?: {}): Promise<any>;
+    subscribe(name: any, symbol?: any, messageHashStart?: any, params?: {}): Promise<any>;
+    subscribeMultiple(name: any, symbols?: any[], messageHashStart?: any, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
+    watchTickers(symbols?: string[], params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): any;
     handleMyTrade(client: Client, message: any): any;
-    parseWsTrade(trade: any): import("../base/types.js").Trade;
+    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     parseWsOrderStatus(status: any): string;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any): {
+    parseWsOrder(order: any, market?: any): {
         info: any;
         symbol: any;
         id: string;
@@ -45,28 +49,7 @@ export default class coinbasepro extends coinbaseproRest {
         trades: any;
     };
     handleTicker(client: Client, message: any): any;
-    parseTicker(ticker: any, market?: any): import("../base/types.js").Ticker | {
-        symbol: any;
-        timestamp: number;
-        datetime: string;
-        high: number;
-        low: number;
-        bid: number;
-        bidVolume: number;
-        ask: number;
-        askVolume: number;
-        vwap: any;
-        open: number;
-        close: number;
-        last: number;
-        previousClose: any;
-        change: any;
-        percentage: any;
-        average: any;
-        baseVolume: number;
-        quoteVolume: any;
-        info: any;
-    };
+    parseTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: Client, message: any): void;

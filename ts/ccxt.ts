@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax } from './src/base/types.js'
-import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending }  from './src/base/errors.js'
+import { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position } from './src/base/types.js'
+import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, NoChange }  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '3.1.31';
+const version = '4.0.107';
 
 (Exchange as any).ccxtVersion = version
 
@@ -55,6 +55,7 @@ import binance from  './src/binance.js'
 import binancecoinm from  './src/binancecoinm.js'
 import binanceus from  './src/binanceus.js'
 import binanceusdm from  './src/binanceusdm.js'
+import bingx from  './src/bingx.js'
 import bit2c from  './src/bit2c.js'
 import bitbank from  './src/bitbank.js'
 import bitbay from  './src/bitbay.js'
@@ -76,12 +77,10 @@ import bitstamp from  './src/bitstamp.js'
 import bitstamp1 from  './src/bitstamp1.js'
 import bittrex from  './src/bittrex.js'
 import bitvavo from  './src/bitvavo.js'
-import bkex from  './src/bkex.js'
 import bl3p from  './src/bl3p.js'
 import blockchaincom from  './src/blockchaincom.js'
 import btcalpha from  './src/btcalpha.js'
 import btcbox from  './src/btcbox.js'
-import btcex from  './src/btcex.js'
 import btcmarkets from  './src/btcmarkets.js'
 import btctradeua from  './src/btctradeua.js'
 import btcturk from  './src/btcturk.js'
@@ -149,7 +148,6 @@ import wavesexchange from  './src/wavesexchange.js'
 import wazirx from  './src/wazirx.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
-import xt from  './src/xt.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
 import zonda from  './src/zonda.js'
@@ -176,9 +174,9 @@ import bitstampPro from  './src/pro/bitstamp.js'
 import bittrexPro from  './src/pro/bittrex.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
 import blockchaincomPro from  './src/pro/blockchaincom.js'
-import btcexPro from  './src/pro/btcex.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
+import coinbasePro from  './src/pro/coinbase.js'
 import coinbaseprimePro from  './src/pro/coinbaseprime.js'
 import coinbaseproPro from  './src/pro/coinbasepro.js'
 import coinexPro from  './src/pro/coinex.js'
@@ -226,6 +224,7 @@ const exchanges = {
     'binancecoinm':           binancecoinm,
     'binanceus':              binanceus,
     'binanceusdm':            binanceusdm,
+    'bingx':                  bingx,
     'bit2c':                  bit2c,
     'bitbank':                bitbank,
     'bitbay':                 bitbay,
@@ -247,12 +246,10 @@ const exchanges = {
     'bitstamp1':              bitstamp1,
     'bittrex':                bittrex,
     'bitvavo':                bitvavo,
-    'bkex':                   bkex,
     'bl3p':                   bl3p,
     'blockchaincom':          blockchaincom,
     'btcalpha':               btcalpha,
     'btcbox':                 btcbox,
-    'btcex':                  btcex,
     'btcmarkets':             btcmarkets,
     'btctradeua':             btctradeua,
     'btcturk':                btcturk,
@@ -320,7 +317,6 @@ const exchanges = {
     'wazirx':                 wazirx,
     'whitebit':               whitebit,
     'woo':                    woo,
-    'xt':                     xt,
     'yobit':                  yobit,
     'zaif':                   zaif,
     'zonda':                  zonda,
@@ -347,9 +343,9 @@ const pro = {
     'bittrex':                bittrexPro,
     'bitvavo':                bitvavoPro,
     'blockchaincom':          blockchaincomPro,
-    'btcex':                  btcexPro,
     'bybit':                  bybitPro,
     'cex':                    cexPro,
+    'coinbase':               coinbasePro,
     'coinbaseprime':          coinbaseprimePro,
     'coinbasepro':            coinbaseproPro,
     'coinex':                 coinexPro,
@@ -441,6 +437,7 @@ export {
     RequestTimeout,
     AuthenticationError,
     AddressPending,
+    NoChange,
     Market,
     Trade,
     Fee,
@@ -459,6 +456,7 @@ export {
     PartialBalances,
     Dictionary,
     MinMax,
+    Position,
     ace,
     alpaca,
     ascendex,
@@ -468,6 +466,7 @@ export {
     binancecoinm,
     binanceus,
     binanceusdm,
+    bingx,
     bit2c,
     bitbank,
     bitbay,
@@ -489,12 +488,10 @@ export {
     bitstamp1,
     bittrex,
     bitvavo,
-    bkex,
     bl3p,
     blockchaincom,
     btcalpha,
     btcbox,
-    btcex,
     btcmarkets,
     btctradeua,
     btcturk,
@@ -562,7 +559,6 @@ export {
     wazirx,
     whitebit,
     woo,
-    xt,
     yobit,
     zaif,
     zonda,    

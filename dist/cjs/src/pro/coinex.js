@@ -21,7 +21,8 @@ class coinex extends coinex$1 {
                 'watchMyTrades': false,
                 'watchOrders': true,
                 'watchOrderBook': true,
-                'watchOHLCV': false, // only for swap markets
+                'watchOHLCV': true,
+                'fetchOHLCVWs': true,
             },
             'urls': {
                 'api': {
@@ -221,9 +222,9 @@ class coinex extends coinex$1 {
         /**
          * @method
          * @name coinex#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         await this.authenticate(params);
@@ -307,13 +308,13 @@ class coinex extends coinex$1 {
         }
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
-            const parsed = this.parseWSTrade(trade, market);
+            const parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
         }
         this.trades[symbol] = stored;
         client.resolve(this.trades[symbol], messageHash);
     }
-    parseWSTrade(trade, market = undefined) {
+    parseWsTrade(trade, market = undefined) {
         //
         //     {
         //         "type": "sell",
@@ -343,6 +344,23 @@ class coinex extends coinex$1 {
     }
     handleOHLCV(client, message) {
         //
+        //  spot
+        //     {
+        //         error: null,
+        //         result: [
+        //           [
+        //             1673846940,
+        //             '21148.74',
+        //             '21148.38',
+        //             '21148.75',
+        //             '21138.66',
+        //             '1.57060173',
+        //             '33214.9138778914'
+        //           ],
+        //         ]
+        //         id: 1,
+        //     }
+        //  swap
         //     {
         //         method: 'kline.update',
         //         params: [
@@ -359,10 +377,17 @@ class coinex extends coinex$1 {
         //         id: null
         //     }
         //
-        const candles = this.safeValue(message, 'params', []);
+        const candles = this.safeValue2(message, 'params', 'result', []);
         const messageHash = 'ohlcv';
+        const id = this.safeString(message, 'id');
         const ohlcvs = this.parseOHLCVs(candles);
-        const keysLength = Object.keys(this.ohlcvs).length;
+        if (id !== undefined) {
+            // spot subscription response
+            client.resolve(ohlcvs, messageHash);
+            return;
+        }
+        const keys = Object.keys(this.ohlcvs);
+        const keysLength = keys.length;
         if (keysLength === 0) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             this.ohlcvs = new Cache.ArrayCacheByTimestamp(limit);
@@ -380,8 +405,8 @@ class coinex extends coinex$1 {
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         return await this.watchTickers([symbol], params);
     }
@@ -391,9 +416,9 @@ class coinex extends coinex$1 {
          * @name coinex#watchTickers
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -424,10 +449,10 @@ class coinex extends coinex$1 {
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -456,9 +481,9 @@ class coinex extends coinex$1 {
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -500,13 +525,14 @@ class coinex extends coinex$1 {
         /**
          * @method
          * @name coinex#watchOHLCV
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket023_kline_subscribe
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -514,15 +540,18 @@ class coinex extends coinex$1 {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchOHLCV', market, params);
         if (type !== 'swap') {
-            throw new errors.NotSupported(this.id + ' watchOHLCV() is only supported for swap markets');
+            throw new errors.NotSupported(this.id + ' watchOHLCV() is only supported for swap markets. Try using fetchOHLCV () instead');
         }
         const url = this.urls['api']['ws'][type];
         const messageHash = 'ohlcv';
         const watchOHLCVWarning = this.safeValue(this.options, 'watchOHLCVWarning', true);
         const client = this.safeValue(this.clients, url, {});
-        const existingSubscription = this.safeValue(client.subscriptions, messageHash);
+        const clientSub = this.safeValue(client, 'subscriptions', {});
+        const existingSubscription = this.safeValue(clientSub, messageHash);
+        const subSymbol = this.safeString(existingSubscription, 'symbol');
+        const subTimeframe = this.safeString(existingSubscription, 'timeframe');
         // due to nature of coinex response can only watch one symbol at a time
-        if (watchOHLCVWarning && existingSubscription !== undefined && (existingSubscription['symbol'] !== symbol || existingSubscription['timeframe'] !== timeframe)) {
+        if (watchOHLCVWarning && existingSubscription !== undefined && (subSymbol !== symbol || subTimeframe !== timeframe)) {
             throw new errors.ExchangeError(this.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress this warning set watchOHLCVWarning to false in options');
         }
         const timeframes = this.safeValue(this.options, 'timeframes', {});
@@ -531,7 +560,7 @@ class coinex extends coinex$1 {
             'id': this.requestId(),
             'params': [
                 market['id'],
-                this.safeString(timeframes, timeframe, timeframe),
+                this.safeInteger(timeframes, timeframe),
             ],
         };
         const subscription = {
@@ -543,6 +572,51 @@ class coinex extends coinex$1 {
         if (this.newUpdates) {
             limit = ohlcvs.getLimit(symbol, limit);
         }
+        return this.filterBySinceLimit(ohlcvs, since, limit, 0);
+    }
+    async fetchOHLCVWs(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchOHLCV
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query
+         * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to query OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {int|undefined} params.end the end time for spot markets, this.seconds () is set as default
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const [type, query] = this.handleMarketTypeAndParams('fetchOHLCV', market, params);
+        const url = this.urls['api']['ws'][type];
+        symbol = market['symbol'];
+        const messageHash = 'ohlcv';
+        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        timeframe = this.safeString(timeframes, timeframe, timeframe);
+        if (since === undefined) {
+            since = 1640995200; // January 1, 2022
+        }
+        const id = this.requestId();
+        const subscribe = {
+            'method': 'kline.query',
+            'params': [
+                market['id'],
+                this.parseToInt(since / 1000),
+                this.safeInteger(params, 'end', this.seconds()),
+                this.parseToInt(timeframe),
+            ],
+            'id': id,
+        };
+        const subscription = {
+            'id': id,
+            'future': messageHash,
+        };
+        const subscriptionHash = id;
+        const request = this.deepExtend(subscribe, query);
+        const ohlcvs = await this.watch(url, messageHash, request, subscriptionHash, subscription);
         return this.filterBySinceLimit(ohlcvs, since, limit, 0);
     }
     handleDelta(bookside, delta) {
@@ -587,7 +661,7 @@ class coinex extends coinex$1 {
         const symbol = market['symbol'];
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
-        const timestamp = this.safeNumber(orderBook, 'time');
+        const timestamp = this.safeInteger(orderBook, 'time');
         const currentOrderBook = this.safeValue(this.orderbooks, symbol);
         if (fullOrderBook) {
             const snapshot = this.parseOrderBook(orderBook, symbol, timestamp);
@@ -638,7 +712,7 @@ class coinex extends coinex$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrders(client, message) {
         //
@@ -729,18 +803,19 @@ class coinex extends coinex$1 {
         //
         const params = this.safeValue(message, 'params', []);
         const order = this.safeValue(params, 1, {});
-        const parsedOrder = this.parseWSOrder(order);
+        const parsedOrder = this.parseWsOrder(order);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
-        this.orders.append(parsedOrder);
+        const orders = this.orders;
+        orders.append(parsedOrder);
         let messageHash = 'orders';
         client.resolve(this.orders, messageHash);
         messageHash += ':' + parsedOrder['symbol'];
         client.resolve(this.orders, messageHash);
     }
-    parseWSOrder(order) {
+    parseWsOrder(order, market = undefined) {
         //
         //  spot
         //
@@ -854,7 +929,7 @@ class coinex extends coinex$1 {
         const amount = this.safeString(order, 'amount');
         const status = this.safeString(order, 'status');
         const defaultType = this.safeString(this.options, 'defaultType');
-        const market = this.safeMarket(marketId, undefined, undefined, defaultType);
+        market = this.safeMarket(marketId, market, undefined, defaultType);
         let cost = this.safeString(order, 'deal_money');
         let filled = this.safeString(order, 'deal_stock');
         let average = undefined;
@@ -893,12 +968,12 @@ class coinex extends coinex$1 {
             'remaining': remaining,
             'cost': cost,
             'average': average,
-            'status': this.parseWSOrderStatus(status),
+            'status': this.parseWsOrderStatus(status),
             'fee': fee,
             'trades': undefined,
         }, market);
     }
-    parseWSOrderStatus(status) {
+    parseWsOrderStatus(status) {
         const statuses = {
             '0': 'pending',
             '1': 'ok',
@@ -947,6 +1022,9 @@ class coinex extends coinex$1 {
         const subscription = this.safeValue(client.subscriptions, id);
         if (subscription !== undefined) {
             const futureIndex = this.safeString(subscription, 'future');
+            if (futureIndex === 'ohlcv') {
+                return this.handleOHLCV(client, message);
+            }
             const future = this.safeValue(client.futures, futureIndex);
             if (future !== undefined) {
                 future.resolve(true);

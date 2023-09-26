@@ -2,7 +2,7 @@
 
 namespace ccxt\pro;
 
-use ccxt\async\Throttle;
+use ccxt\async\Throttler;
 use ccxt\BaseError;
 use ccxt\ExchangeError;
 use React\Async;
@@ -56,7 +56,7 @@ trait ClientTrait {
             $options = array_replace_recursive(array(
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
-                'throttle' => new Throttle($this->tokenBucket),
+                'throttle' => new Throttler($this->tokenBucket),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
         }
@@ -160,18 +160,6 @@ trait ClientTrait {
         $this->close();
     }
 
-    public function find_timeframe($timeframe, $timeframes = null) {
-        $timeframes = $timeframes ? $timeframes : $this->timeframes;
-        $keys = array_keys($timeframes);
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if ($timeframes[$key] === $timeframe) {
-                return $key;
-            }
-        }
-        return null;
-    }
-
     public function load_order_book($client, $messageHash, $symbol, $limit = null, $params = array()) {
         return Async\async(function () use ($client, $messageHash, $symbol, $limit, $params) {
             if (!array_key_exists($symbol, $this->orderbooks)) {
@@ -201,11 +189,5 @@ trait ClientTrait {
                 Async\await($this->load_order_book($client, $messageHash, $symbol, $limit, $params));
             }
         }) ();
-    }
-
-    public function handle_deltas($orderbook, $deltas) {
-        foreach ($deltas as $delta) {
-            $this->handle_delta($orderbook, $delta);
-        }
     }
 }

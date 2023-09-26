@@ -26,7 +26,8 @@ const pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
 const baseExchangeJsFile = './ts/src/base/Exchange.ts'
 
 const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
-const exchangeIds = exchanges.ids
+const exchangeIds = exchanges.ids;
+const exchangesWsIds = exchanges.ws;
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
@@ -95,6 +96,8 @@ class Transpiler {
             [ /\.parseFundingRateHistory\s/g, '.parse_funding_rate_history'],
             [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
+            [ /\.parseWsOHLCVs\s/g, '.parse_ws_ohlcvs'],
+            [ /\.parseWsOHLCV\s/g, '.parse_ws_ohlcv'],
             [ /\.parseDate\s/g, '.parse_date'],
             [ /\.parseDepositAddresses\s/g, '.parse_deposit_addresses'],
             [ /\.parseDepositAddress\s/g, '.parse_deposit_address'],
@@ -108,6 +111,7 @@ class Transpiler {
             [ /\.parseTradesData\s/g, '.parse_trades_data'],
             [ /\.parseTrades\s/g, '.parse_trades'],
             [ /\.parseTrade\s/g, '.parse_trade'],
+            [ /\.parseWsTrade\s/g, '.parse_ws_trade'],
             [ /\.parseTradingFees\s/g, '.parse_trading_fees'],
             [ /\.parseTradingFee\s/g, '.parse_trading_fee'],
             [ /\.parseTradingViewOHLCV\s/g, '.parse_trading_view_ohlcv'],
@@ -125,6 +129,8 @@ class Transpiler {
             [ /\.parseOrders\s/g, '.parse_orders'],
             [ /\.parseOrderStatus\s/g, '.parse_order_status'],
             [ /\.parseOrder\s/g, '.parse_order'],
+            [ /\.parseWsOrder\s/g, '.parse_ws_order'],
+            [ /\.parseWsOrderTrade\s/g, '.parse_ws_order_trade'],
             [ /\.parseJson\s/g, '.parse_json'],
             [ /\.parseAccountPosition\s/g, '.parse_account_position' ],
             [ /\.parsePositionRisk\s/g, '.parse_position_risk' ],
@@ -158,6 +164,7 @@ class Transpiler {
             [ /\.fetchTransactionFees\s/g, '.fetch_transaction_fees'],
             [ /\.fetchTradingFees\s/g, '.fetch_trading_fees'],
             [ /\.fetchTradingFee\s/g, '.fetch_trading_fee'],
+            [ /\.fetchOHLCVWs\s/g, '.fetch_ohlcv_ws'],
             [ /\.fetchFees\s/g, '.fetch_fees'],
             [ /\.fetchOHLCVC\s/g, '.fetch_ohlcvc'],
             [ /\.fetchOHLCV\s/g, '.fetch_ohlcv'],
@@ -215,15 +222,24 @@ class Transpiler {
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             [ /\.throwExceptionOnError\s/g, '.throw_exception_on_error'],
             [ /\.handleErrors\s/g, '.handle_errors'],
+            [ /\.handleDeltas\s/g, '.handle_deltas'],
+            [ /\.handleDelta\s/g, '.handle_delta'],
             [ /\.handleWithdrawTagAndParams\s/g, '.handle_withdraw_tag_and_params'],
             [ /\.checkRequiredCredentials\s/g, '.check_required_credentials'],
             [ /\.checkRequiredDependencies\s/g, '.check_required_dependencies'],
             [ /\.checkAddress\s/g, '.check_address'],
+            [ /\.unCamelCase\s/g, '.un_camel_case'],
             [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
             [ /\.convertOHLCVToTradingView\s/g, '.convert_ohlcv_to_trading_view'],
             [ /\.signBodyWithSecret\s/g, '.sign_body_with_secret'],
             [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
             [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
+            [ /\.checkProxySettings\s/g, '.check_proxy_settings'],
+            [ /\.getExchangePropAllCase\s/g, '.get_exchange_prop_all_case'],
+            [ /\.setExchangePropAllCase\s/g, '.set_exchange_prop_all_case'],
+            [ /\.getProperty\s/g, '.get_property'],
+            [ /\.safeProp\s/g, '.safe_prop'],
+            [ /\.safeProp2\s/g, '.safe_prop_2'],
             [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
             [ /\.safeCurrency\s/g, '.safe_currency'],
             [ /\.safeSymbol\s/g, '.safe_symbol'],
@@ -251,11 +267,27 @@ class Transpiler {
             [ /\.isPostOnly\s/g, '.is_post_only'],
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
+            [ /\.afterConstruct\s/g, '.after_construct'],
+            [ /\.networkCodeToId\s/g, '.network_code_to_id'],
+            [ /\.networkIdToCode\s/g, '.network_id_to_code'],
+            [ /\.defaultNetworkCode\s/g, '.default_network_code'],
+            [ /\.selectNetworkCodeFromUnifiedNetworks\s/g, '.select_network_code_from_unified_networks'],
+            [ /\.selectNetworkIdFromRawNetworks\s/g, '.select_network_id_from_raw_networks'],
+            [ /\.selectNetworkKeyFromNetworks\s/g, '.select_network_key_from_networks'],
+            [ /\.createNetworksByIdObject\s/g, '.create_networks_by_id_object'],
+            [ /\.invertFlatStringDictionary\s/g, '.invert_flat_string_dictionary'],
             [ /\.safeCurrencyStructure\s/g, '.safe_currency_structure'],
             [ /\.isTickPrecision\s/g, '.is_tick_precision'],
             [ /\.isDecimalPrecision\s/g, '.is_decimal_precision'],
             [ /\.isSignificantPrecision\s/g, '.is_significant_precision'],
             [ /\.filterByLimit\s/g, '.filter_by_limit'],
+            [ /\.fetchTime\s/g, '.fetch_time'],
+            [ /\.handleOptionAndParams\s/g, '.handle_option_and_params'],
+            [ /\.fetchRestOrderBookSafe\s/g, '.fetch_rest_order_book_safe'],
+            [ /\.customParseBidAsk\s/g, '.custom_parse_bid_ask'],
+            [ /\.customParseOrderBook\s/g, '.custom_parse_order_book'],
+            [ /\.filterByArrayPositions\s/g, '.filter_by_array_positions'],
+            [ /\.handleTriggerPrices\s/g, '.handle_trigger_prices'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -305,6 +337,8 @@ class Transpiler {
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'object\'/g, 'not isinstance($1[$2], dict)' ],
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'object\'/g, 'isinstance($1, dict)' ],
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'object\'/g, 'not isinstance($1, dict)' ],
+            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'function\'/g, 'callable($1)' ],
+            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'function\'/g, 'not callable($1)' ],
 
             [ /undefined/g, 'None' ],
             [ /\=\=\=?/g, '==' ],
@@ -314,6 +348,7 @@ class Transpiler {
             [ /Number\.MAX_SAFE_INTEGER/g, 'float(\'inf\')'],
             [ /function\s*(\w+\s*\([^)]+\))\s*{/g, 'def $1:'],
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
+            [ /replaceAll\s*/g, 'replace'],
             [ /assert\s*\((.+)\);/g, 'assert $1'],
             [ /Promise\.all\s*\(([^\)]+)\)/g, 'asyncio.gather(*$1)' ],
             [ /Precise\.stringAdd\s/g, 'Precise.string_add' ],
@@ -338,6 +373,9 @@ class Transpiler {
         ].concat (this.getCommonRegexes ()).concat ([
 
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
+            [ /([a-zA-Z0-9_]+) in this(:?[^.])/g, 'hasattr(self, $1)$2' ],
+            // [ /this\[[a-zA-Z0-9_]+\]/g, 'getattr(self, $1)' ],
+            [ /this\[([a-zA-Z0-9_]+)\] = (.*?);/g, 'setattr(self, $1, $2)' ],
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
@@ -373,6 +411,9 @@ class Transpiler {
             [ /\;$/gm, '' ],
             [ /\.toUpperCase\s*/g, '.upper' ],
             [ /\.toLowerCase\s*/g, '.lower' ],
+            [ /\.startsWith\s*/g, '.startswith' ],
+            [ /\.endsWith\s*/g, '.endswith' ],
+            [ /\.trim\s*/g, '.strip' ],
             [ /(\b)String(\b)/g, '$1str$2'],
             [ /JSON\.stringify\s*/g, 'json.dumps' ],
             [ /JSON\.parse\s*/g, "json.loads" ],
@@ -426,8 +467,8 @@ class Transpiler {
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+) \* @see( .*)/g, '$1see$2' ], // docstring @see
-            [ /(\s+ \* @(param|returns) {[^}]*)string([^}]*}.*)/g, '$1str$3' ], // docstring type conversion
-            [ /(\s+ \* @(param|returns) {[^}]*)object([^}]*}.*)/g, '$1dict$3' ], // doctstrubg type conversion
+            [ /(\s+ \* @(param|returns) {[^}]*)string(\[\])?([^}]*}.*)/g, '$1str$3$4' ], // docstring type conversion
+            [ /(\s+ \* @(param|returns) {[^}]*)object(\[\])?([^}]*}.*)/g, '$1dict$3$4' ], // docstring type conversion
             [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
             [ /(\s+) \* @returns \{(.+)\}/g, '$1:returns $2:' ], // docstring return
             [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
@@ -458,7 +499,7 @@ class Transpiler {
         return [
             //
             // Curly-braces are used for both dictionaries in the code as well as for the url-imploded params.
-            // For example: https://docs.ccxt.com/#/?id=implicit-api-methods
+            // For example: https://github.com/ccxt/ccxt/wiki/Manual#implicit-api-methods
             //
             // There's a conflict between the curly braces that have to be converted from dictionaries to PHP-arrays and
             // the curly braces used for url-imploded params that should not be touched.
@@ -512,6 +553,8 @@ class Transpiler {
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'object\'/g, "gettype($1[$2]) !== 'array'" ],
             [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'object\'/g, "gettype($1) === 'array'" ],
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'object\'/g, "gettype($1) !== 'array'" ],
+            [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'function\'/g, "is_callable($1)" ],
+            [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'function\'/g, "!is_callable($1)" ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'number\'/g, "(is_float($1[$2]) || is_int($1[$2]))" ], // same as above but for number
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'number\'/g, "!(is_float($1[$2]) || is_int($1[$2]))" ],
@@ -554,6 +597,8 @@ class Transpiler {
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
 
+            [ /([a-zA-Z0-9_]+) in this(:?[^.])/g, 'property_exists($this, $1)$2' ],
+            [ /\(this,/g, '($this,' ],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
@@ -605,12 +650,15 @@ class Transpiler {
             [ / \+\= (?!\d)/g, ' .= ' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper($1)' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower($1)' ],
-            // [ /([^\s\(]+(?:\s*\(.+\))?)\.replaceAll\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ], // still not a part of the standard in Node.js 13
+            [ /([^\s\(]+(?:\s*\(.+\))?)\.trim\s*\(\)/g, 'trim($1)' ],
+            [ /([^\s\(]+(?:\s*\(.+\))?)\.replaceAll\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ],
             [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(([^)]+)\)/g, 'str_replace($2, $1)' ],
             [ /this\[([^\]+]+)\]/g, '$$this->$$$1' ],
             [ /([^\s\(]+).slice \(([^\)\:,]+)\)/g, 'mb_substr($1, $2)' ],
             [ /([^\s\(]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr($1, $2, $3 - $2)' ],
             [ /([^\s\(]+).split \(('[^']*'|[^\,]+?)\)/g, 'explode($2, $1)' ],
+            [ /([^\s\(]+).startsWith \(('[^']*'|[^\,]+?)\)/g, 'str_starts_with($1, $2)' ],
+            [ /([^\s\(]+).endsWith \(('[^']*'|[^\,]+?)\)/g, 'str_ends_with($1, $2)' ],
             [ /([^\s\(]+)\.length/g, 'strlen($1)' ],
             [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor($1)' ],
             [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs($1)' ],
@@ -631,7 +679,8 @@ class Transpiler {
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
-            [ /\~([\]\[\|@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\~([\]\[\|@\.\s+\:\/#()\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /(\s+ \* @(param|return) {[^}]*)array\(\)([^}]*}.*)/g, '$1[]$3' ], // docstring type conversion
             [ /(\s+ \* @(param|return) {[^}]*)object([^}]*}.*)/g, '$1array$3' ], // docstring type conversion
         ])
     }
@@ -1298,7 +1347,8 @@ class Transpiler {
                 overwriteFile (tsPath, contents)
             }
 
-            const tsMtime = fs.statSync (tsPath).mtime.getTime ()
+            let tsMtime = fs.statSync (tsPath).mtime.getTime ();
+            tsMtime = tsMtime - tsMtime % 1000;
 
             const python2Path  = python2Folder  ? (python2Folder  + pythonFilename) : undefined
             const python3Path  = python3Folder  ? (python3Folder  + pythonFilename) : undefined
@@ -1349,14 +1399,19 @@ class Transpiler {
 
     //-------------------------------------------------------------------------
 
-    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.ts', force = false, child = false) {
+    transpileDerivedExchangeFiles (tsFolder, options, pattern = '.ts', force = false, child = false) {
 
         // todo normalize jsFolder and other arguments
 
-        const { python2Folder, python3Folder, phpFolder, phpAsyncFolder } = options
+        const { python2Folder, python3Folder, phpFolder, phpAsyncFolder, jsFolder } = options
 
         // exchanges.json accounts for ids included in exchanges.cfg
-        let ids = exchangeIds;
+        let ids = undefined;
+        if (tsFolder.indexOf('pro/') > -1) {
+            ids = exchangesWsIds;
+        } else {
+            ids = exchangeIds;
+        }
 
         const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
@@ -1366,10 +1421,10 @@ class Transpiler {
         } else if (ids !== undefined) {
             exchangesToTranspile = ids.map(id => id + '.ts');
         } else {
-            exchangesToTranspile = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
+            exchangesToTranspile = fs.readdirSync (tsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
         }
 
-        const classNames = exchangesToTranspile.map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
+        const classNames = exchangesToTranspile.map (file => this.transpileDerivedExchangeFile (tsFolder, file, options, force))
 
         const classes = {}
 
@@ -1394,6 +1449,7 @@ class Transpiler {
             }
 
             [
+                [ jsFolder, /\.(?:js|d\.ts)$/],
                 [ python2Folder, /\.pyc?$/ ],
                 [ python3Folder, /\.pyc?$/ ],
                 [ phpFolder, /\.php$/ ],
@@ -1514,6 +1570,7 @@ class Transpiler {
                 'any': 'Any',
                 'boolean': 'bool',
                 'Int': 'int',
+                'string[]': 'List[str]',
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {
@@ -2543,7 +2600,7 @@ class Transpiler {
             , tsFolder = './ts/src/'
             , jsFolder = './js/src/'
             // , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder }
-            , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, exchanges }
+            , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, jsFolder, exchanges }
 
         if (!child) {
             createFolderRecursively (python2Folder)

@@ -197,8 +197,8 @@ class poloniexfutures extends Exchange {
         /**
          * retrieves $data on all markets for poloniexfutures
          * @see https://futures-docs.poloniex.com/#$symbol-2
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market $data
+         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @return {array[]} an array of objects representing $market $data
          */
         $response = $this->publicGetContractsActive ($params);
         //
@@ -395,8 +395,8 @@ class poloniexfutures extends Exchange {
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -429,9 +429,9 @@ class poloniexfutures extends Exchange {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-$symbols
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
          */
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
@@ -444,9 +444,9 @@ class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#get-full-order-book-$level-2
          * @see https://futures-docs.poloniex.com/#get-full-order-book-$level-3
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the poloniexfuturesfutures api endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the poloniexfuturesfutures api endpoint
+         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
         $level = $this->safe_number($params, 'level');
@@ -527,9 +527,9 @@ class poloniexfutures extends Exchange {
          * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
          * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $limit max number of orders to return, default is null
-         * @param {array} $params extra parameters specific to the blockchaincom api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
+         * @param {int} [$limit] max number of orders to return, default is null
+         * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -633,10 +633,10 @@ class poloniexfutures extends Exchange {
          * get the list of most recent $trades for a particular $symbol
          * @see https://futures-docs.poloniex.com/#historical-data
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of $trades to fetch
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -668,7 +668,7 @@ class poloniexfutures extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the poloniexfutures server
          * @see https://futures-docs.poloniex.com/#time
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
          * @return {int} the current integer timestamp in milliseconds from the poloniexfutures server
          */
         $response = $this->publicGetTimestamp ($params);
@@ -688,10 +688,10 @@ class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#k-chart
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -753,8 +753,8 @@ class poloniexfutures extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://futures-docs.poloniex.com/#get-account-overview
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $this->load_markets();
         $currencyId = $this->safe_string($params, 'currency');
@@ -792,20 +792,20 @@ class poloniexfutures extends Exchange {
          * @param {string} $type 'limit' or 'market'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
-         * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
-         * @param {array} $params  Extra parameters specific to the exchange API endpoint
-         * @param {float} $params->leverage Leverage size of the order
-         * @param {float} $params->stopPrice The $price at which a trigger order is triggered at
-         * @param {bool} $params->reduceOnly A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-         * @param {string} $params->timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-         * @param {string} $params->postOnly Post only flag, invalid when $timeInForce is IOC or FOK
-         * @param {string} $params->clientOid client order id, defaults to uuid if not passed
-         * @param {string} $params->remark remark for the order, length cannot exceed 100 utf8 characters
-         * @param {string} $params->stop 'up' or 'down', defaults to 'up' if $side is sell and 'down' if $side is buy, requires $stopPrice
-         * @param {string} $params->stopPriceType  TP, IP or MP, defaults to TP
-         * @param {bool} $params->closeOrder set to true to close position
-         * @param {bool} $params->forceHold A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @param {float} [$price] *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
+         * @param {array} [$params]  Extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->leverage] Leverage size of the order
+         * @param {float} [$params->stopPrice] The $price at which a trigger order is triggered at
+         * @param {bool} [$params->reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+         * @param {string} [$params->timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+         * @param {string} [$params->postOnly] Post only flag, invalid when $timeInForce is IOC or FOK
+         * @param {string} [$params->clientOid] client order id, defaults to uuid if not passed
+         * @param {string} [$params->remark] remark for the order, length cannot exceed 100 utf8 characters
+         * @param {string} [$params->stop] 'up' or 'down', defaults to 'up' if $side is sell and 'down' if $side is buy, requires $stopPrice
+         * @param {string} [$params->stopPriceType]  TP, IP or MP, defaults to TP
+         * @param {bool} [$params->closeOrder] set to true to close position
+         * @param {bool} [$params->forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -895,9 +895,9 @@ class poloniexfutures extends Exchange {
          * cancels an open order
          * @see https://futures-docs.poloniex.com/#cancel-an-order
          * @param {string} $id order $id
-         * @param {string|null} $symbol unified $symbol of the market the order was made in
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $request = array(
@@ -933,9 +933,9 @@ class poloniexfutures extends Exchange {
         /**
          * fetch all open positions
          * @see https://futures-docs.poloniex.com/#get-position-list
-         * @param {[string]|null} $symbols list of unified market $symbols
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
          */
         $this->load_markets();
         $response = $this->privateGetPositions ($params);
@@ -1077,6 +1077,8 @@ class poloniexfutures extends Exchange {
             'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => $this->parse_number(Precise::string_div($unrealisedPnl, $initialMargin)),
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         );
     }
 
@@ -1085,10 +1087,10 @@ class poloniexfutures extends Exchange {
          * fetch the history of funding payments paid and received on this account
          * @see https://futures-docs.poloniex.com/#get-funding-history
          * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch funding history for
-         * @param {int|null} $limit the maximum number of funding history structures to retrieve
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+         * @param {int} [$since] the earliest time in ms to fetch funding history for
+         * @param {int} [$limit] the maximum number of funding history structures to retrieve
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structure}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
@@ -1155,10 +1157,10 @@ class poloniexfutures extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
-         * @param {string|null} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @param {array} $params->stop When true, all the trigger orders will be cancelled
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params->stop] When true, all the trigger orders will be cancelled
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
         $request = array();
@@ -1217,15 +1219,15 @@ class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#get-$order-list
          * @see https://futures-docs.poloniex.com/#get-untriggered-$stop-$order-list
          * @param {string} $status 'active' or 'closed', only 'active' is valid for $stop $orders
-         * @param {string|null} $symbol unified $symbol for the $market to retrieve $orders from
-         * @param {int|null} $since timestamp in ms of the earliest $order to retrieve
-         * @param {int|null} $limit The maximum number of $orders to retrieve
-         * @param {array} $params exchange specific parameters
-         * @param {bool|null} $params->stop set to true to retrieve untriggered $stop $orders
-         * @param {int|null} $params->until End time in ms
-         * @param {string|null} $params->side buy or sell
-         * @param {string|null} $params->type $limit or $market
-         * @return An ~@link https://docs.ccxt.com/#/?id=$order-structure array of $order structures~
+         * @param {string} $symbol unified $symbol for the $market to retrieve $orders from
+         * @param {int} [$since] timestamp in ms of the earliest $order to retrieve
+         * @param {int} [$limit] The maximum number of $orders to retrieve
+         * @param {array} [$params] exchange specific parameters
+         * @param {bool} [$params->stop] set to true to retrieve untriggered $stop $orders
+         * @param {int} [$params->until] End time in ms
+         * @param {string} [$params->side] buy or sell
+         * @param {string} [$params->type] $limit or $market
+         * @return An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure array of $order structures}
          */
         $this->load_markets();
         $stop = $this->safe_value($params, 'stop');
@@ -1319,14 +1321,14 @@ class poloniexfutures extends Exchange {
          * fetch all unfilled currently open orders
          * @see https://futures-docs.poloniex.com/#get-order-list
          * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
-         * @param {string|null} $symbol unified market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @param {int|null} $params->till end time in ms
-         * @param {string|null} $params->side buy or sell
-         * @param {string|null} $params->type $limit, or market
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {string} $symbol unified market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {int} [$params->till] end time in ms
+         * @param {string} [$params->side] buy or sell
+         * @param {string} [$params->type] $limit, or market
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         return $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
@@ -1336,14 +1338,14 @@ class poloniexfutures extends Exchange {
          * fetches information on multiple closed orders made by the user
          * @see https://futures-docs.poloniex.com/#get-order-list
          * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
-         * @param {string|null} $symbol unified market $symbol of the market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @param {int|null} $params->till end time in ms
-         * @param {string|null} $params->side buy or sell
-         * @param {string|null} $params->type $limit, or market
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {int} [$params->till] end time in ms
+         * @param {string} [$params->side] buy or sell
+         * @param {string} [$params->type] $limit, or market
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         return $this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params);
     }
@@ -1353,9 +1355,9 @@ class poloniexfutures extends Exchange {
          * fetches information on an order made by the user
          * @see https://futures-docs.poloniex.com/#get-details-of-a-single-order
          * @see https://futures-docs.poloniex.com/#get-single-order-by-clientoid
-         * @param {string|null} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $request = array();
@@ -1551,8 +1553,8 @@ class poloniexfutures extends Exchange {
          * fetch the current funding rate
          * @see https://futures-docs.poloniex.com/#get-premium-index
          * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1597,15 +1599,15 @@ class poloniexfutures extends Exchange {
         /**
          * fetch all $trades made by the user
          * @see https://futures-docs.poloniex.com/#get-fills
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|null} $limit the maximum number of $trades structures to retrieve
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
-         * @param {string|null} orderIdFills filles for a specific order (other parameters can be ignored if specified)
-         * @param {string|null} side buy or sell
-         * @param {string|null} type  $limit, $market, limit_stop or market_stop
-         * @param {int|null} endAt end time (milisecond)
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of $trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
+         * @param {string} orderIdFills filles for a specific order (other parameters can be ignored if specified)
+         * @param {string} side buy or sell
+         * @param {string} type  $limit, $market, limit_stop or market_stop
+         * @param {int} endAt end time (milisecond)
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->load_markets();
         $request = array(
@@ -1663,7 +1665,7 @@ class poloniexfutures extends Exchange {
          * @see https://futures-docs.poloniex.com/#change-margin-mode
          * @param {int} $marginMode 0 (isolated) or 1 (cross)
          * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the poloniexfutures api endpoint
+         * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
          * @return {array} response from the exchange
          */
         if ($symbol === null) {

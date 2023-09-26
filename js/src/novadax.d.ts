@@ -1,5 +1,9 @@
 import Exchange from './abstract/novadax.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class novadax
+ * @extends Exchange
+ */
 export default class novadax extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
@@ -76,7 +80,7 @@ export default class novadax extends Exchange {
     fetchAccounts(params?: {}): Promise<any[]>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;

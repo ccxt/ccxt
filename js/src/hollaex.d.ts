@@ -1,5 +1,9 @@
 import Exchange from './abstract/hollaex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class hollaex
+ * @extends Exchange
+ */
 export default class hollaex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -98,6 +102,19 @@ export default class hollaex extends Exchange {
         updated: number;
         fee: any;
     }>;
+    parseDepositWithdrawFee(fee: any, currency?: any): {
+        info: any;
+        withdraw: {
+            fee: any;
+            percentage: any;
+        };
+        deposit: {
+            fee: any;
+            percentage: any;
+        };
+        networks: {};
+    };
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     normalizeNumberIfNeeded(number: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;

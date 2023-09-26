@@ -157,6 +157,9 @@ abstract class ascendex extends \ccxt\async\Exchange {
     public function v2_public_get_futures_ticker($params = array()) {
         return $this->request('futures/ticker', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v2_public_get_risk_limit_info($params = array()) {
+        return $this->request('risk-limit-info', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v2_private_data_get_order_hist($params = array()) {
         return $this->request('order/hist', array('v2', 'private', 'data'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -369,6 +372,9 @@ abstract class ascendex extends \ccxt\async\Exchange {
     }
     public function v2PublicGetFuturesTicker($params = array()) {
         return $this->request('futures/ticker', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2PublicGetRiskLimitInfo($params = array()) {
+        return $this->request('risk-limit-info', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v2PrivateDataGetOrderHist($params = array()) {
         return $this->request('order/hist', array('v2', 'private', 'data'), 'GET', $params, null, null, array("cost" => 1));

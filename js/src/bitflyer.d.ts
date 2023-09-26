@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitflyer.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitflyer
+ * @extends Exchange
+ */
 export default class bitflyer extends Exchange {
     describe(): any;
     parseExpiryDate(expiry: any): number;

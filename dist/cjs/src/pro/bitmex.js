@@ -16,10 +16,12 @@ class bitmex extends bitmex$1 {
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
             },
             'urls': {
                 'test': {
@@ -53,8 +55,8 @@ class bitmex extends bitmex$1 {
          * @name bitmex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bitmex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -316,9 +318,9 @@ class bitmex extends bitmex$1 {
         /**
          * @method
          * @name bitmex#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the bitmex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -517,6 +519,7 @@ class bitmex extends bitmex$1 {
                 stored.append(trades[j]);
             }
             client.resolve(stored, messageHash);
+            this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, stored);
         }
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -525,10 +528,10 @@ class bitmex extends bitmex$1 {
          * @name bitmex#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bitmex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -548,12 +551,13 @@ class bitmex extends bitmex$1 {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds();
             const payload = 'GET' + '/realtime' + timestamp.toString();
@@ -567,8 +571,7 @@ class bitmex extends bitmex$1 {
                 ],
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -577,7 +580,8 @@ class bitmex extends bitmex$1 {
         const messageHash = 'authenticated';
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
-            client.resolve(message, messageHash);
+            const future = this.safeValue(client.futures, messageHash);
+            future.resolve(true);
         }
         else {
             const error = new errors.AuthenticationError(this.json(message));
@@ -592,11 +596,11 @@ class bitmex extends bitmex$1 {
          * @method
          * @name bitmex#watchOrders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bitmex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -618,7 +622,7 @@ class bitmex extends bitmex$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrders(client, message) {
         //
@@ -807,11 +811,11 @@ class bitmex extends bitmex$1 {
          * @method
          * @name bitmex#watchMyTrades
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bitmex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -925,9 +929,9 @@ class bitmex extends bitmex$1 {
          * @name bitmex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bitmex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         let table = undefined;
         if (limit === undefined) {
@@ -955,6 +959,47 @@ class bitmex extends bitmex$1 {
         const orderbook = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
         return orderbook.limit();
     }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        let table = undefined;
+        if (limit === undefined) {
+            table = this.safeString(this.options, 'watchOrderBookLevel', 'orderBookL2');
+        }
+        else if (limit === 25) {
+            table = 'orderBookL2_25';
+        }
+        else if (limit === 10) {
+            table = 'orderBookL10';
+        }
+        else {
+            throw new errors.ExchangeError(this.id + ' watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)');
+        }
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market(symbol);
+            const currentMessageHash = table + ':' + market['id'];
+            topics.push(currentMessageHash);
+        }
+        const messageHash = 'multipleOrderbook::' + symbols.join(',');
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': topics,
+        };
+        const orderbook = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
+        return orderbook.limit();
+    }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -962,10 +1007,10 @@ class bitmex extends bitmex$1 {
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the bitmex api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1165,7 +1210,7 @@ class bitmex extends bitmex$1 {
             orderbook['symbol'] = symbol;
             for (let i = 0; i < data.length; i++) {
                 const price = this.safeFloat(data[i], 'price');
-                const size = this.safeFloat(data[i], 'size');
+                const size = this.convertFromRawQuantity(symbol, this.safeString(data[i], 'size'));
                 const id = this.safeString(data[i], 'id');
                 let side = this.safeString(data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
@@ -1177,6 +1222,7 @@ class bitmex extends bitmex$1 {
             }
             const messageHash = table + ':' + marketId;
             client.resolve(orderbook, messageHash);
+            this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbook::', symbol, orderbook);
         }
         else {
             const numUpdatesByMarketId = {};
@@ -1189,8 +1235,8 @@ class bitmex extends bitmex$1 {
                 const market = this.safeMarket(marketId);
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];
-                const price = this.safeFloat(data[i], 'price');
-                const size = (action === 'delete') ? 0 : this.safeFloat(data[i], 'size', 0);
+                const price = this.safeNumber(data[i], 'price');
+                const size = (action === 'delete') ? 0 : this.convertFromRawQuantity(symbol, this.safeString(data[i], 'size', '0'));
                 const id = this.safeString(data[i], 'id');
                 let side = this.safeString(data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
@@ -1208,6 +1254,7 @@ class bitmex extends bitmex$1 {
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];
                 client.resolve(orderbook, messageHash);
+                this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbook::', symbol, orderbook);
             }
         }
     }

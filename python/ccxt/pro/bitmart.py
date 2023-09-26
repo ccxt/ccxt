@@ -88,10 +88,10 @@ class bitmart(ccxt.async_support.bitmart):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -104,19 +104,19 @@ class bitmart(ccxt.async_support.bitmart):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         return await self.subscribe('ticker', symbol, params)
 
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
@@ -129,7 +129,7 @@ class bitmart(ccxt.async_support.bitmart):
         orders = await self.subscribe_private(channel, symbol, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_orders(self, client: Client, message):
         #
@@ -299,10 +299,10 @@ class bitmart(ccxt.async_support.bitmart):
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -364,9 +364,9 @@ class bitmart(ccxt.async_support.bitmart):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the bitmart api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         options = self.safe_value(self.options, 'watchOrderBook', {})
         depth = self.safe_string(options, 'depth', 'depth50')
@@ -461,13 +461,14 @@ class bitmart(ccxt.async_support.bitmart):
             client.resolve(orderbook, messageHash)
         return message
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.implode_hostname(self.urls['api']['ws']['private'])
         messageHash = 'authenticated'
         client = self.client(url)
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             timestamp = str(self.milliseconds())
             memo = self.uid
             path = 'bitmart.WebSocket'
@@ -483,8 +484,7 @@ class bitmart(ccxt.async_support.bitmart):
                 ],
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, message, messageHash)
         return future
 
     def handle_subscription_status(self, client: Client, message):
@@ -498,7 +498,8 @@ class bitmart(ccxt.async_support.bitmart):
         #     {event: 'login'}
         #
         messageHash = 'authenticated'
-        client.resolve(message, messageHash)
+        future = self.safe_value(client.futures, messageHash)
+        future.resolve(True)
 
     def handle_error_message(self, client: Client, message):
         #

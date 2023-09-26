@@ -1,5 +1,9 @@
 import Exchange from './abstract/btctradeua.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class btctradeua
+ * @extends Exchange
+ */
 export default class btctradeua extends Exchange {
     describe(): any;
     signIn(params?: {}): Promise<any>;

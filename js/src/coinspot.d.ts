@@ -1,5 +1,9 @@
 import Exchange from './abstract/coinspot.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class coinspot
+ * @extends Exchange
+ */
 export default class coinspot extends Exchange {
     describe(): any;
     parseBalance(response: any): import("./base/types.js").Balances;

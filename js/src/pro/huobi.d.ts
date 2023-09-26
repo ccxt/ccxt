@@ -31,11 +31,11 @@ export default class huobi extends huobiRest {
     handleSubject(client: Client, message: any): any;
     pong(client: any, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;
-    handleAuthenticate(client: Client, message: any): any;
+    handleAuthenticate(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): any;
     handleMessage(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any, extendParams?: {}): void;
-    parseWsTrade(trade: any): import("../base/types.js").Trade;
+    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     getUrlByMarketType(type: any, isLinear?: boolean, isPrivate?: boolean): any;
     subscribePublic(url: any, symbol: any, messageHash: any, method?: any, params?: {}): Promise<any>;
     subscribePrivate(channel: any, messageHash: any, type: any, subtype: any, params?: {}, subscriptionParams?: {}): Promise<any>;

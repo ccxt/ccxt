@@ -52,6 +52,7 @@ class ImplicitAPI:
     v2_public_get_futures_collateral = v2PublicGetFuturesCollateral = Entry('futures/collateral', ['v2', 'public'], 'GET', {'cost': 1})
     v2_public_get_futures_pricing_data = v2PublicGetFuturesPricingData = Entry('futures/pricing-data', ['v2', 'public'], 'GET', {'cost': 1})
     v2_public_get_futures_ticker = v2PublicGetFuturesTicker = Entry('futures/ticker', ['v2', 'public'], 'GET', {'cost': 1})
+    v2_public_get_risk_limit_info = v2PublicGetRiskLimitInfo = Entry('risk-limit-info', ['v2', 'public'], 'GET', {'cost': 1})
     v2_private_data_get_order_hist = v2PrivateDataGetOrderHist = Entry('order/hist', ['v2', 'private', 'data'], 'GET', {'cost': 1})
     v2_private_get_account_info = v2PrivateGetAccountInfo = Entry('account/info', ['v2', 'private'], 'GET', {'cost': 1})
     v2_private_accountgroup_get_order_hist = v2PrivateAccountGroupGetOrderHist = Entry('order/hist', ['v2', 'private', 'accountGroup'], 'GET', {'cost': 1})

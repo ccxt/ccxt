@@ -1,5 +1,9 @@
 import Exchange from './abstract/ascendex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class ascendex
+ * @extends Exchange
+ */
 export default class ascendex extends Exchange {
     describe(): any;
     getAccount(params?: {}): string;
@@ -19,7 +23,7 @@ export default class ascendex extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
@@ -44,7 +48,7 @@ export default class ascendex extends Exchange {
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
@@ -71,8 +75,8 @@ export default class ascendex extends Exchange {
             rate: any;
         };
     };
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     parseFundingRate(contract: any, market?: any): {
         info: any;
         symbol: any;
@@ -108,6 +112,19 @@ export default class ascendex extends Exchange {
     setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
+    parseDepositWithdrawFee(fee: any, currency?: any): {
+        info: any;
+        withdraw: {
+            fee: any;
+            percentage: any;
+        };
+        deposit: {
+            fee: any;
+            percentage: any;
+        };
+        networks: {};
+    };
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: any;

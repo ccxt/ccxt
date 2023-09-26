@@ -1,5 +1,9 @@
 import Exchange from './abstract/alpaca.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class alpaca
+ * @extends Exchange
+ */
 export default class alpaca extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

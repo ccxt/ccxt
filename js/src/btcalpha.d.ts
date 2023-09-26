@@ -1,9 +1,13 @@
 import Exchange from './abstract/btcalpha.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class btcalpha
+ * @extends Exchange
+ */
 export default class btcalpha extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;

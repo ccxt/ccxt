@@ -211,7 +211,11 @@ async def main():
                 is_ws_method = True # handle ws methods
             print(f"{argv.exchange_id}.{argv.method}({','.join(map(str, args))})")
             while True:
-                result = await method(*args)
+                result = None
+                if asyncio.iscoroutinefunction(method):
+                    result = await method(*args)
+                else:
+                    result = method(*args)
                 if argv.table:
                     result = list(result.values()) if isinstance(result, dict) else result
                     print(table([exchange.omit(v, 'info') for v in result]))

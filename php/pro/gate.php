@@ -20,6 +20,7 @@ class gate extends \ccxt\async\gate {
                 'watchTicker' => true,
                 'watchTickers' => true, // for now
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchBalance' => true,
@@ -37,7 +38,10 @@ class gate extends \ccxt\async\gate {
                         'usdt' => 'wss://fx-ws.gateio.ws/v4/ws/delivery/usdt',
                         'btc' => 'wss://fx-ws.gateio.ws/v4/ws/delivery/btc',
                     ),
-                    'option' => 'wss://op-ws.gateio.live/v4/ws',
+                    'option' => array(
+                        'usdt' => 'wss://op-ws.gateio.live/v4/ws/usdt',
+                        'btc' => 'wss://op-ws.gateio.live/v4/ws/btc',
+                    ),
                 ),
                 'test' => array(
                     'swap' => array(
@@ -48,7 +52,10 @@ class gate extends \ccxt\async\gate {
                         'usdt' => 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
                         'btc' => 'wss://fx-ws-testnet.gateio.ws/v4/ws/btc',
                     ),
-                    'option' => 'wss://op-ws-testnet.gateio.live/v4/ws',
+                    'option' => array(
+                        'usdt' => 'wss://op-ws-testnet.gateio.live/v4/ws/usdt',
+                        'btc' => 'wss://op-ws-testnet.gateio.live/v4/ws/btc',
+                    ),
                 ),
             ),
             'options' => array(
@@ -63,7 +70,7 @@ class gate extends \ccxt\async\gate {
                 'watchOrderBook' => array(
                     'interval' => '100ms',
                     'snapshotDelay' => 10, // how many deltas to cache before fetching a snapshot
-                    'maxRetries' => 3,
+                    'snapshotMaxRetries' => 3,
                 ),
                 'watchBalance' => array(
                     'settle' => 'usdt', // or btc
@@ -88,9 +95,9 @@ class gate extends \ccxt\async\gate {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the gate api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the gate api endpoint
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -268,8 +275,8 @@ class gate extends \ccxt\async\gate {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the gate api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @param {array} [$params] extra parameters specific to the gate api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -289,9 +296,9 @@ class gate extends \ccxt\async\gate {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {[string]} $symbols unified symbol of the $market to fetch the $ticker for
-             * @param {array} $params extra parameters specific to the gate api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
+             * @param {array} [$params] extra parameters specific to the gate api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -376,10 +383,10 @@ class gate extends \ccxt\async\gate {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the gate api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the gate api endpoint
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -393,6 +400,34 @@ class gate extends \ccxt\async\gate {
             $trades = Async\await($this->subscribe_public($url, $messageHash, $payload, $channel, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular symbol
+             * @param {string} symbol unified symbol of the $market to fetch $trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the gate api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = $this->market_ids($symbols);
+            $market = $this->market($symbols[0]);
+            $messageType = $this->get_type_by_market($market);
+            $channel = $messageType . '.trades';
+            $messageHash = 'multipleTrades::' . implode(',', $symbols);
+            $url = $this->get_url_by_market($market);
+            $trades = Async\await($this->subscribe_public($url, $messageHash, $marketIds, $channel, $params));
+            if ($this->newUpdates) {
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
@@ -432,6 +467,7 @@ class gate extends \ccxt\async\gate {
             $cachedTrades->append ($trade);
             $hash = 'trades:' . $symbol;
             $client->resolve ($cachedTrades, $hash);
+            $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $cachedTrades);
         }
     }
 
@@ -441,10 +477,10 @@ class gate extends \ccxt\async\gate {
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the gate api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the gate api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -495,15 +531,17 @@ class gate extends \ccxt\async\gate {
             $subscription = $this->safe_string($ohlcv, 'n', '');
             $parts = explode('_', $subscription);
             $timeframe = $this->safe_string($parts, 0);
+            $timeframeId = $this->find_timeframe($timeframe);
             $prefix = $timeframe . '_';
             $marketId = str_replace($prefix, '', $subscription);
             $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
             $parsed = $this->parse_ohlcv($ohlcv);
-            $stored = $this->safe_value($this->ohlcvs, $symbol);
+            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp ($limit);
-                $this->ohlcvs[$symbol] = $stored;
+                $this->ohlcvs[$symbol][$timeframeId] = $stored;
             }
             $stored->append ($parsed);
             $marketIds[$symbol] = $timeframe;
@@ -514,7 +552,7 @@ class gate extends \ccxt\async\gate {
             $timeframe = $marketIds[$symbol];
             $interval = $this->find_timeframe($timeframe);
             $hash = 'candles' . ':' . $interval . ':' . $symbol;
-            $stored = $this->safe_value($this->ohlcvs, $symbol);
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $interval);
             $client->resolve ($stored, $hash);
         }
     }
@@ -523,11 +561,11 @@ class gate extends \ccxt\async\gate {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the gate api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
+             * @param {array} [$params] extra parameters specific to the gate api endpoint
+             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
              */
             Async\await($this->load_markets());
             $subType = null;
@@ -617,9 +655,9 @@ class gate extends \ccxt\async\gate {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the gate api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * watch balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} [$params] extra parameters specific to the gate api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $type = null;
@@ -734,13 +772,13 @@ class gate extends \ccxt\async\gate {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
-             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the gate api endpoint
-             * @param {string} $params->type spot, margin, swap, future, or option. Required if listening to all symbols.
-             * @param {boolean} $params->isInverse if future, listen to inverse or linear contracts
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the gate api endpoint
+             * @param {string} [$params->type] spot, margin, swap, future, or option. Required if listening to all symbols.
+             * @param {boolean} [$params->isInverse] if future, listen to inverse or linear contracts
+             * @return {array[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
              */
             Async\await($this->load_markets());
             $market = null;
@@ -825,14 +863,17 @@ class gate extends \ccxt\async\gate {
         $parsedOrders = $this->parse_orders($orders);
         for ($i = 0; $i < count($parsedOrders); $i++) {
             $parsed = $parsedOrders[$i];
-            // inject order status
+            // inject order $status
             $info = $this->safe_value($parsed, 'info');
             $event = $this->safe_string($info, 'event');
             if ($event === 'put' || $event === 'update') {
                 $parsed['status'] = 'open';
             } elseif ($event === 'finish') {
-                $left = $this->safe_number($info, 'left');
-                $parsed['status'] = ($left === 0) ? 'closed' : 'canceled';
+                $status = $this->safe_string($parsed, 'status');
+                if ($status === null) {
+                    $left = $this->safe_number($info, 'left');
+                    $parsed['status'] = ($left === 0) ? 'closed' : 'canceled';
+                }
             }
             $stored->append ($parsed);
             $symbol = $parsed['symbol'];

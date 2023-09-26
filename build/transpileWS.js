@@ -259,7 +259,7 @@ class CCXTProTranspiler extends Transpiler {
             , phpAsyncFolder = './php/pro/'
             , jsFolder = './js/src/pro/'
             , tsFolder = './ts/src/pro/'
-            , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, exchanges }
+            , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, jsFolder, exchanges }
 
         // createFolderRecursively (python2Folder)
         createFolderRecursively (python3Folder)

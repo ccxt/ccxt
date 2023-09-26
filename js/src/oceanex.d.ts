@@ -1,5 +1,9 @@
 import Exchange from './abstract/oceanex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class oceanex
+ * @extends Exchange
+ */
 export default class oceanex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

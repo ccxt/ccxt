@@ -1,5 +1,9 @@
 import Exchange from './abstract/tidex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class tidex
+ * @extends Exchange
+ */
 export default class tidex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;

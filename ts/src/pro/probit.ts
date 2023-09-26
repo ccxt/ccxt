@@ -58,10 +58,10 @@ export default class probit extends probitRest {
         /**
          * @method
          * @name probit#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs-en.probit.com/reference/balance-1
-         * @param {object} params extra parameters specific to the probit api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the probit api endpoint
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.authenticate (params);
         const messageHash = 'balance';
@@ -130,9 +130,9 @@ export default class probit extends probitRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs-en.probit.com/reference/marketdata
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the probit api endpoint
-         * @param {int|undefined} params.interval Unit time to synchronize market information (ms). Available units: 100, 500
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {object} [params] extra parameters specific to the probit api endpoint
+         * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         let filter = undefined;
         [ filter, params ] = this.handleOptionAndParams (params, 'watchTicker', 'filter', 'ticker');
@@ -175,11 +175,11 @@ export default class probit extends probitRest {
          * @description get the list of most recent trades for a particular symbol
          * @see https://docs-en.probit.com/reference/trade_history
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the probit api endpoint
-         * @param {int|undefined} params.interval Unit time to synchronize market information (ms). Available units: 100, 500
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the probit api endpoint
+         * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         let filter = undefined;
         [ filter, params ] = this.handleOptionAndParams (params, 'watchTrades', 'filter', 'recent_trades');
@@ -238,10 +238,10 @@ export default class probit extends probitRest {
          * @name probit#watchMyTrades
          * @description get the list of trades associated with the user
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the probit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the probit api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         await this.authenticate (params);
@@ -286,7 +286,8 @@ export default class probit extends probitRest {
         //     }
         //
         const rawTrades = this.safeValue (message, 'data', []);
-        if (rawTrades.length === 0) {
+        const length = rawTrades.length;
+        if (length === 0) {
             return;
         }
         const reset = this.safeValue (message, 'reset', false);
@@ -319,12 +320,12 @@ export default class probit extends probitRest {
          * @name probit#watchOrders
          * @description watches information on an order made by the user
          * @see https://docs-en.probit.com/reference/open_order
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {int|undefined} since timestamp in ms of the earliest order to watch
-         * @param {int|undefined} limit the maximum amount of orders to watch
-         * @param {object} params extra parameters specific to the aax api endpoint
-         * @param {string|undefined} params.channel choose what channel to use. Can open_order or order_history.
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {int} [since] timestamp in ms of the earliest order to watch
+         * @param {int} [limit] the maximum amount of orders to watch
+         * @param {object} [params] extra parameters specific to the aax api endpoint
+         * @param {string} [params.channel] choose what channel to use. Can open_order or order_history.
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
@@ -345,7 +346,7 @@ export default class probit extends probitRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     handleOrders (client: Client, message) {
@@ -374,7 +375,8 @@ export default class probit extends probitRest {
         //     }
         //
         const rawOrders = this.safeValue (message, 'data', []);
-        if (rawOrders.length === 0) {
+        const length = rawOrders.length;
+        if (length === 0) {
             return;
         }
         const messageHash = 'orders';
@@ -408,9 +410,9 @@ export default class probit extends probitRest {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs-en.probit.com/reference/marketdata
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the probit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the probit api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         let filter = undefined;
         [ filter, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'filter', 'order_books');
@@ -537,11 +539,11 @@ export default class probit extends probitRest {
             this.handleTicker (client, message);
         }
         const trades = this.safeValue (message, 'recent_trades', []);
-        if (trades.length > 0) {
+        if (trades.length) {
             this.handleTrades (client, message);
         }
         const orderBook = this.safeValueN (message, [ 'order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4' ], []);
-        if (orderBook.length > 0) {
+        if (orderBook.length) {
             this.handleOrderBook (client, message, orderBook);
         }
     }

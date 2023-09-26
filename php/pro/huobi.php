@@ -92,7 +92,9 @@ class huobi extends \ccxt\async\huobi {
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
                 'api' => 'api', // or api-aws for clients hosted on AWS
-                'maxOrderBookSyncAttempts' => 3,
+                'watchOrderBook' => array(
+                    'maxRetries' => 3,
+                ),
                 'ws' => array(
                     'gunzip' => true,
                 ),
@@ -126,8 +128,8 @@ class huobi extends \ccxt\async\huobi {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -196,10 +198,10 @@ class huobi extends \ccxt\async\huobi {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -262,10 +264,10 @@ class huobi extends \ccxt\async\huobi {
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -326,9 +328,9 @@ class huobi extends \ccxt\async\huobi {
              * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-$market-depth-data
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -398,7 +400,7 @@ class huobi extends \ccxt\async\huobi {
             $snapshotOrderBook = $this->order_book($snapshot, $snapshotLimit);
             $client->resolve ($snapshotOrderBook, $id);
             if (($sequence !== null) && ($nonce < $sequence)) {
-                $maxAttempts = $this->safe_integer($this->options, 'maxOrderBookSyncAttempts', 3);
+                $maxAttempts = $this->handle_option('watchOrderBook', 'maxRetries', 3);
                 $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
                 // retry to synchronize if we have not reached $maxAttempts yet
                 if ($numAttempts < $maxAttempts) {
@@ -417,8 +419,7 @@ class huobi extends \ccxt\async\huobi {
                 $orderbook->reset ($snapshot);
                 // unroll the accumulated deltas
                 for ($i = 0; $i < count($messages); $i++) {
-                    $message = $messages[$i];
-                    $this->handle_order_book_message($client, $message, $orderbook);
+                    $this->handle_order_book_message($client, $messages[$i], $orderbook);
                 }
                 $this->orderbooks[$symbol] = $orderbook;
                 $client->resolve ($orderbook, $messageHash);
@@ -653,13 +654,14 @@ class huobi extends \ccxt\async\huobi {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
              */
             $this->check_required_credentials();
+            Async\await($this->load_markets());
             $type = null;
             $marketId = '*'; // wildcard
             $market = null;
@@ -668,7 +670,6 @@ class huobi extends \ccxt\async\huobi {
             $trades = null;
             $subType = null;
             if ($symbol !== null) {
-                Async\await($this->load_markets());
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
                 $type = $market['type'];
@@ -751,11 +752,11 @@ class huobi extends \ccxt\async\huobi {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
-             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $type = null;
@@ -1197,9 +1198,9 @@ class huobi extends \ccxt\async\huobi {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * watch balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             $type = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $type);
@@ -1638,7 +1639,7 @@ class huobi extends \ccxt\async\huobi {
             $this->handle_my_trade($client, $message);
             return;
         }
-        if (mb_strpos($privateType, 'accounts.update') !== -1) {
+        if (mb_strpos($privateType, 'accounts.update') !== false) {
             $this->handle_balance($client, $message);
             return;
         }
@@ -1650,10 +1651,10 @@ class huobi extends \ccxt\async\huobi {
         $op = $this->safe_string($message, 'op');
         if ($op === 'notify') {
             $topic = $this->safe_string($message, 'topic', '');
-            if (mb_strpos($topic, 'orders') !== -1) {
+            if (mb_strpos($topic, 'orders') !== false) {
                 $this->handle_order($client, $message);
             }
-            if (mb_strpos($topic, 'account') !== -1) {
+            if (mb_strpos($topic, 'account') !== false) {
                 $this->handle_balance($client, $message);
             }
         }
@@ -1675,14 +1676,14 @@ class huobi extends \ccxt\async\huobi {
                 $action = $this->safe_string($message, 'action');
                 if ($action === 'ping') {
                     $data = $this->safe_value($message, 'data');
-                    $ping = $this->safe_integer($data, 'ts');
-                    Async\await($client->send (array( 'action' => 'pong', 'data' => array( 'ts' => $ping ))));
+                    $pingTs = $this->safe_integer($data, 'ts');
+                    Async\await($client->send (array( 'action' => 'pong', 'data' => array( 'ts' => $pingTs ))));
                     return;
                 }
                 $op = $this->safe_string($message, 'op');
                 if ($op === 'ping') {
-                    $ping = $this->safe_integer($message, 'ts');
-                    Async\await($client->send (array( 'op' => 'pong', 'ts' => $ping )));
+                    $pingTs = $this->safe_integer($message, 'ts');
+                    Async\await($client->send (array( 'op' => 'pong', 'ts' => $pingTs )));
                 }
             } catch (Exception $e) {
                 $error = new NetworkError ($this->id . ' pong failed ' . $this->json($e));
@@ -1716,8 +1717,8 @@ class huobi extends \ccxt\async\huobi {
         //        data => array( 'user-id' => '35930539' )
         //    }
         //
-        $client->resolve ($message, 'auth');
-        return $message;
+        $promise = $client->futures['authenticated'];
+        $promise->resolve ($message);
     }
 
     public function handle_error_message(Client $client, $message) {
@@ -1971,7 +1972,7 @@ class huobi extends \ccxt\async\huobi {
         }
     }
 
-    public function parse_ws_trade($trade) {
+    public function parse_ws_trade($trade, $market = null) {
         // spot private
         //
         //     {
@@ -2083,7 +2084,7 @@ class huobi extends \ccxt\async\huobi {
 
     public function subscribe_private($channel, $messageHash, $type, $subtype, $params = array (), $subscriptionParams = array ()) {
         return Async\async(function () use ($channel, $messageHash, $type, $subtype, $params, $subscriptionParams) {
-            $requestId = $this->nonce();
+            $requestId = $this->request_id();
             $subscription = array(
                 'id' => $requestId,
                 'messageHash' => $messageHash,
@@ -2120,70 +2121,74 @@ class huobi extends \ccxt\async\huobi {
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $url = $this->safe_string($params, 'url');
-            $hostname = $this->safe_string($params, 'hostname');
-            $type = $this->safe_string($params, 'type');
-            if ($url === null || $hostname === null || $type === null) {
-                throw new ArgumentsRequired($this->id . ' authenticate requires a $url, $hostname and $type argument');
+        $url = $this->safe_string($params, 'url');
+        $hostname = $this->safe_string($params, 'hostname');
+        $type = $this->safe_string($params, 'type');
+        if ($url === null || $hostname === null || $type === null) {
+            throw new ArgumentsRequired($this->id . ' authenticate requires a $url, $hostname and $type argument');
+        }
+        $this->check_required_credentials();
+        $messageHash = 'authenticated';
+        $relativePath = str_replace('wss://' . $hostname, '', $url);
+        $client = $this->client($url);
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
+            $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+            $signatureParams = null;
+            if ($type === 'spot') {
+                $signatureParams = array(
+                    'accessKey' => $this->apiKey,
+                    'signatureMethod' => 'HmacSHA256',
+                    'signatureVersion' => '2.1',
+                    'timestamp' => $timestamp,
+                );
+            } else {
+                $signatureParams = array(
+                    'AccessKeyId' => $this->apiKey,
+                    'SignatureMethod' => 'HmacSHA256',
+                    'SignatureVersion' => '2',
+                    'Timestamp' => $timestamp,
+                );
             }
-            $this->check_required_credentials();
-            $messageHash = 'auth';
-            $relativePath = str_replace('wss://' . $hostname, '', $url);
-            $client = $this->client($url);
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $future = $client->future ($messageHash);
-                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
-                $signatureParams = null;
-                if ($type === 'spot') {
-                    $signatureParams = array(
-                        'accessKey' => $this->apiKey,
-                        'signatureMethod' => 'HmacSHA256',
-                        'signatureVersion' => '2.1',
-                        'timestamp' => $timestamp,
-                    );
-                } else {
-                    $signatureParams = array(
-                        'AccessKeyId' => $this->apiKey,
-                        'SignatureMethod' => 'HmacSHA256',
-                        'SignatureVersion' => '2',
-                        'Timestamp' => $timestamp,
-                    );
-                }
-                $signatureParams = $this->keysort($signatureParams);
-                $auth = $this->urlencode($signatureParams);
-                $payload = implode("\n", array('GET', $hostname, $relativePath, $auth)); // eslint-disable-line quotes
-                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
-                $request = null;
-                if ($type === 'spot') {
-                    $params = array(
-                        'authType' => 'api',
-                        'accessKey' => $this->apiKey,
-                        'signatureMethod' => 'HmacSHA256',
-                        'signatureVersion' => '2.1',
-                        'timestamp' => $timestamp,
-                        'signature' => $signature,
-                    );
-                    $request = array(
-                        'params' => $params,
-                        'action' => 'req',
-                        'ch' => $messageHash,
-                    );
-                } else {
-                    $request = array(
-                        'op' => $messageHash,
-                        'type' => 'api',
-                        'AccessKeyId' => $this->apiKey,
-                        'SignatureMethod' => 'HmacSHA256',
-                        'SignatureVersion' => '2',
-                        'Timestamp' => $timestamp,
-                        'Signature' => $signature,
-                    );
-                }
-                Async\await($this->watch($url, $messageHash, $request, $messageHash, $future));
+            $signatureParams = $this->keysort($signatureParams);
+            $auth = $this->urlencode($signatureParams);
+            $payload = implode("\n", array('GET', $hostname, $relativePath, $auth)); // eslint-disable-line quotes
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
+            $request = null;
+            if ($type === 'spot') {
+                $newParams = array(
+                    'authType' => 'api',
+                    'accessKey' => $this->apiKey,
+                    'signatureMethod' => 'HmacSHA256',
+                    'signatureVersion' => '2.1',
+                    'timestamp' => $timestamp,
+                    'signature' => $signature,
+                );
+                $request = array(
+                    'params' => $newParams,
+                    'action' => 'req',
+                    'ch' => 'auth',
+                );
+            } else {
+                $request = array(
+                    'op' => 'auth',
+                    'type' => 'api',
+                    'AccessKeyId' => $this->apiKey,
+                    'SignatureMethod' => 'HmacSHA256',
+                    'SignatureVersion' => '2',
+                    'Timestamp' => $timestamp,
+                    'Signature' => $signature,
+                );
             }
-            return Async\await($future);
-        }) ();
+            $requestId = $this->request_id();
+            $subscription = array(
+                'id' => $requestId,
+                'messageHash' => $messageHash,
+                'params' => $params,
+            );
+            $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        }
+        return $future;
     }
 }

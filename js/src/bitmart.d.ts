@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitmart.js';
 import { Int, OrderSide, Balances, OrderType } from './base/types.js';
+/**
+ * @class bitmart
+ * @extends Exchange
+ */
 export default class bitmart extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
@@ -69,6 +73,7 @@ export default class bitmart extends Exchange {
         taker: number;
     }>;
     parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    parseOrderSide(side: any): string;
     parseOrderStatusByType(type: any, status: any): string;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
@@ -182,16 +187,19 @@ export default class bitmart extends Exchange {
     parseBorrowRates(info: any, codeKey: any): any[];
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     parseTransferStatus(status: any): string;
+    parseTransferToAccount(type: any): string;
+    parseTransferFromAccount(type: any): string;
     parseTransfer(transfer: any, currency?: any): {
         id: string;
-        timestamp: any;
-        datetime: any;
+        timestamp: number;
+        datetime: string;
         currency: any;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
+        amount: number;
+        fromAccount: string;
+        toAccount: string;
         status: string;
     };
+    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         symbol: string;
@@ -204,7 +212,61 @@ export default class bitmart extends Exchange {
         datetime: string;
         info: any;
     };
-    handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
+    fetchOpenInterest(symbol: string, params?: {}): Promise<{
+        symbol: any;
+        openInterestAmount: number;
+        openInterestValue: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    }>;
+    parseOpenInterest(interest: any, market?: any): {
+        symbol: any;
+        openInterestAmount: number;
+        openInterestValue: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    };
+    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<{
+        info: any;
+        symbol: any;
+        markPrice: any;
+        indexPrice: any;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: any;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: number;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    }>;
+    parseFundingRate(contract: any, market?: any): {
+        info: any;
+        symbol: any;
+        markPrice: any;
+        indexPrice: any;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: any;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: number;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    };
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

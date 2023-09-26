@@ -1,5 +1,9 @@
 import Exchange from './abstract/coinfalcon.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class coinfalcon
+ * @extends Exchange
+ */
 export default class coinfalcon extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

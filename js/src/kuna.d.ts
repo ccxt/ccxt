@@ -1,5 +1,9 @@
 import Exchange from './abstract/kuna.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class kuna
+ * @extends Exchange
+ */
 export default class kuna extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;

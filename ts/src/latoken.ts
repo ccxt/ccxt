@@ -9,6 +9,10 @@ import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
+/**
+ * @class latoken
+ * @extends Exchange
+ */
 export default class latoken extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -34,6 +38,7 @@ export default class latoken extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCurrencies': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFees': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -49,7 +54,7 @@ export default class latoken extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
-                'fetchTransactions': true,
+                'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': true,
                 'transfer': true,
@@ -198,6 +203,7 @@ export default class latoken extends Exchange {
                 'defaultType': 'spot',
                 'types': {
                     'wallet': 'ACCOUNT_TYPE_WALLET',
+                    'funding': 'ACCOUNT_TYPE_WALLET',
                     'spot': 'ACCOUNT_TYPE_SPOT',
                 },
                 'accounts': {
@@ -220,7 +226,7 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} params extra parameters specific to the latoken api endpoint
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetTime (params);
@@ -237,8 +243,8 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#fetchMarkets
          * @description retrieves data on all markets for latoken
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
          */
         const currencies = await this.fetchCurrenciesFromCache (params);
         //
@@ -388,7 +394,7 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} params extra parameters specific to the latoken api endpoint
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.fetchCurrenciesFromCache (params);
@@ -432,10 +438,13 @@ export default class latoken extends Exchange {
             const code = this.safeCurrencyCode (tag);
             const fee = this.safeNumber (currency, 'fee');
             const currencyType = this.safeString (currency, 'type');
-            const parts = currencyType.split ('_');
-            const numParts = parts.length;
-            const lastPart = this.safeValue (parts, numParts - 1);
-            const type = lastPart.toLowerCase ();
+            let type = undefined;
+            if (currencyType === 'CURRENCY_TYPE_ALTERNATIVE') {
+                type = 'other';
+            } else {
+                // CURRENCY_TYPE_CRYPTO and CURRENCY_TYPE_IEO are all cryptos
+                type = 'crypto';
+            }
             const status = this.safeString (currency, 'status');
             const active = (status === 'CURRENCY_STATUS_ACTIVE');
             const name = this.safeString (currency, 'name');
@@ -471,8 +480,8 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetAuthAccount (params);
@@ -538,9 +547,9 @@ export default class latoken extends Exchange {
          * @name latoken#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -573,41 +582,47 @@ export default class latoken extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //     {
-        //         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
-        //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //         "volume24h":"76411867.852585600000000000",
-        //         "volume7d":"637809926.759451100000000000",
-        //         "change24h":"2.5300",
-        //         "change7d":"5.1300",
-        //         "lastPrice":"4426.9"
-        //     }
+        //    {
+        //        symbol: '92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+        //        baseCurrency: '92151d82-df98-4d88-9a4d-284fa9eca49f',
+        //        quoteCurrency: '0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+        //        volume24h: '165723597.189022176000000000',
+        //        volume7d: '934505768.625109571000000000',
+        //        change24h: '0.0200',
+        //        change7d: '-6.4200',
+        //        amount24h: '6438.457663100000000000',
+        //        amount7d: '35657.785013800000000000',
+        //        lastPrice: '25779.16',
+        //        lastQuantity: '0.248403300000000000',
+        //        bestBid: '25778.74',
+        //        bestBidQuantity: '0.6520232',
+        //        bestAsk: '25779.17',
+        //        bestAskQuantity: '0.4956043',
+        //        updateTimestamp: '1693965231406'
+        //    }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString (ticker, 'lastPrice');
-        const change = this.safeString (ticker, 'change24h');
-        const timestamp = this.nonce ();
+        const timestamp = this.safeInteger (ticker, 'updateTimestamp');
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': this.safeSymbol (marketId, market),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'low': this.safeString (ticker, 'low'),
-            'high': this.safeString (ticker, 'high'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'low': undefined,
+            'high': undefined,
+            'bid': this.safeString (ticker, 'bestBid'),
+            'bidVolume': this.safeString (ticker, 'bestBidQuantity'),
+            'ask': this.safeString (ticker, 'bestAsk'),
+            'askVolume': this.safeString (ticker, 'bestAskQuantity'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': this.safeString (ticker, 'change24h'),
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': this.safeString (ticker, 'amount24h'),
             'quoteVolume': this.safeString (ticker, 'volume24h'),
             'info': ticker,
         }, market);
@@ -619,8 +634,8 @@ export default class latoken extends Exchange {
          * @name latoken#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -630,16 +645,24 @@ export default class latoken extends Exchange {
         };
         const response = await this.publicGetTickerBaseQuote (this.extend (request, params));
         //
-        //     {
-        //         "symbol":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //         "baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
-        //         "quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //         "volume24h":"76411867.852585600000000000",
-        //         "volume7d":"637809926.759451100000000000",
-        //         "change24h":"2.5300",
-        //         "change7d":"5.1300",
-        //         "lastPrice":"4426.9"
-        //     }
+        //    {
+        //        symbol: '92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+        //        baseCurrency: '92151d82-df98-4d88-9a4d-284fa9eca49f',
+        //        quoteCurrency: '0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+        //        volume24h: '165723597.189022176000000000',
+        //        volume7d: '934505768.625109571000000000',
+        //        change24h: '0.0200',
+        //        change7d: '-6.4200',
+        //        amount24h: '6438.457663100000000000',
+        //        amount7d: '35657.785013800000000000',
+        //        lastPrice: '25779.16',
+        //        lastQuantity: '0.248403300000000000',
+        //        bestBid: '25778.74',
+        //        bestBidQuantity: '0.6520232',
+        //        bestAsk: '25779.17',
+        //        bestAskQuantity: '0.4956043',
+        //        updateTimestamp: '1693965231406'
+        //    }
         //
         return this.parseTicker (response, market);
     }
@@ -649,25 +672,33 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
         //
-        //     [
-        //         {
-        //             "symbol":"DASH/BTC",
-        //             "baseCurrency":"ed75c263-4ab9-494b-8426-031dab1c7cc1",
-        //             "quoteCurrency":"92151d82-df98-4d88-9a4d-284fa9eca49f",
-        //             "volume24h":"1.977753278000000000",
-        //             "volume7d":"18.964342670000000000",
-        //             "change24h":"-1.4800",
-        //             "change7d":"-5.5200",
-        //             "lastPrice":"0.003066"
-        //         },
-        //     ]
+        //    [
+        //        {
+        //            symbol: '92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+        //            baseCurrency: '92151d82-df98-4d88-9a4d-284fa9eca49f',
+        //            quoteCurrency: '0c3a106d-bde3-4c13-a26e-3fd2394529e5',
+        //            volume24h: '165723597.189022176000000000',
+        //            volume7d: '934505768.625109571000000000',
+        //            change24h: '0.0200',
+        //            change7d: '-6.4200',
+        //            amount24h: '6438.457663100000000000',
+        //            amount7d: '35657.785013800000000000',
+        //            lastPrice: '25779.16',
+        //            lastQuantity: '0.248403300000000000',
+        //            bestBid: '25778.74',
+        //            bestBidQuantity: '0.6520232',
+        //            bestAsk: '25779.17',
+        //            bestAskQuantity: '0.4956043',
+        //            updateTimestamp: '1693965231406'
+        //        }
+        //    ]
         //
         return this.parseTickers (response, symbols);
     }
@@ -764,10 +795,10 @@ export default class latoken extends Exchange {
          * @name latoken#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -775,10 +806,10 @@ export default class latoken extends Exchange {
             'currency': market['baseId'],
             'quote': market['quoteId'],
             // 'from': since.toString (), // milliseconds
-            // 'limit': limit, // default 100, max 1000
+            // 'limit': limit, // default 100, limit 100
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 1000
+            request['limit'] = Math.min (limit, 100); // default 100, limit 100
         }
         const response = await this.publicGetTradeHistoryCurrencyQuote (this.extend (request, params));
         //
@@ -797,8 +828,8 @@ export default class latoken extends Exchange {
          * @name latoken#fetchTradingFee
          * @description fetch the trading fees for a market
          * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         let method = this.safeString (params, 'method');
         params = this.omit (params, 'method');
@@ -862,11 +893,11 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1046,10 +1077,10 @@ export default class latoken extends Exchange {
          * @name latoken#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -1091,11 +1122,11 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1146,9 +1177,9 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol not used by latoken fetchOrder
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol not used by latoken fetchOrder
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1187,9 +1218,9 @@ export default class latoken extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1231,9 +1262,9 @@ export default class latoken extends Exchange {
          * @name latoken#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string|undefined} symbol not used by latoken cancelOrder ()
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol not used by latoken cancelOrder ()
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1258,8 +1289,8 @@ export default class latoken extends Exchange {
          * @name latoken#cancelAllOrders
          * @description cancel all open orders in a market
          * @param {string} symbol unified market symbol of the market to cancel orders in
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1288,12 +1319,13 @@ export default class latoken extends Exchange {
         /**
          * @method
          * @name latoken#fetchTransactions
-         * @description fetch history of deposits and withdrawals
-         * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
-         * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
-         * @param {int|undefined} limit max number of transactions to return, default is undefined
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @deprecated
+         * @description use fetchDepositsWithdrawals instead
+         * @param {string} code unified currency code for the currency of the transactions, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest transaction, default is undefined
+         * @param {int} [limit] max number of transactions to return, default is undefined
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1364,13 +1396,15 @@ export default class latoken extends Exchange {
         const addressTo = this.safeString (transaction, 'recipientAddress');
         const txid = this.safeString (transaction, 'transactionHash');
         const tagTo = this.safeString (transaction, 'memo');
-        let fee = undefined;
+        const fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         const feeCost = this.safeNumber (transaction, 'transactionFee');
         if (feeCost !== undefined) {
-            fee = {
-                'cost': feeCost,
-                'currency': code,
-            };
+            fee['cost'] = feeCost;
+            fee['currency'] = code;
         }
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         return {
@@ -1391,6 +1425,7 @@ export default class latoken extends Exchange {
             'currency': code,
             'status': status,
             'updated': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }
@@ -1417,11 +1452,11 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @param {string|undefined} code unified currency code of the currency transferred
-         * @param {int|undefined} since the earliest time in ms to fetch transfers for
-         * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for
+         * @param {int} [limit] the maximum number of  transfers structures to retrieve
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1470,8 +1505,8 @@ export default class latoken extends Exchange {
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
-         * @param {object} params extra parameters specific to the latoken api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @param {object} [params] extra parameters specific to the latoken api endpoint
+         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);

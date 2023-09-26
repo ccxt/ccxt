@@ -69,6 +69,7 @@ class paymium(Exchange, ImplicitAPI):
                 'public': {
                     'get': [
                         'countries',
+                        'currencies',
                         'data/{currency}/ticker',
                         'data/{currency}/trades',
                         'data/{currency}/depth',
@@ -134,8 +135,8 @@ class paymium(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         see https://paymium.github.io/api-documentation/#tag/User/paths/~1user/get
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :param dict [params]: extra parameters specific to the paymium api endpoint
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetUser(params)
@@ -146,9 +147,9 @@ class paymium(Exchange, ImplicitAPI):
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         see https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1depth/get
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the paymium api endpoint
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -211,8 +212,8 @@ class paymium(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1ticker/get
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :param dict [params]: extra parameters specific to the paymium api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -269,10 +270,10 @@ class paymium(Exchange, ImplicitAPI):
         get the list of most recent trades for a particular symbol
         see https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1trades/get
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the paymium api endpoint
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -287,8 +288,8 @@ class paymium(Exchange, ImplicitAPI):
         create a currency deposit address
         see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/post
         :param str code: unified currency code of the currency for the deposit address
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :param dict [params]: extra parameters specific to the paymium api endpoint
+        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
         """
         await self.load_markets()
         response = await self.privatePostUserAddresses(params)
@@ -307,8 +308,8 @@ class paymium(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses~1%7Baddress%7D/get
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :param dict [params]: extra parameters specific to the paymium api endpoint
+        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
         """
         await self.load_markets()
         request = {
@@ -329,9 +330,9 @@ class paymium(Exchange, ImplicitAPI):
         """
         fetch deposit addresses for multiple currencies and chain types
         see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get
-        :param [str]|None codes: list of unified currency codes, default is None
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
+        :param str[]|None codes: list of unified currency codes, default is None
+        :param dict [params]: extra parameters specific to the paymium api endpoint
+        :returns dict: a list of `address structures <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
         """
         await self.load_markets()
         response = await self.privateGetUserAddresses(params)
@@ -374,9 +375,9 @@ class paymium(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the paymium api endpoint
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -400,9 +401,9 @@ class paymium(Exchange, ImplicitAPI):
         see https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D/delete
         see https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D~1cancel/delete
         :param str id: order id
-        :param str|None symbol: not used by paymium cancelOrder()
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: not used by paymium cancelOrder()
+        :param dict [params]: extra parameters specific to the paymium api endpoint
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         request = {
             'uuid': id,
@@ -417,8 +418,8 @@ class paymium(Exchange, ImplicitAPI):
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
-        :param dict params: extra parameters specific to the paymium api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :param dict [params]: extra parameters specific to the paymium api endpoint
+        :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)

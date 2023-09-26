@@ -90,8 +90,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
          * @ignore
         Connects to a websocket channel
         :param str name: name of the channel
-        :param [str] symbols: CCXT market symbols
-        :param Object params: extra parameters specific to the krakenfutures api
+        :param str[] symbols: CCXT market symbols
+        :param Object [params]: extra parameters specific to the krakenfutures api
         :returns Object: data from the websocket stream
         """
         await self.load_markets()
@@ -105,7 +105,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             marketIds.append(self.market_id(symbol))
-        if len(symbols) == 1:
+        length = len(symbols)
+        if length == 1:
             market = self.market(marketIds[0])
             messageHash = messageHash + ':' + market['symbol']
         subscribe['product_ids'] = marketIds
@@ -117,8 +118,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
          * @ignore
         Connects to a websocket channel
         :param str name: name of the channel
-        :param [str] symbols: CCXT market symbols
-        :param Object params: extra parameters specific to the krakenfutures api
+        :param str[] symbols: CCXT market symbols
+        :param Object [params]: extra parameters specific to the krakenfutures api
         :returns Object: data from the websocket stream
         """
         await self.load_markets()
@@ -139,8 +140,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the krakenfutures api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the krakenfutures api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         options = self.safe_value(self.options, 'watchTicker')
         method = self.safe_string(options, 'method', 'ticker')  # or ticker_lite
@@ -153,8 +154,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the krakenfutures api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the krakenfutures api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         method = self.safe_string(self.options, 'watchTickerMethod', 'ticker')  # or ticker_lite
         name = self.safe_string_2(params, 'method', 'watchTickerMethod', method)
@@ -166,10 +167,10 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         get the list of most recent trades for a particular symbol
         see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the krakenfutures api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the krakenfutures api endpoint
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         name = 'trade'
@@ -183,9 +184,9 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         see https://docs.futures.kraken.com/#websocket-api-public-feeds-book
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: not used by krakenfutures watchOrderBook
-        :param dict params: extra parameters specific to the krakenfutures api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param int [limit]: not used by krakenfutures watchOrderBook
+        :param dict [params]: extra parameters specific to the krakenfutures api endpoint
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         orderbook = await self.subscribe_public('book', [symbol], params)
         return orderbook.limit()
@@ -195,11 +196,11 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         watches information on multiple orders made by the user
         see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders
         see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders-verbose
-        :param str|None symbol: not used by krakenfutures watchOrders
-        :param int|None since: not used by krakenfutures watchOrders
-        :param int|None limit: not used by krakenfutures watchOrders
-        :param dict params: extra parameters specific to the krakenfutures api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str symbol: not used by krakenfutures watchOrders
+        :param int [since]: not used by krakenfutures watchOrders
+        :param int [limit]: not used by krakenfutures watchOrders
+        :param dict [params]: extra parameters specific to the krakenfutures api endpoint
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         name = 'open_orders'
@@ -217,10 +218,10 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         watches information on multiple trades made by the user
         see https://docs.futures.kraken.com/#websocket-api-private-feeds-fills
         :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the kucoin api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the kucoin api endpoint
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         await self.load_markets()
         name = 'fills'
@@ -237,12 +238,12 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         """
         watches information on multiple orders made by the user
         see https://docs.futures.kraken.com/#websocket-api-private-feeds-balances
-        :param str|None symbol: not used by krakenfutures watchBalance
-        :param int|None since: not used by krakenfutures watchBalance
-        :param int|None limit: not used by krakenfutures watchBalance
-        :param dict params: extra parameters specific to the krakenfutures api endpoint
-        :param str params['account']: can be either 'futures' or 'flex_futures'
-        :returns [dict]: a list of `balance structures <https://docs.ccxt.com/#/?id=balance-structure>`
+        :param str symbol: not used by krakenfutures watchBalance
+        :param int [since]: not used by krakenfutures watchBalance
+        :param int [limit]: not used by krakenfutures watchBalance
+        :param dict [params]: extra parameters specific to the krakenfutures api endpoint
+        :param str [params.account]: can be either 'futures' or 'flex_futures'
+        :returns dict[]: a list of `balance structures <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         name = 'balances'
@@ -481,9 +482,9 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 totalAmount = '0'
                 trades = previousOrder['trades']
                 for i in range(0, len(trades)):
-                    trade = trades[i]
-                    totalCost = Precise.string_add(totalCost, self.number_to_string(trade['cost']))
-                    totalAmount = Precise.string_add(totalAmount, self.number_to_string(trade['amount']))
+                    currentTrade = trades[i]
+                    totalCost = Precise.string_add(totalCost, self.number_to_string(currentTrade['cost']))
+                    totalAmount = Precise.string_add(totalAmount, self.number_to_string(currentTrade['amount']))
                 if Precise.string_gt(totalAmount, '0'):
                     previousOrder['average'] = Precise.string_div(totalCost, totalAmount)
                 previousOrder['cost'] = totalCost
@@ -510,13 +511,13 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             if isCancel:
                 # get order without symbol
                 for i in range(0, len(orders)):
-                    order = orders[i]
-                    if order['id'] == message['order_id']:
-                        orders[i] = self.extend(order, {
+                    currentOrder = orders[i]
+                    if currentOrder['id'] == message['order_id']:
+                        orders[i] = self.extend(currentOrder, {
                             'status': 'canceled',
                         })
                         client.resolve(orders, 'orders')
-                        client.resolve(orders, 'orders:' + order['symbol'])
+                        client.resolve(orders, 'orders:' + currentOrder['symbol'])
                         break
         return message
 
@@ -572,13 +573,15 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         limit = self.safe_integer(self.options, 'ordersLimit')
         self.orders = ArrayCacheBySymbolById(limit)
         symbols = {}
+        cachedOrders = self.orders
         for i in range(0, len(orders)):
             order = orders[i]
             parsed = self.parse_ws_order(order)
             symbol = parsed['symbol']
             symbols[symbol] = True
-            self.orders.append(parsed)
-        if len(self.orders) > 0:
+            cachedOrders.append(parsed)
+        length = len(self.orders)
+        if length > 0:
             client.resolve(self.orders, 'orders')
             keys = list(symbols.keys())
             for i in range(0, len(keys)):

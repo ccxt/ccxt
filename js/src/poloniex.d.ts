@@ -1,5 +1,9 @@
 import Exchange from './abstract/poloniex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class poloniex
+ * @extends Exchange
+ */
 export default class poloniex extends Exchange {
     describe(): any;
     parseOHLCV(ohlcv: any, market?: any): number[];
@@ -8,7 +12,7 @@ export default class poloniex extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchTime(params?: {}): Promise<number>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
@@ -22,8 +26,8 @@ export default class poloniex extends Exchange {
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     orderRequest(symbol: any, type: any, side: any, amount: any, request: any, price?: any, params?: {}): any[];
     editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<"open" | "closed">;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
@@ -93,9 +97,9 @@ export default class poloniex extends Exchange {
         };
     }>;
     fetchTransactionsHelper(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

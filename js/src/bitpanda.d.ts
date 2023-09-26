@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitpanda.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitpanda
+ * @extends Exchange
+ */
 export default class bitpanda extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;

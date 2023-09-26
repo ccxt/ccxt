@@ -1,11 +1,15 @@
 import Exchange from './abstract/poloniexfutures.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class poloniexfutures
+ * @extends Exchange
+ */
 export default class poloniexfutures extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
@@ -38,7 +42,7 @@ export default class poloniexfutures extends Exchange {
         info: any;
     }>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): {
         info: any;
         id: any;
@@ -62,6 +66,8 @@ export default class poloniexfutures extends Exchange {
         marginMode: string;
         side: any;
         percentage: number;
+        stopLossPrice: any;
+        takeProfitPrice: any;
     };
     fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any[]>;

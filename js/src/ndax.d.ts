@@ -1,5 +1,9 @@
 import Exchange from './abstract/ndax.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class ndax
+ * @extends Exchange
+ */
 export default class ndax extends Exchange {
     describe(): any;
     signIn(params?: {}): Promise<any>;
