@@ -5332,6 +5332,7 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchDeposits
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
          * @description fetch all deposits made to an account
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
@@ -5342,6 +5343,11 @@ export default class binance extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchDeposits', code, since, limit, params);
+        }
         let currency = undefined;
         let response = undefined;
         const request = {};
@@ -5349,6 +5355,7 @@ export default class binance extends Exchange {
         const fiatOnly = this.safeValue (params, 'fiat', false);
         params = this.omit (params, 'fiatOnly');
         const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
         if (fiatOnly || (code in legalMoney)) {
             if (code !== undefined) {
                 currency = this.currency (code);
@@ -5436,19 +5443,33 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchWithdrawals
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
          * @description fetch all withdrawals made from an account
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {bool} [params.fiat] if true, only fiat withdrawals will be returned
+         * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
+        }
         const legalMoney = this.safeValue (this.options, 'legalMoney', {});
         const fiatOnly = this.safeValue (params, 'fiat', false);
         params = this.omit (params, 'fiatOnly');
         const request = {};
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['endTime'] = until;
+        }
         let response = undefined;
         let currency = undefined;
         if (fiatOnly || (code in legalMoney)) {
@@ -5900,14 +5921,22 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchTransfers
+         * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
          * @description fetch a history of internal transfers made on an account
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {int} [params.until] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params);
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -5939,6 +5968,11 @@ export default class binance extends Exchange {
         }
         if (limit !== undefined) {
             request['size'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['endTime'] = until;
         }
         const response = await this.sapiGetAssetTransfer (this.extend (request, params));
         //
@@ -8002,9 +8036,16 @@ export default class binance extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entrys to return
          * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest ledger entry
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params);
+        }
         let type = undefined;
         let subType = undefined;
         let currency = undefined;
@@ -8029,6 +8070,11 @@ export default class binance extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['endTime'] = until;
         }
         const response = await this[method] (this.extend (request, params));
         //
