@@ -1887,6 +1887,25 @@ class bitmart(Exchange, ImplicitAPI):
         #        "updateTime" : 1681701559408
         #    }
         #
+        # swap: fetchOpenOrders
+        #
+        #     {
+        #         "order_id": "230935812485489",
+        #         "client_order_id": "",
+        #         "price": "24000",
+        #         "size": "1",
+        #         "symbol": "BTCUSDT",
+        #         "state": 2,
+        #         "side": 1,
+        #         "type": "limit",
+        #         "leverage": "10",
+        #         "open_type": "isolated",
+        #         "deal_avg_price": "0",
+        #         "deal_size": "0",
+        #         "create_time": 1695702258629,
+        #         "update_time": 1695702258642
+        #     }
+        #
         id = None
         if isinstance(order, str):
             id = order
@@ -1894,16 +1913,9 @@ class bitmart(Exchange, ImplicitAPI):
         id = self.safe_string_2(order, 'order_id', 'orderId', id)
         timestamp = self.safe_integer_2(order, 'create_time', 'createTime')
         marketId = self.safe_string(order, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '_')
+        symbol = self.safe_symbol(marketId, market)
         market = self.safe_market(symbol, market)
         orderType = self.safe_string(market, 'type', 'spot')
-        status = self.parse_order_status_by_type(orderType, self.safe_string_2(order, 'status', 'state'))
-        amount = self.omit_zero(self.safe_string(order, 'size'))
-        filled = self.safe_string_2(order, 'filled_size', 'filledSize')
-        average = self.safe_string_2(order, 'price_avg', 'priceAvg')
-        price = self.omit_zero(self.safe_string(order, 'price'))
-        side = self.safe_string(order, 'side')
-        cost = self.safe_string_2(order, 'filled_notional', 'filledNotional')
         type = self.safe_string(order, 'type')
         timeInForce = None
         postOnly = None
@@ -1916,28 +1928,37 @@ class bitmart(Exchange, ImplicitAPI):
             timeInForce = 'IOC'
         return self.safe_order({
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': self.safe_string(order, 'client_order_id'),
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': self.safe_integer(order, 'update_time'),
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
-            'side': side,
-            'price': price,
+            'side': self.parse_order_side(self.safe_string(order, 'side')),
+            'price': self.omit_zero(self.safe_string(order, 'price')),
             'stopPrice': None,
             'triggerPrice': None,
-            'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
+            'amount': self.omit_zero(self.safe_string(order, 'size')),
+            'cost': self.safe_string_2(order, 'filled_notional', 'filledNotional'),
+            'average': self.safe_string_n(order, ['price_avg', 'priceAvg', 'deal_avg_price']),
+            'filled': self.safe_string_n(order, ['filled_size', 'filledSize', 'deal_size']),
             'remaining': None,
-            'status': status,
+            'status': self.parse_order_status_by_type(orderType, self.safe_string_2(order, 'status', 'state')),
             'fee': None,
             'trades': None,
         }, market)
+
+    def parse_order_side(self, side):
+        sides = {
+            '1': 'open long',
+            '2': 'close short',
+            '3': 'close long',
+            '4': 'open short',
+        }
+        return self.safe_string(sides, side, side)
 
     def parse_order_status_by_type(self, type, status):
         statusesByType = {
@@ -2207,13 +2228,16 @@ class bitmart(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
+        see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
-        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the bitmart api endpoint
         :param boolean [params.marginMode]: *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders(only isolated margin orders are supported)
-        :param int [params.until]: the latest time in ms to fetch trades for
+        :param int [params.until]: *spot* the latest time in ms to fetch orders for
+        :param str [params.type]: *swap* order type, 'limit' or 'market'
+        :param str [params.order_state]: *swap* the order state, 'all' or 'partially_filled', default is 'all'
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
@@ -2222,20 +2246,82 @@ class bitmart(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
         type = None
+        response = None
         type, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
-        if type != 'spot':
-            raise NotSupported(self.id + ' fetchOpenOrders() does not support ' + type + ' orders, only spot orders are accepted')
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
-        if marginMode == 'isolated':
-            request['orderMode'] = 'iso_margin'
-        until = self.safe_integer_2(params, 'until', 'endTime')
-        if until is not None:
-            params = self.omit(params, ['endTime'])
-            request['endTime'] = until
-        response = self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+        if type == 'spot':
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
+            if marginMode == 'isolated':
+                request['orderMode'] = 'iso_margin'
+            if since is not None:
+                request['startTime'] = since
+            until = self.safe_integer_2(params, 'until', 'endTime')
+            if until is not None:
+                params = self.omit(params, ['endTime'])
+                request['endTime'] = until
+            response = self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
+        elif type == 'swap':
+            response = self.privateGetContractPrivateGetOpenOrders(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchOpenOrders() does not support ' + type + ' orders, only spot and swap orders are accepted')
+        #
+        # spot
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "success",
+        #         "data": [
+        #             {
+        #                 "orderId": "183299373022163211",
+        #                 "clientOrderId": "183299373022163211",
+        #                 "symbol": "BTC_USDT",
+        #                 "side": "buy",
+        #                 "orderMode": "spot",
+        #                 "type": "limit",
+        #                 "state": "new",
+        #                 "price": "25000.00",
+        #                 "priceAvg": "0.00",
+        #                 "size": "0.00020",
+        #                 "filledSize": "0.00000",
+        #                 "notional": "5.00000000",
+        #                 "filledNotional": "0.00000000",
+        #                 "createTime": 1695703703338,
+        #                 "updateTime": 1695703703359
+        #             }
+        #         ],
+        #         "trace": "15f11d48e3234c81a2e786cr2e7a38e6.71.16957022303515933"
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": [
+        #             {
+        #                 "order_id": "230935812485489",
+        #                 "client_order_id": "",
+        #                 "price": "24000",
+        #                 "size": "1",
+        #                 "symbol": "BTCUSDT",
+        #                 "state": 2,
+        #                 "side": 1,
+        #                 "type": "limit",
+        #                 "leverage": "10",
+        #                 "open_type": "isolated",
+        #                 "deal_avg_price": "0",
+        #                 "deal_size": "0",
+        #                 "create_time": 1695702258629,
+        #                 "update_time": 1695702258642
+        #             }
+        #         ],
+        #         "trace": "7f9d94g10f9d4513bc08a7rfc3a5559a.71.16957022303515933"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
