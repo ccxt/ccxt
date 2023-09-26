@@ -1098,7 +1098,7 @@ export default class currencycom extends Exchange {
             // 'limit': 500, // default 500, max 1000
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 500, max 1000
+            request['limit'] = Math.min (limit, 1000); // default 500, max 1000
         }
         if (since !== undefined) {
             request['startTime'] = since;

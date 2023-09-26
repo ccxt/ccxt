@@ -393,8 +393,7 @@ class huobi(ccxt.async_support.huobi):
                 orderbook.reset(snapshot)
                 # unroll the accumulated deltas
                 for i in range(0, len(messages)):
-                    message = messages[i]
-                    self.handle_order_book_message(client, message, orderbook)
+                    self.handle_order_book_message(client, messages[i], orderbook)
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
         except Exception as e:
@@ -1561,13 +1560,13 @@ class huobi(ccxt.async_support.huobi):
             action = self.safe_string(message, 'action')
             if action == 'ping':
                 data = self.safe_value(message, 'data')
-                ping = self.safe_integer(data, 'ts')
-                await client.send({'action': 'pong', 'data': {'ts': ping}})
+                pingTs = self.safe_integer(data, 'ts')
+                await client.send({'action': 'pong', 'data': {'ts': pingTs}})
                 return
             op = self.safe_string(message, 'op')
             if op == 'ping':
-                ping = self.safe_integer(message, 'ts')
-                await client.send({'op': 'pong', 'ts': ping})
+                pingTs = self.safe_integer(message, 'ts')
+                await client.send({'op': 'pong', 'ts': pingTs})
         except Exception as e:
             error = NetworkError(self.id + ' pong failed ' + self.json(e))
             client.reset(error)
@@ -1988,7 +1987,7 @@ class huobi(ccxt.async_support.huobi):
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             request = None
             if type == 'spot':
-                params = {
+                newParams = {
                     'authType': 'api',
                     'accessKey': self.apiKey,
                     'signatureMethod': 'HmacSHA256',
@@ -1997,7 +1996,7 @@ class huobi(ccxt.async_support.huobi):
                     'signature': signature,
                 }
                 request = {
-                    'params': params,
+                    'params': newParams,
                     'action': 'req',
                     'ch': 'auth',
                 }

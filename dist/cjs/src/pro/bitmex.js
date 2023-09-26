@@ -988,8 +988,8 @@ class bitmex extends bitmex$1 {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const messageHash = table + ':' + market['id'];
-            topics.push(messageHash);
+            const currentMessageHash = table + ':' + market['id'];
+            topics.push(currentMessageHash);
         }
         const messageHash = 'multipleOrderbook::' + symbols.join(',');
         const url = this.urls['api']['ws'];

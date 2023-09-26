@@ -642,8 +642,8 @@ class poloniex extends \ccxt\async\poloniex {
                     $totalCost = '0';
                     $totalAmount = '0';
                     $previousOrderTrades = $previousOrder['trades'];
-                    for ($i = 0; $i < count($previousOrderTrades); $i++) {
-                        $previousOrderTrade = $previousOrderTrades[$i];
+                    for ($j = 0; $j < count($previousOrderTrades); $j++) {
+                        $previousOrderTrade = $previousOrderTrades[$j];
                         $cost = $this->number_to_string($previousOrderTrade['cost']);
                         $amount = $this->number_to_string($previousOrderTrade['amount']);
                         $totalCost = Precise::string_add($totalCost, $cost);
@@ -886,16 +886,16 @@ class poloniex extends \ccxt\async\poloniex {
                 }
                 $orderbook = $this->orderbooks[$symbol];
                 if ($bids !== null) {
-                    for ($i = 0; $i < count($bids); $i++) {
-                        $bid = $this->safe_value($bids, $i);
+                    for ($j = 0; $j < count($bids); $j++) {
+                        $bid = $this->safe_value($bids, $j);
                         $price = $this->safe_number($bid, 0);
                         $amount = $this->safe_number($bid, 1);
                         $orderbook['bids'].store ($price, $amount);
                     }
                 }
                 if ($asks !== null) {
-                    for ($i = 0; $i < count($asks); $i++) {
-                        $ask = $this->safe_value($asks, $i);
+                    for ($j = 0; $j < count($asks); $j++) {
+                        $ask = $this->safe_value($asks, $j);
                         $price = $this->safe_number($ask, 0);
                         $amount = $this->safe_number($ask, 1);
                         $orderbook['asks'].store ($price, $amount);

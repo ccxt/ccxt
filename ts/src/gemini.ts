@@ -223,6 +223,7 @@ export default class gemini extends Exchange {
                     'InsufficientFunds': InsufficientFunds, // The order was rejected because of insufficient funds
                     'InvalidJson': BadRequest, // The JSON provided is invalid
                     'InvalidNonce': InvalidNonce, // The nonce was not greater than the previously used nonce, or was not present
+                    'InvalidApiKey': AuthenticationError, // Invalid API key
                     'InvalidOrderType': InvalidOrder, // An unknown order type was provided
                     'InvalidPrice': InvalidOrder, // For new orders, the price was invalid
                     'InvalidQuantity': InvalidOrder, // A negative or otherwise invalid quantity was specified

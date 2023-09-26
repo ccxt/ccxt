@@ -934,14 +934,6 @@ class bitfinex extends Exchange {
         //          "type":"sell"
         //     }
         //
-        //     {    "timestamp":1637258238,
-        //          "tid":894452800,
-        //          "price":"0.99958",
-        //          "amount":"261.90514",
-        //          "exchange":"bitfinex",
-        //          "type":"buy"
-        //     }
-        //
         // fetchMyTrades (private) v1
         //
         //     {
@@ -1020,6 +1012,18 @@ class bitfinex extends Exchange {
                 $request['timestamp'] = $this->parse_to_int($since / 1000);
             }
             $response = Async\await($this->publicGetTradesSymbol (array_merge($request, $params)));
+            //
+            //    array(
+            //        array(
+            //            "timestamp" => "1694284565",
+            //            "tid" => "1415415034",
+            //            "price" => "25862.0",
+            //            "amount" => "0.00020685",
+            //            "exchange" => "bitfinex",
+            //            "type" => "buy"
+            //        ),
+            //    )
+            //
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }

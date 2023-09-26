@@ -76,6 +76,9 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': True,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': None,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -98,7 +101,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchTransactionFee': True,
                 'fetchTransactionFees': False,
                 'fetchTransfer': False,
-                'fetchTransfers': False,
+                'fetchTransfers': True,
                 'fetchWithdrawAddressesByNetwork': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
@@ -582,6 +585,7 @@ class bitmart(Exchange, ImplicitAPI):
                 },
                 'accountsByType': {
                     'spot': 'spot',
+                    'swap': 'swap',
                 },
                 'createMarketBuyOrderRequiresPrice': True,
             },
@@ -1206,6 +1210,8 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://developer-pro.bitmart.com/en/spot/#get-depth-v3
+        see https://developer-pro.bitmart.com/en/futures/#get-market-depth
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bitmart api endpoint
@@ -1213,39 +1219,66 @@ class bitmart(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
-            raise NotSupported(self.id + ' fetchOrderBook() does not support ' + market['type'] + ' markets, only spot markets are accepted')
         request = {
             'symbol': market['id'],
         }
-        if limit is not None:
-            request['size'] = limit  # default 50, max 200
-        # request['precision'] = 4  # optional price precision / depth level whose range is defined in symbol details
-        response = await self.publicGetSpotV1SymbolsBook(self.extend(request, params))
+        response = None
+        if market['spot']:
+            if limit is not None:
+                request['limit'] = limit  # default 35, max 50
+            response = await self.publicGetSpotQuotationV3Books(self.extend(request, params))
+        elif market['swap']:
+            response = await self.publicGetContractPublicDepth(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchOrderBook() does not support ' + market['type'] + ' markets, only spot and swap markets are accepted')
         #
         # spot
         #
         #     {
-        #         "message":"OK",
-        #         "code":1000,
-        #         "trace":"8254f8fc-431d-404f-ad9a-e716339f66c7",
-        #         "data":{
-        #             "buys":[
-        #                 {"amount":"4.7091","total":"4.71","price":"0.034047","count":"1"},
-        #                 {"amount":"5.7439","total":"10.45","price":"0.034039","count":"1"},
-        #                 {"amount":"2.5249","total":"12.98","price":"0.032937","count":"1"},
+        #         "code": 1000,
+        #         "message": "success",
+        #         "data": {
+        #             "ts": "1695264191808",
+        #             "symbol": "BTC_USDT",
+        #             "asks": [
+        #                 ["26942.57","0.06492"],
+        #                 ["26942.73","0.05447"],
+        #                 ["26943.00","0.07154"]
         #             ],
-        #             "sells":[
-        #                 {"amount":"41.4365","total":"41.44","price":"0.034174","count":"1"},
-        #                 {"amount":"4.2317","total":"45.67","price":"0.034183","count":"1"},
-        #                 {"amount":"0.3000","total":"45.97","price":"0.034240","count":"1"},
+        #             "bids": [
+        #                 ["26942.45","0.00074"],
+        #                 ["26941.53","0.00371"],
+        #                 ["26940.94","0.08992"]
         #             ]
-        #         }
+        #         },
+        #         "trace": "430a7f69581d4258a8e4b424dfb10782.73.16952341919017619"
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": {
+        #             "asks": [
+        #                 ["26938.3","3499","3499"],
+        #                 ["26938.5","14702","18201"],
+        #                 ["26938.6","20457","38658"]
+        #             ],
+        #             "bids": [
+        #                 ["26938.2","20","20"],
+        #                 ["26937.9","1913","1933"],
+        #                 ["26937.8","2588","4521"]
+        #             ],
+        #             "timestamp": 1695264383999,
+        #             "symbol": "BTCUSDT"
+        #         },
+        #         "trace": "4cad855074664097ac6ba5258c47305d.72.16952643834721135"
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        timestamp = self.safe_integer(data, 'timestamp')
-        return self.parse_order_book(data, symbol, timestamp, 'buys', 'sells', 'price', 'amount')
+        timestamp = self.safe_integer_2(data, 'ts', 'timestamp')
+        return self.parse_order_book(data, market['symbol'], timestamp)
 
     def parse_trade(self, trade, market=None):
         #
@@ -1262,39 +1295,45 @@ class bitmart(Exchange, ImplicitAPI):
         # private fetchMyTrades spot
         #
         #     {
-        #         "detail_id":256348632,
-        #         "order_id":2147484350,
-        #         "symbol":"BTC_USDT",
-        #         "create_time":1590462303000,
+        #         "tradeId":"182342999769370687",
+        #         "orderId":"183270218784142990",
+        #         "clientOrderId":"183270218784142990",
+        #         "symbol":"ADA_USDT",
         #         "side":"buy",
-        #         "fees":"0.00001350",
-        #         "fee_coin_name":"BTC",
-        #         "notional":"88.00000000",
-        #         "price_avg":"8800.00",
-        #         "size":"0.01000",
-        #         "exec_type":"M"
+        #         "orderMode":"spot",
+        #         "type":"market",
+        #         "price":"0.245948",
+        #         "size":"20.71",
+        #         "notional":"5.09358308",
+        #         "fee":"0.00509358",
+        #         "feeCoinName":"USDT",
+        #         "tradeRole":"taker",
+        #         "createTime":1695658457836,
         #     }
         #
-        id = self.safe_string(trade, 'detail_id')
-        timestamp = self.safe_integer_2(trade, 'order_time', 'create_time')
+        id = self.safe_string(trade, 'tradeId')
+        timestamp = self.safe_integer_2(trade, 'order_time', 'createTime')
+        side = self.safe_string_lower_2(trade, 'side', 'type')
+        takerOrMaker = self.safe_string(trade, 'tradeRole')
+        isPublicTrade = ('order_time' in trade)
+        price = self.safe_string(trade, 'price')
+        amount = None
+        cost = None
         type = None
-        side = self.safe_string_lower_2(trade, 'type', 'side')
-        takerOrMaker = None
-        execType = self.safe_string(trade, 'exec_type')
-        if execType is not None:
-            takerOrMaker = 'maker' if (execType == 'M') else 'taker'
-        priceString = self.safe_string(trade, 'price')
-        priceString = self.safe_string(trade, 'price_avg', priceString)
-        amountString = self.safe_string(trade, 'count')
-        amountString = self.safe_string(trade, 'size', amountString)
-        costString = self.safe_string_2(trade, 'amount', 'notional')
-        orderId = self.safe_string(trade, 'order_id')
+        if isPublicTrade:
+            amount = self.safe_string(trade, 'count')
+            cost = self.safe_string(trade, 'amount')
+        else:
+            amount = self.safe_string(trade, 'size')
+            cost = self.safe_string(trade, 'notional')
+            type = self.safe_string(trade, 'type')
+        orderId = self.safe_string(trade, 'orderId')
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market, '_')
-        feeCostString = self.safe_string(trade, 'fees')
+        feeCostString = self.safe_string(trade, 'fee')
         fee = None
         if feeCostString is not None:
-            feeCurrencyId = self.safe_string(trade, 'fee_coin_name')
+            feeCurrencyId = self.safe_string(trade, 'feeCoinName')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             if feeCurrencyCode is None:
                 feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
@@ -1311,9 +1350,9 @@ class bitmart(Exchange, ImplicitAPI):
             'symbol': market['symbol'],
             'type': type,
             'side': side,
-            'price': priceString,
-            'amount': amountString,
-            'cost': costString,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
         }, market)
@@ -1500,61 +1539,75 @@ class bitmart(Exchange, ImplicitAPI):
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :param int [params.until]: the latest time in ms to fetch trades for
+        :param boolean [params.marginMode]: *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders(only isolated margin orders are supported)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
-        market = self.market(symbol)
-        if not market['spot']:
-            raise NotSupported(self.id + ' fetchMyTrades() does not support ' + market['type'] + ' orders, only spot orders are accepted')
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        if type != 'spot':
+            raise NotSupported(self.id + ' fetchMyTrades() does not support ' + type + ' orders, only spot orders are accepted')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
+        if marginMode == 'isolated':
+            request['orderMode'] = 'iso_margin'
         options = self.safe_value(self.options, 'fetchMyTrades', {})
         defaultLimit = self.safe_integer(options, 'limit', 200)
         if limit is None:
             limit = defaultLimit
-        request = {
-            'symbol': market['id'],
-            'N': limit,
-        }
-        response = await self.privateGetSpotV2Trades(self.extend(request, params))
+        request['limit'] = limit
+        if symbol is not None:
+            request['symbol'] = market['id']
+        until = self.safe_integer_2(params, 'until', 'endTime')
+        if until is not None:
+            params = self.omit(params, ['endTime'])
+            request['endTime'] = until
+        response = await self.privatePostSpotV4QueryTrades(self.extend(request, params))
         #
         # spot
         #
-        #     {
-        #         "message":"OK",
-        #         "code":1000,
-        #         "trace":"a06a5c53-8e6f-42d6-8082-2ff4718d221c",
-        #         "data":{
-        #             "current_page":1,
-        #             "trades":[
-        #                 {
-        #                     "detail_id":256348632,
-        #                     "order_id":2147484350,
-        #                     "symbol":"BTC_USDT",
-        #                     "create_time":1590462303000,
-        #                     "side":"buy",
-        #                     "fees":"0.00001350",
-        #                     "fee_coin_name":"BTC",
-        #                     "notional":"88.00000000",
-        #                     "price_avg":"8800.00",
-        #                     "size":"0.01000",
-        #                     "exec_type":"M"
-        #                 },
-        #             ]
-        #         }
-        #     }
+        #    {
+        #        "code":1000,
+        #        "message":"success",
+        #        "data":[
+        #           {
+        #              "tradeId":"182342999769370687",
+        #              "orderId":"183270218784142990",
+        #              "clientOrderId":"183270218784142990",
+        #              "symbol":"ADA_USDT",
+        #              "side":"buy",
+        #              "orderMode":"spot",
+        #              "type":"market",
+        #              "price":"0.245948",
+        #              "size":"20.71",
+        #              "notional":"5.09358308",
+        #              "fee":"0.00509358",
+        #              "feeCoinName":"USDT",
+        #              "tradeRole":"taker",
+        #              "createTime":1695658457836,
+        #              "updateTime":1695658457836
+        #           }
+        #        ],
+        #        "trace":"fbaee9e0e2f5442fba5b3262fc86b0ac.65.16956593456523085"
+        #    }
         #
         data = self.safe_value(response, 'data', {})
-        trades = self.safe_value(data, 'trades', [])
-        return self.parse_trades(trades, market, since, limit)
+        return self.parse_trades(data, market, since, limit)
 
     async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://developer-pro.bitmart.com/en/spot/#order-trade-list-v4-signed
         fetch all the trades made from a single order
         :param str id: order id
         :param str symbol: unified market symbol
@@ -1563,52 +1616,13 @@ class bitmart(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
         await self.load_markets()
-        market = self.market(symbol)
-        if not market['spot']:
-            raise NotSupported(self.id + ' fetchOrderTrades() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        options = self.safe_value(self.options, 'fetchOrderTrades', {})
-        defaultLimit = self.safe_integer(options, 'limit', 200)
-        if limit is None:
-            limit = defaultLimit
         request = {
-            'symbol': market['id'],
-            'order_id': id,
-            'N': limit,
+            'orderId': id,
         }
-        response = await self.privateGetSpotV2Trades(self.extend(request, params))
-        #
-        # spot
-        #
-        #     {
-        #         "message":"OK",
-        #         "code":1000,
-        #         "trace":"a06a5c53-8e6f-42d6-8082-2ff4718d221c",
-        #         "data":{
-        #             "current_page":1,
-        #             "trades":[
-        #                 {
-        #                     "detail_id":256348632,
-        #                     "order_id":2147484350,
-        #                     "symbol":"BTC_USDT",
-        #                     "create_time":1590462303000,
-        #                     "side":"buy",
-        #                     "fees":"0.00001350",
-        #                     "fee_coin_name":"BTC",
-        #                     "notional":"88.00000000",
-        #                     "price_avg":"8800.00",
-        #                     "size":"0.01000",
-        #                     "exec_type":"M"
-        #                 },
-        #             ]
-        #         }
-        #     }
-        #
+        response = await self.privatePostSpotV4QueryOrderTrades(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
-        trades = self.safe_value(data, 'trades', [])
-        return self.parse_trades(trades, market, since, limit)
+        return self.parse_trades(data, None, since, limit)
 
     def custom_parse_balance(self, response, marketType):
         data = self.safe_value(response, 'data', {})
@@ -1854,22 +1868,42 @@ class bitmart(Exchange, ImplicitAPI):
         #         "status":"8"
         #     }
         #
+        # spot v4
+        #    {
+        #        "orderId" : "118100034543076010",
+        #        "clientOrderId" : "118100034543076010",
+        #        "symbol" : "BTC_USDT",
+        #        "side" : "buy",
+        #        "orderMode" : "spot",
+        #        "type" : "limit",
+        #        "state" : "filled",
+        #        "price" : "48800.00",
+        #        "priceAvg" : "39999.00",
+        #        "size" : "0.10000",
+        #        "filledSize" : "0.10000",
+        #        "notional" : "4880.00000000",
+        #        "filledNotional" : "3999.90000000",
+        #        "createTime" : 1681701557927,
+        #        "updateTime" : 1681701559408
+        #    }
+        #
         id = None
         if isinstance(order, str):
             id = order
             order = {}
-        id = self.safe_string(order, 'order_id', id)
-        timestamp = self.safe_integer(order, 'create_time')
+        id = self.safe_string_2(order, 'order_id', 'orderId', id)
+        timestamp = self.safe_integer_2(order, 'create_time', 'createTime')
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        status = None
-        if market is not None:
-            status = self.parse_order_status_by_type(market['type'], self.safe_string(order, 'status'))
-        amount = self.safe_string(order, 'size')
-        filled = self.safe_string(order, 'filled_size')
-        average = self.safe_string(order, 'price_avg')
-        price = self.safe_string(order, 'price')
+        market = self.safe_market(symbol, market)
+        orderType = self.safe_string(market, 'type', 'spot')
+        status = self.parse_order_status_by_type(orderType, self.safe_string_2(order, 'status', 'state'))
+        amount = self.omit_zero(self.safe_string(order, 'size'))
+        filled = self.safe_string_2(order, 'filled_size', 'filledSize')
+        average = self.safe_string_2(order, 'price_avg', 'priceAvg')
+        price = self.omit_zero(self.safe_string(order, 'price'))
         side = self.safe_string(order, 'side')
+        cost = self.safe_string_2(order, 'filled_notional', 'filledNotional')
         type = self.safe_string(order, 'type')
         timeInForce = None
         postOnly = None
@@ -1896,7 +1930,7 @@ class bitmart(Exchange, ImplicitAPI):
             'stopPrice': None,
             'triggerPrice': None,
             'amount': amount,
-            'cost': None,
+            'cost': cost,
             'average': average,
             'filled': filled,
             'remaining': None,
@@ -1916,6 +1950,10 @@ class bitmart(Exchange, ImplicitAPI):
                 '6': 'closed',  # Fully filled
                 '7': 'canceling',  # Canceling
                 '8': 'canceled',  # Canceled
+                'new': 'open',
+                'partially_filled': 'filled',
+                'filled': 'filled',
+                'partially_canceled': 'canceled',
             },
             'swap': {
                 '1': 'open',  # Submitting
@@ -2073,8 +2111,10 @@ class bitmart(Exchange, ImplicitAPI):
         """
         cancel all open orders in a market
         see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
+        see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :param str [params.side]: *spot only* 'buy' or 'sell'
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
@@ -2083,21 +2123,30 @@ class bitmart(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        response = None
         type = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
-        if type != 'spot':
-            raise NotSupported(self.id + ' cancelAllOrders() does not support ' + type + ' orders, only spot orders are accepted')
-        side = self.safe_string(params, 'side')
-        if side is not None:
-            request['side'] = side
-            params = self.omit(params, 'side')
-        response = await self.privatePostSpotV1CancelOrders(self.extend(request, params))
+        if type == 'spot':
+            response = await self.privatePostSpotV1CancelOrders(self.extend(request, params))
+        elif type == 'swap':
+            self.check_required_symbol('cancelAllOrders', symbol)
+            response = await self.privatePostContractPrivateCancelOrders(self.extend(request, params))
+        #
+        # spot
         #
         #     {
         #         "code": 1000,
         #         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
         #         "message": "OK",
         #         "data": {}
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
         #     }
         #
         return response
@@ -2157,17 +2206,41 @@ class bitmart(Exchange, ImplicitAPI):
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :param boolean [params.marginMode]: *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders(only isolated margin orders are supported)
+        :param int [params.until]: the latest time in ms to fetch trades for
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        return await self.fetch_orders_by_status('open', symbol, since, limit, params)
+        await self.load_markets()
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        type = None
+        type, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        if type != 'spot':
+            raise NotSupported(self.id + ' fetchOpenOrders() does not support ' + type + ' orders, only spot orders are accepted')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
+        if marginMode == 'isolated':
+            request['orderMode'] = 'iso_margin'
+        until = self.safe_integer_2(params, 'until', 'endTime')
+        if until is not None:
+            params = self.omit(params, ['endTime'])
+            request['endTime'] = until
+        response = await self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
+        data = self.safe_value(response, 'data')
+        return self.parse_orders(data, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -2175,7 +2248,27 @@ class bitmart(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
+        await self.load_markets()
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        type = None
+        type, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
+        if type != 'spot':
+            raise NotSupported(self.id + ' fetchClosedOrders() does not support ' + type + ' orders, only spot orders are accepted')
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchClosedOrders', params)
+        if marginMode == 'isolated':
+            request['orderMode'] = 'iso_margin'
+        until = self.safe_integer_2(params, 'until', 'endTime')
+        if until is not None:
+            params = self.omit(params, ['endTime'])
+            request['endTime'] = until
+        response = await self.privatePostSpotV4QueryHistoryOrders(self.extend(request, params))
+        data = self.safe_value(response, 'data')
+        return self.parse_orders(data, market, since, limit)
 
     async def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -2190,47 +2283,26 @@ class bitmart(Exchange, ImplicitAPI):
 
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
+        see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :param str [params.clientOrderId]: fetch the order by client order id instead of order id
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
-        market = self.market(symbol)
-        if not market['spot']:
-            raise NotSupported(self.id + ' fetchOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
-        request = {
-            'symbol': market['id'],
-            'order_id': id,
-        }
-        response = await self.privateGetSpotV2OrderDetail(self.extend(request, params))
-        #
-        # spot
-        #
-        #     {
-        #         "message":"OK",
-        #         "code":1000,
-        #         "trace":"a27c2cb5-ead4-471d-8455-1cfeda054ea6",
-        #         "data": {
-        #             "order_id":1736871726781,
-        #             "symbol":"BTC_USDT",
-        #             "create_time":1591096004000,
-        #             "side":"sell",
-        #             "type":"market",
-        #             "price":"0.00",
-        #             "price_avg":"0.00",
-        #             "size":"0.02000",
-        #             "notional":"0.00000000",
-        #             "filled_notional":"0.00000000",
-        #             "filled_size":"0.00000",
-        #             "status":"8"
-        #         }
-        #     }
-        #
+        request = {}
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if not clientOrderId:
+            request['orderId'] = id
+        response = None
+        if clientOrderId is not None:
+            response = await self.privatePostSpotV4QueryClientOrder(self.extend(request, params))
+        else:
+            response = await self.privatePostSpotV4QueryOrder(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(data, None)
 
     async def fetch_deposit_address(self, code: str, params={}):
         """
@@ -2858,7 +2930,8 @@ class bitmart(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
-        see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer
+        see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
+        see https://developer-pro.bitmart.com/en/futures/#transfer-signed
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -2876,14 +2949,26 @@ class bitmart(Exchange, ImplicitAPI):
         fromId = self.convert_type_to_account(fromAccount)
         toId = self.convert_type_to_account(toAccount)
         if fromAccount == 'spot':
-            request['side'] = 'in'
-            request['symbol'] = toId
+            if toAccount == 'margin':
+                request['side'] = 'in'
+                request['symbol'] = toId
+            elif toAccount == 'swap':
+                request['type'] = 'spot_to_contract'
         elif toAccount == 'spot':
-            request['side'] = 'out'
-            request['symbol'] = fromId
+            if fromAccount == 'margin':
+                request['side'] = 'out'
+                request['symbol'] = fromId
+            elif fromAccount == 'swap':
+                request['type'] = 'contract_to_spot'
         else:
             raise ArgumentsRequired(self.id + ' transfer() requires either fromAccount or toAccount to be spot')
-        response = await self.privatePostSpotV1MarginIsolatedTransfer(self.extend(request, params))
+        response = None
+        if (fromAccount == 'margin') or (toAccount == 'margin'):
+            response = await self.privatePostSpotV1MarginIsolatedTransfer(self.extend(request, params))
+        elif (fromAccount == 'swap') or (toAccount == 'swap'):
+            response = await self.privatePostAccountV1TransferContract(self.extend(request, params))
+        #
+        # margin
         #
         #     {
         #         "message": "OK",
@@ -2894,41 +2979,139 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.extend(self.parse_transfer(response, currency), {
-            'amount': self.parse_number(amountToPrecision),
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+        # swap
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "4cad858074667097ac6ba5257c57305d.68.16953302431189455",
+        #         "data": {
+        #             "currency": "USDT",
+        #             "amount": "5"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.extend(self.parse_transfer(data, currency), {
+            'status': self.parse_transfer_status(self.safe_string_2(response, 'code', 'message')),
         })
 
     def parse_transfer_status(self, status):
         statuses = {
             '1000': 'ok',
             'OK': 'ok',
+            'FINISHED': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_transfer_to_account(self, type):
+        types = {
+            'contract_to_spot': 'spot',
+            'spot_to_contract': 'swap',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_transfer_from_account(self, type):
+        types = {
+            'contract_to_spot': 'swap',
+            'spot_to_contract': 'spot',
+        }
+        return self.safe_string(types, type, type)
+
     def parse_transfer(self, transfer, currency=None):
+        #
+        # margin
+        #
+        #     {
+        #         "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "currency": "USDT",
+        #         "amount": "5"
+        #     }
+        #
+        # fetchTransfers
+        #
+        #     {
+        #         "transfer_id": "902463535961567232",
+        #         "currency": "USDT",
+        #         "amount": "5",
+        #         "type": "contract_to_spot",
+        #         "state": "FINISHED",
+        #         "timestamp": 1695330539565
+        #     }
+        #
+        currencyId = self.safe_string(transfer, 'currency')
+        timestamp = self.safe_integer(transfer, 'timestamp')
+        return {
+            'id': self.safe_string(transfer, 'transfer_id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': self.parse_transfer_from_account(self.safe_string(transfer, 'type')),
+            'toAccount': self.parse_transfer_to_account(self.safe_string(transfer, 'type')),
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'state')),
+        }
+
+    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
+        see https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
+        :param str code: unified currency code of the currency transferred
+        :param int [since]: the earliest time in ms to fetch transfers for
+        :param int [limit]: the maximum number of transfer structures to retrieve
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :param int [params.page]: the required number of pages, default is 1, max is 1000
+        :param int [params.until]: the latest time in ms to fetch transfers for
+        :returns dict[]: a list of `transfer structures <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
+        """
+        await self.load_markets()
+        if limit is None:
+            limit = 10
+        request = {
+            'page': self.safe_integer(params, 'page', 1),  # default is 1, max is 1000
+            'limit': limit,  # default is 10, max is 100
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['time_start'] = since
+        if limit is not None:
+            request['limit'] = limit
+        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        endTime = self.safe_integer(params, 'time_end', until)  # exchange-specific in milliseconds
+        params = self.omit(params, ['till', 'until'])
+        if endTime is not None:
+            request['time_end'] = endTime
+        response = await self.privatePostAccountV1TransferContractList(self.extend(request, params))
         #
         #     {
         #         "message": "OK",
         #         "code": 1000,
-        #         "trace": "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        #         "trace": "7f9d93e10f9g4513bc08a7btc2a5559a.69.16953325693032193",
         #         "data": {
-        #             "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        #             "records": [
+        #                 {
+        #                     "transfer_id": "902463535961567232",
+        #                     "currency": "USDT",
+        #                     "amount": "5",
+        #                     "type": "contract_to_spot",
+        #                     "state": "FINISHED",
+        #                     "timestamp": 1695330539565
+        #                 },
+        #             ]
         #         }
         #     }
         #
-        data = self.safe_value(transfer, 'data', {})
-        return {
-            'id': self.safe_string(data, 'transfer_id'),
-            'timestamp': None,
-            'datetime': None,
-            'currency': self.safe_currency_code(None, currency),
-            'amount': None,
-            'fromAccount': None,
-            'toAccount': None,
-            'status': self.parse_transfer_status(self.safe_string_2(transfer, 'code', 'message')),
-        }
+        data = self.safe_value(response, 'data', {})
+        records = self.safe_value(data, 'records', [])
+        return self.parse_transfers(records, currency, since, limit)
 
     async def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -3083,6 +3266,69 @@ class bitmart(Exchange, ImplicitAPI):
             'open_type': marginMode,
         }
         return await self.privatePostContractPrivateSubmitLeverage(self.extend(request, params))
+
+    async def fetch_funding_rate(self, symbol: str, params={}):
+        """
+        fetch the current funding rate
+        see https://developer-pro.bitmart.com/en/futures/#get-current-funding-rate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `funding rate structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetContractPublicFundingRate(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": {
+        #             "timestamp": 1695184410697,
+        #             "symbol": "BTCUSDT",
+        #             "rate_value": "-0.00002614",
+        #             "expected_rate": "-0.00002"
+        #         },
+        #         "trace": "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_funding_rate(data, market)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #     {
+        #         "timestamp": 1695184410697,
+        #         "symbol": "BTCUSDT",
+        #         "rate_value": "-0.00002614",
+        #         "expected_rate": "-0.00002"
+        #     }
+        #
+        marketId = self.safe_string(contract, 'symbol')
+        timestamp = self.safe_integer(contract, 'timestamp')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(marketId, market),
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': self.safe_number(contract, 'expected_rate'),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': self.safe_number(contract, 'rate_value'),
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
 
     def nonce(self):
         return self.milliseconds()

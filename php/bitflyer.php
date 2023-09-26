@@ -401,7 +401,7 @@ class bitflyer extends Exchange {
         //
         // fetchTrades (public) v1
         //
-        //     {
+        //      {
         //          "id":2278466664,
         //          "side":"SELL",
         //          "price":56810.7,
@@ -411,16 +411,18 @@ class bitflyer extends Exchange {
         //          "sell_child_order_acceptance_id":"JRF20211119-114639-236919"
         //      }
         //
-        //      {
-        //          "id":2278463423,
-        //          "side":"BUY",
-        //          "price":56757.83,
-        //          "size":0.6003,"exec_date":"2021-11-19T11:28:00.523",
-        //          "buy_child_order_acceptance_id":"JRF20211119-112800-236526",
-        //          "sell_child_order_acceptance_id":"JRF20211119-112734-062017"
-        //      }
+        // fetchMyTrades
         //
-        //
+        //      array(
+        //          "id" => 37233,
+        //          "side" => "BUY",
+        //          "price" => 33470,
+        //          "size" => 0.01,
+        //          "exec_date" => "2015-07-07T09:57:40.397",
+        //          "child_order_id" => "JOR20150707-060559-021935",
+        //          "child_order_acceptance_id" => "JRF20150707-060559-396699"
+        //          "commission" => 0,
+        //      ),
         //
         $side = $this->safe_string_lower($trade, 'side');
         if ($side !== null) {
@@ -478,6 +480,19 @@ class bitflyer extends Exchange {
             $request['count'] = $limit;
         }
         $response = $this->publicGetGetexecutions (array_merge($request, $params));
+        //
+        //    array(
+        //     array(
+        //       "id" => 39287,
+        //       "side" => "BUY",
+        //       "price" => 31690,
+        //       "size" => 27.04,
+        //       "exec_date" => "2015-07-08T02:43:34.823",
+        //       "buy_child_order_acceptance_id" => "JRF20150707-200203-452209",
+        //       "sell_child_order_acceptance_id" => "JRF20150708-024334-060234"
+        //     ),
+        //    )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -708,6 +723,20 @@ class bitflyer extends Exchange {
             $request['count'] = $limit;
         }
         $response = $this->privateGetGetexecutions (array_merge($request, $params));
+        //
+        //    array(
+        //     array(
+        //       "id" => 37233,
+        //       "side" => "BUY",
+        //       "price" => 33470,
+        //       "size" => 0.01,
+        //       "exec_date" => "2015-07-07T09:57:40.397",
+        //       "child_order_id" => "JOR20150707-060559-021935",
+        //       "child_order_acceptance_id" => "JRF20150707-060559-396699"
+        //       "commission" => 0,
+        //     ),
+        //    )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 

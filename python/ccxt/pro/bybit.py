@@ -29,7 +29,7 @@ class bybit(ccxt.async_support.bybit):
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchTicker': True,
-                'watchTickers': False,  # for now
+                'watchTickers': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
                 'watchPosition': None,
@@ -181,6 +181,32 @@ class bybit(ccxt.async_support.bybit):
         topics = [topic]
         return await self.watch_topics(url, messageHash, topics, params)
 
+    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+        see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        messageHash = 'tickers::' + ','.join(symbols)
+        url = self.get_url_by_market_type(symbols[0], False, params)
+        params = self.clean_params(params)
+        options = self.safe_value(self.options, 'watchTickers', {})
+        topic = self.safe_string(options, 'name', 'tickers')
+        marketIds = self.market_ids(symbols)
+        topics = []
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            topics.append(topic + '.' + marketId)
+        ticker = await self.watch_topics(url, messageHash, topics, params)
+        if self.newUpdates:
+            return ticker
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
+
     def handle_ticker(self, client: Client, message):
         #
         # linear
@@ -309,6 +335,15 @@ class bybit(ccxt.async_support.bybit):
         self.tickers[symbol] = parsed
         messageHash = 'ticker:' + symbol
         client.resolve(self.tickers[symbol], messageHash)
+        # watchTickers part
+        messageHashes = self.find_message_hashes(client, 'tickers::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            if self.in_array(parsed['symbol'], symbols):
+                client.resolve(parsed, messageHash)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -353,16 +388,16 @@ class bybit(ccxt.async_support.bybit):
         firstSymbol = None
         for i in range(0, len(symbolsAndTimeframes)):
             data = symbolsAndTimeframes[i]
-            symbol = self.safe_string(data, 0)
-            timeframe = self.safe_string(data, 1)
-            market = self.market(symbol)
-            symbol = market['symbol']
+            symbolString = self.safe_string(data, 0)
+            timeframeString = self.safe_string(data, 1)
+            market = self.market(symbolString)
+            symbolString = market['symbol']
             if i == 0:
                 firstSymbol = market['symbol']
-            timeframeId = self.safe_string(self.timeframes, timeframe, timeframe)
+            timeframeId = self.safe_string(self.timeframes, timeframeString, timeframeString)
             topic = 'kline.' + timeframeId + '.' + market['id']
             topics.append(topic)
-            hashes.append(symbol + '#' + timeframe)
+            hashes.append(symbolString + '#' + timeframeString)
         messageHash = 'multipleOHLCV::' + ','.join(hashes)
         url = self.get_url_by_market_type(firstSymbol, False, params)
         symbol, timeframe, stored = await self.watch_topics(url, messageHash, topics, params)
@@ -501,8 +536,8 @@ class bybit(ccxt.async_support.bybit):
         topics = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            market = self.market(symbol)
-            topic = 'orderbook.' + str(limit) + '.' + market['id']
+            currentMarket = self.market(symbol)
+            topic = 'orderbook.' + str(limit) + '.' + currentMarket['id']
             topics.append(topic)
         messageHash = 'multipleOrderbook::' + ','.join(symbols)
         orderbook = await self.watch_topics(url, messageHash, topics, params)
@@ -861,8 +896,8 @@ class bybit(ccxt.async_support.bybit):
             trades.append(parsed)
         keys = list(symbols.keys())
         for i in range(0, len(keys)):
-            messageHash = 'myTrades:' + keys[i]
-            client.resolve(trades, messageHash)
+            currentMessageHash = 'myTrades:' + keys[i]
+            client.resolve(trades, currentMessageHash)
         # non-symbol specific
         messageHash = 'myTrades'
         client.resolve(trades, messageHash)
@@ -988,22 +1023,22 @@ class bybit(ccxt.async_support.bybit):
         first = self.safe_value(rawOrders, 0, {})
         category = self.safe_string(first, 'category')
         isSpot = category == 'spot'
-        parser = None
-        if isSpot:
-            parser = 'parseWsSpotOrder'
-        else:
-            parser = 'parseContractOrder'
+        if not isSpot:
             rawOrders = self.safe_value(rawOrders, 'result', rawOrders)
         symbols = {}
         for i in range(0, len(rawOrders)):
-            parsed = getattr(self, parser)(rawOrders[i])
+            parsed = None
+            if isSpot:
+                parsed = self.parse_ws_spot_order(rawOrders[i])
+            else:
+                parsed = self.parse_order(rawOrders[i])
             symbol = parsed['symbol']
             symbols[symbol] = True
             orders.append(parsed)
         symbolsArray = list(symbols.keys())
         for i in range(0, len(symbolsArray)):
-            messageHash = 'orders:' + symbolsArray[i]
-            client.resolve(orders, messageHash)
+            currentMessageHash = 'orders:' + symbolsArray[i]
+            client.resolve(orders, currentMessageHash)
         messageHash = 'orders'
         client.resolve(orders, messageHash)
 

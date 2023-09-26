@@ -60,7 +60,7 @@ class binance(Exchange, ImplicitAPI):
                 'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'cancelOrders': None,
+                'cancelOrders': True,  # contract only
                 'createDepositAddress': False,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
@@ -235,6 +235,8 @@ class binance(Exchange, ImplicitAPI):
                         'asset/tradeFee': 0.1,
                         'asset/ledger-transfer/cloud-mining/queryByPage': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'asset/convert-transfer/queryByPage': 0.033335,
+                        'asset/wallet/balance': 6,  # Weight(IP): 60 => cost = 0.1 * 60 = 6
+                        'asset/custody/transfer-history': 6,  # Weight(IP): 60 => cost = 0.1 * 60 = 6
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -426,6 +428,7 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/interest-history': 0.6667,
                         'portfolio/asset-index-price': 0.1,
                         'portfolio/repay-futures-switch': 3,  # Weight(IP): 30 => cost = 0.1 * 30 = 3
+                        'portfolio/margin-asset-leverage': 5,  # Weight(IP): 50 => cost = 0.1 * 50 = 5
                         # staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -438,6 +441,11 @@ class binance(Exchange, ImplicitAPI):
                         'lending/auto-invest/plan/list': 0.1,
                         'lending/auto-invest/plan/id': 0.1,
                         'lending/auto-invest/history/list': 0.1,
+                        'lending/auto-invest/index/info': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/index/user-summary': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/one-off/status': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/redeem/history': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/rebalance/history': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         # simple earn
                         'simple-earn/flexible/list': 15,
                         'simple-earn/locked/list': 15,
@@ -565,6 +573,8 @@ class binance(Exchange, ImplicitAPI):
                         'lending/auto-invest/plan/add': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/one-off': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/redeem': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         # simple earn
                         'simple-earn/flexible/subscribe': 0.1,
                         'simple-earn/locked/subscribe': 0.1,
@@ -3299,6 +3309,18 @@ class binance(Exchange, ImplicitAPI):
         #         "M": True           # Was the trade the best price match?
         #     }
         #
+        # REST: aggregate trades for swap & future(both linear and inverse)
+        #
+        #     {
+        #         "a": "269772814",
+        #         "p": "25864.1",
+        #         "q": "3",
+        #         "f": "662149354",
+        #         "l": "662149355",
+        #         "T": "1694209776022",
+        #         "m": False,
+        #     }
+        #
         # recent public trades and old public trades
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-trade-lookup-market_data
@@ -3530,7 +3552,8 @@ class binance(Exchange, ImplicitAPI):
             if until is not None:
                 request['endTime'] = until
         if limit is not None:
-            request['limit'] = limit  # default = 500, maximum = 1000
+            isFutureOrSwap = (market['swap'] or market['future'])
+            request['limit'] = min(limit, 1000) if isFutureOrSwap else limit  # default = 500, maximum = 1000
         params = self.omit(params, ['until', 'fetchTradesMethod'])
         #
         # Caveats:
@@ -3556,6 +3579,20 @@ class binance(Exchange, ImplicitAPI):
         #             "m": True,          # Was the buyer the maker?
         #             "M": True           # Was the trade the best price match?
         #         }
+        #     ]
+        #
+        # inverse(swap & future)
+        #
+        #     [
+        #      {
+        #         "a": "269772814",
+        #         "p": "25864.1",
+        #         "q": "3",
+        #         "f": "662149354",
+        #         "l": "662149355",
+        #         "T": "1694209776022",
+        #         "m": False,
+        #      },
         #     ]
         #
         # recent public trades and historical public trades
@@ -4641,6 +4678,70 @@ class binance(Exchange, ImplicitAPI):
             return self.parse_orders(response, market)
         else:
             return response
+
+    async def cancel_orders(self, ids: List[int], symbol: Optional[str] = None, params={}):
+        """
+        cancel multiple orders
+        see https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
+        :param [str] ids: order ids
+        :param str [symbol]: unified market symbol
+        :param dict [params]: extra parameters specific to the bingx api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param [str] [params.origClientOrderIdList]: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+        :param [int] [params.recvWindow]:
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.check_required_symbol('cancelOrders', symbol)
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' cancelOrders is only supported for swap markets.')
+        request = {
+            'symbol': market['id'],
+            'orderidlist': ids,
+        }
+        response = None
+        if market['linear']:
+            response = await self.fapiPrivateDeleteBatchOrders(self.extend(request, params))
+        elif market['inverse']:
+            response = await self.dapiPrivateDeleteBatchOrders(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "clientOrderId": "myOrder1",
+        #            "cumQty": "0",
+        #            "cumQuote": "0",
+        #            "executedQty": "0",
+        #            "orderId": 283194212,
+        #            "origQty": "11",
+        #            "origType": "TRAILING_STOP_MARKET",
+        #            "price": "0",
+        #            "reduceOnly": False,
+        #            "side": "BUY",
+        #            "positionSide": "SHORT",
+        #            "status": "CANCELED",
+        #            "stopPrice": "9300",                  # please ignore when order type is TRAILING_STOP_MARKET
+        #            "closePosition": False,               # if Close-All
+        #            "symbol": "BTCUSDT",
+        #            "timeInForce": "GTC",
+        #            "type": "TRAILING_STOP_MARKET",
+        #            "activatePrice": "9020",              # activation price, only return with TRAILING_STOP_MARKET order
+        #            "priceRate": "0.3",                   # callback rate, only return with TRAILING_STOP_MARKET order
+        #            "updateTime": 1571110484038,
+        #            "workingType": "CONTRACT_PRICE",
+        #            "priceProtect": False,                # if conditional order trigger is protected
+        #            "priceMatch": "NONE",                 # price match mode
+        #            "selfTradePreventionMode": "NONE",    # self trading preventation mode
+        #            "goodTillDate": 0                     # order pre-set auot cancel time for TIF GTD order
+        #        },
+        #        {
+        #            "code": -2011,
+        #            "msg": "Unknown order sent."
+        #        }
+        #    ]
+        #
+        return self.parse_orders(response, market)
 
     async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -7528,7 +7629,19 @@ class binance(Exchange, ImplicitAPI):
             if (api == 'sapi') and (path == 'asset/dust'):
                 query = self.urlencode_with_array_repeat(extendedParams)
             elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply') or (path.find('staking') >= 0):
-                query = self.rawencode(extendedParams)
+                if (method == 'DELETE') and (path == 'batchOrders'):
+                    orderidlist = self.safe_value(extendedParams, 'orderidlist', [])
+                    origclientorderidlist = self.safe_value(extendedParams, 'origclientorderidlist', [])
+                    extendedParams = self.omit(extendedParams, ['orderidlist', 'origclientorderidlist'])
+                    query = self.rawencode(extendedParams)
+                    orderidlistLength = len(orderidlist)
+                    origclientorderidlistLength = len(orderidlist)
+                    if orderidlistLength > 0:
+                        query = query + '&orderidlist=[' + ','.join(orderidlist) + ']'
+                    if origclientorderidlistLength > 0:
+                        query = query + '&origclientorderidlist=[' + ','.join(origclientorderidlist) + ']'
+                else:
+                    query = self.rawencode(extendedParams)
             else:
                 query = self.urlencode(extendedParams)
             signature = None
@@ -7607,6 +7720,14 @@ class binance(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         if not success:
             raise ExchangeError(self.id + ' ' + body)
+        if isinstance(response, list):
+            # cancelOrders returns an array like self: [{"code":-2011,"msg":"Unknown order sent."}]
+            numElements = len(response)
+            if numElements > 0:
+                firstElement = response[0]
+                error = self.safe_string(firstElement, 'code')
+                if error is not None:
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], error, self.id + ' ' + body)
         return None
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):

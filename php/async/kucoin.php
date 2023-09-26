@@ -1090,6 +1090,11 @@ class kucoin extends Exchange {
                 $rawPrecision = $this->safe_string($entry, 'precision');
                 $precision = $this->parse_number($this->parse_precision($rawPrecision));
                 $chainsLength = count($chains);
+                if (!$chainsLength) {
+                    // https://t.me/KuCoin_API/173118
+                    $isWithdrawEnabled = false;
+                    $isDepositEnabled = false;
+                }
                 for ($j = 0; $j < $chainsLength; $j++) {
                     $chain = $chains[$j];
                     $chainId = $this->safe_string($chain, 'chain');

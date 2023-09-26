@@ -730,12 +730,12 @@ class bybit extends Exchange {
                     '110021' => '\\ccxt\\InvalidOrder', // Open Interest exceeded
                     '110022' => '\\ccxt\\InvalidOrder', // qty has been limited, cannot modify the order to add qty
                     '110023' => '\\ccxt\\InvalidOrder', // This contract only supports position reduction operation, please contact customer service for details
-                    '110024' => '\\ccxt\\InvalidOrder', // You have an existing position, so position mode cannot be switched
-                    '110025' => '\\ccxt\\InvalidOrder', // Position mode is not modified
-                    '110026' => '\\ccxt\\InvalidOrder', // Cross/isolated margin mode is not modified
-                    '110027' => '\\ccxt\\InvalidOrder', // Margin is not modified
-                    '110028' => '\\ccxt\\InvalidOrder', // Open orders exist, so you cannot change position mode
-                    '110029' => '\\ccxt\\InvalidOrder', // Hedge mode is not available for this symbol
+                    '110024' => '\\ccxt\\BadRequest', // You have an existing position, so position mode cannot be switched
+                    '110025' => '\\ccxt\\NoChange', // Position mode is not modified
+                    '110026' => '\\ccxt\\MarginModeAlreadySet', // Cross/isolated margin mode is not modified
+                    '110027' => '\\ccxt\\NoChange', // Margin is not modified
+                    '110028' => '\\ccxt\\BadRequest', // Open orders exist, so you cannot change position mode
+                    '110029' => '\\ccxt\\BadRequest', // Hedge mode is not available for this symbol
                     '110030' => '\\ccxt\\InvalidOrder', // Duplicate orderId
                     '110031' => '\\ccxt\\InvalidOrder', // risk limit info does not exists
                     '110032' => '\\ccxt\\InvalidOrder', // Illegal order
@@ -2417,19 +2417,13 @@ class bybit extends Exchange {
                 $request['limit'] = $limit; // max 1000, default 1000
             }
             $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $method = null;
+            $response = null;
             if ($market['spot']) {
                 $request['category'] = 'spot';
-                $method = 'publicGetV5MarketKline';
+                $response = Async\await($this->publicGetV5MarketKline (array_merge($request, $params)));
             } else {
                 $price = $this->safe_string($params, 'price');
                 $params = $this->omit($params, 'price');
-                $methods = array(
-                    'mark' => 'publicGetV5MarketMarkPriceKline',
-                    'index' => 'publicGetV5MarketIndexPriceKline',
-                    'premiumIndex' => 'publicGetV5MarketPremiumIndexPriceKline',
-                );
-                $method = $this->safe_value($methods, $price, 'publicGetV5MarketKline');
                 if ($market['linear']) {
                     $request['category'] = 'linear';
                 } elseif ($market['inverse']) {
@@ -2437,8 +2431,16 @@ class bybit extends Exchange {
                 } else {
                     throw new NotSupported($this->id . ' fetchOHLCV() is not supported for option markets');
                 }
+                if ($price === 'mark') {
+                    $response = Async\await($this->publicGetV5MarketMarkPriceKline (array_merge($request, $params)));
+                } elseif ($price === 'index') {
+                    $response = Async\await($this->publicGetV5MarketIndexPriceKline (array_merge($request, $params)));
+                } elseif ($price === 'premiumIndex') {
+                    $response = Async\await($this->publicGetV5MarketPremiumIndexPriceKline (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->publicGetV5MarketKline (array_merge($request, $params)));
+                }
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -3719,12 +3721,12 @@ class bybit extends Exchange {
                 $request['reduceOnly'] = true;
             } elseif ($isStopLoss || $isTakeProfit) {
                 if ($isStopLoss) {
-                    $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
-                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                    $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                    $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
                 }
                 if ($isTakeProfit) {
-                    $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
-                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                    $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                    $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                 }
             }
             if ($market['spot']) {
@@ -3830,12 +3832,12 @@ class bybit extends Exchange {
                     $request['basePrice'] = $isStopLossTriggerOrder ? Precise::string_sub($preciseStopPrice, $delta) : Precise::string_add($preciseStopPrice, $delta);
                 } elseif ($isStopLoss || $isTakeProfit) {
                     if ($isStopLoss) {
-                        $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
-                        $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                        $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                        $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
                     }
                     if ($isTakeProfit) {
-                        $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
-                        $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                        $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                        $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                     }
                 } else {
                     $request['orderFilter'] = 'Order';
@@ -3849,8 +3851,12 @@ class bybit extends Exchange {
                 $request['orderLinkId'] = $this->uuid16();
             }
             $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ));
-            $method = $market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($market['option']) {
+                $response = Async\await($this->privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder (array_merge($request, $params)));
+            }
             //
             //     {
             //         "retCode":0,
@@ -3895,11 +3901,10 @@ class bybit extends Exchange {
             if ($price !== null) {
                 $request['orderPrice'] = $this->price_to_precision($symbol, $price);
             }
-            $method = null;
+            $response = null;
             if ($market['option']) {
-                $method = 'privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder';
+                $response = Async\await($this->privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder (array_merge($request, $params)));
             } else {
-                $method = 'privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder';
                 $isStop = $this->safe_value($params, 'stop', false);
                 $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
                 $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
@@ -3920,8 +3925,8 @@ class bybit extends Exchange {
                     }
                 }
                 $params = $this->omit($params, array( 'stop', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+                $response = Async\await($this->privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //    {
             //        "retCode" => 0,
@@ -4011,12 +4016,12 @@ class bybit extends Exchange {
             }
             if ($isStopLoss || $isTakeProfit) {
                 if ($isStopLoss) {
-                    $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
-                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                    $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                    $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
                 }
                 if ($isTakeProfit) {
-                    $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
-                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                    $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                    $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                 }
             }
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -4057,17 +4062,16 @@ class bybit extends Exchange {
             );
             $isStop = $this->safe_value($params, 'stop', false);
             $params = $this->omit($params, array( 'stop' ));
-            $method = null;
             if ($id !== null) { // The user can also use argument $params["order_link_id"]
                 $request['orderId'] = $id;
             }
+            $response = null;
             if ($market['option']) {
-                $method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder';
+                $response = Async\await($this->privatePostOptionUsdcOpenapiPrivateV1CancelOrder (array_merge($request, $params)));
             } else {
-                $method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder';
                 $request['orderFilter'] = $isStop ? 'StopOrder' : 'Order';
+                $response = Async\await($this->privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -5254,7 +5258,6 @@ class bybit extends Exchange {
                     $request['start_date'] = $this->yyyymmdd($since);
                 }
             }
-            $method = ($enableUnified[1]) ? 'privateGetV5AccountTransactionLog' : 'privateGetV2PrivateWalletFundRecords';
             if ($code !== null) {
                 $currency = $this->currency($code);
                 $request[$currencyKey] = $currency['id'];
@@ -5262,7 +5265,12 @@ class bybit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($enableUnified[1]) {
+                $response = Async\await($this->privateGetV5AccountTransactionLog (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetV2PrivateWalletFundRecords (array_merge($request, $params)));
+            }
             //
             //     {
             //         "ret_code" => 0,
@@ -5987,20 +5995,95 @@ class bybit extends Exchange {
 
     public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
+            /**
+             * set margin mode (account) or trade mode ($symbol)
+             * @see https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
+             * @see https://bybit-exchange.github.io/docs/v5/position/cross-isolate
+             * @param {string} $marginMode account mode must be either [isolated, cross, portfolio], trade mode must be either [isolated, cross]
+             * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {string} [$params->leverage] the rate of $leverage, is required if setting trade mode ($symbol)
+             * @return {array} $response from the exchange
+             */
             Async\await($this->load_markets());
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
-            if ($marginMode === 'ISOLATED_MARGIN') {
-                if (!$isUnifiedAccount) {
-                    throw new NotSupported($this->id . ' setMarginMode() Normal Account not support ISOLATED_MARGIN');
+            $market = null;
+            $response = null;
+            if ($isUnifiedAccount) {
+                if ($marginMode === 'isolated') {
+                    $marginMode = 'ISOLATED_MARGIN';
+                } elseif ($marginMode === 'cross') {
+                    $marginMode = 'REGULAR_MARGIN';
+                } elseif ($marginMode === 'portfolio') {
+                    $marginMode = 'PORTFOLIO_MARGIN';
+                } else {
+                    throw new NotSupported($this->id . ' setMarginMode() $marginMode must be either [isolated, cross, portfolio]');
                 }
-            } elseif (($marginMode !== 'REGULAR_MARGIN') && ($marginMode !== 'PORTFOLIO_MARGIN')) {
-                throw new NotSupported($this->id . ' setMarginMode() $marginMode must be either ISOLATED_MARGIN or REGULAR_MARGIN or PORTFOLIO_MARGIN');
+                $request = array(
+                    'setMarginMode' => $marginMode,
+                );
+                $response = Async\await($this->privatePostV5AccountSetMarginMode (array_merge($request, $params)));
+            } else {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol parameter for non unified account');
+                }
+                $market = $this->market($symbol);
+                $isUsdcSettled = $market['settle'] === 'USDC';
+                if ($isUsdcSettled) {
+                    if ($marginMode === 'cross') {
+                        $marginMode = 'REGULAR_MARGIN';
+                    } elseif ($marginMode === 'portfolio') {
+                        $marginMode = 'PORTFOLIO_MARGIN';
+                    } else {
+                        throw new NotSupported($this->id . ' setMarginMode() for usdc $market $marginMode must be either [cross, portfolio]');
+                    }
+                    $request = array(
+                        'setMarginMode' => $marginMode,
+                    );
+                    $response = Async\await($this->privatePostV5AccountSetMarginMode (array_merge($request, $params)));
+                } else {
+                    $type = null;
+                    list($type, $params) = $this->get_bybit_type('setPositionMode', $market, $params);
+                    $tradeMode = null;
+                    if ($marginMode === 'cross') {
+                        $tradeMode = 0;
+                    } elseif ($marginMode === 'isolated') {
+                        $tradeMode = 1;
+                    } else {
+                        throw new NotSupported($this->id . ' setMarginMode() with $symbol $marginMode must be either [isolated, cross]');
+                    }
+                    $sellLeverage = null;
+                    $buyLeverage = null;
+                    $leverage = $this->safe_string($params, 'leverage');
+                    if ($leverage === null) {
+                        $sellLeverage = $this->safe_string_2($params, 'sell_leverage', 'sellLeverage');
+                        $buyLeverage = $this->safe_string_2($params, 'buy_leverage', 'buyLeverage');
+                        if ($sellLeverage === null && $buyLeverage === null) {
+                            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter or sell_leverage and buy_leverage parameters');
+                        }
+                        if ($buyLeverage === null) {
+                            $buyLeverage = $sellLeverage;
+                        }
+                        if ($sellLeverage === null) {
+                            $sellLeverage = $buyLeverage;
+                        }
+                        $params = $this->omit($params, array( 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ));
+                    } else {
+                        $sellLeverage = $leverage;
+                        $buyLeverage = $leverage;
+                        $params = $this->omit($params, 'leverage');
+                    }
+                    $request = array(
+                        'category' => $type,
+                        'symbol' => $market['id'],
+                        'tradeMode' => $tradeMode,
+                        'buyLeverage' => $buyLeverage,
+                        'sellLeverage' => $sellLeverage,
+                    );
+                    $response = Async\await($this->privatePostV5PositionSwitchIsolated (array_merge($request, $params)));
+                }
             }
-            $request = array(
-                'setMarginMode' => $marginMode,
-            );
-            $response = Async\await($this->privatePostV5AccountSetMarginMode (array_merge($request, $params)));
             return $response;
         }) ();
     }
@@ -6015,7 +6098,7 @@ class bybit extends Exchange {
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @param {string} [$params->buyLeverage] $leverage for buy side
              * @param {string} [$params->sellLeverage] $leverage for sell side
-             * @return {array} response from the exchange
+             * @return {array} $response from the exchange
              */
             $this->check_required_symbol('setLeverage', $symbol);
             Async\await($this->load_markets());
@@ -6033,14 +6116,13 @@ class bybit extends Exchange {
                 'buyLeverage' => $leverage,
                 'sellLeverage' => $leverage,
             );
-            $method = null;
+            $response = null;
             if ($isUsdcSettled && !$isUnifiedAccount) {
                 $request['leverage'] = $leverage;
-                $method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
+                $response = Async\await($this->privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave (array_merge($request, $params)));
             } else {
                 $request['buyLeverage'] = $leverage;
                 $request['sellLeverage'] = $leverage;
-                $method = 'privatePostV5PositionSetLeverage';
                 if ($market['linear']) {
                     $request['category'] = 'linear';
                 } elseif ($market['inverse']) {
@@ -6048,8 +6130,9 @@ class bybit extends Exchange {
                 } else {
                     throw new NotSupported($this->id . ' setLeverage() only support linear and inverse market');
                 }
+                $response = Async\await($this->privatePostV5PositionSetLeverage (array_merge($request, $params)));
             }
-            return Async\await($this->$method (array_merge($request, $params)));
+            return $response;
         }) ();
     }
 

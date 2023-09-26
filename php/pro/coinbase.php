@@ -339,12 +339,11 @@ class coinbase extends \ccxt\async\coinbase {
             $this->trades[$symbol] = $tradesArray;
         }
         for ($i = 0; $i < count($events); $i++) {
-            $event = $events[$i];
-            $trades = $this->safe_value($event, 'trades');
-            for ($i = 0; $i < count($trades); $i++) {
-                $item = $trades[$i];
-                $trade = $this->parse_trade($item);
-                $tradesArray->append ($trade);
+            $currentEvent = $events[$i];
+            $currentTrades = $this->safe_value($currentEvent, 'trades');
+            for ($j = 0; $j < count($currentTrades); $j++) {
+                $item = $currentTrades[$i];
+                $tradesArray->append ($this->parse_trade($item));
             }
         }
         $client->resolve ($tradesArray, $messageHash);

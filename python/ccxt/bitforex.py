@@ -254,14 +254,6 @@ class bitforex(Exchange, ImplicitAPI):
         #          "tid":"1131019666"
         #      }
         #
-        #      {
-        #          "price":57591.33,
-        #          "amount":0.002,
-        #          "time":1637329685322,
-        #          "direction":1,
-        #          "tid":"1131019639"
-        #      }
-        #
         # fetchMyTrades(private)
         #
         #     {

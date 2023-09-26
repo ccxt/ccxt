@@ -2107,7 +2107,7 @@ class bitget(Exchange, ImplicitAPI):
         #         "fillTime": "1692073691000"
         #     }
         #
-        # swap
+        # swap(public trades)
         #
         #     {
         #         "tradeId": "1075199767891652609",
@@ -2229,6 +2229,16 @@ class bitget(Exchange, ImplicitAPI):
             params = self.omit(params, 'method')
             if swapMethod == 'publicMixGetMarketFillsHistory':
                 response = await self.publicMixGetMarketFillsHistory(self.extend(request, params))
+                #
+                #     {
+                #         "tradeId": "1084459062491590657",
+                #         "price": "25874",
+                #         "size": "1.624",
+                #         "side": "Buy",
+                #         "timestamp": "1694281109000",
+                #         "symbol": "BTCUSDT_UMCBL",
+                #     }
+                #
             elif swapMethod == 'publicMixGetMarketFills':
                 response = await self.publicMixGetMarketFills(self.extend(request, params))
         #
@@ -2474,6 +2484,8 @@ class bitget(Exchange, ImplicitAPI):
                 response = await self.publicMixGetMarketCandles(self.extend(request, params))
             elif swapMethod == 'publicMixGetMarketHistoryCandles':
                 response = await self.publicMixGetMarketHistoryCandles(self.extend(request, params))
+        if response == '':
+            return []  # happens when a new token is listed
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
         data = self.safe_value(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
@@ -2861,11 +2873,11 @@ class bitget(Exchange, ImplicitAPI):
                 method = 'privateMixPostPlanPlacePositionsTPSL'
             elif isStopLossOrTakeProfit:
                 if isStopLoss:
-                    stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
-                    request['presetStopLossPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
+                    slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
+                    request['presetStopLossPrice'] = self.price_to_precision(symbol, slTriggerPrice)
                 if isTakeProfit:
-                    takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
-                    request['presetTakeProfitPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                    tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
+                    request['presetTakeProfitPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
         if postOnly:
             request[timeInForceKey] = 'post_only'
         elif timeInForce == 'gtc':

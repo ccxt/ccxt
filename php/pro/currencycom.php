@@ -550,13 +550,13 @@ class currencycom extends \ccxt\async\currencycom {
             $subscription = $this->safe_value($subscriptionsById, $requestId);
             if ($subscription !== null) {
                 if ($status === 'OK') {
-                    $destination = $this->safe_string($subscription, 'destination');
-                    if ($destination !== null) {
+                    $subscriptionDestination = $this->safe_string($subscription, 'destination');
+                    if ($subscriptionDestination !== null) {
                         $methods = array(
                             '/api/v1/ticker/24hr' => array($this, 'handle_ticker'),
                             '/api/v1/account' => array($this, 'handle_balance'),
                         );
-                        $method = $this->safe_value($methods, $destination);
+                        $method = $this->safe_value($methods, $subscriptionDestination);
                         if ($method === null) {
                             return $message;
                         } else {

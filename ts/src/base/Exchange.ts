@@ -1979,7 +1979,12 @@ export default class Exchange {
             const oldNumber = this.number;
             // we parse trades as strings here!
             (this as any).number = String;
-            trades = this.parseTrades (rawTrades, market);
+            const firstTrade = this.safeValue (rawTrades, 0);
+            // parse trades if they haven't already been parsed
+            const tradesAreParsed = ((firstTrade !== undefined) && ('info' in firstTrade) && ('id' in firstTrade));
+            if (!tradesAreParsed) {
+                trades = this.parseTrades (rawTrades, market);
+            }
             this.number = oldNumber;
             let tradesLength = 0;
             const isArray = Array.isArray (trades);
@@ -2615,8 +2620,18 @@ export default class Exchange {
         return result;
     }
 
-    marketSymbols (symbols, type: string = undefined) {
+    marketSymbols (symbols, type: string = undefined, allowEmpty = true) {
         if (symbols === undefined) {
+            if (!allowEmpty) {
+                throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
+            }
+            return symbols;
+        }
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            if (!allowEmpty) {
+                throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
+            }
             return symbols;
         }
         const result = [];

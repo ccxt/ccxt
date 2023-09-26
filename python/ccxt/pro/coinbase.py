@@ -309,12 +309,11 @@ class coinbase(ccxt.async_support.coinbase):
             tradesArray = ArrayCacheBySymbolById(tradesLimit)
             self.trades[symbol] = tradesArray
         for i in range(0, len(events)):
-            event = events[i]
-            trades = self.safe_value(event, 'trades')
-            for i in range(0, len(trades)):
-                item = trades[i]
-                trade = self.parse_trade(item)
-                tradesArray.append(trade)
+            currentEvent = events[i]
+            currentTrades = self.safe_value(currentEvent, 'trades')
+            for j in range(0, len(currentTrades)):
+                item = currentTrades[i]
+                tradesArray.append(self.parse_trade(item))
         client.resolve(tradesArray, messageHash)
         return message
 

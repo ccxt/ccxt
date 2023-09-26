@@ -713,7 +713,7 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async startTest (exchange, symbol) {
-        // we don't need to test aliases
+        // we do not need to test aliases
         if (exchange.alias) {
             return;
         }
