@@ -49,6 +49,12 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapi_get_asset_convert_transfer_querybypage($params = array()) {
         return $this->request('asset/convert-transfer/queryByPage', 'sapi', 'GET', $params, null, null, array("cost" => 0.033335));
     }
+    public function sapi_get_asset_wallet_balance($params = array()) {
+        return $this->request('asset/wallet/balance', 'sapi', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function sapi_get_asset_custody_transfer_history($params = array()) {
+        return $this->request('asset/custody/transfer-history', 'sapi', 'GET', $params, null, null, array("cost" => 6));
+    }
     public function sapi_get_margin_loan($params = array()) {
         return $this->request('margin/loan', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -220,20 +226,8 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapi_get_futures_transfer($params = array()) {
         return $this->request('futures/transfer', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function sapi_get_futures_loan_borrow_history($params = array()) {
-        return $this->request('futures/loan/borrow/history', 'sapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function sapi_get_futures_loan_repay_history($params = array()) {
-        return $this->request('futures/loan/repay/history', 'sapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function sapi_get_futures_loan_wallet($params = array()) {
-        return $this->request('futures/loan/wallet', 'sapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function sapi_get_futures_loan_adjustcollateral_history($params = array()) {
-        return $this->request('futures/loan/adjustCollateral/history', 'sapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function sapi_get_futures_loan_liquidationhistory($params = array()) {
-        return $this->request('futures/loan/liquidationHistory', 'sapi', 'GET', $params, null, null, array("cost" => 1));
+    public function sapi_get_futures_histdatalink($params = array()) {
+        return $this->request('futures/histDataLink', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
     public function sapi_get_rebate_taxquery($params = array()) {
         return $this->request('rebate/taxQuery', 'sapi', 'GET', $params, null, null, array("cost" => 80.004));
@@ -1324,6 +1318,9 @@ abstract class binance extends \ccxt\async\Exchange {
     public function fapipublic_get_fundingrate($params = array()) {
         return $this->request('fundingRate', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function fapipublic_get_fundinginfo($params = array()) {
+        return $this->request('fundingInfo', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function fapipublic_get_premiumindex($params = array()) {
         return $this->request('premiumIndex', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2014,6 +2011,12 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapiGetAssetConvertTransferQueryByPage($params = array()) {
         return $this->request('asset/convert-transfer/queryByPage', 'sapi', 'GET', $params, null, null, array("cost" => 0.033335));
     }
+    public function sapiGetAssetWalletBalance($params = array()) {
+        return $this->request('asset/wallet/balance', 'sapi', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function sapiGetAssetCustodyTransferHistory($params = array()) {
+        return $this->request('asset/custody/transfer-history', 'sapi', 'GET', $params, null, null, array("cost" => 6));
+    }
     public function sapiGetMarginLoan($params = array()) {
         return $this->request('margin/loan', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2185,20 +2188,8 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapiGetFuturesTransfer($params = array()) {
         return $this->request('futures/transfer', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function sapiGetFuturesLoanBorrowHistory($params = array()) {
-        return $this->request('futures/loan/borrow/history', 'sapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function sapiGetFuturesLoanRepayHistory($params = array()) {
-        return $this->request('futures/loan/repay/history', 'sapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function sapiGetFuturesLoanWallet($params = array()) {
-        return $this->request('futures/loan/wallet', 'sapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function sapiGetFuturesLoanAdjustCollateralHistory($params = array()) {
-        return $this->request('futures/loan/adjustCollateral/history', 'sapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function sapiGetFuturesLoanLiquidationHistory($params = array()) {
-        return $this->request('futures/loan/liquidationHistory', 'sapi', 'GET', $params, null, null, array("cost" => 1));
+    public function sapiGetFuturesHistDataLink($params = array()) {
+        return $this->request('futures/histDataLink', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
     public function sapiGetRebateTaxQuery($params = array()) {
         return $this->request('rebate/taxQuery', 'sapi', 'GET', $params, null, null, array("cost" => 80.004));
@@ -3288,6 +3279,9 @@ abstract class binance extends \ccxt\async\Exchange {
     }
     public function fapiPublicGetFundingRate($params = array()) {
         return $this->request('fundingRate', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPublicGetFundingInfo($params = array()) {
+        return $this->request('fundingInfo', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiPublicGetPremiumIndex($params = array()) {
         return $this->request('premiumIndex', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));

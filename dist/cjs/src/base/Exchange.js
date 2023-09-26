@@ -9,6 +9,8 @@ var WsClient = require('./ws/WsClient.js');
 var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
 var totp = require('./functions/totp.js');
+var generic = require('./functions/generic.js');
+var misc = require('./functions/misc.js');
 
 function _interopNamespace(e) {
     if (e && e.__esModule) return e;
@@ -29,7 +31,7 @@ function _interopNamespace(e) {
 }
 
 // ----------------------------------------------------------------------------
-const { aggregate, arrayConcat, base16ToBinary, base58ToBinary, base64ToBinary, base64ToString, binaryConcat, binaryConcatArray, binaryToBase16, binaryToBase58, binaryToBase64, capitalize, clone, crc32, DECIMAL_PLACES, decimalToPrecision, decode, deepExtend, ecdsa, encode, extend, extractParams, filterBy, flatten, groupBy, hash, hmac, implodeParams, inArray, indexBy, isArray, isEmpty, isJsonEncodedObject, isNode, iso8601, json, keys, keysort, merge, microseconds, milliseconds, NO_PADDING, now, numberToBE, numberToLE, numberToString, omit, omitZero, ordered, parse8601, parseDate, parseTimeframe, precisionFromString, rawencode, ROUND, safeFloat, safeFloat2, safeFloatN, safeInteger, safeInteger2, safeIntegerN, safeIntegerProduct, safeIntegerProduct2, safeIntegerProductN, safeString, safeString2, safeStringLower, safeStringLower2, safeStringLowerN, safeStringN, safeStringUpper, safeStringUpper2, safeStringUpperN, safeTimestamp, safeTimestamp2, safeTimestampN, safeValue, safeValue2, safeValueN, seconds, SIGNIFICANT_DIGITS, sortBy, sortBy2, stringToBase64, strip, sum, Throttler, TICK_SIZE, toArray, TRUNCATE, unCamelCase, unique, urlencode, urlencodeNested, urlencodeWithArrayRepeat, uuid, uuid16, uuid22, uuidv1, values, vwap, ymd, ymdhms, yymmdd, yyyymmdd } = functions;
+const { aggregate, arrayConcat, base16ToBinary, base58ToBinary, base64ToBinary, base64ToString, binaryConcat, binaryConcatArray, binaryToBase16, binaryToBase58, binaryToBase64, capitalize, clone, crc32, DECIMAL_PLACES, decimalToPrecision, decode, deepExtend, ecdsa, encode, extend, extractParams, filterBy, flatten, groupBy, hash, hmac, implodeParams, inArray, indexBy, isArray, isEmpty, isJsonEncodedObject, isNode, iso8601, json, keys, keysort, merge, microseconds, milliseconds, NO_PADDING, now, numberToBE, numberToLE, numberToString, omit, omitZero, ordered, parse8601, parseDate, parseTimeframe, precisionFromString, rawencode, ROUND, safeFloat, safeFloat2, safeFloatN, safeInteger, safeInteger2, safeIntegerN, safeIntegerProduct, safeIntegerProduct2, safeIntegerProductN, safeString, safeString2, safeStringLower, safeStringLower2, safeStringLowerN, safeStringN, safeStringUpper, safeStringUpper2, safeStringUpperN, safeTimestamp, safeTimestamp2, safeTimestampN, safeValue, safeValue2, safeValueN, seconds, SIGNIFICANT_DIGITS sortBy, sortBy2, stringToBase64, strip, sum, Throttler, TICK_SIZE, toArray, TRUNCATE, unCamelCase, unique, urlencode, urlencodeNested, urlencodeWithArrayRepeat, uuid, uuid16, uuid22, uuidv1, values, vwap, ymd, ymdhms, yymmdd, yyyymmdd } = functions;
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -49,63 +51,63 @@ class Exchange {
         this.origin = '*'; // CORS origin
         //
         this.agent = undefined; // maintained for backwards compatibility
-        this.minFundingAddressLength = 1; // used in checkAddress
-        this.substituteCommonCurrencyCodes = true; // reserved
-        this.quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
-        this.number = Number; // or String (a pointer to a function)
         this.handleContentTypeApplicationZip = false;
+        this.minFundingAddressLength = 1; // used in checkAddress
+        this.number = Number; // or String (a pointer to a function)
+        this.quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
+        this.substituteCommonCurrencyCodes = true; // reserved
         // whether fees should be summed by currency code
-        this.reduceFees = true;
-        this.validateServerSsl = true;
-        this.validateClientSsl = false;
-        this.timeout = 10000; // milliseconds
-        this.twofa = undefined; // two-factor authentication (2FA)
-        this.verbose = false;
+        this.accounts = undefined;
+        this.accountsById = undefined;
         this.balance = {};
-        this.orderbooks = {};
-        this.orders = undefined;
-        this.positions = {};
-        this.tickers = {};
-        this.transactions = {};
-        this.requiresEddsa = false;
-        this.requiresWeb3 = false;
+        this.baseCurrencies = undefined;
+        this.codes = undefined;
+        this.commonCurrencies = undefined;
+        this.currencies = undefined;
+        this.currencies_by_id = undefined;
         this.enableLastHttpResponse = true;
         this.enableLastJsonResponse = true;
         this.enableLastResponseHeaders = true;
+        this.enableRateLimit = undefined;
+        this.exceptions = {};
+        this.hostname = undefined;
+        this.httpExceptions = undefined;
+        this.id = undefined;
+        this.ids = undefined;
         this.last_http_response = undefined;
         this.last_json_response = undefined;
         this.last_response_headers = undefined;
-        this.id = undefined;
         this.markets = undefined;
-        this.status = undefined;
-        this.enableRateLimit = undefined;
-        this.rateLimit = undefined; // milliseconds
-        this.throttler = undefined;
-        this.tokenBucket = undefined;
-        this.httpExceptions = undefined;
-        this.currencies = undefined;
-        this.ids = undefined;
         this.markets_by_id = undefined;
-        this.symbols = undefined;
-        this.baseCurrencies = undefined;
-        this.codes = undefined;
-        this.currencies_by_id = undefined;
-        this.quoteCurrencies = undefined;
-        this.marketsLoading = undefined;
-        this.reloadingMarkets = undefined;
-        this.accounts = undefined;
-        this.accountsById = undefined;
-        this.commonCurrencies = undefined;
-        this.hostname = undefined;
-        this.paddingMode = undefined;
-        this.precisionMode = undefined;
-        this.exceptions = {};
-        this.timeframes = {};
-        this.version = undefined;
         this.marketsByAltname = undefined;
+        this.marketsLoading = undefined;
         this.name = undefined;
-        this.targetAccount = undefined;
+        this.orderbooks = {};
+        this.orders = undefined;
+        this.paddingMode = undefined;
+        this.positions = {};
+        this.precisionMode = undefined;
+        this.quoteCurrencies = undefined;
+        this.rateLimit = undefined; // milliseconds
+        this.reduceFees = true;
+        this.reloadingMarkets = undefined;
+        this.requiresEddsa = false;
+        this.requiresWeb3 = false;
         this.stablePairs = {};
+        this.status = undefined;
+        this.symbols = undefined;
+        this.targetAccount = undefined;
+        this.throttler = undefined;
+        this.tickers = {};
+        this.timeframes = {};
+        this.timeout = 10000; // milliseconds
+        this.tokenBucket = undefined;
+        this.transactions = {};
+        this.twofa = undefined; // two-factor authentication (2FA)
+        this.validateClientSsl = false;
+        this.validateServerSsl = true;
+        this.verbose = false;
+        this.version = undefined;
         // WS/PRO options
         this.aggregate = aggregate;
         this.arrayConcat = arrayConcat;
@@ -136,13 +138,13 @@ class Exchange {
         this.implodeParams = implodeParams;
         this.inArray = inArray;
         this.indexBy = indexBy;
-        this.isArray = isArray;
+        this.isArray = generic.inArray;
         this.isEmpty = isEmpty;
         this.isJsonEncodedObject = isJsonEncodedObject;
         this.isNode = isNode;
         this.iso8601 = iso8601;
         this.json = json;
-        this.keys = keys;
+        this.keys = generic.keys;
         this.keysort = keysort;
         this.merge = merge;
         this.microseconds = microseconds;
@@ -201,8 +203,8 @@ class Exchange {
         this.uuid16 = uuid16;
         this.uuid22 = uuid22;
         this.uuidv1 = uuidv1;
-        this.values = values;
-        this.vwap = vwap;
+        this.values = generic.values;
+        this.vwap = misc.vwap;
         this.ymd = ymd;
         this.ymdhms = ymdhms;
         this.yymmdd = yymmdd;
@@ -342,14 +344,14 @@ class Exchange {
                 },
             },
             'has': {
-                'CORS': undefined,
                 'addMargin': undefined,
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
                 'cancelOrder': true,
-                'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
                 'cancelOrdersWs': undefined,
+                'cancelOrderWs': undefined,
+                'CORS': undefined,
                 'createDepositAddress': undefined,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
@@ -391,9 +393,9 @@ class Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': undefined,
-                'fetchMarkOHLCV': undefined,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': undefined,
                 'fetchOpenInterest': undefined,
@@ -404,9 +406,9 @@ class Exchange {
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
+                'fetchOrders': undefined,
                 'fetchOrderTrades': undefined,
                 'fetchOrderWs': undefined,
-                'fetchOrders': undefined,
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
@@ -1843,12 +1845,12 @@ class Exchange {
             entry['amount'] = this.safeNumber(entry, 'amount');
             entry['price'] = this.safeNumber(entry, 'price');
             entry['cost'] = this.safeNumber(entry, 'cost');
-            const fee = this.safeValue(entry, 'fee', {});
-            fee['cost'] = this.safeNumber(fee, 'cost');
-            if ('rate' in fee) {
-                fee['rate'] = this.safeNumber(fee, 'rate');
+            const tradeFee = this.safeValue(entry, 'fee', {});
+            tradeFee['cost'] = this.safeNumber(tradeFee, 'cost');
+            if ('rate' in tradeFee) {
+                tradeFee['rate'] = this.safeNumber(tradeFee, 'rate');
             }
-            entry['fee'] = fee;
+            entry['fee'] = tradeFee;
         }
         let timeInForce = this.safeString(order, 'timeInForce');
         let postOnly = this.safeValue(order, 'postOnly');
@@ -2315,8 +2317,18 @@ class Exchange {
         }
         return result;
     }
-    marketSymbols(symbols, type = undefined) {
+    marketSymbols(symbols, type = undefined, allowEmpty = true) {
         if (symbols === undefined) {
+            if (!allowEmpty) {
+                throw new errors.ArgumentsRequired(this.id + ' empty list of symbols is not supported');
+            }
+            return symbols;
+        }
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            if (!allowEmpty) {
+                throw new errors.ArgumentsRequired(this.id + ' empty list of symbols is not supported');
+            }
             return symbols;
         }
         const result = [];
@@ -2897,9 +2909,9 @@ class Exchange {
                     }
                     const inferredMarketType = (marketType === undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
-                        const market = markets[i];
-                        if (market[inferredMarketType]) {
-                            return market;
+                        const currentMarket = markets[i];
+                        if (currentMarket[inferredMarketType]) {
+                            return currentMarket;
                         }
                     }
                 }

@@ -432,6 +432,7 @@ class bitfinex2 extends Exchange {
     public function fetch_status($params = array ()) {
         /**
          * the latest known information on the availability of the exchange API
+         * @see https://docs.bitfinex.com/reference/rest-public-platform-status
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure status structure}
          */
@@ -453,6 +454,7 @@ class bitfinex2 extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for bitfinex2
+         * @see https://docs.bitfinex.com/reference/rest-public-conf
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
          * @return {array[]} an array of objects representing $market data
          */
@@ -579,6 +581,7 @@ class bitfinex2 extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
+         * @see https://docs.bitfinex.com/reference/rest-public-conf
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -789,6 +792,7 @@ class bitfinex2 extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * $query for $balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.bitfinex.com/reference/rest-auth-wallets
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$balance-structure $balance structure}
          */
@@ -828,6 +832,7 @@ class bitfinex2 extends Exchange {
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
+         * @see https://docs.bitfinex.com/reference/rest-auth-transfer
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
@@ -973,6 +978,7 @@ class bitfinex2 extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.bitfinex.com/reference/rest-public-book
          * @param {string} $symbol unified $symbol of the $market to fetch the $order book for
          * @param {int} [$limit] the maximum $amount of $order book entries to return
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
@@ -1085,6 +1091,7 @@ class bitfinex2 extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @see https://docs.bitfinex.com/reference/rest-public-$tickers
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
@@ -1152,6 +1159,7 @@ class bitfinex2 extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @see https://docs.bitfinex.com/reference/rest-public-$ticker
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
@@ -1251,6 +1259,7 @@ class bitfinex2 extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent $trades for a particular $symbol
+         * @see https://docs.bitfinex.com/reference/rest-public-tickers-history
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -1289,6 +1298,7 @@ class bitfinex2 extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, $limit = 100, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @see https://docs.bitfinex.com/reference/rest-public-candles
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1459,6 +1469,7 @@ class bitfinex2 extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * Create an $order on the exchange
+         * @see https://docs.bitfinex.com/reference/rest-auth-submit-$order
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $type 'limit' or 'market'
          * @param {string} $side 'buy' or 'sell'
@@ -1620,6 +1631,7 @@ class bitfinex2 extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open $orders
+         * @see https://docs.bitfinex.com/reference/rest-auth-cancel-$orders-multiple
          * @param {string} $symbol unified market $symbol, only $orders in the market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
@@ -1635,6 +1647,7 @@ class bitfinex2 extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
+         * @see https://docs.bitfinex.com/reference/rest-auth-cancel-$order
          * @param {string} $id $order $id
          * @param {string} $symbol Not used by bitfinex2 cancelOrder ()
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
@@ -1665,6 +1678,8 @@ class bitfinex2 extends Exchange {
     public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an open $order by it's $id
+         * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-$orders
+         * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-$orders-by-$symbol
          * @param {string} $id $order $id
          * @param {string} $symbol unified market $symbol, default is null
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
@@ -1684,6 +1699,8 @@ class bitfinex2 extends Exchange {
     public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an open $order by it's $id
+         * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-$orders
+         * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-$orders-by-$symbol
          * @param {string} $id $order $id
          * @param {string} $symbol unified market $symbol, default is null
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
@@ -1703,6 +1720,8 @@ class bitfinex2 extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
+         * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
+         * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-$symbol
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -1764,6 +1783,8 @@ class bitfinex2 extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
+         * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
+         * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-$symbol
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
@@ -1832,6 +1853,7 @@ class bitfinex2 extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
+         * @see https://docs.bitfinex.com/reference/rest-auth-order-trades
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -1857,6 +1879,8 @@ class bitfinex2 extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
+         * @see https://docs.bitfinex.com/reference/rest-auth-trades
+         * @see https://docs.bitfinex.com/reference/rest-auth-trades-by-$symbol
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -1874,19 +1898,21 @@ class bitfinex2 extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 25, max 1000
         }
-        $method = 'privatePostAuthRTradesHist';
+        $response = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $method = 'privatePostAuthRTradesSymbolHist';
+            $response = $this->privatePostAuthRTradesSymbolHist (array_merge($request, $params));
+        } else {
+            $response = $this->privatePostAuthRTradesHist (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a currency deposit address
+         * @see https://docs.bitfinex.com/reference/rest-auth-deposit-address
          * @param {string} $code unified currency $code of the currency for the deposit address
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
@@ -1901,6 +1927,7 @@ class bitfinex2 extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
+         * @see https://docs.bitfinex.com/reference/rest-auth-deposit-$address
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
@@ -2114,6 +2141,7 @@ class bitfinex2 extends Exchange {
     public function fetch_trading_fees($params = array ()) {
         /**
          * fetch the trading fees for multiple markets
+         * @see https://docs.bitfinex.com/reference/rest-auth-summary
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$fee-structure $fee structures} indexed by $market symbols
          */
@@ -2224,6 +2252,8 @@ class bitfinex2 extends Exchange {
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
+         * @see https://docs.bitfinex.com/reference/movement-info
+         * @see https://docs.bitfinex.com/reference/rest-auth-movements
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -2233,19 +2263,20 @@ class bitfinex2 extends Exchange {
         $this->load_markets();
         $currency = null;
         $request = array();
-        $method = 'privatePostAuthRMovementsHist';
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['currency'] = $currency['uppercaseId'];
-            $method = 'privatePostAuthRMovementsCurrencyHist';
-        }
         if ($since !== null) {
             $request['start'] = $since;
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // max 1000
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['uppercaseId'];
+            $response = $this->privatePostAuthRMovementsCurrencyHist (array_merge($request, $params));
+        } else {
+            $response = $this->privatePostAuthRMovementsHist (array_merge($request, $params));
+        }
         //
         //     array(
         //         array(
@@ -2280,6 +2311,7 @@ class bitfinex2 extends Exchange {
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
+         * @see https://docs.bitfinex.com/reference/rest-auth-withdraw
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -2613,6 +2645,7 @@ class bitfinex2 extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://docs.bitfinex.com/reference/rest-auth-ledgers
          * @param {string} $code unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entrys to return, default is null
@@ -2623,19 +2656,20 @@ class bitfinex2 extends Exchange {
         $this->load_markets();
         $currency = null;
         $request = array();
-        $method = 'privatePostAuthRLedgersHist';
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['currency'] = $currency['uppercaseId'];
-            $method = 'privatePostAuthRLedgersCurrencyHist';
-        }
         if ($since !== null) {
             $request['start'] = $since;
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // max 2500
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['uppercaseId'];
+            $response = $this->privatePostAuthRLedgersCurrencyHist (array_merge($request, $params));
+        } else {
+            $response = $this->privatePostAuthRLedgersHist (array_merge($request, $params));
+        }
         //
         //     array(
         //         array(

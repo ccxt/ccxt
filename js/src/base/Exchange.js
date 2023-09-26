@@ -7,7 +7,8 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable */
 import * as functions from './functions.js';
-const { aggregate, arrayConcat, base16ToBinary, base58ToBinary, base64ToBinary, base64ToString, binaryConcat, binaryConcatArray, binaryToBase16, binaryToBase58, binaryToBase64, capitalize, clone, crc32, DECIMAL_PLACES, decimalToPrecision, decode, deepExtend, ecdsa, encode, extend, extractParams, filterBy, flatten, groupBy, hash, hmac, implodeParams, inArray, indexBy, isArray, isEmpty, isJsonEncodedObject, isNode, iso8601, json, keys, keysort, merge, microseconds, milliseconds, NO_PADDING, now, numberToBE, numberToLE, numberToString, omit, omitZero, ordered, parse8601, parseDate, parseTimeframe, precisionFromString, rawencode, ROUND, safeFloat, safeFloat2, safeFloatN, safeInteger, safeInteger2, safeIntegerN, safeIntegerProduct, safeIntegerProduct2, safeIntegerProductN, safeString, safeString2, safeStringLower, safeStringLower2, safeStringLowerN, safeStringN, safeStringUpper, safeStringUpper2, safeStringUpperN, safeTimestamp, safeTimestamp2, safeTimestampN, safeValue, safeValue2, safeValueN, seconds, SIGNIFICANT_DIGITS, sortBy, sortBy2, stringToBase64, strip, sum, Throttler, TICK_SIZE, toArray, TRUNCATE, unCamelCase, unique, urlencode, urlencodeNested, urlencodeWithArrayRepeat, uuid, uuid16, uuid22, uuidv1, values, vwap, ymd, ymdhms, yymmdd, yyyymmdd } = functions;
+const { isNode, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS } = functions;
+import { keys as keysFunc, values as valuesFunc, inArray as inArrayFunc, vwap as vwapFunc } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
 ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DDoSProtection, ExchangeError, ExchangeNotAvailable, InvalidAddress, InvalidOrder, NetworkError, NotSupported, NullResponse, RateLimitExceeded, RequestTimeout } from "./errors.js";
@@ -112,7 +113,9 @@ export default class Exchange {
         this.decimalToPrecision = decimalToPrecision;
         this.decode = decode;
         this.deepExtend = deepExtend;
-        this.encode = encode;
+        this.isNode = isNode;
+        this.keys = keysFunc;
+        this.values = valuesFunc;
         this.extend = extend;
         this.extractParams = extractParams;
         this.filterBy = filterBy;
@@ -129,8 +132,7 @@ export default class Exchange {
         this.isNode = isNode;
         this.iso8601 = iso8601;
         this.json = json;
-        this.keys = keys;
-        this.keysort = keysort;
+        this.vwap = vwapFunc;
         this.merge = merge;
         this.microseconds = microseconds;
         this.milliseconds = milliseconds;
@@ -191,9 +193,9 @@ export default class Exchange {
         this.values = values;
         this.vwap = vwap;
         this.ymd = ymd;
-        this.ymdhms = ymdhms;
-        this.yymmdd = yymmdd;
-        this.yyyymmdd = yyyymmdd;
+        this.isArray = inArrayFunc;
+        this.base64ToString = base64ToString;
+        this.crc32 = crc32;
         Object.assign(this, functions);
         //
         //     if (isNode) {
@@ -1838,12 +1840,12 @@ export default class Exchange {
             entry['amount'] = this.safeNumber(entry, 'amount');
             entry['price'] = this.safeNumber(entry, 'price');
             entry['cost'] = this.safeNumber(entry, 'cost');
-            const fee = this.safeValue(entry, 'fee', {});
-            fee['cost'] = this.safeNumber(fee, 'cost');
-            if ('rate' in fee) {
-                fee['rate'] = this.safeNumber(fee, 'rate');
+            const tradeFee = this.safeValue(entry, 'fee', {});
+            tradeFee['cost'] = this.safeNumber(tradeFee, 'cost');
+            if ('rate' in tradeFee) {
+                tradeFee['rate'] = this.safeNumber(tradeFee, 'rate');
             }
-            entry['fee'] = fee;
+            entry['fee'] = tradeFee;
         }
         let timeInForce = this.safeString(order, 'timeInForce');
         let postOnly = this.safeValue(order, 'postOnly');
@@ -2310,8 +2312,18 @@ export default class Exchange {
         }
         return result;
     }
-    marketSymbols(symbols, type = undefined) {
+    marketSymbols(symbols, type = undefined, allowEmpty = true) {
         if (symbols === undefined) {
+            if (!allowEmpty) {
+                throw new ArgumentsRequired(this.id + ' empty list of symbols is not supported');
+            }
+            return symbols;
+        }
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            if (!allowEmpty) {
+                throw new ArgumentsRequired(this.id + ' empty list of symbols is not supported');
+            }
             return symbols;
         }
         const result = [];
@@ -2892,9 +2904,9 @@ export default class Exchange {
                     }
                     const inferredMarketType = (marketType === undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
-                        const market = markets[i];
-                        if (market[inferredMarketType]) {
-                            return market;
+                        const currentMarket = markets[i];
+                        if (currentMarket[inferredMarketType]) {
+                            return currentMarket;
                         }
                     }
                 }

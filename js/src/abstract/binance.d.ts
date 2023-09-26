@@ -15,6 +15,8 @@ interface Exchange {
     sapiGetAssetTradeFee(params?: {}): Promise<implicitReturnType>;
     sapiGetAssetLedgerTransferCloudMiningQueryByPage(params?: {}): Promise<implicitReturnType>;
     sapiGetAssetConvertTransferQueryByPage(params?: {}): Promise<implicitReturnType>;
+    sapiGetAssetWalletBalance(params?: {}): Promise<implicitReturnType>;
+    sapiGetAssetCustodyTransferHistory(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginLoan(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginRepay(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAccount(params?: {}): Promise<implicitReturnType>;
@@ -72,11 +74,7 @@ interface Exchange {
     sapiGetFiatOrders(params?: {}): Promise<implicitReturnType>;
     sapiGetFiatPayments(params?: {}): Promise<implicitReturnType>;
     sapiGetFuturesTransfer(params?: {}): Promise<implicitReturnType>;
-    sapiGetFuturesLoanBorrowHistory(params?: {}): Promise<implicitReturnType>;
-    sapiGetFuturesLoanRepayHistory(params?: {}): Promise<implicitReturnType>;
-    sapiGetFuturesLoanWallet(params?: {}): Promise<implicitReturnType>;
-    sapiGetFuturesLoanAdjustCollateralHistory(params?: {}): Promise<implicitReturnType>;
-    sapiGetFuturesLoanLiquidationHistory(params?: {}): Promise<implicitReturnType>;
+    sapiGetFuturesHistDataLink(params?: {}): Promise<implicitReturnType>;
     sapiGetRebateTaxQuery(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalConfigGetall(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositAddress(params?: {}): Promise<implicitReturnType>;
@@ -440,6 +438,7 @@ interface Exchange {
     fapiPublicGetMarkPriceKlines(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetIndexPriceKlines(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetFundingRate(params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetFundingInfo(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetPremiumIndex(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetTicker24hr(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetTickerPrice(params?: {}): Promise<implicitReturnType>;

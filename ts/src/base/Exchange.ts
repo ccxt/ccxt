@@ -111,6 +111,12 @@ const {
     yyyymmdd
 } = functions
 
+import {
+    keys as keysFunc,
+    values as valuesFunc,
+    inArray as inArrayFunc,
+    vwap as vwapFunc
+} from './functions.js'
 // import exceptions from "./errors.js"
 
 import { // eslint-disable-line object-curly-newline
@@ -356,13 +362,13 @@ export default class Exchange {
     implodeParams = implodeParams
     inArray = inArray
     indexBy = indexBy
-    isArray = isArray
+    isArray = inArrayFunc
     isEmpty = isEmpty
     isJsonEncodedObject = isJsonEncodedObject
     isNode = isNode
     iso8601 = iso8601
     json = json
-    keys = keys
+    keys = keysFunc
     keysort = keysort
     merge = merge
     microseconds = microseconds
@@ -421,8 +427,8 @@ export default class Exchange {
     uuid16 = uuid16
     uuid22 = uuid22
     uuidv1 = uuidv1
-    values = values
-    vwap = vwap
+    values = valuesFunc
+    vwap = vwapFunc
     ymd = ymd
     ymdhms = ymdhms
     yymmdd = yymmdd
@@ -2147,12 +2153,12 @@ export default class Exchange {
             entry['amount'] = this.safeNumber (entry, 'amount');
             entry['price'] = this.safeNumber (entry, 'price');
             entry['cost'] = this.safeNumber (entry, 'cost');
-            const fee = this.safeValue (entry, 'fee', {});
-            fee['cost'] = this.safeNumber (fee, 'cost');
-            if ('rate' in fee) {
-                fee['rate'] = this.safeNumber (fee, 'rate');
+            const tradeFee = this.safeValue (entry, 'fee', {});
+            tradeFee['cost'] = this.safeNumber (tradeFee, 'cost');
+            if ('rate' in tradeFee) {
+                tradeFee['rate'] = this.safeNumber (tradeFee, 'rate');
             }
-            entry['fee'] = fee;
+            entry['fee'] = tradeFee;
         }
         let timeInForce = this.safeString (order, 'timeInForce');
         let postOnly = this.safeValue (order, 'postOnly');
@@ -2620,8 +2626,18 @@ export default class Exchange {
         return result;
     }
 
-    marketSymbols (symbols, type: string = undefined) {
+    marketSymbols (symbols, type: string = undefined, allowEmpty = true) {
         if (symbols === undefined) {
+            if (!allowEmpty) {
+                throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
+            }
+            return symbols;
+        }
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            if (!allowEmpty) {
+                throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
+            }
             return symbols;
         }
         const result = [];
@@ -3240,9 +3256,9 @@ export default class Exchange {
                     }
                     const inferredMarketType = (marketType === undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
-                        const market = markets[i];
-                        if (market[inferredMarketType]) {
-                            return market;
+                        const currentMarket = markets[i];
+                        if (currentMarket[inferredMarketType]) {
+                            return currentMarket;
                         }
                     }
                 }

@@ -158,6 +158,14 @@ export default class bingx extends Exchange {
         toAccount: string;
         status: string;
     };
+    fetchDepositAddress(code: string, params?: {}): Promise<{}>;
+    parseDepositAddress(depositAddress: any, currency?: any): {
+        currency: any;
+        address: string;
+        tag: string;
+        network: string;
+        info: any;
+    };
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: any): {
