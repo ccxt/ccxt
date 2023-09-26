@@ -2963,7 +2963,7 @@ export default class huobi extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
-                const networkName = this.safeString (chain, 'ac', ''); // empty names are for some exceptional FIAT currencies
+                const networkTitle = this.safeString (chain, 'ac', ''); // empty names are for some exceptional FIAT currencies
                 const chainType = this.safeString (chain, 'ct');
                 if (chainType === 'legal') {
                     isFiat = true;
@@ -2974,7 +2974,7 @@ export default class huobi extends Exchange {
                 const canWithdraw = this.safeValue (chain, 'we');
                 withdrawEnabled = canWithdraw ? true : withdrawEnabled;
                 currencyActive = (canDeposit && canWithdraw) ? true : currencyActive;
-                const networkCode = this.networkIdToCode (networkName);
+                const networkCode = super.networkIdToCode (networkTitle);
                 const precision = this.parsePrecision (this.safeString (chain, 'wp'));
                 minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (minPrecision, precision);
                 networks[networkCode] = {
@@ -3023,18 +3023,42 @@ export default class huobi extends Exchange {
         return result;
     }
 
+    networkIdToCode (networkId, currencyCode = undefined) {
+        // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if (!('networkNamesByChainIds' in this.options)) {
+            if (!this.currencies) {
+                // currencies need to be loaded, otherwise it's impossible to work
+                throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
+            }
+            this.options['networkNamesByChainIds'] = {};
+            const currencyCodes = Object.keys (this.currencies);
+            for (let i = 0; i < currencyCodes.length; i++) {
+                const currencyCode = currencyCodes[i];
+                const networkValues = this.values (this.currencies[currencyCode]['networks']);
+                for (let j = 0; j < networkValues.length; j++) {
+                    const network = networkValues[j];
+                    const networkId = network['id'];
+                    const networkCode = network['network'];
+                    this.options['networkNamesByChainIds'][networkId] = networkCode;
+                }
+            }
+        }
+        const networkCode = this.safeValue (this.options['networkNamesByChainIds'], networkId, networkId);
+        return super.networkIdToCode (networkCode, currencyCode);
+    }
+
     networkCodeToId (networkCode, currencyCode = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         if (currencyCode === undefined) {
             throw new ArgumentsRequired (this.id + ' networkCodeToId() requires a currencyCode argument');
         }
-        const keys = Object.keys (this.options['networkChainIdsByNames']);
-        const keysLength = keys.length;
-        if (keysLength === 0) {
+        if (!this.currencies) {
+            // currencies need to be loaded, otherwise it's impossible to work
             throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
         }
-        const uniqueNetworkIds = this.safeValue (this.options['networkChainIdsByNames'], currencyCode, {});
-        const networkTitle = super.networkCodeToId (networkCode);
-        return this.safeValue (uniqueNetworkIds, networkTitle, networkTitle);
+        const currency = this.currency (currencyCode);
+        const network = this.safeValue (currency['networks'], networkCode, {});
+        const networkId = this.safeString (network, 'id', networkCode);
+        return super.networkCodeToId (networkId);
     }
 
     async fetchBalance (params = {}) {
@@ -7997,11 +8021,13 @@ export default class huobi extends Exchange {
         //
         const chains = this.safeValue (fee, 'chains', []);
         let result = this.depositWithdrawFee (fee);
+        const currencyId = this.safeString (fee, 'currency');
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
         for (let j = 0; j < chains.length; j++) {
             const chainEntry = chains[j];
             const networkId = this.safeString (chainEntry, 'chain');
             const withdrawFeeType = this.safeString (chainEntry, 'withdrawFeeType');
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId, currencyCode);
             let withdrawFee = undefined;
             let withdrawResult = undefined;
             if (withdrawFeeType === 'fixed') {
