@@ -338,12 +338,12 @@ class bybit(ccxt.async_support.bybit):
         # watchTickers part
         messageHashes = self.find_message_hashes(client, 'tickers::')
         for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
-            parts = messageHash.split('::')
+            messageHashTicker = messageHashes[i]
+            parts = messageHashTicker.split('::')
             symbolsString = parts[1]
             symbols = symbolsString.split(',')
             if self.in_array(parsed['symbol'], symbols):
-                client.resolve(parsed, messageHash)
+                client.resolve(parsed, messageHashTicker)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

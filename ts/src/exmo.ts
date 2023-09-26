@@ -1754,11 +1754,11 @@ export default class exmo extends Exchange {
             const marketIds = Object.keys (response);
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
-                const market = this.safeMarket (marketId);
+                const marketInner = this.safeMarket (marketId);
                 params = this.extend (params, {
                     'status': 'open',
                 });
-                const parsedOrders = this.parseOrders (response[marketId], market, since, limit, params);
+                const parsedOrders = this.parseOrders (response[marketId], marketInner, since, limit, params);
                 orders = this.arrayConcat (orders, parsedOrders);
             }
         }
@@ -1963,8 +1963,8 @@ export default class exmo extends Exchange {
         }
         const isSpot = (marginMode !== 'isolated');
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
+            const marketInner = this.market (symbol);
+            symbol = marketInner['symbol'];
         }
         const request = {
             'limit': limit,
@@ -1997,7 +1997,7 @@ export default class exmo extends Exchange {
             });
             return this.parseOrders (response, market, since, limit, params);
         } else {
-            const response = await this.privatePostMarginUserOrderHistory (this.extend (request, params));
+            const responseSwap = await this.privatePostMarginUserOrderHistory (this.extend (request, params));
             //
             //    {
             //        "items": [
@@ -2022,7 +2022,7 @@ export default class exmo extends Exchange {
             //        ]
             //    }
             //
-            const items = this.safeValue (response, 'items');
+            const items = this.safeValue (responseSwap, 'items');
             const orders = this.parseOrders (items, market, since, limit, params);
             const result = [];
             for (let i = 0; i < orders.length; i++) {

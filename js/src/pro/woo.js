@@ -16,7 +16,7 @@ export default class woo extends wooRest {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchMyTrades': false,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
@@ -607,6 +607,73 @@ export default class woo extends wooRest {
             client.resolve(this.orders, messageHashSymbol);
         }
     }
+    async watchBalance(params = {}) {
+        /**
+         * @method
+         * @see https://docs.woo.org/#balance
+         * @name woo#watchBalance
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the woo api endpoint
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         */
+        await this.loadMarkets();
+        const topic = 'balance';
+        const messageHash = topic;
+        const request = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend(request, params);
+        return await this.watchPrivate(messageHash, message);
+    }
+    handleBalance(client, message) {
+        //
+        //   {
+        //       "topic": "balance",
+        //       "ts": 1695716888789,
+        //       "data": {
+        //          "balances": {
+        //             "USDT": {
+        //                "holding": 266.56059176,
+        //                "frozen": 0,
+        //                "interest": 0,
+        //                "pendingShortQty": 0,
+        //                "pendingExposure": 0,
+        //                "pendingLongQty": 0,
+        //                "pendingLongExposure": 0,
+        //                "version": 37,
+        //                "staked": 0,
+        //                "unbonding": 0,
+        //                "vault": 0,
+        //                "averageOpenPrice": 0,
+        //                "pnl24H": 0,
+        //                "fee24H": 0,
+        //                "markPrice": 1,
+        //                "pnl24HPercentage": 0
+        //             }
+        //          }
+        //
+        //    }
+        //
+        const data = this.safeValue(message, 'data');
+        const balances = this.safeValue(data, 'balances');
+        const keys = Object.keys(balances);
+        const ts = this.safeInteger(message, 'ts');
+        this.balance['info'] = data;
+        this.balance['timestamp'] = ts;
+        this.balance['datetime'] = this.iso8601(ts);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = balances[key];
+            const code = this.safeCurrencyCode(key);
+            const account = (code in this.balance) ? this.balance[code] : this.account();
+            account['total'] = this.safeString(value, 'holding');
+            account['used'] = this.safeString(value, 'frozen');
+            this.balance[code] = account;
+        }
+        this.balance = this.safeBalance(this.balance);
+        client.resolve(this.balance, 'balance');
+    }
     handleMessage(client, message) {
         const methods = {
             'ping': this.handlePing,
@@ -619,6 +686,7 @@ export default class woo extends wooRest {
             'auth': this.handleAuth,
             'executionreport': this.handleOrderUpdate,
             'trade': this.handleTrade,
+            'balance': this.handleBalance,
         };
         const event = this.safeString(message, 'event');
         let method = this.safeValue(methods, event);

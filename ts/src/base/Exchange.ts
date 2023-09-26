@@ -4,8 +4,6 @@
 import * as functions from './functions.js'
 const {
     isNode
-    , keys
-    , values
     , deepExtend
     , extend
     , clone
@@ -42,7 +40,6 @@ const {
     , implodeParams
     , extractParams
     , json
-    , vwap
     , merge
     , binaryConcat
     , hash
@@ -99,7 +96,6 @@ const {
     , urlencodeNested
     , parseDate
     , ymd
-    , isArray
     , base64ToString
     , crc32
     , TRUNCATE
@@ -110,6 +106,12 @@ const {
     , SIGNIFICANT_DIGITS
 } = functions
 
+import {
+    keys as keysFunc,
+    values as valuesFunc,
+    inArray as inArrayFunc,
+    vwap as vwapFunc
+} from './functions.js'
 // import exceptions from "./errors.js"
 
  import { // eslint-disable-line object-curly-newline
@@ -331,8 +333,8 @@ export default class Exchange {
 
     deepExtend = deepExtend
     isNode = isNode
-    keys = keys
-    values = values
+    keys = keysFunc
+    values = valuesFunc
     extend = extend
     clone = clone
     flatten = flatten
@@ -368,7 +370,7 @@ export default class Exchange {
     implodeParams = implodeParams
     extractParams = extractParams
     json = json
-    vwap = vwap
+    vwap = vwapFunc
     merge = merge
     binaryConcat = binaryConcat
     hash = hash
@@ -423,7 +425,7 @@ export default class Exchange {
     urlencodeNested = urlencodeNested
     parseDate = parseDate
     ymd = ymd
-    isArray = isArray
+    isArray = inArrayFunc
     base64ToString = base64ToString
     crc32 = crc32
 
@@ -2145,12 +2147,12 @@ export default class Exchange {
             entry['amount'] = this.safeNumber (entry, 'amount');
             entry['price'] = this.safeNumber (entry, 'price');
             entry['cost'] = this.safeNumber (entry, 'cost');
-            const fee = this.safeValue (entry, 'fee', {});
-            fee['cost'] = this.safeNumber (fee, 'cost');
-            if ('rate' in fee) {
-                fee['rate'] = this.safeNumber (fee, 'rate');
+            const tradeFee = this.safeValue (entry, 'fee', {});
+            tradeFee['cost'] = this.safeNumber (tradeFee, 'cost');
+            if ('rate' in tradeFee) {
+                tradeFee['rate'] = this.safeNumber (tradeFee, 'rate');
             }
-            entry['fee'] = fee;
+            entry['fee'] = tradeFee;
         }
         let timeInForce = this.safeString (order, 'timeInForce');
         let postOnly = this.safeValue (order, 'postOnly');
@@ -3248,9 +3250,9 @@ export default class Exchange {
                     }
                     const inferredMarketType = (marketType === undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
-                        const market = markets[i];
-                        if (market[inferredMarketType]) {
-                            return market;
+                        const currentMarket = markets[i];
+                        if (currentMarket[inferredMarketType]) {
+                            return currentMarket;
                         }
                     }
                 }

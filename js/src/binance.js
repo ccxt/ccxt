@@ -271,11 +271,7 @@ export default class binance extends Exchange {
                         'fiat/orders': 600.03,
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
-                        'futures/loan/borrow/history': 1,
-                        'futures/loan/repay/history': 1,
-                        'futures/loan/wallet': 1,
-                        'futures/loan/adjustCollateral/history': 1,
-                        'futures/loan/liquidationHistory': 1,
+                        'futures/histDataLink': 0.1,
                         'rebate/taxQuery': 80.004,
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall': 1,
@@ -719,6 +715,7 @@ export default class binance extends Exchange {
                         'markPriceKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
                         'indexPriceKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
                         'fundingRate': 1,
+                        'fundingInfo': 1,
                         'premiumIndex': 1,
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
@@ -8381,9 +8378,9 @@ export default class binance extends Exchange {
             const numElements = response.length;
             if (numElements > 0) {
                 const firstElement = response[0];
-                const error = this.safeString(firstElement, 'code');
-                if (error !== undefined) {
-                    this.throwExactlyMatchedException(this.exceptions['exact'], error, this.id + ' ' + body);
+                const errorCode = this.safeString(firstElement, 'code');
+                if (errorCode !== undefined) {
+                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, this.id + ' ' + body);
                 }
             }
         }

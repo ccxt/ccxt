@@ -255,7 +255,7 @@ export default class Exchange {
     urlencodeNested: (object: any) => string;
     parseDate: (x: any) => number;
     ymd: (timestamp: any, infix: any, fullYear?: boolean) => string;
-    isArray: (arg: any) => arg is any[];
+    isArray: (needle: any, haystack: any) => any;
     base64ToString: (string: any) => string;
     crc32: typeof functions.crc32;
     describe(): {

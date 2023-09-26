@@ -1623,11 +1623,11 @@ class exmo(Exchange, ImplicitAPI):
             marketIds = list(response.keys())
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
-                market = self.safe_market(marketId)
+                marketInner = self.safe_market(marketId)
                 params = self.extend(params, {
                     'status': 'open',
                 })
-                parsedOrders = self.parse_orders(response[marketId], market, since, limit, params)
+                parsedOrders = self.parse_orders(response[marketId], marketInner, since, limit, params)
                 orders = self.array_concat(orders, parsedOrders)
         return orders
 
@@ -1815,8 +1815,8 @@ class exmo(Exchange, ImplicitAPI):
             limit = 100
         isSpot = (marginMode != 'isolated')
         if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
+            marketInner = self.market(symbol)
+            symbol = marketInner['symbol']
         request = {
             'limit': limit,
         }
@@ -1847,7 +1847,7 @@ class exmo(Exchange, ImplicitAPI):
             })
             return self.parse_orders(response, market, since, limit, params)
         else:
-            response = self.privatePostMarginUserOrderHistory(self.extend(request, params))
+            responseSwap = self.privatePostMarginUserOrderHistory(self.extend(request, params))
             #
             #    {
             #        "items": [
@@ -1872,7 +1872,7 @@ class exmo(Exchange, ImplicitAPI):
             #        ]
             #    }
             #
-            items = self.safe_value(response, 'items')
+            items = self.safe_value(responseSwap, 'items')
             orders = self.parse_orders(items, market, since, limit, params)
             result = []
             for i in range(0, len(orders)):

@@ -294,11 +294,7 @@ class binance(Exchange, ImplicitAPI):
                         'fiat/orders': 600.03,  # Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
-                        'futures/loan/borrow/history': 1,
-                        'futures/loan/repay/history': 1,
-                        'futures/loan/wallet': 1,
-                        'futures/loan/adjustCollateral/history': 1,
-                        'futures/loan/liquidationHistory': 1,
+                        'futures/histDataLink': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'rebate/taxQuery': 80.004,  # Weight(UID): 12000 => cost = 0.006667 * 12000 = 80.004
                         # https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall': 1,  # get networks for withdrawing USDT ERC20 vs USDT Omni
@@ -742,6 +738,7 @@ class binance(Exchange, ImplicitAPI):
                         'markPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'indexPriceKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'fundingRate': 1,
+                        'fundingInfo': 1,
                         'premiumIndex': 1,
                         'ticker/24hr': {'cost': 1, 'noSymbol': 40},
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
@@ -7725,9 +7722,9 @@ class binance(Exchange, ImplicitAPI):
             numElements = len(response)
             if numElements > 0:
                 firstElement = response[0]
-                error = self.safe_string(firstElement, 'code')
-                if error is not None:
-                    self.throw_exactly_matched_exception(self.exceptions['exact'], error, self.id + ' ' + body)
+                errorCode = self.safe_string(firstElement, 'code')
+                if errorCode is not None:
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.id + ' ' + body)
         return None
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
