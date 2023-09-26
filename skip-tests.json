@@ -48,6 +48,9 @@
             "fetchTickers": {
                 "bid":"broken bid-ask",
                 "ask":"broken bid-ask"
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2220"
             }
         }
     },
@@ -216,6 +219,9 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2264"
             }
         }
     },
@@ -488,7 +494,10 @@
                 "active":"is undefined"
             },
             "fetchOrderBook": "bid should be greater than next bid",
-            "fetchL2OrderBook": "same"
+            "fetchL2OrderBook": "same",
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2308"
+            }
         }
     },
     "btctradeua": {
@@ -1250,6 +1259,9 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2396"
             }
         }
     },
@@ -1269,7 +1281,10 @@
             "fetchTrades": {
                 "fees": "missingn from structure"
             },
-            "fetchTickers": "temporary issues"
+            "fetchTickers": "temporary issues",
+            "fetchOHLCV": {
+                "compareAmountToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/266175900#L2352"
+            }
         }
     },
     "wavesexchange": {
