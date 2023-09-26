@@ -1912,6 +1912,7 @@ export default class kucoinfutures extends kucoin {
         /**
          * @method
          * @name kucoinfutures#fetchMyTrades
+         * @see https://docs.kucoin.com/futures/#get-fills
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1927,7 +1928,7 @@ export default class kucoinfutures extends kucoin {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params);
         }
-        const request = {
+        let request = {
             // orderId (String) [optional] Fills for a specific order (other parameters can be ignored if specified)
             // symbol (String) [optional] Symbol of the contract
             // side (String) [optional] buy or sell
@@ -1943,11 +1944,7 @@ export default class kucoinfutures extends kucoin {
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        const until = this.safeInteger2 (params, 'until', 'endAt');
-        if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
-            request['endAt'] = until;
-        }
+        [ params, request ] = this.handleUntilOption ('endAt', request, params);
         const response = await this.futuresPrivateGetFills (this.extend (request, params));
         //
         //    {
