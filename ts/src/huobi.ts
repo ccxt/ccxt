@@ -3000,6 +3000,7 @@ export default class huobi extends Exchange {
                     'info': chain,
                 };
             }
+            const type = isFiat ? 'fiat' : 'crypto';
             result[code] = {
                 'info': chains,
                 'code': code,
@@ -3008,7 +3009,7 @@ export default class huobi extends Exchange {
                 'active': currencyActive,
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
-                'type': (isFiat ? 'fiat' : 'crypto'),
+                'type': type,
                 'fee': undefined,
                 'precision': this.parseNumber (minPrecision),
                 'limits': {
