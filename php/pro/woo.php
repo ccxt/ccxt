@@ -17,7 +17,7 @@ class woo extends \ccxt\async\woo {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
-                'watchBalance' => false,
+                'watchBalance' => true,
                 'watchMyTrades' => false,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
@@ -645,6 +645,75 @@ class woo extends \ccxt\async\woo {
         }
     }
 
+    public function watch_balance($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * @see https://docs.woo.org/#balance
+             * watch balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} [$params] extra parameters specific to the woo api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             */
+            Async\await($this->load_markets());
+            $topic = 'balance';
+            $messageHash = $topic;
+            $request = array(
+                'event' => 'subscribe',
+                'topic' => $topic,
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch_private($messageHash, $message));
+        }) ();
+    }
+
+    public function handle_balance($client, $message) {
+        //
+        //   {
+        //       "topic" => "balance",
+        //       "ts" => 1695716888789,
+        //       "data" => {
+        //          "balances" => {
+        //             "USDT" => {
+        //                "holding" => 266.56059176,
+        //                "frozen" => 0,
+        //                "interest" => 0,
+        //                "pendingShortQty" => 0,
+        //                "pendingExposure" => 0,
+        //                "pendingLongQty" => 0,
+        //                "pendingLongExposure" => 0,
+        //                "version" => 37,
+        //                "staked" => 0,
+        //                "unbonding" => 0,
+        //                "vault" => 0,
+        //                "averageOpenPrice" => 0,
+        //                "pnl24H" => 0,
+        //                "fee24H" => 0,
+        //                "markPrice" => 1,
+        //                "pnl24HPercentage" => 0
+        //             }
+        //          }
+        //
+        //    }
+        //
+        $data = $this->safe_value($message, 'data');
+        $balances = $this->safe_value($data, 'balances');
+        $keys = is_array($balances) ? array_keys($balances) : array();
+        $ts = $this->safe_integer($message, 'ts');
+        $this->balance['info'] = $data;
+        $this->balance['timestamp'] = $ts;
+        $this->balance['datetime'] = $this->iso8601($ts);
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $value = $balances[$key];
+            $code = $this->safe_currency_code($key);
+            $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
+            $account['total'] = $this->safe_string($value, 'holding');
+            $account['used'] = $this->safe_string($value, 'frozen');
+            $this->balance[$code] = $account;
+        }
+        $this->balance = $this->safe_balance($this->balance);
+        $client->resolve ($this->balance, 'balance');
+    }
+
     public function handle_message(Client $client, $message) {
         $methods = array(
             'ping' => array($this, 'handle_ping'),
@@ -657,6 +726,7 @@ class woo extends \ccxt\async\woo {
             'auth' => array($this, 'handle_auth'),
             'executionreport' => array($this, 'handle_order_update'),
             'trade' => array($this, 'handle_trade'),
+            'balance' => array($this, 'handle_balance'),
         );
         $event = $this->safe_string($message, 'event');
         $method = $this->safe_value($methods, $event);

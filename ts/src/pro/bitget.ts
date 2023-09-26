@@ -148,11 +148,11 @@ export default class bitget extends bitgetRest {
         const topics = [ ];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.market (marketId);
+            const marketInner = this.market (marketId);
             const args = {
                 'instType': instType,
                 'channel': 'ticker',
-                'instId': this.getWsMarketId (market),
+                'instId': this.getWsMarketId (marketInner),
             };
             topics.push (args);
         }
@@ -193,12 +193,12 @@ export default class bitget extends bitgetRest {
         // watchTickers part
         const messageHashes = this.findMessageHashes (client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split ('::');
+            const messageHashTicker = messageHashes[i];
+            const parts = messageHashTicker.split ('::');
             const symbolsString = parts[1];
             const symbols = symbolsString.split (',');
             if (this.inArray (symbol, symbols)) {
-                client.resolve (ticker, messageHash);
+                client.resolve (ticker, messageHashTicker);
             }
         }
         return message;
