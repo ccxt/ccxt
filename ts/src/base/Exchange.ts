@@ -910,23 +910,24 @@ export default class Exchange {
             url = proxyUrl + url;
         }
         // proxy agents
-        await this.initializeProxies ();const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings ();
+        await this.initializeProxies ();
+        const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
         // proxy agents
         let proxyAgentSet = false;
-        if (httpProxy !== undefined) {
+        if (httpProxy) {
             if (!(httpProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
             }
             this.agent = this.proxyDictionaries[httpProxy];
             proxyAgentSet = true;
-        }  else if (httpsProxy !== undefined) {
+        }  else if (httpsProxy) {
             if (!(httpsProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy);
             }
             this.agent = this.proxyDictionaries[httpsProxy];
             this.agent.keepAlive = true;
             proxyAgentSet = true;
-        } else if (socksProxy !== undefined) {
+        } else if (socksProxy) {
             if (!(socksProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[socksProxy] = new this.socksProxyAgentModule.SocksProxyAgent(socksProxy);
             }
@@ -945,10 +946,12 @@ export default class Exchange {
         }
         // set final headers
         headers = this.setHeaders (headers);
+        // log
         if (this.verbose) {
             this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
         }
-        //
+        // end of proxies & headers
+
         if (this.fetchImplementation === undefined) {
             if (isNode) {
                 const module = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js')

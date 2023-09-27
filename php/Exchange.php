@@ -1339,18 +1339,18 @@ class Exchange {
         // proxy agents
         $proxyAgentSet = false;
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
-        if ($httpProxy !== null) {
+        if ($httpProxy) {
             curl_setopt($this->curl, CURLOPT_PROXY, $httpProxy);
             curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
             $proxyAgentSet = true;
-        }  else if ($httpsProxy !== null) {
+        }  else if ($httpsProxy) {
             curl_setopt($this->curl, CURLOPT_PROXY, $httpsProxy);
             curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTPS);
             $proxyAgentSet = true;
             // atm we don't make as tunnel
             // curl_setopt($this->curl, CURLOPT_TUNNEL, 1);
             // curl_setopt($this->curl, CURLOPT_SUPPRESS_CONNECT_HEADERS, 1);
-        } else if ($socksProxy !== null) {
+        } else if ($socksProxy) {
             curl_setopt($this->curl, CURLOPT_PROXY, $socksProxy);
             curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
             $proxyAgentSet = true;
@@ -1369,10 +1369,11 @@ class Exchange {
         }
         // set final headers
         $headers = $this->set_headers($headers);
+        // log
         if ($this->verbose) {
             print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $headers, 'RequestBody:', $body));
         }
-        //
+        // end of proxies & headers
 
         // reorganize headers for curl
         if (is_array($headers)) {

@@ -96,17 +96,17 @@ class Exchange extends \ccxt\Exchange {
             // proxy agents
             $proxyAgentSet = false;
             [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
-            if ($httpProxy !== null) {
+            if ($httpProxy) {
                 include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
                 $proxy = new \Clue\React\HttpProxy\ProxyConnector($httpProxy);
                 $this->set_request_browser(['tcp' => $proxy, 'dns' => false]);
                 $proxyAgentSet = true;
-            }  else if ($httpsProxy !== null) {
+            }  else if ($httpsProxy) {
                 include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
                 $proxy = new \Clue\React\HttpProxy\ProxyConnector($httpsProxy);
                 $this->set_request_browser(['tcp' => $proxy, 'dns' => false]);
                 $proxyAgentSet = true;
-            } else if ($socksProxy !== null) {
+            } else if ($socksProxy) {
                 $className = '\\Clue\\React\\Socks\\Client';
                 if (!class_exists($className)) {
                     throw new NotSupported($this->id . ' - to use SOCKS proxy with ccxt, at first you need install module "composer require clue/socks-react"');
@@ -127,10 +127,11 @@ class Exchange extends \ccxt\Exchange {
             }
             // set final headers
             $headers = $this->set_headers($headers);
+            // log
             if ($this->verbose) {
                 print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $headers, 'RequestBody:', $body));
             }
-            //
+            // end of proxies & headers
 
             $this->lastRestRequestTimestamp = $this->milliseconds();
 

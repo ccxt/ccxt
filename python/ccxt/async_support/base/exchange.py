@@ -124,16 +124,19 @@ class Exchange(BaseExchange):
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
-        request_headers = self.prepare_request_headers(headers)
 
         # ##### PROXY & HEADERS #####
-        final_proxy = None  # set default
-        final_session = None
-        proxyUrl, httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
-        if proxyUrl:
+        request_headers = self.prepare_request_headers(headers)
+        # proxy "url"
+        proxyUrl = self.check_proxy_url_settings(url, method, headers, body)
+        if proxyUrl is not None:
             request_headers.update({'Origin': self.origin})
             url = proxyUrl + url
-        elif httpProxy:
+        # proxy agents
+        final_proxy = None  # set default
+        final_session = None
+        httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
+        if httpProxy:
             final_proxy = httpProxy
         elif httpsProxy:
             final_proxy = httpsProxy
@@ -154,15 +157,18 @@ class Exchange(BaseExchange):
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
-
+            
+        proxyAgentSet = final_proxy is not None or socksProxy
+        self.checkConflictingProxies (proxyAgentSet, proxyUrl)
         # avoid old proxies mixing
         if (self.aiohttp_proxy is not None) and (proxyUrl is not None or httpProxy is not None or httpsProxy is not None or socksProxy is not None):
             raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
-        # ######## end of proxies ########
 
+        # log
         if self.verbose:
             self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
         self.logger.debug("%s %s, Request: %s %s", method, url, headers, body)
+        # end of proxies & headers
 
         request_body = body
         encoded_body = body.encode() if body else None
