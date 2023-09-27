@@ -229,15 +229,15 @@ class kucoin(ccxt.async_support.kucoin):
         client.resolve(ticker, 'tickers')
         messageHashes = self.find_message_hashes(client, 'tickers::')
         for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
-            parts = messageHash.split('::')
+            currentMessageHash = messageHashes[i]
+            parts = currentMessageHash.split('::')
             symbolsString = parts[1]
             symbols = symbolsString.split(',')
             tickers = self.filter_by_array(self.tickers, 'symbol', symbols)
             tickersSymbols = list(tickers.keys())
             numTickers = len(tickersSymbols)
             if numTickers > 0:
-                client.resolve(tickers, messageHash)
+                client.resolve(tickers, currentMessageHash)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

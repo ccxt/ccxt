@@ -895,7 +895,7 @@ class lbank2(Exchange, ImplicitAPI):
         if since is not None:
             request['time'] = since
         if limit is not None:
-            request['size'] = limit
+            request['size'] = min(limit, 600)
         else:
             request['size'] = 600  # max
         method = self.safe_string(params, 'method')

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.100'
+__version__ = '4.0.108'
 
 # -----------------------------------------------------------------------------
 
@@ -223,6 +223,8 @@ class Exchange(BaseExchange):
         if json_response is not None:
             return json_response
         if self.is_text_response(headers):
+            return http_response
+        if http_response == '' or http_response is None:
             return http_response
         return response.content
 
@@ -1124,11 +1126,11 @@ class Exchange(BaseExchange):
             entry['amount'] = self.safe_number(entry, 'amount')
             entry['price'] = self.safe_number(entry, 'price')
             entry['cost'] = self.safe_number(entry, 'cost')
-            fee = self.safe_value(entry, 'fee', {})
-            fee['cost'] = self.safe_number(fee, 'cost')
-            if 'rate' in fee:
-                fee['rate'] = self.safe_number(fee, 'rate')
-            entry['fee'] = fee
+            tradeFee = self.safe_value(entry, 'fee', {})
+            tradeFee['cost'] = self.safe_number(tradeFee, 'cost')
+            if 'rate' in tradeFee:
+                tradeFee['rate'] = self.safe_number(tradeFee, 'rate')
+            entry['fee'] = tradeFee
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')
         # timeInForceHandling
@@ -1526,8 +1528,15 @@ class Exchange(BaseExchange):
             result.append(self.market_id(symbols[i]))
         return result
 
-    def market_symbols(self, symbols, type: Optional[str] = None):
+    def market_symbols(self, symbols, type: Optional[str] = None, allowEmpty=True):
         if symbols is None:
+            if not allowEmpty:
+                raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
+            return symbols
+        symbolsLength = len(symbols)
+        if symbolsLength == 0:
+            if not allowEmpty:
+                raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
             return symbols
         result = []
         for i in range(0, len(symbols)):
@@ -2034,9 +2043,9 @@ class Exchange(BaseExchange):
                         raise ArgumentsRequired(self.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id')
                     inferredMarketType = market['type'] if (marketType is None) else marketType
                     for i in range(0, len(markets)):
-                        market = markets[i]
-                        if market[inferredMarketType]:
-                            return market
+                        currentMarket = markets[i]
+                        if currentMarket[inferredMarketType]:
+                            return currentMarket
             elif delimiter is not None:
                 parts = marketId.split(delimiter)
                 partsLength = len(parts)

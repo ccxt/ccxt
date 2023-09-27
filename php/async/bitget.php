@@ -2171,7 +2171,7 @@ class bitget extends Exchange {
         //         "fillTime" => "1692073691000"
         //     }
         //
-        // swap
+        // swap (public trades)
         //
         //     {
         //         "tradeId" => "1075199767891652609",
@@ -2301,6 +2301,16 @@ class bitget extends Exchange {
                 $params = $this->omit($params, 'method');
                 if ($swapMethod === 'publicMixGetMarketFillsHistory') {
                     $response = Async\await($this->publicMixGetMarketFillsHistory (array_merge($request, $params)));
+                    //
+                    //     {
+                    //         "tradeId" => "1084459062491590657",
+                    //         "price" => "25874",
+                    //         "size" => "1.624",
+                    //         "side" => "Buy",
+                    //         "timestamp" => "1694281109000",
+                    //         "symbol" => "BTCUSDT_UMCBL",
+                    //     }
+                    //
                 } elseif ($swapMethod === 'publicMixGetMarketFills') {
                     $response = Async\await($this->publicMixGetMarketFills (array_merge($request, $params)));
                 }
@@ -2571,6 +2581,9 @@ class bitget extends Exchange {
                 } elseif ($swapMethod === 'publicMixGetMarketHistoryCandles') {
                     $response = Async\await($this->publicMixGetMarketHistoryCandles (array_merge($request, $params)));
                 }
+            }
+            if ($response === '') {
+                return array(); // happens when a new token is listed
             }
             //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
             $data = $this->safe_value($response, 'data', $response);

@@ -34,6 +34,9 @@ export default class bl3p extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -250,6 +253,16 @@ export default class bl3p extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades
+        //
+        //     {
+        //         "trade_id": "2518789",
+        //         "date": "1694348697745",
+        //         "amount_int": "2959153",
+        //         "price_int": "2416231440"
+        //     }
+        //
         const id = this.safeString (trade, 'trade_id');
         const timestamp = this.safeInteger (trade, 'date');
         const price = this.safeString (trade, 'price_int');
@@ -287,6 +300,20 @@ export default class bl3p extends Exchange {
         const response = await this.publicGetMarketTrades (this.extend ({
             'market': market['id'],
         }, params));
+        //
+        //    {
+        //        "result": "success",
+        //        "data": {
+        //            "trades": [
+        //                {
+        //                    "trade_id": "2518789",
+        //                    "date": "1694348697745",
+        //                    "amount_int": "2959153",
+        //                    "price_int": "2416231440"
+        //                },
+        //            ]
+        //        }
+        //     }
         const result = this.parseTrades (response['data']['trades'], market, since, limit);
         return result;
     }
@@ -352,12 +379,17 @@ export default class bl3p extends Exchange {
          * @method
          * @name bl3p#createOrder
          * @description create a trade order
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/examples/nodejs/example.md#21---create-an-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.amount_funds] maximal EUR amount to spend (*1e5)
+         * @param {string} [params.fee_currency] 'EUR' or 'BTC'
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const market = this.market (symbol);

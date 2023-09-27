@@ -249,15 +249,15 @@ class kucoin extends \ccxt\async\kucoin {
         $client->resolve ($ticker, 'tickers');
         $messageHashes = $this->find_message_hashes($client, 'tickers::');
         for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
-            $parts = explode('::', $messageHash);
+            $currentMessageHash = $messageHashes[$i];
+            $parts = explode('::', $currentMessageHash);
             $symbolsString = $parts[1];
             $symbols = explode(',', $symbolsString);
             $tickers = $this->filter_by_array($this->tickers, 'symbol', $symbols);
             $tickersSymbols = is_array($tickers) ? array_keys($tickers) : array();
             $numTickers = count($tickersSymbols);
             if ($numTickers > 0) {
-                $client->resolve ($tickers, $messageHash);
+                $client->resolve ($tickers, $currentMessageHash);
             }
         }
     }

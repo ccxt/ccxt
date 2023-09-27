@@ -918,7 +918,7 @@ class lbank2 extends lbank2$1 {
             request['time'] = since;
         }
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min(limit, 600);
         }
         else {
             request['size'] = 600; // max

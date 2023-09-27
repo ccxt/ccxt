@@ -496,11 +496,11 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         #         reason: 'filled'
         #     }
         #
-        orders = self.orders
-        if orders is None:
+        currentOrders = self.orders
+        if currentOrders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-            orders = ArrayCacheBySymbolById(limit)
-            self.orders = orders
+            currentOrders = ArrayCacheBySymbolById(limit)
+            self.orders = currentOrders
         type = self.safe_string(message, 'type')
         marketId = self.safe_string(message, 'product_id')
         if marketId is not None:
@@ -533,9 +533,9 @@ class coinbasepro(ccxt.async_support.coinbasepro):
                         totalAmount = 0
                         trades = previousOrder['trades']
                         for i in range(0, len(trades)):
-                            trade = trades[i]
-                            totalCost = self.sum(totalCost, trade['cost'])
-                            totalAmount = self.sum(totalAmount, trade['amount'])
+                            tradeEntry = trades[i]
+                            totalCost = self.sum(totalCost, tradeEntry['cost'])
+                            totalAmount = self.sum(totalAmount, tradeEntry['amount'])
                         if totalAmount > 0:
                             previousOrder['average'] = totalCost / totalAmount
                         previousOrder['cost'] = totalCost
@@ -646,12 +646,12 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             client.resolve(ticker, messageHash)
             messageHashes = self.find_message_hashes(client, 'tickers::')
             for i in range(0, len(messageHashes)):
-                messageHash = messageHashes[i]
-                parts = messageHash.split('::')
+                currentMessageHash = messageHashes[i]
+                parts = currentMessageHash.split('::')
                 symbolsString = parts[1]
                 symbols = symbolsString.split(',')
                 if self.in_array(symbol, symbols):
-                    client.resolve(ticker, messageHash)
+                    client.resolve(ticker, currentMessageHash)
         return message
 
     def parse_ticker(self, ticker, market=None):

@@ -1409,8 +1409,8 @@ export default class phemex extends phemexRest {
                 return method.call(this, client, message);
             }
         }
-        const method = this.safeString(message, 'method', '');
-        if (('market24h' in message) || ('spot_market24h' in message) || (method.indexOf('perp_market24h_pack_p') >= 0)) {
+        const methodName = this.safeString(message, 'method', '');
+        if (('market24h' in message) || ('spot_market24h' in message) || (methodName.indexOf('perp_market24h_pack_p') >= 0)) {
             return this.handleTicker(client, message);
         }
         else if (('trades' in message) || ('trades_p' in message)) {

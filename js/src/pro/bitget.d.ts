@@ -6,6 +6,7 @@ export default class bitget extends bitgetRest {
     getWsMarketId(market: any): any;
     getMarketIdFromArg(arg: any): string;
     watchTicker(symbol: string, params?: {}): Promise<any>;
+    watchTickers(symbols?: string[], params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): any;
     parseWsTicker(message: any, market?: any): import("../base/types.js").Ticker;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

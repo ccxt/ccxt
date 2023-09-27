@@ -1430,8 +1430,8 @@ class phemex extends \ccxt\async\phemex {
                 return $method($client, $message);
             }
         }
-        $method = $this->safe_string($message, 'method', '');
-        if ((is_array($message) && array_key_exists('market24h', $message)) || (is_array($message) && array_key_exists('spot_market24h', $message)) || (mb_strpos($method, 'perp_market24h_pack_p') !== false)) {
+        $methodName = $this->safe_string($message, 'method', '');
+        if ((is_array($message) && array_key_exists('market24h', $message)) || (is_array($message) && array_key_exists('spot_market24h', $message)) || (mb_strpos($methodName, 'perp_market24h_pack_p') !== false)) {
             return $this->handle_ticker($client, $message);
         } elseif ((is_array($message) && array_key_exists('trades', $message)) || (is_array($message) && array_key_exists('trades_p', $message))) {
             return $this->handle_trades($client, $message);

@@ -1343,8 +1343,8 @@ class phemex(ccxt.async_support.phemex):
             del client.subscriptions[id]
             if method is not True:
                 return method(client, message)
-        method = self.safe_string(message, 'method', '')
-        if ('market24h' in message) or ('spot_market24h' in message) or (method.find('perp_market24h_pack_p') >= 0):
+        methodName = self.safe_string(message, 'method', '')
+        if ('market24h' in message) or ('spot_market24h' in message) or (methodName.find('perp_market24h_pack_p') >= 0):
             return self.handle_ticker(client, message)
         elif ('trades' in message) or ('trades_p' in message):
             return self.handle_trades(client, message)

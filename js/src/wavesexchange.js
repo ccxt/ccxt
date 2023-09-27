@@ -1250,7 +1250,8 @@ export default class wavesexchange extends Exchange {
     toPrecision(amount, scale) {
         const amountString = this.numberToString(amount);
         const precise = new Precise(amountString);
-        precise.decimals = Precise.stringSub(precise.decimals, scale);
+        // precise.decimals should be integer
+        precise.decimals = this.parseToInt(Precise.stringSub(this.numberToString(precise.decimals), this.numberToString(scale)));
         precise.reduce();
         return precise;
     }

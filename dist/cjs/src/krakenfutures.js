@@ -1217,7 +1217,8 @@ class krakenfutures extends krakenfutures$1 {
         let statusId = undefined;
         let price = undefined;
         let trades = [];
-        if (orderEvents.length) {
+        const orderEventsLength = orderEvents.length;
+        if (orderEventsLength) {
             const executions = [];
             for (let i = 0; i < orderEvents.length; i++) {
                 const item = orderEvents[i];
@@ -1325,7 +1326,7 @@ class krakenfutures extends krakenfutures$1 {
         return this.safeOrder({
             'info': order,
             'id': id,
-            'clientOrderId': this.safeString2(details, 'clientOrderId', 'clientId'),
+            'clientOrderId': this.safeStringN(details, ['clientOrderId', 'clientId', 'cliOrdId']),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
