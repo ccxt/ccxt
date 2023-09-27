@@ -877,6 +877,7 @@ export default class Exchange {
     httpsProxyAgentModule:any = undefined;
     socksProxyAgentModule:any = undefined;
     socksProxyAgentModuleChecked:boolean = false;
+    proxyDictionaries:any = {};
 
     async initializeProxies () {
         // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
@@ -895,18 +896,6 @@ export default class Exchange {
         }
     }
 
-    setProxyAgent () {
-        const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings ();
-        if (httpProxy !== undefined) {
-            this.agent = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
-        }  else if (httpsProxy !== undefined) {
-            this.agent = new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy);
-            this.agent.keepAlive = true;
-        } else if (socksProxy !== undefined) {
-            this.agent = new this.socksProxyAgentModule.SocksProxyAgent(socksProxy);
-        }
-    }
-
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
 
         // ##### PROXY & HEADERS #####
@@ -921,11 +910,30 @@ export default class Exchange {
             url = proxyUrl + url;
         }
         // proxy agents
-        await this.initializeProxies ();
-        this.setProxyAgent ();
-        if (this.agent !== undefined && proxyUrl !== undefined) {
-            throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        await this.initializeProxies ();const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings ();
+        // proxy agents
+        let proxyAgentSet = false;
+        if (httpProxy !== undefined) {
+            if (!(httpProxy in this.proxyDictionaries)) {
+                this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
+            }
+            this.agent = this.proxyDictionaries[httpProxy];
+            proxyAgentSet = true;
+        }  else if (httpsProxy !== undefined) {
+            if (!(httpsProxy in this.proxyDictionaries)) {
+                this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy);
+            }
+            this.agent = this.proxyDictionaries[httpsProxy];
+            this.agent.keepAlive = true;
+            proxyAgentSet = true;
+        } else if (socksProxy !== undefined) {
+            if (!(socksProxy in this.proxyDictionaries)) {
+                this.proxyDictionaries[socksProxy] = new this.socksProxyAgentModule.SocksProxyAgent(socksProxy);
+            }
+            this.agent = this.proxyDictionaries[socksProxy];
+            proxyAgentSet = true;
         }
+        this.checkConflictingProxies (proxyAgentSet, proxyUrl);
         // user-agent
         const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
         if (userAgent && isNode) {
@@ -935,12 +943,12 @@ export default class Exchange {
                 headers = this.extend (userAgent, headers);
             }
         }
+        // set final headers
         headers = this.setHeaders (headers);
-        //
-
         if (this.verbose) {
             this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
         }
+        //
         if (this.fetchImplementation === undefined) {
             if (isNode) {
                 const module = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js')
@@ -1450,6 +1458,12 @@ export default class Exchange {
             throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
         return proxyUrl;
+    }
+
+    checkConflictingProxies (proxyAgentSet, proxyUrlSet) {
+        if (proxyAgentSet && proxyUrlSet) {
+            throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
     }
 
     checkProxySettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
