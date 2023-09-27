@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/kuna.js';
-import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
@@ -682,6 +682,11 @@ export default class kuna extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the kuna api endpoint
+         * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {float} [params.quoteQuantity] *market orders only* how much of currency you want to trade in units of quote currency, only valid when amount is undefined
+         * @param {string} [params.id] id must be a UUID format, if you do not specify id, it will be generated automatically.
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -689,11 +694,20 @@ export default class kuna extends Exchange {
         const request = {
             'market': market['id'],
             'side': side,
-            'volume': amount.toString (),
-            'ord_type': type,
+            'volume': this.numberToString (amount),
+            'ord_type': this.capitalize (type),
         };
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         if (type === 'limit') {
             request['price'] = price.toString ();
+        }
+        if (triggerPrice === undefined) {
+            request['stopPrice'] = this.priceToPrecision (market['symbol'], triggerPrice);
+            if (type === 'limit') {
+                request['type'] = 'StopLossLimit';
+            } else if (type === 'market') {
+                throw new BadRequest (this.id + ' createOrder() cannot place stop market orders, only stop limit');
+            }
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         return this.parseOrder (response, market);
