@@ -1926,7 +1926,7 @@ class bitmart extends Exchange {
         //        "updateTime" : 1681701559408
         //    }
         //
-        // swap => fetchOpenOrders
+        // swap => fetchOrder, fetchOpenOrders
         //
         //     {
         //         "order_id" => "230935812485489",
@@ -2453,28 +2453,93 @@ class bitmart extends Exchange {
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         * fetches information on an order made by the user
          * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-$id-v4-signed
          * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
-         * fetches information on an order made by the user
-         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @see https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
+         * @param {string} $id the $id of the order
+         * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the bitmart api endpoint
-         * @param {string} [$params->clientOrderId] fetch the order by client order $id instead of order $id
+         * @param {string} [$params->clientOrderId] *spot* fetch the order by client order $id instead of order $id
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $request = array();
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        if (!$clientOrderId) {
-            $request['orderId'] = $id;
-        }
+        $type = null;
+        $market = null;
         $response = null;
-        if ($clientOrderId !== null) {
-            $response = $this->privatePostSpotV4QueryClientOrder (array_merge($request, $params));
-        } else {
-            $response = $this->privatePostSpotV4QueryOrder (array_merge($request, $params));
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
         }
+        list($type, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+        if ($type === 'spot') {
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            if (!$clientOrderId) {
+                $request['orderId'] = $id;
+            }
+            if ($clientOrderId !== null) {
+                $response = $this->privatePostSpotV4QueryClientOrder (array_merge($request, $params));
+            } else {
+                $response = $this->privatePostSpotV4QueryOrder (array_merge($request, $params));
+            }
+        } elseif ($type === 'swap') {
+            $this->check_required_symbol('fetchOrder', $symbol);
+            $request['symbol'] = $market['id'];
+            $request['order_id'] = $id;
+            $response = $this->privateGetContractPrivateOrder (array_merge($request, $params));
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "success",
+        //         "data" => array(
+        //             "orderId" => "183347420821295423",
+        //             "clientOrderId" => "183347420821295423",
+        //             "symbol" => "BTC_USDT",
+        //             "side" => "buy",
+        //             "orderMode" => "spot",
+        //             "type" => "limit",
+        //             "state" => "new",
+        //             "price" => "24000.00",
+        //             "priceAvg" => "0.00",
+        //             "size" => "0.00022",
+        //             "filledSize" => "0.00000",
+        //             "notional" => "5.28000000",
+        //             "filledNotional" => "0.00000000",
+        //             "createTime" => 1695783014734,
+        //             "updateTime" => 1695783014762
+        //         ),
+        //         "trace" => "ce3e6422c8b44d5fag855348a68693ed.63.14957831547451715"
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "Ok",
+        //         "data" => array(
+        //             "order_id" => "230927283405028",
+        //             "client_order_id" => "",
+        //             "price" => "23000",
+        //             "size" => "1",
+        //             "symbol" => "BTCUSDT",
+        //             "state" => 2,
+        //             "side" => 1,
+        //             "type" => "limit",
+        //             "leverage" => "10",
+        //             "open_type" => "isolated",
+        //             "deal_avg_price" => "0",
+        //             "deal_size" => "0",
+        //             "create_time" => 1695783433600,
+        //             "update_time" => 1695783433613
+        //         ),
+        //         "trace" => "4cad855075664097af6ba5257c47605d.63.14957831547451715"
+        //     }
+        //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_order($data, null);
+        return $this->parse_order($data, $market);
     }
 
     public function fetch_deposit_address(string $code, $params = array ()) {

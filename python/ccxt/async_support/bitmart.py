@@ -1887,7 +1887,7 @@ class bitmart(Exchange, ImplicitAPI):
         #        "updateTime" : 1681701559408
         #    }
         #
-        # swap: fetchOpenOrders
+        # swap: fetchOrder, fetchOpenOrders
         #
         #     {
         #         "order_id": "230935812485489",
@@ -2369,26 +2369,89 @@ class bitmart(Exchange, ImplicitAPI):
 
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        fetches information on an order made by the user
         see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
         see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
-        fetches information on an order made by the user
+        see https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
+        :param str id: the id of the order
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitmart api endpoint
-        :param str [params.clientOrderId]: fetch the order by client order id instead of order id
+        :param str [params.clientOrderId]: *spot* fetch the order by client order id instead of order id
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         request = {}
-        clientOrderId = self.safe_string(params, 'clientOrderId')
-        if not clientOrderId:
-            request['orderId'] = id
+        type = None
+        market = None
         response = None
-        if clientOrderId is not None:
-            response = await self.privatePostSpotV4QueryClientOrder(self.extend(request, params))
-        else:
-            response = await self.privatePostSpotV4QueryOrder(self.extend(request, params))
+        if symbol is not None:
+            market = self.market(symbol)
+        type, params = self.handle_market_type_and_params('fetchOrder', market, params)
+        if type == 'spot':
+            clientOrderId = self.safe_string(params, 'clientOrderId')
+            if not clientOrderId:
+                request['orderId'] = id
+            if clientOrderId is not None:
+                response = await self.privatePostSpotV4QueryClientOrder(self.extend(request, params))
+            else:
+                response = await self.privatePostSpotV4QueryOrder(self.extend(request, params))
+        elif type == 'swap':
+            self.check_required_symbol('fetchOrder', symbol)
+            request['symbol'] = market['id']
+            request['order_id'] = id
+            response = await self.privateGetContractPrivateOrder(self.extend(request, params))
+        #
+        # spot
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "success",
+        #         "data": {
+        #             "orderId": "183347420821295423",
+        #             "clientOrderId": "183347420821295423",
+        #             "symbol": "BTC_USDT",
+        #             "side": "buy",
+        #             "orderMode": "spot",
+        #             "type": "limit",
+        #             "state": "new",
+        #             "price": "24000.00",
+        #             "priceAvg": "0.00",
+        #             "size": "0.00022",
+        #             "filledSize": "0.00000",
+        #             "notional": "5.28000000",
+        #             "filledNotional": "0.00000000",
+        #             "createTime": 1695783014734,
+        #             "updateTime": 1695783014762
+        #         },
+        #         "trace": "ce3e6422c8b44d5fag855348a68693ed.63.14957831547451715"
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": {
+        #             "order_id": "230927283405028",
+        #             "client_order_id": "",
+        #             "price": "23000",
+        #             "size": "1",
+        #             "symbol": "BTCUSDT",
+        #             "state": 2,
+        #             "side": 1,
+        #             "type": "limit",
+        #             "leverage": "10",
+        #             "open_type": "isolated",
+        #             "deal_avg_price": "0",
+        #             "deal_size": "0",
+        #             "create_time": 1695783433600,
+        #             "update_time": 1695783433613
+        #         },
+        #         "trace": "4cad855075664097af6ba5257c47605d.63.14957831547451715"
+        #     }
+        #
         data = self.safe_value(response, 'data', {})
-        return self.parse_order(data, None)
+        return self.parse_order(data, market)
 
     async def fetch_deposit_address(self, code: str, params={}):
         """
