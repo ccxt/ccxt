@@ -1314,27 +1314,6 @@ class Exchange {
         return (is_string($response_body) && $this->quoteJsonNumbers) ? preg_replace('/":([+.0-9eE-]+)([,}])/', '":"$1"$2', $response_body) : $response_body;
     }
 
-    public function set_proxy_agent($url, $method, $headers, $body) {
-        [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
-        if ($httpProxy !== null) {
-            curl_setopt($this->curl, CURLOPT_PROXY, $httpProxy);
-            curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
-            return true;
-        }  else if ($httpsProxy !== null) {
-            curl_setopt($this->curl, CURLOPT_PROXY, $httpsProxy);
-            curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTPS);
-            // atm we don't make as tunnel
-            // curl_setopt($this->curl, CURLOPT_TUNNEL, 1);
-            // curl_setopt($this->curl, CURLOPT_SUPPRESS_CONNECT_HEADERS, 1);
-            return true;
-        } else if ($socksProxy !== null) {
-            curl_setopt($this->curl, CURLOPT_PROXY, $socksProxy);
-            curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
-            return true;
-        }
-        return false;
-    }
-
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
 
         // https://github.com/ccxt/ccxt/issues/5914
@@ -1358,27 +1337,42 @@ class Exchange {
             $url = $proxyUrl . $url;
         }
         // proxy agents
-        $proxy_set = $this->set_proxy_agent($url, $method, $headers, $body);
-        if ($proxy_set && $proxyUrl !== null) {
-            throw new ExchangeError ($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        $proxyAgentSet = false;
+        [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
+        if ($httpProxy !== null) {
+            curl_setopt($this->curl, CURLOPT_PROXY, $httpProxy);
+            curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+            $proxyAgentSet = true;
+        }  else if ($httpsProxy !== null) {
+            curl_setopt($this->curl, CURLOPT_PROXY, $httpsProxy);
+            curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTPS);
+            $proxyAgentSet = true;
+            // atm we don't make as tunnel
+            // curl_setopt($this->curl, CURLOPT_TUNNEL, 1);
+            // curl_setopt($this->curl, CURLOPT_SUPPRESS_CONNECT_HEADERS, 1);
+        } else if ($socksProxy !== null) {
+            curl_setopt($this->curl, CURLOPT_PROXY, $socksProxy);
+            curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
+            $proxyAgentSet = true;
         }
+        $this->checkConflictingProxies ($proxyAgentSet, $proxyUrl);
         // user-agent
-        $verboseAgentHeaders = array ();
         $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
         if ($userAgent) {
             if (gettype($userAgent) == 'string') {
                 curl_setopt($this->curl, CURLOPT_USERAGENT, $userAgent);
-                $verboseAgentHeaders = array('User-Agent' => $userAgent);
+                $headers = $this->extend(['User-Agent' => $userAgent], $headers);
             } elseif ((gettype($userAgent) == 'array') && array_key_exists('User-Agent', $userAgent)) {
                 curl_setopt($this->curl, CURLOPT_USERAGENT, $userAgent['User-Agent']);
-                $verboseAgentHeaders = $userAgent;
+                $headers = $this->extend($userAgent, $headers);
             }
         }
-
+        // set final headers
         $headers = $this->set_headers($headers);
+        if ($this->verbose) {
+            print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $headers, 'RequestBody:', $body));
+        }
         //
-
-        $verbose_headers = array_merge($headers, $verboseAgentHeaders);
 
         // reorganize headers for curl
         if (is_array($headers)) {
