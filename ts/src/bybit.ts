@@ -3699,10 +3699,10 @@ export default class bybit extends Exchange {
         const isBuy = side === 'buy';
         const setTriggerDirection = (stopLossTriggerPrice || triggerPrice) ? !isBuy : isBuy;
         if (triggerPrice !== undefined) {
-            request['triggerDirection'] = setTriggerDirection ? 1 : 2;
+            request['triggerDirection'] = setTriggerDirection ? 2 : 1;
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-            request['triggerDirection'] = setTriggerDirection ? 2 : 1; // reversed values to account for reduceOnly orders
+            request['triggerDirection'] = setTriggerDirection ? 2 : 1;
             triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
             request['reduceOnly'] = true;
