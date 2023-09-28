@@ -2,11 +2,11 @@
 // ----------------------------------------------------------------------------
 
 import Exchange from './abstract/coinbase.js';
-import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InvalidNonce, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import { DECIMAL_PLACES, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 // ----------------------------------------------------------------------------
 
@@ -388,42 +388,53 @@ export default class coinbase extends Exchange {
 
     async fetchAccountsV3 (params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'limit': 100,
-        };
-        const response = await this.v3PrivateGetBrokerageAccounts (this.extend (request, params));
-        //
-        //     {
-        //         "accounts": [
-        //             {
-        //                 "uuid": "11111111-1111-1111-1111-111111111111",
-        //                 "name": "USDC Wallet",
-        //                 "currency": "USDC",
-        //                 "available_balance": {
-        //                     "value": "0.0000000000000000",
-        //                     "currency": "USDC"
-        //                 },
-        //                 "default": true,
-        //                 "active": true,
-        //                 "created_at": "2023-01-04T06:20:06.456Z",
-        //                 "updated_at": "2023-01-04T06:20:07.181Z",
-        //                 "deleted_at": null,
-        //                 "type": "ACCOUNT_TYPE_CRYPTO",
-        //                 "ready": false,
-        //                 "hold": {
-        //                     "value": "0.0000000000000000",
-        //                     "currency": "USDC"
-        //                 }
-        //             },
-        //             ...
-        //         ],
-        //         "has_next": false,
-        //         "cursor": "",
-        //         "size": 9
-        //     }
-        //
-        const data = this.safeValue (response, 'accounts', []);
-        return this.parseAccounts (data, params);
+        let hasNext = true;
+        let cursor = null;
+        let accounts = [];
+        while (hasNext) {
+            const parameters = {
+                'cursor': cursor,
+                'limit': 250,
+            };
+            const accountsResponse = await this.v3PrivateGetBrokerageAccounts (
+                this.extend (parameters, params)
+            );
+            //
+            //     {
+            //         "accounts": [
+            //             {
+            //                 "uuid": "11111111-1111-1111-1111-111111111111",
+            //                 "name": "USDC Wallet",
+            //                 "currency": "USDC",
+            //                 "available_balance": {
+            //                     "value": "0.0000000000000000",
+            //                     "currency": "USDC"
+            //                 },
+            //                 "default": true,
+            //                 "active": true,
+            //                 "created_at": "2023-01-04T06:20:06.456Z",
+            //                 "updated_at": "2023-01-04T06:20:07.181Z",
+            //                 "deleted_at": null,
+            //                 "type": "ACCOUNT_TYPE_CRYPTO",
+            //                 "ready": false,
+            //                 "hold": {
+            //                     "value": "0.0000000000000000",
+            //                     "currency": "USDC"
+            //                 }
+            //             },
+            //             ...
+            //         ],
+            //         "has_next": false,
+            //         "cursor": "",
+            //         "size": 9
+            //     }
+            //
+            hasNext = this.safeValue (accountsResponse, 'has_next');
+            cursor = this.safeValue (accountsResponse, 'cursor');
+            const result = this.safeValue (accountsResponse, 'accounts', []);
+            accounts = accounts.concat (result);
+        }
+        return this.parseAccounts (accounts, params);
     }
 
     parseAccount (account) {
@@ -494,6 +505,7 @@ export default class coinbase extends Exchange {
             'type': (active !== undefined) ? this.safeStringLower (parts, 1) : typeV2,
             'code': this.safeCurrencyCode (currencyId),
             'info': account,
+            'active': active,
         };
     }
 
