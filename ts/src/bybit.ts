@@ -3521,11 +3521,34 @@ export default class bybit extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined;
         }
+        const avgPrice = this.omitZero (this.safeString (order, 'avgPrice'));
         const rawTimeInForce = this.safeString (order, 'timeInForce');
         const timeInForce = this.parseTimeInForce (rawTimeInForce);
         const stopPrice = this.omitZero (this.safeString (order, 'triggerPrice'));
-        const takeProfitPrice = this.omitZero (this.safeString (order, 'takeProfit'));
-        const stopLossPrice = this.omitZero (this.safeString (order, 'stopLoss'));
+        const reduceOnly = this.safeValue (order, 'reduceOnly');
+        let takeProfitPrice = this.omitZero (this.safeString (order, 'takeProfit'));
+        let stopLossPrice = this.omitZero (this.safeString (order, 'stopLoss'));
+        const triggerDirection = this.safeString (order, 'triggerDirection');
+        const isAscending = (triggerDirection === '1');
+        const isStopOrderType2 = (stopPrice !== undefined) && reduceOnly;
+        if ((stopLossPrice === undefined) && isStopOrderType2) {
+            // check if order is stop order type 2 - stopLossPrice
+            if (isAscending && (side === 'buy')) {
+                stopLossPrice = stopPrice;
+            }
+            if (!isAscending && (side === 'sell')) {
+                stopLossPrice = stopPrice;
+            }
+        }
+        if ((takeProfitPrice === undefined) && isStopOrderType2) {
+            // check if order is stop order type 2 - takeProfitPrice
+            if (isAscending && (side === 'sell')) {
+                takeProfitPrice = stopPrice;
+            }
+            if (!isAscending && (side === 'buy')) {
+                takeProfitPrice = stopPrice;
+            }
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -3547,7 +3570,7 @@ export default class bybit extends Exchange {
             'stopLossPrice': stopLossPrice,
             'amount': amount,
             'cost': cost,
-            'average': undefined,
+            'average': avgPrice,
             'filled': filled,
             'remaining': remaining,
             'status': status,
