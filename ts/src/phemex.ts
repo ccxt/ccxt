@@ -1147,15 +1147,18 @@ export default class phemex extends Exchange {
         let response = undefined;
         if (market['linear'] || market['settle'] === 'USDT') {
             if ((until !== undefined) || (since !== undefined)) {
+                const candleDuration = this.parseTimeframe (timeframe);
                 if (since !== undefined) {
                     since = since / 1000;
                     request['from'] = since;
+                } else {
+                    // when 'since' is mandatory since is mandatory
+                    since = until - (maxLimit * candleDuration);
                 }
                 if (until !== undefined) {
                     request['to'] = until;
                 } else {
                     // when since is defined 'to' is mandatory
-                    const candleDuration = this.parseTimeframe (timeframe);
                     const to = since + (maxLimit * candleDuration);
                     request['to'] = to;
                 }
