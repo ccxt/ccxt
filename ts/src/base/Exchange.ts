@@ -4592,9 +4592,10 @@ export default class Exchange {
         return this.removeRepeatedElementsFromArray (result);
     }
 
-    async fetchPaginatedCallDeterministic (method: string, symbol: string = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = 1000): Promise<any> {
+    async fetchPaginatedCallDeterministic (method: string, symbol: string = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = undefined): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 20);
+        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest', 1000);
         const now = this.milliseconds ();
         const tasks = [];
         const time = this.parseTimeframe (timeframe) * 1000;
