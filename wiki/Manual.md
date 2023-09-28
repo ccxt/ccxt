@@ -5660,9 +5660,9 @@ while 'YOUR_PROXY_URL' could be like (use the slash accordingly):
 - `http://your-website.com/sample-script.php?url=`
 - etc
 
-So requests will be made to i.e. `https://cors-anywhere.herokuapp.com/https://exchange.xyz/api/endpoint`. Note, this works only for REST requests, but not for websocket connections. (_How to test if your proxy works_)[#test-if-your-proxy-works]
+So requests will be made to i.e. `https://cors-anywhere.herokuapp.com/https://exchange.xyz/api/endpoint`. ( You can also have a small proxy script running on your device/webserver to use it in `.proxyUrl` -  "sample-local-proxy-server" in [examples folder](https://github.com/ccxt/ccxt/tree/master/examples)).
 
-You can also have a small proxy script running on your device/webserver to use it in `.proxyUrl`. See a sample script named "sample-local-proxy-server" in [examples folder](https://github.com/ccxt/ccxt/tree/master/examples).
+This approach works **only for REST** requests, but not for websocket connections. ((_How to test if your proxy works_)[#test-if-your-proxy-works])
 
 #### httpProxy and httpsProxy
 To set a real http(s) proxy for your scripts, you need to have an access to a remote [http or https proxy](https://stackoverflow.com/q/10440690/2377343), so calls are made directly to target server, tunneled through a proxy server:
@@ -5671,27 +5671,22 @@ ex.httpProxy = 'http://1.2.3.4:8080/';
 // or
 ex.httpsProxy = 'http://1.2.3.4:8080/';
 ```
-(Note, this property works for websocket connections too)
+This approach works for websocket connections too. ((_How to test if your proxy works_)[#test-if-your-proxy-works])
+
 #### socksProxy
 You can also use [socks proxy](https://www.google.com/search?q=what+is+socks+proxy) with the following format:
 ```
 ex.socksProxy = 'socks5://1.2.3.4:8080/';
 ```
-(Note, this property works for websocket connections too)
+This approach works for websocket connections too. ((_How to test if your proxy works_)[#test-if-your-proxy-works])
 
 #### Test if your proxy works
-After setting any of the above listed proxy properties in your ccxt snippet, you can test if it works by pinging some IP echoing websites. Please check an "proxy-usage" file in [examples](https://github.com/ccxt/ccxt/blob/master/examples/)
+After setting any of the above listed proxy properties in your ccxt snippet, you can test whether it works by pinging some IP echoing websites - check a "proxy-usage" file in [examples](https://github.com/ccxt/ccxt/blob/master/examples/).
 
 #### using proxy callbacks
-**Note, in addition to above properties, you can also set callbacks instead of strings to any from `proxyUrlCallback, http(s)ProxyCallback, socksProxyCallback`. The callback signature should be like:
+**Note, in addition to above properties, you can also set callbacks instead of strings to any from `proxyUrlCallback, http(s)ProxyCallback, socksProxyCallback`:
 ```
-function my_callback(url, method, headers, body) {
-    if (my_condition) {
-        return 'http://222.222.222.222';
-    } else {
-        return 'http://333.333.333.333';
-    }
-}
+myEx.proxyUrlCallback = function (url, method, headers, body) { ... return 'http://1.2.3.4/'; }
 ```
 ### extra proxy related details
 

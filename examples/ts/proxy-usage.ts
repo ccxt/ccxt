@@ -21,15 +21,6 @@ async function example_3 () {
     console.log (await myEx.fetch ('https://api.ipify.org/'));
 }
 
-// Note, you can use your callback (instead of string value) for each of them, i.e.:
-//
-//     myEx.proxyUrlCallback = function (url, method, headers, body) { return 'http://1.2.3.4/'; }
-//              or
-//     myEx.proxyUrlCallback = my_callback_function;
-//              or
-//     myEx.proxyUrlCallback = '\yourNamesPace\yourFunction'; // only in php
-
-
 await example_1 ();
 // await example_2 ();
 // await example_3 ();
