@@ -453,6 +453,12 @@ class kucoinfutures(kucoin):
                     'min': self.safe_number(market, 'quoteMinSize'),
                     'max': self.safe_number(market, 'quoteMaxSize'),
                 },
+                'orders': {
+                    'max': 100
+                },
+                'conditional_orders': {
+                    'max': 50
+                },
             },
             'info': market,
         }
