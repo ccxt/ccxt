@@ -702,6 +702,7 @@ export default class bybit extends Exchange {
                     '10027': PermissionDenied,
                     '10028': PermissionDenied,
                     '10029': PermissionDenied,
+                    '12137': InvalidOrder,
                     '12201': BadRequest,
                     '12141': BadRequest,
                     '100028': PermissionDenied,

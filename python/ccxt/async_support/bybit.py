@@ -717,6 +717,7 @@ class bybit(Exchange, ImplicitAPI):
                     '10027': PermissionDenied,  # Trading Banned
                     '10028': PermissionDenied,  # The API can only be accessed by unified account users.
                     '10029': PermissionDenied,  # The requested symbol is invalid, please check symbol whitelist
+                    '12137': InvalidOrder,  # {"retCode":12137,"retMsg":"Order quantity has too many decimals.","result":{},"retExtInfo":{},"time":1695900943033}
                     '12201': BadRequest,  # {"retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":{},"retExtInfo":null,"time":1666699391220}
                     '12141': BadRequest,  # "retCode":12141,"retMsg":"Duplicate clientOrderId.","result":{},"retExtInfo":{},"time":1686134298989}
                     '100028': PermissionDenied,  # The API cannot be accessed by unified account users.

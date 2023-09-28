@@ -699,6 +699,7 @@ class bybit extends bybit$1 {
                     '10027': errors.PermissionDenied,
                     '10028': errors.PermissionDenied,
                     '10029': errors.PermissionDenied,
+                    '12137': errors.InvalidOrder,
                     '12201': errors.BadRequest,
                     '12141': errors.BadRequest,
                     '100028': errors.PermissionDenied,
