@@ -1149,17 +1149,21 @@ export default class phemex extends Exchange {
             if ((until !== undefined) || (since !== undefined)) {
                 const candleDuration = this.parseTimeframe (timeframe);
                 if (since !== undefined) {
-                    since = since / 1000;
+                    since = Math.round (since / 1000);
                     request['from'] = since;
                 } else {
                     // when 'to' is defined since is mandatory
-                    since = until - (maxLimit * candleDuration);
+                    since = (until / 100) - (maxLimit * candleDuration);
                 }
                 if (until !== undefined) {
-                    request['to'] = until;
+                    request['to'] = Math.round (until / 1000);
                 } else {
                     // when since is defined 'to' is mandatory
-                    const to = since + (maxLimit * candleDuration);
+                    let to = since + (maxLimit * candleDuration);
+                    const now = this.seconds ();
+                    if (to > now) {
+                        to = now;
+                    }
                     request['to'] = to;
                 }
                 response = await this.publicGetMdV2KlineList (this.extend (request, params));
