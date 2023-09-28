@@ -3534,18 +3534,22 @@ export default class bybit extends Exchange {
         if ((stopLossPrice === undefined) && isStopOrderType2) {
             // check if order is stop order type 2 - stopLossPrice
             if (isAscending && (side === 'buy')) {
+                // stopLoss order against short position
                 stopLossPrice = stopPrice;
             }
             if (!isAscending && (side === 'sell')) {
+                // stopLoss order against a long position
                 stopLossPrice = stopPrice;
             }
         }
         if ((takeProfitPrice === undefined) && isStopOrderType2) {
             // check if order is stop order type 2 - takeProfitPrice
             if (isAscending && (side === 'sell')) {
+                // takeprofit order against a long position
                 takeProfitPrice = stopPrice;
             }
             if (!isAscending && (side === 'buy')) {
+                // takeprofit order against a short position
                 takeProfitPrice = stopPrice;
             }
         }
