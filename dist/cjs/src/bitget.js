@@ -888,6 +888,7 @@ class bitget extends bitget$1 {
                     '40712': errors.InsufficientFunds,
                     '40713': errors.ExchangeError,
                     '40714': errors.ExchangeError,
+                    '40768': errors.OrderNotFound,
                     '41114': errors.OnMaintenance,
                     '43011': errors.InvalidOrder,
                     '43025': errors.InvalidOrder,

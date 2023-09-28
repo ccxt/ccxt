@@ -894,6 +894,7 @@ class bitget extends Exchange {
                     '40712' => '\\ccxt\\InsufficientFunds', // Insufficient margin
                     '40713' => '\\ccxt\\ExchangeError', // Cannot exceed the maximum transferable margin amount
                     '40714' => '\\ccxt\\ExchangeError', // No direct margin call is allowed
+                    '40768' => '\\ccxt\\OrderNotFound', // Order does not exist"
                     '41114' => '\\ccxt\\OnMaintenance', // array("code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null)
                     '43011' => '\\ccxt\\InvalidOrder', // The parameter does not meet the specification executePrice <= 0
                     '43025' => '\\ccxt\\InvalidOrder', // Plan order does not exist

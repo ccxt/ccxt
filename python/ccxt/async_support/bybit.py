@@ -721,7 +721,7 @@ class bybit(Exchange, ImplicitAPI):
                     '12201': BadRequest,  # {"retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":{},"retExtInfo":null,"time":1666699391220}
                     '12141': BadRequest,  # "retCode":12141,"retMsg":"Duplicate clientOrderId.","result":{},"retExtInfo":{},"time":1686134298989}
                     '100028': PermissionDenied,  # The API cannot be accessed by unified account users.
-                    '110001': InvalidOrder,  # Order does not exist
+                    '110001': OrderNotFound,  # Order does not exist
                     '110003': InvalidOrder,  # Order price is out of permissible range
                     '110004': InsufficientFunds,  # Insufficient wallet balance
                     '110005': InvalidOrder,  # position status

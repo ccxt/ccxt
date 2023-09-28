@@ -706,7 +706,7 @@ export default class bybit extends Exchange {
                     '12201': BadRequest,
                     '12141': BadRequest,
                     '100028': PermissionDenied,
-                    '110001': InvalidOrder,
+                    '110001': OrderNotFound,
                     '110003': InvalidOrder,
                     '110004': InsufficientFunds,
                     '110005': InvalidOrder,
