@@ -1077,6 +1077,8 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrdersByPair
+         * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyActiveStopOrdersByPair  // stop
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1134,6 +1136,10 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrders
+         * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrdersByPair
+         * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrders       // stop
+         * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrdersByPair // stop
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -1201,6 +1207,8 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
+         * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
          * @param {string} [symbol] not used by latoken fetchOrder
          * @param {object} [params] extra parameters specific to the latoken api endpoint
          * @param {boolean} [params.trigger] true if fetching a trigger order
@@ -1246,6 +1254,8 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#createOrder
          * @description create a trade order
+         * @see https://api.latoken.com/doc/v2/#tag/Order/operation/placeOrder
+         * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/placeStopOrder  // stop
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1305,6 +1315,8 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#cancelOrder
          * @description cancels an open order
+         * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
+         * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
          * @param {string} id order id
          * @param {string} symbol not used by latoken cancelOrder ()
          * @param {object} [params] extra parameters specific to the latoken api endpoint
@@ -1340,6 +1352,8 @@ export default class latoken extends Exchange {
          * @method
          * @name latoken#cancelAllOrders
          * @description cancel all open orders in a market
+         * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
+         * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the latoken api endpoint
          * @param {boolean} [params.trigger] true if cancelling trigger orders
