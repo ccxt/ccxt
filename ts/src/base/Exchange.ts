@@ -4595,7 +4595,14 @@ export default class Exchange {
     async fetchPaginatedCallDeterministic (method: string, symbol: string = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = undefined): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 20);
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest', 1000);
+        let newMaxEntriesPerRequest = undefined;
+        [ newMaxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
+        if ((newMaxEntriesPerRequest !== undefined) && (newMaxEntriesPerRequest !== maxEntriesPerRequest)) {
+            maxEntriesPerRequest = newMaxEntriesPerRequest;
+        }
+        if (maxEntriesPerRequest === undefined) {
+            maxEntriesPerRequest = 1000; // default to 1000
+        }
         const now = this.milliseconds ();
         const tasks = [];
         const time = this.parseTimeframe (timeframe) * 1000;
