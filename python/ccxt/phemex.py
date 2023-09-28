@@ -1093,9 +1093,10 @@ class phemex(Exchange, ImplicitAPI):
         see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int [since]: *emulated not supported by the exchange* timestamp in ms of the earliest candle to fetch
+        :param int [since]: *only used for USDT settled contracts, otherwise is emulated and not supported by the exchange* timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the phemex api endpoint
+        :param int [params.until]: *USDT settled/ linear swaps only* end time in ms
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -1105,27 +1106,44 @@ class phemex(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        possibleLimitValues = [5, 10, 50, 100, 500, 1000]
+        until = self.safe_integer_2(params, 'until', 'to')
+        params = self.omit(params, ['until'])
+        usesSpecialFromToEndpoint = ((market['linear'] or market['settle'] == 'USDT')) and ((since is not None) or (until is not None))
         maxLimit = 1000
-        if limit is None and since is None:
-            limit = possibleLimitValues[5]
-        if since is not None:
-            # phemex also provides kline query with from/to, however, self interface is NOT recommended and does not work properly.
-            # we do not send since param to the exchange, instead we calculate appropriate limit param
-            duration = self.parse_timeframe(timeframe) * 1000
-            timeDelta = self.milliseconds() - since
-            limit = self.parse_to_int(timeDelta / duration)  # setting limit to the number of candles after since
-        if limit > maxLimit:
+        if usesSpecialFromToEndpoint:
+            maxLimit = 2000
+        if limit is None:
             limit = maxLimit
-        else:
-            for i in range(0, len(possibleLimitValues)):
-                if limit <= possibleLimitValues[i]:
-                    limit = possibleLimitValues[i]
-        request['limit'] = limit
+        request['limit'] = min(limit, maxLimit)
         response = None
         if market['linear'] or market['settle'] == 'USDT':
-            response = self.publicGetMdV2KlineLast(self.extend(request, params))
+            if (until is not None) or (since is not None):
+                candleDuration = self.parse_timeframe(timeframe)
+                if since is not None:
+                    since = int(round(since / 1000))
+                    request['from'] = since
+                else:
+                    # when 'to' is defined since is mandatory
+                    since = (until / 100) - (maxLimit * candleDuration)
+                if until is not None:
+                    request['to'] = int(round(until / 1000))
+                else:
+                    # when since is defined 'to' is mandatory
+                    to = since + (maxLimit * candleDuration)
+                    now = self.seconds()
+                    if to > now:
+                        to = now
+                    request['to'] = to
+                response = self.publicGetMdV2KlineList(self.extend(request, params))
+            else:
+                response = self.publicGetMdV2KlineLast(self.extend(request, params))
         else:
+            if since is not None:
+                # phemex also provides kline query with from/to, however, self interface is NOT recommended and does not work properly.
+                # we do not send since param to the exchange, instead we calculate appropriate limit param
+                duration = self.parse_timeframe(timeframe) * 1000
+                timeDelta = self.milliseconds() - since
+                limit = self.parse_to_int(timeDelta / duration)  # setting limit to the number of candles after since
             response = self.publicGetMdV2Kline(self.extend(request, params))
         #
         #     {
