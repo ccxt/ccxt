@@ -2100,14 +2100,27 @@ export default class okx extends Exchange {
         defaultType = this.safeString (options, 'type', defaultType); // Candles or HistoryCandles
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        let method = 'publicGetMarket' + type;
         const isHistoryCandles = (type === 'HistoryCandles');
+        let response = undefined;
         if (price === 'mark') {
-            method = (isHistoryCandles) ? 'publicGetMarketHistoryMarkPriceCandles' : 'publicGetMarketMarkPriceCandles';
+            if (isHistoryCandles) {
+                response = await this.publicGetMarketHistoryMarkPriceCandles (this.extend (request, params));
+            } else {
+                response = await this.publicGetMarketMarkPriceCandles (this.extend (request, params));
+            }
         } else if (price === 'index') {
-            method = (isHistoryCandles) ? 'publicGetMarketHistoryIndexCandles' : 'publicGetMarketIndexCandles';
+            if (isHistoryCandles) {
+                response = await this.publicGetMarketHistoryIndexCandles (this.extend (request, params));
+            } else {
+                response = await this.publicGetMarketIndexCandles (this.extend (request, params));
+            }
+        } else {
+            if (isHistoryCandles) {
+                response = await this.publicGetMarketHistoryCandles (this.extend (request, params));
+            } else {
+                response = await this.publicGetMarketCandles (this.extend (request, params));
+            }
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": "0",
