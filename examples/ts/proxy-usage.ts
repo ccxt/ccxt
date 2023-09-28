@@ -4,14 +4,14 @@ import ccxt from '../../ts/ccxt.js';
 // AUTO-TRANSPILE //
 async function example_1 () {
     const myEx = new ccxt.kucoin ();
-    myEx.proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // It prepends redirect url to requests, so requests leads to call url i.e.: https://cors-anywhere.herokuapp.com/?https://target_url.com . It might be useful for simple redirection or CORS bypassing purposes (Note, this will not work for websocket connections, but only for REST calls).
+    myEx.proxyUrl = 'https://cors-anywhere.herokuapp.com/';
     console.log (await myEx.fetch ('https://api.ipify.org/'));
 }
 
 async function example_2 () {
     const myEx = new ccxt.kucoin ();
     // "httpProxy" or "httpsProxy" (depending on your proxy protocol)
-    myEx.httpsProxy = 'http://1.2.3.4:5555'; // It sets a real proxy for communication, so calls are made directly to url https://target_url.com , but tunneled through a proxy server (Note, this might work for websocket connections too).
+    myEx.httpsProxy = 'http://1.2.3.4:5555';
     console.log (await myEx.fetch ('https://api.ipify.org/'));
 }
 
