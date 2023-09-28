@@ -1178,7 +1178,7 @@ export default class latoken extends Exchange {
             if (isTrigger) {
                 response = await this.privateGetAuthStopOrder (this.extend (request, params));
             } else {
-                response = await this.privateGetAuthOrderActive (this.extend (request, params));
+                response = await this.privateGetAuthOrder (this.extend (request, params));
             }
         }
         //
