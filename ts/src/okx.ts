@@ -2335,16 +2335,15 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let method = undefined;
-        if (marketType === 'funding') {
-            method = 'privateGetAssetBalances';
-        } else {
-            method = 'privateGetAccountBalance';
-        }
         const request = {
             // 'ccy': 'BTC,ETH', // comma-separated list of currency ids
         };
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (marketType === 'funding') {
+            response = await this.privateGetAssetBalances (this.extend (request, query));
+        } else {
+            response = await this.privateGetAccountBalance (this.extend (request, query));
+        }
         //
         //     {
         //         "code": "0",
