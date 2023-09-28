@@ -4620,11 +4620,12 @@ export default class Exchange {
         return this.removeRepeatedElementsFromArray (result) as any;
     }
 
-    async fetchPaginatedCallCursor (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, cursorKey = undefined, maxEntriesPerRequest = 1000): Promise<any> {
+    async fetchPaginatedCallCursor (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, cursorKey = undefined, maxEntriesPerRequest = undefined): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 20);
         let maxRetries = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest', 1000);
         let cursorValue = undefined;
         let i = 0;
         let errors = 0;
