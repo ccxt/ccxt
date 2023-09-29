@@ -1095,20 +1095,17 @@ export default class latoken extends Exchange {
         let market = undefined;
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, 'stop');
-        if (symbol === undefined) {
-            // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+        this.checkRequiredSymbol ('fetchOpenOrders', symbol);
+        // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
+        market = this.market (symbol);
+        const request = {
+            'currency': market['baseId'],
+            'quote': market['quoteId'],
+        };
+        if (isTrigger) {
+            response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive (this.extend (request, params));
         } else {
-            market = this.market (symbol);
-            const request = {
-                'currency': market['baseId'],
-                'quote': market['quoteId'],
-            };
-            if (isTrigger) {
-                response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive (this.extend (request, params));
-            } else {
-                response = await this.privateGetAuthOrderPairCurrencyQuoteActive (this.extend (request, params));
-            }
+            response = await this.privateGetAuthOrderPairCurrencyQuoteActive (this.extend (request, params));
         }
         //
         //     [
@@ -1292,6 +1289,7 @@ export default class latoken extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
         let response = undefined;
         if (triggerPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
