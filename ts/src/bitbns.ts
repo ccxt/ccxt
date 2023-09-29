@@ -749,8 +749,9 @@ export default class bitbns extends Exchange {
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the bitbns api endpoint
+         * @param {boolean} [params.trigger] true if fetching trigger orders
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         if (symbol === undefined) {
@@ -758,11 +759,13 @@ export default class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtListOpenOrders' : 'listOpenOrders';
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        params = this.omit (params, [ 'trigger', 'stop' ]);
+        const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtListOpen' : 'listOpen';
         const request = {
             'symbol': market['uppercaseId'],
-            'side': quoteSide,
             'page': 0,
+            'side': isTrigger ? (quoteSide + 'StopOrders') : (quoteSide + 'Orders'),
         };
         const response = await this.v2PostGetordersnew (this.extend (request, params));
         //
