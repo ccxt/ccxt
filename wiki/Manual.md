@@ -5684,10 +5684,11 @@ This approach works for websocket connections too. ((_How to test if your proxy 
 After setting any of the above listed proxy properties in your ccxt snippet, you can test whether it works by pinging some IP echoing websites - check a "proxy-usage" file in [examples](https://github.com/ccxt/ccxt/blob/master/examples/).
 
 #### using proxy callbacks
-**Note, in addition to above properties, you can also set callbacks instead of strings to any from `proxyUrlCallback, http(s)ProxyCallback, socksProxyCallback`:
+**Instead of setting a property, you can also use callbacks `proxyUrlCallback, http(s)ProxyCallback, socksProxyCallback`:
 ```
 myEx.proxyUrlCallback = function (url, method, headers, body) { ... return 'http://1.2.3.4/'; }
 ```
+
 ### extra proxy related details
 
 #### userAgent
