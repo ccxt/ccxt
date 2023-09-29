@@ -1319,7 +1319,7 @@ class bitmart extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
-        // public fetchTrades spot ( $amount = count * $price )
+        // public fetchTrades spot ( $amount = count * price )
         //
         //     {
         //          "amount" => "818.94",
@@ -1329,7 +1329,7 @@ class bitmart extends Exchange {
         //          "type" => "buy"
         //      }
         //
-        // private fetchMyTrades spot
+        // spot => fetchMyTrades
         //
         //     {
         //         "tradeId":"182342999769370687",
@@ -1348,27 +1348,41 @@ class bitmart extends Exchange {
         //         "createTime":1695658457836,
         //     }
         //
-        $id = $this->safe_string($trade, 'tradeId');
-        $timestamp = $this->safe_integer_2($trade, 'order_time', 'createTime');
-        $side = $this->safe_string_lower_2($trade, 'side', 'type');
-        $takerOrMaker = $this->safe_string($trade, 'tradeRole');
+        // swap => fetchMyTrades
+        //
+        //     {
+        //         "order_id" => "230930336848609",
+        //         "trade_id" => "6212604014",
+        //         "symbol" => "BTCUSDT",
+        //         "side" => 3,
+        //         "price" => "26910.4",
+        //         "vol" => "1",
+        //         "exec_type" => "Taker",
+        //         "profit" => false,
+        //         "create_time" => 1695961596692,
+        //         "realised_profit" => "-0.0003",
+        //         "paid_fees" => "0.01614624"
+        //     }
+        //
+        $timestamp = $this->safe_integer_n($trade, array( 'order_time', 'createTime', 'create_time' ));
         $isPublicTrade = (is_array($trade) && array_key_exists('order_time', $trade));
-        $price = $this->safe_string($trade, 'price');
         $amount = null;
         $cost = null;
         $type = null;
+        $side = null;
         if ($isPublicTrade) {
             $amount = $this->safe_string($trade, 'count');
             $cost = $this->safe_string($trade, 'amount');
+            $side = $this->safe_string($trade, 'type');
         } else {
-            $amount = $this->safe_string($trade, 'size');
+            $amount = $this->safe_string_2($trade, 'size', 'vol');
             $cost = $this->safe_string($trade, 'notional');
             $type = $this->safe_string($trade, 'type');
+            $side = $this->parse_order_side($this->safe_string($trade, 'side'));
         }
-        $orderId = $this->safe_string($trade, 'orderId');
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market, '_');
-        $feeCostString = $this->safe_string($trade, 'fee');
+        $market = $this->safe_market($marketId, $market);
+        $feeCostString = $this->safe_string_2($trade, 'fee', 'paid_fees');
         $fee = null;
         if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeCoinName');
@@ -1383,17 +1397,17 @@ class bitmart extends Exchange {
         }
         return $this->safe_trade(array(
             'info' => $trade,
-            'id' => $id,
-            'order' => $orderId,
+            'id' => $this->safe_string_2($trade, 'tradeId', 'trade_id'),
+            'order' => $this->safe_string_2($trade, 'orderId', 'order_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,
-            'price' => $price,
+            'price' => $this->safe_string($trade, 'price'),
             'amount' => $amount,
             'cost' => $cost,
-            'takerOrMaker' => $takerOrMaker,
+            'takerOrMaker' => $this->safe_string_lower_2($trade, 'tradeRole', 'exec_type'),
             'fee' => $fee,
         ), $market);
     }
@@ -1595,6 +1609,7 @@ class bitmart extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
+             * @see https://developer-pro.bitmart.com/en/futures/#get-order-trade-keyed
              * fetch all trades made by the user
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -1609,32 +1624,44 @@ class bitmart extends Exchange {
             $request = array();
             if ($symbol !== null) {
                 $market = $this->market($symbol);
-            }
-            $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
-            if ($type !== 'spot') {
-                throw new NotSupported($this->id . ' fetchMyTrades() does not support ' . $type . ' orders, only spot orders are accepted');
-            }
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
-            if ($marginMode === 'isolated') {
-                $request['orderMode'] = 'iso_margin';
-            }
-            $options = $this->safe_value($this->options, 'fetchMyTrades', array());
-            $defaultLimit = $this->safe_integer($options, 'limit', 200);
-            if ($limit === null) {
-                $limit = $defaultLimit;
-            }
-            $request['limit'] = $limit;
-            if ($symbol !== null) {
                 $request['symbol'] = $market['id'];
             }
-            $until = $this->safe_integer_2($params, 'until', 'endTime');
-            if ($until !== null) {
-                $params = $this->omit($params, array( 'endTime' ));
-                $request['endTime'] = $until;
+            $type = null;
+            $response = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+            $until = $this->safe_integer_n($params, array( 'until', 'endTime', 'end_time' ));
+            $params = $this->omit($params, array( 'until' ));
+            if ($type === 'spot') {
+                $marginMode = null;
+                list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
+                if ($marginMode === 'isolated') {
+                    $request['orderMode'] = 'iso_margin';
+                }
+                $options = $this->safe_value($this->options, 'fetchMyTrades', array());
+                $defaultLimit = $this->safe_integer($options, 'limit', 200);
+                if ($limit === null) {
+                    $limit = $defaultLimit;
+                }
+                $request['limit'] = $limit;
+                if ($since !== null) {
+                    $request['startTime'] = $since;
+                }
+                if ($until !== null) {
+                    $request['endTime'] = $until;
+                }
+                $response = Async\await($this->privatePostSpotV4QueryTrades (array_merge($request, $params)));
+            } elseif ($type === 'swap') {
+                $this->check_required_symbol('fetchMyTrades', $symbol);
+                if ($since !== null) {
+                    $request['start_time'] = $since;
+                }
+                if ($until !== null) {
+                    $request['end_time'] = $until;
+                }
+                $response = Async\await($this->privateGetContractPrivateTrades (array_merge($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' fetchMyTrades() does not support ' . $type . ' orders, only spot and swap orders are accepted');
             }
-            $response = Async\await($this->privatePostSpotV4QueryTrades (array_merge($request, $params)));
             //
             // spot
             //
@@ -1662,6 +1689,29 @@ class bitmart extends Exchange {
             //        ),
             //        "trace":"fbaee9e0e2f5442fba5b3262fc86b0ac.65.16956593456523085"
             //    }
+            //
+            // swap
+            //
+            //     {
+            //         "code" => 1000,
+            //         "message" => "Ok",
+            //         "data" => array(
+            //             array(
+            //                 "order_id" => "230930336848609",
+            //                 "trade_id" => "6212604014",
+            //                 "symbol" => "BTCUSDT",
+            //                 "side" => 3,
+            //                 "price" => "26910.4",
+            //                 "vol" => "1",
+            //                 "exec_type" => "Taker",
+            //                 "profit" => false,
+            //                 "create_time" => 1695961596692,
+            //                 "realised_profit" => "-0.0003",
+            //                 "paid_fees" => "0.01614624"
+            //             ),
+            //         ),
+            //         "trace" => "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
+            //     }
             //
             $data = $this->safe_value($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
@@ -2038,10 +2088,10 @@ class bitmart extends Exchange {
 
     public function parse_order_side($side) {
         $sides = array(
-            '1' => 'open long',
-            '2' => 'close short',
-            '3' => 'close long',
-            '4' => 'open short',
+            '1' => 'buy',
+            '2' => 'buy',
+            '3' => 'sell',
+            '4' => 'sell',
         );
         return $this->safe_string($sides, $side, $side);
     }
