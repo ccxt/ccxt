@@ -4603,11 +4603,11 @@ export default class Exchange {
         if (maxEntriesPerRequest === undefined) {
             maxEntriesPerRequest = 1000; // default to 1000
         }
-        const now = this.milliseconds ();
+        const current = this.milliseconds ();
         const tasks = [];
         const time = this.parseTimeframe (timeframe) * 1000;
         const step = time * maxEntriesPerRequest;
-        let currentSince = now - (maxCalls * step) - 1;
+        let currentSince = current - (maxCalls * step) - 1;
         if (since !== undefined) {
             currentSince = Math.max (currentSince, since);
         }
