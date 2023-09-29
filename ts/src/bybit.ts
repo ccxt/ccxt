@@ -3738,7 +3738,8 @@ export default class bybit extends Exchange {
         params = this.omit (params, 'triggerDirection');
         let selectedDirection = defaultTriggerDirection;
         if (triggerDirection !== undefined) {
-            selectedDirection = ((triggerDirection === 'up') || (triggerDirection === '1')) ? 1 : 2;
+            const isAsending = ((triggerDirection === 'up') || (triggerDirection === '1'));
+            selectedDirection = isAsending ? 1 : 2;
         }
         if (triggerPrice !== undefined) {
             request['triggerDirection'] = selectedDirection;
