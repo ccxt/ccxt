@@ -657,6 +657,7 @@ export default class oceanex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request = {
             'market': market['id'],
             'side': side,
