@@ -43,6 +43,10 @@ export default class oceanex extends Exchange {
                 'cancelOrders': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': false,  // will be available later according to api docs
+                'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -644,18 +648,28 @@ export default class oceanex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
+         * @param {float} [params.triggerPrice] the price a trigger order is triggered at
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.trigger_condition] "gte" (default for trigger orders where side is "buy"), or "lte" (default for trigger orders where side is "sell")
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request = {
             'market': market['id'],
             'side': side,
             'ord_type': type,
             'volume': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'limit') {
+        if ((type === 'limit') || (type === 'stop_limit')) {
             request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (triggerPrice !== undefined) {
+            request['ord_type'] = (type === 'market') ? 'stop_market' : 'stop_limit';
+            request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
+            request['trigger_condition'] = (side === 'buy') ? 'gte' : 'lte';
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
