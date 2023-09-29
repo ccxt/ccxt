@@ -62,6 +62,7 @@ export default class protondex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -82,27 +83,27 @@ export default class protondex extends Exchange {
                 'transfer': false,
                 'withdraw': false,
             },
-            'hostname': 'https://mainnet.api.protondex.com',
+            'hostname': 'https://dex.api.mainnet.metalx.com',
             'urls': {
                 'logo': 'https://protonswap.com/img/logo.svg',
                 'api': {
-                    'rest': 'https://mainnet.api.protondex.com/dex',
-                    'public': 'https://mainnet.api.protondex.com/dex',
-                    'private': 'https://mainnet.api.protondex.com/dex',
+                    'rest': 'https://dex.api.mainnet.metalx.com/dex',
+                    'public': 'https://dex.api.mainnet.metalx.com/dex',
+                    'private': 'https://dex.api.mainnet.metalx.com/dex',
                 },
                 'test': {
-                    'rest': 'https://testnet.api.protondex.com/dex',
-                    'public': 'https://testnet.api.protondex.com/dex',
-                    'private': 'https://testnet.api.protondex.com/dex',
+                    'rest': 'https://dex.api.testnet.metalx.com/dex',
+                    'public': 'https://dex.api.testnet.metalx.com/dex',
+                    'private': 'https://dex.api.testnet.metalx.com/dex',
                 },
-                'www': 'https://protondex.com/',
+                'www': 'https://app.metalx.com/dex/',
                 'doc': [
-                    'https://www.docs.protondex.com',
+                    'https://docs.metalx.com/dex/what-is-metal-x',
                 ],
                 'fees': [
-                    'https://www.docs.protondex.com/dex/what-is-proton-dex/dex-fees-and-discounts',
+                    'https://docs.metalx.com/dex/what-is-metal-x/dex-fees-and-discounts',
                 ],
-                'referral': 'https://protondex.com/',
+                'referral': 'https://app.metalx.com/dex/',
             },
             'api': {
                 'public': {
@@ -393,7 +394,7 @@ export default class protondex extends Exchange {
         const orderSide = this.safeString (trade, 'order_side');
         const account = this.safeString (trade, 'account');
         const amountString = account === this.safeString (trade, 'bid_user') ? this.safeString (trade, 'bid_amount') : this.safeString (trade, 'ask_amount');
-        const orderId = account === this.safeString (trade, 'bid_user') ? this.safeString (trade, 'bid_user_order_id') : this.safeString (trade, 'ask_user_order_id');
+        const orderId = account === this.safeString (trade, 'bid_user') ? this.safeString (trade, 'bid_user_ordinal_order_id') : this.safeString (trade, 'ask_user_ordinal_order_id');
         const feeString = account === this.safeString (trade, 'bid_user') ? this.safeString (trade, 'bid_fee') : this.safeString (trade, 'ask_fee');
         const feeCurrencyId = account === this.safeString (trade, 'bid_user') ? this.safeString (market, 'baseId') : this.safeString (market, 'quoteId');
         let fee = undefined;
@@ -404,6 +405,7 @@ export default class protondex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
+        const orderCost = account === this.safeString (trade, 'bid_user') ? this.safeString (trade, 'ask_amount') : this.safeString (trade, 'bid_amount');
         return this.safeTrade ({
             'info': trade,
             'id': tradeId,
@@ -416,7 +418,7 @@ export default class protondex extends Exchange {
             'takerOrMaker': undefined,
             'price': priceString,
             'amount': amountString,
-            'cost': undefined,
+            'cost': orderCost,
             'fee': fee,
         }, market);
     }
@@ -696,7 +698,7 @@ export default class protondex extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'market');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'block_time'));
         const priceString = this.safeString (order, 'price');
         const amountString = this.safeString (order, 'quantity_init');
@@ -708,18 +710,19 @@ export default class protondex extends Exchange {
             type = parts[0];
         }
         const side = this.safeString (order, 'order_side');
-        const currency = (side === '2') ? market.info.ask_token.code.toString () : market.info.bid_token.code.toString ();
+        const currency = (side === '2') ? market.quote : market.base;
         const fee = {
             'cost': this.safeString (market, 'maker'),
             'currency': currency,
         };
+        market['inverse'] = true;
         return this.safeOrder ({
             'id': this.safeString (order, 'order_id'),
             'clientOrderId': this.safeString (order, 'ordinal_order_id'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': priceString,
@@ -754,6 +757,62 @@ export default class protondex extends Exchange {
         const response = await this.publicGetOrdersLifecycle (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data[0]);
+    }
+
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#fetchOrderTrades
+         * @description fetch the trade
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        await this.loadMarkets ();
+        if (params['account'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a account argument in params');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'account': params['account'],
+            'symbol': market['symbol'],
+            'ordinal_order_ids': [ id ],
+        };
+        const response = await this.publicGetTradesHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "block_num": "215336694",
+        //             "block_time": "2023-09-21T17:54:49.500Z",
+        //             "trade_id": "3892445",
+        //             "market_id": "1",
+        //             "price": "0.000612",
+        //             "bid_user": "metallicus",
+        //             "bid_user_order_id": "7259690",
+        //             "bid_user_ordinal_order_id": 719415c560eab4854d581ca710634669689676518841983011f7721498e85154,
+        //             "bid_total": 1764.7058,
+        //             "bid_amount": 1762.9411,
+        //             "bid_fee": 1.7647,
+        //             "bid_referrer": "",
+        //             "bid_referrer_fee": 0,
+        //             "ask_user": "otctest",
+        //             "ask_user_order_id": "7259952",
+        //             "ask_user_ordinal_order_id": 1a13fd86ddc3facb2c87bbfb39ce243bebe2c20cf1963ddbcf2a12f05aa44572,
+        //             "ask_total": 1.08,
+        //             "ask_amount": 1.08,
+        //             "ask_fee": 0,
+        //             "ask_referrer": "",
+        //             "ask_referrer_fee": 0,
+        //             "order_side": 1,
+        //             "trx_id": 8e135c1e82176d8780c5ef9cbef31a7051dcb0b157b9011e18597770d09c7cee,
+        //         }
+        //     ]
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, 1, 1, { 'account': params['account'] });
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
