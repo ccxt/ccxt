@@ -2081,10 +2081,10 @@ export default class bitmart extends Exchange {
 
     parseOrderSide (side) {
         const sides = {
-            '1': 'open long',
-            '2': 'close short',
-            '3': 'close long',
-            '4': 'open short',
+            '1': 'buy',
+            '2': 'buy',
+            '3': 'sell',
+            '4': 'sell',
         };
         return this.safeString (sides, side, side);
     }
