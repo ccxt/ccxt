@@ -95,7 +95,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
-                'fetchL3OrderBook': None,
+                'fetchL3OrderBook': False,
                 'fetchLastPrices': True,
                 'fetchLedger': True,
                 'fetchLeverage': False,
@@ -134,6 +134,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchTransfers': True,
                 'fetchUnderlyingAssets': False,
                 'fetchVolatilityHistory': False,
+                'fetchWithdrawAddresses': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
@@ -7722,9 +7723,9 @@ class binance(Exchange, ImplicitAPI):
             numElements = len(response)
             if numElements > 0:
                 firstElement = response[0]
-                error = self.safe_string(firstElement, 'code')
-                if error is not None:
-                    self.throw_exactly_matched_exception(self.exceptions['exact'], error, self.id + ' ' + body)
+                errorCode = self.safe_string(firstElement, 'code')
+                if errorCode is not None:
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.id + ' ' + body)
         return None
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):

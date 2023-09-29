@@ -352,12 +352,12 @@ class bybit extends \ccxt\async\bybit {
         // watchTickers part
         $messageHashes = $this->find_message_hashes($client, 'tickers::');
         for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
-            $parts = explode('::', $messageHash);
+            $messageHashTicker = $messageHashes[$i];
+            $parts = explode('::', $messageHashTicker);
             $symbolsString = $parts[1];
             $symbols = explode(',', $symbolsString);
             if ($this->in_array($parsed['symbol'], $symbols)) {
-                $client->resolve ($parsed, $messageHash);
+                $client->resolve ($parsed, $messageHashTicker);
             }
         }
     }

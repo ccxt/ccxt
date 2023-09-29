@@ -66,7 +66,7 @@ export default class binance extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
-                'fetchL3OrderBook': undefined,
+                'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLeverage': false,
@@ -105,6 +105,7 @@ export default class binance extends Exchange {
                 'fetchTransfers': true,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
+                'fetchWithdrawAddresses': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -8372,9 +8373,9 @@ export default class binance extends Exchange {
             const numElements = response.length;
             if (numElements > 0) {
                 const firstElement = response[0];
-                const error = this.safeString(firstElement, 'code');
-                if (error !== undefined) {
-                    this.throwExactlyMatchedException(this.exceptions['exact'], error, this.id + ' ' + body);
+                const errorCode = this.safeString(firstElement, 'code');
+                if (errorCode !== undefined) {
+                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, this.id + ' ' + body);
                 }
             }
         }

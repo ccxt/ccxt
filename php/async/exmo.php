@@ -1759,11 +1759,11 @@ class exmo extends Exchange {
                 $marketIds = is_array($response) ? array_keys($response) : array();
                 for ($i = 0; $i < count($marketIds); $i++) {
                     $marketId = $marketIds[$i];
-                    $market = $this->safe_market($marketId);
+                    $marketInner = $this->safe_market($marketId);
                     $params = array_merge($params, array(
                         'status' => 'open',
                     ));
-                    $parsedOrders = $this->parse_orders($response[$marketId], $market, $since, $limit, $params);
+                    $parsedOrders = $this->parse_orders($response[$marketId], $marketInner, $since, $limit, $params);
                     $orders = $this->array_concat($orders, $parsedOrders);
                 }
             }
@@ -1968,8 +1968,8 @@ class exmo extends Exchange {
             }
             $isSpot = ($marginMode !== 'isolated');
             if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
+                $marketInner = $this->market($symbol);
+                $symbol = $marketInner['symbol'];
             }
             $request = array(
                 'limit' => $limit,
@@ -2002,7 +2002,7 @@ class exmo extends Exchange {
                 ));
                 return $this->parse_orders($response, $market, $since, $limit, $params);
             } else {
-                $response = Async\await($this->privatePostMarginUserOrderHistory (array_merge($request, $params)));
+                $responseSwap = Async\await($this->privatePostMarginUserOrderHistory (array_merge($request, $params)));
                 //
                 //    {
                 //        "items" => array(
@@ -2027,7 +2027,7 @@ class exmo extends Exchange {
                 //        )
                 //    }
                 //
-                $items = $this->safe_value($response, 'items');
+                $items = $this->safe_value($responseSwap, 'items');
                 $orders = $this->parse_orders($items, $market, $since, $limit, $params);
                 $result = array();
                 for ($i = 0; $i < count($orders); $i++) {

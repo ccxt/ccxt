@@ -65,7 +65,7 @@ class binance extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
-                'fetchL3OrderBook' => null,
+                'fetchL3OrderBook' => false,
                 'fetchLastPrices' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
@@ -104,6 +104,7 @@ class binance extends Exchange {
                 'fetchTransfers' => true,
                 'fetchUnderlyingAssets' => false,
                 'fetchVolatilityHistory' => false,
+                'fetchWithdrawAddresses' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
@@ -8170,9 +8171,9 @@ class binance extends Exchange {
             $numElements = count($response);
             if ($numElements > 0) {
                 $firstElement = $response[0];
-                $error = $this->safe_string($firstElement, 'code');
-                if ($error !== null) {
-                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $this->id . ' ' . $body);
+                $errorCode = $this->safe_string($firstElement, 'code');
+                if ($errorCode !== null) {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $this->id . ' ' . $body);
                 }
             }
         }

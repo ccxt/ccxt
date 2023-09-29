@@ -699,10 +699,11 @@ class bybit extends bybit$1 {
                     '10027': errors.PermissionDenied,
                     '10028': errors.PermissionDenied,
                     '10029': errors.PermissionDenied,
+                    '12137': errors.InvalidOrder,
                     '12201': errors.BadRequest,
                     '12141': errors.BadRequest,
                     '100028': errors.PermissionDenied,
-                    '110001': errors.InvalidOrder,
+                    '110001': errors.OrderNotFound,
                     '110003': errors.InvalidOrder,
                     '110004': errors.InsufficientFunds,
                     '110005': errors.InvalidOrder,
@@ -3525,11 +3526,38 @@ class bybit extends bybit$1 {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined;
         }
+        const avgPrice = this.omitZero(this.safeString(order, 'avgPrice'));
         const rawTimeInForce = this.safeString(order, 'timeInForce');
         const timeInForce = this.parseTimeInForce(rawTimeInForce);
         const stopPrice = this.omitZero(this.safeString(order, 'triggerPrice'));
-        const takeProfitPrice = this.omitZero(this.safeString(order, 'takeProfit'));
-        const stopLossPrice = this.omitZero(this.safeString(order, 'stopLoss'));
+        const reduceOnly = this.safeValue(order, 'reduceOnly');
+        let takeProfitPrice = this.omitZero(this.safeString(order, 'takeProfit'));
+        let stopLossPrice = this.omitZero(this.safeString(order, 'stopLoss'));
+        const triggerDirection = this.safeString(order, 'triggerDirection');
+        const isAscending = (triggerDirection === '1');
+        const isStopOrderType2 = (stopPrice !== undefined) && reduceOnly;
+        if ((stopLossPrice === undefined) && isStopOrderType2) {
+            // check if order is stop order type 2 - stopLossPrice
+            if (isAscending && (side === 'buy')) {
+                // stopLoss order against short position
+                stopLossPrice = stopPrice;
+            }
+            if (!isAscending && (side === 'sell')) {
+                // stopLoss order against a long position
+                stopLossPrice = stopPrice;
+            }
+        }
+        if ((takeProfitPrice === undefined) && isStopOrderType2) {
+            // check if order is stop order type 2 - takeProfitPrice
+            if (isAscending && (side === 'sell')) {
+                // takeprofit order against a long position
+                takeProfitPrice = stopPrice;
+            }
+            if (!isAscending && (side === 'buy')) {
+                // takeprofit order against a short position
+                takeProfitPrice = stopPrice;
+            }
+        }
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -3551,7 +3579,7 @@ class bybit extends bybit$1 {
             'stopLossPrice': stopLossPrice,
             'amount': amount,
             'cost': cost,
-            'average': undefined,
+            'average': avgPrice,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -3603,6 +3631,14 @@ class bybit extends bybit$1 {
          * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [params.mmp] *option only* market maker protection
+         * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'up' or 'down'
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -3708,13 +3744,21 @@ class bybit extends bybit$1 {
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
         const isBuy = side === 'buy';
-        const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
+        const setTriggerDirection = (stopLossTriggerPrice || triggerPrice) ? !isBuy : isBuy;
+        const defaultTriggerDirection = setTriggerDirection ? 2 : 1;
+        const triggerDirection = this.safeString(params, 'triggerDirection');
+        params = this.omit(params, 'triggerDirection');
+        let selectedDirection = defaultTriggerDirection;
+        if (triggerDirection !== undefined) {
+            const isAsending = ((triggerDirection === 'up') || (triggerDirection === '1'));
+            selectedDirection = isAsending ? 1 : 2;
+        }
         if (triggerPrice !== undefined) {
-            request['triggerDirection'] = ascending ? 2 : 1;
+            request['triggerDirection'] = selectedDirection;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-            request['triggerDirection'] = ascending ? 2 : 1;
+            request['triggerDirection'] = selectedDirection;
             triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['reduceOnly'] = true;

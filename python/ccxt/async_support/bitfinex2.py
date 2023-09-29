@@ -2469,8 +2469,6 @@ class bitfinex2(Exchange, ImplicitAPI):
             return None
         elif type.find('fee') >= 0 or type.find('charged') >= 0:
             return 'fee'
-        elif type.find('exchange') >= 0 or type.find('position') >= 0:
-            return 'trade'
         elif type.find('rebate') >= 0:
             return 'rebate'
         elif type.find('deposit') >= 0 or type.find('withdrawal') >= 0:
@@ -2479,6 +2477,8 @@ class bitfinex2(Exchange, ImplicitAPI):
             return 'transfer'
         elif type.find('payment') >= 0:
             return 'payout'
+        elif type.find('exchange') >= 0 or type.find('position') >= 0:
+            return 'trade'
         else:
             return type
 

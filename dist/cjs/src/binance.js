@@ -69,7 +69,7 @@ class binance extends binance$1 {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
-                'fetchL3OrderBook': undefined,
+                'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLeverage': false,
@@ -108,6 +108,7 @@ class binance extends binance$1 {
                 'fetchTransfers': true,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
+                'fetchWithdrawAddresses': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -8375,9 +8376,9 @@ class binance extends binance$1 {
             const numElements = response.length;
             if (numElements > 0) {
                 const firstElement = response[0];
-                const error = this.safeString(firstElement, 'code');
-                if (error !== undefined) {
-                    this.throwExactlyMatchedException(this.exceptions['exact'], error, this.id + ' ' + body);
+                const errorCode = this.safeString(firstElement, 'code');
+                if (errorCode !== undefined) {
+                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, this.id + ' ' + body);
                 }
             }
         }

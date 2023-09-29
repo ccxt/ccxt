@@ -1312,7 +1312,7 @@ class bitmart extends bitmart$1 {
         //          "type": "buy"
         //      }
         //
-        // private fetchMyTrades spot
+        // spot: fetchMyTrades
         //
         //     {
         //         "tradeId":"182342999769370687",
@@ -1331,28 +1331,42 @@ class bitmart extends bitmart$1 {
         //         "createTime":1695658457836,
         //     }
         //
-        const id = this.safeString(trade, 'tradeId');
-        const timestamp = this.safeInteger2(trade, 'order_time', 'createTime');
-        const side = this.safeStringLower2(trade, 'side', 'type');
-        const takerOrMaker = this.safeString(trade, 'tradeRole');
+        // swap: fetchMyTrades
+        //
+        //     {
+        //         "order_id": "230930336848609",
+        //         "trade_id": "6212604014",
+        //         "symbol": "BTCUSDT",
+        //         "side": 3,
+        //         "price": "26910.4",
+        //         "vol": "1",
+        //         "exec_type": "Taker",
+        //         "profit": false,
+        //         "create_time": 1695961596692,
+        //         "realised_profit": "-0.0003",
+        //         "paid_fees": "0.01614624"
+        //     }
+        //
+        const timestamp = this.safeIntegerN(trade, ['order_time', 'createTime', 'create_time']);
         const isPublicTrade = ('order_time' in trade);
-        const price = this.safeString(trade, 'price');
         let amount = undefined;
         let cost = undefined;
         let type = undefined;
+        let side = undefined;
         if (isPublicTrade) {
             amount = this.safeString(trade, 'count');
             cost = this.safeString(trade, 'amount');
+            side = this.safeString(trade, 'type');
         }
         else {
-            amount = this.safeString(trade, 'size');
+            amount = this.safeString2(trade, 'size', 'vol');
             cost = this.safeString(trade, 'notional');
             type = this.safeString(trade, 'type');
+            side = this.parseOrderSide(this.safeString(trade, 'side'));
         }
-        const orderId = this.safeString(trade, 'orderId');
         const marketId = this.safeString(trade, 'symbol');
-        market = this.safeMarket(marketId, market, '_');
-        const feeCostString = this.safeString(trade, 'fee');
+        market = this.safeMarket(marketId, market);
+        const feeCostString = this.safeString2(trade, 'fee', 'paid_fees');
         let fee = undefined;
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString(trade, 'feeCoinName');
@@ -1367,17 +1381,17 @@ class bitmart extends bitmart$1 {
         }
         return this.safeTrade({
             'info': trade,
-            'id': id,
-            'order': orderId,
+            'id': this.safeString2(trade, 'tradeId', 'trade_id'),
+            'order': this.safeString2(trade, 'orderId', 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': type,
             'side': side,
-            'price': price,
+            'price': this.safeString(trade, 'price'),
             'amount': amount,
             'cost': cost,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': this.safeStringLower2(trade, 'tradeRole', 'exec_type'),
             'fee': fee,
         }, market);
     }
@@ -1580,6 +1594,7 @@ class bitmart extends bitmart$1 {
          * @method
          * @name bitmart#fetchMyTrades
          * @see https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#get-order-trade-keyed
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1594,32 +1609,46 @@ class bitmart extends bitmart$1 {
         const request = {};
         if (symbol !== undefined) {
             market = this.market(symbol);
-        }
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
-        if (type !== 'spot') {
-            throw new errors.NotSupported(this.id + ' fetchMyTrades() does not support ' + type + ' orders, only spot orders are accepted');
-        }
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('fetchMyTrades', params);
-        if (marginMode === 'isolated') {
-            request['orderMode'] = 'iso_margin';
-        }
-        const options = this.safeValue(this.options, 'fetchMyTrades', {});
-        const defaultLimit = this.safeInteger(options, 'limit', 200);
-        if (limit === undefined) {
-            limit = defaultLimit;
-        }
-        request['limit'] = limit;
-        if (symbol !== undefined) {
             request['symbol'] = market['id'];
         }
-        const until = this.safeInteger2(params, 'until', 'endTime');
-        if (until !== undefined) {
-            params = this.omit(params, ['endTime']);
-            request['endTime'] = until;
+        let type = undefined;
+        let response = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
+        const until = this.safeIntegerN(params, ['until', 'endTime', 'end_time']);
+        params = this.omit(params, ['until']);
+        if (type === 'spot') {
+            let marginMode = undefined;
+            [marginMode, params] = this.handleMarginModeAndParams('fetchMyTrades', params);
+            if (marginMode === 'isolated') {
+                request['orderMode'] = 'iso_margin';
+            }
+            const options = this.safeValue(this.options, 'fetchMyTrades', {});
+            const defaultLimit = this.safeInteger(options, 'limit', 200);
+            if (limit === undefined) {
+                limit = defaultLimit;
+            }
+            request['limit'] = limit;
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if (until !== undefined) {
+                request['endTime'] = until;
+            }
+            response = await this.privatePostSpotV4QueryTrades(this.extend(request, params));
         }
-        const response = await this.privatePostSpotV4QueryTrades(this.extend(request, params));
+        else if (type === 'swap') {
+            this.checkRequiredSymbol('fetchMyTrades', symbol);
+            if (since !== undefined) {
+                request['start_time'] = since;
+            }
+            if (until !== undefined) {
+                request['end_time'] = until;
+            }
+            response = await this.privateGetContractPrivateTrades(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchMyTrades() does not support ' + type + ' orders, only spot and swap orders are accepted');
+        }
         //
         // spot
         //
@@ -1648,7 +1677,30 @@ class bitmart extends bitmart$1 {
         //        "trace":"fbaee9e0e2f5442fba5b3262fc86b0ac.65.16956593456523085"
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        // swap
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": [
+        //             {
+        //                 "order_id": "230930336848609",
+        //                 "trade_id": "6212604014",
+        //                 "symbol": "BTCUSDT",
+        //                 "side": 3,
+        //                 "price": "26910.4",
+        //                 "vol": "1",
+        //                 "exec_type": "Taker",
+        //                 "profit": false,
+        //                 "create_time": 1695961596692,
+        //                 "realised_profit": "-0.0003",
+        //                 "paid_fees": "0.01614624"
+        //             },
+        //         ],
+        //         "trace": "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
+        //     }
+        //
+        const data = this.safeValue(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1948,7 +2000,7 @@ class bitmart extends bitmart$1 {
         //        "updateTime" : 1681701559408
         //    }
         //
-        // swap: fetchOpenOrders
+        // swap: fetchOrder, fetchOpenOrders
         //
         //     {
         //         "order_id": "230935812485489",
@@ -2017,10 +2069,10 @@ class bitmart extends bitmart$1 {
     }
     parseOrderSide(side) {
         const sides = {
-            '1': 'open long',
-            '2': 'close short',
-            '3': 'close long',
-            '4': 'open short',
+            '1': 'buy',
+            '2': 'buy',
+            '3': 'sell',
+            '4': 'sell',
         };
         return this.safeString(sides, side, side);
     }
@@ -2159,25 +2211,47 @@ class bitmart extends bitmart$1 {
         /**
          * @method
          * @name bitmart#cancelOrder
+         * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
+         * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
+         * @param {boolean} [params.stop] *swap only* whether the order is a stop order
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('cancelOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['spot']) {
-            throw new errors.NotSupported(this.id + ' cancelOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
-        }
         const request = {
-            'order_id': id.toString(),
             'symbol': market['id'],
         };
-        const response = await this.privatePostSpotV3CancelOrder(this.extend(request, params));
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_order_id');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+        }
+        else {
+            request['order_id'] = id.toString();
+        }
+        params = this.omit(params, ['clientOrderId']);
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.privatePostSpotV3CancelOrder(this.extend(request, params));
+        }
+        else {
+            const stop = this.safeValue(params, 'stop');
+            params = this.omit(params, ['stop']);
+            if (!stop) {
+                response = await this.privatePostContractPrivateCancelOrder(this.extend(request, params));
+            }
+            else {
+                response = await this.privatePostContractPrivateCancelPlanOrder(this.extend(request, params));
+            }
+        }
+        // swap
+        // {"code":1000,"message":"Ok","trace":"7f9c94e10f9d4513bc08a7bfc2a5559a.55.16959817848001851"}
         //
         // spot
         //
@@ -2199,6 +2273,9 @@ class bitmart extends bitmart$1 {
         //         "data": true
         //     }
         //
+        if (market['swap']) {
+            return response;
+        }
         const data = this.safeValue(response, 'data');
         if (data === true) {
             return this.parseOrder(id, market);
@@ -2491,29 +2568,95 @@ class bitmart extends bitmart$1 {
         /**
          * @method
          * @name bitmart#fetchOrder
+         * @description fetches information on an order made by the user
          * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
          * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
-         * @description fetches information on an order made by the user
+         * @see https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
+         * @param {string} id the id of the order
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @param {string} [params.clientOrderId] fetch the order by client order id instead of order id
+         * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const request = {};
-        const clientOrderId = this.safeString(params, 'clientOrderId');
-        if (!clientOrderId) {
-            request['orderId'] = id;
-        }
+        let type = undefined;
+        let market = undefined;
         let response = undefined;
-        if (clientOrderId !== undefined) {
-            response = await this.privatePostSpotV4QueryClientOrder(this.extend(request, params));
+        if (symbol !== undefined) {
+            market = this.market(symbol);
         }
-        else {
-            response = await this.privatePostSpotV4QueryOrder(this.extend(request, params));
+        [type, params] = this.handleMarketTypeAndParams('fetchOrder', market, params);
+        if (type === 'spot') {
+            const clientOrderId = this.safeString(params, 'clientOrderId');
+            if (!clientOrderId) {
+                request['orderId'] = id;
+            }
+            if (clientOrderId !== undefined) {
+                response = await this.privatePostSpotV4QueryClientOrder(this.extend(request, params));
+            }
+            else {
+                response = await this.privatePostSpotV4QueryOrder(this.extend(request, params));
+            }
         }
+        else if (type === 'swap') {
+            this.checkRequiredSymbol('fetchOrder', symbol);
+            request['symbol'] = market['id'];
+            request['order_id'] = id;
+            response = await this.privateGetContractPrivateOrder(this.extend(request, params));
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "success",
+        //         "data": {
+        //             "orderId": "183347420821295423",
+        //             "clientOrderId": "183347420821295423",
+        //             "symbol": "BTC_USDT",
+        //             "side": "buy",
+        //             "orderMode": "spot",
+        //             "type": "limit",
+        //             "state": "new",
+        //             "price": "24000.00",
+        //             "priceAvg": "0.00",
+        //             "size": "0.00022",
+        //             "filledSize": "0.00000",
+        //             "notional": "5.28000000",
+        //             "filledNotional": "0.00000000",
+        //             "createTime": 1695783014734,
+        //             "updateTime": 1695783014762
+        //         },
+        //         "trace": "ce3e6422c8b44d5fag855348a68693ed.63.14957831547451715"
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": {
+        //             "order_id": "230927283405028",
+        //             "client_order_id": "",
+        //             "price": "23000",
+        //             "size": "1",
+        //             "symbol": "BTCUSDT",
+        //             "state": 2,
+        //             "side": 1,
+        //             "type": "limit",
+        //             "leverage": "10",
+        //             "open_type": "isolated",
+        //             "deal_avg_price": "0",
+        //             "deal_size": "0",
+        //             "create_time": 1695783433600,
+        //             "update_time": 1695783433613
+        //         },
+        //         "trace": "4cad855075664097af6ba5257c47605d.63.14957831547451715"
+        //     }
+        //
         const data = this.safeValue(response, 'data', {});
-        return this.parseOrder(data, undefined);
+        return this.parseOrder(data, market);
     }
     async fetchDepositAddress(code, params = {}) {
         /**
