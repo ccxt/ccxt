@@ -600,19 +600,27 @@ export default class bitbns extends Exchange {
          * @method
          * @name bitbns#createOrder
          * @description create a trade order
+         * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/place-orders
+         * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/market-orders-quantity  // market orders
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitbns api endpoint
+         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {float} [params.target_rate] *requires params.trail_rate when set, type must be 'limit'* a bracket order is placed when set
+         * @param {float} [params.trail_rate] *requires params.target_rate when set, type must be 'limit'* a bracket order is placed when set
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (type !== 'limit' && type !== 'market') {
-            throw new ExchangeError (this.id + ' allows limit and market orders only');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 't_rate' ]);
+        const targetRate = this.safeString (params, 'target_rate');
+        const trailRate = this.safeString (params, 'trail_rate');
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate' ]);
         const request = {
             'side': side.toUpperCase (),
             'symbol': market['uppercaseId'],
@@ -620,18 +628,22 @@ export default class bitbns extends Exchange {
             // 'target_rate': this.priceToPrecision (symbol, targetRate),
             // 't_rate': this.priceToPrecision (symbol, stopPrice),
             // 'trail_rate': this.priceToPrecision (symbol, trailRate),
-            // To Place Simple Buy or Sell Order use rate
-            // To Place Stoploss Buy or Sell Order use rate & t_rate
-            // To Place Bracket Buy or Sell Order use rate , t_rate, target_rate & trail_rate
         };
         let method = 'v2PostOrders';
         if (type === 'limit') {
             request['rate'] = this.priceToPrecision (symbol, price);
-        } else if (type === 'market') {
+        } else {
             method = 'v1PostPlaceMarketOrderQntySymbol';
             request['market'] = market['quoteId'];
-        } else {
-            throw new ExchangeError (this.id + ' allows limit and market orders only');
+        }
+        if (triggerPrice !== undefined) {
+            request['t_rate'] = this.priceToPrecision (symbol, triggerPrice);
+        }
+        if (targetRate !== undefined) {
+            request['target_rate'] = this.priceToPrecision (symbol, targetRate);
+        }
+        if (trailRate !== undefined) {
+            request['trail_rate'] = this.priceToPrecision (symbol, trailRate);
         }
         const response = await this[method] (this.extend (request, params));
         //
