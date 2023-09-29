@@ -2141,10 +2141,8 @@ export default class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        this.checkRequiredArgument ('createOrder', marginMode, 'marginMode', [ 'isolated', 'cross' ]);
-        const leverage = this.safeString (params, 'leverage');
-        this.checkRequiredArgument ('createOrder', leverage, 'leverage');
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
+        const leverage = this.safeString (params, 'leverage', '1');
         const request = {
             'symbol': market['id'],
             'type': type,
