@@ -663,9 +663,12 @@ export default class bitbns extends Exchange {
          * @method
          * @name bitbns#cancelOrder
          * @description cancels an open order
+         * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/cancel-orders
+         * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/cancel-stop-loss-orders
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitbns api endpoint
+         * @param {boolean} [params.trigger] true if cancelling a trigger order
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         if (symbol === undefined) {
@@ -673,13 +676,20 @@ export default class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancelOrder' : 'cancelOrder';
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        params = this.omit (params, [ 'trigger', 'stop' ]);
         const request = {
             'entry_id': id,
             'symbol': market['uppercaseId'],
-            'side': quoteSide,
         };
-        const response = await this.v2PostCancel (this.extend (request, params));
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.v1PostCancelStopLossOrderSymbol (this.extend (request, params));
+        } else {
+            const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancelOrder' : 'cancelOrder';
+            request['side'] = quoteSide;
+            response = await this.v2PostCancel (this.extend (request, params));
+        }
         return this.parseOrder (response, market);
     }
 
