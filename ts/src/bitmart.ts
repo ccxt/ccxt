@@ -1624,7 +1624,7 @@ export default class bitmart extends Exchange {
         let response = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const until = this.safeIntegerN (params, [ 'until', 'endTime', 'end_time' ]);
-        params = this.omit (params, [ 'until', 'endTime', 'end_time' ]);
+        params = this.omit (params, [ 'until' ]);
         if (type === 'spot') {
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
