@@ -722,7 +722,7 @@ export default class oceanex extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const request = {
-            'states': [ 'wait' ],
+            'states': [ 'wait', 'wait_trigger' ],
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
@@ -762,7 +762,7 @@ export default class oceanex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const states = this.safeValue (params, 'states', [ 'wait', 'done', 'cancel' ]);
+        const states = this.safeValue (params, 'states', [ 'wait', 'wait_trigger', 'done', 'cancel' ]);
         const query = this.omit (params, 'states');
         const request = {
             'market': market['id'],
@@ -835,21 +835,23 @@ export default class oceanex extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        //     {
-        //         "created_at": "2019-01-18T00:38:18Z",
-        //         "trades_count": 0,
-        //         "remaining_volume": "0.2",
-        //         "price": "1001.0",
-        //         "created_on": "1547771898",
-        //         "side": "buy",
-        //         "volume": "0.2",
-        //         "state": "wait",
-        //         "ord_type": "limit",
-        //         "avg_price": "0.0",
-        //         "executed_volume": "0.0",
-        //         "id": 473797,
-        //         "market": "veteth"
-        //     }
+        //    {
+        //        "created_at": "2019-01-18T00:38:18Z",
+        //        "trades_count": 0,
+        //        "remaining_volume": "0.2",
+        //        "price": "1001.0",
+        //        "created_on": "1547771898",
+        //        "side": "buy",
+        //        "volume": "0.2",
+        //        "state": "wait",  // 'wait_trigger'
+        //        "ord_type": "limit",
+        //        "avg_price": "0.0",
+        //        "executed_volume": "0.0",
+        //        "id": 473797,
+        //        "market": "veteth"
+        //        "stop_price": "64.0",
+        //        "trigger_condition": "lte",
+        //    }
         //
         const status = this.parseOrderStatus (this.safeValue (order, 'state'));
         const marketId = this.safeString2 (order, 'market', 'market_id');
@@ -858,11 +860,7 @@ export default class oceanex extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         }
-        const price = this.safeString (order, 'price');
-        const average = this.safeString (order, 'avg_price');
-        const amount = this.safeString (order, 'volume');
-        const remaining = this.safeString (order, 'remaining_volume');
-        const filled = this.safeString (order, 'executed_volume');
+        const triggerPrice = this.safeString (order, 'stop_price');
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'id'),
@@ -875,13 +873,13 @@ export default class oceanex extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': this.safeValue (order, 'side'),
-            'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'average': average,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
+            'price': this.safeString (order, 'price'),
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'average': this.safeString (order, 'avg_price'),
+            'amount': this.safeString (order, 'volume'),
+            'remaining': this.safeString (order, 'remaining_volume'),
+            'filled': this.safeString (order, 'executed_volume'),
             'status': status,
             'cost': undefined,
             'trades': undefined,
@@ -892,6 +890,7 @@ export default class oceanex extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             'wait': 'open',
+            'wait_trigger': 'open',
             'done': 'closed',
             'cancel': 'canceled',
         };
