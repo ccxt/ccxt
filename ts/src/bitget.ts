@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bitget.js';
-import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, CancelPending, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OnMaintenance, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1041,14 +1041,13 @@ export default class bitget extends Exchange {
                     'USD_MIX': 'swap',
                 },
                 'sandboxMode': false,
-                'networks': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
-                    'BSC': 'BEP20',
-                },
+                // network codes indexed by network IDs
                 'networksById': {
                     'TRC20': 'TRX',
-                    'BSC': 'BEP20',
+                    'TRC10': 'TRX',
+                    'ERC20': 'ETH',
+                    'BRC20': 'BTC',
+                    'BEP20': 'BSC',
                 },
                 'fetchPositions': {
                     'method': 'privateMixGetPositionAllPositionV2', // or privateMixGetPositionHistoryPosition
@@ -1401,10 +1400,12 @@ export default class bitget extends Exchange {
         //
         const result = {};
         const data = this.safeValue (response, 'data', []);
+        this.options['networkCodeReplacements'] = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const id = this.safeString (entry, 'coinId');
             const code = this.safeCurrencyCode (this.safeString (entry, 'coinName'));
+            this.options['networkCodeReplacements'][code] = {};
             const chains = this.safeValue (entry, 'chains', []);
             const networks = {};
             let deposit = false;
@@ -1415,7 +1416,7 @@ export default class bitget extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
-                const network = this.safeCurrencyCode (networkId);
+                const networkCode = this.networkIdToCode (networkId, code);
                 const withdrawEnabled = this.safeString (chain, 'withdrawable');
                 const canWithdraw = withdrawEnabled === 'true';
                 withdraw = (canWithdraw) ? canWithdraw : withdraw;
@@ -1434,10 +1435,11 @@ export default class bitget extends Exchange {
                 if (networkMinDepositString !== undefined) {
                     minDepositString = (minDepositString === undefined) ? networkMinDepositString : Precise.stringMin (networkMinDepositString, minDepositString);
                 }
-                networks[network] = {
+                this.options['networkCodeReplacements'][code][networkCode] = networkId; // we assume all networkCodes are unique by currency (e.g. no ERC20 and ETH for the same currency)
+                networks[networkCode] = {
                     'info': chain,
                     'id': networkId,
-                    'network': network,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
                             'min': this.parseNumber (networkMinWithdrawString),

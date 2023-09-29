@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable */
 
-import * as functions from './functions.js'
+import * as functions from './functions.js';
 const {
     isNode
     , keys
@@ -1745,7 +1745,7 @@ export default class Exchange {
 
     getDefaultOptions () {
         return {
-            'defaultNetworkCodeReplacements': {
+            'networkCodeReplacements': {
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
@@ -2714,20 +2714,11 @@ export default class Exchange {
                 networkId = networkCode;
             } else {
                 // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
-                const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-                if (currencyCode in defaultNetworkCodeReplacements) {
+                const networkCodeReplacements = this.safeValue (this.options, 'networkCodeReplacements', {});
+                if (currencyCode in networkCodeReplacements) {
                     // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
-                    const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
-                    const keys = Object.keys (replacementObject);
-                    for (let i = 0; i < keys.length; i++) {
-                        const key = keys[i];
-                        const value = replacementObject[key];
-                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
-                        if (value === networkCode) {
-                            networkId = this.safeString (networkIdsByCodes, key);
-                            break;
-                        }
-                    }
+                    const replacementObject = networkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }, where 'ETH' is the networkCode
+                    networkId = this.safeString (replacementObject, networkCode);
                 }
                 // if it wasn't found, we just set the provided value to network-id
                 if (networkId === undefined) {
@@ -2752,9 +2743,9 @@ export default class Exchange {
         let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
         if (currencyCode !== undefined) {
-            const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-            if (currencyCode in defaultNetworkCodeReplacements) {
-                const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
+            const networkCodeReplacements = this.safeValue (this.options, 'networkCodeReplacements', {});
+            if (currencyCode in networkCodeReplacements) {
+                const replacementObject = this.safeValue (networkCodeReplacements, currencyCode, {});
                 networkCode = this.safeString (replacementObject, networkCode, networkCode);
             }
         }
@@ -4553,5 +4544,6 @@ export default class Exchange {
 }
 
 export {
-    Exchange,
+    Exchange
 };
+
