@@ -4632,7 +4632,14 @@ export default class Exchange {
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 20);
         let maxRetries = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest', 1000);
+        let newMaxEntriesPerRequest = undefined;
+        [ newMaxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
+        if ((newMaxEntriesPerRequest !== undefined) && (newMaxEntriesPerRequest !== maxEntriesPerRequest)) {
+            maxEntriesPerRequest = newMaxEntriesPerRequest;
+        }
+        if (maxEntriesPerRequest === undefined) {
+            maxEntriesPerRequest = 1000; // default to 1000
+        }
         let cursorValue = undefined;
         let i = 0;
         let errors = 0;
