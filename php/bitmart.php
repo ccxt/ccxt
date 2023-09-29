@@ -2182,25 +2182,44 @@ class bitmart extends Exchange {
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         * @see https://developer-pro.bitmart.com/en/futures/#cancel-$order-signed
+         * @see https://developer-pro.bitmart.com/en/spot/#cancel-$order-v3-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-$order-signed
          * cancels an open $order
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the bitmart api endpoint
+         * @param {string} [$params->clientOrderId] *spot only* the client $order $id of the $order to cancel
+         * @param {boolean} [$params->stop] *swap only* whether the $order is a $stop $order
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-        }
+        $this->check_required_symbol('cancelOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['spot']) {
-            throw new NotSupported($this->id . ' cancelOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
-        }
         $request = array(
-            'order_id' => (string) $id,
             'symbol' => $market['id'],
         );
-        $response = $this->privatePostSpotV3CancelOrder (array_merge($request, $params));
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
+        if ($clientOrderId !== null) {
+            $request['client_order_id'] = $clientOrderId;
+        } else {
+            $request['order_id'] = (string) $id;
+        }
+        $params = $this->omit($params, array( 'clientOrderId' ));
+        $response = null;
+        if ($market['spot']) {
+            $response = $this->privatePostSpotV3CancelOrder (array_merge($request, $params));
+        } else {
+            $stop = $this->safe_value($params, 'stop');
+            $params = $this->omit($params, array( 'stop' ));
+            if (!$stop) {
+                $response = $this->privatePostContractPrivateCancelOrder (array_merge($request, $params));
+            } else {
+                $response = $this->privatePostContractPrivateCancelPlanOrder (array_merge($request, $params));
+            }
+        }
+        // swap
+        // array("code":1000,"message":"Ok","trace":"7f9c94e10f9d4513bc08a7bfc2a5559a.55.16959817848001851")
         //
         // spot
         //
@@ -2222,6 +2241,9 @@ class bitmart extends Exchange {
         //         "data" => true
         //     }
         //
+        if ($market['swap']) {
+            return $response;
+        }
         $data = $this->safe_value($response, 'data');
         if ($data === true) {
             return $this->parse_order($id, $market);

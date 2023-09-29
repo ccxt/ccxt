@@ -2123,23 +2123,41 @@ class bitmart(Exchange, ImplicitAPI):
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
+        see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
+        see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :param str [params.clientOrderId]: *spot only* the client order id of the order to cancel
+        :param boolean [params.stop]: *swap only* whether the order is a stop order
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+        self.check_required_symbol('cancelOrder', symbol)
         await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
-            raise NotSupported(self.id + ' cancelOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
         request = {
-            'order_id': str(id),
             'symbol': market['id'],
         }
-        response = await self.privatePostSpotV3CancelOrder(self.extend(request, params))
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+        else:
+            request['order_id'] = str(id)
+        params = self.omit(params, ['clientOrderId'])
+        response = None
+        if market['spot']:
+            response = await self.privatePostSpotV3CancelOrder(self.extend(request, params))
+        else:
+            stop = self.safe_value(params, 'stop')
+            params = self.omit(params, ['stop'])
+            if not stop:
+                response = await self.privatePostContractPrivateCancelOrder(self.extend(request, params))
+            else:
+                response = await self.privatePostContractPrivateCancelPlanOrder(self.extend(request, params))
+        # swap
+        # {"code":1000,"message":"Ok","trace":"7f9c94e10f9d4513bc08a7bfc2a5559a.55.16959817848001851"}
         #
         # spot
         #
@@ -2161,6 +2179,8 @@ class bitmart(Exchange, ImplicitAPI):
         #         "data": True
         #     }
         #
+        if market['swap']:
+            return response
         data = self.safe_value(response, 'data')
         if data is True:
             return self.parse_order(id, market)

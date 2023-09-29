@@ -2214,25 +2214,47 @@ export default class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#cancelOrder
+         * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
+         * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
+         * @param {boolean} [params.stop] *swap only* whether the order is a stop order
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('cancelOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['spot']) {
-            throw new NotSupported(this.id + ' cancelOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
-        }
         const request = {
-            'order_id': id.toString(),
             'symbol': market['id'],
         };
-        const response = await this.privatePostSpotV3CancelOrder(this.extend(request, params));
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_order_id');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+        }
+        else {
+            request['order_id'] = id.toString();
+        }
+        params = this.omit(params, ['clientOrderId']);
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.privatePostSpotV3CancelOrder(this.extend(request, params));
+        }
+        else {
+            const stop = this.safeValue(params, 'stop');
+            params = this.omit(params, ['stop']);
+            if (!stop) {
+                response = await this.privatePostContractPrivateCancelOrder(this.extend(request, params));
+            }
+            else {
+                response = await this.privatePostContractPrivateCancelPlanOrder(this.extend(request, params));
+            }
+        }
+        // swap
+        // {"code":1000,"message":"Ok","trace":"7f9c94e10f9d4513bc08a7bfc2a5559a.55.16959817848001851"}
         //
         // spot
         //
@@ -2254,6 +2276,9 @@ export default class bitmart extends Exchange {
         //         "data": true
         //     }
         //
+        if (market['swap']) {
+            return response;
+        }
         const data = this.safeValue(response, 'data');
         if (data === true) {
             return this.parseOrder(id, market);
