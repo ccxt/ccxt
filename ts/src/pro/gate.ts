@@ -838,15 +838,15 @@ export default class gate extends gateRest {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
-                this.spawn (this.loadPositionsSnapshot, client, messageHash, type, symbols);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash, type);
             }
         } else {
             this.positions[type] = new ArrayCacheBySymbolBySide ();
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash, type, symbols) {
-        const positions = await this.fetchPositions (symbols, { 'type': type });
+    async loadPositionsSnapshot (client, messageHash, type) {
+        const positions = await this.fetchPositions (undefined, { 'type': type });
         this.positions[type] = new ArrayCacheBySymbolBySide ();
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {

@@ -517,15 +517,15 @@ export default class cryptocom extends cryptocomRest {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
-                this.spawn (this.loadPositionsSnapshot, client, messageHash, type, symbols);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash, type);
             }
         } else {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash, symbols) {
-        const positions = await this.fetchPositions (symbols);
+    async loadPositionsSnapshot (client, messageHash) {
+        const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
@@ -574,7 +574,6 @@ export default class cryptocom extends cryptocomRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const messageHash = 'positions';
         const cache = this.positions;
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
@@ -594,7 +593,7 @@ export default class cryptocom extends cryptocomRest {
                 client.resolve (positions, messageHash);
             }
         }
-        client.resolve (newPositions, messageHash);
+        client.resolve (newPositions, 'positions');
     }
 
     async watchBalance (params = {}) {

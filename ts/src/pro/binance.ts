@@ -2395,15 +2395,15 @@ export default class binance extends binanceRest {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
-                this.spawn (this.loadPositionsSnapshot, client, messageHash, type, symbols);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash, type);
             }
         } else {
             this.positions[type] = new ArrayCacheBySymbolBySide ();
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash, type, symbols) {
-        const positions = await this.fetchPositions (symbols, { 'type': type });
+    async loadPositionsSnapshot (client, messageHash, type) {
+        const positions = await this.fetchPositions (undefined, { 'type': type });
         this.positions[type] = new ArrayCacheBySymbolBySide ();
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {
@@ -2457,7 +2457,6 @@ export default class binance extends binanceRest {
         if (!(accountType in this.positions)) {
             this.positions[accountType] = new ArrayCacheBySymbolBySide ();
         }
-        const messageHash = accountType + ':positions';
         const cache = this.positions[accountType];
         const data = this.safeValue (message, 'a', {});
         const rawPositions = this.safeValue (data, 'P', []);
@@ -2482,7 +2481,7 @@ export default class binance extends binanceRest {
                 client.resolve (positions, messageHash);
             }
         }
-        client.resolve (newPositions, messageHash);
+        client.resolve (newPositions, accountType + ':positions');
     }
 
     parseWsPosition (position, market = undefined) {

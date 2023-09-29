@@ -1031,19 +1031,18 @@ export default class bybit extends bybitRest {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
-                this.spawn (this.loadPositionsSnapshot, client, messageHash, symbols);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash);
             }
         } else {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash, symbols) {
+    async loadPositionsSnapshot (client, messageHash) {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         const fetchFunctions = [
-            this.fetchPositions (symbols, { 'type': 'swap', 'subType': 'linear' }),
-            this.fetchPositions (symbols, { 'type': 'swap', 'subType': 'inverse' }),
-            this.fetchPositions (symbols, { 'type': 'option' }),
+            this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'linear' }),
+            this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'inverse' }),
         ];
         const promises = await Promise.all (fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide ();
@@ -1104,7 +1103,6 @@ export default class bybit extends bybitRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const messageHash = 'positions';
         const cache = this.positions;
         const newPositions = [];
         const rawPositions = this.safeValue (message, 'data', []);
@@ -1125,7 +1123,7 @@ export default class bybit extends bybitRest {
                 client.resolve (positions, messageHash);
             }
         }
-        client.resolve (newPositions, messageHash);
+        client.resolve (newPositions, 'positions');
     }
 
     async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

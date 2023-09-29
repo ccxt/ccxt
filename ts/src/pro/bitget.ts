@@ -830,7 +830,6 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeValue (message, 'arg', {});
         const instType = this.safeString (arg, 'instType', '');
-        const messageHash = instType + ':positions';
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -857,7 +856,7 @@ export default class bitget extends bitgetRest {
                 client.resolve (positions, messageHash);
             }
         }
-        client.resolve (newPositions, messageHash);
+        client.resolve (newPositions, instType + ':positions');
     }
 
     parseWsPosition (position, market = undefined) {
