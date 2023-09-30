@@ -649,6 +649,7 @@ export default class bybit extends Exchange {
                         // c2c lending
                         'v5/lending/purchase': 2.5,
                         'v5/lending/redeem': 2.5,
+                        'v5/lending/redeem-cancel': 2.5,
                     },
                     'delete': {
                         // spot
