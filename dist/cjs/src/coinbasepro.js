@@ -495,6 +495,7 @@ class coinbasepro extends coinbasepro$1 {
         /**
          * @method
          * @name coinbasepro#fetchOrderBook
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -660,6 +661,7 @@ class coinbasepro extends coinbasepro$1 {
         /**
          * @method
          * @name coinbasepro#fetchTicker
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
@@ -773,17 +775,16 @@ class coinbasepro extends coinbasepro$1 {
         /**
          * @method
          * @name coinbasepro#fetchMyTrades
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        // as of 2018-08-23
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -792,6 +793,14 @@ class coinbasepro extends coinbasepro$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        if (since !== undefined) {
+            request['start_date'] = this.iso8601(since);
+        }
+        const until = this.safeValue2(params, 'until', 'end_date');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['end_date'] = this.iso8601(until);
+        }
         const response = await this.privateGetFills(this.extend(request, params));
         return this.parseTrades(response, market, since, limit);
     }
@@ -799,6 +808,7 @@ class coinbasepro extends coinbasepro$1 {
         /**
          * @method
          * @name coinbasepro#fetchTrades
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -885,12 +895,14 @@ class coinbasepro extends coinbasepro$1 {
         /**
          * @method
          * @name coinbasepro#fetchOHLCV
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -905,6 +917,8 @@ class coinbasepro extends coinbasepro$1 {
         else {
             request['granularity'] = timeframe;
         }
+        const until = this.safeValue2(params, 'until', 'end');
+        params = this.omit(params, ['until']);
         if (since !== undefined) {
             request['start'] = this.iso8601(since);
             if (limit === undefined) {
@@ -914,12 +928,17 @@ class coinbasepro extends coinbasepro$1 {
             else {
                 limit = Math.min(300, limit);
             }
-            const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
-            if (since % parsedTimeframeMilliseconds === 0) {
-                request['end'] = this.iso8601(this.sum((limit - 1) * parsedTimeframeMilliseconds, since));
+            if (until === undefined) {
+                const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
+                if (since % parsedTimeframeMilliseconds === 0) {
+                    request['end'] = this.iso8601(this.sum((limit - 1) * parsedTimeframeMilliseconds, since));
+                }
+                else {
+                    request['end'] = this.iso8601(this.sum(limit * parsedTimeframeMilliseconds, since));
+                }
             }
             else {
-                request['end'] = this.iso8601(this.sum(limit * parsedTimeframeMilliseconds, since));
+                request['end'] = this.iso8601(until);
             }
         }
         const response = await this.publicGetProductsIdCandles(this.extend(request, params));
@@ -1039,6 +1058,7 @@ class coinbasepro extends coinbasepro$1 {
         /**
          * @method
          * @name coinbasepro#fetchOrder
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
          * @description fetches information on an order made by the user
          * @param {string} symbol not used by coinbasepro fetchOrder
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
@@ -1087,11 +1107,13 @@ class coinbasepro extends coinbasepro$1 {
         /**
          * @method
          * @name coinbasepro#fetchOrders
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch open orders for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const request = {
@@ -1103,11 +1125,13 @@ class coinbasepro extends coinbasepro$1 {
         /**
          * @method
          * @name coinbasepro#fetchOpenOrders
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch open orders for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -1120,6 +1144,14 @@ class coinbasepro extends coinbasepro$1 {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
+        if (since !== undefined) {
+            request['start_date'] = this.iso8601(since);
+        }
+        const until = this.safeValue2(params, 'until', 'end_date');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['end_date'] = this.iso8601(until);
+        }
         const response = await this.privateGetOrders(this.extend(request, params));
         return this.parseOrders(response, market, since, limit);
     }
@@ -1127,11 +1159,13 @@ class coinbasepro extends coinbasepro$1 {
         /**
          * @method
          * @name coinbasepro#fetchClosedOrders
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch open orders for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const request = {
@@ -1143,6 +1177,7 @@ class coinbasepro extends coinbasepro$1 {
         /**
          * @method
          * @name coinbasepro#createOrder
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1238,6 +1273,7 @@ class coinbasepro extends coinbasepro$1 {
         /**
          * @method
          * @name coinbasepro#cancelOrder
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
@@ -1270,6 +1306,7 @@ class coinbasepro extends coinbasepro$1 {
         /**
          * @method
          * @name coinbasepro#cancelAllOrders
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
@@ -1456,11 +1493,13 @@ class coinbasepro extends coinbasepro$1 {
         /**
          * @method
          * @name coinbasepro#fetchLedger
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
@@ -1489,6 +1528,11 @@ class coinbasepro extends coinbasepro$1 {
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
+        }
+        const until = this.safeValue2(params, 'until', 'end_date');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['end_date'] = this.iso8601(until);
         }
         const response = await this.privateGetAccountsIdLedger(this.extend(request, params));
         for (let i = 0; i < response.length; i++) {
