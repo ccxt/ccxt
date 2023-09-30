@@ -505,6 +505,7 @@ class coinbasepro extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -672,6 +673,7 @@ class coinbasepro extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
@@ -787,17 +789,16 @@ class coinbasepro extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
              * fetch all trades made by the user
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch trades for
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
-            // 2018-08-23
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchMyTrades', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -805,6 +806,14 @@ class coinbasepro extends Exchange {
             );
             if ($limit !== null) {
                 $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                $request['start_date'] = $this->iso8601($since);
+            }
+            $until = $this->safe_value_2($params, 'until', 'end_date');
+            if ($until !== null) {
+                $params = $this->omit($params, array( 'until' ));
+                $request['end_date'] = $this->iso8601($until);
             }
             $response = Async\await($this->privateGetFills (array_merge($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
@@ -814,6 +823,7 @@ class coinbasepro extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -903,12 +913,14 @@ class coinbasepro extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch trades for
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -922,6 +934,8 @@ class coinbasepro extends Exchange {
             } else {
                 $request['granularity'] = $timeframe;
             }
+            $until = $this->safe_value_2($params, 'until', 'end');
+            $params = $this->omit($params, array( 'until' ));
             if ($since !== null) {
                 $request['start'] = $this->iso8601($since);
                 if ($limit === null) {
@@ -930,11 +944,15 @@ class coinbasepro extends Exchange {
                 } else {
                     $limit = min (300, $limit);
                 }
-                $parsedTimeframeMilliseconds = $parsedTimeframe * 1000;
-                if (fmod($since, $parsedTimeframeMilliseconds) === 0) {
-                    $request['end'] = $this->iso8601($this->sum(($limit - 1) * $parsedTimeframeMilliseconds, $since));
+                if ($until === null) {
+                    $parsedTimeframeMilliseconds = $parsedTimeframe * 1000;
+                    if (fmod($since, $parsedTimeframeMilliseconds) === 0) {
+                        $request['end'] = $this->iso8601($this->sum(($limit - 1) * $parsedTimeframeMilliseconds, $since));
+                    } else {
+                        $request['end'] = $this->iso8601($this->sum($limit * $parsedTimeframeMilliseconds, $since));
+                    }
                 } else {
-                    $request['end'] = $this->iso8601($this->sum($limit * $parsedTimeframeMilliseconds, $since));
+                    $request['end'] = $this->iso8601($until);
                 }
             }
             $response = Async\await($this->publicGetProductsIdCandles (array_merge($request, $params)));
@@ -1058,6 +1076,7 @@ class coinbasepro extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
              * fetches information on an order made by the user
              * @param {string} $symbol not used by coinbasepro fetchOrder
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
@@ -1107,11 +1126,13 @@ class coinbasepro extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
              * fetches information on multiple orders made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch open orders for
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $request = array(
@@ -1124,11 +1145,13 @@ class coinbasepro extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
              * fetch all unfilled currently open orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch open orders for
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
@@ -1141,6 +1164,14 @@ class coinbasepro extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100
             }
+            if ($since !== null) {
+                $request['start_date'] = $this->iso8601($since);
+            }
+            $until = $this->safe_value_2($params, 'until', 'end_date');
+            if ($until !== null) {
+                $params = $this->omit($params, array( 'until' ));
+                $request['end_date'] = $this->iso8601($until);
+            }
             $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
         }) ();
@@ -1149,11 +1180,13 @@ class coinbasepro extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch open orders for
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $request = array(
@@ -1166,6 +1199,7 @@ class coinbasepro extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
              * create a trade order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -1259,6 +1293,7 @@ class coinbasepro extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -1291,6 +1326,7 @@ class coinbasepro extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
              * cancel all open orders
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
@@ -1479,11 +1515,13 @@ class coinbasepro extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entrys to return, default is null
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch trades for
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
              */
             // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
@@ -1512,6 +1550,11 @@ class coinbasepro extends Exchange {
             }
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100
+            }
+            $until = $this->safe_value_2($params, 'until', 'end_date');
+            if ($until !== null) {
+                $params = $this->omit($params, array( 'until' ));
+                $request['end_date'] = $this->iso8601($until);
             }
             $response = Async\await($this->privateGetAccountsIdLedger (array_merge($request, $params)));
             for ($i = 0; $i < count($response); $i++) {
