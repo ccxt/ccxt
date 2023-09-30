@@ -6200,9 +6200,8 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1670988271677
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        transfers = self.safe_value(data, 'list', [])
-        return self.parse_transfers(transfers, currency, since, limit)
+        data = self.add_pagination_cursor_to_result(response)
+        return self.parse_transfers(data, currency, since, limit)
 
     async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """

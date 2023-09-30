@@ -6622,9 +6622,8 @@ export default class bybit extends Exchange {
         //         "time": 1670988271677
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const transfers = this.safeValue(data, 'list', []);
-        return this.parseTransfers(transfers, currency, since, limit);
+        const data = this.addPaginationCursorToResult(response);
+        return this.parseTransfers(data, currency, since, limit);
     }
     async borrowMargin(code, amount, symbol = undefined, params = {}) {
         /**

@@ -6585,11 +6585,11 @@ class bybit extends Exchange {
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch a history of internal $transfers made on an account
+             * fetch a history of internal transfers made on an account
              * @see https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
              * @param {string} $code unified $currency $code of the $currency transferred
-             * @param {int} [$since] the earliest time in ms to fetch $transfers for
-             * @param {int} [$limit] the maximum number of  $transfers structures to retrieve
+             * @param {int} [$since] the earliest time in ms to fetch transfers for
+             * @param {int} [$limit] the maximum number of  transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
              */
@@ -6629,9 +6629,8 @@ class bybit extends Exchange {
             //         "time" => 1670988271677
             //     }
             //
-            $data = $this->safe_value($response, 'result', array());
-            $transfers = $this->safe_value($data, 'list', array());
-            return $this->parse_transfers($transfers, $currency, $since, $limit);
+            $data = $this->add_pagination_cursor_to_result($response);
+            return $this->parse_transfers($data, $currency, $since, $limit);
         }) ();
     }
 
