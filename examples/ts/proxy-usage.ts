@@ -13,14 +13,13 @@ async function example_1 () {
 
 async function example_2 () {
     const myEx = new ccxt.kucoin ();
-    // "httpProxy" or "httpsProxy" (depending on your proxy protocol)
-    myEx.httpsProxy = 'http://1.2.3.4:5555';
+    myEx.httpsProxy = 'http://5.75.153.75:8888'; // "httpProxy" or "httpsProxy" (depending on your proxy protocol)
     console.log (await myEx.fetch (targetSite));
 }
 
 async function example_3 () {
     const myEx = new ccxt.kucoin ();
-    myEx.socksProxy = 'socks5://127.0.0.1:1080'; // It is for socks5 or socks5h proxy (Note, this might work for websocket connections too).
+    myEx.socksProxy = 'socks5://127.0.0.1:1080'; // socks5 or socks5h
     console.log (await myEx.fetch (targetSite));
 }
 
