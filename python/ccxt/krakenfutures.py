@@ -1176,7 +1176,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         statusId = None
         price = None
         trades = []
-        if len(orderEvents):
+        orderEventsLength = len(orderEvents)
+        if orderEventsLength:
             executions = []
             for i in range(0, len(orderEvents)):
                 item = orderEvents[i]
@@ -1259,7 +1260,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': self.safe_string_2(details, 'clientOrderId', 'clientId'),
+            'clientOrderId': self.safe_string_n(details, ['clientOrderId', 'clientId', 'cliOrdId']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

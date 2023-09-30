@@ -1105,9 +1105,10 @@ class phemex extends phemex$1 {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] *emulated not supported by the exchange* timestamp in ms of the earliest candle to fetch
+         * @param {int} [since] *only used for USDT settled contracts, otherwise is emulated and not supported by the exchange* timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the phemex api endpoint
+         * @param {int} [params.until] *USDT settled/ linear swaps only* end time in ms
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -1117,34 +1118,55 @@ class phemex extends phemex$1 {
             'symbol': market['id'],
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const possibleLimitValues = [5, 10, 50, 100, 500, 1000];
-        const maxLimit = 1000;
-        if (limit === undefined && since === undefined) {
-            limit = possibleLimitValues[5];
+        const until = this.safeInteger2(params, 'until', 'to');
+        params = this.omit(params, ['until']);
+        const usesSpecialFromToEndpoint = ((market['linear'] || market['settle'] === 'USDT')) && ((since !== undefined) || (until !== undefined));
+        let maxLimit = 1000;
+        if (usesSpecialFromToEndpoint) {
+            maxLimit = 2000;
         }
-        if (since !== undefined) {
-            // phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
-            // we do not send since param to the exchange, instead we calculate appropriate limit param
-            const duration = this.parseTimeframe(timeframe) * 1000;
-            const timeDelta = this.milliseconds() - since;
-            limit = this.parseToInt(timeDelta / duration); // setting limit to the number of candles after since
-        }
-        if (limit > maxLimit) {
+        if (limit === undefined) {
             limit = maxLimit;
         }
-        else {
-            for (let i = 0; i < possibleLimitValues.length; i++) {
-                if (limit <= possibleLimitValues[i]) {
-                    limit = possibleLimitValues[i];
-                }
-            }
-        }
-        request['limit'] = limit;
+        request['limit'] = Math.min(limit, maxLimit);
         let response = undefined;
         if (market['linear'] || market['settle'] === 'USDT') {
-            response = await this.publicGetMdV2KlineLast(this.extend(request, params));
+            if ((until !== undefined) || (since !== undefined)) {
+                const candleDuration = this.parseTimeframe(timeframe);
+                if (since !== undefined) {
+                    since = Math.round(since / 1000);
+                    request['from'] = since;
+                }
+                else {
+                    // when 'to' is defined since is mandatory
+                    since = (until / 100) - (maxLimit * candleDuration);
+                }
+                if (until !== undefined) {
+                    request['to'] = Math.round(until / 1000);
+                }
+                else {
+                    // when since is defined 'to' is mandatory
+                    let to = since + (maxLimit * candleDuration);
+                    const now = this.seconds();
+                    if (to > now) {
+                        to = now;
+                    }
+                    request['to'] = to;
+                }
+                response = await this.publicGetMdV2KlineList(this.extend(request, params));
+            }
+            else {
+                response = await this.publicGetMdV2KlineLast(this.extend(request, params));
+            }
         }
         else {
+            if (since !== undefined) {
+                // phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
+                // we do not send since param to the exchange, instead we calculate appropriate limit param
+                const duration = this.parseTimeframe(timeframe) * 1000;
+                const timeDelta = this.milliseconds() - since;
+                limit = this.parseToInt(timeDelta / duration); // setting limit to the number of candles after since
+            }
             response = await this.publicGetMdV2Kline(this.extend(request, params));
         }
         //

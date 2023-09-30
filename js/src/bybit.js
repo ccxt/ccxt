@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bybit.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, BadSymbol } from './base/errors.js';
+import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, BadSymbol, MarginModeAlreadySet, NoChange } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -702,10 +702,11 @@ export default class bybit extends Exchange {
                     '10027': PermissionDenied,
                     '10028': PermissionDenied,
                     '10029': PermissionDenied,
+                    '12137': InvalidOrder,
                     '12201': BadRequest,
                     '12141': BadRequest,
                     '100028': PermissionDenied,
-                    '110001': InvalidOrder,
+                    '110001': OrderNotFound,
                     '110003': InvalidOrder,
                     '110004': InsufficientFunds,
                     '110005': InvalidOrder,
@@ -727,12 +728,12 @@ export default class bybit extends Exchange {
                     '110021': InvalidOrder,
                     '110022': InvalidOrder,
                     '110023': InvalidOrder,
-                    '110024': InvalidOrder,
-                    '110025': InvalidOrder,
-                    '110026': BadRequest,
-                    '110027': InvalidOrder,
-                    '110028': InvalidOrder,
-                    '110029': InvalidOrder,
+                    '110024': BadRequest,
+                    '110025': NoChange,
+                    '110026': MarginModeAlreadySet,
+                    '110027': NoChange,
+                    '110028': BadRequest,
+                    '110029': BadRequest,
                     '110030': InvalidOrder,
                     '110031': InvalidOrder,
                     '110032': InvalidOrder,
@@ -3528,11 +3529,38 @@ export default class bybit extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined;
         }
+        const avgPrice = this.omitZero(this.safeString(order, 'avgPrice'));
         const rawTimeInForce = this.safeString(order, 'timeInForce');
         const timeInForce = this.parseTimeInForce(rawTimeInForce);
         const stopPrice = this.omitZero(this.safeString(order, 'triggerPrice'));
-        const takeProfitPrice = this.omitZero(this.safeString(order, 'takeProfit'));
-        const stopLossPrice = this.omitZero(this.safeString(order, 'stopLoss'));
+        const reduceOnly = this.safeValue(order, 'reduceOnly');
+        let takeProfitPrice = this.omitZero(this.safeString(order, 'takeProfit'));
+        let stopLossPrice = this.omitZero(this.safeString(order, 'stopLoss'));
+        const triggerDirection = this.safeString(order, 'triggerDirection');
+        const isAscending = (triggerDirection === '1');
+        const isStopOrderType2 = (stopPrice !== undefined) && reduceOnly;
+        if ((stopLossPrice === undefined) && isStopOrderType2) {
+            // check if order is stop order type 2 - stopLossPrice
+            if (isAscending && (side === 'buy')) {
+                // stopLoss order against short position
+                stopLossPrice = stopPrice;
+            }
+            if (!isAscending && (side === 'sell')) {
+                // stopLoss order against a long position
+                stopLossPrice = stopPrice;
+            }
+        }
+        if ((takeProfitPrice === undefined) && isStopOrderType2) {
+            // check if order is stop order type 2 - takeProfitPrice
+            if (isAscending && (side === 'sell')) {
+                // takeprofit order against a long position
+                takeProfitPrice = stopPrice;
+            }
+            if (!isAscending && (side === 'buy')) {
+                // takeprofit order against a short position
+                takeProfitPrice = stopPrice;
+            }
+        }
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -3554,7 +3582,7 @@ export default class bybit extends Exchange {
             'stopLossPrice': stopLossPrice,
             'amount': amount,
             'cost': cost,
-            'average': undefined,
+            'average': avgPrice,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -3606,7 +3634,14 @@ export default class bybit extends Exchange {
          * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [params.mmp] *option only* market maker protection
-         * @param {int} [params.triggerDirection] *contract only* conditional orders, 1: triggered when market price rises to triggerPrice, 2: triggered when market price falls to triggerPrice
+         * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'up' or 'down'
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -3712,24 +3747,33 @@ export default class bybit extends Exchange {
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
         const isBuy = side === 'buy';
-        const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
+        const setTriggerDirection = (stopLossTriggerPrice || triggerPrice) ? !isBuy : isBuy;
+        const defaultTriggerDirection = setTriggerDirection ? 2 : 1;
+        const triggerDirection = this.safeString(params, 'triggerDirection');
+        params = this.omit(params, 'triggerDirection');
+        let selectedDirection = defaultTriggerDirection;
+        if (triggerDirection !== undefined) {
+            const isAsending = ((triggerDirection === 'up') || (triggerDirection === '1'));
+            selectedDirection = isAsending ? 1 : 2;
+        }
         if (triggerPrice !== undefined) {
+            request['triggerDirection'] = selectedDirection;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-            request['triggerDirection'] = ascending ? 2 : 1;
+            request['triggerDirection'] = selectedDirection;
             triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['reduceOnly'] = true;
         }
         else if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                request['stopLoss'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision(symbol, slTriggerPrice);
             }
             if (isTakeProfit) {
-                const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                request['takeProfit'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision(symbol, tpTriggerPrice);
             }
         }
         if (market['spot']) {
@@ -3838,12 +3882,12 @@ export default class bybit extends Exchange {
             }
             else if (isStopLoss || isTakeProfit) {
                 if (isStopLoss) {
-                    const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                    request['stopLoss'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                    const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                    request['stopLoss'] = this.priceToPrecision(symbol, slTriggerPrice);
                 }
                 if (isTakeProfit) {
-                    const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                    request['takeProfit'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                    const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                    request['takeProfit'] = this.priceToPrecision(symbol, tpTriggerPrice);
                 }
             }
             else {
@@ -4024,12 +4068,12 @@ export default class bybit extends Exchange {
         }
         if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                request['stopLoss'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                request['stopLoss'] = this.priceToPrecision(symbol, slTriggerPrice);
             }
             if (isTakeProfit) {
-                const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                request['takeProfit'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                request['takeProfit'] = this.priceToPrecision(symbol, tpTriggerPrice);
             }
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -5999,12 +6043,10 @@ export default class bybit extends Exchange {
         await this.loadMarkets();
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
+        let market = undefined;
         let response = undefined;
-        if (symbol === undefined) {
+        if (isUnifiedAccount) {
             if (marginMode === 'isolated') {
-                if (!isUnifiedAccount) {
-                    throw new NotSupported(this.id + ' setMarginMode() Normal Account not support ISOLATED_MARGIN');
-                }
                 marginMode = 'ISOLATED_MARGIN';
             }
             else if (marginMode === 'cross') {
@@ -6022,44 +6064,70 @@ export default class bybit extends Exchange {
             response = await this.privatePostV5AccountSetMarginMode(this.extend(request, params));
         }
         else {
-            const market = this.market(symbol);
-            let type = undefined;
-            [type, params] = this.getBybitType('setMarginMode', market, params);
-            if (type === 'linear') {
-                if (isUnifiedAccount) {
-                    throw new NotSupported(this.id + ' setMarginMode() with symbol Unified Account only support inverse contract');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired(this.id + ' setMarginMode() requires a symbol parameter for non unified account');
+            }
+            market = this.market(symbol);
+            const isUsdcSettled = market['settle'] === 'USDC';
+            if (isUsdcSettled) {
+                if (marginMode === 'cross') {
+                    marginMode = 'REGULAR_MARGIN';
                 }
-                const isUsdtSettled = market['settle'] === 'USDT';
-                if (!isUsdtSettled) {
-                    throw new NotSupported(this.id + ' setMarginMode() with symbol only support USDT perpetual / inverse contract');
+                else if (marginMode === 'portfolio') {
+                    marginMode = 'PORTFOLIO_MARGIN';
                 }
-            }
-            else if (type !== 'inverse') {
-                throw new NotSupported(this.id + ' setMarginMode() does not support this market type');
-            }
-            let tradeMode = undefined;
-            if (marginMode === 'cross') {
-                tradeMode = 0;
-            }
-            else if (marginMode === 'isolated') {
-                tradeMode = 1;
+                else {
+                    throw new NotSupported(this.id + ' setMarginMode() for usdc market marginMode must be either [cross, portfolio]');
+                }
+                const request = {
+                    'setMarginMode': marginMode,
+                };
+                response = await this.privatePostV5AccountSetMarginMode(this.extend(request, params));
             }
             else {
-                throw new NotSupported(this.id + ' setMarginMode() with symbol marginMode must be either [isolated, cross]');
+                let type = undefined;
+                [type, params] = this.getBybitType('setPositionMode', market, params);
+                let tradeMode = undefined;
+                if (marginMode === 'cross') {
+                    tradeMode = 0;
+                }
+                else if (marginMode === 'isolated') {
+                    tradeMode = 1;
+                }
+                else {
+                    throw new NotSupported(this.id + ' setMarginMode() with symbol marginMode must be either [isolated, cross]');
+                }
+                let sellLeverage = undefined;
+                let buyLeverage = undefined;
+                const leverage = this.safeString(params, 'leverage');
+                if (leverage === undefined) {
+                    sellLeverage = this.safeString2(params, 'sell_leverage', 'sellLeverage');
+                    buyLeverage = this.safeString2(params, 'buy_leverage', 'buyLeverage');
+                    if (sellLeverage === undefined && buyLeverage === undefined) {
+                        throw new ArgumentsRequired(this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
+                    }
+                    if (buyLeverage === undefined) {
+                        buyLeverage = sellLeverage;
+                    }
+                    if (sellLeverage === undefined) {
+                        sellLeverage = buyLeverage;
+                    }
+                    params = this.omit(params, ['buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage']);
+                }
+                else {
+                    sellLeverage = leverage;
+                    buyLeverage = leverage;
+                    params = this.omit(params, 'leverage');
+                }
+                const request = {
+                    'category': type,
+                    'symbol': market['id'],
+                    'tradeMode': tradeMode,
+                    'buyLeverage': buyLeverage,
+                    'sellLeverage': sellLeverage,
+                };
+                response = await this.privatePostV5PositionSwitchIsolated(this.extend(request, params));
             }
-            const leverage = this.safeString(params, 'leverage');
-            params = this.omit(params, ['leverage']);
-            if (leverage === undefined) {
-                throw new ArgumentsRequired(this.id + ' setMarginMode() with symbol requires leverage');
-            }
-            const request = {
-                'category': type,
-                'symbol': market['id'],
-                'tradeMode': tradeMode,
-                'buyLeverage': leverage,
-                'sellLeverage': leverage,
-            };
-            response = await this.privatePostV5PositionSwitchIsolated(this.extend(request, params));
         }
         return response;
     }

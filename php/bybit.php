@@ -695,10 +695,11 @@ class bybit extends Exchange {
                     '10027' => '\\ccxt\\PermissionDenied', // Trading Banned
                     '10028' => '\\ccxt\\PermissionDenied', // The API can only be accessed by unified account users.
                     '10029' => '\\ccxt\\PermissionDenied', // The requested symbol is invalid, please check symbol whitelist
+                    '12137' => '\\ccxt\\InvalidOrder', // array("retCode":12137,"retMsg":"Order quantity has too many decimals.","result":array(),"retExtInfo":array(),"time":1695900943033)
                     '12201' => '\\ccxt\\BadRequest', // array("retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":array(),"retExtInfo":null,"time":1666699391220)
                     '12141' => '\\ccxt\\BadRequest', // "retCode":12141,"retMsg":"Duplicate clientOrderId.","result":array(),"retExtInfo":array(),"time":1686134298989}
                     '100028' => '\\ccxt\\PermissionDenied', // The API cannot be accessed by unified account users.
-                    '110001' => '\\ccxt\\InvalidOrder', // Order does not exist
+                    '110001' => '\\ccxt\\OrderNotFound', // Order does not exist
                     '110003' => '\\ccxt\\InvalidOrder', // Order price is out of permissible range
                     '110004' => '\\ccxt\\InsufficientFunds', // Insufficient wallet balance
                     '110005' => '\\ccxt\\InvalidOrder', // position status
@@ -720,12 +721,12 @@ class bybit extends Exchange {
                     '110021' => '\\ccxt\\InvalidOrder', // Open Interest exceeded
                     '110022' => '\\ccxt\\InvalidOrder', // qty has been limited, cannot modify the order to add qty
                     '110023' => '\\ccxt\\InvalidOrder', // This contract only supports position reduction operation, please contact customer service for details
-                    '110024' => '\\ccxt\\InvalidOrder', // You have an existing position, so position mode cannot be switched
-                    '110025' => '\\ccxt\\InvalidOrder', // Position mode is not modified
-                    '110026' => '\\ccxt\\BadRequest', // Cross/isolated margin mode is not modified
-                    '110027' => '\\ccxt\\InvalidOrder', // Margin is not modified
-                    '110028' => '\\ccxt\\InvalidOrder', // Open orders exist, so you cannot change position mode
-                    '110029' => '\\ccxt\\InvalidOrder', // Hedge mode is not available for this symbol
+                    '110024' => '\\ccxt\\BadRequest', // You have an existing position, so position mode cannot be switched
+                    '110025' => '\\ccxt\\NoChange', // Position mode is not modified
+                    '110026' => '\\ccxt\\MarginModeAlreadySet', // Cross/isolated margin mode is not modified
+                    '110027' => '\\ccxt\\NoChange', // Margin is not modified
+                    '110028' => '\\ccxt\\BadRequest', // Open orders exist, so you cannot change position mode
+                    '110029' => '\\ccxt\\BadRequest', // Hedge mode is not available for this symbol
                     '110030' => '\\ccxt\\InvalidOrder', // Duplicate orderId
                     '110031' => '\\ccxt\\InvalidOrder', // risk limit info does not exists
                     '110032' => '\\ccxt\\InvalidOrder', // Illegal order
@@ -3493,11 +3494,38 @@ class bybit extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null;
         }
+        $avgPrice = $this->omit_zero($this->safe_string($order, 'avgPrice'));
         $rawTimeInForce = $this->safe_string($order, 'timeInForce');
         $timeInForce = $this->parse_time_in_force($rawTimeInForce);
         $stopPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
+        $reduceOnly = $this->safe_value($order, 'reduceOnly');
         $takeProfitPrice = $this->omit_zero($this->safe_string($order, 'takeProfit'));
         $stopLossPrice = $this->omit_zero($this->safe_string($order, 'stopLoss'));
+        $triggerDirection = $this->safe_string($order, 'triggerDirection');
+        $isAscending = ($triggerDirection === '1');
+        $isStopOrderType2 = ($stopPrice !== null) && $reduceOnly;
+        if (($stopLossPrice === null) && $isStopOrderType2) {
+            // check if $order is stop $order $type 2 - $stopLossPrice
+            if ($isAscending && ($side === 'buy')) {
+                // stopLoss $order against short position
+                $stopLossPrice = $stopPrice;
+            }
+            if (!$isAscending && ($side === 'sell')) {
+                // stopLoss $order against a long position
+                $stopLossPrice = $stopPrice;
+            }
+        }
+        if (($takeProfitPrice === null) && $isStopOrderType2) {
+            // check if $order is stop $order $type 2 - $takeProfitPrice
+            if ($isAscending && ($side === 'sell')) {
+                // takeprofit $order against a long position
+                $takeProfitPrice = $stopPrice;
+            }
+            if (!$isAscending && ($side === 'buy')) {
+                // takeprofit $order against a short position
+                $takeProfitPrice = $stopPrice;
+            }
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -3519,7 +3547,7 @@ class bybit extends Exchange {
             'stopLossPrice' => $stopLossPrice,
             'amount' => $amount,
             'cost' => $cost,
-            'average' => null,
+            'average' => $avgPrice,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
@@ -3569,7 +3597,14 @@ class bybit extends Exchange {
          * @param {boolean} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [$params->tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [$params->mmp] *option only* $market maker protection
-         * @param {int} [$params->triggerDirection] *contract only* conditional orders, 1 => triggered when $market $price rises to $triggerPrice, 2 => triggered when $market $price falls to $triggerPrice
+         * @param {string} [$params->triggerDirection] *contract only* the direction for trigger orders, 'up' or 'down'
+         * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
+         * @param {float} [$params->stopLossPrice] The $price at which a stop loss $order is triggered at
+         * @param {float} [$params->takeProfitPrice] The $price at which a take profit $order is triggered at
+         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit $order will be triggered
+         * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
+         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered
+         * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
         $this->load_markets();
@@ -3666,22 +3701,31 @@ class bybit extends Exchange {
         $isStopLoss = $stopLoss !== null;
         $isTakeProfit = $takeProfit !== null;
         $isBuy = $side === 'buy';
-        $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
+        $setTriggerDirection = ($stopLossTriggerPrice || $triggerPrice) ? !$isBuy : $isBuy;
+        $defaultTriggerDirection = $setTriggerDirection ? 2 : 1;
+        $triggerDirection = $this->safe_string($params, 'triggerDirection');
+        $params = $this->omit($params, 'triggerDirection');
+        $selectedDirection = $defaultTriggerDirection;
+        if ($triggerDirection !== null) {
+            $isAsending = (($triggerDirection === 'up') || ($triggerDirection === '1'));
+            $selectedDirection = $isAsending ? 1 : 2;
+        }
         if ($triggerPrice !== null) {
+            $request['triggerDirection'] = $selectedDirection;
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
-            $request['triggerDirection'] = $ascending ? 2 : 1;
+            $request['triggerDirection'] = $selectedDirection;
             $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['reduceOnly'] = true;
         } elseif ($isStopLoss || $isTakeProfit) {
             if ($isStopLoss) {
-                $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
-                $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
             }
             if ($isTakeProfit) {
-                $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
-                $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
             }
         }
         if ($market['spot']) {
@@ -3785,12 +3829,12 @@ class bybit extends Exchange {
                 $request['basePrice'] = $isStopLossTriggerOrder ? Precise::string_sub($preciseStopPrice, $delta) : Precise::string_add($preciseStopPrice, $delta);
             } elseif ($isStopLoss || $isTakeProfit) {
                 if ($isStopLoss) {
-                    $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
-                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                    $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                    $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
                 }
                 if ($isTakeProfit) {
-                    $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
-                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                    $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                    $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                 }
             } else {
                 $request['orderFilter'] = 'Order';
@@ -3965,12 +4009,12 @@ class bybit extends Exchange {
         }
         if ($isStopLoss || $isTakeProfit) {
             if ($isStopLoss) {
-                $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
-                $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
             }
             if ($isTakeProfit) {
-                $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
-                $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
             }
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -5911,12 +5955,10 @@ class bybit extends Exchange {
         $this->load_markets();
         list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
         $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
+        $market = null;
         $response = null;
-        if ($symbol === null) {
+        if ($isUnifiedAccount) {
             if ($marginMode === 'isolated') {
-                if (!$isUnifiedAccount) {
-                    throw new NotSupported($this->id . ' setMarginMode() Normal Account not support ISOLATED_MARGIN');
-                }
                 $marginMode = 'ISOLATED_MARGIN';
             } elseif ($marginMode === 'cross') {
                 $marginMode = 'REGULAR_MARGIN';
@@ -5930,41 +5972,64 @@ class bybit extends Exchange {
             );
             $response = $this->privatePostV5AccountSetMarginMode (array_merge($request, $params));
         } else {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol parameter for non unified account');
+            }
             $market = $this->market($symbol);
-            $type = null;
-            list($type, $params) = $this->get_bybit_type('setMarginMode', $market, $params);
-            if ($type === 'linear') {
-                if ($isUnifiedAccount) {
-                    throw new NotSupported($this->id . ' setMarginMode() with $symbol Unified Account only support inverse contract');
+            $isUsdcSettled = $market['settle'] === 'USDC';
+            if ($isUsdcSettled) {
+                if ($marginMode === 'cross') {
+                    $marginMode = 'REGULAR_MARGIN';
+                } elseif ($marginMode === 'portfolio') {
+                    $marginMode = 'PORTFOLIO_MARGIN';
+                } else {
+                    throw new NotSupported($this->id . ' setMarginMode() for usdc $market $marginMode must be either [cross, portfolio]');
                 }
-                $isUsdtSettled = $market['settle'] === 'USDT';
-                if (!$isUsdtSettled) {
-                    throw new NotSupported($this->id . ' setMarginMode() with $symbol only support USDT perpetual / inverse contract');
-                }
-            } elseif ($type !== 'inverse') {
-                throw new NotSupported($this->id . ' setMarginMode() does not support this $market type');
-            }
-            $tradeMode = null;
-            if ($marginMode === 'cross') {
-                $tradeMode = 0;
-            } elseif ($marginMode === 'isolated') {
-                $tradeMode = 1;
+                $request = array(
+                    'setMarginMode' => $marginMode,
+                );
+                $response = $this->privatePostV5AccountSetMarginMode (array_merge($request, $params));
             } else {
-                throw new NotSupported($this->id . ' setMarginMode() with $symbol $marginMode must be either [isolated, cross]');
+                $type = null;
+                list($type, $params) = $this->get_bybit_type('setPositionMode', $market, $params);
+                $tradeMode = null;
+                if ($marginMode === 'cross') {
+                    $tradeMode = 0;
+                } elseif ($marginMode === 'isolated') {
+                    $tradeMode = 1;
+                } else {
+                    throw new NotSupported($this->id . ' setMarginMode() with $symbol $marginMode must be either [isolated, cross]');
+                }
+                $sellLeverage = null;
+                $buyLeverage = null;
+                $leverage = $this->safe_string($params, 'leverage');
+                if ($leverage === null) {
+                    $sellLeverage = $this->safe_string_2($params, 'sell_leverage', 'sellLeverage');
+                    $buyLeverage = $this->safe_string_2($params, 'buy_leverage', 'buyLeverage');
+                    if ($sellLeverage === null && $buyLeverage === null) {
+                        throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter or sell_leverage and buy_leverage parameters');
+                    }
+                    if ($buyLeverage === null) {
+                        $buyLeverage = $sellLeverage;
+                    }
+                    if ($sellLeverage === null) {
+                        $sellLeverage = $buyLeverage;
+                    }
+                    $params = $this->omit($params, array( 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ));
+                } else {
+                    $sellLeverage = $leverage;
+                    $buyLeverage = $leverage;
+                    $params = $this->omit($params, 'leverage');
+                }
+                $request = array(
+                    'category' => $type,
+                    'symbol' => $market['id'],
+                    'tradeMode' => $tradeMode,
+                    'buyLeverage' => $buyLeverage,
+                    'sellLeverage' => $sellLeverage,
+                );
+                $response = $this->privatePostV5PositionSwitchIsolated (array_merge($request, $params));
             }
-            $leverage = $this->safe_string($params, 'leverage');
-            $params = $this->omit($params, array( 'leverage' ));
-            if ($leverage === null) {
-                throw new ArgumentsRequired($this->id . ' setMarginMode() with $symbol requires leverage');
-            }
-            $request = array(
-                'category' => $type,
-                'symbol' => $market['id'],
-                'tradeMode' => $tradeMode,
-                'buyLeverage' => $leverage,
-                'sellLeverage' => $leverage,
-            );
-            $response = $this->privatePostV5PositionSwitchIsolated (array_merge($request, $params));
         }
         return $response;
     }

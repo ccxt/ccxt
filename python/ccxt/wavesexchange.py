@@ -1192,7 +1192,8 @@ class wavesexchange(Exchange, ImplicitAPI):
     def to_precision(self, amount, scale):
         amountString = self.number_to_string(amount)
         precise = Precise(amountString)
-        precise.decimals = Precise.string_sub(precise.decimals, scale)
+        # precise.decimals should be integer
+        precise.decimals = self.parse_to_int(Precise.string_sub(self.number_to_string(precise.decimals), self.number_to_string(scale)))
         precise.reduce()
         return precise
 
