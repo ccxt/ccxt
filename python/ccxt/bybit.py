@@ -262,6 +262,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/market/insurance': 2.5,
                         'v5/market/risk-limit': 2.5,
                         'v5/market/delivery-price': 2.5,
+                        'v5/market/account-ratio': 2.5,
                         # spot leverage token
                         'v5/spot-lever-token/info': 2.5,
                         'v5/spot-lever-token/reference': 2.5,
@@ -663,6 +664,7 @@ class bybit(Exchange, ImplicitAPI):
                         # c2c lending
                         'v5/lending/purchase': 2.5,
                         'v5/lending/redeem': 2.5,
+                        'v5/lending/redeem-cancel': 2.5,
                     },
                     'delete': {
                         # spot
@@ -3850,14 +3852,14 @@ class bybit(Exchange, ImplicitAPI):
         if isStopLossTriggerOrder or isTakeProfitTriggerOrder:
             triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
         if triggerPrice is not None:
-            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+            request['triggerPrice'] = triggerPrice
         if isStopLoss or isTakeProfit:
             if isStopLoss:
                 slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
-                request['stopLoss'] = self.price_to_precision(symbol, slTriggerPrice)
+                request['stopLoss'] = slTriggerPrice
             if isTakeProfit:
                 tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
-                request['takeProfit'] = self.price_to_precision(symbol, tpTriggerPrice)
+                request['takeProfit'] = tpTriggerPrice
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -6197,9 +6199,8 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1670988271677
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        transfers = self.safe_value(data, 'list', [])
-        return self.parse_transfers(transfers, currency, since, limit)
+        data = self.add_pagination_cursor_to_result(response)
+        return self.parse_transfers(data, currency, since, limit)
 
     def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """

@@ -251,6 +251,7 @@ class bybit extends Exchange {
                         'v5/market/insurance' => 2.5,
                         'v5/market/risk-limit' => 2.5,
                         'v5/market/delivery-price' => 2.5,
+                        'v5/market/account-ratio' => 2.5,
                         // spot leverage token
                         'v5/spot-lever-token/info' => 2.5,
                         'v5/spot-lever-token/reference' => 2.5,
@@ -652,6 +653,7 @@ class bybit extends Exchange {
                         // c2c lending
                         'v5/lending/purchase' => 2.5,
                         'v5/lending/redeem' => 2.5,
+                        'v5/lending/redeem-cancel' => 2.5,
                     ),
                     'delete' => array(
                         // spot
@@ -4056,16 +4058,16 @@ class bybit extends Exchange {
                 $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
             }
             if ($triggerPrice !== null) {
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+                $request['triggerPrice'] = $triggerPrice;
             }
             if ($isStopLoss || $isTakeProfit) {
                 if ($isStopLoss) {
                     $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
-                    $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
+                    $request['stopLoss'] = $slTriggerPrice;
                 }
                 if ($isTakeProfit) {
                     $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
-                    $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
+                    $request['takeProfit'] = $tpTriggerPrice;
                 }
             }
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -6583,11 +6585,11 @@ class bybit extends Exchange {
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch a history of internal $transfers made on an account
+             * fetch a history of internal transfers made on an account
              * @see https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
              * @param {string} $code unified $currency $code of the $currency transferred
-             * @param {int} [$since] the earliest time in ms to fetch $transfers for
-             * @param {int} [$limit] the maximum number of  $transfers structures to retrieve
+             * @param {int} [$since] the earliest time in ms to fetch transfers for
+             * @param {int} [$limit] the maximum number of  transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
              */
@@ -6627,9 +6629,8 @@ class bybit extends Exchange {
             //         "time" => 1670988271677
             //     }
             //
-            $data = $this->safe_value($response, 'result', array());
-            $transfers = $this->safe_value($data, 'list', array());
-            return $this->parse_transfers($transfers, $currency, $since, $limit);
+            $data = $this->add_pagination_cursor_to_result($response);
+            return $this->parse_transfers($data, $currency, $since, $limit);
         }) ();
     }
 

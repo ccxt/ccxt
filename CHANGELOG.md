@@ -1,3 +1,92 @@
+## 4.0.111 (2023-09-30)
+
+*  binance.has fetchL3OrderBook and fetchWithdrawAddresses are false [d263462398](https://github.com/ccxt/ccxt/commits/d263462398d982fbe6e5bcb361126867112e969e)
+*  feat(bitmart): fetchMyTrades, add swap support [2eca1e7818](https://github.com/ccxt/ccxt/commits/2eca1e7818a5882b5889650c979697e89b98b10f)
+*  review [abe9d545fd](https://github.com/ccxt/ccxt/commits/abe9d545fd6d561b732e4ebd48390488571b5628)
+*  update side [bca772aa98](https://github.com/ccxt/ccxt/commits/bca772aa98aafec7f8bf956215d825203cbfb93f)
+*  feat(bitmart): add cancelorder swap support [b64a59d4ac](https://github.com/ccxt/ccxt/commits/b64a59d4ac9599f2441fa0f11e650b97734d2013)
+*  bybit: add new api [3e001d473f](https://github.com/ccxt/ccxt/commits/3e001d473fd675e847aa10531e9620abb007965f)
+*  4.0.111 [fe7e319d97](https://github.com/ccxt/ccxt/commits/fe7e319d9759947541e8208aae1c61060f8aa0e8)
+
+
+## 4.0.110 (2023-09-29)
+
+*  fix!(bybit): triggerDirection for stop orders, ascending variable [3727921eb3](https://github.com/ccxt/ccxt/commits/3727921eb3832514afd347094387042fd1847bc3)
+*  changed ascending variable name, added inline comment [f914ef7d7b](https://github.com/ccxt/ccxt/commits/f914ef7d7b583b55a366beeb823d3cd2a1d31a94)
+*  flip triggerDirection values for stopPrice orders [d5e62bb549](https://github.com/ccxt/ccxt/commits/d5e62bb5490db5e777e1c21fc7bd5ab165b28c57)
+*  bitget: ccxt.OrderNotFound for Order does not exist [8688e1c888](https://github.com/ccxt/ccxt/commits/8688e1c888cdffa7253d21bdbe65e1cda6833a89)
+*  bybit: OrderNotFound for Order does not exist [b3e2ec04dd](https://github.com/ccxt/ccxt/commits/b3e2ec04dd1d8db5febcc600241fbbc529ff0998)
+*  Added triggerDirection 'up' or 'down' handling [7e5e0fe1a8](https://github.com/ccxt/ccxt/commits/7e5e0fe1a88f87e29e05609a92473e1d422a569e)
+*  fix(bybit): infer sl/tp inside parseOrder [7b44c353f5](https://github.com/ccxt/ccxt/commits/7b44c353f59214ff83acfbbe9803ab2b1796f091)
+*  bybit error mapping [b64227b02f](https://github.com/ccxt/ccxt/commits/b64227b02f2297ed222fda8e2837ec3305f37e91)
+*  add comments [dc5c98da5b](https://github.com/ccxt/ccxt/commits/dc5c98da5bc68eba2d9bcc000fe67909ffe2e06a)
+*  feat(phemex): add from/to endpoint to fetchOHLCV [27e873980c](https://github.com/ccxt/ccxt/commits/27e873980c17b98de11aa14692bb2fc00d57d55c)
+*  update comment [f7c9f8671c](https://github.com/ccxt/ccxt/commits/f7c9f8671cb12e12ad3ddaf0345da9c9813b1738)
+*  infer since [0913dfabf5](https://github.com/ccxt/ccxt/commits/0913dfabf5332e3a717ebf4c10a97eb441b38c9a)
+*  update comment [86747c7a67](https://github.com/ccxt/ccxt/commits/86747c7a674ed1eb5c1378f5b04687b75d9be0e0)
+*  round fixes [dd80de68f8](https://github.com/ccxt/ccxt/commits/dd80de68f82e388ba7d5ad7af426e3b46b5c6023)
+*  fix python [3d67c1979d](https://github.com/ccxt/ccxt/commits/3d67c1979daa625a35fe71cc65e9fdb38b2a0b47)
+*  4.0.110 [890912af7a](https://github.com/ccxt/ccxt/commits/890912af7adb941b9ed921ad06555f6f30ce205a)
+
+
+## 4.0.109 (2023-09-28)
+
+*  feat(bitmart): fetchOrder, add swap support [ac2fb1e4b9](https://github.com/ccxt/ccxt/commits/ac2fb1e4b97df840658482668172b1306f0dbb07)
+*  bitflyer: add @see [a86a2ef5f4](https://github.com/ccxt/ccxt/commits/a86a2ef5f476a62be659da27c0d44949a10ee981)
+*  fix(bitfinex2): parseLedgerEntryType classification [032e5d9bca](https://github.com/ccxt/ccxt/commits/032e5d9bca25cffb1634436734926ce384d43c8a)
+*  bitget: add @see [826871aa4d](https://github.com/ccxt/ccxt/commits/826871aa4d17d0118d46577f992bdf4421868137)
+*  4.0.109 [418a2a6969](https://github.com/ccxt/ccxt/commits/418a2a69693d189388aa7eff722c3fa5410fb489)
+
+
+## 4.0.108 (2023-09-27)
+
+*  market shadow fix [0d17a84729](https://github.com/ccxt/ccxt/commits/0d17a84729dd97baf87645a67d6c143f5af73b97)
+*  remaining vars [eec16b63e3](https://github.com/ccxt/ccxt/commits/eec16b63e35369e4b2313675f595ba9aa234642a)
+*  dirname builtin conflict lint fix [ed22d49b2f](https://github.com/ccxt/ccxt/commits/ed22d49b2f207311a153633599256ab52a5ac585)
+*  avoid all [9773b798d5](https://github.com/ccxt/ccxt/commits/9773b798d5dba4b8a28e7c90cea976df716174a5)
+*  comments [698e7c9f10](https://github.com/ccxt/ccxt/commits/698e7c9f1078f20a2aef6c5b4047f1294703b6ff)
+*  binance: update apis [6f5e00e57b](https://github.com/ccxt/ccxt/commits/6f5e00e57b7b89315025daf9d2d98a797af78958)
+*  feat(woo): add watchBalance [75c6883375](https://github.com/ccxt/ccxt/commits/75c68833752abe862696ead9dbb200bb3e362d53)
+*  fix shadowing vars [ce66fb8d83](https://github.com/ccxt/ccxt/commits/ce66fb8d83819e78c7eda9395d86195789eba1c8)
+*  bitforex: add @see [e89ab6f084](https://github.com/ccxt/ccxt/commits/e89ab6f084e672637a6981794dc0d8e003445448)
+*  4.0.108 [67e6d170a7](https://github.com/ccxt/ccxt/commits/67e6d170a7be1ce8de3bc83b1002f3c3a07a6004)
+
+
+## 4.0.107 (2023-09-26)
+
+*  binance.cancelOrders [97f5c7c049](https://github.com/ccxt/ccxt/commits/97f5c7c0493292276fbd2600ced32b59554f37ed)
+*  docstring edits [c78dccf245](https://github.com/ccxt/ccxt/commits/c78dccf245c3087e33737781620c5f4dfeb2f54b)
+*  exmo parseOrder edit [c853c37548](https://github.com/ccxt/ccxt/commits/c853c37548d9caf93c20b26b5da823567098c2b5)
+*  exmo minor edit [d6614e3672](https://github.com/ccxt/ccxt/commits/d6614e36726ccc1299238a96310e807e8459113b)
+*  exmo fetchCanceledOrders minor fix [1e0aef7f99](https://github.com/ccxt/ccxt/commits/1e0aef7f9970590449a111a941d4ba6f055e68d5)
+*  exmo.fetchCanceledOrders minor fix [26818d5b8e](https://github.com/ccxt/ccxt/commits/26818d5b8ea613bd6ec04ca9f4fed2cd080a5258)
+*  exmo.parseStatus minor fix [0c83d7dcd3](https://github.com/ccxt/ccxt/commits/0c83d7dcd33c72482504b9f2300d5bfe8dda96e8)
+*  exmo.cancelOrder uses parseOrder [096f46468a](https://github.com/ccxt/ccxt/commits/096f46468a0ee29047712cf35e98b25c5f1ef010)
+*  add missing await [ce359393a5](https://github.com/ccxt/ccxt/commits/ce359393a5562e7706f87c8e31130d02eb9178af)
+*  fix error handling [96552e2e3e](https://github.com/ccxt/ccxt/commits/96552e2e3eaac95a029eaf80c3cf430aaa6841c8)
+*  restore docs [6ac9ec4dfe](https://github.com/ccxt/ccxt/commits/6ac9ec4dfe0fe63f0ad82641a4f32e82230c674d)
+*  add () [641985ddf4](https://github.com/ccxt/ccxt/commits/641985ddf4272367e7ca7b8c3017b109f1ad2c22)
+*  specify path in sign [2e035c978c](https://github.com/ccxt/ccxt/commits/2e035c978c897925db7ee20cb2265e7005f66dba)
+*  remove error handling from parser [f62b24a86f](https://github.com/ccxt/ccxt/commits/f62b24a86f0b91b2270efddfa7f87ebdc53984e5)
+*  add symbol check [bd3e954e28](https://github.com/ccxt/ccxt/commits/bd3e954e28764f8c311dbde26ec6ea641ea6c7f0)
+*  handle cancelOrders error properly [946f1a7e8a](https://github.com/ccxt/ccxt/commits/946f1a7e8a64dbdef39dcf0cb23a65a3d985d924)
+*  fix(bitget): add watchTickers [870954d8f5](https://github.com/ccxt/ccxt/commits/870954d8f5edd97ae3b7c666cf074fe429c88138)
+*  feat(bitmart): update fetchMyTrades [bcb51c1a6e](https://github.com/ccxt/ccxt/commits/bcb51c1a6ec13c86d57f6374632b51c50670f9e5)
+*  feat(bitmart): update fetchOpenOrders and fetchClosedOrders to v4 [f1fad87a1e](https://github.com/ccxt/ccxt/commits/f1fad87a1ef87673689598a6a80d0cc3b31d1a2b)
+*  feat(bitmart): migrate fetchOrderTrades to v4 [ef8a99e17b](https://github.com/ccxt/ccxt/commits/ef8a99e17bcf359b8600f58df0a592672b9ca572)
+*  feat(bitmart): update fetchOrder to v4 [a2269c5061](https://github.com/ccxt/ccxt/commits/a2269c506145ea1acb1dc239247125fb22edc7fc)
+*  add clientOrderId [8a6164dec8](https://github.com/ccxt/ccxt/commits/8a6164dec85cebe1a9bd296e13803ca2bd943823)
+*  feat(bitmart): fetchOpenOrders, add swap support [be94ef7db4](https://github.com/ccxt/ccxt/commits/be94ef7db440c9d0177e0ad9c699331b611291ac)
+*  4.0.107 [04838dd715](https://github.com/ccxt/ccxt/commits/04838dd71536fa02437758024c18320e3a3e2d51)
+
+
+## 4.0.106 (2023-09-25)
+
+*  fix #19372 [7bcc64e193](https://github.com/ccxt/ccxt/commits/7bcc64e1939c21253646d69b6c30f1551ccbe2c9)
+*  feat(bybit): add watchTickers [3985fe5ab8](https://github.com/ccxt/ccxt/commits/3985fe5ab881e4f292ad75f4d4e9facf0c5c5bcf)
+*  4.0.106 [1de36355c6](https://github.com/ccxt/ccxt/commits/1de36355c687af4277ae34546e89b641f8ff4e86)
+
+
 ## 4.0.105 (2023-09-24)
 
 *  feat(bitmart): cancelAllOrders, add swap support [49d66e88ff](https://github.com/ccxt/ccxt/commits/49d66e88ff59d67e049bb865510ede6f04524cc5)

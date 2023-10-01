@@ -247,6 +247,7 @@ export default class bybit extends Exchange {
                         'v5/market/insurance': 2.5,
                         'v5/market/risk-limit': 2.5,
                         'v5/market/delivery-price': 2.5,
+                        'v5/market/account-ratio': 2.5,
                         // spot leverage token
                         'v5/spot-lever-token/info': 2.5,
                         'v5/spot-lever-token/reference': 2.5,
@@ -648,6 +649,7 @@ export default class bybit extends Exchange {
                         // c2c lending
                         'v5/lending/purchase': 2.5,
                         'v5/lending/redeem': 2.5,
+                        'v5/lending/redeem-cancel': 2.5,
                     },
                     'delete': {
                         // spot
@@ -4039,16 +4041,16 @@ export default class bybit extends Exchange {
             triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
         }
         if (triggerPrice !== undefined) {
-            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            request['triggerPrice'] = triggerPrice;
         }
         if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
                 const slTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                request['stopLoss'] = this.priceToPrecision (symbol, slTriggerPrice);
+                request['stopLoss'] = slTriggerPrice;
             }
             if (isTakeProfit) {
                 const tpTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                request['takeProfit'] = this.priceToPrecision (symbol, tpTriggerPrice);
+                request['takeProfit'] = tpTriggerPrice;
             }
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -6596,9 +6598,8 @@ export default class bybit extends Exchange {
         //         "time": 1670988271677
         //     }
         //
-        const data = this.safeValue (response, 'result', {});
-        const transfers = this.safeValue (data, 'list', []);
-        return this.parseTransfers (transfers, currency, since, limit);
+        const data = this.addPaginationCursorToResult (response);
+        return this.parseTransfers (data, currency, since, limit);
     }
 
     async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {
