@@ -1097,7 +1097,7 @@ class kucoin extends Exchange {
                 }
                 for ($j = 0; $j < $chainsLength; $j++) {
                     $chain = $chains[$j];
-                    $chainId = $this->safe_string($chain, 'chain');
+                    $chainId = $this->safe_string($chain, 'chainId');
                     $networkCode = $this->network_id_to_code($chainId);
                     $chainWithdrawEnabled = $this->safe_value($chain, 'isWithdrawEnabled', false);
                     if ($isWithdrawEnabled === null) {

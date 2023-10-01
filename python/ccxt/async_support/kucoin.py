@@ -1099,7 +1099,7 @@ class kucoin(Exchange, ImplicitAPI):
                 isDepositEnabled = False
             for j in range(0, chainsLength):
                 chain = chains[j]
-                chainId = self.safe_string(chain, 'chain')
+                chainId = self.safe_string(chain, 'chainId')
                 networkCode = self.network_id_to_code(chainId)
                 chainWithdrawEnabled = self.safe_value(chain, 'isWithdrawEnabled', False)
                 if isWithdrawEnabled is None:
