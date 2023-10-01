@@ -23,6 +23,17 @@ async function example_socksProxy () {
     console.log (await myEx.fetch (targetSite));
 }
 
-await example_proxyUrl ();
+async function example_webSockets () {
+    const myEx = new ccxt.kucoin ();
+    myEx.httpProxy = 'http://5.75.153.75:8888'; // "httpProxy" or "httpsProxy" (depending on your proxy protocol)
+    await myEx.initializeProxies ();
+    myEx.handleMessage = function (client, message) {
+        console.log ('WS received:', message);
+    };
+    await myEx.watch ('ws://5.75.153.75:9876', 'sample');
+}
+
+// await example_proxyUrl ();
 // await example_httpProxy ();
 // await example_socksProxy ();
+await example_webSockets ();
