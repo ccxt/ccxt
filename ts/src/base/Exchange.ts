@@ -4697,10 +4697,10 @@ export default class Exchange {
         return input;
     }
 
-    handleUntilOption (key, request, params) {
+    handleUntilOption (key, request, params, multiplier = 1) {
         const until = this.safeValue2 (params, 'until', 'till');
         if (until !== undefined) {
-            request[key] = until;
+            request[key] = this.parseToInt (until * multiplier);
             params = this.omit (params, [ 'until', 'till' ]);
         }
         return [ request, params ];
