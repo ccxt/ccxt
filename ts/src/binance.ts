@@ -5063,6 +5063,7 @@ export default class binance extends Exchange {
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
