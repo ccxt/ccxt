@@ -262,6 +262,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/market/insurance': 2.5,
                         'v5/market/risk-limit': 2.5,
                         'v5/market/delivery-price': 2.5,
+                        'v5/market/account-ratio': 2.5,
                         # spot leverage token
                         'v5/spot-lever-token/info': 2.5,
                         'v5/spot-lever-token/reference': 2.5,
@@ -663,6 +664,7 @@ class bybit(Exchange, ImplicitAPI):
                         # c2c lending
                         'v5/lending/purchase': 2.5,
                         'v5/lending/redeem': 2.5,
+                        'v5/lending/redeem-cancel': 2.5,
                     },
                     'delete': {
                         # spot
@@ -716,10 +718,11 @@ class bybit(Exchange, ImplicitAPI):
                     '10027': PermissionDenied,  # Trading Banned
                     '10028': PermissionDenied,  # The API can only be accessed by unified account users.
                     '10029': PermissionDenied,  # The requested symbol is invalid, please check symbol whitelist
+                    '12137': InvalidOrder,  # {"retCode":12137,"retMsg":"Order quantity has too many decimals.","result":{},"retExtInfo":{},"time":1695900943033}
                     '12201': BadRequest,  # {"retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":{},"retExtInfo":null,"time":1666699391220}
                     '12141': BadRequest,  # "retCode":12141,"retMsg":"Duplicate clientOrderId.","result":{},"retExtInfo":{},"time":1686134298989}
                     '100028': PermissionDenied,  # The API cannot be accessed by unified account users.
-                    '110001': InvalidOrder,  # Order does not exist
+                    '110001': OrderNotFound,  # Order does not exist
                     '110003': InvalidOrder,  # Order price is out of permissible range
                     '110004': InsufficientFunds,  # Insufficient wallet balance
                     '110005': InvalidOrder,  # position status
@@ -3389,11 +3392,32 @@ class bybit(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(order, 'orderLinkId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
+        avgPrice = self.omit_zero(self.safe_string(order, 'avgPrice'))
         rawTimeInForce = self.safe_string(order, 'timeInForce')
         timeInForce = self.parse_time_in_force(rawTimeInForce)
         stopPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
+        reduceOnly = self.safe_value(order, 'reduceOnly')
         takeProfitPrice = self.omit_zero(self.safe_string(order, 'takeProfit'))
         stopLossPrice = self.omit_zero(self.safe_string(order, 'stopLoss'))
+        triggerDirection = self.safe_string(order, 'triggerDirection')
+        isAscending = (triggerDirection == '1')
+        isStopOrderType2 = (stopPrice is not None) and reduceOnly
+        if (stopLossPrice is None) and isStopOrderType2:
+            # check if order is stop order type 2 - stopLossPrice
+            if isAscending and (side == 'buy'):
+                # stopLoss order against short position
+                stopLossPrice = stopPrice
+            if not isAscending and (side == 'sell'):
+                # stopLoss order against a long position
+                stopLossPrice = stopPrice
+        if (takeProfitPrice is None) and isStopOrderType2:
+            # check if order is stop order type 2 - takeProfitPrice
+            if isAscending and (side == 'sell'):
+                # takeprofit order against a long position
+                takeProfitPrice = stopPrice
+            if not isAscending and (side == 'buy'):
+                # takeprofit order against a short position
+                takeProfitPrice = stopPrice
         return self.safe_order({
             'info': order,
             'id': id,
@@ -3415,7 +3439,7 @@ class bybit(Exchange, ImplicitAPI):
             'stopLossPrice': stopLossPrice,
             'amount': amount,
             'cost': cost,
-            'average': None,
+            'average': avgPrice,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -3461,6 +3485,14 @@ class bybit(Exchange, ImplicitAPI):
         :param boolean [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
         :param str [params.tpslMode]: *contract only* 'full' or 'partial'
         :param str [params.mmp]: *option only* market maker protection
+        :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'up' or 'down'
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param float [params.stopLossPrice]: The price at which a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: The price at which a take profit order is triggered at
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
@@ -3549,12 +3581,19 @@ class bybit(Exchange, ImplicitAPI):
         isStopLoss = stopLoss is not None
         isTakeProfit = takeProfit is not None
         isBuy = side == 'buy'
-        ascending = not isBuy if stopLossTriggerPrice else isBuy
+        setTriggerDirection = not isBuy if (stopLossTriggerPrice or triggerPrice) else isBuy
+        defaultTriggerDirection = 2 if setTriggerDirection else 1
+        triggerDirection = self.safe_string(params, 'triggerDirection')
+        params = self.omit(params, 'triggerDirection')
+        selectedDirection = defaultTriggerDirection
+        if triggerDirection is not None:
+            isAsending = ((triggerDirection == 'up') or (triggerDirection == '1'))
+            selectedDirection = 1 if isAsending else 2
         if triggerPrice is not None:
-            request['triggerDirection'] = 2 if ascending else 1
+            request['triggerDirection'] = selectedDirection
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
-            request['triggerDirection'] = 2 if ascending else 1
+            request['triggerDirection'] = selectedDirection
             triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['reduceOnly'] = True
@@ -3813,14 +3852,14 @@ class bybit(Exchange, ImplicitAPI):
         if isStopLossTriggerOrder or isTakeProfitTriggerOrder:
             triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
         if triggerPrice is not None:
-            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+            request['triggerPrice'] = triggerPrice
         if isStopLoss or isTakeProfit:
             if isStopLoss:
                 slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
-                request['stopLoss'] = self.price_to_precision(symbol, slTriggerPrice)
+                request['stopLoss'] = slTriggerPrice
             if isTakeProfit:
                 tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
-                request['takeProfit'] = self.price_to_precision(symbol, tpTriggerPrice)
+                request['takeProfit'] = tpTriggerPrice
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -6160,9 +6199,8 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1670988271677
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        transfers = self.safe_value(data, 'list', [])
-        return self.parse_transfers(transfers, currency, since, limit)
+        data = self.add_pagination_cursor_to_result(response)
+        return self.parse_transfers(data, currency, since, limit)
 
     def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """

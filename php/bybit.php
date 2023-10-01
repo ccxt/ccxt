@@ -241,6 +241,7 @@ class bybit extends Exchange {
                         'v5/market/insurance' => 2.5,
                         'v5/market/risk-limit' => 2.5,
                         'v5/market/delivery-price' => 2.5,
+                        'v5/market/account-ratio' => 2.5,
                         // spot leverage token
                         'v5/spot-lever-token/info' => 2.5,
                         'v5/spot-lever-token/reference' => 2.5,
@@ -642,6 +643,7 @@ class bybit extends Exchange {
                         // c2c lending
                         'v5/lending/purchase' => 2.5,
                         'v5/lending/redeem' => 2.5,
+                        'v5/lending/redeem-cancel' => 2.5,
                     ),
                     'delete' => array(
                         // spot
@@ -695,10 +697,11 @@ class bybit extends Exchange {
                     '10027' => '\\ccxt\\PermissionDenied', // Trading Banned
                     '10028' => '\\ccxt\\PermissionDenied', // The API can only be accessed by unified account users.
                     '10029' => '\\ccxt\\PermissionDenied', // The requested symbol is invalid, please check symbol whitelist
+                    '12137' => '\\ccxt\\InvalidOrder', // array("retCode":12137,"retMsg":"Order quantity has too many decimals.","result":array(),"retExtInfo":array(),"time":1695900943033)
                     '12201' => '\\ccxt\\BadRequest', // array("retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":array(),"retExtInfo":null,"time":1666699391220)
                     '12141' => '\\ccxt\\BadRequest', // "retCode":12141,"retMsg":"Duplicate clientOrderId.","result":array(),"retExtInfo":array(),"time":1686134298989}
                     '100028' => '\\ccxt\\PermissionDenied', // The API cannot be accessed by unified account users.
-                    '110001' => '\\ccxt\\InvalidOrder', // Order does not exist
+                    '110001' => '\\ccxt\\OrderNotFound', // Order does not exist
                     '110003' => '\\ccxt\\InvalidOrder', // Order price is out of permissible range
                     '110004' => '\\ccxt\\InsufficientFunds', // Insufficient wallet balance
                     '110005' => '\\ccxt\\InvalidOrder', // position status
@@ -3493,11 +3496,38 @@ class bybit extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null;
         }
+        $avgPrice = $this->omit_zero($this->safe_string($order, 'avgPrice'));
         $rawTimeInForce = $this->safe_string($order, 'timeInForce');
         $timeInForce = $this->parse_time_in_force($rawTimeInForce);
         $stopPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
+        $reduceOnly = $this->safe_value($order, 'reduceOnly');
         $takeProfitPrice = $this->omit_zero($this->safe_string($order, 'takeProfit'));
         $stopLossPrice = $this->omit_zero($this->safe_string($order, 'stopLoss'));
+        $triggerDirection = $this->safe_string($order, 'triggerDirection');
+        $isAscending = ($triggerDirection === '1');
+        $isStopOrderType2 = ($stopPrice !== null) && $reduceOnly;
+        if (($stopLossPrice === null) && $isStopOrderType2) {
+            // check if $order is stop $order $type 2 - $stopLossPrice
+            if ($isAscending && ($side === 'buy')) {
+                // stopLoss $order against short position
+                $stopLossPrice = $stopPrice;
+            }
+            if (!$isAscending && ($side === 'sell')) {
+                // stopLoss $order against a long position
+                $stopLossPrice = $stopPrice;
+            }
+        }
+        if (($takeProfitPrice === null) && $isStopOrderType2) {
+            // check if $order is stop $order $type 2 - $takeProfitPrice
+            if ($isAscending && ($side === 'sell')) {
+                // takeprofit $order against a long position
+                $takeProfitPrice = $stopPrice;
+            }
+            if (!$isAscending && ($side === 'buy')) {
+                // takeprofit $order against a short position
+                $takeProfitPrice = $stopPrice;
+            }
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -3519,7 +3549,7 @@ class bybit extends Exchange {
             'stopLossPrice' => $stopLossPrice,
             'amount' => $amount,
             'cost' => $cost,
-            'average' => null,
+            'average' => $avgPrice,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
@@ -3569,6 +3599,14 @@ class bybit extends Exchange {
          * @param {boolean} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [$params->tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [$params->mmp] *option only* $market maker protection
+         * @param {string} [$params->triggerDirection] *contract only* the direction for trigger orders, 'up' or 'down'
+         * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
+         * @param {float} [$params->stopLossPrice] The $price at which a stop loss $order is triggered at
+         * @param {float} [$params->takeProfitPrice] The $price at which a take profit $order is triggered at
+         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit $order will be triggered
+         * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
+         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered
+         * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
         $this->load_markets();
@@ -3665,12 +3703,20 @@ class bybit extends Exchange {
         $isStopLoss = $stopLoss !== null;
         $isTakeProfit = $takeProfit !== null;
         $isBuy = $side === 'buy';
-        $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
+        $setTriggerDirection = ($stopLossTriggerPrice || $triggerPrice) ? !$isBuy : $isBuy;
+        $defaultTriggerDirection = $setTriggerDirection ? 2 : 1;
+        $triggerDirection = $this->safe_string($params, 'triggerDirection');
+        $params = $this->omit($params, 'triggerDirection');
+        $selectedDirection = $defaultTriggerDirection;
+        if ($triggerDirection !== null) {
+            $isAsending = (($triggerDirection === 'up') || ($triggerDirection === '1'));
+            $selectedDirection = $isAsending ? 1 : 2;
+        }
         if ($triggerPrice !== null) {
-            $request['triggerDirection'] = $ascending ? 2 : 1;
+            $request['triggerDirection'] = $selectedDirection;
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
-            $request['triggerDirection'] = $ascending ? 2 : 1;
+            $request['triggerDirection'] = $selectedDirection;
             $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['reduceOnly'] = true;
@@ -3961,16 +4007,16 @@ class bybit extends Exchange {
             $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
         }
         if ($triggerPrice !== null) {
-            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            $request['triggerPrice'] = $triggerPrice;
         }
         if ($isStopLoss || $isTakeProfit) {
             if ($isStopLoss) {
                 $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
-                $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
+                $request['stopLoss'] = $slTriggerPrice;
             }
             if ($isTakeProfit) {
                 $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
-                $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
+                $request['takeProfit'] = $tpTriggerPrice;
             }
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -6424,11 +6470,11 @@ class bybit extends Exchange {
 
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * fetch a history of internal $transfers made on an account
+         * fetch a history of internal transfers made on an account
          * @see https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
          * @param {string} $code unified $currency $code of the $currency transferred
-         * @param {int} [$since] the earliest time in ms to fetch $transfers for
-         * @param {int} [$limit] the maximum number of  $transfers structures to retrieve
+         * @param {int} [$since] the earliest time in ms to fetch transfers for
+         * @param {int} [$limit] the maximum number of  transfers structures to retrieve
          * @param {array} [$params] extra parameters specific to the bybit api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
          */
@@ -6468,9 +6514,8 @@ class bybit extends Exchange {
         //         "time" => 1670988271677
         //     }
         //
-        $data = $this->safe_value($response, 'result', array());
-        $transfers = $this->safe_value($data, 'list', array());
-        return $this->parse_transfers($transfers, $currency, $since, $limit);
+        $data = $this->add_pagination_cursor_to_result($response);
+        return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
     public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {

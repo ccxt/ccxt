@@ -1105,11 +1105,12 @@ class phemex extends Exchange {
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querykline
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {string} $symbol unified $symbol of the $market $to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int} [$since] *emulated not supported by the exchange* timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the phemex api endpoint
+         * @param {int} [$since] *only used for USDT settled contracts, otherwise is emulated and not supported by the exchange* timestamp in ms of the earliest candle $to fetch
+         * @param {int} [$limit] the maximum amount of candles $to fetch
+         * @param {array} [$params] extra parameters specific $to the phemex api endpoint
+         * @param {int} [$params->until] *USDT settled/ linear swaps only* end time in ms
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1119,32 +1120,51 @@ class phemex extends Exchange {
             'symbol' => $market['id'],
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $possibleLimitValues = array( 5, 10, 50, 100, 500, 1000 );
+        $until = $this->safe_integer_2($params, 'until', 'to');
+        $params = $this->omit($params, array( 'until' ));
+        $usesSpecialFromToEndpoint = (($market['linear'] || $market['settle'] === 'USDT')) && (($since !== null) || ($until !== null));
         $maxLimit = 1000;
-        if ($limit === null && $since === null) {
-            $limit = $possibleLimitValues[5];
+        if ($usesSpecialFromToEndpoint) {
+            $maxLimit = 2000;
         }
-        if ($since !== null) {
-            // phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
-            // we do not send $since param to the exchange, instead we calculate appropriate $limit param
-            $duration = $this->parse_timeframe($timeframe) * 1000;
-            $timeDelta = $this->milliseconds() - $since;
-            $limit = $this->parse_to_int($timeDelta / $duration); // setting $limit to the number of candles after $since
-        }
-        if ($limit > $maxLimit) {
+        if ($limit === null) {
             $limit = $maxLimit;
-        } else {
-            for ($i = 0; $i < count($possibleLimitValues); $i++) {
-                if ($limit <= $possibleLimitValues[$i]) {
-                    $limit = $possibleLimitValues[$i];
-                }
-            }
         }
-        $request['limit'] = $limit;
+        $request['limit'] = min ($limit, $maxLimit);
         $response = null;
         if ($market['linear'] || $market['settle'] === 'USDT') {
-            $response = $this->publicGetMdV2KlineLast (array_merge($request, $params));
+            if (($until !== null) || ($since !== null)) {
+                $candleDuration = $this->parse_timeframe($timeframe);
+                if ($since !== null) {
+                    $since = (int) round($since / 1000);
+                    $request['from'] = $since;
+                } else {
+                    // when 'to' is defined $since is mandatory
+                    $since = ($until / 100) - ($maxLimit * $candleDuration);
+                }
+                if ($until !== null) {
+                    $request['to'] = (int) round($until / 1000);
+                } else {
+                    // when $since is defined 'to' is mandatory
+                    $to = $since . ($maxLimit * $candleDuration);
+                    $now = $this->seconds();
+                    if ($to > $now) {
+                        $to = $now;
+                    }
+                    $request['to'] = $to;
+                }
+                $response = $this->publicGetMdV2KlineList (array_merge($request, $params));
+            } else {
+                $response = $this->publicGetMdV2KlineLast (array_merge($request, $params));
+            }
         } else {
+            if ($since !== null) {
+                // phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
+                // we do not send $since param $to the exchange, instead we calculate appropriate $limit param
+                $duration = $this->parse_timeframe($timeframe) * 1000;
+                $timeDelta = $this->milliseconds() - $since;
+                $limit = $this->parse_to_int($timeDelta / $duration); // setting $limit $to the number of candles after $since
+            }
             $response = $this->publicGetMdV2Kline (array_merge($request, $params));
         }
         //

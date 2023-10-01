@@ -911,6 +911,7 @@ class bitget(Exchange, ImplicitAPI):
                     '40712': InsufficientFunds,  # Insufficient margin
                     '40713': ExchangeError,  # Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError,  # No direct margin call is allowed
+                    '40768': OrderNotFound,  # Order does not exist"
                     '41114': OnMaintenance,  # {"code":"41114","msg":"The current trading pair is under maintenance, please refer to the official announcement for the opening time","requestTime":1679196062544,"data":null}
                     '43011': InvalidOrder,  # The parameter does not meet the specification executePrice <= 0
                     '43025': InvalidOrder,  # Plan order does not exist
@@ -1084,6 +1085,7 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-server-time
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -1101,6 +1103,8 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for bitget
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-symbols
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-symbols
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -1357,6 +1361,7 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -1770,6 +1775,7 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
@@ -1824,6 +1830,8 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-depth
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-depth
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bitget api endpoint
@@ -1976,6 +1984,8 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-single-ticker
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-single-symbol-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -2283,6 +2293,7 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-single-symbol
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -2319,6 +2330,7 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-symbols
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
         """
@@ -2491,9 +2503,9 @@ class bitget(Exchange, ImplicitAPI):
 
     def fetch_balance(self, params={}):
         """
+        query for balance and get the amount of funds available for trading or funds locked in orders
         see https://bitgetlimited.github.io/apidoc/en/spot/#get-account-assets
         see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-list
-        query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -2742,13 +2754,13 @@ class bitget(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
+        create a trade order
         see https://bitgetlimited.github.io/apidoc/en/spot/#place-order
         see https://bitgetlimited.github.io/apidoc/en/spot/#place-plan-order
         see https://bitgetlimited.github.io/apidoc/en/mix/#place-order
         see https://bitgetlimited.github.io/apidoc/en/mix/#place-stop-order
         see https://bitgetlimited.github.io/apidoc/en/mix/#place-position-tpsl
         see https://bitgetlimited.github.io/apidoc/en/mix/#place-plan-order
-        create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
@@ -2904,6 +2916,10 @@ class bitget(Exchange, ImplicitAPI):
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
+        see https://bitgetlimited.github.io/apidoc/en/spot/#modify-plan-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#modify-plan-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#modify-plan-order-tpsl
+        see https://bitgetlimited.github.io/apidoc/en/mix/#modify-stop-order
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -2991,6 +3007,10 @@ class bitget(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
+        see https://bitgetlimited.github.io/apidoc/en/spot/#cancel-order
+        see https://bitgetlimited.github.io/apidoc/en/spot/#cancel-plan-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-plan-order-tpsl
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitget api endpoint
@@ -3028,6 +3048,8 @@ class bitget(Exchange, ImplicitAPI):
     def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
+        see https://bitgetlimited.github.io/apidoc/en/spot/#cancel-order-in-batch-v2-single-instruments
+        see https://bitgetlimited.github.io/apidoc/en/mix/#batch-cancel-order
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the bitget api endpoint
@@ -3153,6 +3175,8 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-details
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-order-details
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
@@ -3231,11 +3255,11 @@ class bitget(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        fetch all unfilled currently open orders
         see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-list
         see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-open-order
         see https://bitgetlimited.github.io/apidoc/en/mix/#get-plan-order-tpsl-list
         see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-order
-        fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
@@ -3587,6 +3611,7 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-bills
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
@@ -3721,6 +3746,8 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-order-fill-detail
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -3771,6 +3798,7 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-symbol-position-v2
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: a `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
@@ -3818,6 +3846,8 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-position-v2
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-position
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict[]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
@@ -4055,6 +4085,7 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical funding rate prices
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-funding-rate
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
@@ -4107,6 +4138,7 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-current-funding-rate
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: a `funding rate structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
@@ -4300,6 +4332,7 @@ class bitget(Exchange, ImplicitAPI):
     def reduce_margin(self, symbol: str, amount, params={}):
         """
         remove margin from a position
+        see https://bitgetlimited.github.io/apidoc/en/mix/#change-margin
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the bitget api endpoint
@@ -4315,6 +4348,7 @@ class bitget(Exchange, ImplicitAPI):
     def add_margin(self, symbol: str, amount, params={}):
         """
         add margin
+        see https://bitgetlimited.github.io/apidoc/en/mix/#change-margin
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the bitget api endpoint
@@ -4328,6 +4362,7 @@ class bitget(Exchange, ImplicitAPI):
     def fetch_leverage(self, symbol: str, params={}):
         """
         fetch the set leverage for a market
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-single-account
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: a `leverage structure <https://github.com/ccxt/ccxt/wiki/Manual#leverage-structure>`
@@ -4370,6 +4405,7 @@ class bitget(Exchange, ImplicitAPI):
     def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
+        see https://bitgetlimited.github.io/apidoc/en/mix/#change-leverage
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
@@ -4389,6 +4425,7 @@ class bitget(Exchange, ImplicitAPI):
     def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
+        see https://bitgetlimited.github.io/apidoc/en/mix/#change-margin-mode
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
@@ -4414,6 +4451,7 @@ class bitget(Exchange, ImplicitAPI):
     def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
         """
         set hedged to True or False for a market
+        see https://bitgetlimited.github.io/apidoc/en/mix/#change-hold-mode
         :param bool hedged: set to True to use dualSidePosition
         :param str symbol: not used by bitget setPositionMode()
         :param dict [params]: extra parameters specific to the bitget api endpoint
