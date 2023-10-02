@@ -899,12 +899,18 @@ export default class Exchange {
     setJsProxyAgent (httpProxy, httpsProxy, socksProxy) {
         let proxyAgentSet = false;
         if (httpProxy) {
+            if (this.httpProxyAgentModule === undefined) {
+                throw new NotSupported (this.id + ' you need to initialize proxies with `.initializeProxies()` method at first to use proxies');
+            }
             if (!(httpProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
             }
             this.agent = this.proxyDictionaries[httpProxy];
             proxyAgentSet = true;
-        }  else if (httpsProxy) {
+        } else if (httpsProxy) {
+            if (this.httpsProxyAgentModule === undefined) {
+                throw new NotSupported (this.id + ' you need to initialize proxies with `.initializeProxies()` method at first to use proxies');
+            }
             if (!(httpsProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy);
             }
@@ -912,6 +918,9 @@ export default class Exchange {
             this.agent.keepAlive = true;
             proxyAgentSet = true;
         } else if (socksProxy) {
+            if (this.socksProxyAgentModule === undefined) {
+                throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `.initializeProxies()` method');
+            }
             if (!(socksProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[socksProxy] = new this.socksProxyAgentModule.SocksProxyAgent(socksProxy);
             }
@@ -1514,16 +1523,6 @@ export default class Exchange {
         }
         if (val > 1) {
             throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
-        }
-        // check loaded dependencies
-        if (this.httpProxy !== undefined && this.httpProxyAgentModule === undefined) {
-            throw new NotSupported (this.id + ' you need to initialize proxies with `.initializeProxies()` method at first to use proxies');
-        }
-        if (this.httpsProxy !== undefined && this.httpsProxyAgentModule === undefined) {
-            throw new NotSupported (this.id + ' you need to initialize proxies with `.initializeProxies()` method at first to use proxies');
-        }
-        if (this.socksProxy !== undefined && this.socksProxyAgentModule === undefined) {
-            throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `.initializeProxies()` method');
         }
         return [ httpProxy, httpsProxy, socksProxy ];
     }
