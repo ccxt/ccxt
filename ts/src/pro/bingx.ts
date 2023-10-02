@@ -774,7 +774,7 @@ export default class bingx extends bingxRest {
     }
 
     handleMessage (client: Client, message) {
-        if (this.handleErrorMessage (client, message)) {
+        if (!this.handleErrorMessage (client, message)) {
             return;
         }
         // public subscriptions
