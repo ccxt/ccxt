@@ -680,26 +680,48 @@ export default class bingx extends bingxRest {
 
     handleBalance (client: Client, message) {
         // spot
-        // {
-        //     "e":"ACCOUNT_UPDATE",
-        //     "E":1696242817000,
-        //     "T":1696242817142,
-        //     "a":{
-        //        "B":[
-        //           {
-        //              "a":"USDT",
-        //              "bc":"-1.00000000000000000000",
-        //              "cw":"86.59497382000000050000",
-        //              "wb":"86.59497382000000050000"
-        //           }
-        //        ],
-        //        "m":"ASSET_TRANSFER"
+        //     {
+        //         "e":"ACCOUNT_UPDATE",
+        //         "E":1696242817000,
+        //         "T":1696242817142,
+        //         "a":{
+        //            "B":[
+        //               {
+        //                  "a":"USDT",
+        //                  "bc":"-1.00000000000000000000",
+        //                  "cw":"86.59497382000000050000",
+        //                  "wb":"86.59497382000000050000"
+        //               }
+        //            ],
+        //            "m":"ASSET_TRANSFER"
+        //         }
         //     }
-        // }
+        // swap
+        //     {
+        //         "e":"ACCOUNT_UPDATE",
+        //         "E":1696244249320,
+        //         "a":{
+        //            "m":"WITHDRAW",
+        //            "B":[
+        //               {
+        //                  "a":"USDT",
+        //                  "wb":"49.81083984",
+        //                  "cw":"49.81083984",
+        //                  "bc":"-1.00000000"
+        //               }
+        //            ],
+        //            "P":[
+        //            ]
+        //         }
+        //     }
+        //
         const a = this.safeValue (message, 'a', {});
         const data = this.safeValue (a, 'B', []);
-        const timestamp = this.safeInteger (message, 'T');
-        const type = 1 ? 'spot' : 'swap';
+        const timestamp = this.safeInteger2 (message, 'T', 'E');
+        const type = ('P' in a) ? 'swap' : 'spot';
+        if (!(type in this.balance)) {
+            this.balance[type] = {};
+        }
         this.balance[type]['info'] = data;
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601 (timestamp);
