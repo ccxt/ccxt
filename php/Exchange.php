@@ -1429,7 +1429,7 @@ class Exchange {
         }
 
         if ($this->verbose) {
-            print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $verbose_headers, 'RequestBody:', $body));
+            print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $headers, 'RequestBody:', $body));
         }
 
         // we probably only need to set it once on startup
