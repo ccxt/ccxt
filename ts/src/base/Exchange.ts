@@ -896,7 +896,7 @@ export default class Exchange {
         }
     }
 
-    setJsProxyAgent (httpProxy, httpsProxy, socksProxy) {
+    setProxyAgents (httpProxy, httpsProxy, socksProxy) {
         let proxyAgentSet = false;
         if (httpProxy) {
             if (this.httpProxyAgentModule === undefined) {
@@ -946,7 +946,7 @@ export default class Exchange {
         // proxy agents
         await this.initializeProxies ();
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
-        const proxyAgentSet = this.setJsProxyAgent (httpProxy, httpsProxy, socksProxy);
+        const proxyAgentSet = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
         this.checkConflictingProxies (proxyAgentSet, proxyUrl);
         // user-agent
         const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
@@ -1207,7 +1207,7 @@ export default class Exchange {
             const wsOptions = this.safeValue (this.options, 'ws', {});
             // proxy agents
             const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url);
-            this.setJsProxyAgent (httpProxy, httpsProxy, socksProxy);
+            this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
             //
             const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
