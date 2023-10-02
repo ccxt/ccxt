@@ -896,23 +896,7 @@ export default class Exchange {
         }
     }
 
-    async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
-
-        // ##### PROXY & HEADERS #####
-        headers = this.extend (this.headers, headers);
-        // proxy "url"
-        const proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
-        if (proxyUrl !== undefined) {
-            // in node we need to set header to *
-            if (isNode) {
-                headers = this.extend ({ 'Origin': this.origin }, headers);
-            }
-            url = proxyUrl + url;
-        }
-        // proxy agents
-        await this.initializeProxies ();
-        const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
-        // proxy agents
+    setJsProxyAgent (httpProxy, httpsProxy, socksProxy) {
         let proxyAgentSet = false;
         if (httpProxy) {
             if (!(httpProxy in this.proxyDictionaries)) {
@@ -934,6 +918,26 @@ export default class Exchange {
             this.agent = this.proxyDictionaries[socksProxy];
             proxyAgentSet = true;
         }
+        return proxyAgentSet;
+    }
+
+    async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
+
+        // ##### PROXY & HEADERS #####
+        headers = this.extend (this.headers, headers);
+        // proxy "url"
+        const proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
+        if (proxyUrl !== undefined) {
+            // in node we need to set header to *
+            if (isNode) {
+                headers = this.extend ({ 'Origin': this.origin }, headers);
+            }
+            url = proxyUrl + url;
+        }
+        // proxy agents
+        await this.initializeProxies ();
+        const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
+        const proxyAgentSet = this.setJsProxyAgent (httpProxy, httpsProxy, socksProxy);
         this.checkConflictingProxies (proxyAgentSet, proxyUrl);
         // user-agent
         const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
@@ -1192,6 +1196,10 @@ export default class Exchange {
             const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
             const wsOptions = this.safeValue (this.options, 'ws', {});
+            // proxy agents
+            const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url);
+            this.setJsProxyAgent (httpProxy, httpsProxy, socksProxy);
+            //
             const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': (this as any).ping ? (this as any).ping.bind (this) : (this as any).ping,
