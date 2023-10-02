@@ -242,6 +242,10 @@ export default class bingx extends Exchange {
                         'private': {
                             'post': {
                                 'userDataStream': 1,
+                            },
+                        },
+                    },
+                },
                 'copyTrading': {
                     'v1': {
                         'private': {
