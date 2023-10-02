@@ -35,6 +35,34 @@ export default class bingx extends bingxRest {
                 'ws': {
                     'gunzip': true,
                 },
+                'swap': {
+                    'timeframes': {
+                        '1m': '1m',
+                        '3m': '3m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1h',
+                        '2h': '2h',
+                        '4h': '4h',
+                        '6h': '6h',
+                        '12h': '12h',
+                        '1d': '1d',
+                        '3d': '3d',
+                        '1w': '1w',
+                        '1M': '1M',
+                    },
+                },
+                'spot': {
+                    'timeframes': {
+                        '1m': '1min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '60min',
+                        '1d': '1day',
+                    },
+                },
             },
             'streaming': {
                 'keepAlive': 1800000, // 30 minutes
@@ -378,7 +406,9 @@ export default class bingx extends bingxRest {
         if (url === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV is not supported for ' + marketType + ' markets.');
         }
-        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const options = this.safeValue (this.options, marketType, {});
+        const timeframes = this.safeValue (options, 'timeframes', {});
+        const interval = this.safeString (timeframes, timeframe, timeframe);
         const messageHash = market['id'] + '@kline_' + interval;
         const uuid = this.uuid ();
         const request = {
