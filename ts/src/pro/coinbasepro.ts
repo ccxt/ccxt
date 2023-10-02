@@ -459,13 +459,24 @@ export default class coinbasepro extends coinbaseproRest {
         // }
         const parsed = super.parseTrade (trade);
         let feeRate = undefined;
+        let isMaker = false;
         if ('maker_fee_rate' in trade) {
+            isMaker = true;
             parsed['takerOrMaker'] = 'maker';
             feeRate = this.safeNumber (trade, 'maker_fee_rate');
         } else {
             parsed['takerOrMaker'] = 'taker';
             feeRate = this.safeNumber (trade, 'taker_fee_rate');
+            // side always represents the maker side of the trade
+            // so if we're taker, we invert it
+            const currentSide = parsed['side'];
+            parsed['side'] = this.safeString ({
+                'buy': 'sell',
+                'sell': 'buy',
+            }, currentSide, currentSide);
         }
+        const idKey = isMaker ? 'maker_order_id' : 'taker_order_id';
+        parsed['order'] = this.safeString (trade, idKey);
         market = this.market (parsed['symbol']);
         const feeCurrency = market['quote'];
         let feeCost = undefined;
