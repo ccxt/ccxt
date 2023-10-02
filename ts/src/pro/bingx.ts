@@ -509,8 +509,26 @@ export default class bingx extends bingxRest {
         return await this.watch (url, messageHash, request, subscriptionHash);
     }
 
-    handleErrorMessage (client: Client, message) {
-
+    handleErrorMessage (client, message) {
+        //
+        // { code: 100400, msg: '', timestamp: 1696245808833 }
+        //
+        // {
+        //     code: 100500,
+        //     id: '9cd37d32-da98-440b-bd04-37e7dbcf51ad',
+        //     msg: '',
+        //     timestamp: 1696245842307
+        // }
+        const code = this.safeString (message, 'code');
+        try {
+            if (code !== undefined) {
+                const feedback = this.id + ' ' + this.json (message);
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            }
+        } catch (e) {
+            client.reject (e);
+        }
+        return true;
     }
 
     async authenticate (params = {}) {
@@ -737,6 +755,9 @@ export default class bingx extends bingxRest {
     }
 
     handleMessage (client: Client, message) {
+        if (this.handleErrorMessage (client, message)) {
+            return;
+        }
         // public subscriptions
         if ((message === 'Ping') || ('ping' in message)) {
             this.spawn (this.pong, client, message);
