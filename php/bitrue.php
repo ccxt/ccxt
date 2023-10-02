@@ -825,7 +825,7 @@ class bitrue extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $this->safe_string($ticker, 'percentChange'),
+            'percentage' => Precise::string_mul($this->safe_string($ticker, 'percentChange'), '10000'),
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
