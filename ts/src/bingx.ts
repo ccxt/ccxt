@@ -880,6 +880,7 @@ export default class bingx extends Exchange {
         const type = (cost === undefined) ? 'spot' : 'swap';
         const currencyId = this.safeString (trade, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
+        const m = this.safeValue (trade, 'm', false);
         return this.safeTrade ({
             'id': this.safeStringN (trade, [ 'id', 't' ]),
             'info': trade,
@@ -889,7 +890,7 @@ export default class bingx extends Exchange {
             'order': this.safeString (trade, 'orderId'),
             'type': undefined,
             'side': side,
-            'takerOrMaker': (isBuyerMaker === true || this.safeValue (trade, 'm')) ? 'maker' : 'taker',
+            'takerOrMaker': (isBuyerMaker || m) ? 'maker' : 'taker',
             'price': this.safeString2 (trade, 'price', 'p'),
             'amount': this.safeStringN (trade, [ 'qty', 'amount', 'q' ]),
             'cost': cost,
