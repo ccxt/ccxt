@@ -37,7 +37,7 @@ export default class bingx extends bingxRest {
                 },
             },
             'streaming': {
-                'ping': this.ping,
+                // 'ping': this.ping,
                 'keepAlive': 1800000, // 30 minutes
             },
         });
@@ -496,15 +496,15 @@ export default class bingx extends bingxRest {
         await this.authenticate ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        const subscriptionHash = (type === 'spot') ? 'spot:private' : 'swap:private';
         const messageHash = (type === 'spot') ? 'spot:balance' : 'swap:balance';
+        const subscriptionHash = (type === 'spot') ? 'spot:balance' : 'swap:private';
         const url = this.urls['api']['ws'][type] + '?listenKey=' + this.options['listenKey'];
         let request = undefined;
         const uuid = this.uuid ();
         if (type === 'spot') {
             request = {
                 'id': uuid,
-                'dataType': 'spot.executionReport',
+                'dataType': 'ACCOUNT_UPDATE',
             };
         }
         return await this.watch (url, messageHash, request, subscriptionHash);
@@ -532,8 +532,26 @@ export default class bingx extends bingxRest {
         }
     }
 
-    ping (client) {
-        return 'Pong';
+    async pong (client, message) {
+        //
+        // spot
+        // {
+        //     ping: '5963ba3db76049b2870f9a686b2ebaac',
+        //     time: '2023-10-02T18:51:55.089+0800'
+        // }
+        // swap
+        // Ping
+        //
+        if (message === 'Ping') {
+            await client.send ('Pong');
+        } else {
+            const ping = this.safeString (message, 'ping');
+            const time = this.safeString (message, 'time');
+            await client.send ({
+                'pong': ping,
+                'time': time,
+            });
+        }
     }
 
     handleOrder (client, message) {
@@ -660,12 +678,50 @@ export default class bingx extends bingxRest {
         client.resolve (cachedTrades, messageHash + ':' + symbol);
     }
 
+    handleBalance (client: Client, message) {
+        // spot
+        // {
+        //     "e":"ACCOUNT_UPDATE",
+        //     "E":1696242817000,
+        //     "T":1696242817142,
+        //     "a":{
+        //        "B":[
+        //           {
+        //              "a":"USDT",
+        //              "bc":"-1.00000000000000000000",
+        //              "cw":"86.59497382000000050000",
+        //              "wb":"86.59497382000000050000"
+        //           }
+        //        ],
+        //        "m":"ASSET_TRANSFER"
+        //     }
+        // }
+        const a = this.safeValue (message, 'a', {});
+        const data = this.safeValue (a, 'B', []);
+        const timestamp = this.safeInteger (message, 'T');
+        const type = 1 ? 'spot' : 'swap';
+        this.balance[type]['info'] = data;
+        this.balance[type]['timestamp'] = timestamp;
+        this.balance[type]['datetime'] = this.iso8601 (timestamp);
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'a');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = (code in this.balance) ? this.balance[code] : this.account ();
+            account['total'] = this.safeString (balance, 'wb');
+            this.balance[type][code] = account;
+        }
+        this.balance[type] = this.safeBalance (this.balance[type]);
+        client.resolve (this.balance[type], type + ':balance');
+    }
+
     handleMessage (client: Client, message) {
         // public subscriptions
-        const dataType = this.safeString (message, 'dataType');
-        if (dataType === undefined) {
+        if ((message === 'Ping') || ('ping' in message)) {
+            this.spawn (this.pong, client, message);
             return;
         }
+        const dataType = this.safeString (message, 'dataType', '');
         if (dataType.indexOf ('@depth') >= 0) {
             this.handleOrderBook (client, message);
             return;
@@ -685,6 +741,10 @@ export default class bingx extends bingxRest {
                 this.handleMyTrades (client, message);
             }
             this.handleOrder (client, message);
+        }
+        const e = this.safeString (message, 'e');
+        if (e === 'ACCOUNT_UPDATE') {
+            this.handleBalance (client, message);
         }
     }
 }
