@@ -4,7 +4,7 @@
 import Exchange from './abstract/kucoin.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
 
@@ -2839,10 +2839,11 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);
+        const truncatedAmount = this.decimalToPrecision (amount, TRUNCATE, 6);
         const request = {
             'currency': currency['id'],
             'address': address,
-            'amount': amount,
+            'amount': truncatedAmount,
             // 'memo': tag,
             // 'isInner': false, // internal transfer or external withdrawal
             // 'remark': 'optional',
