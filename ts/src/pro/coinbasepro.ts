@@ -236,7 +236,7 @@ export default class coinbasepro extends coinbaseproRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         await this.loadMarkets ();
         const name = 'user';
-        const messageHash = 'multipleMyTrades';
+        const messageHash = 'multipleMyTrades::';
         const authentication = this.authenticate ();
         const trades = await this.subscribeMultiple (name, symbols, messageHash, this.extend (params, authentication));
         if (this.newUpdates) {
