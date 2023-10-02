@@ -202,6 +202,8 @@ export default class kraken extends Exchange {
                         // sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
+                        // earn
+                        'Earn/Allocations': 3,
                     },
                 },
             },
