@@ -22,6 +22,7 @@ export default class coinbasepro extends coinbaseproRest {
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'watchMyTradesForSymbols': true,
                 'watchBalance': false,
                 'watchStatus': false, // for now
                 'watchOrders': true,
@@ -221,6 +222,31 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    async watchMyTradesForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#watchMyTradesForSymbols
+         * @description watches information on multiple trades made by the user
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         */
+        symbols = this.marketSymbols (symbols, undefined, false);
+        await this.loadMarkets ();
+        const name = 'user';
+        const messageHash = 'multipleMyTrades';
+        const authentication = this.authenticate ();
+        const trades = await this.subscribeMultiple (name, symbols, messageHash, this.extend (params, authentication));
+        if (this.newUpdates) {
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
     async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -364,6 +390,7 @@ export default class coinbasepro extends coinbaseproRest {
         const marketId = this.safeString (message, 'product_id');
         if (marketId !== undefined) {
             const trade = this.parseWsTrade (message);
+            const symbol = trade['symbol'];
             const type = 'myTrades';
             const messageHash = type + ':' + marketId;
             let tradesArray = this.myTrades;
@@ -374,6 +401,7 @@ export default class coinbasepro extends coinbaseproRest {
             }
             tradesArray.append (trade);
             client.resolve (tradesArray, messageHash);
+            this.resolvePromiseIfMessagehashMatches (client, 'multipleMyTrades::', symbol, tradesArray);
         }
         return message;
     }
