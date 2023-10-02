@@ -417,15 +417,20 @@ export default class bingx extends bingxRest {
             symbol = market['symbol'];
         }
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        const subscriptionHash = (type === 'spot') ? 'spot:private' : 'swap:private';
-        let messageHash = (type === 'spot') ? 'spot:order' : 'swap:order';
+        const isSpot = (type === 'spot');
+        const spotHash = 'spot:private';
+        const swapHash = 'swap:private';
+        const subscriptionHash = isSpot ? spotHash : swapHash;
+        const spotMessageHash = 'spot:order';
+        const swapMessageHash = 'swap:order';
+        let messageHash = isSpot ? spotMessageHash : swapMessageHash;
         if (market !== undefined) {
             messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws'][type] + '?listenKey=' + this.options['listenKey'];
         let request = undefined;
         const uuid = this.uuid ();
-        if (type === 'spot') {
+        if (isSpot) {
             request = {
                 'id': uuid,
                 'dataType': 'spot.executionReport',
@@ -460,15 +465,20 @@ export default class bingx extends bingxRest {
             symbol = market['symbol'];
         }
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        const subscriptionHash = (type === 'spot') ? 'spot:private' : 'swap:private';
-        let messageHash = (type === 'spot') ? 'spot:mytrades' : 'swap:mytrades';
+        const isSpot = (type === 'spot');
+        const spotSubHash = 'spot:private';
+        const swapSubHash = 'swap:private';
+        const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
+        const spotMessageHash = 'spot:mytrades';
+        const swapMessageHash = 'swap:mytrades';
+        let messageHash = isSpot ? spotMessageHash : swapMessageHash;
         if (market !== undefined) {
             messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws'][type] + '?listenKey=' + this.options['listenKey'];
         let request = undefined;
         const uuid = this.uuid ();
-        if (type === 'spot') {
+        if (isSpot) {
             request = {
                 'id': uuid,
                 'dataType': 'spot.executionReport',
@@ -495,8 +505,13 @@ export default class bingx extends bingxRest {
         await this.authenticate ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        const messageHash = (type === 'spot') ? 'spot:balance' : 'swap:balance';
-        const subscriptionHash = (type === 'spot') ? 'spot:balance' : 'swap:private';
+        const isSpot = (type === 'spot');
+        const spotSubHash = 'spot:balance';
+        const swapSubHash = 'swap:private';
+        const spotMessageHash = 'spot:balance';
+        const swapMessageHash = 'swap:balance';
+        const messageHash = isSpot ? spotMessageHash : swapMessageHash;
+        const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
         const url = this.urls['api']['ws'][type] + '?listenKey=' + this.options['listenKey'];
         let request = undefined;
         const uuid = this.uuid ();
@@ -641,7 +656,9 @@ export default class bingx extends bingxRest {
         stored.append (parsedOrder);
         const symbol = parsedOrder['symbol'];
         const market = this.market (symbol);
-        const messageHash = (market['spot']) ? 'spot:order' : 'swap:order';
+        const spotHash = 'spot:order';
+        const swapHash = 'swap:order';
+        const messageHash = (market['spot']) ? spotHash : swapHash;
         client.resolve (stored, messageHash);
         client.resolve (stored, messageHash + ':' + symbol);
     }
@@ -689,7 +706,9 @@ export default class bingx extends bingxRest {
         const parsed = this.parseTrade (result);
         const symbol = parsed['symbol'];
         const market = this.market (symbol);
-        const messageHash = (market['spot']) ? 'spot:mytrades' : 'swap:mytrades';
+        const spotHash = 'spot:mytrades';
+        const swapHash = 'swap:mytrades';
+        const messageHash = market['spot'] ? spotHash : swapHash;
         cachedTrades.append (parsed);
         client.resolve (cachedTrades, messageHash);
         client.resolve (cachedTrades, messageHash + ':' + symbol);
