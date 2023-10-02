@@ -453,7 +453,7 @@ class wazirx extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = $limit; // Default 500; max 1000.
+                $request['limit'] = min ($limit, 1000); // Default 500; max 1000.
             }
             $method = $this->safe_string($this->options, 'fetchTradesMethod', 'publicGetTrades');
             $response = Async\await($this->$method (array_merge($request, $params)));

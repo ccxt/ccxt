@@ -694,7 +694,7 @@ class testMainClass(baseMainTestClass):
                 dump(self.add_padding('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id)
 
     def start_test(self, exchange, symbol):
-        # we don't need to test aliases
+        # we do not need to test aliases
         if exchange.alias:
             return
         if self.sandbox or get_exchange_prop(exchange, 'sandbox'):

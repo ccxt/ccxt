@@ -1287,7 +1287,7 @@ class deribit(Exchange, ImplicitAPI):
         if since is not None:
             request['start_timestamp'] = since
         if limit is not None:
-            request['count'] = limit  # default 10
+            request['count'] = min(limit, 1000)  # default 10
         response = await getattr(self, method)(self.extend(request, params))
         #
         #      {
@@ -2417,12 +2417,12 @@ class deribit(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(volatilityResult)):
             timestamp = self.safe_integer(volatilityResult[i], 0)
-            volatility = self.safe_number(volatilityResult[i], 1)
+            volatilityObj = self.safe_number(volatilityResult[i], 1)
             result.append({
-                'info': volatility,
+                'info': volatilityObj,
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
-                'volatility': volatility,
+                'volatility': volatilityObj,
             })
         return result
 

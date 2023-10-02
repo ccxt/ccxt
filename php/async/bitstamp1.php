@@ -220,6 +220,17 @@ class bitstamp1 extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // public $trade
+        //
+        //        {
+        //            "amount" => "0.00114000",
+        //            "date" => "1694287856",
+        //            "price" => "25865",
+        //            "tid" => 298730788,
+        //            "type" => 0
+        //        }
+        //
         $timestamp = $this->safe_timestamp_2($trade, 'date', 'datetime');
         $side = ($trade['type'] === 0) ? 'buy' : 'sell';
         $orderId = $this->safe_string($trade, 'order_id');
@@ -264,6 +275,17 @@ class bitstamp1 extends Exchange {
                 'time' => 'minute',
             );
             $response = Async\await($this->publicGetTransactions (array_merge($request, $params)));
+            //
+            //    array(
+            //        array(
+            //            "amount" => "0.00114000",
+            //            "date" => "1694287856",
+            //            "price" => "25865",
+            //            "tid" => 298730788,
+            //            "type" => 0
+            //        ),
+            //    )
+            //
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }

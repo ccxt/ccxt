@@ -42,7 +42,7 @@ class binance extends Exchange {
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => null,
+                'cancelOrders' => true,  // contract only
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -77,7 +77,7 @@ class binance extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
-                'fetchL3OrderBook' => null,
+                'fetchL3OrderBook' => false,
                 'fetchLastPrices' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
@@ -116,6 +116,7 @@ class binance extends Exchange {
                 'fetchTransfers' => true,
                 'fetchUnderlyingAssets' => false,
                 'fetchVolatilityHistory' => false,
+                'fetchWithdrawAddresses' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
@@ -217,6 +218,8 @@ class binance extends Exchange {
                         'asset/tradeFee' => 0.1,
                         'asset/ledger-transfer/cloud-mining/queryByPage' => 4.0002, // Weight(UID) => 600 => cost = 0.006667 * 600 = 4.0002
                         'asset/convert-transfer/queryByPage' => 0.033335,
+                        'asset/wallet/balance' => 6, // Weight(IP) => 60 => cost = 0.1 * 60 = 6
+                        'asset/custody/transfer-history' => 6, // Weight(IP) => 60 => cost = 0.1 * 60 = 6
                         'margin/loan' => 1,
                         'margin/repay' => 1,
                         'margin/account' => 1,
@@ -274,11 +277,7 @@ class binance extends Exchange {
                         'fiat/orders' => 600.03, // Weight(UID) => 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments' => 0.1,
                         'futures/transfer' => 1,
-                        'futures/loan/borrow/history' => 1,
-                        'futures/loan/repay/history' => 1,
-                        'futures/loan/wallet' => 1,
-                        'futures/loan/adjustCollateral/history' => 1,
-                        'futures/loan/liquidationHistory' => 1,
+                        'futures/histDataLink' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         'rebate/taxQuery' => 80.004, // Weight(UID) => 12000 => cost = 0.006667 * 12000 = 80.004
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall' => 1, // get networks for withdrawing USDT ERC20 vs USDT Omni
@@ -408,6 +407,7 @@ class binance extends Exchange {
                         'portfolio/interest-history' => 0.6667,
                         'portfolio/asset-index-price' => 0.1,
                         'portfolio/repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
+                        'portfolio/margin-asset-leverage' => 5, // Weight(IP) => 50 => cost = 0.1 * 50 = 5
                         // staking
                         'staking/productList' => 0.1,
                         'staking/position' => 0.1,
@@ -420,6 +420,11 @@ class binance extends Exchange {
                         'lending/auto-invest/plan/list' => 0.1,
                         'lending/auto-invest/plan/id' => 0.1,
                         'lending/auto-invest/history/list' => 0.1,
+                        'lending/auto-invest/index/info' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/index/user-summary' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/one-off/status' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/redeem/history' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/rebalance/history' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         // simple earn
                         'simple-earn/flexible/list' => 15,
                         'simple-earn/locked/list' => 15,
@@ -547,6 +552,8 @@ class binance extends Exchange {
                         'lending/auto-invest/plan/add' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/one-off' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/redeem' => 0.1, // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         // simple earn
                         'simple-earn/flexible/subscribe' => 0.1,
                         'simple-earn/locked/subscribe' => 0.1,
@@ -714,6 +721,7 @@ class binance extends Exchange {
                         'markPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'indexPriceKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'fundingRate' => 1,
+                        'fundingInfo' => 1,
                         'premiumIndex' => 1,
                         'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
@@ -3404,6 +3412,18 @@ class binance extends Exchange {
         //         "M" => true           // Was the $trade the best $price match?
         //     }
         //
+        // REST => aggregate trades for swap & future (both linear and inverse)
+        //
+        //     {
+        //         "a" => "269772814",
+        //         "p" => "25864.1",
+        //         "q" => "3",
+        //         "f" => "662149354",
+        //         "l" => "662149355",
+        //         "T" => "1694209776022",
+        //         "m" => false,
+        //     }
+        //
         // recent public trades and old public trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-$trade-lookup-market_data
@@ -3652,7 +3672,8 @@ class binance extends Exchange {
                 }
             }
             if ($limit !== null) {
-                $request['limit'] = $limit; // default = 500, maximum = 1000
+                $isFutureOrSwap = ($market['swap'] || $market['future']);
+                $request['limit'] = $isFutureOrSwap ? min ($limit, 1000) : $limit; // default = 500, maximum = 1000
             }
             $params = $this->omit($params, array( 'until', 'fetchTradesMethod' ));
             //
@@ -3679,6 +3700,20 @@ class binance extends Exchange {
             //             "m" => true,          // Was the buyer the maker?
             //             "M" => true           // Was the trade the best price match?
             //         }
+            //     )
+            //
+            // inverse (swap & future)
+            //
+            //     array(
+            //      array(
+            //         "a" => "269772814",
+            //         "p" => "25864.1",
+            //         "q" => "3",
+            //         "f" => "662149354",
+            //         "l" => "662149355",
+            //         "T" => "1694209776022",
+            //         "m" => false,
+            //      ),
             //     )
             //
             // recent public trades and historical public trades
@@ -4890,6 +4925,75 @@ class binance extends Exchange {
             } else {
                 return $response;
             }
+        }) ();
+    }
+
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple orders
+             * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
+             * @param {[string]} $ids order $ids
+             * @param {string} [$symbol] unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the bingx api endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {[string]} [$params->origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+             * @param {[int]} [$params->recvWindow]
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            $this->check_required_symbol('cancelOrders', $symbol);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . ' cancelOrders is only supported for swap markets.');
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                'orderidlist' => $ids,
+            );
+            $response = null;
+            if ($market['linear']) {
+                $response = Async\await($this->fapiPrivateDeleteBatchOrders (array_merge($request, $params)));
+            } elseif ($market['inverse']) {
+                $response = Async\await($this->dapiPrivateDeleteBatchOrders (array_merge($request, $params)));
+            }
+            //
+            //    array(
+            //        array(
+            //            "clientOrderId" => "myOrder1",
+            //            "cumQty" => "0",
+            //            "cumQuote" => "0",
+            //            "executedQty" => "0",
+            //            "orderId" => 283194212,
+            //            "origQty" => "11",
+            //            "origType" => "TRAILING_STOP_MARKET",
+            //            "price" => "0",
+            //            "reduceOnly" => false,
+            //            "side" => "BUY",
+            //            "positionSide" => "SHORT",
+            //            "status" => "CANCELED",
+            //            "stopPrice" => "9300",                  // please ignore when order type is TRAILING_STOP_MARKET
+            //            "closePosition" => false,               // if Close-All
+            //            "symbol" => "BTCUSDT",
+            //            "timeInForce" => "GTC",
+            //            "type" => "TRAILING_STOP_MARKET",
+            //            "activatePrice" => "9020",              // activation price, only return with TRAILING_STOP_MARKET order
+            //            "priceRate" => "0.3",                   // callback rate, only return with TRAILING_STOP_MARKET order
+            //            "updateTime" => 1571110484038,
+            //            "workingType" => "CONTRACT_PRICE",
+            //            "priceProtect" => false,                // if conditional order trigger is protected
+            //            "priceMatch" => "NONE",                 // price match mode
+            //            "selfTradePreventionMode" => "NONE",    // self trading preventation mode
+            //            "goodTillDate" => 0                     // order pre-set auot cancel time for TIF GTD order
+            //        ),
+            //        {
+            //            "code" => -2011,
+            //            "msg" => "Unknown order sent."
+            //        }
+            //    )
+            //
+            return $this->parse_orders($response, $market);
         }) ();
     }
 
@@ -8068,7 +8172,22 @@ class binance extends Exchange {
             if (($api === 'sapi') && ($path === 'asset/dust')) {
                 $query = $this->urlencode_with_array_repeat($extendedParams);
             } elseif (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false) || ($path === 'capital/withdraw/apply') || (mb_strpos($path, 'staking') !== false)) {
-                $query = $this->rawencode($extendedParams);
+                if (($method === 'DELETE') && ($path === 'batchOrders')) {
+                    $orderidlist = $this->safe_value($extendedParams, 'orderidlist', array());
+                    $origclientorderidlist = $this->safe_value($extendedParams, 'origclientorderidlist', array());
+                    $extendedParams = $this->omit($extendedParams, array( 'orderidlist', 'origclientorderidlist' ));
+                    $query = $this->rawencode($extendedParams);
+                    $orderidlistLength = count($orderidlist);
+                    $origclientorderidlistLength = count($orderidlist);
+                    if ($orderidlistLength > 0) {
+                        $query = $query . '&$orderidlist=[' . implode(',', $orderidlist) . ']';
+                    }
+                    if ($origclientorderidlistLength > 0) {
+                        $query = $query . '&$origclientorderidlist=[' . implode(',', $origclientorderidlist) . ']';
+                    }
+                } else {
+                    $query = $this->rawencode($extendedParams);
+                }
             } else {
                 $query = $this->urlencode($extendedParams);
             }
@@ -8168,6 +8287,17 @@ class binance extends Exchange {
         }
         if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
+        }
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+            // cancelOrders returns an array like this => [array("code":-2011,"msg":"Unknown order sent.")]
+            $numElements = count($response);
+            if ($numElements > 0) {
+                $firstElement = $response[0];
+                $errorCode = $this->safe_string($firstElement, 'code');
+                if ($errorCode !== null) {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $this->id . ' ' . $body);
+                }
+            }
         }
         return null;
     }

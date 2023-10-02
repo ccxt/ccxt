@@ -654,8 +654,8 @@ export default class bittrex extends bittrexRest {
                 // unroll the accumulated deltas
                 // 3. Playback the cached Level 2 data flow.
                 for (let i = 0; i < messages.length; i++) {
-                    const message = messages[i];
-                    this.handleOrderBookMessage(client, message, orderbook);
+                    const messageItem = messages[i];
+                    this.handleOrderBookMessage(client, messageItem, orderbook);
                 }
                 this.orderbooks[symbol] = orderbook;
                 client.resolve(orderbook, messageHash);

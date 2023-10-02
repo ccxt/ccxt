@@ -34,7 +34,7 @@ class binance extends binance$1 {
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': undefined,
+                'cancelOrders': true,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -69,7 +69,7 @@ class binance extends binance$1 {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
-                'fetchL3OrderBook': undefined,
+                'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLeverage': false,
@@ -108,6 +108,7 @@ class binance extends binance$1 {
                 'fetchTransfers': true,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
+                'fetchWithdrawAddresses': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -209,6 +210,8 @@ class binance extends binance$1 {
                         'asset/tradeFee': 0.1,
                         'asset/ledger-transfer/cloud-mining/queryByPage': 4.0002,
                         'asset/convert-transfer/queryByPage': 0.033335,
+                        'asset/wallet/balance': 6,
+                        'asset/custody/transfer-history': 6,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -266,11 +269,7 @@ class binance extends binance$1 {
                         'fiat/orders': 600.03,
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
-                        'futures/loan/borrow/history': 1,
-                        'futures/loan/repay/history': 1,
-                        'futures/loan/wallet': 1,
-                        'futures/loan/adjustCollateral/history': 1,
-                        'futures/loan/liquidationHistory': 1,
+                        'futures/histDataLink': 0.1,
                         'rebate/taxQuery': 80.004,
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall': 1,
@@ -400,6 +399,7 @@ class binance extends binance$1 {
                         'portfolio/interest-history': 0.6667,
                         'portfolio/asset-index-price': 0.1,
                         'portfolio/repay-futures-switch': 3,
+                        'portfolio/margin-asset-leverage': 5,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -412,6 +412,11 @@ class binance extends binance$1 {
                         'lending/auto-invest/plan/list': 0.1,
                         'lending/auto-invest/plan/id': 0.1,
                         'lending/auto-invest/history/list': 0.1,
+                        'lending/auto-invest/index/info': 0.1,
+                        'lending/auto-invest/index/user-summary': 0.1,
+                        'lending/auto-invest/one-off/status': 0.1,
+                        'lending/auto-invest/redeem/history': 0.1,
+                        'lending/auto-invest/rebalance/history': 0.1,
                         // simple earn
                         'simple-earn/flexible/list': 15,
                         'simple-earn/locked/list': 15,
@@ -539,6 +544,8 @@ class binance extends binance$1 {
                         'lending/auto-invest/plan/add': 0.1,
                         'lending/auto-invest/plan/edit': 0.1,
                         'lending/auto-invest/plan/edit-status': 0.1,
+                        'lending/auto-invest/one-off': 0.1,
+                        'lending/auto-invest/redeem': 0.1,
                         // simple earn
                         'simple-earn/flexible/subscribe': 0.1,
                         'simple-earn/locked/subscribe': 0.1,
@@ -706,6 +713,7 @@ class binance extends binance$1 {
                         'markPriceKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
                         'indexPriceKlines': { 'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]] },
                         'fundingRate': 1,
+                        'fundingInfo': 1,
                         'premiumIndex': 1,
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
@@ -3420,6 +3428,18 @@ class binance extends binance$1 {
         //         "M": true           // Was the trade the best price match?
         //     }
         //
+        // REST: aggregate trades for swap & future (both linear and inverse)
+        //
+        //     {
+        //         "a": "269772814",
+        //         "p": "25864.1",
+        //         "q": "3",
+        //         "f": "662149354",
+        //         "l": "662149355",
+        //         "T": "1694209776022",
+        //         "m": false,
+        //     }
+        //
         // recent public trades and old public trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-trade-lookup-market_data
@@ -3673,7 +3693,8 @@ class binance extends binance$1 {
             }
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default = 500, maximum = 1000
+            const isFutureOrSwap = (market['swap'] || market['future']);
+            request['limit'] = isFutureOrSwap ? Math.min(limit, 1000) : limit; // default = 500, maximum = 1000
         }
         params = this.omit(params, ['until', 'fetchTradesMethod']);
         //
@@ -3700,6 +3721,20 @@ class binance extends binance$1 {
         //             "m": true,          // Was the buyer the maker?
         //             "M": true           // Was the trade the best price match?
         //         }
+        //     ]
+        //
+        // inverse (swap & future)
+        //
+        //     [
+        //      {
+        //         "a": "269772814",
+        //         "p": "25864.1",
+        //         "q": "3",
+        //         "f": "662149354",
+        //         "l": "662149355",
+        //         "T": "1694209776022",
+        //         "m": false,
+        //      },
         //     ]
         //
         // recent public trades and historical public trades
@@ -4958,6 +4993,75 @@ class binance extends binance$1 {
         else {
             return response;
         }
+    }
+    async cancelOrders(ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#cancelOrders
+         * @description cancel multiple orders
+         * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
+         * @param {[string]} ids order ids
+         * @param {string} [symbol] unified market symbol
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {[string]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+         * @param {[int]} [params.recvWindow]
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredSymbol('cancelOrders', symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['contract']) {
+            throw new errors.BadRequest(this.id + ' cancelOrders is only supported for swap markets.');
+        }
+        const request = {
+            'symbol': market['id'],
+            'orderidlist': ids,
+        };
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.fapiPrivateDeleteBatchOrders(this.extend(request, params));
+        }
+        else if (market['inverse']) {
+            response = await this.dapiPrivateDeleteBatchOrders(this.extend(request, params));
+        }
+        //
+        //    [
+        //        {
+        //            "clientOrderId": "myOrder1",
+        //            "cumQty": "0",
+        //            "cumQuote": "0",
+        //            "executedQty": "0",
+        //            "orderId": 283194212,
+        //            "origQty": "11",
+        //            "origType": "TRAILING_STOP_MARKET",
+        //            "price": "0",
+        //            "reduceOnly": false,
+        //            "side": "BUY",
+        //            "positionSide": "SHORT",
+        //            "status": "CANCELED",
+        //            "stopPrice": "9300",                  // please ignore when order type is TRAILING_STOP_MARKET
+        //            "closePosition": false,               // if Close-All
+        //            "symbol": "BTCUSDT",
+        //            "timeInForce": "GTC",
+        //            "type": "TRAILING_STOP_MARKET",
+        //            "activatePrice": "9020",              // activation price, only return with TRAILING_STOP_MARKET order
+        //            "priceRate": "0.3",                   // callback rate, only return with TRAILING_STOP_MARKET order
+        //            "updateTime": 1571110484038,
+        //            "workingType": "CONTRACT_PRICE",
+        //            "priceProtect": false,                // if conditional order trigger is protected
+        //            "priceMatch": "NONE",                 // price match mode
+        //            "selfTradePreventionMode": "NONE",    // self trading preventation mode
+        //            "goodTillDate": 0                     // order pre-set auot cancel time for TIF GTD order
+        //        },
+        //        {
+        //            "code": -2011,
+        //            "msg": "Unknown order sent."
+        //        }
+        //    ]
+        //
+        return this.parseOrders(response, market);
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -8132,7 +8236,7 @@ class binance extends binance$1 {
             }
             let query = undefined;
             const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
-            const extendedParams = this.extend({
+            let extendedParams = this.extend({
                 'timestamp': this.nonce(),
             }, params);
             if (defaultRecvWindow !== undefined) {
@@ -8146,7 +8250,23 @@ class binance extends binance$1 {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             }
             else if ((path === 'batchOrders') || (path.indexOf('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf('staking') >= 0)) {
-                query = this.rawencode(extendedParams);
+                if ((method === 'DELETE') && (path === 'batchOrders')) {
+                    const orderidlist = this.safeValue(extendedParams, 'orderidlist', []);
+                    const origclientorderidlist = this.safeValue(extendedParams, 'origclientorderidlist', []);
+                    extendedParams = this.omit(extendedParams, ['orderidlist', 'origclientorderidlist']);
+                    query = this.rawencode(extendedParams);
+                    const orderidlistLength = orderidlist.length;
+                    const origclientorderidlistLength = orderidlist.length;
+                    if (orderidlistLength > 0) {
+                        query = query + '&orderidlist=[' + orderidlist.join(',') + ']';
+                    }
+                    if (origclientorderidlistLength > 0) {
+                        query = query + '&origclientorderidlist=[' + origclientorderidlist.join(',') + ']';
+                    }
+                }
+                else {
+                    query = this.rawencode(extendedParams);
+                }
             }
             else {
                 query = this.urlencode(extendedParams);
@@ -8250,6 +8370,17 @@ class binance extends binance$1 {
         }
         if (!success) {
             throw new errors.ExchangeError(this.id + ' ' + body);
+        }
+        if (Array.isArray(response)) {
+            // cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
+            const numElements = response.length;
+            if (numElements > 0) {
+                const firstElement = response[0];
+                const errorCode = this.safeString(firstElement, 'code');
+                if (errorCode !== undefined) {
+                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, this.id + ' ' + body);
+                }
+            }
         }
         return undefined;
     }

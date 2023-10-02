@@ -1034,8 +1034,8 @@ class okx extends okx$1 {
         // filter orders with no last trade id
         for (let i = 0; i < rawOrders.length; i++) {
             const rawOrder = rawOrders[i];
-            const tradeId = this.safeString(rawOrder, 'tradeId');
-            if (!this.isEmpty(tradeId)) {
+            const tradeId = this.safeString(rawOrder, 'tradeId', '');
+            if (tradeId.length > 0) {
                 const order = this.parseOrder(rawOrder);
                 filteredOrders.push(order);
             }

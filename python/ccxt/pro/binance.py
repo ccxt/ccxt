@@ -282,24 +282,24 @@ class binance(ccxt.async_support.binance):
             # unroll the accumulated deltas
             messages = orderbook.cache
             for i in range(0, len(messages)):
-                message = messages[i]
-                U = self.safe_integer(message, 'U')
-                u = self.safe_integer(message, 'u')
-                pu = self.safe_integer(message, 'pu')
+                messageItem = messages[i]
+                U = self.safe_integer(messageItem, 'U')
+                u = self.safe_integer(messageItem, 'u')
+                pu = self.safe_integer(messageItem, 'pu')
                 if type == 'future':
                     # 4. Drop any event where u is < lastUpdateId in the snapshot
                     if u < orderbook['nonce']:
                         continue
                     # 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                     if (U <= orderbook['nonce']) and (u >= orderbook['nonce']) or (pu == orderbook['nonce']):
-                        self.handle_order_book_message(client, message, orderbook)
+                        self.handle_order_book_message(client, messageItem, orderbook)
                 else:
                     # 4. Drop any event where u is <= lastUpdateId in the snapshot
                     if u <= orderbook['nonce']:
                         continue
                     # 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
                     if ((U - 1) <= orderbook['nonce']) and ((u - 1) >= orderbook['nonce']):
-                        self.handle_order_book_message(client, message, orderbook)
+                        self.handle_order_book_message(client, messageItem, orderbook)
             self.orderbooks[symbol] = orderbook
             client.resolve(orderbook, messageHash)
         except Exception as e:
@@ -417,8 +417,8 @@ class binance(ccxt.async_support.binance):
     def handle_order_book_subscription(self, client: Client, message, subscription):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
         # messageHash = self.safe_string(subscription, 'messageHash')
-        symbol = self.safe_string(subscription, 'symbol')  # watchOrderBook
-        symbols = self.safe_value(subscription, 'symbols', [symbol])  # watchOrderBookForSymbols
+        symbolOfSubscription = self.safe_string(subscription, 'symbol')  # watchOrderBook
+        symbols = self.safe_value(subscription, 'symbols', [symbolOfSubscription])  # watchOrderBookForSymbols
         limit = self.safe_integer(subscription, 'limit', defaultLimit)
         # handle list of symbols
         for i in range(0, len(symbols)):
@@ -466,8 +466,8 @@ class binance(ccxt.async_support.binance):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            messageHash = market['lowercaseId'] + '@' + name
-            subParams.append(messageHash)
+            currentMessageHash = market['lowercaseId'] + '@' + name
+            subParams.append(currentMessageHash)
         messageHash = 'multipleTrades::' + ','.join(symbols)
         query = self.omit(params, 'type')
         url = self.urls['api']['ws'][type] + '/' + self.stream(type, messageHash)
@@ -763,17 +763,17 @@ class binance(ccxt.async_support.binance):
         hashes = []
         for i in range(0, len(symbolsAndTimeframes)):
             data = symbolsAndTimeframes[i]
-            symbol = data[0]
-            timeframe = data[1]
-            interval = self.safe_string(self.timeframes, timeframe, timeframe)
-            market = self.market(symbol)
+            symbolString = data[0]
+            timeframeString = data[1]
+            interval = self.safe_string(self.timeframes, timeframeString, timeframeString)
+            market = self.market(symbolString)
             marketId = market['lowercaseId']
             if name == 'indexPriceKline':
                 # weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace('_perp', '')
             topic = marketId + '@' + name + '_' + interval
             subParams.append(topic)
-            hashes.append(symbol + '#' + timeframe)
+            hashes.append(symbolString + '#' + timeframeString)
         messageHash = 'multipleOHLCV::' + ','.join(hashes)
         url = self.urls['api']['ws'][type] + '/' + self.stream(type, messageHash)
         requestId = self.request_id(url)
@@ -1073,12 +1073,12 @@ class binance(ccxt.async_support.binance):
             client.resolve(result, '!' + 'bookTicker@arr')
             messageHashes = self.find_message_hashes(client, 'tickers::')
             for i in range(0, len(messageHashes)):
-                messageHash = messageHashes[i]
-                parts = messageHash.split('::')
+                currentMessageHash = messageHashes[i]
+                parts = currentMessageHash.split('::')
                 symbolsString = parts[1]
                 symbols = symbolsString.split(',')
                 if self.in_array(symbol, symbols):
-                    client.resolve(result, messageHash)
+                    client.resolve(result, currentMessageHash)
 
     def handle_tickers(self, client: Client, message):
         isSpot = ((client.url.find('/stream') > -1) or (client.url.find('/testnet.binance') > -1))

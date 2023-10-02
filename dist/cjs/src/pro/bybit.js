@@ -20,7 +20,7 @@ class bybit extends bybit$1 {
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchPosition': undefined,
@@ -182,6 +182,36 @@ class bybit extends bybit$1 {
         const topics = [topic];
         return await this.watchTopics(url, messageHash, topics, params);
     }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#watchTickers
+         * @description n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const messageHash = 'tickers::' + symbols.join(',');
+        const url = this.getUrlByMarketType(symbols[0], false, params);
+        params = this.cleanParams(params);
+        const options = this.safeValue(this.options, 'watchTickers', {});
+        const topic = this.safeString(options, 'name', 'tickers');
+        const marketIds = this.marketIds(symbols);
+        const topics = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            topics.push(topic + '.' + marketId);
+        }
+        const ticker = await this.watchTopics(url, messageHash, topics, params);
+        if (this.newUpdates) {
+            return ticker;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
     handleTicker(client, message) {
         //
         // linear
@@ -312,6 +342,17 @@ class bybit extends bybit$1 {
         this.tickers[symbol] = parsed;
         const messageHash = 'ticker:' + symbol;
         client.resolve(this.tickers[symbol], messageHash);
+        // watchTickers part
+        const messageHashes = this.findMessageHashes(client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHashTicker = messageHashes[i];
+            const parts = messageHashTicker.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            if (this.inArray(parsed['symbol'], symbols)) {
+                client.resolve(parsed, messageHashTicker);
+            }
+        }
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
@@ -361,17 +402,17 @@ class bybit extends bybit$1 {
         let firstSymbol = undefined;
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
-            let symbol = this.safeString(data, 0);
-            const timeframe = this.safeString(data, 1);
-            const market = this.market(symbol);
-            symbol = market['symbol'];
+            let symbolString = this.safeString(data, 0);
+            const timeframeString = this.safeString(data, 1);
+            const market = this.market(symbolString);
+            symbolString = market['symbol'];
             if (i === 0) {
                 firstSymbol = market['symbol'];
             }
-            const timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
+            const timeframeId = this.safeString(this.timeframes, timeframeString, timeframeString);
             const topic = 'kline.' + timeframeId + '.' + market['id'];
             topics.push(topic);
-            hashes.push(symbol + '#' + timeframe);
+            hashes.push(symbolString + '#' + timeframeString);
         }
         const messageHash = 'multipleOHLCV::' + hashes.join(',');
         const url = this.getUrlByMarketType(firstSymbol, false, params);
@@ -530,8 +571,8 @@ class bybit extends bybit$1 {
         const topics = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = this.market(symbol);
-            const topic = 'orderbook.' + limit.toString() + '.' + market['id'];
+            const currentMarket = this.market(symbol);
+            const topic = 'orderbook.' + limit.toString() + '.' + currentMarket['id'];
             topics.push(topic);
         }
         const messageHash = 'multipleOrderbook::' + symbols.join(',');
@@ -918,8 +959,8 @@ class bybit extends bybit$1 {
         }
         const keys = Object.keys(symbols);
         for (let i = 0; i < keys.length; i++) {
-            const messageHash = 'myTrades:' + keys[i];
-            client.resolve(trades, messageHash);
+            const currentMessageHash = 'myTrades:' + keys[i];
+            client.resolve(trades, currentMessageHash);
         }
         // non-symbol specific
         const messageHash = 'myTrades';
@@ -1051,25 +1092,26 @@ class bybit extends bybit$1 {
         const first = this.safeValue(rawOrders, 0, {});
         const category = this.safeString(first, 'category');
         const isSpot = category === 'spot';
-        let parser = undefined;
-        if (isSpot) {
-            parser = 'parseWsSpotOrder';
-        }
-        else {
-            parser = 'parseContractOrder';
+        if (!isSpot) {
             rawOrders = this.safeValue(rawOrders, 'result', rawOrders);
         }
         const symbols = {};
         for (let i = 0; i < rawOrders.length; i++) {
-            const parsed = this[parser](rawOrders[i]);
+            let parsed = undefined;
+            if (isSpot) {
+                parsed = this.parseWsSpotOrder(rawOrders[i]);
+            }
+            else {
+                parsed = this.parseOrder(rawOrders[i]);
+            }
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             orders.append(parsed);
         }
         const symbolsArray = Object.keys(symbols);
         for (let i = 0; i < symbolsArray.length; i++) {
-            const messageHash = 'orders:' + symbolsArray[i];
-            client.resolve(orders, messageHash);
+            const currentMessageHash = 'orders:' + symbolsArray[i];
+            client.resolve(orders, currentMessageHash);
         }
         const messageHash = 'orders';
         client.resolve(orders, messageHash);

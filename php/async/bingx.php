@@ -42,6 +42,7 @@ class bingx extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
@@ -145,6 +146,7 @@ class bingx extends Exchange {
                                 'quote/klines' => 1,
                                 'quote/openInterest' => 1,
                                 'quote/ticker' => 1,
+                                'quote/bookTicker' => 1,
                             ),
                         ),
                         'private' => array(
@@ -196,11 +198,17 @@ class bingx extends Exchange {
                         'private' => array(
                             'get' => array(
                                 'capital/config/getall' => 3,
+                                'capital/deposit/address' => 1,
+                                'capital/innerTransfer/records' => 1,
+                                'capital/subAccount/deposit/address' => 1,
+                                'capital/deposit/subHisrec' => 1,
+                                'capital/subAccount/innerTransfer/records' => 1,
                             ),
                             'post' => array(
                                 'capital/withdraw/apply' => 3,
                                 'capital/innerTransfer/apply' => 3,
                                 'capital/subAccountInnerTransfer/apply' => 3,
+                                'capital/deposit/createSubAddress' => 1,
                             ),
                         ),
                     ),
@@ -211,6 +219,7 @@ class bingx extends Exchange {
                             'get' => array(
                                 'list' => 3,
                                 'assets' => 3,
+                                'apiKey/query' => 1,
                             ),
                             'post' => array(
                                 'create' => 3,
@@ -225,9 +234,38 @@ class bingx extends Exchange {
                 'account' => array(
                     'v1' => array(
                         'private' => array(
+                            'get' => array(
+                                'uid' => 1,
+                            ),
                             'post' => array(
-                                'uid' => 3,
                                 'innerTransfer/authorizeSubAccount' => 3,
+                            ),
+                        ),
+                    ),
+                ),
+                'copyTrading' => array(
+                    'v1' => array(
+                        'private' => array(
+                            'get' => array(
+                                'swap/trace/currentTrack' => 1,
+                            ),
+                            'post' => array(
+                                'swap/trace/closeTrackOrder' => 1,
+                                'swap/trace/setTPSL' => 1,
+                            ),
+                        ),
+                    ),
+                ),
+                'api' => array(
+                    'v3' => array(
+                        'private' => array(
+                            'get' => array(
+                                'asset/transfer' => 1,
+                                'capital/deposit/hisrec' => 1,
+                                'capital/withdraw/history' => 1,
+                            ),
+                            'post' => array(
+                                'post/asset/transfer' => 1,
                             ),
                         ),
                     ),
@@ -293,6 +331,7 @@ class bingx extends Exchange {
                     'PFUTURES' => 'swap',
                     'SFUTURES' => 'future',
                 ),
+                'recvWindow' => 5 * 1000, // 5 sec
             ),
         ));
     }
@@ -1514,9 +1553,9 @@ class bingx extends Exchange {
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
              * @param {bool} [$params->postOnly] true to place a post only order
-             * @param {array} [$params->triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered (swap markets only)
-             * @param {float} [$params->stopLossPrice] stop loss trigger $price (swap markets only)
-             * @param {float} [$params->takeProfitPrice] take profit trigger $price (swap markets only)
+             * @param {float} [$params->triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
+             * @param {float} [$params->stopLossPrice] *swap only* stop loss trigger $price
+             * @param {float} [$params->takeProfitPrice] *swap only* take profit trigger $price
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
@@ -2368,6 +2407,76 @@ class bingx extends Exchange {
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
             'status' => $status,
+        );
+    }
+
+    public function fetch_deposit_address(string $code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit address for a $currency associated with this account
+             * @see https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
+             * @param {string} $code unified $currency $code
+             * @param {array} [$params] extra parameters specific to the bingx api endpoint
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
+            $recvWindow = $this->safe_integer(array($this, 'parse_params'), 'recvWindow', $defaultRecvWindow);
+            $request = array(
+                'coin' => $currency['id'],
+                'offset' => 0,
+                'limit' => 1000,
+                'recvWindow' => $recvWindow,
+            );
+            $response = Async\await($this->walletsV1PrivateGetCapitalDepositAddress (array_merge($request, $params)));
+            //
+            //     {
+            //         $code => '0',
+            //         timestamp => '1695200226859',
+            //         $data => {
+            //           $data => array(
+            //             {
+            //               coinId => '799',
+            //               coin => 'USDT',
+            //               network => 'BEP20',
+            //               address => '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
+            //               tag => ''
+            //             }
+            //           ),
+            //           total => '1'
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($this->safe_value($response, 'data'), 'data');
+            $parsed = $this->parse_deposit_addresses($data, [ $currency['code'] ], false);
+            return $this->index_by($parsed, 'network');
+        }) ();
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //     {
+        //         coinId => '799',
+        //         coin => 'USDT',
+        //         $network => 'BEP20',
+        //         $address => '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
+        //         $tag => ''
+        //     }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        $tag = $this->safe_string($depositAddress, 'tag');
+        $currencyId = $this->safe_string($depositAddress, 'coin');
+        $currency = $this->safe_currency($currencyId, $currency);
+        $code = $currency['code'];
+        $network = $this->safe_string($depositAddress, 'network');
+        $this->check_address($address);
+        return array(
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'network' => $network,
+            'info' => $depositAddress,
         );
     }
 

@@ -369,9 +369,9 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         deltaEnd = self.safe_integer(data, 'sequence')
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
-            topicParts = topic.split(':')
-            topicSymbol = self.safe_string(topicParts, 1)
-            topicChannel = self.safe_string(topicParts, 0)
+            topicPartsNew = topic.split(':')
+            topicSymbol = self.safe_string(topicPartsNew, 1)
+            topicChannel = self.safe_string(topicPartsNew, 0)
             subscriptions = list(client.subscriptions.keys())
             subscription = None
             for i in range(0, len(subscriptions)):

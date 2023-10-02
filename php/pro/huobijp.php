@@ -338,8 +338,7 @@ class huobijp extends \ccxt\async\huobijp {
         // unroll the accumulated deltas
         $messages = $orderbook->cache;
         for ($i = 0; $i < count($messages); $i++) {
-            $message = $messages[$i];
-            $this->handle_order_book_message($client, $message, $orderbook);
+            $this->handle_order_book_message($client, $messages[$i], $orderbook);
         }
         $this->orderbooks[$symbol] = $orderbook;
         $client->resolve ($orderbook, $messageHash);

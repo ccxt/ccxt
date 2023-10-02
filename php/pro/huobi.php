@@ -419,8 +419,7 @@ class huobi extends \ccxt\async\huobi {
                 $orderbook->reset ($snapshot);
                 // unroll the accumulated deltas
                 for ($i = 0; $i < count($messages); $i++) {
-                    $message = $messages[$i];
-                    $this->handle_order_book_message($client, $message, $orderbook);
+                    $this->handle_order_book_message($client, $messages[$i], $orderbook);
                 }
                 $this->orderbooks[$symbol] = $orderbook;
                 $client->resolve ($orderbook, $messageHash);
@@ -1677,14 +1676,14 @@ class huobi extends \ccxt\async\huobi {
                 $action = $this->safe_string($message, 'action');
                 if ($action === 'ping') {
                     $data = $this->safe_value($message, 'data');
-                    $ping = $this->safe_integer($data, 'ts');
-                    Async\await($client->send (array( 'action' => 'pong', 'data' => array( 'ts' => $ping ))));
+                    $pingTs = $this->safe_integer($data, 'ts');
+                    Async\await($client->send (array( 'action' => 'pong', 'data' => array( 'ts' => $pingTs ))));
                     return;
                 }
                 $op = $this->safe_string($message, 'op');
                 if ($op === 'ping') {
-                    $ping = $this->safe_integer($message, 'ts');
-                    Async\await($client->send (array( 'op' => 'pong', 'ts' => $ping )));
+                    $pingTs = $this->safe_integer($message, 'ts');
+                    Async\await($client->send (array( 'op' => 'pong', 'ts' => $pingTs )));
                 }
             } catch (Exception $e) {
                 $error = new NetworkError ($this->id . ' pong failed ' . $this->json($e));
@@ -2158,7 +2157,7 @@ class huobi extends \ccxt\async\huobi {
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $request = null;
             if ($type === 'spot') {
-                $params = array(
+                $newParams = array(
                     'authType' => 'api',
                     'accessKey' => $this->apiKey,
                     'signatureMethod' => 'HmacSHA256',
@@ -2167,7 +2166,7 @@ class huobi extends \ccxt\async\huobi {
                     'signature' => $signature,
                 );
                 $request = array(
-                    'params' => $params,
+                    'params' => $newParams,
                     'action' => 'req',
                     'ch' => 'auth',
                 );

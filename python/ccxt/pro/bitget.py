@@ -33,7 +33,7 @@ class bitget(ccxt.async_support.bitget):
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchTicker': True,
-                'watchTickers': False,
+                'watchTickers': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
             },
@@ -130,6 +130,34 @@ class bitget(ccxt.async_support.bitget):
         }
         return await self.watch_public(messageHash, args, params)
 
+    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        market = self.market(symbols[0])
+        instType = 'sp' if market['spot'] else 'mc'
+        messageHash = 'tickers::' + ','.join(symbols)
+        marketIds = self.market_ids(symbols)
+        topics = []
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            marketInner = self.market(marketId)
+            args = {
+                'instType': instType,
+                'channel': 'ticker',
+                'instId': self.get_ws_market_id(marketInner),
+            }
+            topics.append(args)
+        tickers = await self.watch_public_multiple(messageHash, topics, params)
+        if self.newUpdates:
+            return tickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
+
     def handle_ticker(self, client: Client, message):
         #
         #   {
@@ -157,6 +185,15 @@ class bitget(ccxt.async_support.bitget):
         self.tickers[symbol] = ticker
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
+        # watchTickers part
+        messageHashes = self.find_message_hashes(client, 'tickers::')
+        for i in range(0, len(messageHashes)):
+            messageHashTicker = messageHashes[i]
+            parts = messageHashTicker.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            if self.in_array(symbol, symbols):
+                client.resolve(ticker, messageHashTicker)
         return message
 
     def parse_ws_ticker(self, message, market=None):
@@ -290,10 +327,10 @@ class bitget(ccxt.async_support.bitget):
         hashes = []
         for i in range(0, len(symbolsAndTimeframes)):
             data = symbolsAndTimeframes[i]
-            symbol = self.safe_string(data, 0)
-            timeframe = self.safe_string(data, 1)
-            market = self.market(symbol)
-            interval = self.safe_string(self.options['timeframes'], timeframe)
+            currentSymbol = self.safe_string(data, 0)
+            currentTimeframe = self.safe_string(data, 1)
+            market = self.market(currentSymbol)
+            interval = self.safe_string(self.options['timeframes'], currentTimeframe)
             instType = 'sp' if market['spot'] else 'mc'
             args = {
                 'instType': instType,
@@ -301,7 +338,7 @@ class bitget(ccxt.async_support.bitget):
                 'instId': self.get_ws_market_id(market),
             }
             topics.append(args)
-            hashes.append(symbol + '#' + timeframe)
+            hashes.append(currentSymbol + '#' + currentSymbol)
         messageHash = 'multipleOHLCV::' + ','.join(hashes)
         symbol, timeframe, stored = await self.watch_public_multiple(messageHash, topics, params)
         if self.newUpdates:

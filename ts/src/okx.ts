@@ -1437,13 +1437,13 @@ export default class okx extends Exchange {
                 promises.push (this.publicGetPublicInstruments (this.extend (request, params)));
             }
             const promisesResult = await Promise.all (promises);
-            let data = [];
+            let markets = [];
             for (let i = 0; i < promisesResult.length; i++) {
                 const res = this.safeValue (promisesResult, i, {});
                 const options = this.safeValue (res, 'data', []);
-                data = this.arrayConcat (data, options);
+                markets = this.arrayConcat (markets, options);
             }
-            return this.parseMarkets (data);
+            return this.parseMarkets (markets);
         }
         const response = await this.publicGetPublicInstruments (this.extend (request, params));
         //
@@ -2100,14 +2100,27 @@ export default class okx extends Exchange {
         defaultType = this.safeString (options, 'type', defaultType); // Candles or HistoryCandles
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        let method = 'publicGetMarket' + type;
         const isHistoryCandles = (type === 'HistoryCandles');
+        let response = undefined;
         if (price === 'mark') {
-            method = (isHistoryCandles) ? 'publicGetMarketHistoryMarkPriceCandles' : 'publicGetMarketMarkPriceCandles';
+            if (isHistoryCandles) {
+                response = await this.publicGetMarketHistoryMarkPriceCandles (this.extend (request, params));
+            } else {
+                response = await this.publicGetMarketMarkPriceCandles (this.extend (request, params));
+            }
         } else if (price === 'index') {
-            method = (isHistoryCandles) ? 'publicGetMarketHistoryIndexCandles' : 'publicGetMarketIndexCandles';
+            if (isHistoryCandles) {
+                response = await this.publicGetMarketHistoryIndexCandles (this.extend (request, params));
+            } else {
+                response = await this.publicGetMarketIndexCandles (this.extend (request, params));
+            }
+        } else {
+            if (isHistoryCandles) {
+                response = await this.publicGetMarketHistoryCandles (this.extend (request, params));
+            } else {
+                response = await this.publicGetMarketCandles (this.extend (request, params));
+            }
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -2322,16 +2335,15 @@ export default class okx extends Exchange {
          */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let method = undefined;
-        if (marketType === 'funding') {
-            method = 'privateGetAssetBalances';
-        } else {
-            method = 'privateGetAccountBalance';
-        }
         const request = {
             // 'ccy': 'BTC,ETH', // comma-separated list of currency ids
         };
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (marketType === 'funding') {
+            response = await this.privateGetAssetBalances (this.extend (request, query));
+        } else {
+            response = await this.privateGetAccountBalance (this.extend (request, query));
+        }
         //
         //     {
         //         "code": "0",
@@ -6726,8 +6738,8 @@ export default class okx extends Exchange {
             const entry = settlements[i];
             const timestamp = this.safeInteger (entry, 'ts');
             const details = this.safeValue (entry, 'details', []);
-            for (let i = 0; i < details.length; i++) {
-                const settlement = this.parseSettlement (details[i], market);
+            for (let j = 0; j < details.length; j++) {
+                const settlement = this.parseSettlement (details[j], market);
                 result.push (this.extend (settlement, {
                     'timestamp': timestamp,
                     'datetime': this.iso8601 (timestamp),

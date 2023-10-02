@@ -33,6 +33,7 @@ class bingx extends bingx$1 {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -136,6 +137,7 @@ class bingx extends bingx$1 {
                                 'quote/klines': 1,
                                 'quote/openInterest': 1,
                                 'quote/ticker': 1,
+                                'quote/bookTicker': 1,
                             },
                         },
                         'private': {
@@ -187,11 +189,17 @@ class bingx extends bingx$1 {
                         'private': {
                             'get': {
                                 'capital/config/getall': 3,
+                                'capital/deposit/address': 1,
+                                'capital/innerTransfer/records': 1,
+                                'capital/subAccount/deposit/address': 1,
+                                'capital/deposit/subHisrec': 1,
+                                'capital/subAccount/innerTransfer/records': 1,
                             },
                             'post': {
                                 'capital/withdraw/apply': 3,
                                 'capital/innerTransfer/apply': 3,
                                 'capital/subAccountInnerTransfer/apply': 3,
+                                'capital/deposit/createSubAddress': 1,
                             },
                         },
                     },
@@ -202,6 +210,7 @@ class bingx extends bingx$1 {
                             'get': {
                                 'list': 3,
                                 'assets': 3,
+                                'apiKey/query': 1,
                             },
                             'post': {
                                 'create': 3,
@@ -216,9 +225,38 @@ class bingx extends bingx$1 {
                 'account': {
                     'v1': {
                         'private': {
+                            'get': {
+                                'uid': 1,
+                            },
                             'post': {
-                                'uid': 3,
                                 'innerTransfer/authorizeSubAccount': 3,
+                            },
+                        },
+                    },
+                },
+                'copyTrading': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'swap/trace/currentTrack': 1,
+                            },
+                            'post': {
+                                'swap/trace/closeTrackOrder': 1,
+                                'swap/trace/setTPSL': 1,
+                            },
+                        },
+                    },
+                },
+                'api': {
+                    'v3': {
+                        'private': {
+                            'get': {
+                                'asset/transfer': 1,
+                                'capital/deposit/hisrec': 1,
+                                'capital/withdraw/history': 1,
+                            },
+                            'post': {
+                                'post/asset/transfer': 1,
                             },
                         },
                     },
@@ -282,6 +320,7 @@ class bingx extends bingx$1 {
                     'PFUTURES': 'swap',
                     'SFUTURES': 'future',
                 },
+                'recvWindow': 5 * 1000, // 5 sec
             },
         });
     }
@@ -1486,9 +1525,9 @@ class bingx extends bingx$1 {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {bool} [params.postOnly] true to place a post only order
-         * @param {object} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered (swap markets only)
-         * @param {float} [params.stopLossPrice] stop loss trigger price (swap markets only)
-         * @param {float} [params.takeProfitPrice] take profit trigger price (swap markets only)
+         * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
+         * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
+         * @param {float} [params.takeProfitPrice] *swap only* take profit trigger price
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -2340,6 +2379,74 @@ class bingx extends bingx$1 {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
             'status': status,
+        };
+    }
+    async fetchDepositAddress(code, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
+        const recvWindow = this.safeInteger(this.parseParams, 'recvWindow', defaultRecvWindow);
+        const request = {
+            'coin': currency['id'],
+            'offset': 0,
+            'limit': 1000,
+            'recvWindow': recvWindow,
+        };
+        const response = await this.walletsV1PrivateGetCapitalDepositAddress(this.extend(request, params));
+        //
+        //     {
+        //         code: '0',
+        //         timestamp: '1695200226859',
+        //         data: {
+        //           data: [
+        //             {
+        //               coinId: '799',
+        //               coin: 'USDT',
+        //               network: 'BEP20',
+        //               address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
+        //               tag: ''
+        //             }
+        //           ],
+        //           total: '1'
+        //         }
+        //     }
+        //
+        const data = this.safeValue(this.safeValue(response, 'data'), 'data');
+        const parsed = this.parseDepositAddresses(data, [currency['code']], false);
+        return this.indexBy(parsed, 'network');
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //     {
+        //         coinId: '799',
+        //         coin: 'USDT',
+        //         network: 'BEP20',
+        //         address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
+        //         tag: ''
+        //     }
+        //
+        const address = this.safeString(depositAddress, 'address');
+        const tag = this.safeString(depositAddress, 'tag');
+        const currencyId = this.safeString(depositAddress, 'coin');
+        currency = this.safeCurrency(currencyId, currency);
+        const code = currency['code'];
+        const network = this.safeString(depositAddress, 'network');
+        this.checkAddress(address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': network,
+            'info': depositAddress,
         };
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {

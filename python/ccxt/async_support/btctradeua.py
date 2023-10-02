@@ -337,6 +337,21 @@ class btctradeua(Exchange, ImplicitAPI):
         return timestamp - 10800000
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades
+        #
+        #     {
+        #         "amnt_base": "2220.1204701750",
+        #         "order_id": 247644861,
+        #         "unixtime": 1694340398,
+        #         "price": "1019739.3229211044",
+        #         "amnt_trade": "0.0021771451",
+        #         "user": "Vasily1989",
+        #         "type": "sell",
+        #         "pub_date": "Sept. 10, 2023, 1:06 p.m.",
+        #         "id": 7498807
+        #     }
+        #
         timestamp = self.parse_exchange_specific_datetime(self.safe_string(trade, 'pub_date'))
         id = self.safe_string(trade, 'id')
         type = 'limit'
@@ -375,6 +390,21 @@ class btctradeua(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = await self.publicGetDealsSymbol(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "amnt_base": "2220.1204701750",
+        #            "order_id": 247644861,
+        #            "unixtime": 1694340398,
+        #            "price": "1019739.3229211044",
+        #            "amnt_trade": "0.0021771451",
+        #            "user": "Vasily1989",
+        #            "type": "sell",
+        #            "pub_date": "Sept. 10, 2023, 1:06 p.m.",
+        #            "id": 7498807
+        #        },
+        #    ]
+        #
         # they report each trade twice(once for both of the two sides of the fill)
         # deduplicate trades for that reason
         trades = []

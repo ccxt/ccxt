@@ -224,6 +224,7 @@ export default class gemini extends Exchange {
                     'InsufficientFunds': InsufficientFunds,
                     'InvalidJson': BadRequest,
                     'InvalidNonce': InvalidNonce,
+                    'InvalidApiKey': AuthenticationError,
                     'InvalidOrderType': InvalidOrder,
                     'InvalidPrice': InvalidOrder,
                     'InvalidQuantity': InvalidOrder,

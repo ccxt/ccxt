@@ -1330,7 +1330,7 @@ class deribit extends Exchange {
                 $request['start_timestamp'] = $since;
             }
             if ($limit !== null) {
-                $request['count'] = $limit; // default 10
+                $request['count'] = min ($limit, 1000); // default 10
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
@@ -2559,12 +2559,12 @@ class deribit extends Exchange {
         $result = array();
         for ($i = 0; $i < count($volatilityResult); $i++) {
             $timestamp = $this->safe_integer($volatilityResult[$i], 0);
-            $volatility = $this->safe_number($volatilityResult[$i], 1);
+            $volatilityObj = $this->safe_number($volatilityResult[$i], 1);
             $result[] = array(
-                'info' => $volatility,
+                'info' => $volatilityObj,
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
-                'volatility' => $volatility,
+                'volatility' => $volatilityObj,
             );
         }
         return $result;

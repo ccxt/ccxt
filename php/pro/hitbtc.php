@@ -545,8 +545,8 @@ class hitbtc extends \ccxt\async\hitbtc {
                 $this->trades[$symbol] = $stored;
             }
             $trades = $this->parse_ws_trades($data[$marketId], $market);
-            for ($i = 0; $i < count($trades); $i++) {
-                $stored->append ($trades[$i]);
+            for ($j = 0; $j < count($trades); $j++) {
+                $stored->append ($trades[$j]);
             }
             $messageHash = 'trades::' . $symbol;
             $client->resolve ($stored, $messageHash);
@@ -677,8 +677,8 @@ class hitbtc extends \ccxt\async\hitbtc {
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
             $ohlcvs = $this->parse_ws_ohlcvs($data[$marketId], $market);
-            for ($i = 0; $i < count($ohlcvs); $i++) {
-                $stored->append ($ohlcvs[$i]);
+            for ($j = 0; $j < count($ohlcvs); $j++) {
+                $stored->append ($ohlcvs[$j]);
             }
             $messageHash = $channel . '::' . $symbol;
             $client->resolve ($stored, $messageHash);

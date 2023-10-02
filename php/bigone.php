@@ -27,6 +27,7 @@ class bigone extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
@@ -128,6 +129,7 @@ class bigone extends Exchange {
                 ),
             ),
             'options' => array(
+                'createMarketBuyOrderRequiresPrice' => true,
                 'accountsByType' => array(
                     'spot' => 'SPOT',
                     'fund' => 'FUND',
@@ -1069,58 +1071,87 @@ class bigone extends Exchange {
         return $this->parse_balance($response);
     }
 
+    public function parse_type(string $type) {
+        $types = array(
+            'STOP_LIMIT' => 'limit',
+            'STOP_MARKET' => 'market',
+            'LIMIT' => 'limit',
+            'MARKET' => 'market',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
     public function parse_order($order, $market = null) {
         //
         //    {
-        //        "id" => 10,
-        //        "asset_pair_name" => "EOS-BTC",
-        //        "price" => "10.00",
-        //        "amount" => "10.00",
-        //        "filled_amount" => "9.0",
-        //        "avg_deal_price" => "12.0",
-        //        "side" => "ASK",
-        //        "state" => "FILLED",
-        //        "created_at":"2019-01-29T06:05:56Z",
-        //        "updated_at":"2019-01-29T06:05:56Z",
+        //        "id" => '42154072251',
+        //        "asset_pair_name" => 'SOL-USDT',
+        //        "price" => '20',
+        //        "amount" => '0.5',
+        //        "filled_amount" => '0',
+        //        "avg_deal_price" => '0',
+        //        "side" => 'ASK',
+        //        "state" => 'PENDING',
+        //        "created_at" => '2023-09-13T03:42:00Z',
+        //        "updated_at" => '2023-09-13T03:42:00Z',
+        //        "type" => 'LIMIT',
+        //        "stop_price" => '0',
+        //        "immediate_or_cancel" => false,
+        //        "post_only" => false,
+        //        "client_order_id" => ''
         //    }
         //
         $id = $this->safe_string($order, 'id');
         $marketId = $this->safe_string($order, 'asset_pair_name');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
-        $price = $this->safe_string($order, 'price');
-        $amount = $this->safe_string($order, 'amount');
-        $average = $this->safe_string($order, 'avg_deal_price');
-        $filled = $this->safe_string($order, 'filled_amount');
-        $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $side = $this->safe_string($order, 'side');
         if ($side === 'BID') {
             $side = 'buy';
         } else {
             $side = 'sell';
         }
-        $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'updated_at'));
+        $triggerPrice = $this->safe_string($order, 'stop_price');
+        if (Precise::string_eq($triggerPrice, '0')) {
+            $triggerPrice = null;
+        }
+        $immediateOrCancel = $this->safe_value($order, 'immediate_or_cancel');
+        $timeInForce = null;
+        if ($immediateOrCancel) {
+            $timeInForce = 'IOC';
+        }
+        $type = $this->parse_type($this->safe_string($order, 'type'));
+        $price = $this->safe_string($order, 'price');
+        $amount = null;
+        $filled = null;
+        $cost = null;
+        if ($type === 'market' && $side === 'buy') {
+            $cost = $this->safe_string($order, 'filled_amount');
+        } else {
+            $amount = $this->safe_string($order, 'amount');
+            $filled = $this->safe_string($order, 'filled_amount');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $this->safe_string($order, 'client_order_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastTradeTimestamp' => $this->parse8601($this->safe_string($order, 'updated_at')),
             'symbol' => $symbol,
-            'type' => null,
-            'timeInForce' => null,
-            'postOnly' => null,
+            'type' => $type,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $this->safe_value($order, 'post_only'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
-            'triggerPrice' => null,
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
             'amount' => $amount,
-            'cost' => null,
-            'average' => $average,
+            'cost' => $cost,
+            'average' => $this->safe_string($order, 'avg_deal_price'),
             'filled' => $filled,
             'remaining' => null,
-            'status' => $status,
+            'status' => $this->parse_order_status($this->safe_string($order, 'state')),
             'fee' => null,
             'trades' => null,
         ), $market);
@@ -1129,45 +1160,76 @@ class bigone extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
+         * @see https://open.big.one/docs/spot_orders.html#create-$order
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the bigone api endpoint
+         * @param {float} [$params->triggerPrice] the $price at which a trigger $order is triggered at
+         * @param {bool} [$params->postOnly] if true, the $order will only be posted to the $order book and not executed immediately
+         * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} operator *stop $order only* GTE or LTE (default)
+         * @param {string} client_order_id must match ^[a-zA-Z0-9-_]array(1,36)$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the $order closed, it will be released and can be reused
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $requestSide = ($side === 'buy') ? 'BID' : 'ASK';
+        $isBuy = ($side === 'buy');
+        $requestSide = $isBuy ? 'BID' : 'ASK';
         $uppercaseType = strtoupper($type);
+        $isLimit = $uppercaseType === 'LIMIT';
+        $exchangeSpecificParam = $this->safe_value($params, 'post_only');
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only(($uppercaseType === 'MARKET'), $exchangeSpecificParam, $params);
+        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
         $request = array(
             'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
             'side' => $requestSide, // $order $side one of "ASK"/"BID", required
             'amount' => $this->amount_to_precision($symbol, $amount), // $order $amount, string, required
             // 'price' => $this->price_to_precision($symbol, $price), // $order $price, string, required
-            'type' => $uppercaseType,
             // 'operator' => 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
             // 'immediate_or_cancel' => false, // limit orders only, must be false when post_only is true
             // 'post_only' => false, // limit orders only, must be false when immediate_or_cancel is true
         );
-        if ($uppercaseType === 'LIMIT') {
+        if ($isLimit || ($uppercaseType === 'STOP_LIMIT')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
-        } else {
-            $isStopLimit = ($uppercaseType === 'STOP_LIMIT');
-            $isStopMarket = ($uppercaseType === 'STOP_MARKET');
-            if ($isStopLimit || $isStopMarket) {
-                $stopPrice = $this->safe_number_2($params, 'stop_price', 'stopPrice');
-                if ($stopPrice === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a stop_price parameter');
+            if ($isLimit) {
+                $timeInForce = $this->safe_string($params, 'timeInForce');
+                if ($timeInForce === 'IOC') {
+                    $request['immediate_or_cancel'] = true;
                 }
-                $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
-                $params = $this->omit($params, array( 'stop_price', 'stopPrice' ));
+                if ($postOnly) {
+                    $request['post_only'] = true;
+                }
             }
-            if ($isStopLimit) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
+        } else {
+            $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice');
+            if ($createMarketBuyOrderRequiresPrice && ($side === 'buy')) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the $amount parameter');
+                } else {
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $amount = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                }
             }
         }
+        $request['amount'] = $this->amount_to_precision($symbol, $amount);
+        if ($triggerPrice !== null) {
+            $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
+            $request['operator'] = $isBuy ? 'GTE' : 'LTE';
+            if ($isLimit) {
+                $uppercaseType = 'STOP_LIMIT';
+            } elseif ($uppercaseType === 'MARKET') {
+                $uppercaseType = 'STOP_MARKET';
+            }
+        }
+        $request['type'] = $uppercaseType;
+        $params = $this->omit($params, array( 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce' ));
         $response = $this->privatePostOrders (array_merge($request, $params));
         //
         //    {

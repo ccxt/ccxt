@@ -743,13 +743,19 @@ class bitso(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         marketId = self.safe_string(trade, 'book')
         symbol = self.safe_symbol(marketId, market, '_')
-        side = self.safe_string_2(trade, 'side', 'maker_side')
+        side = self.safe_string(trade, 'side')
         makerSide = self.safe_string(trade, 'maker_side')
         takerOrMaker = None
-        if side == makerSide:
-            takerOrMaker = 'maker'
+        if side is not None:
+            if side == makerSide:
+                takerOrMaker = 'maker'
+            else:
+                takerOrMaker = 'taker'
         else:
-            takerOrMaker = 'taker'
+            if makerSide == 'buy':
+                side = 'sell'
+            else:
+                side = 'buy'
         amount = self.safe_string_2(trade, 'amount', 'major')
         if amount is not None:
             amount = Precise.string_abs(amount)

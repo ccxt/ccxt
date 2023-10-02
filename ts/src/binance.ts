@@ -36,7 +36,7 @@ export default class binance extends Exchange {
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': undefined,
+                'cancelOrders': true,  // contract only
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -71,7 +71,7 @@ export default class binance extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
-                'fetchL3OrderBook': undefined,
+                'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLeverage': false,
@@ -110,6 +110,7 @@ export default class binance extends Exchange {
                 'fetchTransfers': true,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
+                'fetchWithdrawAddresses': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -211,6 +212,8 @@ export default class binance extends Exchange {
                         'asset/tradeFee': 0.1,
                         'asset/ledger-transfer/cloud-mining/queryByPage': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'asset/convert-transfer/queryByPage': 0.033335,
+                        'asset/wallet/balance': 6, // Weight(IP): 60 => cost = 0.1 * 60 = 6
+                        'asset/custody/transfer-history': 6, // Weight(IP): 60 => cost = 0.1 * 60 = 6
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -268,11 +271,7 @@ export default class binance extends Exchange {
                         'fiat/orders': 600.03, // Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
-                        'futures/loan/borrow/history': 1,
-                        'futures/loan/repay/history': 1,
-                        'futures/loan/wallet': 1,
-                        'futures/loan/adjustCollateral/history': 1,
-                        'futures/loan/liquidationHistory': 1,
+                        'futures/histDataLink': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'rebate/taxQuery': 80.004, // Weight(UID): 12000 => cost = 0.006667 * 12000 = 80.004
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall': 1, // get networks for withdrawing USDT ERC20 vs USDT Omni
@@ -402,6 +401,7 @@ export default class binance extends Exchange {
                         'portfolio/interest-history': 0.6667,
                         'portfolio/asset-index-price': 0.1,
                         'portfolio/repay-futures-switch': 3, // Weight(IP): 30 => cost = 0.1 * 30 = 3
+                        'portfolio/margin-asset-leverage': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -414,6 +414,11 @@ export default class binance extends Exchange {
                         'lending/auto-invest/plan/list': 0.1,
                         'lending/auto-invest/plan/id': 0.1,
                         'lending/auto-invest/history/list': 0.1,
+                        'lending/auto-invest/index/info': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/index/user-summary': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/one-off/status': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/redeem/history': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/rebalance/history': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         // simple earn
                         'simple-earn/flexible/list': 15,
                         'simple-earn/locked/list': 15,
@@ -541,6 +546,8 @@ export default class binance extends Exchange {
                         'lending/auto-invest/plan/add': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/one-off': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
+                        'lending/auto-invest/redeem': 0.1, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         // simple earn
                         'simple-earn/flexible/subscribe': 0.1,
                         'simple-earn/locked/subscribe': 0.1,
@@ -708,6 +715,7 @@ export default class binance extends Exchange {
                         'markPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
                         'indexPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
                         'fundingRate': 1,
+                        'fundingInfo': 1,
                         'premiumIndex': 1,
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
@@ -3282,6 +3290,14 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#index-price-kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price-kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#mark-price-kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -3396,6 +3412,18 @@ export default class binance extends Exchange {
         //         "T": 1498793709153, // Timestamp
         //         "m": true,          // Was the buyer the maker?
         //         "M": true           // Was the trade the best price match?
+        //     }
+        //
+        // REST: aggregate trades for swap & future (both linear and inverse)
+        //
+        //     {
+        //         "a": "269772814",
+        //         "p": "25864.1",
+        //         "q": "3",
+        //         "f": "662149354",
+        //         "l": "662149355",
+        //         "T": "1694209776022",
+        //         "m": false,
         //     }
         //
         // recent public trades and old public trades
@@ -3647,7 +3675,8 @@ export default class binance extends Exchange {
             }
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default = 500, maximum = 1000
+            const isFutureOrSwap = (market['swap'] || market['future']);
+            request['limit'] = isFutureOrSwap ? Math.min (limit, 1000) : limit; // default = 500, maximum = 1000
         }
         params = this.omit (params, [ 'until', 'fetchTradesMethod' ]);
         //
@@ -3674,6 +3703,20 @@ export default class binance extends Exchange {
         //             "m": true,          // Was the buyer the maker?
         //             "M": true           // Was the trade the best price match?
         //         }
+        //     ]
+        //
+        // inverse (swap & future)
+        //
+        //     [
+        //      {
+        //         "a": "269772814",
+        //         "p": "25864.1",
+        //         "q": "3",
+        //         "f": "662149354",
+        //         "l": "662149355",
+        //         "T": "1694209776022",
+        //         "m": false,
+        //      },
         //     ]
         //
         // recent public trades and historical public trades
@@ -4533,6 +4576,11 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-order-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#query-order-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#query-order-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-single-order-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-order-user_data
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
@@ -4580,6 +4628,11 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -4698,6 +4751,11 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://binance-docs.github.io/apidocs/spot/en/#current-open-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-open-orders-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -4761,6 +4819,11 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -4802,6 +4865,11 @@ export default class binance extends Exchange {
          * @method
          * @name binance#cancelOrder
          * @description cancels an open order
+         * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-order-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-order-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#cancel-order-trade
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#cancel-option-order-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the binance api endpoint
@@ -4891,11 +4959,85 @@ export default class binance extends Exchange {
         }
     }
 
+    async cancelOrders (ids: Int[], symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#cancelOrders
+         * @description cancel multiple orders
+         * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#cancel-multiple-orders-trade
+         * @param {[string]} ids order ids
+         * @param {string} [symbol] unified market symbol
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {[string]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+         * @param {[int]} [params.recvWindow]
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        this.checkRequiredSymbol ('cancelOrders', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' cancelOrders is only supported for swap markets.');
+        }
+        const request = {
+            'symbol': market['id'],
+            'orderidlist': ids,
+        };
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.fapiPrivateDeleteBatchOrders (this.extend (request, params));
+        } else if (market['inverse']) {
+            response = await this.dapiPrivateDeleteBatchOrders (this.extend (request, params));
+        }
+        //
+        //    [
+        //        {
+        //            "clientOrderId": "myOrder1",
+        //            "cumQty": "0",
+        //            "cumQuote": "0",
+        //            "executedQty": "0",
+        //            "orderId": 283194212,
+        //            "origQty": "11",
+        //            "origType": "TRAILING_STOP_MARKET",
+        //            "price": "0",
+        //            "reduceOnly": false,
+        //            "side": "BUY",
+        //            "positionSide": "SHORT",
+        //            "status": "CANCELED",
+        //            "stopPrice": "9300",                  // please ignore when order type is TRAILING_STOP_MARKET
+        //            "closePosition": false,               // if Close-All
+        //            "symbol": "BTCUSDT",
+        //            "timeInForce": "GTC",
+        //            "type": "TRAILING_STOP_MARKET",
+        //            "activatePrice": "9020",              // activation price, only return with TRAILING_STOP_MARKET order
+        //            "priceRate": "0.3",                   // callback rate, only return with TRAILING_STOP_MARKET order
+        //            "updateTime": 1571110484038,
+        //            "workingType": "CONTRACT_PRICE",
+        //            "priceProtect": false,                // if conditional order trigger is protected
+        //            "priceMatch": "NONE",                 // price match mode
+        //            "selfTradePreventionMode": "NONE",    // self trading preventation mode
+        //            "goodTillDate": 0                     // order pre-set auot cancel time for TIF GTD order
+        //        },
+        //        {
+        //            "code": -2011,
+        //            "msg": "Unknown order sent."
+        //        }
+        //    ]
+        //
+        return this.parseOrders (response, market);
+    }
+
     async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -4924,6 +5066,10 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -5061,6 +5207,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchMyDustTrades
          * @description fetch all dust trades made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#dustlog-user_data
          * @param {string} symbol not used by binance fetchMyDustTrades ()
          * @param {int} [since] the earliest time in ms to fetch my dust trades for
          * @param {int} [limit] the maximum number of dust trades to retrieve
@@ -5200,6 +5347,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#deposit-history-supporting-network-user_data
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -5304,6 +5453,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -5768,6 +5919,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchTransfers
          * @description fetch a history of internal transfers made on an account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of transfers structures to retrieve
@@ -5832,6 +5984,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
@@ -5908,6 +6061,7 @@ export default class binance extends Exchange {
          * @name binance#fetchTransactionFees
          * @deprecated
          * @description please use fetchDepositWithdrawFees instead
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
          * @param {string[]|undefined} codes not used by binance fetchTransactionFees ()
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object[]} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
@@ -6022,6 +6176,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
          * @param {string[]|undefined} codes not used by binance fetchDepositWithdrawFees ()
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object[]} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
@@ -6147,6 +6302,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#withdraw
          * @description make a withdrawal
+         * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -6204,6 +6360,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
@@ -6232,6 +6389,9 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
@@ -6406,6 +6566,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#futuresTransfer
          * @description transfer between futures account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#new-future-account-transfer-user_data
          * @param {string} code unified currency code
          * @param {float} amount the amount to transfer
          * @param {string} type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
@@ -6437,6 +6598,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchFundingRate
          * @description fetch the current funding rate
+         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
@@ -6478,6 +6641,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchFundingRateHistory
          * @description fetches historical funding rate prices
+         * @see https://binance-docs.github.io/apidocs/futures/en/#get-funding-rate-history
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#get-funding-rate-history-of-perpetual-futures
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
@@ -6548,6 +6713,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchFundingRates
          * @description fetch the funding rate for multiple markets
+         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a dictionary of [funding rates structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure}, indexe by market symbols
@@ -7068,6 +7235,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @see https://binance-docs.github.io/apidocs/futures/en/#notional-and-leverage-brackets-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#notional-bracket-for-symbol-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}, indexed by market symbols
@@ -7356,6 +7525,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchAccountPositions
          * @description fetch account positions
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} data on account positions
@@ -7392,6 +7563,7 @@ export default class binance extends Exchange {
          * @name binance#fetchPositionsRisk
          * @description fetch positions risk
          * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} data on the positions risk
@@ -7487,6 +7659,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
+         * @see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -7533,6 +7707,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#setLeverage
          * @description set the level of leverage for a market
+         * @see https://binance-docs.github.io/apidocs/futures/en/#change-initial-leverage-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#change-initial-leverage-trade
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the binance api endpoint
@@ -7568,6 +7744,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
+         * @see https://binance-docs.github.io/apidocs/futures/en/#change-margin-type-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#change-margin-type-trade
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the binance api endpoint
@@ -7632,6 +7810,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#setPositionMode
          * @description set hedged to true or false for a market
+         * @see https://binance-docs.github.io/apidocs/futures/en/#change-position-mode-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#change-position-mode-trade
          * @param {bool} hedged set to true to use dualSidePosition
          * @param {string} symbol not used by binance setPositionMode ()
          * @param {object} [params] extra parameters specific to the binance api endpoint
@@ -8052,7 +8232,7 @@ export default class binance extends Exchange {
             }
             let query = undefined;
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
-            const extendedParams = this.extend ({
+            let extendedParams = this.extend ({
                 'timestamp': this.nonce (),
             }, params);
             if (defaultRecvWindow !== undefined) {
@@ -8065,7 +8245,22 @@ export default class binance extends Exchange {
             if ((api === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
             } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf ('staking') >= 0)) {
-                query = this.rawencode (extendedParams);
+                if ((method === 'DELETE') && (path === 'batchOrders')) {
+                    const orderidlist = this.safeValue (extendedParams, 'orderidlist', []);
+                    const origclientorderidlist = this.safeValue (extendedParams, 'origclientorderidlist', []);
+                    extendedParams = this.omit (extendedParams, [ 'orderidlist', 'origclientorderidlist' ]);
+                    query = this.rawencode (extendedParams);
+                    const orderidlistLength = orderidlist.length;
+                    const origclientorderidlistLength = orderidlist.length;
+                    if (orderidlistLength > 0) {
+                        query = query + '&orderidlist=[' + orderidlist.join (',') + ']';
+                    }
+                    if (origclientorderidlistLength > 0) {
+                        query = query + '&origclientorderidlist=[' + origclientorderidlist.join (',') + ']';
+                    }
+                } else {
+                    query = this.rawencode (extendedParams);
+                }
             } else {
                 query = this.urlencode (extendedParams);
             }
@@ -8165,6 +8360,17 @@ export default class binance extends Exchange {
         }
         if (!success) {
             throw new ExchangeError (this.id + ' ' + body);
+        }
+        if (Array.isArray (response)) {
+            // cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
+            const numElements = response.length;
+            if (numElements > 0) {
+                const firstElement = response[0];
+                const errorCode = this.safeString (firstElement, 'code');
+                if (errorCode !== undefined) {
+                    this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + body);
+                }
+            }
         }
         return undefined;
     }
@@ -8290,6 +8496,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
@@ -8320,6 +8527,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchBorrowRateHistory
          * @description retrieves a history of a currencies borrow interest rate at specific time slots
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data
          * @param {string} code unified currency code
          * @param {int} [since] timestamp for the earliest borrow rate
          * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure} to retrieve
@@ -8395,6 +8603,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#createGiftCode
          * @description create gift code
+         * @see https://binance-docs.github.io/apidocs/spot/en/#create-a-single-token-gift-card-user_data
          * @param {string} code gift code
          * @param {float} amount amount of currency for the gift
          * @param {object} [params] extra parameters specific to the binance api endpoint
@@ -8433,6 +8642,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#redeemGiftCode
          * @description redeem gift code
+         * @see https://binance-docs.github.io/apidocs/spot/en/#redeem-a-binance-gift-card-user_data
          * @param {string} giftcardCode
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} response from the exchange
@@ -8460,6 +8670,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#verifyGiftCode
          * @description verify gift code
+         * @see https://binance-docs.github.io/apidocs/spot/en/#verify-binance-gift-card-by-gift-card-number-user_data
          * @param {string} id reference number id
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} response from the exchange
@@ -8484,6 +8695,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-interest-history-user_data
          * @param {string} code unified currency code
          * @param {string} symbol unified market symbol when fetch interest in isolated markets
          * @param {int} [since] the earliest time in ms to fetch borrrow interest for
@@ -8641,6 +8853,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchOpenInterestHistory
          * @description Retrieves the open interest history of a currency
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#open-interest-statistics
+         * @see https://binance-docs.github.io/apidocs/futures/en/#open-interest-statistics
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
          * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp

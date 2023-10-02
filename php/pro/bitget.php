@@ -28,7 +28,7 @@ class bitget extends \ccxt\async\bitget {
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
                 'watchTicker' => true,
-                'watchTickers' => false,
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
             ),
@@ -135,6 +135,39 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
+    public function watch_tickers(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $market = $this->market($symbols[0]);
+            $instType = $market['spot'] ? 'sp' : 'mc';
+            $messageHash = 'tickers::' . implode(',', $symbols);
+            $marketIds = $this->market_ids($symbols);
+            $topics = [ ];
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $marketInner = $this->market($marketId);
+                $args = array(
+                    'instType' => $instType,
+                    'channel' => 'ticker',
+                    'instId' => $this->get_ws_market_id($marketInner),
+                );
+                $topics[] = $args;
+            }
+            $tickers = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
+            if ($this->newUpdates) {
+                return $tickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }) ();
+    }
+
     public function handle_ticker(Client $client, $message) {
         //
         //   {
@@ -162,6 +195,17 @@ class bitget extends \ccxt\async\bitget {
         $this->tickers[$symbol] = $ticker;
         $messageHash = 'ticker:' . $symbol;
         $client->resolve ($ticker, $messageHash);
+        // watchTickers part
+        $messageHashes = $this->find_message_hashes($client, 'tickers::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHashTicker = $messageHashes[$i];
+            $parts = explode('::', $messageHashTicker);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            if ($this->in_array($symbol, $symbols)) {
+                $client->resolve ($ticker, $messageHashTicker);
+            }
+        }
         return $message;
     }
 
@@ -302,10 +346,10 @@ class bitget extends \ccxt\async\bitget {
             $hashes = array();
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
                 $data = $symbolsAndTimeframes[$i];
-                $symbol = $this->safe_string($data, 0);
-                $timeframe = $this->safe_string($data, 1);
-                $market = $this->market($symbol);
-                $interval = $this->safe_string($this->options['timeframes'], $timeframe);
+                $currentSymbol = $this->safe_string($data, 0);
+                $currentTimeframe = $this->safe_string($data, 1);
+                $market = $this->market($currentSymbol);
+                $interval = $this->safe_string($this->options['timeframes'], $currentTimeframe);
                 $instType = $market['spot'] ? 'sp' : 'mc';
                 $args = array(
                     'instType' => $instType,
@@ -313,7 +357,7 @@ class bitget extends \ccxt\async\bitget {
                     'instId' => $this->get_ws_market_id($market),
                 );
                 $topics[] = $args;
-                $hashes[] = $symbol . '#' . $timeframe;
+                $hashes[] = $currentSymbol . '#' . $currentSymbol;
             }
             $messageHash = 'multipleOHLCV::' . implode(',', $hashes);
             list($symbol, $timeframe, $stored) = Async\await($this->watch_public_multiple($messageHash, $topics, $params));

@@ -51,6 +51,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
@@ -154,6 +155,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'quote/klines': 1,
                                 'quote/openInterest': 1,
                                 'quote/ticker': 1,
+                                'quote/bookTicker': 1,
                             },
                         },
                         'private': {
@@ -205,11 +207,17 @@ class bingx(Exchange, ImplicitAPI):
                         'private': {
                             'get': {
                                 'capital/config/getall': 3,
+                                'capital/deposit/address': 1,
+                                'capital/innerTransfer/records': 1,
+                                'capital/subAccount/deposit/address': 1,
+                                'capital/deposit/subHisrec': 1,
+                                'capital/subAccount/innerTransfer/records': 1,
                             },
                             'post': {
                                 'capital/withdraw/apply': 3,
                                 'capital/innerTransfer/apply': 3,
                                 'capital/subAccountInnerTransfer/apply': 3,
+                                'capital/deposit/createSubAddress': 1,
                             },
                         },
                     },
@@ -220,6 +228,7 @@ class bingx(Exchange, ImplicitAPI):
                             'get': {
                                 'list': 3,
                                 'assets': 3,
+                                'apiKey/query': 1,
                             },
                             'post': {
                                 'create': 3,
@@ -234,9 +243,38 @@ class bingx(Exchange, ImplicitAPI):
                 'account': {
                     'v1': {
                         'private': {
+                            'get': {
+                                'uid': 1,
+                            },
                             'post': {
-                                'uid': 3,
                                 'innerTransfer/authorizeSubAccount': 3,
+                            },
+                        },
+                    },
+                },
+                'copyTrading': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'swap/trace/currentTrack': 1,
+                            },
+                            'post': {
+                                'swap/trace/closeTrackOrder': 1,
+                                'swap/trace/setTPSL': 1,
+                            },
+                        },
+                    },
+                },
+                'api': {
+                    'v3': {
+                        'private': {
+                            'get': {
+                                'asset/transfer': 1,
+                                'capital/deposit/hisrec': 1,
+                                'capital/withdraw/history': 1,
+                            },
+                            'post': {
+                                'post/asset/transfer': 1,
                             },
                         },
                     },
@@ -302,6 +340,7 @@ class bingx(Exchange, ImplicitAPI):
                     'PFUTURES': 'swap',
                     'SFUTURES': 'future',
                 },
+                'recvWindow': 5 * 1000,  # 5 sec
             },
         })
 
@@ -1438,9 +1477,9 @@ class bingx(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bingx api endpoint
         :param bool [params.postOnly]: True to place a post only order
-        :param dict [params.triggerPrice]: triggerPrice at which the attached take profit / stop loss order will be triggered(swap markets only)
-        :param float [params.stopLossPrice]: stop loss trigger price(swap markets only)
-        :param float [params.takeProfitPrice]: take profit trigger price(swap markets only)
+        :param float [params.triggerPrice]: *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
+        :param float [params.stopLossPrice]: *swap only* stop loss trigger price
+        :param float [params.takeProfitPrice]: *swap only* take profit trigger price
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
@@ -2235,6 +2274,72 @@ class bingx(Exchange, ImplicitAPI):
             'fromAccount': fromAccount,
             'toAccount': toAccount,
             'status': status,
+        }
+
+    async def fetch_deposit_address(self, code: str, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        see https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
+        recvWindow = self.safe_integer(self.parse_params, 'recvWindow', defaultRecvWindow)
+        request = {
+            'coin': currency['id'],
+            'offset': 0,
+            'limit': 1000,
+            'recvWindow': recvWindow,
+        }
+        response = await self.walletsV1PrivateGetCapitalDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         code: '0',
+        #         timestamp: '1695200226859',
+        #         data: {
+        #           data: [
+        #             {
+        #               coinId: '799',
+        #               coin: 'USDT',
+        #               network: 'BEP20',
+        #               address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
+        #               tag: ''
+        #             }
+        #           ],
+        #           total: '1'
+        #         }
+        #     }
+        #
+        data = self.safe_value(self.safe_value(response, 'data'), 'data')
+        parsed = self.parse_deposit_addresses(data, [currency['code']], False)
+        return self.index_by(parsed, 'network')
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #     {
+        #         coinId: '799',
+        #         coin: 'USDT',
+        #         network: 'BEP20',
+        #         address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
+        #         tag: ''
+        #     }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        tag = self.safe_string(depositAddress, 'tag')
+        currencyId = self.safe_string(depositAddress, 'coin')
+        currency = self.safe_currency(currencyId, currency)
+        code = currency['code']
+        network = self.safe_string(depositAddress, 'network')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': network,
+            'info': depositAddress,
         }
 
     async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
