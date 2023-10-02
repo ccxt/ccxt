@@ -4038,9 +4038,9 @@ export default class bybit extends Exchange {
         if (amount !== undefined) {
             request['qty'] = this.amountToPrecision (symbol, amount);
         }
-        let triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeValue (params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeValue (params, 'takeProfitPrice');
+        let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
@@ -4051,7 +4051,6 @@ export default class bybit extends Exchange {
             triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
         }
         if (triggerPrice !== undefined) {
-            triggerPrice = triggerPrice.toString ();
             const triggerPriceRequest = (triggerPrice === '0') ? triggerPrice : this.priceToPrecision (symbol, triggerPrice);
             request['triggerPrice'] = triggerPriceRequest;
             const triggerBy = this.safeString (params, 'triggerBy', 'LastPrice');
@@ -4059,16 +4058,14 @@ export default class bybit extends Exchange {
         }
         if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                let slTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                slTriggerPrice = slTriggerPrice.toString ();
+                const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                 const stopLossRequest = (slTriggerPrice === '0') ? slTriggerPrice : this.priceToPrecision (symbol, slTriggerPrice);
                 request['stopLoss'] = stopLossRequest;
                 const slTriggerBy = this.safeString (params, 'slTriggerBy', 'LastPrice');
                 request['slTriggerBy'] = slTriggerBy;
             }
             if (isTakeProfit) {
-                let tpTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                tpTriggerPrice = tpTriggerPrice.toString ();
+                const tpTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
                 const takeProfitRequest = (tpTriggerPrice === '0') ? tpTriggerPrice : this.priceToPrecision (symbol, tpTriggerPrice);
                 request['takeProfit'] = takeProfitRequest;
                 const tpTriggerBy = this.safeString (params, 'tpTriggerBy', 'LastPrice');
