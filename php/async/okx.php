@@ -2108,14 +2108,27 @@ class okx extends Exchange {
             $defaultType = $this->safe_string($options, 'type', $defaultType); // Candles or HistoryCandles
             $type = $this->safe_string($params, 'type', $defaultType);
             $params = $this->omit($params, 'type');
-            $method = 'publicGetMarket' . $type;
             $isHistoryCandles = ($type === 'HistoryCandles');
+            $response = null;
             if ($price === 'mark') {
-                $method = ($isHistoryCandles) ? 'publicGetMarketHistoryMarkPriceCandles' : 'publicGetMarketMarkPriceCandles';
+                if ($isHistoryCandles) {
+                    $response = Async\await($this->publicGetMarketHistoryMarkPriceCandles (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->publicGetMarketMarkPriceCandles (array_merge($request, $params)));
+                }
             } elseif ($price === 'index') {
-                $method = ($isHistoryCandles) ? 'publicGetMarketHistoryIndexCandles' : 'publicGetMarketIndexCandles';
+                if ($isHistoryCandles) {
+                    $response = Async\await($this->publicGetMarketHistoryIndexCandles (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->publicGetMarketIndexCandles (array_merge($request, $params)));
+                }
+            } else {
+                if ($isHistoryCandles) {
+                    $response = Async\await($this->publicGetMarketHistoryCandles (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->publicGetMarketCandles (array_merge($request, $params)));
+                }
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "code" => "0",
@@ -2330,16 +2343,15 @@ class okx extends Exchange {
              */
             Async\await($this->load_markets());
             list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-            $method = null;
-            if ($marketType === 'funding') {
-                $method = 'privateGetAssetBalances';
-            } else {
-                $method = 'privateGetAccountBalance';
-            }
             $request = array(
                 // 'ccy' => 'BTC,ETH', // comma-separated list of currency ids
             );
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($marketType === 'funding') {
+                $response = Async\await($this->privateGetAssetBalances (array_merge($request, $query)));
+            } else {
+                $response = Async\await($this->privateGetAccountBalance (array_merge($request, $query)));
+            }
             //
             //     {
             //         "code" => "0",
