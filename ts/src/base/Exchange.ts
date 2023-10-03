@@ -4585,7 +4585,6 @@ export default class Exchange {
                     }
                 } else {
                     // do it forwards, starting from the since
-                    paginationTimestamp = since;
                     const response = await this[method] (symbol, paginationTimestamp, maxEntriesPerRequest, params);
                     const responseLength = response.length;
                     if (this.verbose) {
