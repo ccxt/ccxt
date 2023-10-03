@@ -5695,11 +5695,18 @@ export default class bybit extends Exchange {
         }
         if (type === 'linear' || type === 'inverse') {
             const baseCoin = this.safeString (params, 'baseCoin');
-            if (symbol === undefined && baseCoin === undefined) {
-                const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
-                const settleCoin = this.safeString (params, 'settleCoin', defaultSettle);
-                request['settleCoin'] = settleCoin;
-                isUsdcSettled = (settleCoin === 'USDC');
+            if (type === 'linear') {
+                if (symbol === undefined && baseCoin === undefined) {
+                    const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
+                    const settleCoin = this.safeString (params, 'settleCoin', defaultSettle);
+                    request['settleCoin'] = settleCoin;
+                    isUsdcSettled = (settleCoin === 'USDC');
+                }
+            } else {
+                // inverse
+                if (symbol === undefined && baseCoin === undefined) {
+                    request['category'] = 'inverse';
+                }
             }
         }
         if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
