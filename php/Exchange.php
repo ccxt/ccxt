@@ -2154,7 +2154,7 @@ class Exchange {
         return null;
     }
 
-    public function check_proxy_settings($url, $method, $headers, $body) {
+    public function check_proxy_url_settings($url, $method, $headers, $body) {
         $proxyUrl = ($this->proxyUrl !== null) ? $this->proxyUrl : $this->proxy_url;
         $proxyUrlCallback = ($this->proxyUrlCallback !== null) ? $this->proxyUrlCallback : $this->proxy_url_callback;
         if ($proxyUrlCallback !== null) {
@@ -2168,6 +2168,26 @@ class Exchange {
                 $proxyUrl = $this->proxy;
             }
         }
+        $val = 0;
+        if ($proxyUrl !== null) {
+            $val = $val + 1;
+        }
+        if ($proxyUrlCallback !== null) {
+            $val = $val + 1;
+        }
+        if ($val > 1) {
+            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : $proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
+        return $proxyUrl;
+    }
+
+    public function check_conflicting_proxies($proxyAgentSet, $proxyUrlSet) {
+        if ($proxyAgentSet && $proxyUrlSet) {
+            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
+    }
+
+    public function check_proxy_settings($url = null, $method = null, $headers = null, $body = null) {
         $httpProxy = ($this->httpProxy !== null) ? $this->httpProxy : $this->http_proxy;
         $httpProxyCallback = ($this->httpProxyCallback !== null) ? $this->httpProxyCallback : $this->http_proxy_callback;
         if ($httpProxyCallback !== null) {
@@ -2184,12 +2204,6 @@ class Exchange {
             $socksProxy = $socksProxyCallback ($url, $method, $headers, $body);
         }
         $val = 0;
-        if ($proxyUrl !== null) {
-            $val = $val + 1;
-        }
-        if ($proxyUrlCallback !== null) {
-            $val = $val + 1;
-        }
         if ($httpProxy !== null) {
             $val = $val + 1;
         }
@@ -2209,9 +2223,9 @@ class Exchange {
             $val = $val + 1;
         }
         if ($val > 1) {
-            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : $proxyUrl, $httpProxy, $httpsProxy, $socksProxy, userAgent');
+            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, $httpProxy, $httpsProxy, socksProxy');
         }
-        return array( $proxyUrl, $httpProxy, $httpsProxy, $socksProxy );
+        return array( $httpProxy, $httpsProxy, $socksProxy );
     }
 
     public function find_message_hashes($client, string $element) {

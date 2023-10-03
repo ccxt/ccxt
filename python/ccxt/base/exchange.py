@@ -1726,7 +1726,7 @@ class Exchange(object):
                 return key
         return None
 
-    def check_proxy_settings(self, url, method, headers, body):
+    def check_proxy_url_settings(self, url, method, headers, body):
         proxyUrl = self.proxyUrl if (self.proxyUrl is not None) else self.proxy_url
         proxyUrlCallback = self.proxyUrlCallback if (self.proxyUrlCallback is not None) else self.proxy_url_callback
         if proxyUrlCallback is not None:
@@ -1737,6 +1737,20 @@ class Exchange(object):
                 proxyUrl = self.proxy(url, method, headers, body)
             else:
                 proxyUrl = self.proxy
+        val = 0
+        if proxyUrl is not None:
+            val = val + 1
+        if proxyUrlCallback is not None:
+            val = val + 1
+        if val > 1:
+            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
+        return proxyUrl
+
+    def check_conflicting_proxies(self, proxyAgentSet, proxyUrlSet):
+        if proxyAgentSet and proxyUrlSet:
+            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
+
+    def check_proxy_settings(self, url=None, method=None, headers=None, body=None):
         httpProxy = self.httpProxy if (self.httpProxy is not None) else self.http_proxy
         httpProxyCallback = self.httpProxyCallback if (self.httpProxyCallback is not None) else self.http_proxy_callback
         if httpProxyCallback is not None:
@@ -1750,10 +1764,6 @@ class Exchange(object):
         if socksProxyCallback is not None:
             socksProxy = socksProxyCallback(url, method, headers, body)
         val = 0
-        if proxyUrl is not None:
-            val = val + 1
-        if proxyUrlCallback is not None:
-            val = val + 1
         if httpProxy is not None:
             val = val + 1
         if httpProxyCallback is not None:
@@ -1767,8 +1777,8 @@ class Exchange(object):
         if socksProxyCallback is not None:
             val = val + 1
         if val > 1:
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent')
-        return [proxyUrl, httpProxy, httpsProxy, socksProxy]
+            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
+        return [httpProxy, httpsProxy, socksProxy]
 
     def find_message_hashes(self, client, element: str):
         result = []
