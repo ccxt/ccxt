@@ -38,7 +38,7 @@ async def example_web_sockets():
     my_ex = ccxtpro.gate()
     # my_ex.http_proxy = 'http://5.75.153.75:8002'  # "httpProxy" or "httpsProxy" (depending on your proxy protocol)
     await my_ex.initialize_proxies()
-    # my_ex.handle_message = ws_helper_callback
+    my_ex.handle_message = ws_helper_callback
     await my_ex.watch('ws://5.75.153.75:9876', 'test', 'test')
 
 
