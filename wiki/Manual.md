@@ -1562,6 +1562,7 @@ var_dump (new \ccxt\okcoin ()); // PHP
 
 - [Overriding Unified API Params](#overriding-unified-api-params)
 - [Pagination](#pagination)
+- [Automatic Pagination](#automatic-pagination)
 
 The unified ccxt API is a subset of methods common among the exchanges. It currently contains the following methods:
 
@@ -1662,14 +1663,15 @@ With methods returning lists of objects, exchanges may offer one or more types o
 
 
 ### Automatic Pagination
-Recently, CCXT introduced a way to paginate through the several results automatically, by just providing the `paginate` flag inside `params`, lifting this work from the userland. The main exchanges support it and more will be added in the future but the easiest way to check it is to look in the method's documentation and search for the pagination parameter.
+Recently, CCXT introduced a way to paginate through several results automatically by just providing the `paginate` flag inside `params,` lifting this work from the userland. The leading exchanges support it, and more will be added in the future, but the easiest way to check it is to look in the method's documentation and search for the *pagination* parameter.
+
 
 Right now, we have three different ways of paginating:
-- **dynamic/time-based**: uses the `until` and `since` parameters to paginate through dynamic results like (trades, orders, transactions, etc). Since we don't know a priori how many entries are available to be fetched, it will perform one request at a time until we reach out the end of the data or the maximum amount of pagination calls (configurable through an option)
-- **deterministic**: when we can pre-compute number the boundaries of each page, it will perform the requests concurrently for maximum performance. This applies to OHLCV, Funding Rates and Open Interest and also respects the `maxPaginationCalls` option.
-- **cursor-based**: when the exchange provides a cursor inside the response, we extract the cursor and perform the next request until the end of the data or we reach the maximum amount of pagination calls.
+- **dynamic/time-based**: uses the `until` and `since` parameters to paginate through dynamic results like (trades, orders, transactions, etc). Since we don't know a priori how many entries are available to be fetched, it will perform one request at a time until we reach the end of the data or the maximum amount of pagination calls (configurable through an option)
+- **deterministic**: when we can pre-compute the boundaries of each page, it will perform the requests concurrently for maximum performance. This applies to OHLCV, Funding Rates, and Open Interest and also respects the `maxPaginationCalls` option.
+- **cursor-based**: when the exchange provides a cursor inside the response, we extract the cursor and perform the subsequent request until the end of the data or reach the maximum number of pagination calls.
 
-The user cannot select the pagination method used, it will depend from implementation to implementation taking into consideration the exchange API's features.
+The user cannot select the pagination method used, it will depend from implementation to implementation, considering the exchange API's features.
 
 #### Options
 
@@ -1695,7 +1697,6 @@ trades = await binance.fetch_trades("BTC/USDT", since = 1664812416000, params = 
 ledger = await bybit.fetch_ledger(params = {"paginate": True}) # bybit returns a cursor so the pagination will be cursor-based
 
 ```
-
 
 
 ### Working With Datetimes And Timestamps
