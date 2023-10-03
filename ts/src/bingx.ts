@@ -1586,6 +1586,9 @@ export default class bingx extends Exchange {
             } else {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             }
+            if (!isMarketOrder) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
             response = await this.spotV1PrivatePostTradeOrder (this.extend (request, params));
         } else {
             [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'PostOnly', params);
