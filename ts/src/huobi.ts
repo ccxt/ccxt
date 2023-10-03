@@ -2505,6 +2505,10 @@ export default class huobi extends Exchange {
         /**
          * @method
          * @name huobi#fetchTrades
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-trade-records-of-a-contract
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-trade-records-of-a-contract
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -5902,6 +5906,8 @@ export default class huobi extends Exchange {
         /**
          * @method
          * @name huobi#fetchFundingRateHistory
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
          * @description fetches historical funding rate prices
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] not used by huobi, but filtered internally by ccxt
