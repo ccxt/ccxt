@@ -1660,6 +1660,44 @@ In most cases users are **required to use at least some type of pagination** in 
 
 With methods returning lists of objects, exchanges may offer one or more types of pagination. CCXT unifies **date-based pagination** by default, with timestamps **in milliseconds** throughout the entire library.
 
+
+### Automatic Pagination
+Recently, CCXT introduced a way to paginate through the several results automatically, by just providing the `paginate` flag inside `params`, lifting this work from the userland. The main exchanges support it and more will be added in the future but the easiest way to check it is to look in the method's documentation and search for the pagination parameter.
+
+Right now, we have three different ways of paginating:
+- **dynamic/time-based**: uses the `until` and `since` parameters to paginate through dynamic results like (trades, orders, transactions, etc). Since we don't know a priori how many entries are available to be fetched, it will perform one request at a time until we reach out the end of the data or the maximum amount of pagination calls (configurable through an option)
+- **deterministic**: when we can pre-compute number the boundaries of each page, it will perform the requests concurrently for maximum performance. This applies to OHLCV, Funding Rates and Open Interest and also respects the `maxPaginationCalls` option.
+- **cursor-based**: when the exchange provides a cursor inside the response, we extract the cursor and perform the next request until the end of the data or we reach the maximum amount of pagination calls.
+
+The user cannot select the pagination method used, it will depend from implementation to implementation taking into consideration the exchange API's features.
+
+#### Options
+
+We can't perform an infinite amount of requests, and some of them might throw an error for different reasons, thus, we have some options that allow the user to control these variables and other pagination specificities.
+
+*All the options below, should be provided inside `params`, you can check the examples below*
+
+- **paginate**: (**boolean**) indicates that the user wants to paginate through different pages to get more data. Default is *false*.
+- **paginationCalls**: (**integer**) allows the user to control the maximum amount of requests to paginate the data. Due to the rate limits, this value should not be too high. Default is 10.
+- **maxRetries**: (**integer**) how many times should the pagination mechanism retry upon getting an error. Default is 3
+- **paginationDirection**: (**string**) Only applies to the dynamic pagination and it can be either *forward* (start the pagination from some time in the past and paginate forward) or *backward* (start from the most recent time and paginate backward). If *forward* is selected then a *since* parameter must also be provided. Default is *backward*.
+
+#### Examples
+
+```Python
+
+trades = await binance.fetch_trades("BTC/USDT", params = {"paginate": True}) # dynamic/time-based
+
+ohlcv = await binance.fetch_ohlcv("BTC/USDT", params = {"Paginate": True, "paginationCalls": 5}) # deterministic-pagination will perform 5 requests
+
+trades = await binance.fetch_trades("BTC/USDT", since = 1664812416000, params = {"paginate": True, "paginationDirection": "forward"}) # dynamic/time-based pagination starting from 1664812416000
+
+ledger = await bybit.fetch_ledger(params = {"paginate": True}) # bybit returns a cursor so the pagination will be cursor-based
+
+```
+
+
+
 ### Working With Datetimes And Timestamps
 
 The set of methods for working with UTC dates and timestamps and for converting between them:
