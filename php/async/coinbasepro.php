@@ -115,6 +115,7 @@ class coinbasepro extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
+                        'address-book',
                         'accounts',
                         'accounts/{id}',
                         'accounts/{id}/holds',
