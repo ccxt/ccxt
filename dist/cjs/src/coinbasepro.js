@@ -111,6 +111,7 @@ class coinbasepro extends coinbasepro$1 {
                 },
                 'private': {
                     'get': [
+                        'address-book',
                         'accounts',
                         'accounts/{id}',
                         'accounts/{id}/holds',

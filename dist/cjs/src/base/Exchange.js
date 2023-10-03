@@ -1310,6 +1310,12 @@ class Exchange {
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTradesForSymbols() is not supported yet');
     }
+    async watchMyTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchMyTradesForSymbols() is not supported yet');
+    }
+    async watchOrdersForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchOrdersForSymbols() is not supported yet');
+    }
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOHLCVForSymbols() is not supported yet');
     }

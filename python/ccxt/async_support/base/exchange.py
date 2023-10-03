@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.1'
+__version__ = '4.1.2'
 
 # -----------------------------------------------------------------------------
 
@@ -669,6 +669,12 @@ class Exchange(BaseExchange):
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchTradesForSymbols() is not supported yet')
+
+    async def watch_my_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchMyTradesForSymbols() is not supported yet')
+
+    async def watch_orders_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchOrdersForSymbols() is not supported yet')
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchOHLCVForSymbols() is not supported yet')
