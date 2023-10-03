@@ -4549,12 +4549,15 @@ export default class Exchange {
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         let paginationDirection = undefined;
         [ paginationDirection, params ] = this.handleOptionAndParams (params, method, 'paginationDirection', 'backward');
-        let lastTimestamp = undefined;
+        let paginationTimestamp = undefined;
         let calls = 0;
         let result = [];
         let errors = 0;
-        if ((paginationDirection === 'forward') && (since === undefined)) {
-            throw new ArgumentsRequired (this.id + ' pagination requires a since argument when paginationDirection set to forward');
+        if ((paginationDirection === 'forward')) {
+            if (since === undefined) {
+                throw new ArgumentsRequired (this.id + ' pagination requires a since argument when paginationDirection set to forward');
+            }
+            paginationTimestamp = since;
         }
         while ((calls < maxCalls)) {
             calls = calls + 1;
@@ -4562,8 +4565,8 @@ export default class Exchange {
                 if (paginationDirection === 'backward') {
                     // do it backwards, starting from the last
                     // UNTIL filtering is required in order to work
-                    if (lastTimestamp !== undefined) {
-                        params['until'] = lastTimestamp - 1;
+                    if (paginationTimestamp !== undefined) {
+                        params['until'] = paginationTimestamp - 1;
                     }
                     const response = await this[method] (symbol, undefined, maxEntriesPerRequest, params);
                     const responseLength = response.length;
@@ -4576,14 +4579,14 @@ export default class Exchange {
                         break;
                     }
                     const firstElement = this.safeValue (response, 0);
-                    lastTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
-                    if ((since !== undefined) && (lastTimestamp <= since)) {
+                    paginationTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
+                    if ((since !== undefined) && (paginationTimestamp <= since)) {
                         break;
                     }
                 } else {
                     // do it forwards, starting from the since
-                    lastTimestamp = since;
-                    const response = await this[method] (symbol, lastTimestamp, maxEntriesPerRequest, params);
+                    paginationTimestamp = since;
+                    const response = await this[method] (symbol, paginationTimestamp, maxEntriesPerRequest, params);
                     const responseLength = response.length;
                     if (this.verbose) {
                         console.log ('Dynamic pagination call', calls, 'response length', responseLength, 'method', method);
@@ -4593,7 +4596,8 @@ export default class Exchange {
                     }
                     errors = 0;
                     result = this.arrayConcat (result, response);
-                    lastTimestamp = this.safeInteger (responseLength - 1, 'timestamp');
+                    const last = this.safeValue (response, responseLength - 1);
+                    paginationTimestamp = this.safeInteger (last, 'timestamp') - 1;
                 }
             } catch (e) {
                 if (errors + 1 > maxRetries) {
