@@ -2431,9 +2431,7 @@ class Transpiler {
             pyAsync: [
                 "import asyncio",
                 "import ccxt.async_support as ccxt  # noqa: E402",
-                "",
-                "",
-                "",
+                ""
             ],
             phpAsync: [
                 "",
@@ -2524,8 +2522,14 @@ class Transpiler {
                     finalBodies.pyAsync = finalBodies.pyAsync.replace (new RegExp ('await ' + funcName + '\\((.*?)\\)', 'g'), function(wholeMatch, innerMatch){ return '\nasyncio.run(' + wholeMatch.replace('await ','').trim() + ')';})
                 }
 
+                let finalPyHeaders = fileHeaders.pyAsync
+                if (tsContent.match ('new ccxt.pro')){
+                    finalPyHeaders += 'import ccxt.pro  # noqa: E402' + '\n'
+                }
+                finalPyHeaders += '\n\n'
+                
                 // write files
-                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + fileHeaders.pyAsync + finalBodies.pyAsync)
+                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + finalPyHeaders + finalBodies.pyAsync)
                 overwriteFile (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
         }
