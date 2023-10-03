@@ -1663,6 +1663,9 @@ With methods returning lists of objects, exchanges may offer one or more types o
 
 
 ### Automatic Pagination
+
+*Warning: this is an experimental feature and might produce unexpected/incorrect results in some instances.*
+
 Recently, CCXT introduced a way to paginate through several results automatically by just providing the `paginate` flag inside `params,` lifting this work from the userland. Most leading exchanges support it, and more will be added in the future, but the easiest way to check it is to look in the method's documentation and search for the *pagination* parameter. As always there are exceptions, and some endpoints might not provide a way to paginate either through a timestamp or a cursor, and in those cases, there's nothing CCXT can do about it.
 
 
