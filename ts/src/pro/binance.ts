@@ -2358,10 +2358,14 @@ export default class binance extends binanceRest {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
-        if (type === 'swap' || type === 'spot') {
+        const defaultType = this.safeString2 (this.options, 'watchPositions', 'defaultType', 'future');
+        let type = this.safeString (params, 'type', defaultType);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchPositions', market, params);
+        if (this.isLinear (type, subType)) {
             type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
         }
         symbols = this.marketSymbols (symbols);
         messageHash = type + ':positions' + messageHash;
