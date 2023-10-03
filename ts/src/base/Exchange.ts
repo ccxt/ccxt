@@ -4547,14 +4547,19 @@ export default class Exchange {
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 20);
         let maxRetries = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        let paginationDirection = undefined;
+        [ paginationDirection, params ] = this.handleOptionAndParams (params, method, 'paginationDirection', 'backward');
         let lastTimestamp = undefined;
         let calls = 0;
         let result = [];
         let errors = 0;
+        if ((paginationDirection === 'forward') && (since === undefined)) {
+            throw new ArgumentsRequired (this.id + ' pagination requires a since argument when paginationDirection set to forward');
+        }
         while ((calls < maxCalls)) {
             calls = calls + 1;
             try {
-                if (since === undefined) {
+                if (paginationDirection === 'backward') {
                     // do it backwards, starting from the last
                     // UNTIL filtering is required in order to work
                     if (lastTimestamp !== undefined) {
@@ -4572,7 +4577,7 @@ export default class Exchange {
                     }
                     const firstElement = this.safeValue (response, 0);
                     lastTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
-                    if (lastTimestamp <= since) {
+                    if ((since !== undefined) && (lastTimestamp <= since)) {
                         break;
                     }
                 } else {
