@@ -2499,7 +2499,8 @@ class Transpiler {
                 finalBodies.phpAsync = fixPhp (phpAsyncBody, true);
 
                 // specifically in python (not needed in other langs), we need add `await .close()` inside matching methods
-                for (const funcName of allDetectedFunctionNames) {
+                for (const funcNameInit of allDetectedFunctionNames) {
+                    const funcName = unCamelCase (funcNameInit)
                     // match function bodies
                     const funcBodyRegex = new RegExp ('(?=def ' + funcName + '\\()(.*?)(?=\\n\\w)', 'gs');
                     // inside functions, find exchange initiations
