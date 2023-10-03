@@ -148,6 +148,7 @@ class Exchange(BaseExchange):
                 raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+            self.open()  # ensure `asyncio_loop` is set
             connector = ProxyConnector.from_url(
                 socksProxy,
                 # extra args copied from self.open()
@@ -374,7 +375,20 @@ class Exchange(BaseExchange):
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
+        self.set_client_session_proxy(url)
         return self.clients[url]
+
+    def set_client_session_proxy(self, url):
+        final_proxy = None  # set default
+        httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url)
+        if httpProxy:
+            final_proxy = httpProxy
+        elif httpsProxy:
+            final_proxy = httpsProxy
+        if (final_proxy):
+            self.clients[url].proxy = final_proxy
+        else:
+            self.clients[url].proxy = None
 
     def delay(self, timeout, method, *args):
         return self.asyncio_loop.call_later(timeout / 1000, self.spawn, method, *args)
@@ -386,6 +400,8 @@ class Exchange(BaseExchange):
         return {}
 
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
+        # base exchange self.open starts the aiohttp Session in an async context
+        self.open()
         backoff_delay = 0
         client = self.client(url)
         if subscribe_hash is None and message_hash in client.futures:
@@ -397,8 +413,6 @@ class Exchange(BaseExchange):
         if not subscribed:
             client.subscriptions[subscribe_hash] = subscription or True
 
-        # base exchange self.open starts the aiohttp Session in an async context
-        self.open()
         connected = client.connected if client.connected.done() \
             else asyncio.ensure_future(client.connect(self.session, backoff_delay))
 
