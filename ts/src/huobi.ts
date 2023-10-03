@@ -5916,6 +5916,11 @@ export default class huobi extends Exchange {
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, params, 'page_index', 'current_page', 1, 50);
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -5953,10 +5958,12 @@ export default class huobi extends Exchange {
         // }
         //
         const data = this.safeValue (response, 'data');
+        const cursor = this.safeValue (data, 'current_page');
         const result = this.safeValue (data, 'data', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
+            entry['current_page'] = cursor;
             const marketId = this.safeString (entry, 'contract_code');
             const symbolInner = this.safeSymbol (marketId);
             const timestamp = this.safeInteger (entry, 'funding_time');
