@@ -298,6 +298,35 @@ $exchange = new $exchange_class(array(
 $exchange->options['adjustForTimeDifference'] = false;
 ```
 
+### Overriding Exchange Methods
+
+In all CCXT-supported languages, you can override instance methods during runtime:
+
+```javascript
+// JavaScript
+const ex = new ccxt.binance ();
+ex.fetch_tickers = function (params) {
+    // your codes go here
+};
+```
+
+```python
+# PYTHON
+ex = ccxt.binance ()
+def my_overload:
+    # your codes go here
+
+ex.fetch_tickers = my_overload
+```
+
+```php
+// PHP
+$ex = new \ccxt\binance ();
+$ex->add_method ('fetch_tickers', function($params) {
+    // your codes go here
+});
+```
+
 ### Testnets And Sandbox Environments
 
 Some exchanges also offer separate APIs for testing purposes that allows developers to trade virtual money for free and test out their ideas. Those APIs are called _"testnets", "sandboxes" or "staging environments"_ (with virtual testing assets) as opposed to _"mainnets" and "production environments"_ (with real assets). Most often a sandboxed API is a clone of a production API, so, it's literally the same API, except for the URL to the exchange server.
