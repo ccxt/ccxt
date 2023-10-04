@@ -3806,6 +3806,16 @@ class bybit(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param float [params.triggerPrice]: The price that a trigger order is triggered at
+        :param float [params.stopLossPrice]: The price that a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: The price that a take profit order is triggered at
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param str [params.triggerBy]: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+        :param str [params.slTriggerBy]: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+        :param str [params.tpTriggerby]: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_symbol('editOrder', symbol)
@@ -3841,9 +3851,9 @@ class bybit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         if amount is not None:
             request['qty'] = self.amount_to_precision(symbol, amount)
-        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
-        takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        stopLossTriggerPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_string(params, 'takeProfitPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
@@ -3853,14 +3863,23 @@ class bybit(Exchange, ImplicitAPI):
         if isStopLossTriggerOrder or isTakeProfitTriggerOrder:
             triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
         if triggerPrice is not None:
-            request['triggerPrice'] = triggerPrice
+            triggerPriceRequest = triggerPrice if (triggerPrice == '0') else self.price_to_precision(symbol, triggerPrice)
+            request['triggerPrice'] = triggerPriceRequest
+            triggerBy = self.safe_string(params, 'triggerBy', 'LastPrice')
+            request['triggerBy'] = triggerBy
         if isStopLoss or isTakeProfit:
             if isStopLoss:
-                slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
-                request['stopLoss'] = slTriggerPrice
+                slTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
+                stopLossRequest = slTriggerPrice if (slTriggerPrice == '0') else self.price_to_precision(symbol, slTriggerPrice)
+                request['stopLoss'] = stopLossRequest
+                slTriggerBy = self.safe_string(params, 'slTriggerBy', 'LastPrice')
+                request['slTriggerBy'] = slTriggerBy
             if isTakeProfit:
-                tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
-                request['takeProfit'] = tpTriggerPrice
+                tpTriggerPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
+                takeProfitRequest = tpTriggerPrice if (tpTriggerPrice == '0') else self.price_to_precision(symbol, tpTriggerPrice)
+                request['takeProfit'] = takeProfitRequest
+                tpTriggerBy = self.safe_string(params, 'tpTriggerBy', 'LastPrice')
+                request['tpTriggerBy'] = tpTriggerBy
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId

@@ -114,6 +114,7 @@ export default class coinbasepro extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'address-book',
                         'accounts',
                         'accounts/{id}',
                         'accounts/{id}/holds',
