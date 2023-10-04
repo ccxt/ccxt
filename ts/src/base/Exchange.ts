@@ -4663,7 +4663,7 @@ export default class Exchange {
         return this.removeRepeatedElementsFromArray (result) as any;
     }
 
-    async fetchPaginatedCallCursor (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, cursorRequestKey = undefined, cursorResponseKey = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined): Promise<any> {
+    async fetchPaginatedCallCursor (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
@@ -4679,7 +4679,7 @@ export default class Exchange {
                     if (cursorIncrement !== undefined) {
                         cursorValue = this.parseToInt (cursorValue) + cursorIncrement;
                     }
-                    params[cursorResponseKey] = cursorValue;
+                    params[cursorSent] = cursorValue;
                 }
                 const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
                 errors = 0;
@@ -4688,7 +4688,7 @@ export default class Exchange {
                 }
                 result = this.arrayConcat (result, response);
                 const last = this.safeValue (response, response.length - 1);
-                cursorValue = this.safeValue (last['info'], cursorRequestKey);
+                cursorValue = this.safeValue (last['info'], cursorReceived);
                 if (cursorValue === undefined) {
                     break;
                 }
