@@ -3823,7 +3823,7 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         if (data !== undefined) {
-            return this.safeValue2 (data, 'orderList', 'data', []);
+            return this.safeValue (data, 'orderList', data);
         }
         const parsedData = JSON.parse (response);
         return this.safeValue (parsedData, 'data', []);
