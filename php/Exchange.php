@@ -341,6 +341,8 @@ class Exchange {
         'BCHSV' => 'BSV',
     );
 
+    protected $overriden_methods = array();
+
     public $urlencode_glue = '&'; // ini_get('arg_separator.output'); // can be overrided by exchange constructor params
     public $urlencode_glue_warning = true;
 
@@ -1570,6 +1572,7 @@ class Exchange {
     }
 
     public function __call($function, $params) {
+        // support camelCase & snake_case functions
         if (!preg_match('/^[A-Z0-9_]+$/', $function)) {
             $underscore = static::underscore($function);
             if (method_exists($this, $underscore)) {
@@ -1578,6 +1581,18 @@ class Exchange {
         }
         /* handle errors */
         throw new ExchangeError($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
+    }
+
+    public function add_method($function_name, $callback) { 
+        $function_name = strtolower($function_name);
+        $this->overriden_methods[$function_name] = $callback;
+    }
+
+    public function call_method($function_name, $params = []) {
+        $function_name = strtolower($function_name);
+        if (is_callable($this->overriden_methods[$function_name])) {
+            return call_user_func_array($this->overriden_methods[$function_name], $params);
+        }
     }
 
     public function __sleep() {
