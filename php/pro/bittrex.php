@@ -45,6 +45,9 @@ class bittrex extends \ccxt\async\bittrex {
                 'OHLCVLimit' => 1000,
                 'hub' => 'c3',
                 'I' => $this->milliseconds(),
+                'watchOrderBook' => array(
+                    'maxRetries' => 3,
+                ),
             ),
         ));
     }
@@ -237,7 +240,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             if ($symbol !== null) {
@@ -298,7 +301,7 @@ class bittrex extends \ccxt\async\bittrex {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $authentication = Async\await($this->authenticate());
@@ -379,7 +382,7 @@ class bittrex extends \ccxt\async\bittrex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $negotiation = Async\await($this->negotiate());
@@ -510,7 +513,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -581,7 +584,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -642,7 +645,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             $limit = ($limit === null) ? 25 : $limit; // 25 by default
             if (($limit !== 1) && ($limit !== 25) && ($limit !== 500)) {
@@ -684,7 +687,7 @@ class bittrex extends \ccxt\async\bittrex {
             try {
                 // 2. Initiate a REST request to get the $snapshot data of Level 2 order book.
                 // todo => this is a synch blocking call in ccxt.php - make it async
-                $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
+                $snapshot = Async\await($this->fetch_rest_order_book_safe($symbol, $limit));
                 $orderbook = $this->orderbooks[$symbol];
                 $messages = $orderbook->cache;
                 // make sure we have at least one delta before fetching the $snapshot
@@ -698,8 +701,7 @@ class bittrex extends \ccxt\async\bittrex {
                 // then we cannot align it with the cached deltas and we need to
                 // retry synchronizing in $maxAttempts
                 if (($sequence !== null) && ($nonce < $sequence)) {
-                    $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
-                    $maxAttempts = $this->safe_integer($options, 'maxAttempts', 3);
+                    $maxAttempts = $this->handle_option('watchOrderBook', 'maxRetries', 3);
                     $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
                     // retry to syncrhonize if we haven't reached $maxAttempts yet
                     if ($numAttempts < $maxAttempts) {
@@ -719,8 +721,8 @@ class bittrex extends \ccxt\async\bittrex {
                     // unroll the accumulated deltas
                     // 3. Playback the cached Level 2 data flow.
                     for ($i = 0; $i < count($messages); $i++) {
-                        $message = $messages[$i];
-                        $this->handle_order_book_message($client, $message, $orderbook);
+                        $messageItem = $messages[$i];
+                        $this->handle_order_book_message($client, $messageItem, $orderbook);
                     }
                     $this->orderbooks[$symbol] = $orderbook;
                     $client->resolve ($orderbook, $messageHash);

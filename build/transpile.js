@@ -96,6 +96,7 @@ class Transpiler {
             [ /\.parseFundingRateHistory\s/g, '.parse_funding_rate_history'],
             [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
+            [ /\.parseWsOHLCVs\s/g, '.parse_ws_ohlcvs'],
             [ /\.parseWsOHLCV\s/g, '.parse_ws_ohlcv'],
             [ /\.parseDate\s/g, '.parse_date'],
             [ /\.parseDepositAddresses\s/g, '.parse_deposit_addresses'],
@@ -282,8 +283,11 @@ class Transpiler {
             [ /\.filterByLimit\s/g, '.filter_by_limit'],
             [ /\.fetchTime\s/g, '.fetch_time'],
             [ /\.handleOptionAndParams\s/g, '.handle_option_and_params'],
+            [ /\.fetchRestOrderBookSafe\s/g, '.fetch_rest_order_book_safe'],
             [ /\.customParseBidAsk\s/g, '.custom_parse_bid_ask'],
             [ /\.customParseOrderBook\s/g, '.custom_parse_order_book'],
+            [ /\.filterByArrayPositions\s/g, '.filter_by_array_positions'],
+            [ /\.handleTriggerPrices\s/g, '.handle_trigger_prices'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -495,7 +499,7 @@ class Transpiler {
         return [
             //
             // Curly-braces are used for both dictionaries in the code as well as for the url-imploded params.
-            // For example: https://docs.ccxt.com/#/?id=implicit-api-methods
+            // For example: https://github.com/ccxt/ccxt/wiki/Manual#implicit-api-methods
             //
             // There's a conflict between the curly braces that have to be converted from dictionaries to PHP-arrays and
             // the curly braces used for url-imploded params that should not be touched.
@@ -1566,6 +1570,7 @@ class Transpiler {
                 'any': 'Any',
                 'boolean': 'bool',
                 'Int': 'int',
+                'string[]': 'List[str]',
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {

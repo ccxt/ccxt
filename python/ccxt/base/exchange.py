@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.53'
+__version__ = '4.0.109'
 
 # -----------------------------------------------------------------------------
 
@@ -324,7 +324,7 @@ class Exchange(object):
         'fetchMarkets': True,
         'fetchMarkOHLCV': None,
         'fetchMyTrades': None,
-        'fetchOHLCV': 'emulated',
+        'fetchOHLCV': None,
         'fetchOpenOrder': None,
         'fetchOpenOrders': None,
         'fetchOrder': None,
@@ -357,6 +357,17 @@ class Exchange(object):
         'signIn': None,
         'transfer': None,
         'withdraw': None,
+        'watchOrderBook': None,
+        'watchOrders': None,
+        'watchMyTrades': None,
+        'watchTickers': None,
+        'watchTicker': None,
+        'watchTrades': None,
+        'watchTradesForSymbols': None,
+        'watchOrderBookForSymbols': None,
+        'watchOHLCVForSymbols': None,
+        'watchBalance': None,
+        'watchOHLCV': None,
     }
     precisionMode = DECIMAL_PLACES
     paddingMode = NO_PADDING
@@ -390,7 +401,6 @@ class Exchange(object):
     commonCurrencies = {
         'XBT': 'BTC',
         'BCC': 'BCH',
-        'BCHABC': 'BCH',
         'BCHSV': 'BSV',
     }
     synchronous = True
@@ -1845,11 +1855,31 @@ class Exchange(object):
     def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchTrades() is not supported yet')
 
+    def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchTradesForSymbols() is not supported yet')
+
+    def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchOHLCVForSymbols() is not supported yet')
+
+    def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchOrderBookForSymbols() is not supported yet')
+
     def fetch_deposit_addresses(self, codes: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
+
+    def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
+        fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'maxRetries', 3)
+        for i in range(0, fetchSnapshotMaxRetries):
+            try:
+                orderBook = self.fetch_order_book(symbol, limit, params)
+                return orderBook
+            except Exception as e:
+                if (i + 1) == fetchSnapshotMaxRetries:
+                    raise e
+        return None
 
     def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
@@ -1912,7 +1942,7 @@ class Exchange(object):
         raise NotSupported(self.id + ' parseWsOrderTrade() is not supported yet')
 
     def parse_ws_ohlcv(self, ohlcv, market=None):
-        raise NotSupported(self.id + ' parseWsOHLCV() is not supported yet')
+        return self.parse_ohlcv(ohlcv, market)
 
     def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRates() is not supported yet')
@@ -2156,7 +2186,11 @@ class Exchange(object):
             oldNumber = self.number
             # we parse trades here!
             self.number = str
-            trades = self.parse_trades(rawTrades, market)
+            firstTrade = self.safe_value(rawTrades, 0)
+            # parse trades if they haven't already been parsed
+            tradesAreParsed = ((firstTrade is not None) and ('info' in firstTrade) and ('id' in firstTrade))
+            if not tradesAreParsed:
+                trades = self.parse_trades(rawTrades, market)
             self.number = oldNumber
             tradesLength = 0
             isArray = isinstance(trades, list)
@@ -2280,11 +2314,11 @@ class Exchange(object):
             entry['amount'] = self.safe_number(entry, 'amount')
             entry['price'] = self.safe_number(entry, 'price')
             entry['cost'] = self.safe_number(entry, 'cost')
-            fee = self.safe_value(entry, 'fee', {})
-            fee['cost'] = self.safe_number(fee, 'cost')
-            if 'rate' in fee:
-                fee['rate'] = self.safe_number(fee, 'rate')
-            entry['fee'] = fee
+            tradeFee = self.safe_value(entry, 'fee', {})
+            tradeFee['cost'] = self.safe_number(tradeFee, 'cost')
+            if 'rate' in tradeFee:
+                tradeFee['rate'] = self.safe_number(tradeFee, 'rate')
+            entry['fee'] = tradeFee
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = self.safe_value(order, 'postOnly')
         # timeInForceHandling
@@ -2682,8 +2716,15 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
-    def market_symbols(self, symbols, type: Optional[str] = None):
+    def market_symbols(self, symbols, type: Optional[str] = None, allowEmpty=True):
         if symbols is None:
+            if not allowEmpty:
+                raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
+            return symbols
+        symbolsLength = len(symbols)
+        if symbolsLength == 0:
+            if not allowEmpty:
+                raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
             return symbols
         result = []
         for i in range(0, len(symbols)):
@@ -2900,6 +2941,15 @@ class Exchange(object):
             # was done in all implementations( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
             percentageString = Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100')
             position['percentage'] = self.parse_number(percentageString)
+        # if contractSize is None get from market
+        contractSize = self.safe_number(position, 'contractSize')
+        symbol = self.safe_string(position, 'symbol')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        if contractSize is None and market is not None:
+            contractSize = self.safe_number(market, 'contractSize')
+            position['contractSize'] = contractSize
         return position
 
     def parse_positions(self, positions, symbols: Optional[List[str]] = None, params={}):
@@ -2909,7 +2959,7 @@ class Exchange(object):
         for i in range(0, len(positions)):
             position = self.extend(self.parse_position(positions[i], None), params)
             result.append(position)
-        return self.filterByArrayPositions(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_accounts(self, accounts, params={}):
         accounts = self.to_array(accounts)
@@ -3094,7 +3144,7 @@ class Exchange(object):
         specifically fetches positions for specific symbol, unlike fetchPositions(which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
         :param str symbol: unified market symbol of the market the position is held in
         :param dict params: extra parameters specific to the endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        :returns dict[]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
         """
         raise NotSupported(self.id + ' fetchPositionsBySymbol() is not supported yet')
 
@@ -3181,9 +3231,9 @@ class Exchange(object):
                         raise ArgumentsRequired(self.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id')
                     inferredMarketType = market['type'] if (marketType is None) else marketType
                     for i in range(0, len(markets)):
-                        market = markets[i]
-                        if market[inferredMarketType]:
-                            return market
+                        currentMarket = markets[i]
+                        if currentMarket[inferredMarketType]:
+                            return currentMarket
             elif delimiter is not None:
                 parts = marketId.split(delimiter)
                 partsLength = len(parts)
@@ -3492,7 +3542,7 @@ class Exchange(object):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange api endpoint
-        :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
 
@@ -3615,9 +3665,14 @@ class Exchange(object):
             networkItem = self.safe_value(networks, networkCode, {})
             precision = self.safe_value(networkItem, 'precision', precision)
         if precision is None:
-            return fee
+            return self.forceString(fee)
         else:
             return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
+
+    def force_string(self, value):
+        if not isinstance(value, str):
+            return self.number_to_string(value)
+        return value
 
     def is_tick_precision(self):
         return self.precisionMode == TICK_SIZE
@@ -4119,7 +4174,7 @@ class Exchange(object):
         :param dict market: ccxt market
         :param int [since]: when defined, the response items are filtered to only include items after self timestamp
         :param int [limit]: limits the number of items in the response
-        :returns dict[]: an array of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns dict[]: an array of `funding history structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
         """
         result = []
         for i in range(0, len(incomes)):
@@ -4136,6 +4191,12 @@ class Exchange(object):
         market = self.market(firstMarket)
         return market
 
+    def parse_ws_ohlcvs(self, ohlcvs: List[object], market: Optional[Any] = None, timeframe: str = '1m', since: Optional[int] = None, limit: Optional[int] = None):
+        results = []
+        for i in range(0, len(ohlcvs)):
+            results.append(self.parse_ws_ohlcv(ohlcvs[i], market))
+        return results
+
     def fetch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
          * @deprecated
@@ -4144,7 +4205,7 @@ class Exchange(object):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange api endpoint
-        :returns dict: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        :returns dict: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         if self.has['fetchDepositsWithdrawals']:
             return self.fetchDepositsWithdrawals(code, since, limit, params)
@@ -4157,3 +4218,30 @@ class Exchange(object):
         Typed wrapper for filterByArray that returns a list of positions
         """
         return self.filter_by_array(objects, key, values, indexed)
+
+    def resolve_promise_if_messagehash_matches(self, client, prefix: str, symbol: str, data):
+        messageHashes = self.findMessageHashes(client, prefix)
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            if self.in_array(symbol, symbols):
+                client.resolve(data, messageHash)
+
+    def resolve_multiple_ohlcv(self, client, prefix: str, symbol: str, timeframe: str, data):
+        messageHashes = self.findMessageHashes(client, 'multipleOHLCV::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsAndTimeframes = parts[1]
+            splitted = symbolsAndTimeframes.split(',')
+            id = symbol + '#' + timeframe
+            if self.in_array(id, splitted):
+                client.resolve([symbol, timeframe, data], messageHash)
+
+    def create_ohlcv_object(self, symbol: str, timeframe: str, data):
+        res = {}
+        res[symbol] = {}
+        res[symbol][timeframe] = data
+        return res

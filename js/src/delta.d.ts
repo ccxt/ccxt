@@ -98,6 +98,8 @@ export default class delta extends Exchange {
         initialMarginPercentage: any;
         leverage: any;
         marginRatio: any;
+        stopLossPrice: any;
+        takeProfitPrice: any;
     }>;
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): {
@@ -124,6 +126,8 @@ export default class delta extends Exchange {
         initialMarginPercentage: any;
         leverage: any;
         marginRatio: any;
+        stopLossPrice: any;
+        takeProfitPrice: any;
     };
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): import("./base/types.js").Order;

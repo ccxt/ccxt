@@ -10,17 +10,16 @@ include_once rootDir .'/vendor/autoload.php';
 use React\Async;
 use React\Promise;
 
-assert_options (ASSERT_CALLBACK, function(){
+assert_options (ASSERT_CALLBACK, function(string $file, int $line, ?string $assertion, string $description = null){
     $args = func_get_args();
+    $message = '';
     try {
-        $file = $args[0];
-        $line = $args[1];
-        $message = $args[3];
-        var_dump("[ASSERT_ERROR] - $message [ $file : $line ]");
+        $message = "[ASSERT_ERROR] - [ $file : $line ] $description";
     } catch (\Exception $exc) {
-        var_dump("[ASSERT_ERROR] -");
-        var_dump($args);
+        $message = "[ASSERT_ERROR] -" . json_encode($args);
     }
+    $message = substr($message, 0, 1000);
+    var_dump($message);
     exit;
 });
 
@@ -83,10 +82,28 @@ function call_method($testFiles, $methodName, $exchange, $skippedProperties, $ar
     return $testFiles[$methodName]($exchange, $skippedProperties, ... $args);
 }
 
-function exception_message ($exc) {
-    $inner_message = $exc->getMessage();
-    return '[' . get_class($exc) . '] ' . substr($inner_message, 0, 500);
+function exception_message($exc) {
+    $items = array_slice($exc->getTrace(), 0, 12); // 12 members are enough for proper trace 
+    $output = '';
+    foreach ($items as $item) {
+        if (array_key_exists('file', $item)) {
+            $output .= $item['file'];
+            if (array_key_exists('line', $item)) {
+                $output .= ':' . $item['line'];
+            }
+            if (array_key_exists('class', $item)) {
+                $output .= ' ::: ' . $item['class'];
+            }
+            if (array_key_exists('function', $item)) {
+                $output .= ' > ' . $item['function'];
+            }
+            $output .= "\n";
+        }
+    }
+    $message = '[' . get_class($exc) . '] ' . $output . "\n\n";
+    return substr($message, 0, 1000);
 }
+
 
 function exit_script() {
     exit(0);
@@ -155,7 +172,7 @@ class testMainClass extends baseMainTestClass {
     public function init($exchangeId, $symbol) {
         $this->parse_cli_args();
         $symbolStr = $symbol !== null ? $symbol : 'all';
-        var_dump ('\nTESTING ', ext, array( 'exchange' => $exchangeId, 'symbol' => $symbolStr ), '\n');
+        dump ('\nTESTING ', ext, array( 'exchange' => $exchangeId, 'symbol' => $symbolStr ), '\n');
         $exchangeArgs = array(
             'verbose' => $this->verbose,
             'debug' => $this->debug,
@@ -166,7 +183,6 @@ class testMainClass extends baseMainTestClass {
         $this->import_files($exchange);
         $this->expand_settings($exchange, $symbol);
         $this->start_test($exchange, $symbol);
-        close ($exchange);
     }
 
     public function import_files($exchange) {
@@ -252,44 +268,32 @@ class testMainClass extends baseMainTestClass {
             return;
         }
         $skipMessage = null;
-        $isFetchOhlcvEmulated = ($methodName === 'fetchOHLCV' && $exchange->has['fetchOHLCV'] === 'emulated'); // todo => remove emulation from base
-        if (!$isLoadMarkets && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName]) || $isFetchOhlcvEmulated) {
+        if (!$isLoadMarkets && (!(is_array($exchange->has) && array_key_exists($methodName, $exchange->has)) || !$exchange->has[$methodName])) {
             $skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } elseif ((is_array($this->skippedMethods) && array_key_exists($methodName, $this->skippedMethods)) && (gettype($this->skippedMethods[$methodName]) === 'string')) {
             $skipMessage = '[INFO:SKIPPED_TEST]';
         } elseif (!(is_array($this->testFiles) && array_key_exists($methodNameInTest, $this->testFiles))) {
             $skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
-        $argsStringified = '(' . implode(',', $args) . ')';
-        try {
-            // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" need it to be called anyway (but can skip "test.loadMarket" for it)
-            if ($isLoadMarkets) {
-                $exchange->load_markets();
-            }
-            if ($skipMessage) {
-                if ($this->info) {
-                    dump ($this->add_padding($skipMessage, 25), $exchange->id, $methodNameInTest);
-                }
-                return;
-            }
+        // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" need it to be called anyway (but can skip "test.loadMarket" for it)
+        if ($isLoadMarkets) {
+            $exchange->load_markets(true);
+        }
+        if ($skipMessage) {
             if ($this->info) {
-                dump ($this->add_padding('[INFO:TESTING]', 25), $exchange->id, $methodNameInTest, $argsStringified);
+                dump ($this->add_padding($skipMessage, 25), $exchange->id, $methodNameInTest);
             }
-            $skippedProperties = $exchange->safe_value($this->skippedMethods, $methodName, array());
-            call_method ($this->testFiles, $methodNameInTest, $exchange, $skippedProperties, $args);
-            if ($isPublic) {
-                $this->checkedPublicTests[$methodNameInTest] = true;
-            }
-        } catch (Exception $e) {
-            $isAuthError = ($e instanceof AuthenticationError);
-            // If public test faces authentication error, we don't break (see comments under `testSafe` method)
-            if ($isPublic && $isAuthError) {
-                if ($this->info) {
-                    dump ('[TEST_WARNING]', 'Authentication problem for public method', exception_message ($e), $exchange->id, $methodNameInTest, $argsStringified);
-                }
-            } else {
-                throw $e;
-            }
+            return;
+        }
+        if ($this->info) {
+            $argsStringified = '(' . implode(',', $args) . ')';
+            dump ($this->add_padding('[INFO:TESTING]', 25), $exchange->id, $methodNameInTest, $argsStringified);
+        }
+        $skippedProperties = $exchange->safe_value($this->skippedMethods, $methodName, array());
+        call_method ($this->testFiles, $methodNameInTest, $exchange, $skippedProperties, $args);
+        // if it was passed successfully, add to the list of successfull tests
+        if ($isPublic) {
+            $this->checkedPublicTests[$methodNameInTest] = true;
         }
     }
 
@@ -311,29 +315,41 @@ class testMainClass extends baseMainTestClass {
                 $this->test_method($methodName, $exchange, $args, $isPublic);
                 return true;
             } catch (Exception $e) {
+                $isAuthError = ($e instanceof AuthenticationError);
                 $isRateLimitExceeded = ($e instanceof RateLimitExceeded);
-                $isExchangeNotAvailable = ($e instanceof ExchangeNotAvailable);
                 $isNetworkError = ($e instanceof NetworkError);
                 $isDDoSProtection = ($e instanceof DDoSProtection);
                 $isRequestTimeout = ($e instanceof RequestTimeout);
-                $tempFailure = ($isRateLimitExceeded || $isExchangeNotAvailable || $isNetworkError || $isDDoSProtection || $isRequestTimeout);
+                $tempFailure = ($isRateLimitExceeded || $isNetworkError || $isDDoSProtection || $isRequestTimeout);
                 if ($tempFailure) {
-                    // wait and retry again
-                    $exchange->sleep ($i * 1000); // increase wait seconds on every retry
-                    continue;
+                    // if last retry was gone with same `$tempFailure` error, then let's eventually return false
+                    if ($i === $maxRetries - 1) {
+                        dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', $exchange->id, $methodName, $argsStringified);
+                    } else {
+                        // wait and retry again
+                        $exchange->sleep ($i * 1000); // increase wait seconds on every retry
+                        continue;
+                    }
                 } elseif ($e instanceof OnMaintenance) {
-                    // in case of maintenance, throw an exception (which will lead to stop of test for the current $exchange)
-                    throw $e;
-                } else {
-                    // if not temp failure, then dump exception without retrying
-                    dump ('[TEST_WARNING]', 'Method could not be tested', exception_message ($e), $exchange->id, $methodName, $argsStringified);
-                    return false;
+                    // in case of maintenance, skip $exchange (don't fail the test)
+                    dump ('[TEST_WARNING] Exchange is on maintenance', $exchange->id);
                 }
+                // If public test faces authentication error, we don't break (see comments under `testSafe` method)
+                else if ($isPublic && $isAuthError) {
+                    // in case of loadMarkets, it means that "tester" (developer or travis) does not have correct authentication, so it does not have a point to proceed at all
+                    if ($methodName === 'loadMarkets') {
+                        dump ('[TEST_WARNING]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exception_message ($e), $exchange->id, $methodName, $argsStringified);
+                    }
+                    if ($this->info) {
+                        dump ('[TEST_WARNING]', 'Authentication problem for public method', exception_message ($e), $exchange->id, $methodName, $argsStringified);
+                    }
+                } else {
+                    // if not a temporary connectivity issue, then mark test (no need to re-try)
+                    dump ('[TEST_FAILURE]', exception_message ($e), $exchange->id, $methodName, $argsStringified);
+                }
+                return false;
             }
         }
-        // if maxretries was gone with same `$tempFailure` error, then let's eventually return false
-        dump ('[TEST_WARNING]', 'Method not tested due to a Network/Availability issue', $exchange->id, $methodName, $argsStringified);
-        return false;
     }
 
     public function run_public_tests($exchange, $symbol) {
@@ -374,32 +390,27 @@ class testMainClass extends baseMainTestClass {
         // $promises[] = testThrottle ();
         $results = $promises;
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
-        $errors = array();
-        for ($i = 0; $i < count($testNames); $i++) {
-            if (!$results[$i]) {
-                $errors[] = $testNames[$i];
-            }
-        }
         if ($this->info) {
+            $errors = array();
+            for ($i = 0; $i < count($testNames); $i++) {
+                if (!$results[$i]) {
+                    $errors[] = $testNames[$i];
+                }
+            }
             // we don't throw exception for public-$tests, see comments under 'testSafe' method
             $failedMsg = '';
-            if (strlen($errors)) {
-                $failedMsg = ' | Failed methods => ' . implode(', ', $errors);
+            $errorsLength = count($errors);
+            if ($errorsLength > 0) {
+                $failedMsg = ' | Failed methods : ' . implode(', ', $errors);
             }
-            dump ($this->add_padding('[INFO:PUBLIC_TESTS_DONE]' . $market['type'] . $failedMsg, 25), $exchange->id);
+            dump ($this->add_padding('[INFO:PUBLIC_TESTS_END] ' . $market['type'] . $failedMsg, 25), $exchange->id);
         }
     }
 
     public function load_exchange($exchange) {
-        try {
-            $this->test_safe('loadMarkets', $exchange, array(), true);
-        } catch (Exception $e) {
-            if ($e instanceof OnMaintenance) {
-                dump ('[SKIPPED] Exchange is on maintenance', $exchange->id);
-                exit_script ();
-            }
-            // if excepion is not maintenance (and therefore, neither temporary connection exceptiions, defined in `testSafe`) then throw exception, and the caller method will handle that
-            throw $e;
+        $result = $this->test_safe('loadMarkets', $exchange, array(), true);
+        if (!$result) {
+            return false;
         }
         $symbols = array(
             'BTC/CNY',
@@ -443,6 +454,7 @@ class testMainClass extends baseMainTestClass {
             }
         }
         dump ('Exchange loaded', $exchangeSymbolsLength, 'symbols', $resultMsg);
+        return true;
     }
 
     public function get_test_symbol($exchange, $isSpot, $symbols) {
@@ -662,7 +674,7 @@ class testMainClass extends baseMainTestClass {
             'fetchOpenOrders' => array( $symbol ),
             'fetchClosedOrders' => array( $symbol ),
             'fetchMyTrades' => array( $symbol ),
-            'fetchLeverageTiers' => array( $symbol ),
+            'fetchLeverageTiers' => array( array( $symbol ) ),
             'fetchLedger' => array( $code ),
             'fetchTransactions' => array( $code ),
             'fetchDeposits' => array( $code ),
@@ -670,32 +682,32 @@ class testMainClass extends baseMainTestClass {
             'fetchBorrowRates' => array( $code ),
             'fetchBorrowRate' => array( $code ),
             'fetchBorrowInterest' => array( $code, $symbol ),
-            'addMargin' => array( $symbol ),
-            'reduceMargin' => array( $symbol ),
-            'setMargin' => array( $symbol ),
-            'setMarginMode' => array( $symbol ),
-            'setLeverage' => array( $symbol ),
+            // 'addMargin' => [ ],
+            // 'reduceMargin' => [ ],
+            // 'setMargin' => [ ],
+            // 'setMarginMode' => [ ],
+            // 'setLeverage' => [ ],
             'cancelAllOrders' => array( $symbol ),
-            'cancelOrder' => array( $symbol ),
-            'cancelOrders' => array( $symbol ),
+            // 'cancelOrder' => [ ],
+            // 'cancelOrders' => [ ],
             'fetchCanceledOrders' => array( $symbol ),
-            'fetchClosedOrder' => array( $symbol ),
-            'fetchOpenOrder' => array( $symbol ),
-            'fetchOrder' => array( $symbol ),
-            'fetchOrderTrades' => array( $symbol ),
+            // 'fetchClosedOrder' => [ ],
+            // 'fetchOpenOrder' => [ ],
+            // 'fetchOrder' => [ ],
+            // 'fetchOrderTrades' => [ ],
             'fetchPosition' => array( $symbol ),
             'fetchDeposit' => array( $code ),
             'createDepositAddress' => array( $code ),
             'fetchDepositAddress' => array( $code ),
             'fetchDepositAddresses' => array( $code ),
             'fetchDepositAddressesByNetwork' => array( $code ),
-            'editOrder' => array( $symbol ),
-            'fetchBorrowRateHistory' => array( $symbol ),
-            'fetchBorrowRatesPerSymbol' => array( $symbol ),
+            // 'editOrder' => [ ],
+            'fetchBorrowRateHistory' => array( $code ),
+            'fetchBorrowRatesPerSymbol' => [ ],
             'fetchLedgerEntry' => array( $code ),
-            'fetchWithdrawal' => array( $code ),
-            'transfer' => array( $code ),
-            'withdraw' => array( $code ),
+            // 'fetchWithdrawal' => [ ],
+            // 'transfer' => [ ],
+            // 'withdraw' => [ ],
         );
         $market = $exchange->market ($symbol);
         $isSpot = $market['spot'];
@@ -740,15 +752,26 @@ class testMainClass extends baseMainTestClass {
     }
 
     public function start_test($exchange, $symbol) {
-        // we don't need to test aliases
+        // we do not need to test aliases
         if ($exchange->alias) {
             return;
         }
         if ($this->sandbox || get_exchange_prop ($exchange, 'sandbox')) {
             $exchange->set_sandbox_mode(true);
         }
-        $this->load_exchange($exchange);
-        $this->test_exchange($exchange, $symbol);
+        // because of python-async, we need proper `.close()` handling
+        try {
+            $result = $this->load_exchange($exchange);
+            if (!$result) {
+                close ($exchange);
+                return;
+            }
+            $this->test_exchange($exchange, $symbol);
+            close ($exchange);
+        } catch (Exception $e) {
+            close ($exchange);
+            throw $e;
+        }
     }
 }
 

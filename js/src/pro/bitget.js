@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import bitgetRest from '../bitget.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -19,11 +19,14 @@ export default class bitget extends bitgetRest {
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -54,7 +57,18 @@ export default class bitget extends bitgetRest {
                 'ws': {
                     'exact': {
                         '30001': BadRequest,
-                        '30015': AuthenticationError, // { event: 'error', code: 30015, msg: 'Invalid sign' }
+                        '30002': AuthenticationError,
+                        '30003': BadRequest,
+                        '30004': AuthenticationError,
+                        '30005': AuthenticationError,
+                        '30006': RateLimitExceeded,
+                        '30007': RateLimitExceeded,
+                        '30011': AuthenticationError,
+                        '30012': AuthenticationError,
+                        '30013': AuthenticationError,
+                        '30014': BadRequest,
+                        '30015': AuthenticationError,
+                        '30016': BadRequest, // { event: 'error', code: 30016, msg: 'Param error' }
                     },
                 },
             },
@@ -103,7 +117,7 @@ export default class bitget extends bitgetRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -116,6 +130,38 @@ export default class bitget extends bitgetRest {
             'instId': this.getWsMarketId(market),
         };
         return await this.watchPublic(messageHash, args, params);
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const market = this.market(symbols[0]);
+        const instType = market['spot'] ? 'sp' : 'mc';
+        const messageHash = 'tickers::' + symbols.join(',');
+        const marketIds = this.marketIds(symbols);
+        const topics = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const marketInner = this.market(marketId);
+            const args = {
+                'instType': instType,
+                'channel': 'ticker',
+                'instId': this.getWsMarketId(marketInner),
+            };
+            topics.push(args);
+        }
+        const tickers = await this.watchPublicMultiple(messageHash, topics, params);
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     handleTicker(client, message) {
         //
@@ -144,6 +190,17 @@ export default class bitget extends bitgetRest {
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
         client.resolve(ticker, messageHash);
+        // watchTickers part
+        const messageHashes = this.findMessageHashes(client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHashTicker = messageHashes[i];
+            const parts = messageHashTicker.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            if (this.inArray(symbol, symbols)) {
+                client.resolve(ticker, messageHashTicker);
+            }
+        }
         return message;
     }
     parseWsTicker(message, market = undefined) {
@@ -266,6 +323,43 @@ export default class bitget extends bitgetRest {
         }
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
+    async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#watchOHLCVForSymbols
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets();
+        const topics = [];
+        const hashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = symbolsAndTimeframes[i];
+            const currentSymbol = this.safeString(data, 0);
+            const currentTimeframe = this.safeString(data, 1);
+            const market = this.market(currentSymbol);
+            const interval = this.safeString(this.options['timeframes'], currentTimeframe);
+            const instType = market['spot'] ? 'sp' : 'mc';
+            const args = {
+                'instType': instType,
+                'channel': 'candle' + interval,
+                'instId': this.getWsMarketId(market),
+            };
+            topics.push(args);
+            hashes.push(currentSymbol + '#' + currentSymbol);
+        }
+        const messageHash = 'multipleOHLCV::' + hashes.join(',');
+        const [symbol, timeframe, stored] = await this.watchPublicMultiple(messageHash, topics, params);
+        if (this.newUpdates) {
+            limit = stored.getLimit(symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
+        return this.createOHLCVObject(symbol, timeframe, filtered);
+    }
     handleOHLCV(client, message) {
         //
         //   {
@@ -317,6 +411,7 @@ export default class bitget extends bitgetRest {
         }
         const messageHash = 'candles:' + timeframe + ':' + symbol;
         client.resolve(stored, messageHash);
+        this.resolveMultipleOHLCV(client, 'multipleOHLCV::', symbol, timeframe, stored);
     }
     parseWsOHLCV(ohlcv, market = undefined) {
         //
@@ -346,7 +441,7 @@ export default class bitget extends bitgetRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -365,6 +460,44 @@ export default class bitget extends bitgetRest {
             'instId': this.getWsMarketId(market),
         };
         const orderbook = await this.watchPublic(messageHash, args, params);
+        if (incrementalFeed) {
+            return orderbook.limit();
+        }
+        else {
+            return orderbook;
+        }
+    }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        let channel = 'books';
+        let incrementalFeed = true;
+        if ((limit === 5) || (limit === 15)) {
+            channel += limit.toString();
+            incrementalFeed = false;
+        }
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
+            const instType = market['spot'] ? 'sp' : 'mc';
+            const args = {
+                'instType': instType,
+                'channel': channel,
+                'instId': this.getWsMarketId(market),
+            };
+            topics.push(args);
+        }
+        const messageHash = 'multipleOrderbooks::' + symbols.join(',');
+        const orderbook = await this.watchPublicMultiple(messageHash, topics, params);
         if (incrementalFeed) {
             return orderbook.limit();
         }
@@ -457,6 +590,7 @@ export default class bitget extends bitgetRest {
         }
         this.orderbooks[symbol] = storedOrderBook;
         client.resolve(storedOrderBook, messageHash);
+        this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbooks::', symbol, storedOrderBook);
     }
     handleDelta(bookside, delta) {
         const bidAsk = this.parseBidAsk(delta, 0, 1);
@@ -479,7 +613,7 @@ export default class bitget extends bitgetRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -494,6 +628,43 @@ export default class bitget extends bitgetRest {
         const trades = await this.watchPublic(messageHash, args, params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+    }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#watchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
+            const instType = market['spot'] ? 'sp' : 'mc';
+            const args = {
+                'instType': instType,
+                'channel': 'trade',
+                'instId': this.getWsMarketId(market),
+            };
+            topics.push(args);
+        }
+        const messageHash = 'multipleTrades::' + symbols.join(',');
+        const trades = await this.watchPublicMultiple(messageHash, topics, params);
+        if (this.newUpdates) {
+            const first = this.safeValue(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
@@ -532,6 +703,7 @@ export default class bitget extends bitgetRest {
         }
         const messageHash = 'trade:' + symbol;
         client.resolve(stored, messageHash);
+        this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, stored);
     }
     parseWsTrade(trade, market = undefined) {
         //
@@ -574,7 +746,7 @@ export default class bitget extends bitgetRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
          */
         await this.loadMarkets();
         let market = undefined;
@@ -857,7 +1029,7 @@ export default class bitget extends bitgetRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         // only contracts stream provides the trade info consistently in between order updates
         // the spot stream only provides on limit orders updates so we can't support it for spot
@@ -1009,7 +1181,7 @@ export default class bitget extends bitgetRest {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchOrders', undefined, params);
@@ -1088,13 +1260,23 @@ export default class bitget extends bitgetRest {
         const message = this.extend(request, params);
         return await this.watch(url, messageHash, message, messageHash);
     }
-    authenticate(params = {}) {
+    async watchPublicMultiple(messageHash, argsArray, params = {}) {
+        const url = this.urls['api']['ws'];
+        const request = {
+            'op': 'subscribe',
+            'args': argsArray,
+        };
+        const message = this.extend(request, params);
+        return await this.watch(url, messageHash, message, messageHash);
+    }
+    async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.seconds().toString();
             const auth = timestamp + 'GET' + '/user/verify';
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, 'base64');
@@ -1111,8 +1293,7 @@ export default class bitget extends bitgetRest {
                 ],
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -1131,7 +1312,8 @@ export default class bitget extends bitgetRest {
         //  { event: 'login', code: 0 }
         //
         const messageHash = 'authenticated';
-        client.resolve(message, messageHash);
+        const future = this.safeValue(client.futures, messageHash);
+        future.resolve(true);
     }
     handleErrorMessage(client, message) {
         //
@@ -1143,6 +1325,9 @@ export default class bitget extends bitgetRest {
                 const code = this.safeString(message, 'code');
                 const feedback = this.id + ' ' + this.json(message);
                 this.throwExactlyMatchedException(this.exceptions['ws']['exact'], code, feedback);
+                const msg = this.safeString(message, 'msg', '');
+                this.throwBroadlyMatchedException(this.exceptions['ws']['broad'], msg, feedback);
+                throw new ExchangeError(feedback);
             }
             return false;
         }
@@ -1153,6 +1338,10 @@ export default class bitget extends bitgetRest {
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
+            }
+            else {
+                // Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue #19041
+                client.reject(e);
             }
             return true;
         }

@@ -37,6 +37,7 @@ export default class exmo extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'editOrder': true,  // margin only
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
@@ -205,6 +206,7 @@ export default class exmo extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '140434': BadRequest,
                     '40005': AuthenticationError, // Authorization error, incorrect signature
                     '40009': InvalidNonce, //
                     '40015': ExchangeError, // API function do not exist
@@ -281,7 +283,7 @@ export default class exmo extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
@@ -294,7 +296,7 @@ export default class exmo extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
@@ -305,7 +307,7 @@ export default class exmo extends Exchange {
          * @name exmo#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
         let method = this.safeString (params, 'method');
         params = this.omit (params, 'method');
@@ -435,7 +437,7 @@ export default class exmo extends Exchange {
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/#/?id=fees-structure}
+         * @returns {object} a list of [transaction fees structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fees-structure}
          */
         await this.loadMarkets ();
         const cryptoList = await this.publicGetPaymentsProvidersCryptoList (params);
@@ -509,7 +511,7 @@ export default class exmo extends Exchange {
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/#/?id=fees-structure}
+         * @returns {object} a list of [transaction fees structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fees-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetPaymentsProvidersCryptoList (params);
@@ -737,17 +739,55 @@ export default class exmo extends Exchange {
         //         },
         //     }
         //
+        let marginPairsDict = {};
+        if (this.checkRequiredCredentials (false)) {
+            const marginPairs = await this.privatePostMarginPairList (params);
+            //
+            //    {
+            //        "pairs": [
+            //            {
+            //                "buy_price": "55978.85",
+            //                "default_leverage": "3",
+            //                "is_fair_price": true,
+            //                "last_trade_price": "55999.23",
+            //                "liquidation_fee": "2",
+            //                "liquidation_level": "10",
+            //                "margin_call_level": "15",
+            //                "max_leverage": "3",
+            //                "max_order_price": "150000",
+            //                "max_order_quantity": "1",
+            //                "max_position_quantity": "1",
+            //                "max_price_precision": 2,
+            //                "min_order_price": "1",
+            //                "min_order_quantity": "0.00002",
+            //                "name": "BTC_USD",
+            //                "position": 1,
+            //                "sell_price": "55985.51",
+            //                "ticker_updated": "1619019818936107989",
+            //                "trade_maker_fee": "0",
+            //                "trade_taker_fee": "0.05",
+            //                "updated": "1619008608955599013"
+            //            }
+            //        ]
+            //    }
+            //
+            const pairs = this.safeValue (marginPairs, 'pairs');
+            marginPairsDict = this.indexBy (pairs, 'name');
+        }
         const keys = Object.keys (response);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
             const market = response[id];
+            const marginMarket = this.safeValue (marginPairsDict, id);
             const symbol = id.replace ('_', '/');
             const [ baseId, quoteId ] = symbol.split ('/');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const takerString = this.safeString (market, 'commission_taker_percent');
             const makerString = this.safeString (market, 'commission_maker_percent');
+            const maxQuantity = this.safeString (market, 'max_quantity');
+            const marginMaxQuantity = this.safeString (marginMarket, 'max_order_quantity');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -759,7 +799,7 @@ export default class exmo extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': true,
+                'margin': marginMarket !== undefined,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -781,11 +821,11 @@ export default class exmo extends Exchange {
                 'limits': {
                     'leverage': {
                         'min': undefined,
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'leverage'),
                     },
                     'amount': {
                         'min': this.safeNumber (market, 'min_quantity'),
-                        'max': this.safeNumber (market, 'max_quantity'),
+                        'max': this.parseNumber (Precise.stringMax (maxQuantity, marginMaxQuantity)),
                     },
                     'price': {
                         'min': this.safeNumber (market, 'min_price'),
@@ -882,20 +922,35 @@ export default class exmo extends Exchange {
 
     parseBalance (response) {
         const result = { 'info': response };
-        const free = this.safeValue (response, 'balances', {});
-        const used = this.safeValue (response, 'reserved', {});
-        const currencyIds = Object.keys (free);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            if (currencyId in free) {
-                account['free'] = this.safeString (free, currencyId);
+        const wallets = this.safeValue (response, 'wallets');
+        if (wallets !== undefined) {
+            const currencyIds = Object.keys (wallets);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const item = wallets[currencyId];
+                const currency = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['used'] = this.safeString (item, 'used');
+                account['free'] = this.safeString (item, 'free');
+                account['total'] = this.safeString (item, 'balance');
+                result[currency] = account;
             }
-            if (currencyId in used) {
-                account['used'] = this.safeString (used, currencyId);
+        } else {
+            const free = this.safeValue (response, 'balances', {});
+            const used = this.safeValue (response, 'reserved', {});
+            const currencyIds = Object.keys (free);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                if (currencyId in free) {
+                    account['free'] = this.safeString (free, currencyId);
+                }
+                if (currencyId in used) {
+                    account['used'] = this.safeString (used, currencyId);
+                }
+                result[code] = account;
             }
-            result[code] = account;
         }
         return this.safeBalance (result);
     }
@@ -906,22 +961,44 @@ export default class exmo extends Exchange {
          * @name exmo#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {string} [params.marginMode] *isolated* fetches the isolated margin balance
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostUserInfo (params);
-        //
-        //     {
-        //         "uid":131685,
-        //         "server_date":1628999600,
-        //         "balances":{
-        //             "EXM":"0",
-        //             "USD":"0",
-        //             "EUR":"0",
-        //             "GBP":"0",
-        //         },
-        //     }
-        //
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        if (marginMode === 'cross') {
+            throw new BadRequest (this.id + ' does not support cross margin');
+        }
+        let response = undefined;
+        if (marginMode === 'isolated') {
+            response = await this.privatePostMarginUserWalletList (params);
+            //
+            //    {
+            //        "wallets": {
+            //            "USD": {
+            //                "balance": "1000",
+            //                "free": "600",
+            //                "used": "400"
+            //            }
+            //        }
+            //    }
+            //
+        } else {
+            response = await this.privatePostUserInfo (params);
+            //
+            //     {
+            //         "uid":131685,
+            //         "server_date":1628999600,
+            //         "balances":{
+            //             "EXM":"0",
+            //             "USD":"0",
+            //             "EUR":"0",
+            //             "GBP":"0",
+            //         },
+            //     }
+            //
+        }
         return this.parseBalance (response);
     }
 
@@ -933,7 +1010,7 @@ export default class exmo extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -956,7 +1033,7 @@ export default class exmo extends Exchange {
          * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
          * @param {int} [limit] max number of entries per orderbook to return, default is undefined
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
+         * @returns {object} a dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbol
          */
         await this.loadMarkets ();
         let ids = undefined;
@@ -1036,7 +1113,7 @@ export default class exmo extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -1075,7 +1152,7 @@ export default class exmo extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
@@ -1113,18 +1190,35 @@ export default class exmo extends Exchange {
         //         "commission_percent": "0.2"
         //     }
         //
+        // fetchMyTrades (margin)
+        //
+        //    {
+        //        "trade_id": "692861757015952517",
+        //        "trade_dt": "1693951853197811824",
+        //        "trade_type": "buy",
+        //        "pair": "ADA_USDT",
+        //        "quantity": "1.96607879",
+        //        "price": "0.2568",
+        //        "amount": "0.50488903"
+        //    }
+        //
         const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString (trade, 'trade_id');
         const orderId = this.safeString (trade, 'order_id');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
         const costString = this.safeString (trade, 'amount');
-        const side = this.safeString (trade, 'type');
+        const side = this.safeString2 (trade, 'type', 'trade_type');
         const type = undefined;
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const takerOrMaker = this.safeString (trade, 'exec_type');
+        const isMaker = this.safeValue (trade, 'is_maker');
+        let takerOrMakerDefault = undefined;
+        if (isMaker !== undefined) {
+            takerOrMakerDefault = isMaker ? 'maker' : 'taker';
+        }
+        const takerOrMaker = this.safeString (trade, 'exec_type', takerOrMakerDefault);
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'commission_amount');
         if (feeCostString !== undefined) {
@@ -1166,7 +1260,7 @@ export default class exmo extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1205,37 +1299,89 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#b8d8d9af-4f46-46a1-939b-ad261d79f452  // spot
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#f4b1aaf8-399f-403b-ab5e-4926d967a106  // margin
+         * @param {string} symbol a symbol is required but it can be a single string, or a non-empty array
          * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {int} [limit] *required for margin orders* the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.offset] last deal offset, default = 0
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        // a symbol is required but it can be a single string, or a non-empty array
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument (a single symbol or an array)');
+        this.checkRequiredSymbol ('fetchMyTrades', symbol);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
+        if (marginMode === 'cross') {
+            throw new BadRequest (this.id + 'only isolated margin is supported');
         }
         await this.loadMarkets ();
-        let pair = undefined;
-        let market = undefined;
-        if (Array.isArray (symbol)) {
-            const numSymbols = symbol.length;
-            if (numSymbols < 1) {
-                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a non-empty symbol array');
-            }
-            const marketIds = this.marketIds (symbol);
-            pair = marketIds.join (',');
-        } else {
-            market = this.market (symbol);
-            pair = market['id'];
+        const market = this.market (symbol);
+        const pair = market['id'];
+        const isSpot = marginMode !== 'isolated';
+        if (limit === undefined) {
+            limit = 100;
         }
-        const request = {
-            'pair': pair,
-        };
+        const request = {};
+        if (isSpot) {
+            request['pair'] = pair;
+        } else {
+            request['pair_name'] = pair;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostUserTrades (this.extend (request, params));
+        const offset = this.safeInteger (params, 'offset', 0);
+        request['offset'] = offset;
+        let response = undefined;
+        if (isSpot) {
+            response = await this.privatePostUserTrades (this.extend (request, params));
+            //
+            //    {
+            //        "BTC_USD": [
+            //            {
+            //                "trade_id": 20056872,
+            //                "client_id": 100500,
+            //                "date": 1435488248,
+            //                "type": "buy",
+            //                "pair": "BTC_USD",
+            //                "quantity": "1",
+            //                "price": "100",
+            //                "amount": "100",
+            //                "order_id": 7,
+            //                "parent_order_id": 117684023830293,
+            //                "exec_type": "taker",
+            //                "commission_amount": "0.02",
+            //                "commission_currency": "BTC",
+            //                "commission_percent": "0.2"
+            //            }
+            //        ],
+            //        ...
+            //    }
+            //
+        } else {
+            const responseFromExchange = await this.privatePostMarginTrades (this.extend (request, params));
+            //
+            //    {
+            //        "trades": {
+            //            "ADA_USDT": [
+            //                {
+            //                    "trade_id": "692861757015952517",
+            //                    "trade_dt": "1693951853197811824",
+            //                    "trade_type": "buy",
+            //                    "pair": "ADA_USDT",
+            //                    "quantity": "1.96607879",
+            //                    "price": "0.2568",
+            //                    "amount": "0.50488903"
+            //                },
+            //            ]
+            //            ...
+            //        }
+            //    }
+            //
+            response = this.safeValue (responseFromExchange, 'trades');
+        }
         let result = [];
         const marketIdsInner = Object.keys (response);
         for (let i = 0; i < marketIdsInner.length; i++) {
@@ -1253,37 +1399,43 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#createOrder
          * @description create a trade order
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#80daa469-ec59-4d0a-b229-6a311d8dd1cd
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#de6f4321-eeac-468c-87f7-c4ad7062e265  // stop market
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#3561b86c-9ff1-436e-8e68-ac926b7eb523  // margin
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+         * @param {string} [params.timeInForce] *spot only* 'fok', 'ioc' or 'post_only'
+         * @param {boolean} [params.postOnly] *spot only* true for post only orders
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const prefix = (type === 'market') ? (type + '_') : '';
-        const orderType = prefix + side;
-        let orderPrice = price;
-        if ((type === 'market') && (price === undefined)) {
-            orderPrice = 0;
+        const isMarket = (type === 'market') && (price === undefined);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        if (marginMode === 'cross') {
+            throw new BadRequest (this.id + ' only supports isolated margin');
         }
+        const isSpot = (marginMode !== 'isolated');
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const request = {
             'pair': market['id'],
             // 'leverage': 2,
             'quantity': this.amountToPrecision (market['symbol'], amount),
             // spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             // margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
-            'type': orderType,
-            'price': this.priceToPrecision (market['symbol'], orderPrice),
             // 'stop_price': this.priceToPrecision (symbol, stopPrice),
             // 'distance': 0, // distance for trailing stop orders
             // 'expire': 0, // expiration timestamp in UTC timezone for the order, unless expire is 0
             // 'client_id': 123, // optional, must be a positive integer
             // 'comment': '', // up to 50 latin symbols, whitespaces, underscores
         };
-        let method = 'privatePostOrderCreate';
+        let method = isSpot ? 'privatePostOrderCreate' : 'privatePostMarginUserOrderCreate';
         let clientOrderId = this.safeValue2 (params, 'client_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             clientOrderId = this.safeInteger2 (params, 'client_id', 'clientOrderId');
@@ -1292,42 +1444,61 @@ export default class exmo extends Exchange {
             } else {
                 request['client_id'] = clientOrderId;
             }
-            params = this.omit (params, [ 'client_id', 'clientOrderId' ]);
         }
-        if ((type === 'stop') || (type === 'stop_limit') || (type === 'trailing_stop')) {
-            const stopPrice = this.safeNumber2 (params, 'stop_price', 'stopPrice');
-            if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+        const leverage = this.safeNumber (params, 'leverage');
+        if (!isSpot && (leverage === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrder requires an extra param params["leverage"] for margin orders');
+        }
+        params = this.omit (params, [ 'stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId' ]);
+        if (triggerPrice !== undefined) {
+            if (isSpot) {
+                if (type === 'limit') {
+                    throw new BadRequest (this.id + ' createOrder () cannot create stop limit orders for spot, only stop market');
+                } else {
+                    method = 'privatePostStopMarketOrderCreate';
+                    request['type'] = side;
+                    request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+                }
             } else {
-                params = this.omit (params, [ 'stopPrice', 'stop_price' ]);
-                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-                method = 'privatePostMarginUserOrderCreate';
+                request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
+                if (type === 'limit') {
+                    request['type'] = 'stop_limit_' + side;
+                } else if (type === 'market') {
+                    request['type'] = 'stop_' + side;
+                } else {
+                    request['type'] = type;
+                }
+            }
+        } else {
+            if (isSpot) {
+                const execType = this.safeString (params, 'exec_type');
+                let isPostOnly = undefined;
+                [ isPostOnly, params ] = this.handlePostOnly (type === 'market', execType === 'post_only', params);
+                const timeInForce = this.safeString (params, 'timeInForce');
+                request['price'] = isMarket ? 0 : this.priceToPrecision (market['symbol'], price);
+                if (type === 'limit') {
+                    request['type'] = side;
+                } else if (type === 'market') {
+                    request['type'] = 'market_' + side;
+                }
+                if (isPostOnly) {
+                    request['exec_type'] = 'post_only';
+                } else if (timeInForce !== undefined) {
+                    request['exec_type'] = timeInForce;
+                }
+            } else {
+                if (type === 'limit' || type === 'market') {
+                    request['type'] = type + '_' + side;
+                } else {
+                    request['type'] = type;
+                }
             }
         }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (market['symbol'], price);
+        }
         const response = await this[method] (this.extend (request, params));
-        const id = this.safeString (response, 'order_id');
-        const timestamp = this.milliseconds ();
-        const status = 'open';
-        return {
-            'id': id,
-            'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': market['symbol'],
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': undefined,
-            'amount': amount,
-            'remaining': amount,
-            'filled': 0.0,
-            'fee': undefined,
-            'trades': undefined,
-            'clientOrderId': clientOrderId,
-            'average': undefined,
-        };
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
@@ -1335,24 +1506,62 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#cancelOrder
          * @description cancels an open order
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#1f710d4b-75bc-4b65-ad68-006f863a3f26
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a4d0aae8-28f7-41ac-94fd-c4030130453d  // stop market
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
          * @param {string} id order id
          * @param {string} symbol not used by exmo cancelOrder ()
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {boolean} [params.trigger] true to cancel a trigger order
+         * @param {string} [params.marginMode] set to 'cross' or 'isolated' to cancel a margin order
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        const request = { 'order_id': id };
-        return await this.privatePostOrderCancel (this.extend (request, params));
+        const request = {};
+        const stop = this.safeValue2 (params, 'trigger', 'stop');
+        params = this.omit (params, [ 'trigger', 'stop' ]);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
+        if (marginMode === 'cross') {
+            throw new BadRequest (this.id + ' only supports isolated margin');
+        }
+        let response = undefined;
+        if ((marginMode === 'isolated')) {
+            request['order_id'] = id;
+            response = await this.privatePostMarginUserOrderCancel (this.extend (request, params));
+            //
+            //    {}
+            //
+        } else {
+            if (stop) {
+                request['parent_order_id'] = id;
+                response = await this.privatePostStopMarketOrderCancel (this.extend (request, params));
+                //
+                //    {}
+                //
+            } else {
+                request['order_id'] = id;
+                response = await this.privatePostOrderCancel (this.extend (request, params));
+                //
+                //    {
+                //        'error': '',
+                //        'result': True
+                //    }
+                //
+            }
+        }
+        return this.parseOrder (response);
     }
 
     async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
          * @name exmo#fetchOrder
-         * @description fetches information on an order made by the user
+         * @description *spot only* fetches information on an order made by the user
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
          * @param {string} symbol not used by exmo fetchOrder
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1391,13 +1600,21 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#00810661-9119-46c5-aec5-55abe9cb42c7  // margin
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} [params.marginMode] set to "isolated" to fetch trades for a margin order
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrderTrades', params);
+        if (marginMode === 'cross') {
+            throw new BadRequest (this.id + ' only supports isolated margin');
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1405,32 +1622,53 @@ export default class exmo extends Exchange {
         const request = {
             'order_id': id.toString (),
         };
-        const response = await this.privatePostOrderTrades (this.extend (request, params));
-        //
-        //     {
-        //         "type": "buy",
-        //         "in_currency": "BTC",
-        //         "in_amount": "1",
-        //         "out_currency": "USD",
-        //         "out_amount": "100",
-        //         "trades": [
-        //             {
-        //                 "trade_id": 3,
-        //                 "date": 1435488248,
-        //                 "type": "buy",
-        //                 "pair": "BTC_USD",
-        //                 "order_id": 12345,
-        //                 "quantity": 1,
-        //                 "price": 100,
-        //                 "amount": 100,
-        //                 "exec_type": "taker",
-        //                 "commission_amount": "0.02",
-        //                 "commission_currency": "BTC",
-        //                 "commission_percent": "0.2"
-        //             }
-        //         ]
-        //     }
-        //
+        let response = undefined;
+        if (marginMode === 'isolated') {
+            response = await this.privatePostMarginUserOrderTrades (this.extend (request, params));
+            //
+            //    {
+            //        "trades": [
+            //            {
+            //                "is_maker": false,
+            //                "order_id": "123",
+            //                "pair": "BTC_USD",
+            //                "price": "54122.25",
+            //                "quantity": "0.00069994",
+            //                "trade_dt": "1619069561718824428",
+            //                "trade_id": "692842802860135010",
+            //                "type": "sell"
+            //            }
+            //        ]
+            //    }
+            //
+        } else {
+            response = await this.privatePostOrderTrades (this.extend (request, params));
+            //
+            //     {
+            //         "type": "buy",
+            //         "in_currency": "BTC",
+            //         "in_amount": "1",
+            //         "out_currency": "USD",
+            //         "out_amount": "100",
+            //         "trades": [
+            //             {
+            //                 "trade_id": 3,
+            //                 "date": 1435488248,
+            //                 "type": "buy",
+            //                 "pair": "BTC_USD",
+            //                 "order_id": 12345,
+            //                 "quantity": 1,
+            //                 "price": 100,
+            //                 "amount": 100,
+            //                 "exec_type": "taker",
+            //                 "commission_amount": "0.02",
+            //                 "commission_currency": "BTC",
+            //                 "commission_percent": "0.2"
+            //             }
+            //         ]
+            //     }
+            //
+        }
         const trades = this.safeValue (response, 'trades');
         return this.parseTrades (trades, market, since, limit);
     }
@@ -1440,30 +1678,124 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#0e135370-daa4-4689-8acd-b6876dee9ba1  // spot open orders
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a7cfd4f0-476e-4675-b33f-22a46902f245  // margin
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} [params.marginMode] set to "isolated" for margin orders
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
+            market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const response = await this.privatePostUserOpenOrders (params);
-        const marketIds = Object.keys (response);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        const isMargin = ((marginMode === 'cross') || (marginMode === 'isolated'));
+        let response = undefined;
         let orders = [];
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
-            const market = this.safeMarket (marketId);
+        if (isMargin) {
+            response = await this.privatePostMarginUserOrderList (params);
+            //
+            //    {
+            //        "orders": [
+            //            {
+            //                "client_id": "0",
+            //                "comment": "",
+            //                "created": "1619068707985325495",
+            //                "distance": "0",
+            //                "expire": 0,
+            //                "funding_currency": "BTC",
+            //                "funding_quantity": "0.01",
+            //                "funding_rate": "0.02",
+            //                "leverage": "2",
+            //                "order_id": "123",
+            //                "pair": "BTC_USD",
+            //                "previous_type": "limit_sell",
+            //                "price": "58000",
+            //                "quantity": "0.01",
+            //                "src": 0,
+            //                "stop_price": "0",
+            //                "trigger_price": "58000",
+            //                "type": "limit_sell",
+            //                "updated": 1619068707989411800
+            //            }
+            //        ]
+            //    }
+            //
             params = this.extend (params, {
                 'status': 'open',
             });
-            const parsedOrders = this.parseOrders (response[marketId], market, since, limit, params);
-            orders = this.arrayConcat (orders, parsedOrders);
+            const responseOrders = this.safeValue (response, 'orders');
+            orders = this.parseOrders (responseOrders, market, since, limit, params);
+        } else {
+            response = await this.privatePostUserOpenOrders (params);
+            //
+            //    {
+            //        "USDT_USD": [
+            //            {
+            //                "parent_order_id": "507061384740151010",
+            //                "client_id": "100500",
+            //                "created": "1589547391",
+            //                "type": "stop_market_buy",
+            //                "pair": "USDT_USD",
+            //                "quantity": "1",
+            //                "trigger_price": "5",
+            //                "amount": "5"
+            //            }
+            //        ],
+            //        ...
+            //    }
+            //
+            const marketIds = Object.keys (response);
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const marketInner = this.safeMarket (marketId);
+                params = this.extend (params, {
+                    'status': 'open',
+                });
+                const parsedOrders = this.parseOrders (response[marketId], marketInner, since, limit, params);
+                orders = this.arrayConcat (orders, parsedOrders);
+            }
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as any;
+        return orders as any;
+    }
+
+    parseStatus (status) {
+        if (status === undefined) {
+            return undefined;
+        }
+        const statuses = {
+            'cancel_started': 'canceled',
+        };
+        if (status.indexOf ('cancel') >= 0) {
+            status = 'canceled';
+        }
+        return this.safeString (statuses, status, status);
+    }
+
+    parseSide (orderType) {
+        const side = {
+            'limit_buy': 'buy',
+            'limit_sell': 'sell',
+            'market_buy': 'buy',
+            'market_sell': 'sell',
+            'stop_buy': 'buy',
+            'stop_sell': 'sell',
+            'stop_limit_buy': 'buy',
+            'stop_limit_sell': 'sell',
+            'trailing_stop_buy': 'buy',
+            'trailing_stop_sell': 'sell',
+            'stop_market_sell': 'sell',
+            'stop_market_buy': 'buy',
+            'buy': 'buy',
+            'sell': 'sell',
+        };
+        return this.safeString (side, orderType, orderType);
     }
 
     parseOrder (order, market = undefined) {
@@ -1502,9 +1834,55 @@ export default class exmo extends Exchange {
         //         ]
         //     }
         //
-        const id = this.safeString (order, 'order_id');
-        const timestamp = this.safeTimestamp (order, 'created');
-        const side = this.safeString (order, 'type');
+        // Margin fetchOpenOrders
+        //
+        //    {
+        //        "client_id": "0",
+        //        "comment": "",
+        //        "created": "1619068707985325495",
+        //        "distance": "0",
+        //        "expire": 0,
+        //        "funding_currency": "BTC",
+        //        "funding_quantity": "0.01",
+        //        "funding_rate": "0.02",
+        //        "leverage": "2",
+        //        "order_id": "123",
+        //        "pair": "BTC_USD",
+        //        "previous_type": "limit_sell",
+        //        "price": "58000",
+        //        "quantity": "0.01",
+        //        "src": 0,
+        //        "stop_price": "0",
+        //        "trigger_price": "58000",
+        //        "type": "limit_sell",
+        //        "updated": 1619068707989411800
+        //    }
+        //
+        // Margin fetchClosedOrders
+        //
+        //    {
+        //        "distance": "0",
+        //        "event_id": "692842802860022508",
+        //        "event_time": "1619069531190173720",
+        //        "event_type": "OrderCancelStarted",
+        //        "order_id": "123",
+        //        "order_status": "cancel_started",
+        //        "order_type": "limit_sell",
+        //        "pair": "BTC_USD",
+        //        "price": "54115",
+        //        "quantity": "0.001",
+        //        "stop_price": "0",
+        //        "trade_id": "0",
+        //        "trade_price": "0",
+        //        "trade_quantity": "0",
+        //        "trade_type": ""
+        //    },
+        //
+        const id = this.safeString2 (order, 'order_id', 'parent_order_id');
+        const eventTime = this.safeIntegerProduct2 (order, 'event_time', 'created', 0.000001);
+        const timestamp = this.safeTimestamp (order, 'created', eventTime);
+        const orderType = this.safeString2 (order, 'type', 'order_type');
+        const side = this.parseSide (orderType);
         let marketId = undefined;
         if ('pair' in order) {
             marketId = order['pair'];
@@ -1526,21 +1904,29 @@ export default class exmo extends Exchange {
         const cost = this.safeString (order, 'amount');
         const transactions = this.safeValue (order, 'trades', []);
         const clientOrderId = this.safeInteger (order, 'client_id');
+        let triggerPrice = this.safeString (order, 'stop_price');
+        if (triggerPrice === '0') {
+            triggerPrice = undefined;
+        }
+        let type = undefined;
+        if ((orderType !== 'buy') && (orderType !== 'sell')) {
+            type = orderType;
+        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': undefined,
+            'lastTradeTimestamp': this.safeIntegerProduct (order, 'updated', 0.000001),
+            'status': this.parseStatus (this.safeString (order, 'order_status')),
             'symbol': symbol,
-            'type': 'limit',
+            'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'cost': cost,
             'amount': amount,
             'filled': undefined,
@@ -1557,41 +1943,143 @@ export default class exmo extends Exchange {
          * @method
          * @name exmo#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#1d2524dd-ae6d-403a-a067-77b50d13fbe5  // margin
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a51be1d0-af5f-44e4-99d7-f7b04c6067d0  // spot canceled orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] max number of orders to return, default is undefined
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} [params.marginMode] set to "isolated" for margin orders
+         * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
-        if (since !== undefined) {
-            request['offset'] = limit;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
+        if (marginMode === 'cross') {
+            throw new BadRequest (this.id + ' only supports isolated margin');
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        if (limit === undefined) {
+            limit = 100;
         }
+        const isSpot = (marginMode !== 'isolated');
+        if (symbol !== undefined) {
+            const marketInner = this.market (symbol);
+            symbol = marketInner['symbol'];
+        }
+        const request = {
+            'limit': limit,
+        };
+        request['offset'] = (since !== undefined) ? limit : 0;
+        request['limit'] = limit;
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await this.privatePostUserCancelledOrders (this.extend (request, params));
-        //
-        //     [{
-        //         "order_id": "27056153840",
-        //         "client_id": "0",
-        //         "created": "1653428646",
-        //         "type": "buy",
-        //         "pair": "BTC_USDT",
-        //         "quantity": "0.1",
-        //         "price": "10",
-        //         "amount": "1"
-        //     }]
-        //
-        params = this.extend (params, {
-            'status': 'canceled',
-        });
-        return this.parseOrders (response, market, since, limit, params);
+        let response = undefined;
+        if (isSpot) {
+            response = await this.privatePostUserCancelledOrders (this.extend (request, params));
+            //
+            //    [
+            //        {
+            //            "order_id": "27056153840",
+            //            "client_id": "0",
+            //            "created": "1653428646",
+            //            "type": "buy",
+            //            "pair": "BTC_USDT",
+            //            "quantity": "0.1",
+            //            "price": "10",
+            //            "amount": "1"
+            //        }
+            //    ]
+            //
+            params = this.extend (params, {
+                'status': 'canceled',
+            });
+            return this.parseOrders (response, market, since, limit, params);
+        } else {
+            const responseSwap = await this.privatePostMarginUserOrderHistory (this.extend (request, params));
+            //
+            //    {
+            //        "items": [
+            //            {
+            //                "event_id": "692862104574106858",
+            //                "event_time": "1694116400173489405",
+            //                "event_type": "OrderCancelStarted",
+            //                "order_id": "692862104561289319",
+            //                "order_type": "stop_limit_sell",
+            //                "order_status": "cancel_started",
+            //                "trade_id": "0",
+            //                "trade_type":"",
+            //                "trade_quantity": "0",
+            //                "trade_price": "0",
+            //                "pair": "ADA_USDT",
+            //                "quantity": "12",
+            //                "price": "0.23",
+            //                "stop_price": "0.22",
+            //                "distance": "0"
+            //            }
+            //            ...
+            //        ]
+            //    }
+            //
+            const items = this.safeValue (responseSwap, 'items');
+            const orders = this.parseOrders (items, market, since, limit, params);
+            const result = [];
+            for (let i = 0; i < orders.length; i++) {
+                const order = orders[i];
+                if (order['status'] === 'canceled') {
+                    result.push (order);
+                }
+            }
+            return result;
+        }
+    }
+
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#editOrder
+         * @description *margin only* edit a trade order
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#f27ee040-c75f-4b59-b608-d05bd45b7899  // margin
+         * @param {string} id order id
+         * @param {string} symbol unified CCXT market symbol
+         * @param {string} type not used by exmo editOrder
+         * @param {string} side not used by exmo editOrder
+         * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exmo api endpoint
+         * @param {float} [params.triggerPrice] stop price for stop-market and stop-limit orders
+         * @param {string} params.marginMode must be set to isolated
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.distance] distance for trailing stop orders
+         * @param {int} [params.expire] expiration timestamp in UTC timezone for the order. order will not be expired if expire is 0
+         * @param {string} [params.comment] optional comment for order. up to 50 latin symbols, whitespaces, underscores
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('editOrder', params);
+        if (marginMode !== 'isolated') {
+            throw new BadRequest (this.id + ' editOrder() can only be used for isolated margin orders');
+        }
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
+        const request = {
+            'order_id': id,  // id of the open order
+        };
+        if (amount !== undefined) {
+            request['quantity'] = amount;
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (market['symbol'], price);
+        }
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision (market['symbol'], triggerPrice);
+        }
+        const response = await this.privatePostMarginUserOrderUpdate (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async fetchDepositAddress (code: string, params = {}) {
@@ -1601,7 +2089,7 @@ export default class exmo extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
         await this.loadMarkets ();
         const response = await this.privatePostDepositAddress (params);
@@ -1652,7 +2140,7 @@ export default class exmo extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
@@ -1831,7 +2319,7 @@ export default class exmo extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1885,7 +2373,7 @@ export default class exmo extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -1938,7 +2426,7 @@ export default class exmo extends Exchange {
          * @param {string} id withdrawal id
          * @param {string} code unified currency code of the currency withdrawn, default is undefined
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -1990,7 +2478,7 @@ export default class exmo extends Exchange {
          * @param {string} id deposit id
          * @param {string} code unified currency code, default is undefined
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -2043,7 +2531,7 @@ export default class exmo extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the exmo api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -2118,6 +2606,20 @@ export default class exmo extends Exchange {
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
+        }
+        if (('error' in response) && !('result' in response)) {
+            // error: {
+            //     code: '140434',
+            //     msg: "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by '2.5 USDT'."
+            // }
+            //
+            const errorCode = this.safeValue (response, 'error', {});
+            const messageError = this.safeString (errorCode, 'msg');
+            const code = this.safeString (errorCode, 'code');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], messageError, feedback);
+            throw new ExchangeError (feedback);
         }
         if (('result' in response) || ('errmsg' in response)) {
             //

@@ -141,7 +141,7 @@ class whitebit extends \ccxt\async\whitebit {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -246,7 +246,7 @@ class whitebit extends \ccxt\async\whitebit {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -291,8 +291,8 @@ class whitebit extends \ccxt\async\whitebit {
         // watchTickers
         $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
         for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
-            if (mb_strpos($messageHash, 'tickers') !== false && mb_strpos($messageHash, $symbol) !== false) {
+            $currentMessageHash = $messageHashes[$i];
+            if (mb_strpos($currentMessageHash, 'tickers') !== false && mb_strpos($currentMessageHash, $symbol) !== false) {
                 // Example => user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
                 // the associated messagehash will be => 'tickers:LTC/USDT:ETH/USDT'
                 // since we only have access to a single $symbol at a time
@@ -302,7 +302,7 @@ class whitebit extends \ccxt\async\whitebit {
                 // user might have multiple watchTickers promises
                 // watchTickers ( ['LTC/USDT', 'ETH/USDT'] ), watchTickers ( ['ETC/USDT', 'DOGE/USDT'] )
                 // and we want to make sure we resolve only the correct ones
-                $client->resolve ($ticker, $messageHash);
+                $client->resolve ($ticker, $currentMessageHash);
             }
         }
         return $message;
@@ -316,7 +316,7 @@ class whitebit extends \ccxt\async\whitebit {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -384,7 +384,7 @@ class whitebit extends \ccxt\async\whitebit {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchMyTrades requires a $symbol argument');
@@ -486,7 +486,7 @@ class whitebit extends \ccxt\async\whitebit {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the whitebit api endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
@@ -660,7 +660,7 @@ class whitebit extends \ccxt\async\whitebit {
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the whitebit api endpoint
              * @param {str} [$params->type] spot or contract if not provided $this->options['defaultType'] is used
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $type = null;
@@ -769,15 +769,15 @@ class whitebit extends \ccxt\async\whitebit {
                     return Async\await($this->watch($url, $messageHash, $request, $method, $subscription));
                 } else {
                     // resubscribe
-                    $marketIds = array();
-                    $marketIds = is_array($subscription) ? array_keys($subscription) : array();
+                    $marketIdsNew = array();
+                    $marketIdsNew = is_array($subscription) ? array_keys($subscription) : array();
                     if ($isNested) {
-                        $marketIds = array( $marketIds );
+                        $marketIdsNew = array( $marketIdsNew );
                     }
                     $resubRequest = array(
                         'id' => $id,
                         'method' => $method,
-                        'params' => $marketIds,
+                        'params' => $marketIdsNew,
                     );
                     if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
                         unset($client->subscriptions[$method]);
