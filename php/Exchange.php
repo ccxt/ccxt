@@ -341,6 +341,8 @@ class Exchange {
         'BCHSV' => 'BSV',
     );
 
+    protected $overriden_methods = array();
+
     public $urlencode_glue = '&'; // ini_get('arg_separator.output'); // can be overrided by exchange constructor params
     public $urlencode_glue_warning = true;
 
@@ -1568,8 +1570,6 @@ class Exchange {
         $parts = explode('.', preg_replace('/0+$/', '', $str));
         return (count($parts) > 1) ? strlen($parts[1]) : 0;
     }
-
-    protected $overriden_methods = array();
 
     public function __call($function, $params) {
         // support camelCase & snake_case functions
