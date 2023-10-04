@@ -3847,12 +3847,14 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
+        let symbolsLength = undefined;
         if (symbols !== undefined) {
+            symbolsLength = symbols.length;
             const first = this.safeString (symbols, 0);
             market = this.market (first);
         }
         const request = {};
-        if (symbols !== undefined) {
+        if (symbolsLength === 1) {
             // only supports symbols as undefined or sending one symbol
             request['symbol'] = market['id'];
         }
