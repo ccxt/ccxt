@@ -1457,6 +1457,16 @@ export default class kraken extends Exchange {
         }
         const clientOrderId = this.safeString(order, 'userref');
         const rawTrades = this.safeValue(order, 'trades');
+        const trades = [];
+        for (let i = 0; i < rawTrades.length; i++) {
+            const rawTrade = rawTrades[i];
+            if (typeof rawTrade === 'string') {
+                trades.push(this.safeTrade({ 'id': rawTrade, 'orderId': id, 'symbol': symbol, 'info': {} }));
+            }
+            else {
+                trades.push(rawTrade);
+            }
+        }
         stopPrice = this.safeNumber(order, 'stopprice', stopPrice);
         return this.safeOrder({
             'id': id,
@@ -1480,7 +1490,7 @@ export default class kraken extends Exchange {
             'average': average,
             'remaining': undefined,
             'fee': fee,
-            'trades': rawTrades,
+            'trades': trades,
         }, market);
     }
     orderRequest(method, symbol, type, request, price = undefined, params = {}) {

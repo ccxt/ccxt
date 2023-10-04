@@ -2740,6 +2740,8 @@ class Exchange {
             $tradesAreParsed = (($firstTrade !== null) && (is_array($firstTrade) && array_key_exists('info', $firstTrade)) && (is_array($firstTrade) && array_key_exists('id', $firstTrade)));
             if (!$tradesAreParsed) {
                 $trades = $this->parse_trades($rawTrades, $market);
+            } else {
+                $trades = $rawTrades;
             }
             $this->number = $oldNumber;
             $tradesLength = 0;

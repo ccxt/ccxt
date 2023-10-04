@@ -2199,6 +2199,8 @@ class Exchange(object):
             tradesAreParsed = ((firstTrade is not None) and ('info' in firstTrade) and ('id' in firstTrade))
             if not tradesAreParsed:
                 trades = self.parse_trades(rawTrades, market)
+            else:
+                trades = rawTrades
             self.number = oldNumber
             tradesLength = 0
             isArray = isinstance(trades, list)

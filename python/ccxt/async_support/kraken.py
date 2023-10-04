@@ -1393,6 +1393,13 @@ class kraken(Exchange, ImplicitAPI):
             id = self.safe_string(txid, 0)
         clientOrderId = self.safe_string(order, 'userref')
         rawTrades = self.safe_value(order, 'trades')
+        trades = []
+        for i in range(0, len(rawTrades)):
+            rawTrade = rawTrades[i]
+            if isinstance(rawTrade, str):
+                trades.append(self.safe_trade({'id': rawTrade, 'orderId': id, 'symbol': symbol, 'info': {}}))
+            else:
+                trades.append(rawTrade)
         stopPrice = self.safe_number(order, 'stopprice', stopPrice)
         return self.safe_order({
             'id': id,
@@ -1416,7 +1423,7 @@ class kraken(Exchange, ImplicitAPI):
             'average': average,
             'remaining': None,
             'fee': fee,
-            'trades': rawTrades,
+            'trades': trades,
         }, market)
 
     def order_request(self, method, symbol, type, request, price=None, params={}):
