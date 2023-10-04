@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.2';
+$version = '4.1.3';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.2';
+    const VERSION = '4.1.3';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -340,6 +340,8 @@ class Exchange {
         'BCC' => 'BCH',
         'BCHSV' => 'BSV',
     );
+
+    protected $overriden_methods = array();
 
     public $urlencode_glue = '&'; // ini_get('arg_separator.output'); // can be overrided by exchange constructor params
     public $urlencode_glue_warning = true;
@@ -1570,6 +1572,7 @@ class Exchange {
     }
 
     public function __call($function, $params) {
+        // support camelCase & snake_case functions
         if (!preg_match('/^[A-Z0-9_]+$/', $function)) {
             $underscore = static::underscore($function);
             if (method_exists($this, $underscore)) {
@@ -1578,6 +1581,18 @@ class Exchange {
         }
         /* handle errors */
         throw new ExchangeError($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
+    }
+
+    public function add_method($function_name, $callback) { 
+        $function_name = strtolower($function_name);
+        $this->overriden_methods[$function_name] = $callback;
+    }
+
+    public function call_method($function_name, $params = []) {
+        $function_name = strtolower($function_name);
+        if (is_callable($this->overriden_methods[$function_name])) {
+            return call_user_func_array($this->overriden_methods[$function_name], $params);
+        }
     }
 
     public function __sleep() {

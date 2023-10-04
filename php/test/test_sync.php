@@ -18,8 +18,8 @@ assert_options (ASSERT_CALLBACK, function(string $file, int $line, ?string $asse
     } catch (\Exception $exc) {
         $message = "[ASSERT_ERROR] -" . json_encode($args);
     }
-    $message = substr($message, 0, 1000);
-    var_dump($message);
+    $message = substr($message, 0, LOG_CHARS_LENGTH);
+    dump($message);
     exit;
 });
 
@@ -46,6 +46,7 @@ define ('is_synchronous', stripos(__FILE__, '_async') === false);
 
 define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
+define('LOG_CHARS_LENGTH', 10000);
 define('ext', 'php');
 
 function dump(...$s) {
@@ -83,7 +84,10 @@ function call_method($testFiles, $methodName, $exchange, $skippedProperties, $ar
 }
 
 function exception_message($exc) {
-    $items = array_slice($exc->getTrace(), 0, 12); // 12 members are enough for proper trace 
+    $full_trace = $exc->getTrace();
+    // temporarily disable below line, so we dump whole array
+    // $items = array_slice($full_trace, 0, 12); // 12 members are enough for proper trace 
+    $items = $full_trace;
     $output = '';
     foreach ($items as $item) {
         if (array_key_exists('file', $item)) {
@@ -101,7 +105,7 @@ function exception_message($exc) {
         }
     }
     $message = '[' . get_class($exc) . '] ' . $output . "\n\n";
-    return substr($message, 0, 1000);
+    return substr($message, 0, LOG_CHARS_LENGTH);
 }
 
 

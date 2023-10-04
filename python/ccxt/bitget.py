@@ -3604,7 +3604,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data')
         if data is not None:
-            return self.safe_value_2(data, 'orderList', 'data', [])
+            return self.safe_value(data, 'orderList', data)
         parsedData = json.loads(response)
         return self.safe_value(parsedData, 'data', [])
 
