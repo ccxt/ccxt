@@ -11,5 +11,5 @@ $ex = new \ccxt\kucoin();
 $ex->add_method('fetch_tickers', function ($params = null) {
     return 'hello world';
 });
-var_dump($ex->fetch_tickers());
+var_dump($ex->call_method('fetch_tickers'));
 

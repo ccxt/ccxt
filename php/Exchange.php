@@ -1575,7 +1575,6 @@ class Exchange {
         // support dynamic overloads
         $function_lower = strtolower($function);
         if (is_callable($this->overriden_methods[$function_lower])) {
-            // array_unshift($params, $this); //Add the object to the argument list as the first
             return call_user_func_array($this->overriden_methods[$function_lower], $params);
         }
         // support camelCase & snake_case functions
@@ -1589,8 +1588,16 @@ class Exchange {
         throw new ExchangeError($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
     }
 
-    public function add_method($name, $callback) { 
-        $this->overriden_methods[strtolower($name)] = $callback;
+    public function add_method($function_name, $callback) { 
+        $function_name = strtolower($function_name);
+        $this->overriden_methods[$function_name] = $callback;
+    }
+
+    public function call_method($function_name, $params = []) {
+        $function_name = strtolower($function_name);
+        if (is_callable($this->overriden_methods[$function_name])) {
+            return call_user_func_array($this->overriden_methods[$function_name], $params);
+        }
     }
 
     public function __sleep() {
