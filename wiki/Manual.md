@@ -305,26 +305,29 @@ In all CCXT-supported languages, you can override instance methods during runtim
 ```javascript
 // JavaScript
 const ex = new ccxt.binance ();
-ex.fetch_tickers = function (params) {
+ex.fetch_ticker = function (symbol, params = {}) {
     // your codes go here
 };
+console.log (ex.fetch_ticker('BTC/USDT'));
 ```
 
 ```python
 # PYTHON
 ex = ccxt.binance()
-def my_overload:
+def my_overload(symbol, params = {}):
     # your codes go here
 
-ex.fetch_tickers = my_overload
+ex.fetch_ticker = my_overload
+print(ex.fetch_ticker('BTC/USDT'))
 ```
 
 ```php
 // PHP
 $ex = new \ccxt\binance();
-$ex->add_method('fetch_tickers', function($params) {
+$ex->add_method('fetch_ticker', function($symbol, $params = []) {
     // your codes go here
 });
+var_dump($ex->call_method('fetch_ticker', ['BTC/USDT']));
 ```
 
 ### Testnets And Sandbox Environments
