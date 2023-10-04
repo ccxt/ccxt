@@ -1992,6 +1992,8 @@ export default class Exchange {
             const tradesAreParsed = ((firstTrade !== undefined) && ('info' in firstTrade) && ('id' in firstTrade));
             if (!tradesAreParsed) {
                 trades = this.parseTrades (rawTrades, market);
+            } else {
+                trades = rawTrades;
             }
             this.number = oldNumber;
             let tradesLength = 0;
