@@ -4621,6 +4621,24 @@ export default class Exchange {
         return this.removeRepeatedElementsFromArray (result);
     }
 
+    async safeDeterministicCall (method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}) {
+        let maxRetries = undefined;
+        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        let errors = 0;
+        try {
+            if (timeframe && method !== 'fetchFundingRateHistory') {
+                return await this[method] (symbol, timeframe, since, limit, params);
+            } else {
+                return await this[method] (symbol, since, limit, params);
+            }
+        } catch (e) {
+            errors += 1;
+            if (errors > maxRetries) {
+                throw e;
+            }
+        }
+    }
+
     async fetchPaginatedCallDeterministic (method: string, symbol: string = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = undefined): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
@@ -4634,11 +4652,7 @@ export default class Exchange {
             currentSince = Math.max (currentSince, since);
         }
         for (let i = 0; i < maxCalls; i++) {
-            if (timeframe && method !== 'fetchFundingRateHistory') {
-                tasks.push (this[method] (symbol, timeframe, currentSince, maxEntriesPerRequest, params));
-            } else {
-                tasks.push (this[method] (symbol, currentSince, maxEntriesPerRequest, params));
-            }
+            tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequest, timeframe, params));
             currentSince = currentSince + step - 1;
         }
         const results = await Promise.all (tasks);
