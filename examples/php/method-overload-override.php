@@ -9,25 +9,25 @@ date_default_timezone_set('UTC');
 // ###############################################
 // ####### APPROACH 1: Overload the method #######
 // ###############################################
-function my_1() {
+function example_1() {
     $ex = new \ccxt\kucoin();
     $ex->add_method('fetch_ticker', function($symbol, $params = []) {
-        return 'hello world';
+        return 'hello from the overload method';
     });
     var_dump($ex->call_method('fetch_ticker', ['BTC/USDT']));
 }
-my_1();
+example_1();
 
 
 // ###############################################
 // ####### APPROACH 2: extend the class    #######
 // ###############################################
-function my_2() {
+function example_2() {
     $ex = new class extends \ccxt\kucoin {
         public function fetch_ticker($symbol, $params = []) {
             return 'Hello from the anonymous class!';
         }
     };
-    $ex->fetch_ticker('fetch_ticker', ['BTC/USDT']);
+    var_dump($ex->fetch_ticker('fetch_ticker', ['BTC/USDT']));
 }
-my_2();
+example_2();
