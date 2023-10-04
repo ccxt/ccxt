@@ -4551,7 +4551,7 @@ export default class Exchange {
         if (maxEntriesPerRequest === undefined) {
             maxEntriesPerRequest = 1000; // default to 1000
         }
-        return [ newMaxEntriesPerRequest, params ];
+        return [ maxEntriesPerRequest, params ];
     }
 
     async fetchPaginatedCallDynamic (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined): Promise<any> {
