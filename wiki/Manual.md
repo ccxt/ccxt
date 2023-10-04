@@ -1686,7 +1686,7 @@ We can't perform an infinite amount of requests, and some of them might throw an
 - **paginationCalls**: (**integer**) allows the user to control the maximum amount of requests to paginate the data. Due to the rate limits, this value should not be too high. Default is 10.
 - **maxRetries**: (**integer**) how many times should the pagination mechanism retry upon getting an error. Default is 3
 - **paginationDirection**: (**string**) Only applies to the dynamic pagination and it can be either *forward* (start the pagination from some time in the past and paginate forward) or *backward* (start from the most recent time and paginate backward). If *forward* is selected then a *since* parameter must also be provided. Default is *backward*.
-- **maxEntriesPerRequest**: (**integer**): The max amount of entries per request so that we can maximize the data retrieved per call. CCXT will populate this value for you, but you can override it if needed.
+- **maxEntriesPerRequest**: (**integer**): The max amount of entries per request so that we can maximize the data retrieved per call. It varies from endpoint to endpoint and CCXT will populate this value for you, but you can override it if needed.
 
 #### Examples
 
