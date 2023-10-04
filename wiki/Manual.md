@@ -312,7 +312,7 @@ ex.fetch_tickers = function (params) {
 
 ```python
 # PYTHON
-ex = ccxt.binance ()
+ex = ccxt.binance()
 def my_overload:
     # your codes go here
 
@@ -321,8 +321,8 @@ ex.fetch_tickers = my_overload
 
 ```php
 // PHP
-$ex = new \ccxt\binance ();
-$ex->add_method ('fetch_tickers', function($params) {
+$ex = new \ccxt\binance();
+$ex->add_method('fetch_tickers', function($params) {
     // your codes go here
 });
 ```
