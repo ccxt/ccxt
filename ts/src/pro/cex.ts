@@ -987,7 +987,7 @@ export default class cex extends cexRest {
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger2 (data, 'timestamp_ms', 'timestamp');
-        const incrementalId = this.safeNumber (data, 'id');
+        const incrementalId = this.safeInteger (data, 'id');
         const orderbook = this.orderBook ({});
         const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
         snapshot['nonce'] = incrementalId;
