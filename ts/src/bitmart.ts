@@ -75,6 +75,7 @@ export default class bitmart extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionMode': false,
+                'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -3833,6 +3834,66 @@ export default class bitmart extends Exchange {
         const first = this.safeValue (data, 0, {});
         const position = this.parsePosition (first, market);
         return position;
+    }
+
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchPositions
+         * @description fetch all open contract positions
+         * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbols !== undefined) {
+            const first = this.safeString (symbols, 0);
+            market = this.market (first);
+        }
+        const request = {};
+        if (symbols !== undefined) {
+            // only supports symbols as undefined or sending one symbol
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetContractPrivatePosition (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "leverage": "10",
+        //                 "timestamp": 1696392515269,
+        //                 "current_fee": "0.0014250028",
+        //                 "open_timestamp": 1696392256998,
+        //                 "current_value": "27.4039",
+        //                 "mark_price": "27.4039",
+        //                 "position_value": "27.4079",
+        //                 "position_cross": "3.75723474",
+        //                 "maintenance_margin": "0.1370395",
+        //                 "close_vol": "0",
+        //                 "close_avg_price": "0",
+        //                 "open_avg_price": "27407.9",
+        //                 "entry_price": "27407.9",
+        //                 "current_amount": "1",
+        //                 "unrealized_value": "-0.004",
+        //                 "realized_value": "-0.01644474",
+        //                 "position_type": 1
+        //             },
+        //         ],
+        //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
+        //     }
+        //
+        const positions = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        symbols = this.marketSymbols (symbols);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     parsePosition (position, market = undefined) {
