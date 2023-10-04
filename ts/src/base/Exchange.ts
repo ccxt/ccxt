@@ -4573,7 +4573,7 @@ export default class Exchange {
             paginationTimestamp = since;
         }
         while ((calls < maxCalls)) {
-            calls = calls + 1;
+            calls += 1;
             try {
                 if (paginationDirection === 'backward') {
                     // do it backwards, starting from the last
@@ -4612,10 +4612,10 @@ export default class Exchange {
                     paginationTimestamp = this.safeInteger (last, 'timestamp') - 1;
                 }
             } catch (e) {
-                if (errors + 1 > maxRetries) {
+                errors += 1;
+                if (errors > maxRetries) {
                     throw e;
                 }
-                errors = errors + 1;
             }
         }
         return this.removeRepeatedElementsFromArray (result);
@@ -4697,12 +4697,12 @@ export default class Exchange {
                     break;
                 }
             } catch (e) {
-                if (i + 1 > maxRetries) {
+                errors += 1;
+                if (i > maxRetries) {
                     throw e;
                 }
-                errors = errors + 1;
             }
-            i = i + 1;
+            i += 1;
         }
         return result as any;
     }
