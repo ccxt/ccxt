@@ -1569,6 +1569,8 @@ class Exchange {
         return (count($parts) > 1) ? strlen($parts[1]) : 0;
     }
 
+    protected $overriden_methods = array();
+
     public function __call($function, $params) {
         if (!preg_match('/^[A-Z0-9_]+$/', $function)) {
             $underscore = static::underscore($function);
@@ -1576,8 +1578,17 @@ class Exchange {
                 return call_user_func_array(array($this, $underscore), $params);
             }
         }
+        $function_lower = strtolower($function);
+        if (is_callable($this->overriden_methods[$function_lower])) {
+            // array_unshift($params, $this); //Add the object to the argument list as the first
+            return call_user_func_array($this->overriden_methods[$function_lower], $params);
+        }
         /* handle errors */
         throw new ExchangeError($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
+    }
+
+    public function add_method($name, $callback) { 
+        $this->overriden_methods[strtolower($name)] = $callback;
     }
 
     public function __sleep() {
