@@ -4679,7 +4679,7 @@ export default class Exchange {
                     if (cursorIncrement !== undefined) {
                         cursorValue = this.parseToInt (cursorValue) + cursorIncrement;
                     }
-                    params[cursorRequestKey] = cursorValue;
+                    params[cursorResponseKey] = cursorValue;
                 }
                 const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
                 errors = 0;
@@ -4688,7 +4688,7 @@ export default class Exchange {
                 }
                 result = this.arrayConcat (result, response);
                 const last = this.safeValue (response, response.length - 1);
-                cursorValue = this.safeValue (last['info'], cursorResponseKey);
+                cursorValue = this.safeValue (last['info'], cursorRequestKey);
                 if (cursorValue === undefined) {
                     break;
                 }
