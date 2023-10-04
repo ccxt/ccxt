@@ -657,6 +657,8 @@ class Exchange(object):
         elif self.is_text_response(headers):
             return http_response
         else:
+            if isinstance(response.content, bytes):
+                return response.content.decode('utf8')
             return response.content
 
     def parse_json(self, http_response):
