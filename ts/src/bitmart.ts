@@ -3832,8 +3832,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0, {});
-        const position = this.parsePosition (first, market);
-        return position;
+        return this.parsePosition (first, market);
     }
 
     async fetchPositions (symbols: string[] = undefined, params = {}) {
