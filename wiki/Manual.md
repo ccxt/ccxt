@@ -1676,7 +1676,7 @@ Right now, we have three different ways of paginating:
 
 The user cannot select the pagination method used, it will depend from implementation to implementation, considering the exchange API's features.
 
-#### Options
+#### Pagination params
 
 We can't perform an infinite amount of requests, and some of them might throw an error for different reasons, thus, we have some options that allow the user to control these variables and other pagination specificities.
 
@@ -1694,7 +1694,7 @@ We can't perform an infinite amount of requests, and some of them might throw an
 
 trades = await binance.fetch_trades("BTC/USDT", params = {"paginate": True}) # dynamic/time-based
 
-ohlcv = await binance.fetch_ohlcv("BTC/USDT", params = {"Paginate": True, "paginationCalls": 5}) # deterministic-pagination will perform 5 requests
+ohlcv = await binance.fetch_ohlcv("BTC/USDT", params = {"paginate": True, "paginationCalls": 5}) # deterministic-pagination will perform 5 requests
 
 trades = await binance.fetch_trades("BTC/USDT", since = 1664812416000, params = {"paginate": True, "paginationDirection": "forward"}) # dynamic/time-based pagination starting from 1664812416000
 
