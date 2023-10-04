@@ -4542,9 +4542,21 @@ export default class Exchange {
         return res;
     }
 
-    async fetchPaginatedCallDynamic (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = 1000): Promise<any> {
+    handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest = undefined, params = {}) {
+        let newMaxEntriesPerRequest = undefined;
+        [ newMaxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
+        if ((newMaxEntriesPerRequest !== undefined) && (newMaxEntriesPerRequest !== maxEntriesPerRequest)) {
+            maxEntriesPerRequest = newMaxEntriesPerRequest;
+        }
+        if (maxEntriesPerRequest === undefined) {
+            maxEntriesPerRequest = 1000; // default to 1000
+        }
+        return [ newMaxEntriesPerRequest, params ];
+    }
+
+    async fetchPaginatedCallDynamic (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined): Promise<any> {
         let maxCalls = undefined;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 20);
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
         let paginationDirection = undefined;
@@ -4553,6 +4565,7 @@ export default class Exchange {
         let calls = 0;
         let result = [];
         let errors = 0;
+        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         if ((paginationDirection === 'forward')) {
             if (since === undefined) {
                 throw new ArgumentsRequired (this.id + ' pagination requires a since argument when paginationDirection set to forward');
@@ -4573,11 +4586,11 @@ export default class Exchange {
                     if (this.verbose) {
                         this.log ('Dynamic pagination call', calls, 'method', method, 'response length', responseLength, 'timestamp', paginationTimestamp);
                     }
-                    errors = 0;
-                    result = this.arrayConcat (result, response);
-                    if (responseLength < maxEntriesPerRequest) {
+                    if (responseLength === 0) {
                         break;
                     }
+                    errors = 0;
+                    result = this.arrayConcat (result, response);
                     const firstElement = this.safeValue (response, 0);
                     paginationTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
                     if ((since !== undefined) && (paginationTimestamp <= since)) {
@@ -4590,7 +4603,7 @@ export default class Exchange {
                     if (this.verbose) {
                         this.log ('Dynamic pagination call', calls, 'method', method, 'response length', responseLength, 'timestamp', paginationTimestamp);
                     }
-                    if (responseLength < maxEntriesPerRequest) {
+                    if (responseLength === 0) {
                         break;
                     }
                     errors = 0;
@@ -4610,15 +4623,8 @@ export default class Exchange {
 
     async fetchPaginatedCallDeterministic (method: string, symbol: string = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = undefined): Promise<any> {
         let maxCalls = undefined;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 20);
-        let newMaxEntriesPerRequest = undefined;
-        [ newMaxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
-        if ((newMaxEntriesPerRequest !== undefined) && (newMaxEntriesPerRequest !== maxEntriesPerRequest)) {
-            maxEntriesPerRequest = newMaxEntriesPerRequest;
-        }
-        if (maxEntriesPerRequest === undefined) {
-            maxEntriesPerRequest = 1000; // default to 1000
-        }
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
+        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         const current = this.milliseconds ();
         const tasks = [];
         const time = this.parseTimeframe (timeframe) * 1000;
@@ -4645,17 +4651,10 @@ export default class Exchange {
 
     async fetchPaginatedCallCursor (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, cursorRequestKey = undefined, cursorResponseKey = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined): Promise<any> {
         let maxCalls = undefined;
-        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 20);
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
-        let newMaxEntriesPerRequest = undefined;
-        [ newMaxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
-        if ((newMaxEntriesPerRequest !== undefined) && (newMaxEntriesPerRequest !== maxEntriesPerRequest)) {
-            maxEntriesPerRequest = newMaxEntriesPerRequest;
-        }
-        if (maxEntriesPerRequest === undefined) {
-            maxEntriesPerRequest = 1000; // default to 1000
-        }
+        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         let cursorValue = undefined;
         let i = 0;
         let errors = 0;
@@ -4677,6 +4676,10 @@ export default class Exchange {
                 const last = this.safeValue (response, response.length - 1);
                 cursorValue = this.safeValue (last['info'], cursorResponseKey);
                 if (cursorValue === undefined) {
+                    break;
+                }
+                const responseLength = response.length;
+                if (responseLength === 0) {
                     break;
                 }
             } catch (e) {
