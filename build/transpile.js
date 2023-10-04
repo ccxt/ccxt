@@ -2488,6 +2488,8 @@ class Transpiler {
                         [ /new \$ccxt->/g, 'new \\ccxt\\' + asyncSub ],
                         // cases like: exchange = new ccxt['huobi' or varname] ()
                         [ /new \$ccxt\[(?:['"]|)(.*?)(?:['"]|)\]\(/g, 'new (\'\\\\ccxt\\\\' + asyncSub + '$1\')(' ],
+                        // cases like: async\pro->kucoin
+                        [ /async\\pro->/g, 'pro\\' ],
                     ];
                     return this.regexAll (body, regexes);
                 };
