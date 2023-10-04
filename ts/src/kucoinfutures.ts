@@ -530,7 +530,7 @@ export default class kucoinfutures extends kucoin {
         //        data: 1637385119302,
         //    }
         //
-        return this.safeNumber (response, 'data');
+        return this.safeInteger (response, 'data');
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
