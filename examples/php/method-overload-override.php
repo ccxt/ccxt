@@ -8,8 +8,8 @@ date_default_timezone_set('UTC');
 
 
 $ex = new \ccxt\kucoin();
-$ex->add_method('fetch_xyz', function ($params = null) {
+$ex->add_method('fetch_tickers', function ($params = null) {
     return 'hello world';
 });
-print($ex->fetch_xyz());
+var_dump($ex->fetch_tickers());
 
