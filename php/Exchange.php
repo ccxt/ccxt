@@ -1572,17 +1572,17 @@ class Exchange {
     protected $overriden_methods = array();
 
     public function __call($function, $params) {
-        // support dynamic overloads
-        $function_lower = strtolower($function);
-        if (is_callable($this->overriden_methods[$function_lower])) {
-            return call_user_func_array($this->overriden_methods[$function_lower], $params);
-        }
         // support camelCase & snake_case functions
         if (!preg_match('/^[A-Z0-9_]+$/', $function)) {
             $underscore = static::underscore($function);
             if (method_exists($this, $underscore)) {
                 return call_user_func_array(array($this, $underscore), $params);
             }
+        }
+        // support dynamic overloads
+        $function_lower = strtolower($function);
+        if (is_callable($this->overriden_methods[$function_lower])) {
+            return call_user_func_array($this->overriden_methods[$function_lower], $params);
         }
         /* handle errors */
         throw new ExchangeError($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
