@@ -4702,7 +4702,7 @@ export default class Exchange {
                 }
             } catch (e) {
                 errors += 1;
-                if (i > maxRetries) {
+                if (errors > maxRetries) {
                     throw e;
                 }
             }
