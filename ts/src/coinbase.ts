@@ -2616,23 +2616,39 @@ export default class coinbase extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch, not used by coinbase
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 299);
+        }
         const market = this.market (symbol);
-        const end = this.seconds ().toString ();
         const request = {
             'product_id': market['id'],
             'granularity': this.safeString (this.timeframes, timeframe, timeframe),
-            'end': end,
         };
+        const until = this.safeValueN (params, [ 'until', 'till', 'end' ]);
+        params = this.omit (params, [ 'until', 'till' ]);
+        const duration = this.parseTimeframe (timeframe);
+        const candles300 = 300 * duration;
+        let sinceString = undefined;
         if (since !== undefined) {
-            const sinceString = since.toString ();
-            const timeframeToSeconds = Precise.stringDiv (sinceString, '1000');
-            request['start'] = this.decimalToPrecision (timeframeToSeconds, TRUNCATE, 0, DECIMAL_PLACES);
+            sinceString = this.numberToString (this.parseToInt (since / 1000));
         } else {
-            request['start'] = Precise.stringSub (end, '18000'); // default to 5h in seconds, max 300 candles
+            const now = this.seconds ().toString ();
+            sinceString = Precise.stringSub (now, candles300.toString ());
         }
+        request['start'] = sinceString;
+        let endString = this.numberToString (until);
+        if (until === undefined) {
+            // 300 candles max
+            endString = Precise.stringAdd (sinceString, candles300.toString ());
+        }
+        request['end'] = endString;
         const response = await this.v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
         //
         //     {
