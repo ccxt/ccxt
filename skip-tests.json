@@ -47,7 +47,7 @@
         }
     },
     "binance": {
-        "httpProxy": "http://51.83.140.52:11230",
+        "httpProxy": "http://5.75.153.75:8002",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -78,7 +78,7 @@
         }
     },
     "binancecoinm": {
-        "httpProxy": "http://51.83.140.52:11230",
+        "httpProxy": "http://5.75.153.75:8002",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -96,7 +96,7 @@
         }
     },
     "binanceusdm": {
-        "httpProxy": "http://51.83.140.52:11230",
+        "httpProxy": "http://5.75.153.75:8002",
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": {
@@ -119,7 +119,7 @@
         }
     },
     "tokocrypto": {
-        "httpProxy": "http://51.83.140.52:11230",
+        "httpProxy": "http://5.75.153.75:8002",
         "skipWs": true
     },
     "bitbank": {
@@ -504,7 +504,7 @@
         }
     },
     "buda": {
-        "httpProxy": "http://51.83.140.52:11230"
+        "httpProxy": "http://5.75.153.75:8002"
     },
     "bigone": {
         "skipMethods": {
@@ -912,7 +912,7 @@
         }
     },
     "kuna": {
-        "httpProxy": "http://51.83.140.52:11230"
+        "httpProxy": "http://5.75.153.75:8002"
     },
     "kucoin": {
         "skipWs": true,
@@ -1234,7 +1234,7 @@
         }
     },
     "ripio": {
-        "httpProxy": "http://51.83.140.52:11230",
+        "httpProxy": "http://5.75.153.75:8002",
         "skipWs": true
     },
     "timex": {
