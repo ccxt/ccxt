@@ -23,6 +23,8 @@ class Throttler {
         Object.assign (this.config, config);
         this.priorityQueue = {}; // Set priority here
         this.running = false;
+        
+        this.isActive = true;
     }
 
     /**
@@ -38,6 +40,10 @@ class Throttler {
         };
     }
 
+    stop() {
+        this.isActive = false
+    }
+
     async loop () {
         let lastTimestamp = now ();
         while (this.running) {
@@ -50,9 +56,9 @@ class Throttler {
 
             const { resolver, cost, rejecter, timestamp, expireInterval } = highestPriorityQueue[0];
     
-            if (this.config['tokens'] >= 0) {
+            if (this.config['tokens'] >= 0 || !this.isActive) {
                 // check if the request is expired
-                if (expireInterval !== undefined && timestamp + expireInterval < now ()) {
+                if (expireInterval !== undefined && timestamp + expireInterval < now () || !this.isActive) {
                     rejecter (new Error ('Request expired'));
                 } else {
                     this.config['tokens'] -= cost;
