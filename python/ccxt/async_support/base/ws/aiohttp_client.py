@@ -73,7 +73,9 @@ class AiohttpClient(Client):
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
         # call aenter here to simulate async with otherwise we get the error "await not called with future"
         # if connecting to a non-existent endpoint
-        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), proxy = self.proxy).__aenter__()
+        if (self.proxy):
+            session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), proxy = self.proxy).__aenter__()
+        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers')).__aenter__()
 
     async def send(self, message):
         if self.verbose:
