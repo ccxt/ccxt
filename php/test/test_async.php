@@ -47,6 +47,7 @@ define ('is_synchronous', stripos(__FILE__, '_async') === false);
 define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
 define('ext', 'php');
+define('supportedProxyTests', ['proxyUrl', 'httpProxy']);
 
 function dump(...$s) {
     $args = array_map(function ($arg) {
