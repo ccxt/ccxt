@@ -524,7 +524,7 @@ class kucoinfutures extends kucoin {
         //        data => 1637385119302,
         //    }
         //
-        return $this->safe_number($response, 'data');
+        return $this->safe_integer($response, 'data');
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {

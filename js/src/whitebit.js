@@ -856,7 +856,7 @@ export default class whitebit extends Exchange {
         //          ]
         //      }
         //
-        const timestamp = this.parseNumber(Precise.stringMul(this.safeString(response, 'timestamp'), '1000'));
+        const timestamp = this.parseToInt(Precise.stringMul(this.safeString(response, 'timestamp'), '1000'));
         return this.parseOrderBook(response, symbol, timestamp);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
