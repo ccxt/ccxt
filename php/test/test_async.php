@@ -253,6 +253,7 @@ class testMainClass extends baseMainTestClass {
         if ($timeout !== null) {
             $exchange->timeout = $timeout;
         }
+        $exchange->httpProxy = $exchange->safe_string($skippedSettingsForExchange, 'httpProxy');
         $exchange->httpsProxy = $exchange->safe_string($skippedSettingsForExchange, 'httpsProxy');
         $this->skippedMethods = $exchange->safe_value($skippedSettingsForExchange, 'skipMethods', array());
         $this->checkedPublicTests = array();
