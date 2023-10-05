@@ -91,6 +91,8 @@ async function importTestFile (filePath) {
     return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
 }
 
+const supportedProxyTests = [ 'proxyUrl', 'httpProxy' ]; // todo: , 'httpsProxy', 'socksProxy'
+
 async function setTestFiles (holderClass, properties) {
     // exchange tests
     for (let i = 0; i < properties.length; i++) {
@@ -106,6 +108,16 @@ async function setTestFiles (holderClass, properties) {
     for (let i = 0; i < errorHierarchyKeys.length; i++) {
         const name = errorHierarchyKeys[i];
         const filePathWoExt = DIR_NAME + '/base/errors/test.' + name;
+        if (ioFileExists (filePathWoExt + '.' + ext)) {
+            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+            holderClass.testFiles[name] = await importTestFile (filePathWoExt);
+        }
+    }
+    // proxy tests
+    const proxyTests = supportedProxyTests;
+    for (let i = 0; i < proxyTests.length; i++) {
+        const name = proxyTests[i];
+        const filePathWoExt = DIR_NAME + '/Exchange/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             holderClass.testFiles[name] = await importTestFile (filePathWoExt);
@@ -230,7 +242,9 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         let skipMessage = undefined;
-        if (!isLoadMarkets && (!(methodName in exchange.has) || !exchange.has[methodName])) {
+        const isProxyTest = exchange.inArray (methodName, supportedProxyTests);
+        const supportedByExchange = methodName in exchange.has && exchange.has[methodName];
+        if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
             skipMessage = '[INFO:SKIPPED_TEST]';
@@ -713,6 +727,17 @@ export default class testMainClass extends baseMainTestClass {
         }
     }
 
+    async testProxies (exchange) {
+        // these tests should be synchronously executed, because of conflicting nature of proxy settings
+        for (let i = 0; i < supportedProxyTests.length; i++) {
+            const proxyTestName = supportedProxyTests[i];
+            const result = await this.testSafe (proxyTestName, exchange, [], true);
+            if (!result) {
+                throw new Error ('[TEST_FAILURE] ' + proxyTestName + ' failed');
+            }
+        }
+    }
+
     async startTest (exchange, symbol) {
         // we do not need to test aliases
         if (exchange.alias) {
@@ -728,6 +753,7 @@ export default class testMainClass extends baseMainTestClass {
                 await close (exchange);
                 return;
             }
+            await this.testProxies (exchange);
             await this.testExchange (exchange, symbol);
             await close (exchange);
         } catch (e) {
