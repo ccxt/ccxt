@@ -1445,6 +1445,15 @@ class kraken extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'userref');
         $rawTrades = $this->safe_value($order, 'trades');
+        $trades = array();
+        for ($i = 0; $i < count($rawTrades); $i++) {
+            $rawTrade = $rawTrades[$i];
+            if (gettype($rawTrade) === 'string') {
+                $trades[] = $this->safe_trade(array( 'id' => $rawTrade, 'orderId' => $id, 'symbol' => $symbol, 'info' => array()));
+            } else {
+                $trades[] = $rawTrade;
+            }
+        }
         $stopPrice = $this->safe_number($order, 'stopprice', $stopPrice);
         return $this->safe_order(array(
             'id' => $id,
@@ -1468,7 +1477,7 @@ class kraken extends Exchange {
             'average' => $average,
             'remaining' => null,
             'fee' => $fee,
-            'trades' => $rawTrades,
+            'trades' => $trades,
         ), $market);
     }
 

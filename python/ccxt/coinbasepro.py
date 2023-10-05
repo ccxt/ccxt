@@ -125,6 +125,7 @@ class coinbasepro(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': [
+                        'address-book',
                         'accounts',
                         'accounts/{id}',
                         'accounts/{id}/holds',

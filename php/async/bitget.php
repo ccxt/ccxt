@@ -3808,7 +3808,7 @@ class bitget extends Exchange {
             //
             $data = $this->safe_value($response, 'data');
             if ($data !== null) {
-                return $this->safe_value_2($data, 'orderList', 'data', array());
+                return $this->safe_value($data, 'orderList', $data);
             }
             $parsedData = json_decode($response, $as_associative_array = true);
             return $this->safe_value($parsedData, 'data', array());

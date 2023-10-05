@@ -1299,6 +1299,12 @@ export default class Exchange {
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' watchTradesForSymbols() is not supported yet');
     }
+    async watchMyTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchMyTradesForSymbols() is not supported yet');
+    }
+    async watchOrdersForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchOrdersForSymbols() is not supported yet');
+    }
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' watchOHLCVForSymbols() is not supported yet');
     }
@@ -1671,6 +1677,9 @@ export default class Exchange {
             const tradesAreParsed = ((firstTrade !== undefined) && ('info' in firstTrade) && ('id' in firstTrade));
             if (!tradesAreParsed) {
                 trades = this.parseTrades(rawTrades, market);
+            }
+            else {
+                trades = rawTrades;
             }
             this.number = oldNumber;
             let tradesLength = 0;

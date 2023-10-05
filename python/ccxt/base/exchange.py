@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.0.112'
+__version__ = '4.1.3'
 
 # -----------------------------------------------------------------------------
 
@@ -657,6 +657,8 @@ class Exchange(object):
         elif self.is_text_response(headers):
             return http_response
         else:
+            if isinstance(response.content, bytes):
+                return response.content.decode('utf8')
             return response.content
 
     def parse_json(self, http_response):
@@ -1858,6 +1860,12 @@ class Exchange(object):
     def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchTradesForSymbols() is not supported yet')
 
+    def watch_my_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchMyTradesForSymbols() is not supported yet')
+
+    def watch_orders_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchOrdersForSymbols() is not supported yet')
+
     def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' watchOHLCVForSymbols() is not supported yet')
 
@@ -2191,6 +2199,8 @@ class Exchange(object):
             tradesAreParsed = ((firstTrade is not None) and ('info' in firstTrade) and ('id' in firstTrade))
             if not tradesAreParsed:
                 trades = self.parse_trades(rawTrades, market)
+            else:
+                trades = rawTrades
             self.number = oldNumber
             tradesLength = 0
             isArray = isinstance(trades, list)

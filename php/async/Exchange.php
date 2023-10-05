@@ -40,11 +40,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.112';
+$version = '4.1.3';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.112';
+    const VERSION = '4.1.3';
 
     public $browser;
     public $marketsLoading = null;
@@ -514,6 +514,14 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchTradesForSymbols() is not supported yet');
     }
 
+    public function watch_my_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchMyTradesForSymbols() is not supported yet');
+    }
+
+    public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOrdersForSymbols() is not supported yet');
+    }
+
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOHLCVForSymbols() is not supported yet');
     }
@@ -913,6 +921,8 @@ class Exchange extends \ccxt\Exchange {
             $tradesAreParsed = (($firstTrade !== null) && (is_array($firstTrade) && array_key_exists('info', $firstTrade)) && (is_array($firstTrade) && array_key_exists('id', $firstTrade)));
             if (!$tradesAreParsed) {
                 $trades = $this->parse_trades($rawTrades, $market);
+            } else {
+                $trades = $rawTrades;
             }
             $this->number = $oldNumber;
             $tradesLength = 0;

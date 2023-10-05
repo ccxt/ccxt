@@ -812,6 +812,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://docs.kucoin.com/#server-time
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -831,6 +832,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchStatus
          * @description the latest known information on the availability of the exchange API
+         * @see https://docs.kucoin.com/#service-status
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @returns {object} a [status structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure}
          */
@@ -860,6 +862,8 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchMarkets
          * @description retrieves data on all markets for kucoin
+         * @see https://docs.kucoin.com/#get-symbols-list-deprecated
+         * @see https://docs.kucoin.com/#get-all-tickers
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -999,6 +1003,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.kucoin.com/#get-currencies
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -1096,7 +1101,7 @@ export default class kucoin extends Exchange {
             }
             for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
-                const chainId = this.safeString (chain, 'chain');
+                const chainId = this.safeString (chain, 'chainId');
                 const networkCode = this.networkIdToCode (chainId);
                 const chainWithdrawEnabled = this.safeValue (chain, 'isWithdrawEnabled', false);
                 if (isWithdrawEnabled === undefined) {
@@ -1158,6 +1163,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see https://docs.kucoin.com/#list-accounts
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
          */
@@ -1441,6 +1447,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://docs.kucoin.com/#get-all-tickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
@@ -1496,6 +1503,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.kucoin.com/#get-24hr-stats
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
@@ -1559,6 +1567,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.kucoin.com/#get-klines
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1639,6 +1648,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://docs.kucoin.com/#get-deposit-addresses-v2
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @param {string} [params.network] the blockchain network name
@@ -1739,6 +1749,8 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.kucoin.com/#get-part-order-book-aggregated
+         * @see https://docs.kucoin.com/#get-full-order-book-aggregated
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
@@ -2198,6 +2210,10 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://docs.kucoin.com/spot#list-orders
+         * @see https://docs.kucoin.com/spot#list-stop-orders
+         * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
+         * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -2218,6 +2234,10 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.kucoin.com/spot#list-orders
+         * @see https://docs.kucoin.com/spot#list-stop-orders
+         * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
+         * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -2491,6 +2511,8 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://docs.kucoin.com/#list-fills
+         * @see https://docs.kucoin.com/spot-hf/#transaction-details
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2613,6 +2635,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.kucoin.com/#get-trade-histories
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -2786,6 +2809,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://docs.kucoin.com/#actual-fee-rate-of-the-trading-pair
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
@@ -2826,6 +2850,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#withdraw
          * @description make a withdrawal
+         * @see https://docs.kucoin.com/#apply-withdraw-2
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -3001,6 +3026,8 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://docs.kucoin.com/#get-deposit-list
+         * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3075,6 +3102,8 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://docs.kucoin.com/#get-withdrawals-list
+         * @see https://docs.kucoin.com/#get-v1-historical-withdrawals-list
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3589,6 +3618,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://docs.kucoin.com/#get-account-ledgers
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined

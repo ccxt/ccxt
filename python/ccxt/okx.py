@@ -2040,13 +2040,23 @@ class okx(Exchange, ImplicitAPI):
         defaultType = self.safe_string(options, 'type', defaultType)  # Candles or HistoryCandles
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
-        method = 'publicGetMarket' + type
         isHistoryCandles = (type == 'HistoryCandles')
+        response = None
         if price == 'mark':
-            method = 'publicGetMarketHistoryMarkPriceCandles' if (isHistoryCandles) else 'publicGetMarketMarkPriceCandles'
+            if isHistoryCandles:
+                response = self.publicGetMarketHistoryMarkPriceCandles(self.extend(request, params))
+            else:
+                response = self.publicGetMarketMarkPriceCandles(self.extend(request, params))
         elif price == 'index':
-            method = 'publicGetMarketHistoryIndexCandles' if (isHistoryCandles) else 'publicGetMarketIndexCandles'
-        response = getattr(self, method)(self.extend(request, params))
+            if isHistoryCandles:
+                response = self.publicGetMarketHistoryIndexCandles(self.extend(request, params))
+            else:
+                response = self.publicGetMarketIndexCandles(self.extend(request, params))
+        else:
+            if isHistoryCandles:
+                response = self.publicGetMarketHistoryCandles(self.extend(request, params))
+            else:
+                response = self.publicGetMarketCandles(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -2239,15 +2249,14 @@ class okx(Exchange, ImplicitAPI):
         """
         self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
-        method = None
-        if marketType == 'funding':
-            method = 'privateGetAssetBalances'
-        else:
-            method = 'privateGetAccountBalance'
         request = {
             # 'ccy': 'BTC,ETH',  # comma-separated list of currency ids
         }
-        response = getattr(self, method)(self.extend(request, query))
+        response = None
+        if marketType == 'funding':
+            response = self.privateGetAssetBalances(self.extend(request, query))
+        else:
+            response = self.privateGetAccountBalance(self.extend(request, query))
         #
         #     {
         #         "code": "0",

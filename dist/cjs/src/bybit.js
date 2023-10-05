@@ -4008,6 +4008,16 @@ class bybit extends bybit$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+         * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+         * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredSymbol('editOrder', symbol);
@@ -4050,9 +4060,9 @@ class bybit extends bybit$1 {
         if (amount !== undefined) {
             request['qty'] = this.amountToPrecision(symbol, amount);
         }
-        let triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
+        let triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeString(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeString(params, 'takeProfitPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
@@ -4063,16 +4073,25 @@ class bybit extends bybit$1 {
             triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
         }
         if (triggerPrice !== undefined) {
-            request['triggerPrice'] = triggerPrice;
+            const triggerPriceRequest = (triggerPrice === '0') ? triggerPrice : this.priceToPrecision(symbol, triggerPrice);
+            request['triggerPrice'] = triggerPriceRequest;
+            const triggerBy = this.safeString(params, 'triggerBy', 'LastPrice');
+            request['triggerBy'] = triggerBy;
         }
         if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                request['stopLoss'] = slTriggerPrice;
+                const slTriggerPrice = this.safeString2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                const stopLossRequest = (slTriggerPrice === '0') ? slTriggerPrice : this.priceToPrecision(symbol, slTriggerPrice);
+                request['stopLoss'] = stopLossRequest;
+                const slTriggerBy = this.safeString(params, 'slTriggerBy', 'LastPrice');
+                request['slTriggerBy'] = slTriggerBy;
             }
             if (isTakeProfit) {
-                const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                request['takeProfit'] = tpTriggerPrice;
+                const tpTriggerPrice = this.safeString2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                const takeProfitRequest = (tpTriggerPrice === '0') ? tpTriggerPrice : this.priceToPrecision(symbol, tpTriggerPrice);
+                request['takeProfit'] = takeProfitRequest;
+                const tpTriggerBy = this.safeString(params, 'tpTriggerBy', 'LastPrice');
+                request['tpTriggerBy'] = tpTriggerBy;
             }
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
