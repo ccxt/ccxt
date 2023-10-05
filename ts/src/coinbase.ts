@@ -2742,9 +2742,16 @@ export default class coinbase extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] the maximum number of trade structures to fetch
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2758,6 +2765,11 @@ export default class coinbase extends Exchange {
         }
         if (since !== undefined) {
             request['start_sequence_timestamp'] = this.iso8601 (since);
+        }
+        const until = this.safeValueN (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            params = this.omit (params, [ 'until', 'till' ]);
+            request['end_sequence_timestamp'] = this.iso8601 (until);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalFills (this.extend (request, params));
         //
@@ -2784,6 +2796,12 @@ export default class coinbase extends Exchange {
         //     }
         //
         const trades = this.safeValue (response, 'fills', []);
+        const first = this.safeValue (trades, 0);
+        const cursor = this.safeString (response, 'cursor');
+        if ((cursor !== undefined) && (cursor !== '')) {
+            first['cursor'] = cursor;
+            trades[0] = first;
+        }
         return this.parseTrades (trades, market, since, limit);
     }
 
