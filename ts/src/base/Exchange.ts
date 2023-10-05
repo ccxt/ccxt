@@ -4691,17 +4691,17 @@ export default class Exchange {
                 }
                 const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
                 errors = 0;
+                const responseLength = response.length;
                 if (this.verbose) {
-                    this.log ('Cursor pagination call', i + 1, 'method', method, 'response length', response.length, 'cursor', cursorValue);
+                    this.log ('Cursor pagination call', i + 1, 'method', method, 'response length', responseLength, 'cursor', cursorValue);
                 }
-                result = this.arrayConcat (result, response);
-                const last = this.safeValue (response, response.length - 1);
-                cursorValue = this.safeValue (last['info'], cursorReceived);
-                if (cursorValue === undefined) {
+                if (responseLength === 0) {
                     break;
                 }
-                const responseLength = response.length;
-                if (responseLength === 0) {
+                result = this.arrayConcat (result, response);
+                const last = this.safeValue (response, responseLength - 1);
+                cursorValue = this.safeValue (last['info'], cursorReceived);
+                if (cursorValue === undefined) {
                     break;
                 }
             } catch (e) {
