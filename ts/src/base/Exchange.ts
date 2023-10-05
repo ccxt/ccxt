@@ -4565,6 +4565,7 @@ export default class Exchange {
         let calls = 0;
         let result = [];
         let errors = 0;
+        const until = this.safeInteger2 (params, 'untill', 'till'); // do not omit it from params here
         [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
         if ((paginationDirection === 'forward')) {
             if (since === undefined) {
@@ -4610,6 +4611,9 @@ export default class Exchange {
                     result = this.arrayConcat (result, response);
                     const last = this.safeValue (response, responseLength - 1);
                     paginationTimestamp = this.safeInteger (last, 'timestamp') - 1;
+                    if ((until !== undefined) && (paginationTimestamp >= until)) {
+                        break;
+                    }
                 }
             } catch (e) {
                 errors += 1;
