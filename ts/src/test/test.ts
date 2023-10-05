@@ -204,6 +204,7 @@ export default class testMainClass extends baseMainTestClass {
         if (timeout !== undefined) {
             exchange.timeout = timeout;
         }
+        exchange.httpProxy = exchange.safeString (skippedSettingsForExchange, 'httpProxy');
         exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
