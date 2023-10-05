@@ -89,6 +89,7 @@ rootDir = current_dir + '/../../../'
 rootDirForSkips = current_dir + '/../../../'
 envVars = os.environ
 ext = 'py'
+supportedProxyTests = ['proxyUrl', 'httpProxy']
 
 
 def dump(*args):
@@ -262,6 +263,7 @@ class testMainClass(baseMainTestClass):
         timeout = exchange.safe_value(skippedSettingsForExchange, 'timeout')
         if timeout is not None:
             exchange.timeout = timeout
+        exchange.httpProxy = exchange.safe_string(skippedSettingsForExchange, 'httpProxy')
         exchange.httpsProxy = exchange.safe_string(skippedSettingsForExchange, 'httpsProxy')
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange, 'skipMethods', {})
         self.checkedPublicTests = {}
