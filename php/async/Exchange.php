@@ -88,16 +88,18 @@ class Exchange extends \ccxt\Exchange {
         if ($httpProxy) {
             if (!array_key_exists($httpProxy, $this->proxyDictionaries)) {
                 include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
-                $this->proxyDictionaries[$httpProxy] = new \Clue\React\HttpProxy\ProxyConnector($httpProxy);
+                $instance = new \Clue\React\HttpProxy\ProxyConnector($httpProxy);
+                $this->proxyDictionaries[$httpProxy] = ['tcp' => $instance, 'dns' => false];
             }
-            $this->set_request_browser(['tcp' => $this->proxyDictionaries[$httpProxy], 'dns' => false]);
+            $this->set_request_browser($this->proxyDictionaries[$httpProxy]);
             $proxyAgentSet = true;
         }  else if ($httpsProxy) {
             if (!array_key_exists($httpsProxy, $this->proxyDictionaries)) {
                 include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
-                $this->proxyDictionaries[$httpsProxy] = new \Clue\React\HttpProxy\ProxyConnector($httpsProxy);
+                $instance = new \Clue\React\HttpProxy\ProxyConnector($httpsProxy);
+                $this->proxyDictionaries[$httpsProxy] = ['tcp' => $instance, 'dns' => false];
             }
-            $this->set_request_browser(['tcp' => $this->proxyDictionaries[$httpsProxy], 'dns' => false]);
+            $this->set_request_browser($this->proxyDictionaries[$httpsProxy]);
             $proxyAgentSet = true;
         } else if ($socksProxy) {
             $className = '\\Clue\\React\\Socks\\Client';
@@ -105,9 +107,10 @@ class Exchange extends \ccxt\Exchange {
                 throw new NotSupported($this->id . ' - to use SOCKS proxy with ccxt, at first you need install module "composer require clue/socks-react"');
             }
             if (!array_key_exists($socksProxy, $this->proxyDictionaries)) {
-                $this->proxyDictionaries[$socksProxy] = new $className($socksProxy);
+                $instance = new $className($socksProxy);
+                $this->proxyDictionaries[$socksProxy] = ['tcp' => $instance, 'dns' => false];
             }
-            $this->set_request_browser(['tcp' => $this->proxyDictionaries[$socksProxy], 'dns' => false]);
+            $this->set_request_browser($this->proxyDictionaries[$socksProxy]);
             $proxyAgentSet = true;
         }
         return $proxyAgentSet;
