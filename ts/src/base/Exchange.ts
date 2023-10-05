@@ -4655,7 +4655,11 @@ export default class Exchange {
         if (since !== undefined) {
             currentSince = Math.max (currentSince, since);
         }
+        const until = this.safeInteger2 (params, 'until', 'till'); // do not omit it here
         for (let i = 0; i < maxCalls; i++) {
+            if ((until !== undefined) && (currentSince >= until)) {
+                break;
+            }
             tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequest, timeframe, params));
             currentSince = currentSince + step - 1;
         }
