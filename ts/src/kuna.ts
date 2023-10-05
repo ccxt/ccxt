@@ -22,7 +22,7 @@ export default class kuna extends Exchange {
             'name': 'Kuna',
             'countries': [ 'UA' ],
             'rateLimit': 1000,
-            'version': 'v4',
+            'version': 'v2',
             'has': {
                 'CORS': undefined,
                 'spot': true,
