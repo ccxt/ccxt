@@ -4672,7 +4672,7 @@ export default class Exchange {
                 break;
             }
             tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequest, timeframe, params));
-            currentSince = currentSince + step - 1;
+            currentSince = this.sum (currentSince, step) - 1;
         }
         const results = await Promise.all (tasks);
         let result = [];
