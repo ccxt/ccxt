@@ -545,7 +545,7 @@ class Exchange(object):
 
         # ##### PROXY & HEADERS #####
         request_headers = self.prepare_request_headers(headers)
-        # proxy "url"
+        # proxy-url
         proxyUrl = self.check_proxy_url_settings(url, method, headers, body)
         if proxyUrl is not None:
             request_headers.update({'Origin': self.origin})

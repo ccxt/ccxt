@@ -2097,6 +2097,7 @@ class Exchange {
         return self::underscore($str);
     }
 
+    // placeholder method in php
     function initialize_proxies(){
         return ;
     }

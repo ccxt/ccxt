@@ -88,7 +88,7 @@ class Exchange extends \ccxt\Exchange {
 
     private $proxyDictionaries = [];
 
-    public function setAndGetProxyAgents($httpProxy, $httpsProxy, $socksProxy) {
+    public function setProxyAgents($httpProxy, $httpsProxy, $socksProxy) {
         $connection_options_for_proxy = null;
         if ($httpProxy) {
             if (!array_key_exists($httpProxy, $this->proxyDictionaries)) {
@@ -124,7 +124,7 @@ class Exchange extends \ccxt\Exchange {
 
             // ##### PROXY & HEADERS #####
             $headers = array_merge($this->headers, $headers ? $headers : array());
-            // proxy "url"
+            // proxy-url
             $proxyUrl = $this->check_proxy_url_settings($url, $method, $headers, $body);
             if ($proxyUrl !== null) {
                 $headers['Origin'] = $this->origin;
@@ -134,7 +134,7 @@ class Exchange extends \ccxt\Exchange {
             // $this->initializeProxies(); // not needed in PHP
             [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
             $proxyAgentSet = $httpProxy || $httpsProxy || $socksProxy;
-            $connection_options_for_proxy = $this->setAndGetProxyAgents($httpProxy, $httpsProxy, $socksProxy);
+            $connection_options_for_proxy = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
             if ($connection_options_for_proxy) {
                 $this->set_request_browser($connection_options_for_proxy);
             }
@@ -293,6 +293,7 @@ class Exchange extends \ccxt\Exchange {
         });
     }
 
+    // placeholder method in php
     function initialize_proxies(){
         return Async\async(function (){
             return ;

@@ -936,7 +936,7 @@ export default class Exchange {
 
         // ##### PROXY & HEADERS #####
         headers = this.extend (this.headers, headers);
-        // proxy "url"
+        // proxy-url
         const proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
         if (proxyUrl !== undefined) {
             // in node we need to set header to *
