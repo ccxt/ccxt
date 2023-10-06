@@ -567,6 +567,7 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name kraken#fetchOHLCV
+         * @see https://docs.futures.kraken.com/#http-api-charts-candles
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -577,12 +578,12 @@ export default class krakenfutures extends Exchange {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 5000);
         }
-        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             'price_type': this.safeString (params, 'price', 'trade'),
