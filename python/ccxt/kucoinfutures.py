@@ -533,7 +533,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #        data: 1637385119302,
         #    }
         #
-        return self.safe_number(response, 'data')
+        return self.safe_integer(response, 'data')
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

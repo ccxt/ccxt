@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.3';
+$version = '4.1.4';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.3';
+    const VERSION = '4.1.4';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2740,6 +2740,8 @@ class Exchange {
             $tradesAreParsed = (($firstTrade !== null) && (is_array($firstTrade) && array_key_exists('info', $firstTrade)) && (is_array($firstTrade) && array_key_exists('id', $firstTrade)));
             if (!$tradesAreParsed) {
                 $trades = $this->parse_trades($rawTrades, $market);
+            } else {
+                $trades = $rawTrades;
             }
             $this->number = $oldNumber;
             $tradesLength = 0;

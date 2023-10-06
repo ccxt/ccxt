@@ -1130,6 +1130,7 @@ class okx extends Exchange {
     public function fetch_status($params = array ()) {
         /**
          * the latest known information on the availability of the exchange API
+         * @see https://www.okx.com/docs-v5/en/#status-get-status
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure status structure}
          */
@@ -1177,6 +1178,7 @@ class okx extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-system-time
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -1198,6 +1200,7 @@ class okx extends Exchange {
     public function fetch_accounts($params = array ()) {
         /**
          * fetch all the accounts associated with a profile
+         * @see https://www.okx.com/docs-v5/en/#trading-$account-rest-api-get-$account-configuration
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$account-structure $account structures} indexed by the $account $type
          */
@@ -1621,6 +1624,7 @@ class okx extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-order-book
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the okx api endpoint
@@ -1722,6 +1726,7 @@ class okx extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-ticker
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
@@ -1811,6 +1816,7 @@ class okx extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-get-tickers
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
@@ -2114,6 +2120,7 @@ class okx extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical funding $rate prices
+         * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-funding-$rate-history
          * @param {string} $symbol unified $symbol of the $market to fetch the funding $rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding $rate to fetch
          * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-$rate-history-structure funding $rate structures} to fetch
@@ -2253,6 +2260,7 @@ class okx extends Exchange {
     public function fetch_trading_fee(string $symbol, $params = array ()) {
         /**
          * fetch the trading fees for a $market
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-fee-rates
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structure}
@@ -2299,6 +2307,8 @@ class okx extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-balance
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
@@ -2810,6 +2820,7 @@ class okx extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
+         * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-cancel-$order
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the okx api endpoint
@@ -2860,6 +2871,8 @@ class okx extends Exchange {
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the okx api endpoint
@@ -3158,6 +3171,8 @@ class okx extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetch an $order by the $id
+         * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-get-$order-details
+         * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-get-algo-$order-details
          * @param {string} $id the $order $id
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra and exchange specific parameters
@@ -3300,6 +3315,8 @@ class okx extends Exchange {
         /**
          * Fetch orders that are still open
          * fetch all unfilled currently open orders
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-list
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-list
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -3447,6 +3464,8 @@ class okx extends Exchange {
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple canceled orders made by the user
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] max number of orders to return, default is null
@@ -3619,6 +3638,8 @@ class okx extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
@@ -3782,6 +3803,7 @@ class okx extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -3841,6 +3863,7 @@ class okx extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
          * @param {string} $id order $id
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -4160,6 +4183,7 @@ class okx extends Exchange {
     public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         /**
          * fetch a dictionary of addresses for a $currency, indexed by network
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structures} indexed by the network
@@ -4200,6 +4224,7 @@ class okx extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a currency associated with this account
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
          * @param {string} $code unified currency $code
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
@@ -4239,6 +4264,7 @@ class okx extends Exchange {
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-withdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -5170,6 +5196,7 @@ class okx extends Exchange {
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a history of internal $transfers made on an account
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
          * @param {string} $code unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch $transfers for
          * @param {int} [$limit] the maximum number of $transfers structures to retrieve
@@ -5334,6 +5361,7 @@ class okx extends Exchange {
     public function fetch_funding_rate(string $symbol, $params = array ()) {
         /**
          * fetch the current funding rate
+         * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-funding-rate
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
@@ -5371,6 +5399,7 @@ class okx extends Exchange {
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this account
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -5588,6 +5617,7 @@ class okx extends Exchange {
     public function set_position_mode($hedged, ?string $symbol = null, $params = array ()) {
         /**
          * set $hedged to true or false for a market
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-position-mode
          * @param {bool} $hedged set to true to use long_short_mode, false for net_mode
          * @param {string} $symbol not used by okx setPositionMode
          * @param {array} [$params] extra parameters specific to the okx api endpoint
@@ -5620,6 +5650,7 @@ class okx extends Exchange {
     public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-leverage
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the okx api endpoint
@@ -5667,6 +5698,7 @@ class okx extends Exchange {
     public function fetch_borrow_rates($params = array ()) {
         /**
          * fetch the borrow interest $rates of all currencies
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-$rate
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-$rate-structure borrow $rate structures}
          */
@@ -5705,6 +5737,7 @@ class okx extends Exchange {
     public function fetch_borrow_rate(string $code, $params = array ()) {
         /**
          * fetch the $rate of interest to borrow a $currency for margin trading
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-$rate
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-$rate-structure borrow $rate structure}
@@ -5800,6 +5833,7 @@ class okx extends Exchange {
     public function fetch_borrow_rate_histories($codes = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is null
+         * @see https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
          * @param {string[]|null} $codes list of unified currency $codes, default is null
          * @param {int} [$since] timestamp in ms of the earliest borrowRate, default is null
          * @param {int} [$limit] max number of borrow rate prices to return, default is null
@@ -5841,6 +5875,7 @@ class okx extends Exchange {
     public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
+         * @see https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
          * @param {string} $code unified $currency $code
          * @param {int} [$since] timestamp for the earliest borrow rate
          * @param {int} [$limit] the maximum number of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structures} to retrieve
@@ -5933,6 +5968,7 @@ class okx extends Exchange {
     public function reduce_margin(string $symbol, $amount, $params = array ()) {
         /**
          * remove margin from a position
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the okx api endpoint
@@ -5944,6 +5980,7 @@ class okx extends Exchange {
     public function add_margin(string $symbol, $amount, $params = array ()) {
         /**
          * add margin
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the okx api endpoint

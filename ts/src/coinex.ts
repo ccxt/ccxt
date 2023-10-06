@@ -897,7 +897,7 @@ export default class coinex extends Exchange {
         //         message: 'OK'
         //     }
         //
-        return this.safeNumber (response, 'data');
+        return this.safeInteger (response, 'data');
     }
 
     async fetchOrderBook (symbol: string, limit = 20, params = {}) {

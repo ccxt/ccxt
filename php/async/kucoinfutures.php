@@ -535,7 +535,7 @@ class kucoinfutures extends kucoin {
             //        data => 1637385119302,
             //    }
             //
-            return $this->safe_number($response, 'data');
+            return $this->safe_integer($response, 'data');
         }) ();
     }
 

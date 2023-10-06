@@ -40,11 +40,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.1.3';
+$version = '4.1.4';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.3';
+    const VERSION = '4.1.4';
 
     public $browser;
     public $marketsLoading = null;
@@ -921,6 +921,8 @@ class Exchange extends \ccxt\Exchange {
             $tradesAreParsed = (($firstTrade !== null) && (is_array($firstTrade) && array_key_exists('info', $firstTrade)) && (is_array($firstTrade) && array_key_exists('id', $firstTrade)));
             if (!$tradesAreParsed) {
                 $trades = $this->parse_trades($rawTrades, $market);
+            } else {
+                $trades = $rawTrades;
             }
             $this->number = $oldNumber;
             $tradesLength = 0;

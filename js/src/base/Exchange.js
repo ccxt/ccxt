@@ -1674,6 +1674,9 @@ export default class Exchange {
             if (!tradesAreParsed) {
                 trades = this.parseTrades(rawTrades, market);
             }
+            else {
+                trades = rawTrades;
+            }
             this.number = oldNumber;
             let tradesLength = 0;
             const isArray = Array.isArray(trades);

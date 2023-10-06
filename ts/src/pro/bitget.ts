@@ -10,6 +10,12 @@ import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
+/**
+ * @class bitget
+ * @extends Exchange
+ * @description watching delivery future markets is not yet implemented (perpertual future / swap is implemented)
+ */
+
 export default class bitget extends bitgetRest {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -82,9 +88,9 @@ export default class bitget extends bitgetRest {
             return market['info']['symbolName'];
         } else {
             if (!sandboxMode) {
-                return market['id'].replace ('_UMCBL', '');
+                return market['id'].replace ('_UMCBL', '').replace ('_DMCBL', '').replace ('_CMCBL', '');
             } else {
-                return market['id'].replace ('_SUMCBL', '');
+                return market['id'].replace ('_SUMCBL', '').replace ('_SDMCBL', '').replace ('_SCMCBL', '');
             }
         }
     }
@@ -97,13 +103,21 @@ export default class bitget extends bitgetRest {
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         let marketId = this.safeString (arg, 'instId');
         if (instType === 'sp') {
-            marketId += '_SPBL';
+            marketId = marketId + '_SPBL';
         } else {
-            if (!sandboxMode) {
-                marketId += '_UMCBL';
+            let extension = sandboxMode ? '_S' : '_';
+            const splitByUSDT = marketId.split ('USDT');
+            const splitByPERP = marketId.split ('PERP');
+            const splitByUSDTLength = splitByUSDT.length;
+            const splitByPERPLength = splitByPERP.length;
+            if (splitByUSDTLength > 1) {
+                extension += 'UMCBL';
+            } else if (splitByPERPLength > 1) {
+                extension += 'CMCBL';
             } else {
-                marketId += '_SUMCBL';
+                extension += 'DMCBL';
             }
+            marketId = marketId + extension;
         }
         return marketId;
     }
@@ -617,6 +631,8 @@ export default class bitget extends bitgetRest {
          * @method
          * @name bitget#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#trades-channel
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#trades-channel
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
