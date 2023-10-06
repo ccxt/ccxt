@@ -4677,7 +4677,7 @@ export default class Exchange {
         const results = await Promise.all (tasks);
         let result = [];
         for (let i = 0; i < results.length; i++) {
-            result = result.concat (results[i]);
+            result = this.arrayConcat (result, results[i]);
         }
         return this.removeRepeatedElementsFromArray (result) as any;
     }
