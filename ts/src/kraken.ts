@@ -1478,7 +1478,7 @@ export default class kraken extends Exchange {
             id = this.safeString (txid, 0);
         }
         const clientOrderId = this.safeString (order, 'userref');
-        const rawTrades = this.safeValue (order, 'trades');
+        const rawTrades = this.safeValue (order, 'trades', []);
         const trades = [];
         for (let i = 0; i < rawTrades.length; i++) {
             const rawTrade = rawTrades[i];
