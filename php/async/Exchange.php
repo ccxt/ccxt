@@ -70,9 +70,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function set_request_browser($connector_options = array()) {
-        $connector = new React\Socket\Connector(array_merge(array(
-            'timeout' => $this->timeout,
-        ), $connector_options), Loop::get());
+        $connector = $this->create_connector($connector_options);
         $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
     }
 
@@ -90,22 +88,22 @@ class Exchange extends \ccxt\Exchange {
 
     private $proxyDictionaries = [];
 
-    public function setProxyAgents($httpProxy, $httpsProxy, $socksProxy) {
-        $connection_options = null;
+    public function setAndGetProxyAgents($httpProxy, $httpsProxy, $socksProxy) {
+        $connection_options_for_proxy = null;
         if ($httpProxy) {
             if (!array_key_exists($httpProxy, $this->proxyDictionaries)) {
                 include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
                 $instance = new \Clue\React\HttpProxy\ProxyConnector($httpProxy);
                 $this->proxyDictionaries[$httpProxy] = ['tcp' => $instance, 'dns' => false];
             }
-            $connection_options = $this->proxyDictionaries[$httpProxy];
+            $connection_options_for_proxy = $this->proxyDictionaries[$httpProxy];
         }  else if ($httpsProxy) {
             if (!array_key_exists($httpsProxy, $this->proxyDictionaries)) {
                 include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
                 $instance = new \Clue\React\HttpProxy\ProxyConnector($httpsProxy);
                 $this->proxyDictionaries[$httpsProxy] = ['tcp' => $instance, 'dns' => false];
             }
-            $connection_options = $this->proxyDictionaries[$httpsProxy];
+            $connection_options_for_proxy = $this->proxyDictionaries[$httpsProxy];
         } else if ($socksProxy) {
             $className = '\\Clue\\React\\Socks\\Client';
             if (!class_exists($className)) {
@@ -115,9 +113,9 @@ class Exchange extends \ccxt\Exchange {
                 $instance = new $className($socksProxy);
                 $this->proxyDictionaries[$socksProxy] = ['tcp' => $instance, 'dns' => false];
             }
-            $connection_options = $this->proxyDictionaries[$socksProxy];
+            $connection_options_for_proxy = $this->proxyDictionaries[$socksProxy];
         }
-        return $connection_options;
+        return $connection_options_for_proxy;
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
@@ -136,11 +134,11 @@ class Exchange extends \ccxt\Exchange {
             // $this->initializeProxies(); // not needed in PHP
             [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
             $proxyAgentSet = $httpProxy || $httpsProxy || $socksProxy;
-            $this->checkConflictingProxies($proxyAgentSet, $proxyUrl);
-            $connections_options = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
-            if ($connections_options) {
-                $this->set_request_browser($connections_options);
+            $connection_options_for_proxy = $this->setAndGetProxyAgents($httpProxy, $httpsProxy, $socksProxy);
+            if ($connection_options_for_proxy) {
+                $this->set_request_browser($connection_options_for_proxy);
             }
+            $this->checkConflictingProxies($proxyAgentSet, $proxyUrl);
             // user-agent
             $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
             if ($userAgent) {
