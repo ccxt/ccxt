@@ -26,7 +26,8 @@ async function example_webSockets () {
     await myEx.initializeProxies (); // only needed for WEBSOCKETS in JAVASCRIPT, not in PYTHON or PHP
     myEx.httpProxy = 'http://5.75.153.75:8002'; // "httpProxy" or "httpsProxy" (depending on your proxy protocol)
     myEx.handleMessage = ws_helper_callback; // todo for PHP: specifically this custom example does not work in PHP to retrieve the target message, however proxies do work in PHP for websockets independently from this example
-    await myEx.watch ('ws://5.75.153.75:9876', 'test', 'test');
+    const fakeExchangeWsUrl = 'ws://5.75.153.75:9876';
+    await myEx.watch (fakeExchangeWsUrl, 'test', 'test');
     console.log ('WS proxy test finished');
 }
 

@@ -244,7 +244,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         let skipMessage = undefined;
         const isProxyTest = exchange.inArray (methodName, supportedProxyTests);
-        const supportedByExchange = methodName in exchange.has && exchange.has[methodName];
+        const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
         if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
