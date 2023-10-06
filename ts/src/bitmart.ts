@@ -4060,18 +4060,6 @@ export default class bitmart extends Exchange {
         };
     }
 
-    parseLiquidations (liquidations, market = undefined, since: Int = undefined, limit: Int = undefined) {
-        const result = [];
-        for (let i = 0; i < liquidations.length; i++) {
-            const entry = liquidations[i];
-            const parsed = this.parseLiquidation (entry, market);
-            result.push (parsed);
-        }
-        const sorted = this.sortBy (result, 'timestamp');
-        const symbol = this.safeString (market, 'symbol');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
-    }
-
     nonce () {
         return this.milliseconds ();
     }
