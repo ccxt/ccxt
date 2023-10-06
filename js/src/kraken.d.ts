@@ -48,7 +48,7 @@ export default class kraken extends Exchange {
         before: any;
         after: number;
         status: string;
-        timestamp: any;
+        timestamp: number;
         datetime: string;
         fee: {
             cost: number;

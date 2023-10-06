@@ -936,11 +936,7 @@ class kraken extends kraken$1 {
         else {
             direction = 'in';
         }
-        const time = this.safeNumber(item, 'time');
-        let timestamp = undefined;
-        if (time !== undefined) {
-            timestamp = this.parseToInt(time * 1000);
-        }
+        const timestamp = this.safeIntegerProduct(item, 'time', 1000);
         return {
             'info': item,
             'id': id,

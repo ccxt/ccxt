@@ -934,7 +934,7 @@ class kraken extends Exchange {
         //     {
         //         'LTFK7F-N2CUX-PNY4SX' => array(
         //             refid => "TSJTGT-DT7WN-GPPQMJ",
-        //             $time =>  1520102320.555,
+        //             time =>  1520102320.555,
         //             $type => "trade",
         //             aclass => "currency",
         //             asset => "XETH",
@@ -959,11 +959,7 @@ class kraken extends Exchange {
         } else {
             $direction = 'in';
         }
-        $time = $this->safe_number($item, 'time');
-        $timestamp = null;
-        if ($time !== null) {
-            $timestamp = $this->parse_to_int($time * 1000);
-        }
+        $timestamp = $this->safe_integer_product($item, 'time', 1000);
         return array(
             'info' => $item,
             'id' => $id,

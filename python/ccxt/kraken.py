@@ -920,10 +920,7 @@ class kraken(Exchange, ImplicitAPI):
             amount = Precise.string_abs(amount)
         else:
             direction = 'in'
-        time = self.safe_number(item, 'time')
-        timestamp = None
-        if time is not None:
-            timestamp = self.parse_to_int(time * 1000)
+        timestamp = self.safe_integer_product(item, 'time', 1000)
         return {
             'info': item,
             'id': id,
