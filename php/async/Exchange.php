@@ -40,11 +40,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.1.5';
+$version = '4.1.6';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.5';
+    const VERSION = '4.1.6';
 
     public $browser;
     public $marketsLoading = null;
@@ -3532,7 +3532,7 @@ class Exchange extends \ccxt\Exchange {
         return $res;
     }
 
-    public function handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest = null, $params = array ()) {
+    public function handle_max_entries_per_request_and_params(string $method, ?int $maxEntriesPerRequest = null, $params = array ()) {
         $newMaxEntriesPerRequest = null;
         list($newMaxEntriesPerRequest, $params) = $this->handle_option_and_params($params, $method, 'maxEntriesPerRequest');
         if (($newMaxEntriesPerRequest !== null) && ($newMaxEntriesPerRequest !== $maxEntriesPerRequest)) {
@@ -3544,7 +3544,7 @@ class Exchange extends \ccxt\Exchange {
         return array( $maxEntriesPerRequest, $params );
     }
 
-    public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, $since = null, $limit = null, $params = array (), $maxEntriesPerRequest = null) {
+    public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?int $maxEntriesPerRequest = null) {
         return Async\async(function () use ($method, $symbol, $since, $limit, $params, $maxEntriesPerRequest) {
             $maxCalls = null;
             list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
@@ -3617,7 +3617,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function safe_deterministic_call($method, $symbol = null, $since = null, $limit = null, $timeframe = null, $params = array ()) {
+    public function safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array ()) {
         return Async\async(function () use ($method, $symbol, $since, $limit, $timeframe, $params) {
             $maxRetries = null;
             list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
@@ -3640,7 +3640,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function fetch_paginated_call_deterministic(string $method, ?string $symbol = null, $since = null, $limit = null, $timeframe = null, $params = array (), $maxEntriesPerRequest = null) {
+    public function fetch_paginated_call_deterministic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array (), $maxEntriesPerRequest = null) {
         return Async\async(function () use ($method, $symbol, $since, $limit, $timeframe, $params, $maxEntriesPerRequest) {
             $maxCalls = null;
             list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
@@ -3648,16 +3648,9 @@ class Exchange extends \ccxt\Exchange {
             $current = $this->milliseconds ();
             $tasks = array();
             $time = $this->parse_timeframe($timeframe) * 1000;
-            $duration = $this->parse_timeframe($timeframe);
-            print_r('duration' . $duration);
-            print_r('time' . $time);
             $step = $time * $maxEntriesPerRequest;
-            print_r('step' . $step);
             $currentSince = $current - ($maxCalls * $step) - 1;
-            print_r('current_since' . gettype($currentSince));
-            
             if ($since !== null) {
-                print_r('Inside max branch since type:' . gettype($since) . 'currentSince' . gettype($currentSince) . "\n");
                 $currentSince = max ($currentSince, $since);
             }
             $until = $this->safe_integer_2($params, 'until', 'till'); // do not omit it here
@@ -3671,10 +3664,8 @@ class Exchange extends \ccxt\Exchange {
                 if (($until !== null) && ($currentSince >= $until)) {
                     break;
                 }
-                print_r('since:' . gettype($currentSince) . "\n");
-                print_r('limit:' . gettype($limit) . "\n");
                 $tasks[] = $this->safe_deterministic_call($method, $symbol, $currentSince, $maxEntriesPerRequest, $timeframe, $params);
-                $currentSince = $currentSince . $step - 1;
+                $currentSince = $this->sum ($currentSince, $step) - 1;
             }
             $results = Async\await(Promise\all($tasks));
             $result = array();

@@ -805,5 +805,12 @@ export default class Exchange {
     resolvePromiseIfMessagehashMatches(client: any, prefix: string, symbol: string, data: any): void;
     resolveMultipleOHLCV(client: any, prefix: string, symbol: string, timeframe: string, data: any): void;
     createOHLCVObject(symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>>;
+    handleMaxEntriesPerRequestAndParams(method: string, maxEntriesPerRequest?: Int, params?: {}): [Int, any];
+    fetchPaginatedCallDynamic(method: string, symbol?: string, since?: Int, limit?: Int, params?: {}, maxEntriesPerRequest?: Int): Promise<any>;
+    safeDeterministicCall(method: string, symbol?: string, since?: Int, limit?: Int, timeframe?: string, params?: {}): Promise<any>;
+    fetchPaginatedCallDeterministic(method: string, symbol?: string, since?: Int, limit?: Int, timeframe?: string, params?: {}, maxEntriesPerRequest?: any): Promise<any>;
+    fetchPaginatedCallCursor(method: string, symbol?: string, since?: any, limit?: any, params?: {}, cursorReceived?: any, cursorSent?: any, cursorIncrement?: any, maxEntriesPerRequest?: any): Promise<any>;
+    removeRepeatedElementsFromArray(input: any): any;
+    handleUntilOption(key: any, request: any, params: any, multiplier?: number): any[];
 }
 export { Exchange, };

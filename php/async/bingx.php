@@ -305,6 +305,7 @@ class bingx extends Exchange {
                     '100001' => '\\ccxt\\AuthenticationError',
                     '100412' => '\\ccxt\\AuthenticationError',
                     '100202' => '\\ccxt\\InsufficientFunds',
+                    '100204' => '\\ccxt\\BadRequest',
                     '100400' => '\\ccxt\\BadRequest',
                     '100440' => '\\ccxt\\ExchangeError',
                     '100500' => '\\ccxt\\ExchangeError',
@@ -646,9 +647,15 @@ class bingx extends Exchange {
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
              * @param {string} [$params->price] "mark" or "index" for mark price and index price candles
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1440));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -661,6 +668,11 @@ class bingx extends Exchange {
                 $request['limit'] = $limit;
             } else {
                 $request['limit'] = 50;
+            }
+            $until = $this->safe_integer_2($params, 'until', 'startTime');
+            if ($until !== null) {
+                $params = $this->omit($params, array( 'until' ));
+                $request['startTime'] = $until;
             }
             $response = null;
             if ($market['spot']) {
@@ -1045,10 +1057,17 @@ class bingx extends Exchange {
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
              * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
+             * @param {int} [$params->until] $timestamp in ms of the latest funding rate to fetch
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
             $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1058,6 +1077,11 @@ class bingx extends Exchange {
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
+            }
+            $until = $this->safe_integer_2($params, 'until', 'startTime');
+            if ($until !== null) {
+                $params = $this->omit($params, array( 'until' ));
+                $request['startTime'] = $until;
             }
             $response = Async\await($this->swapV2PublicGetQuoteFundingRate (array_merge($request, $params)));
             //

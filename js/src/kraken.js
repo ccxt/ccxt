@@ -863,9 +863,15 @@ export default class kraken extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the kraken api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 720);
+        }
         const market = this.market(symbol);
         const parsedTimeframe = this.safeInteger(this.timeframes, timeframe);
         const request = {
@@ -965,17 +971,19 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchLedger
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the kraken api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest ledger entry
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         // https://www.kraken.com/features/api#get-ledgers-info
         await this.loadMarkets();
-        const request = {};
+        let request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -984,6 +992,7 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt(since / 1000);
         }
+        [request, params] = this.handleUntilOption('end', request, params);
         const response = await this.privatePostLedgers(this.extend(request, params));
         // {  error: [],
         //   result: { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
@@ -1462,7 +1471,7 @@ export default class kraken extends Exchange {
             id = this.safeString(txid, 0);
         }
         const clientOrderId = this.safeString(order, 'userref');
-        const rawTrades = this.safeValue(order, 'trades');
+        const rawTrades = this.safeValue(order, 'trades', []);
         const trades = [];
         for (let i = 0; i < rawTrades.length; i++) {
             const rawTrade = rawTrades[i];
@@ -1930,6 +1939,7 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchOpenOrders
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * @param {string} symbol unified market symbol
@@ -1962,16 +1972,18 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchClosedOrders
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the kraken api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest entry
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
-        const request = {};
+        let request = {};
         if (since !== undefined) {
             request['start'] = this.parseToInt(since / 1000);
         }
@@ -1981,6 +1993,7 @@ export default class kraken extends Exchange {
             request['userref'] = clientOrderId;
             query = this.omit(params, ['userref', 'clientOrderId']);
         }
+        [request, params] = this.handleUntilOption('end', request, params);
         const response = await this.privatePostClosedOrders(this.extend(request, query));
         //
         //     {
@@ -2160,6 +2173,7 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchDeposits
+         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * @description fetch all deposits made to an account
          * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * @param {string} code unified currency code

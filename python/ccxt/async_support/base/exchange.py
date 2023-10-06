@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.5'
+__version__ = '4.1.6'
 
 # -----------------------------------------------------------------------------
 
@@ -3066,7 +3066,7 @@ class Exchange(BaseExchange):
         res[symbol][timeframe] = data
         return res
 
-    def handle_max_entries_per_request_and_params(self, method, maxEntriesPerRequest=None, params={}):
+    def handle_max_entries_per_request_and_params(self, method: str, maxEntriesPerRequest: Optional[int] = None, params={}):
         newMaxEntriesPerRequest = None
         newMaxEntriesPerRequest, params = self.handle_option_and_params(params, method, 'maxEntriesPerRequest')
         if (newMaxEntriesPerRequest is not None) and (newMaxEntriesPerRequest != maxEntriesPerRequest):
@@ -3075,7 +3075,7 @@ class Exchange(BaseExchange):
             maxEntriesPerRequest = 1000  # default to 1000
         return [maxEntriesPerRequest, params]
 
-    async def fetch_paginated_call_dynamic(self, method: str, symbol: Optional[str] = None, since=None, limit=None, params={}, maxEntriesPerRequest=None):
+    async def fetch_paginated_call_dynamic(self, method: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}, maxEntriesPerRequest: Optional[int] = None):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxRetries = None
@@ -3087,7 +3087,7 @@ class Exchange(BaseExchange):
         result = []
         errors = 0
         until = self.safe_integer_2(params, 'untill', 'till')  # do not omit it from params here
-        maxEntriesPerRequest, params = self.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params)
+        maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         if (paginationDirection == 'forward'):
             if since is None:
                 raise ArgumentsRequired(self.id + ' pagination requires a since argument when paginationDirection set to forward')
@@ -3130,9 +3130,9 @@ class Exchange(BaseExchange):
                 errors += 1
                 if errors > maxRetries:
                     raise e
-        return self.removeRepeatedElementsFromArray(result)
+        return self.remove_repeated_elements_from_array(result)
 
-    async def safe_deterministic_call(self, method, symbol=None, since=None, limit=None, timeframe=None, params={}):
+    async def safe_deterministic_call(self, method: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, timeframe: Optional[str] = None, params={}):
         maxRetries = None
         maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
         errors = 0
@@ -3148,10 +3148,10 @@ class Exchange(BaseExchange):
             if errors > maxRetries:
                 raise e
 
-    async def fetch_paginated_call_deterministic(self, method: str, symbol: Optional[str] = None, since=None, limit=None, timeframe=None, params={}, maxEntriesPerRequest=None):
+    async def fetch_paginated_call_deterministic(self, method: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, timeframe: Optional[str] = None, params={}, maxEntriesPerRequest=None):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
-        maxEntriesPerRequest, params = self.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params)
+        maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         current = self.milliseconds()
         tasks = []
         time = self.parse_timeframe(timeframe) * 1000
@@ -3167,20 +3167,20 @@ class Exchange(BaseExchange):
         for i in range(0, maxCalls):
             if (until is not None) and (currentSince >= until):
                 break
-            tasks.append(self.safeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params))
-            currentSince = currentSince + step - 1
+            tasks.append(self.safe_deterministic_call(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params))
+            currentSince = self.sum(currentSince, step) - 1
         results = await asyncio.gather(*tasks)
         result = []
         for i in range(0, len(results)):
             result = self.array_concat(result, results[i])
-        return self.removeRepeatedElementsFromArray(result)
+        return self.remove_repeated_elements_from_array(result)
 
     async def fetch_paginated_call_cursor(self, method: str, symbol: Optional[str] = None, since=None, limit=None, params={}, cursorReceived=None, cursorSent=None, cursorIncrement=None, maxEntriesPerRequest=None):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxRetries = None
         maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
-        maxEntriesPerRequest, params = self.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params)
+        maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         cursorValue = None
         i = 0
         errors = 0
