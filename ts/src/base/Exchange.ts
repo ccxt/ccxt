@@ -4656,6 +4656,12 @@ export default class Exchange {
             currentSince = Math.max (currentSince, since);
         }
         const until = this.safeInteger2 (params, 'until', 'till'); // do not omit it here
+        if (until !== undefined) {
+            const requiredCalls = Math.ceil ((until - since) / step);
+            if (requiredCalls > maxCalls) {
+                throw new BadRequest (this.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + maxCalls.toString () + ' required calls is ' + requiredCalls.toString ());
+            }
+        }
         for (let i = 0; i < maxCalls; i++) {
             if ((until !== undefined) && (currentSince >= until)) {
                 break;
