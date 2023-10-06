@@ -698,6 +698,8 @@ export default class bitbns extends Exchange {
          * @method
          * @name bitbns#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/order-status
+         * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitbns api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
@@ -711,6 +713,10 @@ export default class bitbns extends Exchange {
             'symbol': market['id'],
             'entry_id': id,
         };
+        const trigger = this.safeValue2 (params, 'trigger', 'stop');
+        if (trigger) {
+            throw new BadRequest (this.id + ' fetchOrder cannot fetch stop orders');
+        }
         const response = await this.v1PostOrderStatusSymbol (this.extend (request, params));
         //
         //     {
@@ -747,6 +753,8 @@ export default class bitbns extends Exchange {
          * @method
          * @name bitbns#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit
+         * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit/order-status-stop-limit
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
