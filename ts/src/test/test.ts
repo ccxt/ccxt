@@ -9,10 +9,10 @@ import errorsHierarchy from '../base/errorHierarchy.js';
 // js specific codes //
 const DIR_NAME = fileURLToPath (new URL ('.', import.meta.url));
 process.on ('uncaughtException', (e) => {
-    console.log (e, '<UNHANDLED EXCEPTION>', e.stack); process.exit (1);
+    exceptionMessage (e); process.exit (1);
 });
 process.on ('unhandledRejection', (e: any) => {
-    console.log (e, '<UNHANDLED REJECTION>', e.stack); process.exit (1);
+    exceptionMessage (e); process.exit (1);
 });
 const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 const AuthenticationError = ccxt.AuthenticationError;
@@ -39,6 +39,7 @@ class baseMainTestClass {
 const rootDir = DIR_NAME + '/../../../';
 const rootDirForSkips = DIR_NAME + '/../../../';
 const envVars = process.env;
+const LOG_CHARS_LENGTH = 10000;
 const ext = import.meta.url.split ('.')[1];
 
 function dump (...args) {
@@ -67,7 +68,7 @@ async function callMethod (testFiles, methodName, exchange, skippedProperties, a
 }
 
 function exceptionMessage (exc) {
-    return '[' + exc.constructor.name + '] ' + exc.stack.slice (0, 1000);
+    return '[' + exc.constructor.name + '] ' + exc.stack.slice (0, LOG_CHARS_LENGTH);
 }
 
 function exitScript () {

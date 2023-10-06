@@ -547,7 +547,6 @@ class coinsph(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            isActive = self.safe_string(market, 'status') == 'TRADING'
             limits = self.index_by(self.safe_value(market, 'filters'), 'filterType')
             amountLimits = self.safe_value(limits, 'LOT_SIZE', {})
             priceLimits = self.safe_value(limits, 'PRICE_FILTER', {})
@@ -567,7 +566,7 @@ class coinsph(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': isActive,
+                'active': self.safe_string_lower(market, 'status') == 'trading',
                 'contract': False,
                 'linear': None,
                 'inverse': None,

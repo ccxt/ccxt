@@ -882,7 +882,7 @@ class coinex(Exchange, ImplicitAPI):
         #         message: 'OK'
         #     }
         #
-        return self.safe_number(response, 'data')
+        return self.safe_integer(response, 'data')
 
     def fetch_order_book(self, symbol: str, limit=20, params={}):
         """
