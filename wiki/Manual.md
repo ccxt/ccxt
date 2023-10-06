@@ -1732,6 +1732,8 @@ trades = await binance.fetch_trades("BTC/USDT", since = 1664812416000, params = 
 
 ledger = await bybit.fetch_ledger(params = {"paginate": True}) # bybit returns a cursor so the pagination will be cursor-based
 
+funding_rates = await binance.fetch_funding_rate_history("BTC/USDT:USDT", params = {"paginate": True, "maxEntriesPerRequest": 50}) # customizes the number of entries per request
+
 ```
 
 
