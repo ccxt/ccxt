@@ -191,6 +191,8 @@ export default class Exchange {
     origin = '*' // CORS origin
     //
     agent = undefined; // maintained for backwards compatibility
+    httpAgent = undefined;
+    httpsAgent = undefined;
 
     minFundingAddressLength = 1 // used in checkAddress
     substituteCommonCurrencyCodes = true  // reserved
@@ -940,6 +942,18 @@ export default class Exchange {
             // in node we need to set header to *
             if (isNode) {
                 headers = this.extend ({ 'Origin': this.origin }, headers);
+                // only needs to be checked after first call
+                if (this.httpAgent === undefined) {
+                    const httpModule = await import (/* webpackIgnore: true */'node:http')
+                    const httpsModule = await import (/* webpackIgnore: true */'node:https')
+                    this.httpAgent = new httpModule.Agent ();
+                    this.httpsAgent = new httpsModule.Agent ();
+                }
+                if (proxyUrl.substring(0, 5) === 'https') {
+                    this.agent = this.httpAgent;
+                } else {
+                    this.agent = this.httpsAgent;
+                }
             }
             url = proxyUrl + url;
         }
