@@ -950,9 +950,9 @@ export default class Exchange {
                     this.httpsAgent = new httpsModule.Agent ();
                 }
                 if (proxyUrl.substring(0, 5) === 'https') {
-                    this.agent = this.httpAgent;
-                } else {
                     this.agent = this.httpsAgent;
+                } else {
+                    this.agent = this.httpAgent;
                 }
             }
             url = proxyUrl + url;
