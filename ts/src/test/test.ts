@@ -755,7 +755,6 @@ export default class testMainClass extends baseMainTestClass {
                 return;
             }
             await this.testProxies (exchange);
-            return;
             await this.testExchange (exchange, symbol);
             await close (exchange);
         } catch (e) {
