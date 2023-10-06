@@ -4636,6 +4636,9 @@ export default class Exchange {
                 return await this[method] (symbol, since, limit, params);
             }
         } catch (e) {
+            if (e instanceof RateLimitExceeded) {
+                throw e; // if we are rate limited, we should not retry and fail fast
+            }
             errors += 1;
             if (errors > maxRetries) {
                 throw e;
