@@ -672,14 +672,11 @@ export default class bitbns extends Exchange {
             'symbol': market['uppercaseId'],
         };
         let response = undefined;
-        if (isTrigger) {
-            request['symbol'] = market['baseId'];
-            response = await this.v1PostCancelStopLossOrderSymbol (this.extend (request, params));
-        } else {
-            const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancelOrder' : 'cancelOrder';
-            request['side'] = quoteSide;
-            response = await this.v2PostCancel (this.extend (request, params));
-        }
+        const tail = isTrigger ? 'StopLossOrder' : 'Order';
+        let quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancel' : 'cancel';
+        quoteSide += tail;
+        request['side'] = quoteSide;
+        response = await this.v2PostCancel (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
