@@ -2371,7 +2371,7 @@ class bybit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the bybit api endpoint
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->check_required_symbol('fetchOHLCV', $symbol);
@@ -2607,7 +2607,7 @@ class bybit extends Exchange {
          * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
          * @param {array} [$params] extra parameters specific to the bybit api endpoint
          * @param {int} [$params->until] $timestamp in ms of the latest funding rate
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
          */
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
@@ -4400,7 +4400,7 @@ class bybit extends Exchange {
          * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
          * @param {string} [$params->orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
@@ -4772,7 +4772,7 @@ class bybit extends Exchange {
          * @param {boolean} [$params->stop] true if stop order
          * @param {string} [$params->type] $market $type, ['swap', 'option', 'spot']
          * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->load_markets();
@@ -4990,7 +4990,7 @@ class bybit extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch deposits for, default = 30 days after $since
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {string} [$params->cursor] used for pagination
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
         */
@@ -5058,7 +5058,7 @@ class bybit extends Exchange {
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the bybit api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         $this->load_markets();
@@ -6541,7 +6541,7 @@ class bybit extends Exchange {
          * @param {int} [$limit] the maximum number of  transfers structures to retrieve
          * @param {array} [$params] extra parameters specific to the bybit api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
          */
         $this->load_markets();

@@ -652,7 +652,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve, default 100 max 100
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
@@ -726,7 +726,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trades to fetch
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
@@ -780,7 +780,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
@@ -1221,7 +1221,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         self.load_markets()
@@ -2623,7 +2623,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of [funding rate structures] to fetch
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)

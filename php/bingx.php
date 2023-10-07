@@ -628,7 +628,7 @@ class bingx extends Exchange {
          * @param {array} [$params] extra parameters specific to the bingx api endpoint
          * @param {string} [$params->price] "mark" or "index" for mark price and index price candles
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1031,7 +1031,7 @@ class bingx extends Exchange {
          * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
          * @param {array} [$params] extra parameters specific to the bingx api endpoint
          * @param {int} [$params->until] $timestamp in ms of the latest funding rate to fetch
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
          */
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
