@@ -3201,6 +3201,14 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+        see https://binance-docs.github.io/apidocs/voptions/en/#kline-candlestick-data
+        see https://binance-docs.github.io/apidocs/futures/en/#index-price-kline-candlestick-data
+        see https://binance-docs.github.io/apidocs/futures/en/#mark-price-kline-candlestick-data
+        see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+        see https://binance-docs.github.io/apidocs/delivery/en/#index-price-kline-candlestick-data
+        see https://binance-docs.github.io/apidocs/delivery/en/#mark-price-kline-candlestick-data
+        see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -3208,9 +3216,14 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the binance api endpoint
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
         market = self.market(symbol)
         # binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         # the reality is that the time range wider than 500 candles won't work right
@@ -3515,12 +3528,17 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the binance api endpoint
         :param int [params.until]: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
         :param int [params.fetchTradesMethod]: 'publicGetAggTrades'(spot default), 'fapiPublicGetAggTrades'(swap default), 'dapiPublicGetAggTrades'(future default), 'eapiPublicGetTrades'(option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param int [params.fromId]: trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -4360,6 +4378,11 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
+        see https://binance-docs.github.io/apidocs/spot/en/#query-order-user_data
+        see https://binance-docs.github.io/apidocs/futures/en/#query-order-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#query-order-user_data
+        see https://binance-docs.github.io/apidocs/voptions/en/#query-single-order-trade
+        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-order-user_data
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the binance api endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
@@ -4400,15 +4423,26 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
+        see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+        see https://binance-docs.github.io/apidocs/futures/en/#all-orders-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
+        see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the binance api endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
+        :param int [params.until]: the latest time in ms to fetch orders for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_symbol('fetchOrders', symbol)
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params)
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'fetchOrders', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
@@ -4427,6 +4461,10 @@ class binance(Exchange, ImplicitAPI):
             method = 'sapiGetMarginAllOrders'
             if marginMode == 'isolated':
                 request['isIsolated'] = True
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['endTime'] = until
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -4510,7 +4548,16 @@ class binance(Exchange, ImplicitAPI):
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
+        see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
+        see https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
         fetch all unfilled currently open orders
+        see https://binance-docs.github.io/apidocs/spot/en/#current-open-orders-user_data
+        see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
+        see https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
+        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-open-orders-user_data
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
@@ -4565,10 +4612,16 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
+        see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+        see https://binance-docs.github.io/apidocs/futures/en/#all-orders-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
+        see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the binance api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         orders = await self.fetch_orders(symbol, since, limit, params)
@@ -4584,6 +4637,7 @@ class binance(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the binance api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_symbol('fetchCanceledOrders', symbol)
@@ -4599,6 +4653,11 @@ class binance(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
+        see https://binance-docs.github.io/apidocs/spot/en/#cancel-order-trade
+        see https://binance-docs.github.io/apidocs/futures/en/#cancel-order-trade
+        see https://binance-docs.github.io/apidocs/delivery/en/#cancel-order-trade
+        see https://binance-docs.github.io/apidocs/voptions/en/#cancel-option-order-trade
+        see https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the binance api endpoint
@@ -4681,6 +4740,7 @@ class binance(Exchange, ImplicitAPI):
         """
         cancel multiple orders
         see https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
+        see https://binance-docs.github.io/apidocs/delivery/en/#cancel-multiple-orders-trade
         :param [str] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the bingx api endpoint
@@ -4744,6 +4804,10 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
+        see https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
+        see https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data
+        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -4767,13 +4831,23 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
+        see https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
+        see https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data
+        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the binance api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param int [params.until]: the latest time in ms to fetch entries for
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         request = {}
         market = None
         type = None
@@ -4890,6 +4964,7 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_my_dust_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all dust trades made by the user
+        see https://binance-docs.github.io/apidocs/spot/en/#dustlog-user_data
         :param str symbol: not used by binance fetchMyDustTrades()
         :param int [since]: the earliest time in ms to fetch my dust trades for
         :param int [limit]: the maximum number of dust trades to retrieve
@@ -5017,16 +5092,24 @@ class binance(Exchange, ImplicitAPI):
 
     async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
         fetch all deposits made to an account
+        see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+        see https://binance-docs.github.io/apidocs/spot/en/#deposit-history-supporting-network-user_data
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the binance api endpoint
         :param bool [params.fiat]: if True, only fiat deposits will be returned
-        :param int [params.until]: the latest time in ms to fetch deposits for
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchDeposits', code, since, limit, params)
         currency = None
         response = None
         request = {}
@@ -5034,6 +5117,7 @@ class binance(Exchange, ImplicitAPI):
         fiatOnly = self.safe_value(params, 'fiat', False)
         params = self.omit(params, 'fiatOnly')
         until = self.safe_integer(params, 'until')
+        params = self.omit(params, 'until')
         if fiatOnly or (code in legalMoney):
             if code is not None:
                 currency = self.currency(code)
@@ -5109,19 +5193,33 @@ class binance(Exchange, ImplicitAPI):
 
     async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+        see https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
         fetch all withdrawals made from an account
+        see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+        see https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the binance api endpoint
         :param bool [params.fiat]: if True, only fiat withdrawals will be returned
+        :param int [params.until]: the latest time in ms to fetch withdrawals for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchWithdrawals', code, since, limit, params)
         legalMoney = self.safe_value(self.options, 'legalMoney', {})
         fiatOnly = self.safe_value(params, 'fiat', False)
         params = self.omit(params, 'fiatOnly')
         request = {}
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['endTime'] = until
         response = None
         currency = None
         if fiatOnly or (code in legalMoney):
@@ -5536,14 +5634,22 @@ class binance(Exchange, ImplicitAPI):
 
     async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
         fetch a history of internal transfers made on an account
+        see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of transfers structures to retrieve
         :param dict [params]: extra parameters specific to the binance api endpoint
+        :param int [params.until]: the latest time in ms to fetch transfers for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transfer structures <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, params)
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -5570,6 +5676,10 @@ class binance(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['size'] = limit
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['endTime'] = until
         response = await self.sapiGetAssetTransfer(self.extend(request, params))
         #
         #     {
@@ -5592,6 +5702,7 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        see https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
@@ -5659,6 +5770,7 @@ class binance(Exchange, ImplicitAPI):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
+        see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
         :param str[]|None codes: not used by binance fetchTransactionFees()
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -5768,6 +5880,7 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
+        see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
         :param str[]|None codes: not used by binance fetchDepositWithdrawFees()
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -5887,6 +6000,7 @@ class binance(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
+        see https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -5938,6 +6052,7 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
+        see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -5963,6 +6078,9 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
+        see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
+        see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
         """
@@ -6127,6 +6245,7 @@ class binance(Exchange, ImplicitAPI):
     async def futures_transfer(self, code: str, amount, type, params={}):
         """
         transfer between futures account
+        see https://binance-docs.github.io/apidocs/spot/en/#new-future-account-transfer-user_data
         :param str code: unified currency code
         :param float amount: the amount to transfer
         :param str type: 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
@@ -6154,6 +6273,8 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
+        see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+        see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a `funding rate structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
@@ -6190,16 +6311,23 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical funding rate prices
+        see https://binance-docs.github.io/apidocs/futures/en/#get-funding-rate-history
+        see https://binance-docs.github.io/apidocs/delivery/en/#get-funding-rate-history-of-perpetual-futures
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the binance api endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         await self.load_markets()
         request = {}
         method = None
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         defaultType = self.safe_string_2(self.options, 'fetchFundingRateHistory', 'defaultType', 'future')
         type = self.safe_string(params, 'type', defaultType)
         market = None
@@ -6250,6 +6378,8 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch the funding rate for multiple markets
+        see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+        see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a dictionary of `funding rates structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure>`, indexe by market symbols
@@ -6730,6 +6860,8 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+        see https://binance-docs.github.io/apidocs/futures/en/#notional-and-leverage-brackets-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#notional-bracket-for-symbol-user_data
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure>`, indexed by market symbols
@@ -6994,6 +7126,8 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_account_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch account positions
+        see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: data on account positions
@@ -7024,6 +7158,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetch positions risk
         see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: data on the positions risk
@@ -7112,6 +7247,8 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
+        see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
@@ -7150,6 +7287,8 @@ class binance(Exchange, ImplicitAPI):
     async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
+        see https://binance-docs.github.io/apidocs/futures/en/#change-initial-leverage-trade
+        see https://binance-docs.github.io/apidocs/delivery/en/#change-initial-leverage-trade
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the binance api endpoint
@@ -7179,6 +7318,8 @@ class binance(Exchange, ImplicitAPI):
     async def set_margin_mode(self, marginMode: str, symbol: Optional[str] = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
+        see https://binance-docs.github.io/apidocs/futures/en/#change-margin-type-trade
+        see https://binance-docs.github.io/apidocs/delivery/en/#change-margin-type-trade
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the binance api endpoint
@@ -7233,6 +7374,8 @@ class binance(Exchange, ImplicitAPI):
     async def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
         """
         set hedged to True or False for a market
+        see https://binance-docs.github.io/apidocs/futures/en/#change-position-mode-trade
+        see https://binance-docs.github.io/apidocs/delivery/en/#change-position-mode-trade
         :param bool hedged: set to True to use dualSidePosition
         :param str symbol: not used by binance setPositionMode()
         :param dict [params]: extra parameters specific to the binance api endpoint
@@ -7442,9 +7585,15 @@ class binance(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry
         :param int [limit]: max number of ledger entrys to return
         :param dict [params]: extra parameters specific to the binance api endpoint
+        :param int [params.until]: timestamp in ms of the latest ledger entry
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params)
         type = None
         subType = None
         currency = None
@@ -7467,6 +7616,10 @@ class binance(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['endTime'] = until
         response = await getattr(self, method)(self.extend(request, params))
         #
         # options(eapi)
@@ -7830,6 +7983,7 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_borrow_rate(self, code: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
+        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a `borrow rate structure <https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure>`
@@ -7857,6 +8011,7 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_borrow_rate_history(self, code: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
+        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data
         :param str code: unified currency code
         :param int [since]: timestamp for the earliest borrow rate
         :param int [limit]: the maximum number of `borrow rate structures <https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure>` to retrieve
@@ -7924,6 +8079,7 @@ class binance(Exchange, ImplicitAPI):
     async def create_gift_code(self, code: str, amount, params={}):
         """
         create gift code
+        see https://binance-docs.github.io/apidocs/spot/en/#create-a-single-token-gift-card-user_data
         :param str code: gift code
         :param float amount: amount of currency for the gift
         :param dict [params]: extra parameters specific to the binance api endpoint
@@ -7959,6 +8115,7 @@ class binance(Exchange, ImplicitAPI):
     async def redeem_gift_code(self, giftcardCode, params={}):
         """
         redeem gift code
+        see https://binance-docs.github.io/apidocs/spot/en/#redeem-a-binance-gift-card-user_data
         :param str giftcardCode:
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: response from the exchange
@@ -7983,6 +8140,7 @@ class binance(Exchange, ImplicitAPI):
     async def verify_gift_code(self, id: str, params={}):
         """
         verify gift code
+        see https://binance-docs.github.io/apidocs/spot/en/#verify-binance-gift-card-by-gift-card-number-user_data
         :param str id: reference number id
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: response from the exchange
@@ -8004,6 +8162,7 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
+        see https://binance-docs.github.io/apidocs/spot/en/#get-interest-history-user_data
         :param str code: unified currency code
         :param str symbol: unified market symbol when fetch interest in isolated markets
         :param int [since]: the earliest time in ms to fetch borrrow interest for
@@ -8144,6 +8303,8 @@ class binance(Exchange, ImplicitAPI):
     async def fetch_open_interest_history(self, symbol: str, timeframe='5m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Retrieves the open interest history of a currency
+        see https://binance-docs.github.io/apidocs/delivery/en/#open-interest-statistics
+        see https://binance-docs.github.io/apidocs/futures/en/#open-interest-statistics
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
         :param int [since]: the time(ms) of the earliest record to retrieve unix timestamp
@@ -8155,6 +8316,10 @@ class binance(Exchange, ImplicitAPI):
         if timeframe == '1m':
             raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOpenInterestHistory', 'paginate', False)
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500)
         market = self.market(symbol)
         request = {
             'period': self.safe_string(self.timeframes, timeframe, timeframe),

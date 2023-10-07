@@ -288,6 +288,13 @@ class Transpiler {
             [ /\.customParseOrderBook\s/g, '.custom_parse_order_book'],
             [ /\.filterByArrayPositions\s/g, '.filter_by_array_positions'],
             [ /\.handleTriggerPrices\s/g, '.handle_trigger_prices'],
+            [ /\.handleMaxEntriesPerRequestAndParams\s/g, '.handle_max_entries_per_request_and_params'],
+            [ /\.safeDeterministicCall\s/g, '.safe_deterministic_call'],
+            [ /\.fetchPaginatedCallDynamic\s/g, '.fetch_paginated_call_dynamic'],
+            [ /\.fetchPaginatedCallDeterministic\s/g, '.fetch_paginated_call_deterministic'],
+            [ /\.fetchPaginatedCallCursor\s/g, '.fetch_paginated_call_cursor'],
+            [ /\.removeRepeatedElementsFromArray\s/g, '.remove_repeated_elements_from_array'],
+            [ /\.handleUntilOption\s/g, '.handle_until_option'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 

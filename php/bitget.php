@@ -1551,9 +1551,16 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @param {string} [$params->pageNo] pageNo default 1
          * @param {string} [$params->pageSize] pageSize default 20. Max 100
+         * @param {int} [$params->until] end tim in ms
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $params);
+        }
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a `$code` argument');
         }
@@ -1569,6 +1576,7 @@ class bitget extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->privateSpotGetWalletDepositList (array_merge($request, $params));
         //
         //      {
@@ -1679,9 +1687,16 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @param {string} [$params->pageNo] pageNo default 1
          * @param {string} [$params->pageSize] pageSize default 20. Max 100
+         * @param {int} [$params->until] end time in ms
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $params);
+        }
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a `$code` argument');
         }
@@ -1694,6 +1709,7 @@ class bitget extends Exchange {
             'startTime' => $since,
             'endTime' => $this->milliseconds(),
         );
+        list($request, $params) = $this->handle_until_option('endTime', $params, $request);
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
@@ -2235,9 +2251,15 @@ class bitget extends Exchange {
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch deposits for
+         * @param {boolean} [$params->paginate] *only applies to publicSpotGetMarketFillsHistory and publicMixGetMarketFillsHistory* default false, when true will automatically $paginate by calling this endpoint multiple times
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $params, 'tradeId', 'tradeId');
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2254,10 +2276,9 @@ class bitget extends Exchange {
             }
         }
         if ($until !== null) {
-            $this->check_required_argument('fetchTrades', $since, 'since');
+            $params = $this->omit($params, 'until');
             $request['endTime'] = $until;
         }
-        $params = $this->omit($params, 'until');
         $options = $this->safe_value($this->options, 'fetchTrades', array());
         $response = null;
         if ($market['spot']) {
@@ -2475,9 +2496,15 @@ class bitget extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000);
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3537,7 +3564,8 @@ class bitget extends Exchange {
         }
         $data = $this->safe_value($response, 'data', array());
         if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
-            $data = $this->safe_value($data, 'orderList', array());
+            $result = $this->safe_value($data, 'orderList', array());
+            return $this->add_pagination_cursor_to_result($data, $result);
         }
         return $this->parse_orders($data, $market, $since, $limit);
     }
@@ -3547,15 +3575,26 @@ class bitget extends Exchange {
          * fetches information on multiple closed orders made by the user
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-plan-orders-tpsl
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-plan-orders
          * @param {string} $symbol unified $market $symbol of the closed orders
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the max number of closed orders to return
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
         $this->check_required_symbol('fetchClosedOrders', $symbol);
         $market = $this->market($symbol);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
+        if ($paginate) {
+            $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
+            $cursorReceived = ($market['spot'] && !$isStop) ? 'orderId' : 'endId';
+            $cursorSent = ($market['spot'] && !$isStop) ? 'after' : 'lastEndId';
+            return $this->fetch_paginated_call_cursor('fetchClosedOrders', $symbol, $since, $limit, $params, $cursorReceived, $cursorSent, null, 50);
+        }
         $response = $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -3573,15 +3612,26 @@ class bitget extends Exchange {
          * fetches information on multiple canceled orders made by the user
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-plan-orders-tpsl
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-plan-orders
          * @param {string} $symbol unified $market $symbol of the canceled orders
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the max number of canceled orders to return
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
         $this->check_required_symbol('fetchCanceledOrders', $symbol);
         $market = $this->market($symbol);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledOrders', 'paginate');
+        if ($paginate) {
+            $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
+            $cursorReceived = ($market['spot'] && !$isStop) ? 'orderId' : 'endId';
+            $cursorSent = ($market['spot'] && !$isStop) ? 'after' : 'lastEndId';
+            return $this->fetch_paginated_call_cursor('fetchCanceledOrders', $symbol, $since, $limit, $params, $cursorReceived, $cursorSent, null, 50);
+        }
         $response = $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params);
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -3599,9 +3649,14 @@ class bitget extends Exchange {
         $market = $this->market($symbol);
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchCanceledAndClosedOrders', $market, $params);
+        $endTime = $this->safe_integer_n($params, array( 'endTime', 'until', 'till' ));
+        $params = $this->omit($params, array( 'until', 'till' ));
         $request = array(
             'symbol' => $market['id'],
         );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'privateSpotPostTradeHistory',
             'swap' => 'privateMixGetOrderHistory',
@@ -3625,7 +3680,18 @@ class bitget extends Exchange {
                 $since = 0;
             }
             $request['startTime'] = $since;
-            $request['endTime'] = $this->milliseconds();
+            if ($endTime === null) {
+                $request['endTime'] = $this->milliseconds();
+            } else {
+                $request['endTime'] = $endTime;
+            }
+        } else {
+            if ($limit !== null) {
+                $request['pageSize'] = $limit;
+            }
+            if ($endTime !== null) {
+                $request['endTime'] = $endTime;
+            }
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -3746,29 +3812,57 @@ class bitget extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         if ($data !== null) {
-            return $this->safe_value_2($data, 'orderList', 'data', array());
+            $result = $this->safe_value($data, 'orderList', $data);
+            return $this->add_pagination_cursor_to_result($data, $result);
         }
         $parsedData = json_decode($response, $as_associative_array = true);
         return $this->safe_value($parsedData, 'data', array());
     }
 
+    public function add_pagination_cursor_to_result($response, $data) {
+        $endId = $this->safe_value($response, 'endId');
+        if ($endId !== null) {
+            $dataLength = count($data);
+            if ($dataLength > 0) {
+                $first = $data[0];
+                $last = $data[$dataLength - 1];
+                $first['endId'] = $endId;
+                $last['endId'] = $endId;
+                $data[0] = $first;
+                $data[$dataLength - 1] = $last;
+            }
+        }
+        return $data;
+    }
+
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-bills
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string} $code unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entrys to return, default is null
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {int} [$params->until] end tim in ms
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params, 500);
+        }
         $currency = null;
         $request = array();
         if ($code !== null) {
             $currency = $this->currency($code);
             $request['coinId'] = $currency['id'];
         }
+        if ($since !== null) {
+            $request['before'] = $since;
+        }
+        list($request, $params) = $this->handle_until_option('after', $params, $request);
         $response = $this->privateSpotPostAccountBills (array_merge($request, $params));
         //
         //     {
@@ -3850,11 +3944,22 @@ class bitget extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {int} [$params->until] *swap only* the latest time in ms to fetch entries for
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->check_required_symbol('fetchMyTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        if ($paginate) {
+            if ($market['spot']) {
+                return $this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'orderId', 'after', null, 50);
+            } else {
+                return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, 500);
+            }
+        }
         $request = array(
             'symbol' => $market['id'],
         );
@@ -3865,6 +3970,10 @@ class bitget extends Exchange {
         if ($market['spot']) {
             $response = $this->privateSpotPostTradeFills (array_merge($request, $params));
         } else {
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            list($request, $params) = $this->handle_until_option('endTime', $params, $request);
             $response = $this->privateMixGetOrderFills (array_merge($request, $params));
         }
         //
@@ -4254,6 +4363,7 @@ class bitget extends Exchange {
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-funding-rate
          * fetches historical funding rate prices
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-funding-rate
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
@@ -4725,9 +4835,16 @@ class bitget extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch transfers for
          * @param {int} [$limit] the maximum number of  transfers structures to retrieve
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params);
+        }
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTransfers', null, $params);
         $fromAccount = $this->safe_string($params, 'fromAccount', $type);
@@ -4748,6 +4865,7 @@ class bitget extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
+        list($request, $params) = $this->handle_until_option('after', $params, $request);
         $response = $this->privateSpotGetAccountTransferRecords (array_merge($request, $params));
         //
         //     {

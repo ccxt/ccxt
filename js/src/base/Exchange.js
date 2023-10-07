@@ -1304,6 +1304,12 @@ export default class Exchange {
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' watchTradesForSymbols() is not supported yet');
     }
+    async watchMyTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchMyTradesForSymbols() is not supported yet');
+    }
+    async watchOrdersForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchOrdersForSymbols() is not supported yet');
+    }
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' watchOHLCVForSymbols() is not supported yet');
     }
@@ -1667,6 +1673,9 @@ export default class Exchange {
             const tradesAreParsed = ((firstTrade !== undefined) && ('info' in firstTrade) && ('id' in firstTrade));
             if (!tradesAreParsed) {
                 trades = this.parseTrades(rawTrades, market);
+            }
+            else {
+                trades = rawTrades;
             }
             this.number = oldNumber;
             let tradesLength = 0;
@@ -4084,6 +4093,222 @@ export default class Exchange {
         res[symbol] = {};
         res[symbol][timeframe] = data;
         return res;
+    }
+    handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest = undefined, params = {}) {
+        let newMaxEntriesPerRequest = undefined;
+        [newMaxEntriesPerRequest, params] = this.handleOptionAndParams(params, method, 'maxEntriesPerRequest');
+        if ((newMaxEntriesPerRequest !== undefined) && (newMaxEntriesPerRequest !== maxEntriesPerRequest)) {
+            maxEntriesPerRequest = newMaxEntriesPerRequest;
+        }
+        if (maxEntriesPerRequest === undefined) {
+            maxEntriesPerRequest = 1000; // default to 1000
+        }
+        return [maxEntriesPerRequest, params];
+    }
+    async fetchPaginatedCallDynamic(method, symbol = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined) {
+        let maxCalls = undefined;
+        [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', 10);
+        let maxRetries = undefined;
+        [maxRetries, params] = this.handleOptionAndParams(params, method, 'maxRetries', 3);
+        let paginationDirection = undefined;
+        [paginationDirection, params] = this.handleOptionAndParams(params, method, 'paginationDirection', 'backward');
+        let paginationTimestamp = undefined;
+        let calls = 0;
+        let result = [];
+        let errors = 0;
+        const until = this.safeInteger2(params, 'untill', 'till'); // do not omit it from params here
+        [maxEntriesPerRequest, params] = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
+        if ((paginationDirection === 'forward')) {
+            if (since === undefined) {
+                throw new ArgumentsRequired(this.id + ' pagination requires a since argument when paginationDirection set to forward');
+            }
+            paginationTimestamp = since;
+        }
+        while ((calls < maxCalls)) {
+            calls += 1;
+            try {
+                if (paginationDirection === 'backward') {
+                    // do it backwards, starting from the last
+                    // UNTIL filtering is required in order to work
+                    if (paginationTimestamp !== undefined) {
+                        params['until'] = paginationTimestamp - 1;
+                    }
+                    const response = await this[method](symbol, undefined, maxEntriesPerRequest, params);
+                    const responseLength = response.length;
+                    if (this.verbose) {
+                        this.log('Dynamic pagination call', calls, 'method', method, 'response length', responseLength, 'timestamp', paginationTimestamp);
+                    }
+                    if (responseLength === 0) {
+                        break;
+                    }
+                    errors = 0;
+                    result = this.arrayConcat(result, response);
+                    const firstElement = this.safeValue(response, 0);
+                    paginationTimestamp = this.safeInteger2(firstElement, 'timestamp', 0);
+                    if ((since !== undefined) && (paginationTimestamp <= since)) {
+                        break;
+                    }
+                }
+                else {
+                    // do it forwards, starting from the since
+                    const response = await this[method](symbol, paginationTimestamp, maxEntriesPerRequest, params);
+                    const responseLength = response.length;
+                    if (this.verbose) {
+                        this.log('Dynamic pagination call', calls, 'method', method, 'response length', responseLength, 'timestamp', paginationTimestamp);
+                    }
+                    if (responseLength === 0) {
+                        break;
+                    }
+                    errors = 0;
+                    result = this.arrayConcat(result, response);
+                    const last = this.safeValue(response, responseLength - 1);
+                    paginationTimestamp = this.safeInteger(last, 'timestamp') - 1;
+                    if ((until !== undefined) && (paginationTimestamp >= until)) {
+                        break;
+                    }
+                }
+            }
+            catch (e) {
+                errors += 1;
+                if (errors > maxRetries) {
+                    throw e;
+                }
+            }
+        }
+        return this.removeRepeatedElementsFromArray(result);
+    }
+    async safeDeterministicCall(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}) {
+        let maxRetries = undefined;
+        [maxRetries, params] = this.handleOptionAndParams(params, method, 'maxRetries', 3);
+        let errors = 0;
+        try {
+            if (timeframe && method !== 'fetchFundingRateHistory') {
+                return await this[method](symbol, timeframe, since, limit, params);
+            }
+            else {
+                return await this[method](symbol, since, limit, params);
+            }
+        }
+        catch (e) {
+            if (e instanceof RateLimitExceeded) {
+                throw e; // if we are rate limited, we should not retry and fail fast
+            }
+            errors += 1;
+            if (errors > maxRetries) {
+                throw e;
+            }
+        }
+    }
+    async fetchPaginatedCallDeterministic(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = undefined) {
+        let maxCalls = undefined;
+        [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', 10);
+        [maxEntriesPerRequest, params] = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
+        const current = this.milliseconds();
+        const tasks = [];
+        const time = this.parseTimeframe(timeframe) * 1000;
+        const step = time * maxEntriesPerRequest;
+        let currentSince = current - (maxCalls * step) - 1;
+        if (since !== undefined) {
+            currentSince = Math.max(currentSince, since);
+        }
+        const until = this.safeInteger2(params, 'until', 'till'); // do not omit it here
+        if (until !== undefined) {
+            const requiredCalls = Math.ceil((until - since) / step);
+            if (requiredCalls > maxCalls) {
+                throw new BadRequest(this.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + maxCalls.toString() + ' required calls is ' + requiredCalls.toString());
+            }
+        }
+        for (let i = 0; i < maxCalls; i++) {
+            if ((until !== undefined) && (currentSince >= until)) {
+                break;
+            }
+            tasks.push(this.safeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params));
+            currentSince = this.sum(currentSince, step) - 1;
+        }
+        const results = await Promise.all(tasks);
+        let result = [];
+        for (let i = 0; i < results.length; i++) {
+            result = this.arrayConcat(result, results[i]);
+        }
+        return this.removeRepeatedElementsFromArray(result);
+    }
+    async fetchPaginatedCallCursor(method, symbol = undefined, since = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined) {
+        let maxCalls = undefined;
+        [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', 10);
+        let maxRetries = undefined;
+        [maxRetries, params] = this.handleOptionAndParams(params, method, 'maxRetries', 3);
+        [maxEntriesPerRequest, params] = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
+        let cursorValue = undefined;
+        let i = 0;
+        let errors = 0;
+        let result = [];
+        while (i < maxCalls) {
+            try {
+                if (cursorValue !== undefined) {
+                    if (cursorIncrement !== undefined) {
+                        cursorValue = this.parseToInt(cursorValue) + cursorIncrement;
+                    }
+                    params[cursorSent] = cursorValue;
+                }
+                const response = await this[method](symbol, since, maxEntriesPerRequest, params);
+                errors = 0;
+                const responseLength = response.length;
+                if (this.verbose) {
+                    this.log('Cursor pagination call', i + 1, 'method', method, 'response length', responseLength, 'cursor', cursorValue);
+                }
+                if (responseLength === 0) {
+                    break;
+                }
+                result = this.arrayConcat(result, response);
+                const last = this.safeValue(response, responseLength - 1);
+                cursorValue = this.safeValue(last['info'], cursorReceived);
+                if (cursorValue === undefined) {
+                    break;
+                }
+            }
+            catch (e) {
+                errors += 1;
+                if (errors > maxRetries) {
+                    throw e;
+                }
+            }
+            i += 1;
+        }
+        return result;
+    }
+    removeRepeatedElementsFromArray(input) {
+        const uniqueResult = {};
+        for (let i = 0; i < input.length; i++) {
+            const entry = input[i];
+            const id = this.safeString(entry, 'id');
+            if (id !== undefined) {
+                if (this.safeString(uniqueResult, id) === undefined) {
+                    uniqueResult[id] = entry;
+                }
+            }
+            else {
+                const timestamp = this.safeInteger2(entry, 'timestamp', 0);
+                if (timestamp !== undefined) {
+                    if (this.safeString(uniqueResult, timestamp) === undefined) {
+                        uniqueResult[timestamp] = entry;
+                    }
+                }
+            }
+        }
+        const values = Object.values(uniqueResult);
+        const valuesLength = values.length;
+        if (valuesLength > 0) {
+            return values;
+        }
+        return input;
+    }
+    handleUntilOption(key, request, params, multiplier = 1) {
+        const until = this.safeValue2(params, 'until', 'till');
+        if (until !== undefined) {
+            request[key] = this.parseToInt(until * multiplier);
+            params = this.omit(params, ['until', 'till']);
+        }
+        return [request, params];
     }
 }
 export { Exchange, };

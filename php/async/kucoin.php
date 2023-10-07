@@ -1574,9 +1574,15 @@ class kucoin extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1500));
+            }
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $request = array(
@@ -2225,8 +2231,15 @@ class kucoin extends Exchange {
              * @param {string} [$params->tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
              * @param {bool} [$params->stop] True if fetching a stop order
              * @param {bool} [$params->hf] false, // true for hf order
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
+            Async\await(array($this, 'load_markets'));
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params));
+            }
             return Async\await($this->fetch_orders_by_status('done', $symbol, $since, $limit, $params));
         }) ();
     }
@@ -2252,8 +2265,15 @@ class kucoin extends Exchange {
              * @param {string} [$params->orderIds] *stop orders only* comma seperated order ID list
              * @param {bool} [$params->stop] True if fetching a stop order
              * @param {bool} [$params->hf] false, // true for hf order
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
+            Async\await(array($this, 'load_markets'));
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchOpenOrders', $symbol, $since, $limit, $params));
+            }
             return Async\await($this->fetch_orders_by_status('active', $symbol, $since, $limit, $params));
         }) ();
     }
@@ -2538,10 +2558,17 @@ class kucoin extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {bool} [$params->hf] false, // true for $hf order
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
+            }
             $request = array();
             $hf = $this->safe_value($params, 'hf', false);
             if ($hf && $symbol === null) {
@@ -2580,6 +2607,7 @@ class kucoin extends Exchange {
             } else {
                 throw new ExchangeError($this->id . ' fetchMyTradesMethod() invalid method');
             }
+            list($request, $params) = $this->handle_until_option('endAt', $request, $params);
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
@@ -3026,6 +3054,8 @@ class kucoin extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * @see https://docs.kucoin.com/#get-deposit-list
+             * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
              * fetch all deposits made to an account
              * @see https://docs.kucoin.com/#get-deposit-list
              * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
@@ -3033,9 +3063,16 @@ class kucoin extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $params));
+            }
             $request = array();
             $currency = null;
             if ($code !== null) {
@@ -3055,6 +3092,7 @@ class kucoin extends Exchange {
                     $request['startAt'] = $since;
                 }
             }
+            list($request, $params) = $this->handle_until_option('endAt', $request, $params);
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
@@ -3109,9 +3147,16 @@ class kucoin extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $params));
+            }
             $request = array();
             $currency = null;
             if ($code !== null) {
@@ -3131,6 +3176,7 @@ class kucoin extends Exchange {
                     $request['startAt'] = $since;
                 }
             }
+            list($request, $params) = $this->handle_until_option('endAt', $request, $params);
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
@@ -3618,16 +3664,24 @@ class kucoin extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * @see https://docs.kucoin.com/#get-account-ledgers
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
              * @see https://docs.kucoin.com/#get-account-ledgers
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entrys to return, default is null
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
              */
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params));
+            }
             $request = array(
                 // 'currency' => $currency['id'], // can choose up to 10, if not provided returns for all currencies by default
                 // 'direction' => 'in', // 'out'
@@ -3644,6 +3698,7 @@ class kucoin extends Exchange {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
             }
+            list($request, $params) = $this->handle_until_option('endAt', $request, $params);
             $response = Async\await($this->privateGetAccountsLedgers (array_merge($request, $params)));
             //
             //     {

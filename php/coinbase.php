@@ -2389,9 +2389,16 @@ class coinbase extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $orders
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the coinbase api endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch trades for
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100);
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2405,6 +2412,11 @@ class coinbase extends Exchange {
         }
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
+        }
+        $until = $this->safe_value_n($params, array( 'until', 'till' ));
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until', 'till' ));
+            $request['end_date'] = $this->iso8601($until);
         }
         $response = $this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params));
         //
@@ -2450,6 +2462,12 @@ class coinbase extends Exchange {
         //     }
         //
         $orders = $this->safe_value($response, 'orders', array());
+        $first = $this->safe_value($orders, 0);
+        $cursor = $this->safe_string($response, 'cursor');
+        if (($cursor !== null) && ($cursor !== '')) {
+            $first['cursor'] = $cursor;
+            $orders[0] = $first;
+        }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -2472,6 +2490,11 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
+        $until = $this->safe_value_n($params, array( 'until', 'till' ));
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until', 'till' ));
+            $request['end_date'] = $this->iso8601($until);
+        }
         $response = $this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params));
         //
         //     {
@@ -2516,6 +2539,12 @@ class coinbase extends Exchange {
         //     }
         //
         $orders = $this->safe_value($response, 'orders', array());
+        $first = $this->safe_value($orders, 0);
+        $cursor = $this->safe_string($response, 'cursor');
+        if (($cursor !== null) && ($cursor !== '')) {
+            $first['cursor'] = $cursor;
+            $orders[0] = $first;
+        }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -2527,8 +2556,16 @@ class coinbase extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] the maximum number of open order structures to retrieve
          * @param {array} [$params] extra parameters specific to the coinbase api endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {int} [$params->until] the latest time in ms to fetch trades for
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
+        $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_cursor('fetchOpenOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100);
+        }
         return $this->fetch_orders_by_status('OPEN', $symbol, $since, $limit, $params);
     }
 
@@ -2540,8 +2577,16 @@ class coinbase extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] the maximum number of closed order structures to retrieve
          * @param {array} [$params] extra parameters specific to the coinbase api endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {int} [$params->until] the latest time in ms to fetch trades for
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
+        $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_cursor('fetchClosedOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100);
+        }
         return $this->fetch_orders_by_status('FILLED', $symbol, $since, $limit, $params);
     }
 
@@ -2567,23 +2612,39 @@ class coinbase extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch, not used by coinbase
          * @param {array} [$params] extra parameters specific to the coinbase api endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch trades for
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 299);
+        }
         $market = $this->market($symbol);
-        $end = (string) $this->seconds();
         $request = array(
             'product_id' => $market['id'],
             'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            'end' => $end,
         );
+        $until = $this->safe_value_n($params, array( 'until', 'till', 'end' ));
+        $params = $this->omit($params, array( 'until', 'till' ));
+        $duration = $this->parse_timeframe($timeframe);
+        $candles300 = 300 * $duration;
+        $sinceString = null;
         if ($since !== null) {
-            $sinceString = (string) $since;
-            $timeframeToSeconds = Precise::string_div($sinceString, '1000');
-            $request['start'] = $this->decimal_to_precision($timeframeToSeconds, TRUNCATE, 0, DECIMAL_PLACES);
+            $sinceString = $this->number_to_string($this->parse_to_int($since / 1000));
         } else {
-            $request['start'] = Precise::string_sub($end, '18000'); // default to 5h in seconds, max 300 $candles
+            $now = (string) $this->seconds();
+            $sinceString = Precise::string_sub($now, (string) $candles300);
         }
+        $request['start'] = $sinceString;
+        $endString = $this->number_to_string($until);
+        if ($until === null) {
+            // 300 $candles max
+            $endString = Precise::string_add($sinceString, (string) $candles300);
+        }
+        $request['end'] = $endString;
         $response = $this->v3PrivateGetBrokerageProductsProductIdCandles (array_merge($request, $params));
         //
         //     {
@@ -2673,9 +2734,16 @@ class coinbase extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] the maximum number of trade structures to fetch
          * @param {array} [$params] extra parameters specific to the coinbase api endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch $trades for
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100);
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2689,6 +2757,11 @@ class coinbase extends Exchange {
         }
         if ($since !== null) {
             $request['start_sequence_timestamp'] = $this->iso8601($since);
+        }
+        $until = $this->safe_value_n($params, array( 'until', 'till' ));
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until', 'till' ));
+            $request['end_sequence_timestamp'] = $this->iso8601($until);
         }
         $response = $this->v3PrivateGetBrokerageOrdersHistoricalFills (array_merge($request, $params));
         //
@@ -2715,6 +2788,12 @@ class coinbase extends Exchange {
         //     }
         //
         $trades = $this->safe_value($response, 'fills', array());
+        $first = $this->safe_value($trades, 0);
+        $cursor = $this->safe_string($response, 'cursor');
+        if (($cursor !== null) && ($cursor !== '')) {
+            $first['cursor'] = $cursor;
+            $trades[0] = $first;
+        }
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 

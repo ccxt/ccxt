@@ -88,6 +88,7 @@ is_synchronous = 'async' not in os.path.basename(__file__)
 rootDir = current_dir + '/../../../'
 rootDirForSkips = current_dir + '/../../../'
 envVars = os.environ
+LOG_CHARS_LENGTH = 10000
 ext = 'py'
 
 
@@ -130,9 +131,9 @@ def call_method(testFiles, methodName, exchange, skippedProperties, args):
 
 def exception_message(exc):
     message = '[' + type(exc).__name__ + '] ' + "".join(format_exception(type(exc), exc, exc.__traceback__, limit=6))
-    if len(message) > 1000:
+    if len(message) > LOG_CHARS_LENGTH:
         # Accessing out of range element causes error
-        message = message[0:1000]
+        message = message[0:LOG_CHARS_LENGTH]
     return message
 
 
