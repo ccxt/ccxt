@@ -1366,11 +1366,15 @@ export default class mexc extends Exchange {
         /**
          * @method
          * @name mexc3#fetchTrades
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-trades-list
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-trades-list
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-transaction-data
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
+         * @param {int} [params.until] *spot only* *since must be defined* the latest time in ms to fetch entries for
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
@@ -1381,11 +1385,21 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        // if (since !== undefined) {
-        //     request['startTime'] = since; bug in api, waiting for fix
-        // }
         let trades = undefined;
         if (market['spot']) {
+            const until = this.safeIntegerN (params, [ 'endTime', 'until', 'till' ]);
+            if (since !== undefined) {
+                request['startTime'] = since;
+                if (until === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchTrades() requires an until parameter when since is provided');
+                }
+            }
+            if (until !== undefined) {
+                if (since === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchTrades() requires a since parameter when until is provided');
+                }
+                request['endTime'] = until;
+            }
             let method = this.safeString (this.options, 'fetchTradesMethod', 'spotPublicGetAggTrades');
             method = this.safeString (params, 'method', method); // AggTrades, HistoricalTrades, Trades
             trades = await this[method] (this.extend (request, params));
