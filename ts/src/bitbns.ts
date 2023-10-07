@@ -489,9 +489,12 @@ export default class bitbns extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrderStatus (status) {
+    parseStatus (status) {
         const statuses = {
+            '-1': 'cancelled',
             '0': 'open',
+            '1': 'open',
+            '2': 'done',
             // 'PARTIALLY_FILLED': 'open',
             // 'FILLED': 'closed',
             // 'CANCELED': 'canceled',
@@ -507,90 +510,76 @@ export default class bitbns extends Exchange {
         // createOrder
         //
         //     {
-        //         "data":"Successfully placed bid to purchase currency",
-        //         "status":1,
-        //         "error":null,
-        //         "id":5424475,
-        //         "code":200
+        //         "data": "Successfully placed bid to purchase currency",
+        //         "status": 1,
+        //         "error": null,
+        //         "id": 5424475,
+        //         "code": 200
         //     }
         //
-        // fetchOrder
+        // fetchOpenOrders, fetchOrder
         //
-        //     {
-        //         "entry_id":5424475,
-        //         "btc":0.01,
-        //         "rate":2000,
-        //         "time":"2021-04-25T17:05:42.000Z",
-        //         "type":0,
-        //         "status":0,
-        //         "total":0.01,
-        //         "avg_cost":null,
-        //         "side":"BUY",
-        //         "amount":0.01,
-        //         "remaining":0.01,
-        //         "filled":0,
-        //         "cost":null,
-        //         "fee":0.05
-        //     }
+        //    {
+        //        "entry_id": 5424475,
+        //        "btc": 0.01,
+        //        "rate": 2000,
+        //        "time": "2021-04-25T17:05:42.000Z",
+        //        "type": 0,
+        //        "status": 0
+        //        "t_rate": 0.45,                       // only stop orders
+        //        "trail": 0                            // only stop orders
+        //    }
         //
-        // fetchOpenOrders
+        // cancelOrder
         //
-        //     {
-        //         "entry_id":5424475,
-        //         "btc":0.01,
-        //         "rate":2000,
-        //         "time":"2021-04-25T17:05:42.000Z",
-        //         "type":0,
-        //         "status":0
-        //     }
+        //    {
+        //        "data": "Successfully cancelled the order",
+        //        "status": 1,
+        //        "error": null,
+        //        "code": 200
+        //    }
         //
         const id = this.safeString2 (order, 'id', 'entry_id');
-        const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
-        const timestamp = this.parse8601 (this.safeString (order, 'time'));
-        const price = this.safeString (order, 'rate');
-        const amount = this.safeString2 (order, 'amount', 'btc');
-        const filled = this.safeString (order, 'filled');
-        const remaining = this.safeString (order, 'remaining');
-        const average = this.safeString (order, 'avg_cost');
-        const cost = this.safeString (order, 'cost');
-        let type = this.safeStringLower (order, 'type');
-        if (type === '0') {
-            type = 'limit';
+        const datetime = this.safeString (order, 'time');
+        const triggerPrice = this.safeString (order, 't_rate');
+        let side = this.safeString (order, 'type');
+        if (side === '0') {
+            side = 'buy';
+        } else if (side === '1') {
+            side = 'sell';
         }
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const side = this.safeStringLower (order, 'side');
-        const feeCost = this.safeNumber (order, 'fee');
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCurrencyCode = undefined;
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            };
+        const data = this.safeString (order, 'data');
+        let status = this.safeString (order, 'status');
+        if (data === 'Successfully cancelled the order') {
+            status = 'cancelled';
+        } else {
+            status = this.parseStatus (status);
         }
         return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': type,
+            'symbol': this.safeString (market, 'symbol'),
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
-            'remaining': remaining,
+            'price': this.safeString (order, 'rate'),
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'amount': this.safeString (order, 'btc'),
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
             'status': status,
-            'fee': fee,
+            'fee': {
+                'cost': undefined,
+                'currency': undefined,
+                'rate': undefined,
+            },
             'trades': undefined,
         }, market);
     }
@@ -684,6 +673,7 @@ export default class bitbns extends Exchange {
         };
         let response = undefined;
         if (isTrigger) {
+            request['symbol'] = market['baseId'];
             response = await this.v1PostCancelStopLossOrderSymbol (this.extend (request, params));
         } else {
             const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtcancelOrder' : 'cancelOrder';
@@ -786,6 +776,9 @@ export default class bitbns extends Exchange {
         //                 "time":"2021-04-25T17:05:42.000Z",
         //                 "type":0,
         //                 "status":0
+        //                 "t_rate":0.45,                       // only stop orders
+        //                 "type":1,                            // only stop orders
+        //                 "trail":0                            // only stop orders
         //             }
         //         ],
         //         "status":1,
