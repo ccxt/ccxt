@@ -1,5 +1,5 @@
 
-import ccxt from '../../ts/ccxt.js';
+import ccxt from '../../js/ccxt.js';
 
 // // AUTO-TRANSPILE //
 
@@ -35,7 +35,7 @@ function ws_helper_callback (client, message) {
     console.log ('WS received:', message);
 }
 
-// await example_proxyUrl ();
+await example_proxyUrl ();
 // await example_httpProxy ();
 // await example_socksProxy ();
-await example_webSockets ();
+// await example_webSockets ();
