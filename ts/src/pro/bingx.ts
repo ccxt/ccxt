@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bingxRest from '../bingx.js';
-import { BadRequest } from '../base/errors.js';
+import { BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -414,6 +414,11 @@ export default class bingx extends bingxRest {
         const options = this.safeValue (this.options, marketType, {});
         const timeframes = this.safeValue (options, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe, timeframe);
+        if (marketType === 'spot') {
+            if (interval !== '1min') {
+                throw new NotSupported (this.id + ' watchOHLCV only supports 1m timeframe for ' + marketType + ' markets.');
+            }
+        }
         const messageHash = market['id'] + '@kline_' + interval;
         const uuid = this.uuid ();
         const request = {
