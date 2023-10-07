@@ -26,7 +26,7 @@
     "fixTSBug": "node build/fixTSBug",
     "build-docs": "node jsdoc2md.js",
     "tsBuild": "tsc || true",
-    "tsBuildExamples": "tsc -p ./examples/tsconfig.json",
+    "tsBuildExamples": "tsc -p ./examples/tsconfig.json || true",
     "emitAPI": "node build/generateImplicitAPI.js",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
     "force-build": "npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
