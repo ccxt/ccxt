@@ -319,35 +319,34 @@ export default class bingx extends bingxRest {
     }
 
     handleOHLCV (client: Client, message) {
+        //
         // spot
         //
-        // first snapshot
-        //
-        //    {
-        //        code: 100400,
-        //        id: '12cc019d-6fb0-42b4-8d9b-88d1153ae453',
-        //        msg: '',
-        //        timestamp: 1690907596102
-        //    }
-        //
-        // subsequent updates
-        //
-        //
+        //   {
+        //       code: 0,
+        //       data: {
+        //         E: 1696687498608,
+        //         K: {
+        //           T: 1696687499999,
+        //           c: '27917.829',
+        //           h: '27918.427',
+        //           i: '1min',
+        //           l: '27917.7',
+        //           n: 262,
+        //           o: '27917.91',
+        //           q: '25715.359197',
+        //           s: 'BTC-USDT',
+        //           t: 1696687440000,
+        //           v: '0.921100'
+        //         },
+        //         e: 'kline',
+        //         s: 'BTC-USDT'
+        //       },
+        //       dataType: 'BTC-USDT@kline_1min',
+        //       success: true
+        //   }
         //
         // swap
-        //
-        // first snapshot
-        //
-        //    {
-        //        id: '09662f0e-0f84-4e94-a842-285c758421e2',
-        //        code: 0,
-        //        msg: '',
-        //        dataType: '',
-        //        data: null
-        //    }
-        //
-        // subsequent updates
-        //
         //    {
         //        code: 0,
         //        dataType: 'BTC-USDT@kline_1m',
@@ -365,6 +364,12 @@ export default class bingx extends bingxRest {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
+        let candles = undefined;
+        if (Array.isArray (data)) {
+            candles = data;
+        } else {
+            candles = [ this.safeValue (data, 'K', []) ];
+        }
         const messageHash = this.safeString (message, 'dataType');
         const timeframeId = messageHash.split ('_')[1];
         const marketId = messageHash.split ('@')[0];
@@ -378,8 +383,8 @@ export default class bingx extends bingxRest {
             stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][timeframeId] = stored;
         }
-        for (let i = 0; i < data.length; i++) {
-            const candle = data[i];
+        for (let i = 0; i < candles.length; i++) {
+            const candle = candles[i];
             const parsed = this.parseOHLCV (candle, market);
             stored.append (parsed);
         }
