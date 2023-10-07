@@ -297,7 +297,7 @@ export default class bingx extends bingxRest {
         client.resolve (orderbook, messageHash);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market = undefined) {
         //
         //    {
         //        c: '28909.0',
@@ -385,7 +385,7 @@ export default class bingx extends bingxRest {
         }
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
-            const parsed = this.parseOHLCV (candle, market);
+            const parsed = this.parseWsOHLCV (candle, market);
             stored.append (parsed);
         }
         client.resolve (stored, messageHash);
