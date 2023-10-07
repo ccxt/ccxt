@@ -161,9 +161,9 @@ class Exchange(BaseExchange):
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
-            
+
         proxyAgentSet = final_proxy is not None or socksProxy is not None
-        self.checkConflictingProxies (proxyAgentSet, proxyUrl)
+        self.checkConflictingProxies(proxyAgentSet, proxyUrl)
         # avoid old proxies mixing
         if (self.aiohttp_proxy is not None) and (proxyUrl is not None or httpProxy is not None or httpsProxy is not None or socksProxy is not None):
             raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
