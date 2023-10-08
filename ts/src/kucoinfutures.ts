@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import { Dictionary, Int, OrderSide, Ticker, OrderType } from './base/types.js';
+import { Dictionary, Int, OrderSide, Ticker, OrderType, OHLCV, Order, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -550,7 +550,7 @@ export default class kucoinfutures extends kucoin {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 200);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 200) as OHLCV[];
         }
         const market = this.market (symbol);
         const marketId = market['id'];
@@ -1447,7 +1447,7 @@ export default class kucoinfutures extends kucoin {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchOrdersByStatus', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchOrdersByStatus', symbol, since, limit, params) as Order[];
         }
         const stop = this.safeValue (params, 'stop');
         const until = this.safeInteger2 (params, 'until', 'till');
@@ -1552,7 +1552,7 @@ export default class kucoinfutures extends kucoin {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params) as Order[];
         }
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }
@@ -1933,7 +1933,7 @@ export default class kucoinfutures extends kucoin {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
         let request = {
             // orderId (String) [optional] Fills for a specific order (other parameters can be ignored if specified)
