@@ -4730,6 +4730,39 @@ export default class Exchange {
         return result as any;
     }
 
+    async fetchPaginatedCallIncremental (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, pageKey = undefined, maxEntriesPerRequest = undefined): Promise<any> {
+        let maxCalls = undefined;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
+        let maxRetries = undefined;
+        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        let i = 0;
+        let errors = 0;
+        let result = [];
+        while (i < maxCalls) {
+            try {
+                params[pageKey] = i + 1;
+                const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                errors = 0;
+                const responseLength = response.length;
+                if (this.verbose) {
+                    this.log ('Incremental pagination call', i + 1, 'method', method, 'response length', responseLength);
+                }
+                if (responseLength === 0) {
+                    break;
+                }
+                result = this.arrayConcat (result, response);
+            } catch (e) {
+                errors += 1;
+                if (errors > maxRetries) {
+                    throw e;
+                }
+            }
+            i += 1;
+        }
+        return result as any;
+    }
+
     removeRepeatedElementsFromArray (input) {
         const uniqueResult = {};
         for (let i = 0; i < input.length; i++) {
