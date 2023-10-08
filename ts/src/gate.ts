@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory } from './base/types.js';
 
 /**
  * @class gate
@@ -2966,7 +2966,7 @@ export default class gate extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -3606,6 +3606,13 @@ export default class gate extends Exchange {
         //        "memo": null
         //    }
         //
+        //     {
+        //         "currency":"usdt",
+        //         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        //         "amount":"1880",
+        //         "chain":"eth"
+        //     }
+        //
         const id = this.safeString (transaction, 'id');
         let type = undefined;
         let amountString = this.safeString (transaction, 'amount');
@@ -3622,6 +3629,7 @@ export default class gate extends Exchange {
         if (type === 'withdrawal') {
             amountString = Precise.stringSub (amountString, feeCostString);
         }
+        const networkId = this.safeStringUpper (transaction, 'chain');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const txid = this.safeString (transaction, 'txid');
@@ -3636,7 +3644,7 @@ export default class gate extends Exchange {
             'txid': txid,
             'currency': code,
             'amount': this.parseNumber (amountString),
-            'network': undefined,
+            'network': this.networkIdToCode (networkId),
             'address': address,
             'addressTo': undefined,
             'addressFrom': undefined,

@@ -3620,6 +3620,13 @@ class gate extends Exchange {
         //        "memo" => null
         //    }
         //
+        //     {
+        //         "currency":"usdt",
+        //         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        //         "amount":"1880",
+        //         "chain":"eth"
+        //     }
+        //
         $id = $this->safe_string($transaction, 'id');
         $type = null;
         $amountString = $this->safe_string($transaction, 'amount');
@@ -3636,6 +3643,7 @@ class gate extends Exchange {
         if ($type === 'withdrawal') {
             $amountString = Precise::string_sub($amountString, $feeCostString);
         }
+        $networkId = $this->safe_string_upper($transaction, 'chain');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $txid = $this->safe_string($transaction, 'txid');
@@ -3650,7 +3658,7 @@ class gate extends Exchange {
             'txid' => $txid,
             'currency' => $code,
             'amount' => $this->parse_number($amountString),
-            'network' => null,
+            'network' => $this->network_id_to_code($networkId),
             'address' => $address,
             'addressTo' => null,
             'addressFrom' => null,
