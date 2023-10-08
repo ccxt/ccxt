@@ -4628,9 +4628,9 @@ export default class Exchange {
                 }
             }
         }
-        const unique = this.removeRepeatedElementsFromArray (result);
+        const uniqueResults = this.removeRepeatedElementsFromArray (result);
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return this.filterBySinceLimit (unique, since, limit, key);
+        return this.filterBySinceLimit (uniqueResults, since, limit, key);
     }
 
     async safeDeterministicCall (method: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, timeframe: string = undefined, params = {}) {
@@ -4685,9 +4685,9 @@ export default class Exchange {
         for (let i = 0; i < results.length; i++) {
             result = this.arrayConcat (result, results[i]);
         }
-        const unique = this.removeRepeatedElementsFromArray (result) as any;
+        const uniqueResults = this.removeRepeatedElementsFromArray (result) as any;
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return this.filterBySinceLimit (unique, since, limit, key);
+        return this.filterBySinceLimit (uniqueResults, since, limit, key);
     }
 
     async fetchPaginatedCallCursor (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined): Promise<any> {
