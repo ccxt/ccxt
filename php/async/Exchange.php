@@ -2652,6 +2652,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
     }
 
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchFundingRateHistory() is not supported yet');
+    }
+
     public function parse_last_price($price, $market = null) {
         throw new NotSupported($this->id . ' parseLastPrice() is not supported yet');
     }
@@ -3614,7 +3618,9 @@ class Exchange extends \ccxt\Exchange {
                     }
                 }
             }
-            return $this->remove_repeated_elements_from_array($result);
+            $uniqueResults = $this->remove_repeated_elements_from_array($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
         }) ();
     }
 
@@ -3673,7 +3679,9 @@ class Exchange extends \ccxt\Exchange {
             for ($i = 0; $i < count($results); $i++) {
                 $result = $this->array_concat($result, $results[$i]);
             }
-            return $this->remove_repeated_elements_from_array($result);
+            $uniqueResults = $this->remove_repeated_elements_from_array($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
         }) ();
     }
 
@@ -3719,8 +3727,60 @@ class Exchange extends \ccxt\Exchange {
                 }
                 $i += 1;
             }
-            return $result;
+            $sorted = $this->sortCursorPaginatedResult ($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($sorted, $since, $limit, $key);
         }) ();
+    }
+
+    public function fetch_paginated_call_incremental(string $method, ?string $symbol = null, $since = null, $limit = null, $params = array (), $pageKey = null, $maxEntriesPerRequest = null) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest) {
+            $maxCalls = null;
+            list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
+            $maxRetries = null;
+            list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
+            list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
+            $i = 0;
+            $errors = 0;
+            $result = array();
+            while ($i < $maxCalls) {
+                try {
+                    $params[$pageKey] = $i + 1;
+                    $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));
+                    $errors = 0;
+                    $responseLength = count($response);
+                    if ($this->verbose) {
+                        $this->log ('Incremental pagination call', $i + 1, 'method', $method, 'response length', $responseLength);
+                    }
+                    if ($responseLength === 0) {
+                        break;
+                    }
+                    $result = $this->array_concat($result, $response);
+                } catch (Exception $e) {
+                    $errors += 1;
+                    if ($errors > $maxRetries) {
+                        throw $e;
+                    }
+                }
+                $i += 1;
+            }
+            $sorted = $this->sortCursorPaginatedResult ($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($sorted, $since, $limit, $key);
+        }) ();
+    }
+
+    public function sort_cursor_paginated_result($result) {
+        $first = $this->safe_value($result, 0);
+        if ($first !== null) {
+            if (is_array($first) && array_key_exists('timestamp', $first)) {
+                return $this->sort_by($result, 'timestamp');
+            }
+            if (is_array($first) && array_key_exists('id', $first)) {
+                return $this->sort_by($result, 'id');
+            }
+        }
+        return $result;
     }
 
     public function remove_repeated_elements_from_array($input) {

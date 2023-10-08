@@ -3285,6 +3285,9 @@ export default class Exchange {
     async fetchOpenInterest(symbol, params = {}) {
         throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
     }
+    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchFundingRateHistory() is not supported yet');
+    }
     parseLastPrice(price, market = undefined) {
         throw new NotSupported(this.id + ' parseLastPrice() is not supported yet');
     }
@@ -4175,7 +4178,9 @@ export default class Exchange {
                 }
             }
         }
-        return this.removeRepeatedElementsFromArray(result);
+        const uniqueResults = this.removeRepeatedElementsFromArray(result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit(uniqueResults, since, limit, key);
     }
     async safeDeterministicCall(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}) {
         let maxRetries = undefined;
@@ -4230,7 +4235,9 @@ export default class Exchange {
         for (let i = 0; i < results.length; i++) {
             result = this.arrayConcat(result, results[i]);
         }
-        return this.removeRepeatedElementsFromArray(result);
+        const uniqueResults = this.removeRepeatedElementsFromArray(result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit(uniqueResults, since, limit, key);
     }
     async fetchPaginatedCallCursor(method, symbol = undefined, since = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined) {
         let maxCalls = undefined;
@@ -4273,6 +4280,55 @@ export default class Exchange {
                 }
             }
             i += 1;
+        }
+        const sorted = this.sortCursorPaginatedResult(result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit(sorted, since, limit, key);
+    }
+    async fetchPaginatedCallIncremental(method, symbol = undefined, since = undefined, limit = undefined, params = {}, pageKey = undefined, maxEntriesPerRequest = undefined) {
+        let maxCalls = undefined;
+        [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', 10);
+        let maxRetries = undefined;
+        [maxRetries, params] = this.handleOptionAndParams(params, method, 'maxRetries', 3);
+        [maxEntriesPerRequest, params] = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
+        let i = 0;
+        let errors = 0;
+        let result = [];
+        while (i < maxCalls) {
+            try {
+                params[pageKey] = i + 1;
+                const response = await this[method](symbol, since, maxEntriesPerRequest, params);
+                errors = 0;
+                const responseLength = response.length;
+                if (this.verbose) {
+                    this.log('Incremental pagination call', i + 1, 'method', method, 'response length', responseLength);
+                }
+                if (responseLength === 0) {
+                    break;
+                }
+                result = this.arrayConcat(result, response);
+            }
+            catch (e) {
+                errors += 1;
+                if (errors > maxRetries) {
+                    throw e;
+                }
+            }
+            i += 1;
+        }
+        const sorted = this.sortCursorPaginatedResult(result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit(sorted, since, limit, key);
+    }
+    sortCursorPaginatedResult(result) {
+        const first = this.safeValue(result, 0);
+        if (first !== undefined) {
+            if ('timestamp' in first) {
+                return this.sortBy(result, 'timestamp');
+            }
+            if ('id' in first) {
+                return this.sortBy(result, 'id');
+            }
         }
         return result;
     }

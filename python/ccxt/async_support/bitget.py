@@ -4194,15 +4194,19 @@ class bitget(Exchange, ImplicitAPI):
         """
         see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-funding-rate
         fetches historical funding rate prices
-        see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-funding-rate
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the bitget api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, params, 'pageNo', 50)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -4212,6 +4216,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['pageSize'] = limit
+        request['nextPage'] = True
         response = await self.publicMixGetMarketHistoryFundRate(self.extend(request, params))
         #
         #     {

@@ -4,7 +4,7 @@ ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotA
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position } from './types.js';
+import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory } from './types.js';
 export { Market, Trade, Fee, Position, Ticker } from './types.js';
 /**
  * @class Exchange
@@ -557,7 +557,7 @@ export default class Exchange {
     parseMarketLeverageTiers(info: any, market?: any): void;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): void;
-    parseFundingRateHistory(info: any, market?: any): void;
+    parseFundingRateHistory(info: any, market?: any): FundingRateHistory;
     parseBorrowInterest(info: any, market?: any): void;
     parseWsTrade(trade: any, market?: any): Trade;
     parseWsOrder(order: any, market?: any): Order;
@@ -731,6 +731,7 @@ export default class Exchange {
     fetchDeposits(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchOpenInterest(symbol: string, params?: {}): Promise<any>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseLastPrice(price: any, market?: any): any;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     account(): Balance;
@@ -771,7 +772,7 @@ export default class Exchange {
     parseTickers(tickers: any, symbols?: string[], params?: {}): Dictionary<Ticker>;
     parseDepositAddresses(addresses: any, codes?: string[], indexed?: boolean, params?: {}): {};
     parseBorrowInterests(response: any, market?: any): any[];
-    parseFundingRateHistories(response: any, market?: any, since?: Int, limit?: Int): any;
+    parseFundingRateHistories(response: any, market?: any, since?: Int, limit?: Int): FundingRateHistory[];
     safeSymbol(marketId: any, market?: any, delimiter?: any, marketType?: any): any;
     parseFundingRate(contract: string, market?: any): void;
     parseFundingRates(response: any, market?: any): {};
@@ -810,6 +811,8 @@ export default class Exchange {
     safeDeterministicCall(method: string, symbol?: string, since?: Int, limit?: Int, timeframe?: string, params?: {}): Promise<any>;
     fetchPaginatedCallDeterministic(method: string, symbol?: string, since?: Int, limit?: Int, timeframe?: string, params?: {}, maxEntriesPerRequest?: any): Promise<any>;
     fetchPaginatedCallCursor(method: string, symbol?: string, since?: any, limit?: any, params?: {}, cursorReceived?: any, cursorSent?: any, cursorIncrement?: any, maxEntriesPerRequest?: any): Promise<any>;
+    fetchPaginatedCallIncremental(method: string, symbol?: string, since?: any, limit?: any, params?: {}, pageKey?: any, maxEntriesPerRequest?: any): Promise<any>;
+    sortCursorPaginatedResult(result: any): any;
     removeRepeatedElementsFromArray(input: any): any;
     handleUntilOption(key: any, request: any, params: any, multiplier?: number): any[];
 }

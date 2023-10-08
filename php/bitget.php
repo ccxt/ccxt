@@ -4382,15 +4382,20 @@ class bitget extends Exchange {
         /**
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-funding-rate
          * fetches historical funding rate prices
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-funding-rate
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
          * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
          */
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'pageNo', 50);
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -4401,6 +4406,7 @@ class bitget extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
+        $request['nextPage'] = true;
         $response = $this->publicMixGetMarketHistoryFundRate (array_merge($request, $params));
         //
         //     {

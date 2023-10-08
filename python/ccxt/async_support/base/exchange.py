@@ -2375,6 +2375,9 @@ class Exchange(BaseExchange):
     async def fetch_open_interest(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
+    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported yet')
+
     def parse_last_price(self, price, market=None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
 
@@ -3130,7 +3133,9 @@ class Exchange(BaseExchange):
                 errors += 1
                 if errors > maxRetries:
                     raise e
-        return self.remove_repeated_elements_from_array(result)
+        uniqueResults = self.remove_repeated_elements_from_array(result)
+        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
+        return self.filter_by_since_limit(uniqueResults, since, limit, key)
 
     async def safe_deterministic_call(self, method: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, timeframe: Optional[str] = None, params={}):
         maxRetries = None
@@ -3173,7 +3178,9 @@ class Exchange(BaseExchange):
         result = []
         for i in range(0, len(results)):
             result = self.array_concat(result, results[i])
-        return self.remove_repeated_elements_from_array(result)
+        uniqueResults = self.remove_repeated_elements_from_array(result)
+        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
+        return self.filter_by_since_limit(uniqueResults, since, limit, key)
 
     async def fetch_paginated_call_cursor(self, method: str, symbol: Optional[str] = None, since=None, limit=None, params={}, cursorReceived=None, cursorSent=None, cursorIncrement=None, maxEntriesPerRequest=None):
         maxCalls = None
@@ -3208,6 +3215,46 @@ class Exchange(BaseExchange):
                 if errors > maxRetries:
                     raise e
             i += 1
+        sorted = self.sortCursorPaginatedResult(result)
+        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
+        return self.filter_by_since_limit(sorted, since, limit, key)
+
+    async def fetch_paginated_call_incremental(self, method: str, symbol: Optional[str] = None, since=None, limit=None, params={}, pageKey=None, maxEntriesPerRequest=None):
+        maxCalls = None
+        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
+        maxRetries = None
+        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
+        maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
+        i = 0
+        errors = 0
+        result = []
+        while(i < maxCalls):
+            try:
+                params[pageKey] = i + 1
+                response = await getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
+                errors = 0
+                responseLength = len(response)
+                if self.verbose:
+                    self.log('Incremental pagination call', i + 1, 'method', method, 'response length', responseLength)
+                if responseLength == 0:
+                    break
+                result = self.array_concat(result, response)
+            except Exception as e:
+                errors += 1
+                if errors > maxRetries:
+                    raise e
+            i += 1
+        sorted = self.sortCursorPaginatedResult(result)
+        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
+        return self.filter_by_since_limit(sorted, since, limit, key)
+
+    def sort_cursor_paginated_result(self, result):
+        first = self.safe_value(result, 0)
+        if first is not None:
+            if 'timestamp' in first:
+                return self.sort_by(result, 'timestamp')
+            if 'id' in first:
+                return self.sort_by(result, 'id')
         return result
 
     def remove_repeated_elements_from_array(self, input):

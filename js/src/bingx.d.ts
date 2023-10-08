@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import { Int, OrderSide } from './base/types.js';
+import { Int, OrderSide, OHLCV, FundingRateHistory } from './base/types.js';
 export default class bingx extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
@@ -59,7 +59,7 @@ export default class bingx extends Exchange {
         info: any;
     };
     fetchMarkets(params?: {}): Promise<any>;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
@@ -102,7 +102,7 @@ export default class bingx extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchOpenInterest(symbol: string, params?: {}): Promise<{
         symbol: any;
         openInterestAmount: any;

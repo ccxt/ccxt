@@ -457,6 +457,7 @@ export {
     Dictionary,
     MinMax,
     Position,
+    FundingRateHistory,
     ace,
     alpaca,
     ascendex,

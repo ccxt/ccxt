@@ -1,5 +1,5 @@
 import kucoin from './abstract/kucoinfutures.js';
-import { Dictionary, Int, OrderSide, Ticker, OrderType } from './base/types.js';
+import { Dictionary, Int, OrderSide, Ticker, OrderType, OHLCV, Order, Trade, FundingRateHistory } from './base/types.js';
 export default class kucoinfutures extends kucoin {
     describe(): any;
     fetchStatus(params?: {}): Promise<{
@@ -11,7 +11,7 @@ export default class kucoinfutures extends kucoin {
     }>;
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchTime(params?: {}): Promise<number>;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchDepositAddress(code: string, params?: {}): Promise<{
         info: any;
@@ -65,10 +65,10 @@ export default class kucoinfutures extends kucoin {
         symbol: any;
         status: any;
     };
-    fetchOrdersByStatus(status: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchOrder(id?: any, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    fetchOrdersByStatus(status: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrder(id?: any, symbol?: string, params?: {}): Promise<Order>;
+    parseOrder(order: any, market?: any): Order;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: any;
@@ -103,14 +103,14 @@ export default class kucoinfutures extends kucoin {
         info: any;
     };
     parseTransferStatus(status: any): string;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseTrade(trade: any, market?: any): Trade;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseFundingRateHistory(info: any, market?: any): {
         info: any;
         symbol: any;
