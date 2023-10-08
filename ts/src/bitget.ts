@@ -1650,8 +1650,25 @@ export default class bitget extends Exchange {
         //         "data": "888291686266343424"
         //     }
         //
+        //     {
+        //          "code":"00000",
+        //          "msg":"success",
+        //          "requestTime":1696784219602,
+        //          "data":{
+        //              "orderId":"1094957867615789056",
+        //              "clientOrderId":"64f1e4ce842041d296b4517df1b5c2d7"
+        //          }
+        //      }
+        //
+        const data = this.safeValue (response, 'data');
+        let id = undefined;
+        if (typeof data === 'string') {
+            id = data;
+        } else if (data !== undefined) {
+            id = this.safeString (data, 'orderId');
+        }
         const result = {
-            'id': this.safeString (response, 'data'),
+            'id': id,
             'info': response,
             'txid': undefined,
             'timestamp': undefined,
