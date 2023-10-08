@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bingxRest from '../bingx.js';
-import { BadRequest, NotSupported } from '../base/errors.js';
+import { BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
