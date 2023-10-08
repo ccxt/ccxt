@@ -4628,7 +4628,9 @@ export default class Exchange {
                 }
             }
         }
-        return this.removeRepeatedElementsFromArray (result);
+        const unique = this.removeRepeatedElementsFromArray (result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit (unique, since, limit, key);
     }
 
     async safeDeterministicCall (method: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, timeframe: string = undefined, params = {}) {
@@ -4683,7 +4685,9 @@ export default class Exchange {
         for (let i = 0; i < results.length; i++) {
             result = this.arrayConcat (result, results[i]);
         }
-        return this.removeRepeatedElementsFromArray (result) as any;
+        const unique = this.removeRepeatedElementsFromArray (result) as any;
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit (unique, since, limit, key);
     }
 
     async fetchPaginatedCallCursor (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined): Promise<any> {
@@ -4727,7 +4731,9 @@ export default class Exchange {
             }
             i += 1;
         }
-        return this.sortCursorPaginatedResult (result);
+        const sorted = this.sortCursorPaginatedResult (result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit (sorted, since, limit, key);
     }
 
     async fetchPaginatedCallIncremental (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, pageKey = undefined, maxEntriesPerRequest = undefined): Promise<any> {
@@ -4760,7 +4766,9 @@ export default class Exchange {
             }
             i += 1;
         }
-        return this.sortCursorPaginatedResult (result);
+        const sorted = this.sortCursorPaginatedResult (result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit (sorted, since, limit, key);
     }
 
     sortCursorPaginatedResult (result) {
