@@ -4727,7 +4727,7 @@ export default class Exchange {
             }
             i += 1;
         }
-        return result as any;
+        return this.sortBy2 (result, 'timestamp', 'id');
     }
 
     async fetchPaginatedCallIncremental (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, pageKey = undefined, maxEntriesPerRequest = undefined): Promise<any> {
@@ -4760,7 +4760,7 @@ export default class Exchange {
             }
             i += 1;
         }
-        return result as any;
+        return this.sortBy2 (result, 'timestamp', 'id');
     }
 
     removeRepeatedElementsFromArray (input) {
