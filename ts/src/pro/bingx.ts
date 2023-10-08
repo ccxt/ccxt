@@ -414,11 +414,6 @@ export default class bingx extends bingxRest {
         const options = this.safeValue (this.options, marketType, {});
         const timeframes = this.safeValue (options, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe, timeframe);
-        if (marketType === 'spot') {
-            if (interval !== '1min') {
-                throw new NotSupported (this.id + ' watchOHLCV only supports 1m timeframe for ' + marketType + ' markets.');
-            }
-        }
         const messageHash = market['id'] + '@kline_' + interval;
         const uuid = this.uuid ();
         const request = {
