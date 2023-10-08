@@ -3962,7 +3962,7 @@ export default class Exchange {
     }
 
     filterBySymbolsSinceLimit (array, symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
-        const result = this.filterByArray (array, 'symbol', symbols);
+        const result = this.filterByArray (array, 'symbol', symbols, false);
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
 
