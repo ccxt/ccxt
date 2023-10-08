@@ -3629,7 +3629,7 @@ export default class gate extends Exchange {
         if (type === 'withdrawal') {
             amountString = Precise.stringSub (amountString, feeCostString);
         }
-        const networkId = this.safeString (transaction, 'chain');
+        const networkId = this.safeStringUpper (transaction, 'chain');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const txid = this.safeString (transaction, 'txid');
