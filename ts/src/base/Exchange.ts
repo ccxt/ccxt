@@ -142,7 +142,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position } from './types.js';
+import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory } from './types.js';
 export {Market, Trade, Fee, Position, Ticker} from './types.js'
 
 // ----------------------------------------------------------------------------
@@ -1686,7 +1686,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parsePosition() is not supported yet');
     }
 
-    parseFundingRateHistory (info, market = undefined) {
+    parseFundingRateHistory (info, market = undefined): FundingRateHistory {
         throw new NotSupported (this.id + ' parseFundingRateHistory() is not supported yet');
     }
 
@@ -3683,6 +3683,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
     }
 
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+        throw new NotSupported (this.id + ' fetchFundingRateHistory() is not supported yet');
+    }
+
     parseLastPrice (price, market = undefined): any {
         throw new NotSupported (this.id + ' parseLastPrice() is not supported yet');
     }
@@ -4067,7 +4071,7 @@ export default class Exchange {
         return interests;
     }
 
-    parseFundingRateHistories (response, market = undefined, since: Int = undefined, limit: Int = undefined) {
+    parseFundingRateHistories (response, market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
         const rates = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -4075,7 +4079,7 @@ export default class Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         const symbol = (market === undefined) ? undefined : market['symbol'];
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
     safeSymbol (marketId, market = undefined, delimiter = undefined, marketType = undefined) {
