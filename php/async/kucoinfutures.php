@@ -535,7 +535,7 @@ class kucoinfutures extends kucoin {
             //        data => 1637385119302,
             //    }
             //
-            return $this->safe_number($response, 'data');
+            return $this->safe_integer($response, 'data');
         }) ();
     }
 
@@ -548,9 +548,15 @@ class kucoinfutures extends kucoin {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the kucoinfutures api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 200));
+            }
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $parsedTimeframe = $this->safe_integer($this->timeframes, $timeframe);
@@ -1439,9 +1445,15 @@ class kucoinfutures extends kucoin {
              * @param {int} [$params->until] End time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit or $market
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure array of order structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrdersByStatus', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchOrdersByStatus', $symbol, $since, $limit, $params));
+            }
             $stop = $this->safe_value($params, 'stop');
             $until = $this->safe_integer_2($params, 'until', 'till');
             $params = $this->omit($params, array( 'stop', 'until', 'till' ));
@@ -1538,8 +1550,15 @@ class kucoinfutures extends kucoin {
              * @param {int} [$params->till] end time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, or market
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
+            Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params));
+            }
             return Async\await($this->fetch_orders_by_status('done', $symbol, $since, $limit, $params));
         }) ();
     }
@@ -1905,14 +1924,22 @@ class kucoinfutures extends kucoin {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://docs.kucoin.com/futures/#get-fills
              * fetch all $trades made by the user
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the kucoinfutures api endpoint
+             * @param {int} [$params->until] End time in ms
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
+            }
             $request = array(
                 // orderId ('strval') [optional] Fills for a specific order (other parameters can be ignored if specified)
                 // $symbol ('strval') [optional] Symbol of the contract
@@ -1929,6 +1956,7 @@ class kucoinfutures extends kucoin {
             if ($since !== null) {
                 $request['startAt'] = $since;
             }
+            list($request, $params) = $this->handle_until_option('endAt', $request, $params);
             $response = Async\await($this->futuresPrivateGetFills (array_merge($request, $params)));
             //
             //    {
@@ -2334,12 +2362,18 @@ class kucoinfutures extends kucoin {
              * @param {int} [$since] not used by kucuoinfutures
              * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
              * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],

@@ -838,7 +838,7 @@ class whitebit(Exchange, ImplicitAPI):
         #          ]
         #      }
         #
-        timestamp = self.parse_number(Precise.string_mul(self.safe_string(response, 'timestamp'), '1000'))
+        timestamp = self.parse_to_int(Precise.string_mul(self.safe_string(response, 'timestamp'), '1000'))
         return self.parse_order_book(response, symbol, timestamp)
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):

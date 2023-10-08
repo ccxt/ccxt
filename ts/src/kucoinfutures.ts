@@ -530,7 +530,7 @@ export default class kucoinfutures extends kucoin {
         //        data: 1637385119302,
         //    }
         //
-        return this.safeNumber (response, 'data');
+        return this.safeInteger (response, 'data');
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -543,9 +543,15 @@ export default class kucoinfutures extends kucoin {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 200);
+        }
         const market = this.market (symbol);
         const marketId = market['id'];
         const parsedTimeframe = this.safeInteger (this.timeframes, timeframe);
@@ -1434,9 +1440,15 @@ export default class kucoinfutures extends kucoin {
          * @param {int} [params.until] End time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit or market
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns An [array of order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchOrdersByStatus', symbol, since, limit, params);
+        }
         const stop = this.safeValue (params, 'stop');
         const until = this.safeInteger2 (params, 'until', 'till');
         params = this.omit (params, [ 'stop', 'until', 'till' ]);
@@ -1533,8 +1545,15 @@ export default class kucoinfutures extends kucoin {
          * @param {int} [params.till] end time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit, or market
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params);
+        }
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }
 
@@ -1900,15 +1919,23 @@ export default class kucoinfutures extends kucoin {
         /**
          * @method
          * @name kucoinfutures#fetchMyTrades
+         * @see https://docs.kucoin.com/futures/#get-fills
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
+         * @param {int} [params.until] End time in ms
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params);
+        }
+        let request = {
             // orderId (String) [optional] Fills for a specific order (other parameters can be ignored if specified)
             // symbol (String) [optional] Symbol of the contract
             // side (String) [optional] buy or sell
@@ -1924,6 +1951,7 @@ export default class kucoinfutures extends kucoin {
         if (since !== undefined) {
             request['startAt'] = since;
         }
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
         const response = await this.futuresPrivateGetFills (this.extend (request, params));
         //
         //    {
@@ -2330,12 +2358,18 @@ export default class kucoinfutures extends kucoin {
          * @param {int} [since] not used by kucuoinfutures
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params);
+        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],

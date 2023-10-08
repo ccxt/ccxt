@@ -298,6 +298,7 @@ export default class bingx extends Exchange {
                     '100001': AuthenticationError,
                     '100412': AuthenticationError,
                     '100202': InsufficientFunds,
+                    '100204': BadRequest,
                     '100400': BadRequest,
                     '100440': ExchangeError,
                     '100500': ExchangeError,
@@ -628,9 +629,15 @@ export default class bingx extends Exchange {
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {string} [params.price] "mark" or "index" for mark price and index price candles
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440);
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -644,6 +651,11 @@ export default class bingx extends Exchange {
         }
         else {
             request['limit'] = 50;
+        }
+        const until = this.safeInteger2(params, 'until', 'startTime');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['startTime'] = until;
         }
         let response = undefined;
         if (market['spot']) {
@@ -1024,10 +1036,17 @@ export default class bingx extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {[object]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params);
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1037,6 +1056,11 @@ export default class bingx extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        const until = this.safeInteger2(params, 'until', 'startTime');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['startTime'] = until;
         }
         const response = await this.swapV2PublicGetQuoteFundingRate(this.extend(request, params));
         //

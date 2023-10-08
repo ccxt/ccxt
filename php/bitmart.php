@@ -68,7 +68,9 @@ class bitmart extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => true,
                 'fetchPositionMode' => false,
+                'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -174,6 +176,8 @@ class bitmart extends Exchange {
                         'spot/v1/margin/isolated/account' => 6,
                         'spot/v1/trade_fee' => 6,
                         'spot/v1/user_fee' => 6,
+                        // broker
+                        'spot/v1/broker/rebate' => 1,
                         // contract
                         'contract/private/assets-detail' => 5,
                         'contract/private/order' => 1.2,
@@ -3700,6 +3704,179 @@ class bitmart extends Exchange {
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
+    }
+
+    public function fetch_position(string $symbol, $params = array ()) {
+        /**
+         * fetch $data on a single open contract trade position
+         * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+         * @param {string} $symbol unified $market $symbol of the $market the position is held in
+         * @param {array} [$params] extra parameters specific to the bitmart api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->privateGetContractPrivatePosition (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "Ok",
+        //         "data" => array(
+        //             {
+        //                 "symbol" => "BTCUSDT",
+        //                 "leverage" => "10",
+        //                 "timestamp" => 1696392515269,
+        //                 "current_fee" => "0.0014250028",
+        //                 "open_timestamp" => 1696392256998,
+        //                 "current_value" => "27.4039",
+        //                 "mark_price" => "27.4039",
+        //                 "position_value" => "27.4079",
+        //                 "position_cross" => "3.75723474",
+        //                 "maintenance_margin" => "0.1370395",
+        //                 "close_vol" => "0",
+        //                 "close_avg_price" => "0",
+        //                 "open_avg_price" => "27407.9",
+        //                 "entry_price" => "27407.9",
+        //                 "current_amount" => "1",
+        //                 "unrealized_value" => "-0.004",
+        //                 "realized_value" => "-0.01644474",
+        //                 "position_type" => 1
+        //             }
+        //         ),
+        //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $first = $this->safe_value($data, 0, array());
+        return $this->parse_position($first, $market);
+    }
+
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
+        /**
+         * fetch all open contract $positions
+         * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+         * @param {string[]|null} $symbols list of unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the bitmart api endpoint
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structures}
+         */
+        $this->load_markets();
+        $market = null;
+        $symbolsLength = null;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            $first = $this->safe_string($symbols, 0);
+            $market = $this->market($first);
+        }
+        $request = array();
+        if ($symbolsLength === 1) {
+            // only supports $symbols or sending one symbol
+            $request['symbol'] = $market['id'];
+        }
+        $response = $this->privateGetContractPrivatePosition (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "Ok",
+        //         "data" => array(
+        //             array(
+        //                 "symbol" => "BTCUSDT",
+        //                 "leverage" => "10",
+        //                 "timestamp" => 1696392515269,
+        //                 "current_fee" => "0.0014250028",
+        //                 "open_timestamp" => 1696392256998,
+        //                 "current_value" => "27.4039",
+        //                 "mark_price" => "27.4039",
+        //                 "position_value" => "27.4079",
+        //                 "position_cross" => "3.75723474",
+        //                 "maintenance_margin" => "0.1370395",
+        //                 "close_vol" => "0",
+        //                 "close_avg_price" => "0",
+        //                 "open_avg_price" => "27407.9",
+        //                 "entry_price" => "27407.9",
+        //                 "current_amount" => "1",
+        //                 "unrealized_value" => "-0.004",
+        //                 "realized_value" => "-0.01644474",
+        //                 "position_type" => 1
+        //             ),
+        //         ),
+        //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
+        //     }
+        //
+        $positions = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $result[] = $this->parse_position($positions[$i]);
+        }
+        $symbols = $this->market_symbols($symbols);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "leverage" => "10",
+        //         "timestamp" => 1696392515269,
+        //         "current_fee" => "0.0014250028",
+        //         "open_timestamp" => 1696392256998,
+        //         "current_value" => "27.4039",
+        //         "mark_price" => "27.4039",
+        //         "position_value" => "27.4079",
+        //         "position_cross" => "3.75723474",
+        //         "maintenance_margin" => "0.1370395",
+        //         "close_vol" => "0",
+        //         "close_avg_price" => "0",
+        //         "open_avg_price" => "27407.9",
+        //         "entry_price" => "27407.9",
+        //         "current_amount" => "1",
+        //         "unrealized_value" => "-0.004",
+        //         "realized_value" => "-0.01644474",
+        //         "position_type" => 1
+        //     }
+        //
+        $marketId = $this->safe_string($position, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $timestamp = $this->safe_integer($position, 'timestamp');
+        $side = $this->safe_integer($position, 'position_type');
+        $maintenanceMargin = $this->safe_string($position, 'maintenance_margin');
+        $notional = $this->safe_string($position, 'current_value');
+        $collateral = $this->safe_string($position, 'position_cross');
+        $maintenanceMarginPercentage = Precise::string_div($maintenanceMargin, $notional);
+        $marginRatio = Precise::string_div($maintenanceMargin, $collateral);
+        return $this->safe_position(array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastUpdateTimestamp' => null,
+            'hedged' => null,
+            'side' => ($side === 1) ? 'long' : 'short',
+            'contracts' => $this->safe_number($position, 'current_amount'),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'entryPrice' => $this->safe_number($position, 'entry_price'),
+            'markPrice' => $this->safe_number($position, 'mark_price'),
+            'lastPrice' => null,
+            'notional' => $this->parse_number($notional),
+            'leverage' => $this->safe_number($position, 'leverage'),
+            'collateral' => $this->parse_number($collateral),
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'maintenanceMargin' => $this->parse_number($maintenanceMargin),
+            'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentage),
+            'unrealizedPnl' => $this->safe_number($position, 'unrealized_value'),
+            'realizedPnl' => $this->safe_number($position, 'realized_value'),
+            'liquidationPrice' => null,
+            'marginMode' => null,
+            'percentage' => null,
+            'marginRatio' => $this->parse_number($marginRatio),
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
+        ));
     }
 
     public function nonce() {

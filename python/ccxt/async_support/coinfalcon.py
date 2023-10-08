@@ -889,9 +889,9 @@ class coinfalcon(Exchange, ImplicitAPI):
         amountString = self.safe_string(transaction, 'amount')
         amount = self.parse_number(amountString)
         feeCostString = self.safe_string(transaction, 'fee')
-        feeCost = 0
+        feeCost = '0'
         if feeCostString is not None:
-            feeCost = self.parse_number(feeCostString)
+            feeCost = feeCostString
         return {
             'info': transaction,
             'id': id,
@@ -912,7 +912,7 @@ class coinfalcon(Exchange, ImplicitAPI):
             'updated': None,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCost),
             },
         }
 
