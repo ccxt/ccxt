@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeEr
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { Int, OrderSide, OHLCV } from './base/types.js';
+import { Int, OrderSide, OHLCV, FundingRateHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
