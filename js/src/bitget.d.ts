@@ -66,7 +66,7 @@ export default class bitget extends Exchange {
     parseMarketLeverageTiers(info: any, market?: any): any[];
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        id: string;
+        id: any;
         info: any;
         txid: any;
         timestamp: any;

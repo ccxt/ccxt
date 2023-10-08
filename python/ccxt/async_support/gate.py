@@ -3421,6 +3421,13 @@ class gate(Exchange, ImplicitAPI):
         #        "memo": null
         #    }
         #
+        #     {
+        #         "currency":"usdt",
+        #         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        #         "amount":"1880",
+        #         "chain":"eth"
+        #     }
+        #
         id = self.safe_string(transaction, 'id')
         type = None
         amountString = self.safe_string(transaction, 'amount')
@@ -3434,6 +3441,7 @@ class gate(Exchange, ImplicitAPI):
         feeCostString = self.safe_string(transaction, 'fee')
         if type == 'withdrawal':
             amountString = Precise.string_sub(amountString, feeCostString)
+        networkId = self.safe_string_upper(transaction, 'chain')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         txid = self.safe_string(transaction, 'txid')
@@ -3448,7 +3456,7 @@ class gate(Exchange, ImplicitAPI):
             'txid': txid,
             'currency': code,
             'amount': self.parse_number(amountString),
-            'network': None,
+            'network': self.network_id_to_code(networkId),
             'address': address,
             'addressTo': None,
             'addressFrom': None,

@@ -226,7 +226,7 @@ export default class gate extends Exchange {
         txid: string;
         currency: any;
         amount: number;
-        network: any;
+        network: string;
         address: string;
         addressTo: any;
         addressFrom: any;
@@ -251,7 +251,7 @@ export default class gate extends Exchange {
         txid: string;
         currency: any;
         amount: number;
-        network: any;
+        network: string;
         address: string;
         addressTo: any;
         addressFrom: any;

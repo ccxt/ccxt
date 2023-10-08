@@ -1633,8 +1633,24 @@ class bitget(Exchange, ImplicitAPI):
         #         "data": "888291686266343424"
         #     }
         #
+        #     {
+        #          "code":"00000",
+        #          "msg":"success",
+        #          "requestTime":1696784219602,
+        #          "data":{
+        #              "orderId":"1094957867615789056",
+        #              "clientOrderId":"64f1e4ce842041d296b4517df1b5c2d7"
+        #          }
+        #      }
+        #
+        data = self.safe_value(response, 'data')
+        id = None
+        if isinstance(data, str):
+            id = data
+        elif data is not None:
+            id = self.safe_string(data, 'orderId')
         result = {
-            'id': self.safe_string(response, 'data'),
+            'id': id,
             'info': response,
             'txid': None,
             'timestamp': None,

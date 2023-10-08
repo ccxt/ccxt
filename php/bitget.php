@@ -1641,8 +1641,25 @@ class bitget extends Exchange {
         //         "data" => "888291686266343424"
         //     }
         //
+        //     {
+        //          "code":"00000",
+        //          "msg":"success",
+        //          "requestTime":1696784219602,
+        //          "data":{
+        //              "orderId":"1094957867615789056",
+        //              "clientOrderId":"64f1e4ce842041d296b4517df1b5c2d7"
+        //          }
+        //      }
+        //
+        $data = $this->safe_value($response, 'data');
+        $id = null;
+        if (gettype($data) === 'string') {
+            $id = $data;
+        } elseif ($data !== null) {
+            $id = $this->safe_string($data, 'orderId');
+        }
         $result = array(
-            'id' => $this->safe_string($response, 'data'),
+            'id' => $id,
             'info' => $response,
             'txid' => null,
             'timestamp' => null,
