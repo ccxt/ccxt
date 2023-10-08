@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2304,7 +2304,7 @@ export default class bitget extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'tradeId', 'tradeId');
+            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'tradeId', 'tradeId') as Trade[];
         }
         const market = this.market (symbol);
         const request = {
@@ -2555,7 +2555,7 @@ export default class bitget extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
         }
         const market = this.market (symbol);
         const request = {
@@ -3663,7 +3663,7 @@ export default class bitget extends Exchange {
             const isStop = this.safeValue2 (params, 'stop', 'trigger', false);
             const cursorReceived = (market['spot'] && !isStop) ? 'orderId' : 'endId';
             const cursorSent = (market['spot'] && !isStop) ? 'after' : 'lastEndId';
-            return await this.fetchPaginatedCallCursor ('fetchClosedOrders', symbol, since, limit, params, cursorReceived, cursorSent, undefined, 50);
+            return await this.fetchPaginatedCallCursor ('fetchClosedOrders', symbol, since, limit, params, cursorReceived, cursorSent, undefined, 50) as Order[];
         }
         const response = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
         const result = [];
@@ -3702,7 +3702,7 @@ export default class bitget extends Exchange {
             const isStop = this.safeValue2 (params, 'stop', 'trigger', false);
             const cursorReceived = (market['spot'] && !isStop) ? 'orderId' : 'endId';
             const cursorSent = (market['spot'] && !isStop) ? 'after' : 'lastEndId';
-            return await this.fetchPaginatedCallCursor ('fetchCanceledOrders', symbol, since, limit, params, cursorReceived, cursorSent, undefined, 50);
+            return await this.fetchPaginatedCallCursor ('fetchCanceledOrders', symbol, since, limit, params, cursorReceived, cursorSent, undefined, 50) as Order[];
         }
         const response = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
         const result = [];
@@ -4031,9 +4031,9 @@ export default class bitget extends Exchange {
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             if (market['spot']) {
-                return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'orderId', 'after', undefined, 50);
+                return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'orderId', 'after', undefined, 50) as Trade[];
             } else {
-                return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 500);
+                return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 500) as Trade[];
             }
         }
         let request = {
