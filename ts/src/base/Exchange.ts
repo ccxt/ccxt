@@ -4727,7 +4727,7 @@ export default class Exchange {
             }
             i += 1;
         }
-        return this.sortBy2 (result, 'timestamp', 'id');
+        return this.sortCursorPaginatedResult (result);
     }
 
     async fetchPaginatedCallIncremental (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, pageKey = undefined, maxEntriesPerRequest = undefined): Promise<any> {
@@ -4760,7 +4760,20 @@ export default class Exchange {
             }
             i += 1;
         }
-        return this.sortBy2 (result, 'timestamp', 'id');
+        return this.sortCursorPaginatedResult (result);
+    }
+
+    sortCursorPaginatedResult (result) {
+        const first = this.safeValue (result, 0);
+        if (first !== undefined) {
+            if ('timestamp' in first) {
+                return this.sortBy (result, 'timestamp');
+            }
+            if ('id' in first) {
+                return this.sortBy (result, 'id');
+            }
+        }
+        return result;
     }
 
     removeRepeatedElementsFromArray (input) {
