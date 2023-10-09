@@ -326,10 +326,10 @@ function checkPrecisionAccuracy (exchange, skippedProperties, method, entry, key
 }
 
 function clearProxySettings (exchange, skippedProperties) {
-    const proxyUrl = exchange.safeString (exchange, 'proxyUrl');
-    const httpProxy = exchange.safeString (exchange, 'httpProxy');
-    const httpsProxy = exchange.safeString (exchange, 'httpsProxy');
-    const socksProxy = exchange.safeString (exchange, 'socksProxy');
+    const proxyUrl = exchange.proxyUrl;
+    const httpProxy = exchange.httpProxy;
+    const httpsProxy = exchange.httpsProxy;
+    const socksProxy = exchange.socksProxy;
     exchange.proxyUrl = undefined;
     exchange.httpProxy = undefined;
     exchange.httpsProxy = undefined;
