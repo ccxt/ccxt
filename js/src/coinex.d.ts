@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinex.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
 /**
  * @class coinex
  * @extends Exchange
@@ -158,7 +158,7 @@ export default class coinex extends Exchange {
         };
     }>;
     parseTransactionStatus(status: any): string;
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<any>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<FundingRateHistory[]>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;

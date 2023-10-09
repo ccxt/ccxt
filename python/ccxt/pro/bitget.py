@@ -91,9 +91,9 @@ class bitget(ccxt.async_support.bitget):
             return market['info']['symbolName']
         else:
             if not sandboxMode:
-                return market['id'].replace('_UMCBL', '')
+                return market['id'].replace('_UMCBL', '').replace('_DMCBL', '').replace('_CMCBL', '')
             else:
-                return market['id'].replace('_SUMCBL', '')
+                return market['id'].replace('_SUMCBL', '').replace('_SDMCBL', '').replace('_SCMCBL', '')
 
     def get_market_id_from_arg(self, arg):
         #
@@ -103,12 +103,20 @@ class bitget(ccxt.async_support.bitget):
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         marketId = self.safe_string(arg, 'instId')
         if instType == 'sp':
-            marketId += '_SPBL'
+            marketId = marketId + '_SPBL'
         else:
-            if not sandboxMode:
-                marketId += '_UMCBL'
+            extension = '_S' if sandboxMode else '_'
+            splitByUSDT = marketId.split('USDT')
+            splitByPERP = marketId.split('PERP')
+            splitByUSDTLength = len(splitByUSDT)
+            splitByPERPLength = len(splitByPERP)
+            if splitByUSDTLength > 1:
+                extension += 'UMCBL'
+            elif splitByPERPLength > 1:
+                extension += 'CMCBL'
             else:
-                marketId += '_SUMCBL'
+                extension += 'DMCBL'
+            marketId = marketId + extension
         return marketId
 
     async def watch_ticker(self, symbol: str, params={}):
@@ -571,6 +579,8 @@ class bitget(ccxt.async_support.bitget):
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://bitgetlimited.github.io/apidoc/en/spot/#trades-channel
+        see https://bitgetlimited.github.io/apidoc/en/mix/#trades-channel
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch

@@ -340,6 +340,7 @@ class bitfinex2 extends bitfinex2$1 {
             },
             'exceptions': {
                 'exact': {
+                    '11010': errors.RateLimitExceeded,
                     '10001': errors.PermissionDenied,
                     '10020': errors.BadRequest,
                     '10100': errors.AuthenticationError,
@@ -1265,17 +1266,24 @@ class bitfinex2 extends bitfinex2$1 {
          * @method
          * @name bitfinex2#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.bitfinex.com/reference/rest-public-tickers-history
+         * @see https://docs.bitfinex.com/reference/rest-public-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchTrades', symbol, since, limit, params, 10000);
+        }
         const market = this.market(symbol);
         let sort = '-1';
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -1286,6 +1294,7 @@ class bitfinex2 extends bitfinex2$1 {
             request['limit'] = Math.min(limit, 10000); // default 120, max 10000
         }
         request['sort'] = sort;
+        [request, params] = this.handleUntilOption('end', request, params);
         const response = await this.publicGetTradesSymbolHist(this.extend(request, params));
         //
         //     [
@@ -1312,23 +1321,27 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 10000);
+        }
         const market = this.market(symbol);
         if (limit === undefined) {
-            limit = 100; // default 100, max 5000
+            limit = 10000; // default 100, max 5000
         }
-        if (since === undefined) {
-            const duration = this.parseTimeframe(timeframe);
-            since = this.milliseconds() - duration * limit * 1000;
-        }
-        const request = {
+        let request = {
             'symbol': market['id'],
             'timeframe': this.safeString(this.timeframes, timeframe, timeframe),
             'sort': 1,
             'start': since,
             'limit': limit,
         };
+        [request, params] = this.handleUntilOption('end', request, params);
         const response = await this.publicGetCandlesTradeTimeframeSymbolHist(this.extend(request, params));
         //
         //     [
@@ -1802,17 +1815,25 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         // returns the most recent closed or canceled orders up to circa two weeks ago
         await this.loadMarkets();
-        const request = {};
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchClosedOrders', symbol, since, limit, params);
+        }
+        let request = {};
         if (since !== undefined) {
             request['start'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 25, max 2500
         }
+        [request, params] = this.handleUntilOption('end', request, params);
         let market = undefined;
         let response = undefined;
         if (symbol === undefined) {
@@ -2573,6 +2594,7 @@ class bitfinex2 extends bitfinex2$1 {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody) {
+        // ['error', 11010, 'ratelimit: error']
         if (response !== undefined) {
             if (!Array.isArray(response)) {
                 const message = this.safeString2(response, 'message', 'error');
@@ -2584,6 +2606,9 @@ class bitfinex2 extends bitfinex2$1 {
         }
         else if (response === '') {
             throw new errors.ExchangeError(this.id + ' returned empty response');
+        }
+        if (statusCode === 429) {
+            throw new errors.RateLimitExceeded(this.id + ' ' + body);
         }
         if (statusCode === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
@@ -2680,18 +2705,26 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest ledger entry
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets();
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params, 2500);
+        }
         let currency = undefined;
-        const request = {};
+        let request = {};
         if (since !== undefined) {
             request['start'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // max 2500
         }
+        [request, params] = this.handleUntilOption('end', request, params);
         let response = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2789,14 +2822,25 @@ class bitfinex2 extends bitfinex2$1 {
          * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest funding rate
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
          */
         await this.loadMarkets();
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 5000);
+        }
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        [request, params] = this.handleUntilOption('end', request, params);
         const response = await this.publicGetStatusDerivSymbolHist(this.extend(request, params));
         //
         //   [

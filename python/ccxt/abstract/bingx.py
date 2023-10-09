@@ -77,6 +77,7 @@ class ImplicitAPI:
     subaccount_v1_private_post_updatestatus = subAccountV1PrivatePostUpdateStatus = Entry('updateStatus', ['subAccount', 'v1', 'private'], 'POST', {'cost': 3})
     account_v1_private_get_uid = accountV1PrivateGetUid = Entry('uid', ['account', 'v1', 'private'], 'GET', {'cost': 1})
     account_v1_private_post_innertransfer_authorizesubaccount = accountV1PrivatePostInnerTransferAuthorizeSubAccount = Entry('innerTransfer/authorizeSubAccount', ['account', 'v1', 'private'], 'POST', {'cost': 3})
+    user_auth_private_post_userdatastream = userAuthPrivatePostUserDataStream = Entry('userDataStream', ['user', 'auth', 'private'], 'POST', {'cost': 1})
     copytrading_v1_private_get_swap_trace_currenttrack = copyTradingV1PrivateGetSwapTraceCurrentTrack = Entry('swap/trace/currentTrack', ['copyTrading', 'v1', 'private'], 'GET', {'cost': 1})
     copytrading_v1_private_post_swap_trace_closetrackorder = copyTradingV1PrivatePostSwapTraceCloseTrackOrder = Entry('swap/trace/closeTrackOrder', ['copyTrading', 'v1', 'private'], 'POST', {'cost': 1})
     copytrading_v1_private_post_swap_trace_settpsl = copyTradingV1PrivatePostSwapTraceSetTPSL = Entry('swap/trace/setTPSL', ['copyTrading', 'v1', 'private'], 'POST', {'cost': 1})
