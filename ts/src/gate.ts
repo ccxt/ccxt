@@ -1,6 +1,5 @@
 //  ---------------------------------------------------------------------------
 
-import { time } from 'console';
 import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
