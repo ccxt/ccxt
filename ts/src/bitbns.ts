@@ -1203,7 +1203,7 @@ export default class bitbns extends Exchange {
                 'body': body,
             };
             const payload = this.stringToBase64 (this.json (auth));
-            const signature = this.hmac (payload, this.encode (this.secret), sha512);
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha512);
             headers['X-BITBNS-PAYLOAD'] = payload;
             headers['X-BITBNS-SIGNATURE'] = signature;
             headers['Content-Type'] = 'application/x-www-form-urlencoded';
