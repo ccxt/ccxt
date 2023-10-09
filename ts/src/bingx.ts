@@ -887,10 +887,7 @@ export default class bingx extends Exchange {
             time = undefined;
         }
         const isBuyerMaker = this.safeValue2 (trade, 'buyerMaker', 'isBuyerMaker');
-        let side = undefined;
-        if (isBuyerMaker !== undefined) {
-            side = isBuyerMaker ? 'sell' : 'buy';
-        }
+        const side = this.safeStringLower2 (trade, 'side', 'S');
         const cost = this.safeString (trade, 'quoteQty');
         const type = (cost === undefined) ? 'spot' : 'swap';
         const currencyId = this.safeString2 (trade, 'currency', 'N');
@@ -905,7 +902,7 @@ export default class bingx extends Exchange {
             'symbol': this.safeSymbol (marketId, market, '-', type),
             'order': this.safeString2 (trade, 'orderId', 'i'),
             'type': this.safeStringLower (trade, 'o'),
-            'side': side,
+            'side': this.parseOrderSide (side),
             'takerOrMaker': (isBuyerMaker || m) ? 'maker' : 'taker',
             'price': this.safeString2 (trade, 'price', 'p'),
             'amount': this.safeStringN (trade, [ 'qty', 'amount', 'q' ]),
@@ -1752,6 +1749,16 @@ export default class bingx extends Exchange {
         return this.parseOrder (order, market);
     }
 
+    parseOrderSide (side) {
+        const sides = {
+            'BUY': 'buy',
+            'SELL': 'sell',
+            'SHORT': 'sell',
+            'LONG': 'buy',
+        };
+        return this.safeString (sides, side, side);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // spot
@@ -1880,7 +1887,7 @@ export default class bingx extends Exchange {
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': side,
+            'side': this.parseOrderSide (side),
             'price': price,
             'stopPrice': this.safeNumber (order, 'stopPrice'),
             'triggerPrice': this.safeNumber (order, 'stopPrice'),
