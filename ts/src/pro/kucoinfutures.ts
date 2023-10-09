@@ -223,6 +223,9 @@ export default class kucoinfutures extends kucoinfuturesRest {
     }
 
     getCurrentPosition (symbol) {
+        if (this.positions === undefined) {
+            return undefined;
+        }
         const cache = this.positions.hashmap;
         const symbolCache = this.safeValue (cache, symbol, {});
         const values = Object.values (symbolCache);
