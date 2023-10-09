@@ -736,7 +736,7 @@ export default class testMainClass extends baseMainTestClass {
             // if (!result) {
             //     throw new Error ('[TEST_FAILURE] ' + proxyTestName + ' failed');
             // }
-            await this.testSafe (proxyTestName, exchange, [], true);
+            await this.testMethod (proxyTestName, exchange, [], true);
         }
     }
 
