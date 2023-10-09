@@ -1,5 +1,6 @@
 //  ---------------------------------------------------------------------------
 
+import { time } from 'console';
 import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -4937,13 +4938,14 @@ export default class gate extends Exchange {
         const takerFee = '0.00075';
         const feePaid = Precise.stringMul (takerFee, notional);
         const initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
+        const timestamp = this.safeInteger (position, 'time_ms');
         return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': timestamp,
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
