@@ -328,14 +328,14 @@ function checkPrecisionAccuracy (exchange, skippedProperties, method, entry, key
 function removeProxyOptions (exchange, skippedProperties) {
     const proxyUrl = exchange.checkProxyUrlSettings ();
     const [ httpProxy, httpsProxy, socksProxy ] = exchange.checkProxySettings ();
-    exchange.setProperty ('proxyUrl', undefined);
-    exchange.setProperty ('proxy_url', undefined);
-    exchange.setProperty ('httpProxy', undefined);
-    exchange.setProperty ('http_proxy', undefined);
-    exchange.setProperty ('httpsProxy', undefined);
-    exchange.setProperty ('https_proxy', undefined);
-    exchange.setProperty ('socksProxy', undefined);
-    exchange.setProperty ('socks_proxy', undefined);
+    exchange.setProperty (exchange, 'proxyUrl', undefined);
+    exchange.setProperty (exchange, 'proxy_url', undefined);
+    exchange.setProperty (exchange, 'httpProxy', undefined);
+    exchange.setProperty (exchange, 'http_proxy', undefined);
+    exchange.setProperty (exchange, 'httpsProxy', undefined);
+    exchange.setProperty (exchange, 'https_proxy', undefined);
+    exchange.setProperty (exchange, 'socksProxy', undefined);
+    exchange.setProperty (exchange, 'socks_proxy', undefined);
     return [ proxyUrl, httpProxy, httpsProxy, socksProxy ];
 }
 
