@@ -1364,6 +1364,9 @@
             "fetchOrderBook": {
                 "ask": "multiple ask prices are equal in ob https://app.travis-ci.com/github/ccxt/ccxt/builds/264706670#L2228",
                 "bid": "multiple bid prices are equal https://app.travis-ci.com/github/ccxt/ccxt/builds/265172859#L2745"
+            },
+            "watchTrades": {
+                "side": "undefined"
             }
         }
     }
