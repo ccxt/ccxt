@@ -624,6 +624,8 @@
     "cryptocom": {
         "skipWs": true,
         "skipMethods": {
+            "proxyUrl":"probably proxy location does not work",
+            "httpProxy":"probably proxy location does not work",
             "loadMarkets": {
                 "limits":"max is below min",
                 "active":"is undefined",
