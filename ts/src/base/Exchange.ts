@@ -1395,6 +1395,10 @@ export default class Exchange {
         return (property in obj ? obj[property] : defaultValue);
     }
 
+    setProperty (obj, property, defaultValue = undefined) {
+        obj[property] = defaultValue;
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 

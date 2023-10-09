@@ -1665,6 +1665,9 @@ class Exchange(object):
     def get_property(self, obj, property, defaultValue=None):
         return getattr(obj, property) if hasattr(obj, property) else defaultValue
 
+    def set_property(self, obj, property, value):
+        setattr(obj, property, value)
+
     def un_camel_case(self, str):
         return re.sub('(?!^)([A-Z]+)', r'_\1', str).lower()
 
@@ -1728,7 +1731,7 @@ class Exchange(object):
                 return key
         return None
 
-    def check_proxy_url_settings(self, url, method, headers, body):
+    def check_proxy_url_settings(self, url=None, method=None, headers=None, body=None):
         proxyUrl = self.proxyUrl if (self.proxyUrl is not None) else self.proxy_url
         proxyUrlCallback = self.proxyUrlCallback if (self.proxyUrlCallback is not None) else self.proxy_url_callback
         if proxyUrlCallback is not None:
@@ -1747,10 +1750,6 @@ class Exchange(object):
         if val > 1:
             raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
         return proxyUrl
-
-    def check_conflicting_proxies(self, proxyAgentSet, proxyUrlSet):
-        if proxyAgentSet and proxyUrlSet:
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
 
     def check_proxy_settings(self, url=None, method=None, headers=None, body=None):
         httpProxy = self.httpProxy if (self.httpProxy is not None) else self.http_proxy
@@ -1781,6 +1780,10 @@ class Exchange(object):
         if val > 1:
             raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
         return [httpProxy, httpsProxy, socksProxy]
+
+    def check_conflicting_proxies(self, proxyAgentSet, proxyUrlSet):
+        if proxyAgentSet and proxyUrlSet:
+            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
 
     def find_message_hashes(self, client, element: str):
         result = []

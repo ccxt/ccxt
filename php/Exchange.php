@@ -2093,6 +2093,10 @@ class Exchange {
         return (property_exists($obj, $property) ? $obj->$property : $defaultValue);
     }
 
+    function set_property($obj, $property, $defaultValue = null){
+        $obj->$property = $defaultValue;
+    }
+
     function un_camel_case($str){
         return self::underscore($str);
     }
@@ -2170,7 +2174,7 @@ class Exchange {
         return null;
     }
 
-    public function check_proxy_url_settings($url, $method, $headers, $body) {
+    public function check_proxy_url_settings($url = null, $method = null, $headers = null, $body = null) {
         $proxyUrl = ($this->proxyUrl !== null) ? $this->proxyUrl : $this->proxy_url;
         $proxyUrlCallback = ($this->proxyUrlCallback !== null) ? $this->proxyUrlCallback : $this->proxy_url_callback;
         if ($proxyUrlCallback !== null) {
@@ -2195,12 +2199,6 @@ class Exchange {
             throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : $proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
         return $proxyUrl;
-    }
-
-    public function check_conflicting_proxies($proxyAgentSet, $proxyUrlSet) {
-        if ($proxyAgentSet && $proxyUrlSet) {
-            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
-        }
     }
 
     public function check_proxy_settings($url = null, $method = null, $headers = null, $body = null) {
@@ -2242,6 +2240,12 @@ class Exchange {
             throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, $httpProxy, $httpsProxy, socksProxy');
         }
         return array( $httpProxy, $httpsProxy, $socksProxy );
+    }
+
+    public function check_conflicting_proxies($proxyAgentSet, $proxyUrlSet) {
+        if ($proxyAgentSet && $proxyUrlSet) {
+            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
     }
 
     public function find_message_hashes($client, string $element) {
