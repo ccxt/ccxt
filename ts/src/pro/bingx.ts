@@ -705,6 +705,7 @@ export default class bingx extends bingxRest {
         //        }
         //    }
         //
+        const isSpot = ('dataType' in message);
         const data = this.safeValue2 (message, 'data', 'o', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -714,10 +715,9 @@ export default class bingx extends bingxRest {
         const parsedOrder = this.parseOrder (data);
         stored.append (parsedOrder);
         const symbol = parsedOrder['symbol'];
-        const market = this.market (symbol);
         const spotHash = 'spot:order';
         const swapHash = 'swap:order';
-        const messageHash = (market['spot']) ? spotHash : swapHash;
+        const messageHash = (isSpot) ? spotHash : swapHash;
         client.resolve (stored, messageHash);
         client.resolve (stored, messageHash + ':' + symbol);
     }

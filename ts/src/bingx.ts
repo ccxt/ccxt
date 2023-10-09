@@ -1856,7 +1856,7 @@ export default class bingx extends Exchange {
         //         "workingType": "MARK_PRICE"
         //     }
         //
-        const positionSide = this.safeString (order, 'positionSide');
+        const positionSide = this.safeString2 (order, 'positionSide', 'ps');
         const marketType = (positionSide === undefined) ? 'spot' : 'swap';
         const marketId = this.safeString2 (order, 'symbol', 's');
         const symbol = this.safeSymbol (marketId, market, '-', marketType);
@@ -1869,7 +1869,7 @@ export default class bingx extends Exchange {
         const average = this.safeString2 (order, 'avgPrice', 'ap');
         const amount = this.safeString2 (order, 'origQty', 'q');
         const filled = this.safeString2 (order, 'executedQty', 'z');
-        const statusId = this.safeString2 (order, 'status', 'x');
+        const statusId = this.safeString2 (order, 'status', 'X');
         const fee = {
             'currency': this.safeString2 (order, 'feeAsset', 'N'),
             'rate': this.safeStringN (order, [ 'fee', 'commission', 'n' ]),
