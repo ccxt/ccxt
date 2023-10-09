@@ -905,7 +905,7 @@ class coinex extends Exchange {
             //         message => 'OK'
             //     }
             //
-            return $this->safe_number($response, 'data');
+            return $this->safe_integer($response, 'data');
         }) ();
     }
 

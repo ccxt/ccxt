@@ -48,6 +48,7 @@
     },
     "binance": {
         "httpsProxy": "http://51.83.140.52:11230",
+        "skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -79,6 +80,7 @@
     },
     "binancecoinm": {
         "httpsProxy": "http://51.83.140.52:11230",
+        "skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -97,6 +99,7 @@
     },
     "binanceusdm": {
         "httpsProxy": "http://51.83.140.52:11230",
+        "skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": {
@@ -120,6 +123,7 @@
     },
     "tokocrypto": {
         "httpsProxy": "http://51.83.140.52:11230",
+        "skipPhpAsync": true,
         "skipWs": true
     },
     "bitbank": {
@@ -912,7 +916,8 @@
         }
     },
     "kuna": {
-        "httpsProxy": "http://51.83.140.52:11230"
+        "httpsProxy": "http://51.83.140.52:11230",
+        "skipPhpAsync": true
     },
     "kucoin": {
         "skipWs": true,

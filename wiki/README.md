@@ -33,6 +33,7 @@ Welcome to the ccxt wiki!
     - [Unified API](https://github.com/ccxt/ccxt/wiki/Manual#unified-api)
       - [Overriding Params](https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params)
       - [Pagination](https://github.com/ccxt/ccxt/wiki/Manual#pagination)
+      - [Automatic Pagination](https://github.com/ccxt/ccxt/wiki/Manual#automatic-pagination)
   - [Market Data](https://github.com/ccxt/ccxt/wiki/Manual#market-data)
     - [Order Book](https://github.com/ccxt/ccxt/wiki/Manual#order-book)
       - [Market Depth](https://github.com/ccxt/ccxt/wiki/Manual#market-depth)

@@ -3295,6 +3295,14 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+             * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#index-$price-kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#mark-$price-kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#index-$price-kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#mark-$price-kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -3302,9 +3310,15 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000));
+            }
             $market = $this->market($symbol);
             // binance docs say that the default $limit 500, max 1500 for futures, max 1000 for spot markets
             // the reality is that the time range wider than 500 candles won't work right
@@ -3632,12 +3646,18 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @param {int} [$params->until] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
              * @param {int} [$params->fetchTradesMethod] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {int} [$params->fromId] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -4569,6 +4589,11 @@ class binance extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             * @see https://binance-docs.github.io/apidocs/spot/en/#$query-order-user_data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#$query-order-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#$query-order-user_data
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#$query-single-order-trade
+             * @see https://binance-docs.github.io/apidocs/spot/en/#$query-margin-account-39-s-order-user_data
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
@@ -4616,15 +4641,27 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
+             * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#all-orders-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#$query-option-order-history-trade
+             * @see https://binance-docs.github.io/apidocs/spot/en/#$query-margin-account-39-s-all-orders-user_data
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
+             * @param {int} [$params->until] the latest time in ms to fetch orders for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $this->check_required_symbol('fetchOrders', $symbol);
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params));
+            }
             $market = $this->market($symbol);
             $defaultType = $this->safe_string_2($this->options, 'fetchOrders', 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $defaultType);
@@ -4644,6 +4681,11 @@ class binance extends Exchange {
                 if ($marginMode === 'isolated') {
                     $request['isIsolated'] = true;
                 }
+            }
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['endTime'] = $until;
             }
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -4733,7 +4775,16 @@ class binance extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
+             * @see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#$query-current-open-option-orders-user_data
              * fetch all unfilled currently open orders
+             * @see https://binance-docs.github.io/apidocs/spot/en/#current-open-orders-user_data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#$query-current-open-option-orders-user_data
+             * @see https://binance-docs.github.io/apidocs/spot/en/#$query-margin-account-39-s-open-orders-user_data
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open orders structures to retrieve
@@ -4797,10 +4848,16 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
+             * @see https://binance-docs.github.io/apidocs/spot/en/#all-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#all-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#all-$orders-user_data
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+             * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-$orders-user_data
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $orders = Async\await($this->fetch_orders($symbol, $since, $limit, $params));
@@ -4819,6 +4876,7 @@ class binance extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $this->check_required_symbol('fetchCanceledOrders', $symbol);
@@ -4838,6 +4896,11 @@ class binance extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-order-trade
+             * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-order-trade
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#cancel-order-trade
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#cancel-option-order-trade
+             * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the binance api endpoint
@@ -4933,6 +4996,7 @@ class binance extends Exchange {
             /**
              * cancel multiple orders
              * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#cancel-multiple-orders-trade
              * @param {[string]} $ids order $ids
              * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
@@ -5001,6 +5065,10 @@ class binance extends Exchange {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
+             * @see https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data
+             * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data
              * @param {string} $id order $id
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -5029,13 +5097,24 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             * @see https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data
+             * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
+            }
             $request = array();
             $market = null;
             $type = null;
@@ -5166,6 +5245,7 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all dust $trades made by the user
+             * @see https://binance-docs.github.io/apidocs/spot/en/#dustlog-user_data
              * @param {string} $symbol not used by binance fetchMyDustTrades ()
              * @param {int} [$since] the earliest time in ms to fetch my dust $trades for
              * @param {int} [$limit] the maximum number of dust $trades to retrieve
@@ -5304,16 +5384,25 @@ class binance extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
              * fetch all deposits made to an account
+             * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+             * @see https://binance-docs.github.io/apidocs/spot/en/#deposit-history-supporting-network-user_data
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @param {bool} [$params->fiat] if true, only fiat deposits will be returned
-             * @param {int} [$params->until] the latest time in ms to fetch deposits for
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $params));
+            }
             $currency = null;
             $response = null;
             $request = array();
@@ -5321,6 +5410,7 @@ class binance extends Exchange {
             $fiatOnly = $this->safe_value($params, 'fiat', false);
             $params = $this->omit($params, 'fiatOnly');
             $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
             if ($fiatOnly || (is_array($legalMoney) && array_key_exists($code, $legalMoney))) {
                 if ($code !== null) {
                     $currency = $this->currency($code);
@@ -5408,19 +5498,35 @@ class binance extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+             * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
              * fetch all withdrawals made from an account
+             * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+             * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @param {bool} [$params->fiat] if true, only fiat withdrawals will be returned
+             * @param {int} [$params->until] the latest time in ms to fetch withdrawals for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $params));
+            }
             $legalMoney = $this->safe_value($this->options, 'legalMoney', array());
             $fiatOnly = $this->safe_value($params, 'fiat', false);
             $params = $this->omit($params, 'fiatOnly');
             $request = array();
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['endTime'] = $until;
+            }
             $response = null;
             $currency = null;
             if ($fiatOnly || (is_array($legalMoney) && array_key_exists($code, $legalMoney))) {
@@ -5872,14 +5978,23 @@ class binance extends Exchange {
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
              * fetch a history of internal transfers made on an account
+             * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for
              * @param {int} [$limit] the maximum number of transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch transfers for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params));
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -5912,6 +6027,11 @@ class binance extends Exchange {
             if ($limit !== null) {
                 $request['size'] = $limit;
             }
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['endTime'] = $until;
+            }
             $response = Async\await($this->sapiGetAssetTransfer (array_merge($request, $params)));
             //
             //     {
@@ -5937,6 +6057,7 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
+             * @see https://binance-docs.github.io/apidocs/spot/en/#deposit-$address-supporting-$network-user_data
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
@@ -6013,6 +6134,7 @@ class binance extends Exchange {
             /**
              * @deprecated
              * please use fetchDepositWithdrawFees instead
+             * @see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
              * @param {string[]|null} $codes not used by binance fetchTransactionFees ()
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$fee-structure $fee structures}
@@ -6127,6 +6249,7 @@ class binance extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
+             * @see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
              * @param {string[]|null} $codes not used by binance fetchDepositWithdrawFees ()
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
@@ -6252,6 +6375,7 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -6309,6 +6433,7 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
+             * @see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structure}
@@ -6337,6 +6462,9 @@ class binance extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
+             * @see https://binance-docs.github.io/apidocs/spot/en/#trade-$fee-user_data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$fee-structure $fee structures} indexed by $market $symbols
              */
@@ -6511,6 +6639,7 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $amount, $type, $params) {
             /**
              * transfer between futures account
+             * @see https://binance-docs.github.io/apidocs/spot/en/#new-future-account-transfer-user_data
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to transfer
              * @param {string} $type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
@@ -6542,6 +6671,8 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
+             * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
@@ -6583,16 +6714,24 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
+             * @see https://binance-docs.github.io/apidocs/futures/en/#get-funding-rate-history
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#get-funding-rate-history-of-perpetual-futures
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
              * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @param {int} [$params->until] $timestamp in ms of the latest funding rate
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
             Async\await($this->load_markets());
             $request = array();
             $method = null;
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params));
+            }
             $defaultType = $this->safe_string_2($this->options, 'fetchFundingRateHistory', 'defaultType', 'future');
             $type = $this->safe_string($params, 'type', $defaultType);
             $market = null;
@@ -6653,6 +6792,8 @@ class binance extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
+             * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure funding rates structures}, indexe by market $symbols
@@ -7175,6 +7316,8 @@ class binance extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+             * @see https://binance-docs.github.io/apidocs/futures/en/#notional-and-leverage-brackets-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#notional-bracket-for-symbol-user_data
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
@@ -7462,6 +7605,8 @@ class binance extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch $account positions
+             * @see https://binance-docs.github.io/apidocs/futures/en/#$account-information-v2-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#$account-information-user_data
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} data on $account positions
@@ -7498,6 +7643,7 @@ class binance extends Exchange {
             /**
              * fetch positions risk
              * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} data on the positions risk
@@ -7593,6 +7739,8 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the history of funding payments paid and received on this account
+             * @see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -7639,6 +7787,8 @@ class binance extends Exchange {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
+             * @see https://binance-docs.github.io/apidocs/futures/en/#change-initial-$leverage-trade
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#change-initial-$leverage-trade
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the binance api endpoint
@@ -7674,6 +7824,8 @@ class binance extends Exchange {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
+             * @see https://binance-docs.github.io/apidocs/futures/en/#change-margin-type-trade
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#change-margin-type-trade
              * @param {string} $marginMode 'cross' or 'isolated'
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the binance api endpoint
@@ -7738,6 +7890,8 @@ class binance extends Exchange {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
              * set $hedged to true or false for a market
+             * @see https://binance-docs.github.io/apidocs/futures/en/#change-position-mode-trade
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#change-position-mode-trade
              * @param {bool} $hedged set to true to use $dualSidePosition
              * @param {string} $symbol not used by binance setPositionMode ()
              * @param {array} [$params] extra parameters specific to the binance api endpoint
@@ -7969,9 +8123,16 @@ class binance extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest ledger entry
              * @param {int} [$limit] max number of ledger entrys to return
              * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest ledger entry
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params));
+            }
             $type = null;
             $subType = null;
             $currency = null;
@@ -7996,6 +8157,11 @@ class binance extends Exchange {
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
+            }
+            $until = $this->safe_integer($params, 'until');
+            if ($until !== null) {
+                $params = $this->omit($params, 'until');
+                $request['endTime'] = $until;
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
@@ -8426,6 +8592,7 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the $rate of interest to borrow a $currency for margin trading
+             * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-$rate-history-user_data
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-$rate-structure borrow $rate structure}
@@ -8456,6 +8623,7 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * retrieves a history of a currencies borrow interest rate at specific time slots
+             * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data
              * @param {string} $code unified $currency $code
              * @param {int} [$since] timestamp for the earliest borrow rate
              * @param {int} [$limit] the maximum number of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structures} to retrieve
@@ -8531,6 +8699,7 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * create gift $code
+             * @see https://binance-docs.github.io/apidocs/spot/en/#create-a-single-token-gift-card-user_data
              * @param {string} $code gift $code
              * @param {float} $amount amount of $currency for the gift
              * @param {array} [$params] extra parameters specific to the binance api endpoint
@@ -8569,6 +8738,7 @@ class binance extends Exchange {
         return Async\async(function () use ($giftcardCode, $params) {
             /**
              * redeem gift code
+             * @see https://binance-docs.github.io/apidocs/spot/en/#redeem-a-binance-gift-card-user_data
              * @param {string} $giftcardCode
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} $response from the exchange
@@ -8596,6 +8766,7 @@ class binance extends Exchange {
         return Async\async(function () use ($id, $params) {
             /**
              * verify gift code
+             * @see https://binance-docs.github.io/apidocs/spot/en/#verify-binance-gift-card-by-gift-card-number-user_data
              * @param {string} $id reference number $id
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} $response from the exchange
@@ -8620,6 +8791,7 @@ class binance extends Exchange {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing $currency for margin trading
+             * @see https://binance-docs.github.io/apidocs/spot/en/#get-$interest-history-user_data
              * @param {string} $code unified $currency $code
              * @param {string} $symbol unified $market $symbol when fetch $interest in isolated markets
              * @param {int} [$since] the earliest time in ms to fetch borrrow $interest for
@@ -8777,6 +8949,8 @@ class binance extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * Retrieves the open interest history of a currency
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#open-interest-statistics
+             * @see https://binance-docs.github.io/apidocs/futures/en/#open-interest-statistics
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} $timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
              * @param {int} [$since] the time(ms) of the earliest record to retrieve unix timestamp
@@ -8789,6 +8963,11 @@ class binance extends Exchange {
                 throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
             }
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenInterestHistory', 'paginate', false);
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOpenInterestHistory', $symbol, $since, $limit, $timeframe, $params, 500));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),

@@ -26,12 +26,13 @@ use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\BadSymbol;
 use ccxt\ArgumentsRequired;
+use ccxt\RateLimitExceeded;
 use ccxt\NullResponse;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\BadResponse;
 use ccxt\BadRequest;
-
+use React\Promise;
 use React;
 use React\Async;
 use React\EventLoop\Loop;
@@ -40,11 +41,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.112';
+$version = '4.1.8';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.112';
+    const VERSION = '4.1.8';
 
     public $browser;
     public $marketsLoading = null;
@@ -514,6 +515,14 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchTradesForSymbols() is not supported yet');
     }
 
+    public function watch_my_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchMyTradesForSymbols() is not supported yet');
+    }
+
+    public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOrdersForSymbols() is not supported yet');
+    }
+
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOHLCVForSymbols() is not supported yet');
     }
@@ -913,6 +922,8 @@ class Exchange extends \ccxt\Exchange {
             $tradesAreParsed = (($firstTrade !== null) && (is_array($firstTrade) && array_key_exists('info', $firstTrade)) && (is_array($firstTrade) && array_key_exists('id', $firstTrade)));
             if (!$tradesAreParsed) {
                 $trades = $this->parse_trades($rawTrades, $market);
+            } else {
+                $trades = $rawTrades;
             }
             $this->number = $oldNumber;
             $tradesLength = 0;
@@ -2641,6 +2652,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
     }
 
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchFundingRateHistory() is not supported yet');
+    }
+
     public function parse_last_price($price, $market = null) {
         throw new NotSupported($this->id . ' parseLastPrice() is not supported yet');
     }
@@ -3520,5 +3535,286 @@ class Exchange extends \ccxt\Exchange {
         $res[$symbol] = array();
         $res[$symbol][$timeframe] = $data;
         return $res;
+    }
+
+    public function handle_max_entries_per_request_and_params(string $method, ?int $maxEntriesPerRequest = null, $params = array ()) {
+        $newMaxEntriesPerRequest = null;
+        list($newMaxEntriesPerRequest, $params) = $this->handle_option_and_params($params, $method, 'maxEntriesPerRequest');
+        if (($newMaxEntriesPerRequest !== null) && ($newMaxEntriesPerRequest !== $maxEntriesPerRequest)) {
+            $maxEntriesPerRequest = $newMaxEntriesPerRequest;
+        }
+        if ($maxEntriesPerRequest === null) {
+            $maxEntriesPerRequest = 1000; // default to 1000
+        }
+        return array( $maxEntriesPerRequest, $params );
+    }
+
+    public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?int $maxEntriesPerRequest = null) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $params, $maxEntriesPerRequest) {
+            $maxCalls = null;
+            list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
+            $maxRetries = null;
+            list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
+            $paginationDirection = null;
+            list($paginationDirection, $params) = $this->handle_option_and_params($params, $method, 'paginationDirection', 'backward');
+            $paginationTimestamp = null;
+            $calls = 0;
+            $result = array();
+            $errors = 0;
+            $until = $this->safe_integer_2($params, 'untill', 'till'); // do not omit it from $params here
+            list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
+            if (($paginationDirection === 'forward')) {
+                if ($since === null) {
+                    throw new ArgumentsRequired($this->id . ' pagination requires a $since argument when $paginationDirection set to forward');
+                }
+                $paginationTimestamp = $since;
+            }
+            while (($calls < $maxCalls)) {
+                $calls += 1;
+                try {
+                    if ($paginationDirection === 'backward') {
+                        // do it backwards, starting from the $last
+                        // UNTIL filtering is required in order to work
+                        if ($paginationTimestamp !== null) {
+                            $params['until'] = $paginationTimestamp - 1;
+                        }
+                        $response = Async\await($this->$method ($symbol, null, $maxEntriesPerRequest, $params));
+                        $responseLength = count($response);
+                        if ($this->verbose) {
+                            $this->log ('Dynamic pagination call', $calls, 'method', $method, 'response length', $responseLength, 'timestamp', $paginationTimestamp);
+                        }
+                        if ($responseLength === 0) {
+                            break;
+                        }
+                        $errors = 0;
+                        $result = $this->array_concat($result, $response);
+                        $firstElement = $this->safe_value($response, 0);
+                        $paginationTimestamp = $this->safe_integer_2($firstElement, 'timestamp', 0);
+                        if (($since !== null) && ($paginationTimestamp <= $since)) {
+                            break;
+                        }
+                    } else {
+                        // do it forwards, starting from the $since
+                        $response = Async\await($this->$method ($symbol, $paginationTimestamp, $maxEntriesPerRequest, $params));
+                        $responseLength = count($response);
+                        if ($this->verbose) {
+                            $this->log ('Dynamic pagination call', $calls, 'method', $method, 'response length', $responseLength, 'timestamp', $paginationTimestamp);
+                        }
+                        if ($responseLength === 0) {
+                            break;
+                        }
+                        $errors = 0;
+                        $result = $this->array_concat($result, $response);
+                        $last = $this->safe_value($response, $responseLength - 1);
+                        $paginationTimestamp = $this->safe_integer($last, 'timestamp') - 1;
+                        if (($until !== null) && ($paginationTimestamp >= $until)) {
+                            break;
+                        }
+                    }
+                } catch (Exception $e) {
+                    $errors += 1;
+                    if ($errors > $maxRetries) {
+                        throw $e;
+                    }
+                }
+            }
+            $uniqueResults = $this->remove_repeated_elements_from_array($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
+        }) ();
+    }
+
+    public function safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array ()) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $timeframe, $params) {
+            $maxRetries = null;
+            list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
+            $errors = 0;
+            try {
+                if ($timeframe && $method !== 'fetchFundingRateHistory') {
+                    return Async\await($this->$method ($symbol, $timeframe, $since, $limit, $params));
+                } else {
+                    return Async\await($this->$method ($symbol, $since, $limit, $params));
+                }
+            } catch (Exception $e) {
+                if ($e instanceof RateLimitExceeded) {
+                    throw $e; // if we are rate limited, we should not retry and fail fast
+                }
+                $errors += 1;
+                if ($errors > $maxRetries) {
+                    throw $e;
+                }
+            }
+        }) ();
+    }
+
+    public function fetch_paginated_call_deterministic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array (), $maxEntriesPerRequest = null) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $timeframe, $params, $maxEntriesPerRequest) {
+            $maxCalls = null;
+            list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
+            list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
+            $current = $this->milliseconds ();
+            $tasks = array();
+            $time = $this->parse_timeframe($timeframe) * 1000;
+            $step = $time * $maxEntriesPerRequest;
+            $currentSince = $current - ($maxCalls * $step) - 1;
+            if ($since !== null) {
+                $currentSince = max ($currentSince, $since);
+            }
+            $until = $this->safe_integer_2($params, 'until', 'till'); // do not omit it here
+            if ($until !== null) {
+                $requiredCalls = (int) ceil(($until - $since) / $step);
+                if ($requiredCalls > $maxCalls) {
+                    throw new BadRequest($this->id . ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the $since-$until gap. Current paginationCalls $limit is ' . (string) $maxCalls . ' required calls is ' . (string) $requiredCalls);
+                }
+            }
+            for ($i = 0; $i < $maxCalls; $i++) {
+                if (($until !== null) && ($currentSince >= $until)) {
+                    break;
+                }
+                $tasks[] = $this->safe_deterministic_call($method, $symbol, $currentSince, $maxEntriesPerRequest, $timeframe, $params);
+                $currentSince = $this->sum ($currentSince, $step) - 1;
+            }
+            $results = Async\await(Promise\all($tasks));
+            $result = array();
+            for ($i = 0; $i < count($results); $i++) {
+                $result = $this->array_concat($result, $results[$i]);
+            }
+            $uniqueResults = $this->remove_repeated_elements_from_array($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
+        }) ();
+    }
+
+    public function fetch_paginated_call_cursor(string $method, ?string $symbol = null, $since = null, $limit = null, $params = array (), $cursorReceived = null, $cursorSent = null, $cursorIncrement = null, $maxEntriesPerRequest = null) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $params, $cursorReceived, $cursorSent, $cursorIncrement, $maxEntriesPerRequest) {
+            $maxCalls = null;
+            list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
+            $maxRetries = null;
+            list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
+            list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
+            $cursorValue = null;
+            $i = 0;
+            $errors = 0;
+            $result = array();
+            while ($i < $maxCalls) {
+                try {
+                    if ($cursorValue !== null) {
+                        if ($cursorIncrement !== null) {
+                            $cursorValue = $this->parseToInt ($cursorValue) . $cursorIncrement;
+                        }
+                        $params[$cursorSent] = $cursorValue;
+                    }
+                    $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));
+                    $errors = 0;
+                    $responseLength = count($response);
+                    if ($this->verbose) {
+                        $this->log ('Cursor pagination call', $i + 1, 'method', $method, 'response length', $responseLength, 'cursor', $cursorValue);
+                    }
+                    if ($responseLength === 0) {
+                        break;
+                    }
+                    $result = $this->array_concat($result, $response);
+                    $last = $this->safe_value($response, $responseLength - 1);
+                    $cursorValue = $this->safe_value($last['info'], $cursorReceived);
+                    if ($cursorValue === null) {
+                        break;
+                    }
+                } catch (Exception $e) {
+                    $errors += 1;
+                    if ($errors > $maxRetries) {
+                        throw $e;
+                    }
+                }
+                $i += 1;
+            }
+            $sorted = $this->sortCursorPaginatedResult ($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($sorted, $since, $limit, $key);
+        }) ();
+    }
+
+    public function fetch_paginated_call_incremental(string $method, ?string $symbol = null, $since = null, $limit = null, $params = array (), $pageKey = null, $maxEntriesPerRequest = null) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest) {
+            $maxCalls = null;
+            list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
+            $maxRetries = null;
+            list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
+            list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
+            $i = 0;
+            $errors = 0;
+            $result = array();
+            while ($i < $maxCalls) {
+                try {
+                    $params[$pageKey] = $i + 1;
+                    $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));
+                    $errors = 0;
+                    $responseLength = count($response);
+                    if ($this->verbose) {
+                        $this->log ('Incremental pagination call', $i + 1, 'method', $method, 'response length', $responseLength);
+                    }
+                    if ($responseLength === 0) {
+                        break;
+                    }
+                    $result = $this->array_concat($result, $response);
+                } catch (Exception $e) {
+                    $errors += 1;
+                    if ($errors > $maxRetries) {
+                        throw $e;
+                    }
+                }
+                $i += 1;
+            }
+            $sorted = $this->sortCursorPaginatedResult ($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($sorted, $since, $limit, $key);
+        }) ();
+    }
+
+    public function sort_cursor_paginated_result($result) {
+        $first = $this->safe_value($result, 0);
+        if ($first !== null) {
+            if (is_array($first) && array_key_exists('timestamp', $first)) {
+                return $this->sort_by($result, 'timestamp');
+            }
+            if (is_array($first) && array_key_exists('id', $first)) {
+                return $this->sort_by($result, 'id');
+            }
+        }
+        return $result;
+    }
+
+    public function remove_repeated_elements_from_array($input) {
+        $uniqueResult = array();
+        for ($i = 0; $i < count($input); $i++) {
+            $entry = $input[$i];
+            $id = $this->safe_string($entry, 'id');
+            if ($id !== null) {
+                if ($this->safe_string($uniqueResult, $id) === null) {
+                    $uniqueResult[$id] = $entry;
+                }
+            } else {
+                $timestamp = $this->safe_integer_2($entry, 'timestamp', 0);
+                if ($timestamp !== null) {
+                    if ($this->safe_string($uniqueResult, $timestamp) === null) {
+                        $uniqueResult[$timestamp] = $entry;
+                    }
+                }
+            }
+        }
+        $values = is_array($uniqueResult) ? array_values($uniqueResult) : array();
+        $valuesLength = count($values);
+        if ($valuesLength > 0) {
+            return $values;
+        }
+        return $input;
+    }
+
+    public function handle_until_option($key, $request, $params, $multiplier = 1) {
+        $until = $this->safe_value_2($params, 'until', 'till');
+        if ($until !== null) {
+            $request[$key] = $this->parseToInt ($until * $multiplier);
+            $params = $this->omit ($params, array( 'until', 'till' ));
+        }
+        return array( $request, $params );
     }
 }

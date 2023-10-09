@@ -534,7 +534,6 @@ class coinsph extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $isActive = $this->safe_string($market, 'status') === 'TRADING';
             $limits = $this->index_by($this->safe_value($market, 'filters'), 'filterType');
             $amountLimits = $this->safe_value($limits, 'LOT_SIZE', array());
             $priceLimits = $this->safe_value($limits, 'PRICE_FILTER', array());
@@ -554,7 +553,7 @@ class coinsph extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => $isActive,
+                'active' => $this->safe_string_lower($market, 'status') === 'trading',
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,

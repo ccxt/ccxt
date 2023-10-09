@@ -2363,14 +2363,24 @@ class huobi extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
              * fetch all $trades made by the user
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch $trades for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2409,6 +2419,7 @@ class huobi extends Exchange {
                     $request['start-time'] = $since; // a date within 120 days from today
                     // $request['end-time'] = $this->sum($since, 172800000); // 48 hours window
                 }
+                list($request, $params) = $this->handle_until_option('end-time', $request, $params);
                 $method = 'spotPrivateGetV1OrderMatchresults';
             } else {
                 $this->check_required_symbol('fetchMyTrades', $symbol);
@@ -2418,6 +2429,7 @@ class huobi extends Exchange {
                     $request['start_time'] = $since; // a date within 120 days from today
                     // $request['end_time'] = $this->sum($request['start_time'], 172800000); // 48 hours window
                 }
+                list($request, $params) = $this->handle_until_option('end_time', $request, $params);
                 if ($limit !== null) {
                     $request['page_size'] = $limit; // default 100, max 500
                 }
@@ -2519,6 +2531,10 @@ class huobi extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, $limit = 1000, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-$trades
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-$trade-records-of-a-contract
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-$trade-records-of-a-contract
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-$trade-records-of-a-contract
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest $trade to fetch
@@ -2628,9 +2644,15 @@ class huobi extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
@@ -3541,6 +3563,7 @@ class huobi extends Exchange {
                 $request['start-time'] = $since; // a window of 48 hours within 180 days
                 $request['end-time'] = $this->sum($since, 48 * 60 * 60 * 1000);
             }
+            list($request, $params) = $this->handle_until_option('end-time', $request, $params);
             if ($limit !== null) {
                 $request['size'] = $limit;
             }
@@ -3621,6 +3644,7 @@ class huobi extends Exchange {
                 $request['contract'] = $market['id'];
                 $request['type'] = 1; // 1:All Orders,2:Order in Finished Status
             }
+            list($request, $params) = $this->handle_until_option('end_time', $request, $params);
             if ($market['linear']) {
                 $marginMode = null;
                 list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchContractOrders', $params);
@@ -3824,6 +3848,12 @@ class huobi extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
              * fetches information on multiple orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -3831,6 +3861,7 @@ class huobi extends Exchange {
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
              * @param {bool} [$params->stop] *$contract only* if the orders are stop trigger orders or not
              * @param {bool} [$params->stopLossTakeProfit] *$contract only* if the orders are stop-loss or take-profit orders
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
@@ -3857,14 +3888,27 @@ class huobi extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params, 100));
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -3884,6 +3928,9 @@ class huobi extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-$orders
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
              * fetch all unfilled currently open $orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open $orders for
@@ -5924,6 +5971,8 @@ class huobi extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
              * fetches historical funding rate prices
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] not used by huobi, but filtered internally by ccxt
@@ -5932,6 +5981,11 @@ class huobi extends Exchange {
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
             $this->check_required_symbol('fetchFundingRateHistory', $symbol);
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'page_index', 'current_page', 1, 50));
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -5969,10 +6023,12 @@ class huobi extends Exchange {
             // }
             //
             $data = $this->safe_value($response, 'data');
+            $cursor = $this->safe_value($data, 'current_page');
             $result = $this->safe_value($data, 'data', array());
             $rates = array();
             for ($i = 0; $i < count($result); $i++) {
                 $entry = $result[$i];
+                $entry['current_page'] = $cursor;
                 $marketId = $this->safe_string($entry, 'contract_code');
                 $symbolInner = $this->safe_symbol($marketId);
                 $timestamp = $this->safe_integer($entry, 'funding_time');
@@ -7128,14 +7184,22 @@ class huobi extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entrys to return, default is null
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params, 500));
+            }
             $accountId = Async\await($this->fetch_account_id_by_type('spot', null, null, $params));
             $request = array(
                 'accountId' => $accountId,
@@ -7158,6 +7222,7 @@ class huobi extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // max 500
             }
+            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
             $response = Async\await($this->spotPrivateGetV2AccountLedger (array_merge($request, $params)));
             //
             //     {

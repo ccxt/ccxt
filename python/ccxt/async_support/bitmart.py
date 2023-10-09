@@ -90,7 +90,9 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
+                'fetchPosition': True,
                 'fetchPositionMode': False,
+                'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -196,6 +198,8 @@ class bitmart(Exchange, ImplicitAPI):
                         'spot/v1/margin/isolated/account': 6,
                         'spot/v1/trade_fee': 6,
                         'spot/v1/user_fee': 6,
+                        # broker
+                        'spot/v1/broker/rebate': 1,
                         # contract
                         'contract/private/assets-detail': 5,
                         'contract/private/order': 1.2,
@@ -3546,6 +3550,173 @@ class bitmart(Exchange, ImplicitAPI):
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
+
+    async def fetch_position(self, symbol: str, params={}):
+        """
+        fetch data on a single open contract trade position
+        see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.privateGetContractPrivatePosition(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": [
+        #             {
+        #                 "symbol": "BTCUSDT",
+        #                 "leverage": "10",
+        #                 "timestamp": 1696392515269,
+        #                 "current_fee": "0.0014250028",
+        #                 "open_timestamp": 1696392256998,
+        #                 "current_value": "27.4039",
+        #                 "mark_price": "27.4039",
+        #                 "position_value": "27.4079",
+        #                 "position_cross": "3.75723474",
+        #                 "maintenance_margin": "0.1370395",
+        #                 "close_vol": "0",
+        #                 "close_avg_price": "0",
+        #                 "open_avg_price": "27407.9",
+        #                 "entry_price": "27407.9",
+        #                 "current_amount": "1",
+        #                 "unrealized_value": "-0.004",
+        #                 "realized_value": "-0.01644474",
+        #                 "position_type": 1
+        #             }
+        #         ],
+        #         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        first = self.safe_value(data, 0, {})
+        return self.parse_position(first, market)
+
+    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+        """
+        fetch all open contract positions
+        see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+        :param str[]|None symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :returns dict[]: a list of `position structures <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
+        """
+        await self.load_markets()
+        market = None
+        symbolsLength = None
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            first = self.safe_string(symbols, 0)
+            market = self.market(first)
+        request = {}
+        if symbolsLength == 1:
+            # only supports symbols or sending one symbol
+            request['symbol'] = market['id']
+        response = await self.privateGetContractPrivatePosition(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": [
+        #             {
+        #                 "symbol": "BTCUSDT",
+        #                 "leverage": "10",
+        #                 "timestamp": 1696392515269,
+        #                 "current_fee": "0.0014250028",
+        #                 "open_timestamp": 1696392256998,
+        #                 "current_value": "27.4039",
+        #                 "mark_price": "27.4039",
+        #                 "position_value": "27.4079",
+        #                 "position_cross": "3.75723474",
+        #                 "maintenance_margin": "0.1370395",
+        #                 "close_vol": "0",
+        #                 "close_avg_price": "0",
+        #                 "open_avg_price": "27407.9",
+        #                 "entry_price": "27407.9",
+        #                 "current_amount": "1",
+        #                 "unrealized_value": "-0.004",
+        #                 "realized_value": "-0.01644474",
+        #                 "position_type": 1
+        #             },
+        #         ],
+        #         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
+        #     }
+        #
+        positions = self.safe_value(response, 'data', [])
+        result = []
+        for i in range(0, len(positions)):
+            result.append(self.parse_position(positions[i]))
+        symbols = self.market_symbols(symbols)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
+
+    def parse_position(self, position, market=None):
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "leverage": "10",
+        #         "timestamp": 1696392515269,
+        #         "current_fee": "0.0014250028",
+        #         "open_timestamp": 1696392256998,
+        #         "current_value": "27.4039",
+        #         "mark_price": "27.4039",
+        #         "position_value": "27.4079",
+        #         "position_cross": "3.75723474",
+        #         "maintenance_margin": "0.1370395",
+        #         "close_vol": "0",
+        #         "close_avg_price": "0",
+        #         "open_avg_price": "27407.9",
+        #         "entry_price": "27407.9",
+        #         "current_amount": "1",
+        #         "unrealized_value": "-0.004",
+        #         "realized_value": "-0.01644474",
+        #         "position_type": 1
+        #     }
+        #
+        marketId = self.safe_string(position, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        timestamp = self.safe_integer(position, 'timestamp')
+        side = self.safe_integer(position, 'position_type')
+        maintenanceMargin = self.safe_string(position, 'maintenance_margin')
+        notional = self.safe_string(position, 'current_value')
+        collateral = self.safe_string(position, 'position_cross')
+        maintenanceMarginPercentage = Precise.string_div(maintenanceMargin, notional)
+        marginRatio = Precise.string_div(maintenanceMargin, collateral)
+        return self.safe_position({
+            'info': position,
+            'id': None,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': None,
+            'hedged': None,
+            'side': 'long' if (side == 1) else 'short',
+            'contracts': self.safe_number(position, 'current_amount'),
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'entryPrice': self.safe_number(position, 'entry_price'),
+            'markPrice': self.safe_number(position, 'mark_price'),
+            'lastPrice': None,
+            'notional': self.parse_number(notional),
+            'leverage': self.safe_number(position, 'leverage'),
+            'collateral': self.parse_number(collateral),
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'maintenanceMargin': self.parse_number(maintenanceMargin),
+            'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentage),
+            'unrealizedPnl': self.safe_number(position, 'unrealized_value'),
+            'realizedPnl': self.safe_number(position, 'realized_value'),
+            'liquidationPrice': None,
+            'marginMode': None,
+            'percentage': None,
+            'marginRatio': self.parse_number(marginRatio),
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
+        })
 
     def nonce(self):
         return self.milliseconds()

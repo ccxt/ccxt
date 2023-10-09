@@ -1,6 +1,11 @@
 import bitgetRest from '../bitget.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+/**
+ * @class bitget
+ * @extends Exchange
+ * @description watching delivery future markets is not yet implemented (perpertual future / swap is implemented)
+ */
 export default class bitget extends bitgetRest {
     describe(): any;
     getWsMarketId(market: any): any;

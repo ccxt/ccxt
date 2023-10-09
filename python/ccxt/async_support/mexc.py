@@ -210,6 +210,8 @@ class mexc(Exchange, ImplicitAPI):
                             'rebate/detail/kickback': 1,
                             'rebate/referCode': 1,
                             'rebate/affiliate/commission': 1,
+                            'rebate/affiliate/withdraw': 1,
+                            'rebate/affiliate/commission/detail': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                         },
@@ -1341,11 +1343,15 @@ class mexc(Exchange, ImplicitAPI):
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-trades-list
+        see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-trades-list
+        see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-transaction-data
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
+        :param int [params.until]: *spot only* *since must be defined* the latest time in ms to fetch entries for
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
@@ -1355,11 +1361,17 @@ class mexc(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        # if since is not None:
-        #     request['startTime'] = since; bug in api, waiting for fix
-        # }
         trades = None
         if market['spot']:
+            until = self.safe_integer_n(params, ['endTime', 'until', 'till'])
+            if since is not None:
+                request['startTime'] = since
+                if until is None:
+                    raise ArgumentsRequired(self.id + ' fetchTrades() requires an until parameter when since is provided')
+            if until is not None:
+                if since is None:
+                    raise ArgumentsRequired(self.id + ' fetchTrades() requires a since parameter when until is provided')
+                request['endTime'] = until
             method = self.safe_string(self.options, 'fetchTradesMethod', 'spotPublicGetAggTrades')
             method = self.safe_string(params, 'method', method)  # AggTrades, HistoricalTrades, Trades
             trades = await getattr(self, method)(self.extend(request, params))
@@ -1571,29 +1583,48 @@ class mexc(Exchange, ImplicitAPI):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data
+        see https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-data
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
+        maxLimit = 1000 if (market['spot']) else 2000
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
         options = self.safe_value(self.options, 'timeframes', {})
         timeframes = self.safe_value(options, market['type'], {})
         timeframeValue = self.safe_string(timeframes, timeframe)
+        duration = self.parse_timeframe(timeframe) * 1000
         request = {
             'symbol': market['id'],
             'interval': timeframeValue,
         }
         candles = None
         if market['spot']:
+            until = self.safe_integer_n(params, ['until', 'endTime', 'till'])
             if since is not None:
                 request['startTime'] = since
+                if until is None:
+                    # we have to calculate it assuming we can get at most 2000 entries per request
+                    end = self.sum(since, maxLimit * duration)
+                    now = self.milliseconds()
+                    request['endTime'] = min(end, now)
             if limit is not None:
                 request['limit'] = limit
+            if until is not None:
+                params = self.omit(params, ['until', 'till'])
+                request['endTime'] = until
             response = await self.spotPublicGetKlines(self.extend(request, params))
             #
             #     [
@@ -1611,8 +1642,12 @@ class mexc(Exchange, ImplicitAPI):
             #
             candles = response
         elif market['swap']:
+            until = self.safe_integer_product_n(params, ['until', 'endTime', 'till'], 0.001)
             if since is not None:
                 request['start'] = self.parse_to_int(since / 1000)
+            if until is not None:
+                params = self.omit(params, ['until', 'till'])
+                request['end'] = until
             priceType = self.safe_string(params, 'price', 'default')
             params = self.omit(params, 'price')
             method = self.get_supported_mapping(priceType, {

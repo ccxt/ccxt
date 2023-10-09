@@ -71,7 +71,9 @@ class bitmart extends bitmart$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
+                'fetchPosition': true,
                 'fetchPositionMode': false,
+                'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -177,6 +179,8 @@ class bitmart extends bitmart$1 {
                         'spot/v1/margin/isolated/account': 6,
                         'spot/v1/trade_fee': 6,
                         'spot/v1/user_fee': 6,
+                        // broker
+                        'spot/v1/broker/rebate': 1,
                         // contract
                         'contract/private/assets-detail': 5,
                         'contract/private/order': 1.2,
@@ -3755,6 +3759,180 @@ class bitmart extends bitmart$1 {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+    async fetchPosition(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @returns {object} a [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetContractPrivatePosition(this.extend(request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "leverage": "10",
+        //                 "timestamp": 1696392515269,
+        //                 "current_fee": "0.0014250028",
+        //                 "open_timestamp": 1696392256998,
+        //                 "current_value": "27.4039",
+        //                 "mark_price": "27.4039",
+        //                 "position_value": "27.4079",
+        //                 "position_cross": "3.75723474",
+        //                 "maintenance_margin": "0.1370395",
+        //                 "close_vol": "0",
+        //                 "close_avg_price": "0",
+        //                 "open_avg_price": "27407.9",
+        //                 "entry_price": "27407.9",
+        //                 "current_amount": "1",
+        //                 "unrealized_value": "-0.004",
+        //                 "realized_value": "-0.01644474",
+        //                 "position_type": 1
+        //             }
+        //         ],
+        //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
+        //     }
+        //
+        const data = this.safeValue(response, 'data', []);
+        const first = this.safeValue(data, 0, {});
+        return this.parsePosition(first, market);
+    }
+    async fetchPositions(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchPositions
+         * @description fetch all open contract positions
+         * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        let symbolsLength = undefined;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+            const first = this.safeString(symbols, 0);
+            market = this.market(first);
+        }
+        const request = {};
+        if (symbolsLength === 1) {
+            // only supports symbols as undefined or sending one symbol
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetContractPrivatePosition(this.extend(request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "leverage": "10",
+        //                 "timestamp": 1696392515269,
+        //                 "current_fee": "0.0014250028",
+        //                 "open_timestamp": 1696392256998,
+        //                 "current_value": "27.4039",
+        //                 "mark_price": "27.4039",
+        //                 "position_value": "27.4079",
+        //                 "position_cross": "3.75723474",
+        //                 "maintenance_margin": "0.1370395",
+        //                 "close_vol": "0",
+        //                 "close_avg_price": "0",
+        //                 "open_avg_price": "27407.9",
+        //                 "entry_price": "27407.9",
+        //                 "current_amount": "1",
+        //                 "unrealized_value": "-0.004",
+        //                 "realized_value": "-0.01644474",
+        //                 "position_type": 1
+        //             },
+        //         ],
+        //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
+        //     }
+        //
+        const positions = this.safeValue(response, 'data', []);
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push(this.parsePosition(positions[i]));
+        }
+        symbols = this.marketSymbols(symbols);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
+    }
+    parsePosition(position, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "leverage": "10",
+        //         "timestamp": 1696392515269,
+        //         "current_fee": "0.0014250028",
+        //         "open_timestamp": 1696392256998,
+        //         "current_value": "27.4039",
+        //         "mark_price": "27.4039",
+        //         "position_value": "27.4079",
+        //         "position_cross": "3.75723474",
+        //         "maintenance_margin": "0.1370395",
+        //         "close_vol": "0",
+        //         "close_avg_price": "0",
+        //         "open_avg_price": "27407.9",
+        //         "entry_price": "27407.9",
+        //         "current_amount": "1",
+        //         "unrealized_value": "-0.004",
+        //         "realized_value": "-0.01644474",
+        //         "position_type": 1
+        //     }
+        //
+        const marketId = this.safeString(position, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger(position, 'timestamp');
+        const side = this.safeInteger(position, 'position_type');
+        const maintenanceMargin = this.safeString(position, 'maintenance_margin');
+        const notional = this.safeString(position, 'current_value');
+        const collateral = this.safeString(position, 'position_cross');
+        const maintenanceMarginPercentage = Precise["default"].stringDiv(maintenanceMargin, notional);
+        const marginRatio = Precise["default"].stringDiv(maintenanceMargin, collateral);
+        return this.safePosition({
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': undefined,
+            'hedged': undefined,
+            'side': (side === 1) ? 'long' : 'short',
+            'contracts': this.safeNumber(position, 'current_amount'),
+            'contractSize': this.safeNumber(market, 'contractSize'),
+            'entryPrice': this.safeNumber(position, 'entry_price'),
+            'markPrice': this.safeNumber(position, 'mark_price'),
+            'lastPrice': undefined,
+            'notional': this.parseNumber(notional),
+            'leverage': this.safeNumber(position, 'leverage'),
+            'collateral': this.parseNumber(collateral),
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': this.parseNumber(maintenanceMargin),
+            'maintenanceMarginPercentage': this.parseNumber(maintenanceMarginPercentage),
+            'unrealizedPnl': this.safeNumber(position, 'unrealized_value'),
+            'realizedPnl': this.safeNumber(position, 'realized_value'),
+            'liquidationPrice': undefined,
+            'marginMode': undefined,
+            'percentage': undefined,
+            'marginRatio': this.parseNumber(marginRatio),
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
     nonce() {
         return this.milliseconds();

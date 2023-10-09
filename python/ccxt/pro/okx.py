@@ -978,8 +978,8 @@ class okx(ccxt.async_support.okx):
         # filter orders with no last trade id
         for i in range(0, len(rawOrders)):
             rawOrder = rawOrders[i]
-            tradeId = self.safe_string(rawOrder, 'tradeId')
-            if not self.is_empty(tradeId):
+            tradeId = self.safe_string(rawOrder, 'tradeId', '')
+            if len(tradeId) > 0:
                 order = self.parse_order(rawOrder)
                 filteredOrders.append(order)
         tradesLength = len(filteredOrders)
