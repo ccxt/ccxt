@@ -75,6 +75,7 @@ class bingx extends Exchange {
                     'swap' => 'https://open-api.{hostname}/openApi',
                     'contract' => 'https://open-api.{hostname}/openApi',
                     'wallets' => 'https://open-api.{hostname}/openApi',
+                    'user' => 'https://open-api.{hostname}/openApi',
                     'subAccount' => 'https://open-api.{hostname}/openApi',
                     'account' => 'https://open-api.{hostname}/openApi',
                 ),
@@ -243,6 +244,15 @@ class bingx extends Exchange {
                         ),
                     ),
                 ),
+                'user' => array(
+                    'auth' => array(
+                        'private' => array(
+                            'post' => array(
+                                'userDataStream' => 1,
+                            ),
+                        ),
+                    ),
+                ),
                 'copyTrading' => array(
                     'v1' => array(
                         'private' => array(
@@ -322,6 +332,7 @@ class bingx extends Exchange {
             'commonCurrencies' => array(
             ),
             'options' => array(
+                'defaultType' => 'spot',
                 'accountsByType' => array(
                     'spot' => 'FUND',
                     'swap' => 'PFUTURES',
@@ -852,37 +863,63 @@ class bingx extends Exchange {
         //        filledTime => '2023-07-04T20:56:01.000+0800'
         //    }
         //
-        $time = $this->safe_integer_2($trade, 'time', 'filledTm');
+        //
+        // ws
+        //
+        // spot
+        //
+        //    {
+        //        E => 1690214529432,
+        //        T => 1690214529386,
+        //        e => 'trade',
+        //        $m => true,
+        //        p => '29110.19',
+        //        q => '0.1868',
+        //        s => 'BTC-USDT',
+        //        t => '57903921'
+        //    }
+        //
+        // swap
+        //
+        //    {
+        //        q => '0.0421',
+        //        p => '29023.5',
+        //        T => 1690221401344,
+        //        $m => false,
+        //        s => 'BTC-USDT'
+        //    }
+        //
+        $time = $this->safe_integer_n($trade, array( 'time', 'filledTm', 'T' ));
         $datetimeId = $this->safe_string($trade, 'filledTm');
         if ($datetimeId !== null) {
             $time = $this->parse8601($datetimeId);
         }
-        $isBuyerMaker = $this->safe_value_2($trade, 'buyerMaker', 'isBuyerMaker');
-        $takeOrMaker = null;
-        $side = null;
-        if ($isBuyerMaker !== null) {
-            $side = $isBuyerMaker ? 'sell' : 'buy';
-            $takeOrMaker = 'taker';
+        if ($time === 0) {
+            $time = null;
         }
+        $isBuyerMaker = $this->safe_value_2($trade, 'buyerMaker', 'isBuyerMaker');
+        $side = $this->safe_string_lower_2($trade, 'side', 'S');
         $cost = $this->safe_string($trade, 'quoteQty');
         $type = ($cost === null) ? 'spot' : 'swap';
-        $currencyId = $this->safe_string($trade, 'currency');
+        $currencyId = $this->safe_string_2($trade, 'currency', 'N');
         $currencyCode = $this->safe_currency_code($currencyId);
+        $m = $this->safe_value($trade, 'm', false);
+        $marketId = $this->safe_string($trade, 's');
         return $this->safe_trade(array(
-            'id' => $this->safe_string_2($trade, 'id', 'orderId'),
+            'id' => $this->safe_string_n($trade, array( 'id', 't' )),
             'info' => $trade,
             'timestamp' => $time,
             'datetime' => $this->iso8601($time),
-            'symbol' => $this->safe_symbol(null, $market, '-', $type),
-            'order' => null,
-            'type' => null,
-            'side' => $side,
-            'takerOrMaker' => $takeOrMaker,
-            'price' => $this->safe_string($trade, 'price'),
-            'amount' => $this->safe_string_2($trade, 'qty', 'amount'),
+            'symbol' => $this->safe_symbol($marketId, $market, '-', $type),
+            'order' => $this->safe_string_2($trade, 'orderId', 'i'),
+            'type' => $this->safe_string_lower($trade, 'o'),
+            'side' => $this->parse_order_side($side),
+            'takerOrMaker' => ($isBuyerMaker || $m) ? 'maker' : 'taker',
+            'price' => $this->safe_string_2($trade, 'price', 'p'),
+            'amount' => $this->safe_string_n($trade, array( 'qty', 'amount', 'q' )),
             'cost' => $cost,
             'fee' => array(
-                'cost' => $this->parse_number(Precise::string_abs($this->safe_string($trade, 'commission'))),
+                'cost' => $this->parse_number(Precise::string_abs($this->safe_string_2($trade, 'commission', 'n'))),
                 'currency' => $currencyCode,
                 'rate' => null,
             ),
@@ -1608,14 +1645,18 @@ class bingx extends Exchange {
                     $request['timeInForce'] = 'POC';
                 }
                 $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                if ($isMarketOrder && ($side === 'buy')) {
+                    if ($createMarketBuyOrderRequiresPrice) {
+                        if ($price === null) {
+                            throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                        } else {
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                            $request['quoteOrderQty'] = $this->price_to_precision($symbol, $cost);
+                        }
                     } else {
-                        $amountString = $this->number_to_string($amount);
-                        $priceString = $this->number_to_string($price);
-                        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                        $request['quoteOrderQty'] = $this->price_to_precision($symbol, $cost);
+                        $request['quoteOrderQty'] = $this->price_to_precision($symbol, $amount);
                     }
                 } else {
                     $request['quantity'] = $this->amount_to_precision($symbol, $amount);
@@ -1723,6 +1764,16 @@ class bingx extends Exchange {
         }) ();
     }
 
+    public function parse_order_side($side) {
+        $sides = array(
+            'BUY' => 'buy',
+            'SELL' => 'sell',
+            'SHORT' => 'sell',
+            'LONG' => 'buy',
+        );
+        return $this->safe_string($sides, $side, $side);
+    }
+
     public function parse_order($order, $market = null) {
         //
         // spot
@@ -1745,14 +1796,14 @@ class bingx extends Exchange {
         //
         //    {
         //        $symbol => 'ETH-USDT',
-        //        orderId => '1660602123001266176',
-        //        price => '1700',
+        //        $orderId => '1660602123001266176',
+        //        $price => '1700',
         //        origQty => '0.003',
         //        executedQty => '0',
         //        cummulativeQuoteQty => '0',
         //        status => 'PENDING',
-        //        type => 'LIMIT',
-        //        side => 'BUY',
+        //        $type => 'LIMIT',
+        //        $side => 'BUY',
         //        time => '1684753373276',
         //        updateTime => '1684753373276',
         //        origQuoteOrderQty => '0',
@@ -1820,39 +1871,49 @@ class bingx extends Exchange {
         //         "workingType" => "MARK_PRICE"
         //     }
         //
-        $positionSide = $this->safe_string($order, 'positionSide');
+        $positionSide = $this->safe_string_2($order, 'positionSide', 'ps');
         $marketType = ($positionSide === null) ? 'spot' : 'swap';
-        $marketId = $this->safe_string($order, 'symbol');
+        $marketId = $this->safe_string_2($order, 'symbol', 's');
         $symbol = $this->safe_symbol($marketId, $market, '-', $marketType);
-        $timestamp = $this->safe_integer_2($order, 'time', 'transactTime');
+        $orderId = $this->safe_string_2($order, 'orderId', 'i');
+        $side = $this->safe_string_lower_2($order, 'side', 'S');
+        $type = $this->safe_string_lower_2($order, 'type', 'o');
+        $timestamp = $this->safe_integer_n($order, array( 'time', 'transactTime', 'E' ));
+        $lastTradeTimestamp = $this->safe_integer_2($order, 'updateTime', 'T');
+        $price = $this->safe_string_2($order, 'price', 'p');
+        $average = $this->safe_string_2($order, 'avgPrice', 'ap');
+        $amount = $this->safe_string_2($order, 'origQty', 'q');
+        $filled = $this->safe_string_2($order, 'executedQty', 'z');
+        $statusId = $this->safe_string_2($order, 'status', 'X');
         $fee = array(
-            'currency' => $this->safe_string($order, 'feeAsset'),
-            'rate' => $this->safe_string_2($order, 'fee', 'commission'),
+            'currency' => $this->safe_string_2($order, 'feeAsset', 'N'),
+            'rate' => $this->safe_string_n($order, array( 'fee', 'commission', 'n' )),
         );
+        $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'c');
         return $this->safe_order(array(
             'info' => $order,
-            'id' => $this->safe_string($order, 'orderId'),
-            'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
+            'id' => $orderId,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $this->safe_integer($order, 'updateTime'),
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'lastUpdateTimestamp' => $this->safe_integer($order, 'updateTime'),
             'symbol' => $symbol,
-            'type' => $this->safe_string_lower($order, 'type'),
+            'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
-            'side' => $this->safe_string_lower($order, 'side'),
-            'price' => $this->safe_string($order, 'price'),
+            'side' => $this->parse_order_side($side),
+            'price' => $price,
             'stopPrice' => $this->safe_number($order, 'stopPrice'),
             'triggerPrice' => $this->safe_number($order, 'stopPrice'),
             'stopLossPrice' => $this->safe_number($order, 'stopLoss'),
             'takeProfitPrice' => $this->safe_number($order, 'takeProfit'),
-            'average' => $this->safe_string($order, 'avgPrice'),
+            'average' => $average,
             'cost' => null,
-            'amount' => $this->safe_string($order, 'origQty'),
-            'filled' => $this->safe_string($order, 'executedQty'),
+            'amount' => $amount,
+            'filled' => $filled,
             'remaining' => null,
-            'status' => $this->parse_order_status($this->safe_string($order, 'status')),
+            'status' => $this->parse_order_status($statusId),
             'fee' => $fee,
             'trades' => null,
         ), $market);

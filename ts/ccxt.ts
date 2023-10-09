@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.1.8';
+const version = '4.1.9';
 
 (Exchange as any).ccxtVersion = version
 
@@ -161,6 +161,7 @@ import binancePro from  './src/pro/binance.js'
 import binancecoinmPro from  './src/pro/binancecoinm.js'
 import binanceusPro from  './src/pro/binanceus.js'
 import binanceusdmPro from  './src/pro/binanceusdm.js'
+import bingxPro from  './src/pro/bingx.js'
 import bitcoincomPro from  './src/pro/bitcoincom.js'
 import bitfinexPro from  './src/pro/bitfinex.js'
 import bitfinex2Pro from  './src/pro/bitfinex2.js'
@@ -330,6 +331,7 @@ const pro = {
     'binancecoinm':           binancecoinmPro,
     'binanceus':              binanceusPro,
     'binanceusdm':            binanceusdmPro,
+    'bingx':                  bingxPro,
     'bitcoincom':             bitcoincomPro,
     'bitfinex':               bitfinexPro,
     'bitfinex2':              bitfinex2Pro,

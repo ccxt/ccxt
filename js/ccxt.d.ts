@@ -117,6 +117,7 @@ import binancePro from './src/pro/binance.js';
 import binancecoinmPro from './src/pro/binancecoinm.js';
 import binanceusPro from './src/pro/binanceus.js';
 import binanceusdmPro from './src/pro/binanceusdm.js';
+import bingxPro from './src/pro/bingx.js';
 import bitcoincomPro from './src/pro/bitcoincom.js';
 import bitfinexPro from './src/pro/bitfinex.js';
 import bitfinex2Pro from './src/pro/bitfinex2.js';
@@ -284,6 +285,7 @@ declare const pro: {
     binancecoinm: typeof binancecoinmPro;
     binanceus: typeof binanceusPro;
     binanceusdm: typeof binanceusdmPro;
+    bingx: typeof bingxPro;
     bitcoincom: typeof bitcoincomPro;
     bitfinex: typeof bitfinexPro;
     bitfinex2: typeof bitfinex2Pro;
@@ -350,6 +352,7 @@ declare const ccxt: {
         binancecoinm: typeof binancecoinmPro;
         binanceus: typeof binanceusPro;
         binanceusdm: typeof binanceusdmPro;
+        bingx: typeof bingxPro;
         bitcoincom: typeof bitcoincomPro;
         bitfinex: typeof bitfinexPro;
         bitfinex2: typeof bitfinex2Pro;

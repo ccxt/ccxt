@@ -127,6 +127,7 @@ export default class bingx extends Exchange {
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
     createOrder(symbol: string, type: any, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    parseOrderSide(side: any): string;
     parseOrder(order: any, market?: any): import("./base/types.js").Order;
     parseOrderStatus(status: any): string;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;

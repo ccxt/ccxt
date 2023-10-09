@@ -124,6 +124,7 @@ var binance$1 = require('./src/pro/binance.js');
 var binancecoinm$1 = require('./src/pro/binancecoinm.js');
 var binanceus$1 = require('./src/pro/binanceus.js');
 var binanceusdm$1 = require('./src/pro/binanceusdm.js');
+var bingx$1 = require('./src/pro/bingx.js');
 var bitcoincom$1 = require('./src/pro/bitcoincom.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitfinex2$1 = require('./src/pro/bitfinex2.js');
@@ -179,7 +180,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.1.8';
+const version = '4.1.9';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -296,6 +297,7 @@ const pro = {
     'binancecoinm': binancecoinm$1,
     'binanceus': binanceus$1,
     'binanceusdm': binanceusdm$1,
+    'bingx': bingx$1,
     'bitcoincom': bitcoincom$1,
     'bitfinex': bitfinex$1,
     'bitfinex2': bitfinex2$1,
