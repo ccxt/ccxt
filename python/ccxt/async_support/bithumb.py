@@ -93,15 +93,14 @@ class bithumb(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': [
-                        'ticker/{currency}',
-                        'ticker/all',
-                        'ticker/ALL_BTC',
-                        'ticker/ALL_KRW',
-                        'orderbook/{currency}',
-                        'orderbook/all',
-                        'transaction_history/{currency}',
-                        'transaction_history/all',
-                        'candlestick/{currency}/{interval}',
+                        'ticker/ALL_{quoteId}',
+                        'ticker/{baseId}_{quoteId}',
+                        'orderbook/ALL_{quoteId}',
+                        'orderbook/{baseId}_{quoteId}',
+                        'transaction_history/{baseId}_{quoteId}',
+                        'assetsstatus/ALL',
+                        'assetsstatus/{baseId}',
+                        'candlestick/{baseId}_{quoteId}/{interval}',
                     ],
                 },
                 'private': {
@@ -120,6 +119,7 @@ class bithumb(Exchange, ImplicitAPI):
                         'trade/krw_withdrawal',
                         'trade/market_buy',
                         'trade/market_sell',
+                        'trade/stop_limit',
                     ],
                 },
             },
@@ -206,8 +206,10 @@ class bithumb(Exchange, ImplicitAPI):
             quote = quotes[i]
             quoteId = quote
             extension = self.safe_value(quoteCurrencies, quote, {})
-            method = 'publicGetTickerALL' + quote
-            response = await getattr(self, method)(params)
+            request = {
+                'quoteId': quoteId,
+            }
+            response = await self.publicGetTickerALLQuoteId(self.extend(request, params))
             data = self.safe_value(response, 'data')
             currencyIds = list(data.keys())
             for j in range(0, len(currencyIds)):
@@ -288,7 +290,7 @@ class bithumb(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bithumb api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         request = {
@@ -303,16 +305,17 @@ class bithumb(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bithumb api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'currency': market['base'] + '_' + market['quote'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         }
         if limit is not None:
             request['count'] = limit  # default 30, max 30
-        response = await self.publicGetOrderbookCurrency(self.extend(request, params))
+        response = await self.publicGetOrderbookBaseIdQuoteId(self.extend(request, params))
         #
         #     {
         #         "status":"0000",
@@ -390,7 +393,7 @@ class bithumb(Exchange, ImplicitAPI):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the bithumb api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         result = {}
@@ -398,8 +401,11 @@ class bithumb(Exchange, ImplicitAPI):
         quotes = list(quoteCurrencies.keys())
         for i in range(0, len(quotes)):
             quote = quotes[i]
-            method = 'publicGetTickerALL' + quote
-            response = await getattr(self, method)(params)
+            quoteId = quote
+            request = {
+                'quoteId': quoteId,
+            }
+            response = await self.publicGetTickerALLQuoteId(self.extend(request, params))
             #
             #     {
             #         "status":"0000",
@@ -440,14 +446,15 @@ class bithumb(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bithumb api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'currency': market['base'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         }
-        response = await self.publicGetTickerCurrency(self.extend(request, params))
+        response = await self.publicGetTickerBaseIdQuoteId(self.extend(request, params))
         #
         #     {
         #         "status":"0000",
@@ -503,10 +510,11 @@ class bithumb(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'currency': market['base'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        response = await self.publicGetCandlestickCurrencyInterval(self.extend(request, params))
+        response = await self.publicGetCandlestickBaseIdQuoteIdInterval(self.extend(request, params))
         #
         #     {
         #         'status': '0000',
@@ -612,16 +620,17 @@ class bithumb(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bithumb api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'currency': market['base'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         }
         if limit is not None:
             request['count'] = limit  # default 20, max 100
-        response = await self.publicGetTransactionHistoryCurrency(self.extend(request, params))
+        response = await self.publicGetTransactionHistoryBaseIdQuoteId(self.extend(request, params))
         #
         #     {
         #         "status":"0000",
@@ -646,9 +655,9 @@ class bithumb(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bithumb api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -680,7 +689,7 @@ class bithumb(Exchange, ImplicitAPI):
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bithumb api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -831,7 +840,7 @@ class bithumb(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the bithumb api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -873,7 +882,7 @@ class bithumb(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bithumb api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         side_in_params = ('side' in params)
         if not side_in_params:
@@ -906,7 +915,7 @@ class bithumb(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the bithumb api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -1007,10 +1016,10 @@ class bithumb(Exchange, ImplicitAPI):
             if status is not None:
                 if status == '0000':
                     return None  # no error
-                elif message == '거래 진행중인 내역이 존재하지 않습니다':
+                elif message == '거래 진행중인 내역이 존재하지 않습니다.':
                     # https://github.com/ccxt/ccxt/issues/9017
                     return None  # no error
-                feedback = self.id + ' ' + body
+                feedback = self.id + ' ' + message
                 self.throw_exactly_matched_exception(self.exceptions, status, feedback)
                 self.throw_exactly_matched_exception(self.exceptions, message, feedback)
                 raise ExchangeError(feedback)

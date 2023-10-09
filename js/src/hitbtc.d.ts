@@ -146,8 +146,8 @@ export default class hitbtc extends Exchange {
     }>;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<any[]>;
-    fetchPosition(symbol: string, params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
+    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: any;

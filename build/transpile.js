@@ -96,6 +96,7 @@ class Transpiler {
             [ /\.parseFundingRateHistory\s/g, '.parse_funding_rate_history'],
             [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
+            [ /\.parseWsOHLCVs\s/g, '.parse_ws_ohlcvs'],
             [ /\.parseWsOHLCV\s/g, '.parse_ws_ohlcv'],
             [ /\.parseDate\s/g, '.parse_date'],
             [ /\.parseDepositAddresses\s/g, '.parse_deposit_addresses'],
@@ -221,6 +222,8 @@ class Transpiler {
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             [ /\.throwExceptionOnError\s/g, '.throw_exception_on_error'],
             [ /\.handleErrors\s/g, '.handle_errors'],
+            [ /\.handleDeltas\s/g, '.handle_deltas'],
+            [ /\.handleDelta\s/g, '.handle_delta'],
             [ /\.handleWithdrawTagAndParams\s/g, '.handle_withdraw_tag_and_params'],
             [ /\.checkRequiredCredentials\s/g, '.check_required_credentials'],
             [ /\.checkRequiredDependencies\s/g, '.check_required_dependencies'],
@@ -280,6 +283,18 @@ class Transpiler {
             [ /\.filterByLimit\s/g, '.filter_by_limit'],
             [ /\.fetchTime\s/g, '.fetch_time'],
             [ /\.handleOptionAndParams\s/g, '.handle_option_and_params'],
+            [ /\.fetchRestOrderBookSafe\s/g, '.fetch_rest_order_book_safe'],
+            [ /\.customParseBidAsk\s/g, '.custom_parse_bid_ask'],
+            [ /\.customParseOrderBook\s/g, '.custom_parse_order_book'],
+            [ /\.filterByArrayPositions\s/g, '.filter_by_array_positions'],
+            [ /\.handleTriggerPrices\s/g, '.handle_trigger_prices'],
+            [ /\.handleMaxEntriesPerRequestAndParams\s/g, '.handle_max_entries_per_request_and_params'],
+            [ /\.safeDeterministicCall\s/g, '.safe_deterministic_call'],
+            [ /\.fetchPaginatedCallDynamic\s/g, '.fetch_paginated_call_dynamic'],
+            [ /\.fetchPaginatedCallDeterministic\s/g, '.fetch_paginated_call_deterministic'],
+            [ /\.fetchPaginatedCallCursor\s/g, '.fetch_paginated_call_cursor'],
+            [ /\.removeRepeatedElementsFromArray\s/g, '.remove_repeated_elements_from_array'],
+            [ /\.handleUntilOption\s/g, '.handle_until_option'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -491,7 +506,7 @@ class Transpiler {
         return [
             //
             // Curly-braces are used for both dictionaries in the code as well as for the url-imploded params.
-            // For example: https://docs.ccxt.com/#/?id=implicit-api-methods
+            // For example: https://github.com/ccxt/ccxt/wiki/Manual#implicit-api-methods
             //
             // There's a conflict between the curly braces that have to be converted from dictionaries to PHP-arrays and
             // the curly braces used for url-imploded params that should not be touched.
@@ -1562,6 +1577,7 @@ class Transpiler {
                 'any': 'Any',
                 'boolean': 'bool',
                 'Int': 'int',
+                'string[]': 'List[str]',
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {

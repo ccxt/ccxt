@@ -42,8 +42,12 @@ export default class bittrex extends bittrexRest {
             },
             'options': {
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': this.milliseconds (),
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
             },
         });
     }
@@ -223,7 +227,7 @@ export default class bittrex extends bittrexRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         if (symbol !== undefined) {
@@ -282,7 +286,7 @@ export default class bittrex extends bittrexRest {
          * @name bittrex#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
         const authentication = await this.authenticate ();
@@ -357,7 +361,7 @@ export default class bittrex extends bittrexRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
@@ -484,7 +488,7 @@ export default class bittrex extends bittrexRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -553,7 +557,7 @@ export default class bittrex extends bittrexRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -612,7 +616,7 @@ export default class bittrex extends bittrexRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         limit = (limit === undefined) ? 25 : limit; // 25 by default
         if ((limit !== 1) && (limit !== 25) && (limit !== 500)) {
@@ -631,23 +635,18 @@ export default class bittrex extends bittrexRest {
         //     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message (Note: for private streams, the sequence number is scoped to a single account or subaccount).
         //     8. If a message is received that is not the next in order, return to step 2 in this process
         //
-        const orderbook = await this.subscribeToOrderBook (negotiation, symbol, limit, params);
-        return orderbook.limit ();
-    }
-
-    async subscribeToOrderBook (negotiation, symbol, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'orderbook';
         const messageHash = name + '_' + market['id'] + '_' + limit.toString ();
         const subscription = {
             'symbol': symbol,
             'messageHash': messageHash,
-            'method': this.handleSubscribeToOrderBook,
+            'method': this.handleOrderBookSubscription,
             'limit': limit,
             'params': params,
         };
-        return await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
+        const orderbook = await this.sendRequestToSubscribe (negotiation, messageHash, subscription);
+        return orderbook.limit ();
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
@@ -657,7 +656,7 @@ export default class bittrex extends bittrexRest {
         try {
             // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
             // todo: this is a synch blocking call in ccxt.php - make it async
-            const snapshot = await this.fetchOrderBook (symbol, limit);
+            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit);
             const orderbook = this.orderbooks[symbol];
             const messages = orderbook.cache;
             // make sure we have at least one delta before fetching the snapshot
@@ -671,8 +670,7 @@ export default class bittrex extends bittrexRest {
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in maxAttempts
             if ((sequence !== undefined) && (nonce < sequence)) {
-                const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
-                const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
+                const maxAttempts = this.handleOption ('watchOrderBook', 'maxRetries', 3);
                 let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
                 // retry to syncrhonize if we haven't reached maxAttempts yet
                 if (numAttempts < maxAttempts) {
@@ -692,8 +690,8 @@ export default class bittrex extends bittrexRest {
                 // unroll the accumulated deltas
                 // 3. Playback the cached Level 2 data flow.
                 for (let i = 0; i < messages.length; i++) {
-                    const message = messages[i];
-                    this.handleOrderBookMessage (client, message, orderbook);
+                    const messageItem = messages[i];
+                    this.handleOrderBookMessage (client, messageItem, orderbook);
                 }
                 this.orderbooks[symbol] = orderbook;
                 client.resolve (orderbook, messageHash);
@@ -703,7 +701,7 @@ export default class bittrex extends bittrexRest {
         }
     }
 
-    handleSubscribeToOrderBook (client: Client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {

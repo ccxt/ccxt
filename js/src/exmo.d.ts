@@ -63,32 +63,16 @@ export default class exmo extends Exchange {
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<{
-        id: string;
-        info: any;
-        timestamp: number;
-        datetime: string;
-        lastTradeTimestamp: any;
-        status: string;
-        symbol: any;
-        type: string;
-        side: string;
-        price: any;
-        cost: any;
-        amount: any;
-        remaining: any;
-        filled: number;
-        fee: any;
-        trades: any;
-        clientOrderId: any;
-        average: any;
-    }>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseStatus(status: any): string;
+    parseSide(orderType: any): string;
     parseOrder(order: any, market?: any): import("./base/types.js").Order;
-    fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: any;

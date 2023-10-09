@@ -26,10 +26,13 @@ use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\BadSymbol;
 use ccxt\ArgumentsRequired;
+use ccxt\RateLimitExceeded;
 use ccxt\NullResponse;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
-
+use ccxt\BadResponse;
+use ccxt\BadRequest;
+use React\Promise;
 use React;
 use React\Async;
 use React\EventLoop\Loop;
@@ -38,11 +41,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.0.42';
+$version = '4.1.8';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.0.42';
+    const VERSION = '4.1.8';
 
     public $browser;
     public $marketsLoading = null;
@@ -100,10 +103,11 @@ class Exchange extends \ccxt\Exchange {
                 $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
                 $this->set_request_browser($request_browser_options);
             } else if ($socksProxy !== null) {
-                if (!class_exists('\Clue\React\Socks\Client')) {
+                $className = '\\Clue\\React\\Socks\\Client';
+                if (!class_exists($className)) {
                     throw new NotSupported($this->id . ' - to use SOCKS proxy with ccxt, at first you need install module "composer require clue/socks-react"');
                 }
-                $proxy = new \Clue\React\Socks\Client($socksProxy);
+                $proxy = new $className($socksProxy);
                 $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
                 $this->set_request_browser($request_browser_options);
             }
@@ -226,6 +230,12 @@ class Exchange extends \ccxt\Exchange {
         return $this->load_accounts($reload, $params);
     }
 
+    public function fetch_markets($params = array()) {
+        return Async\async(function () use ($params) {
+            return parent::fetch_markets($params);
+        }) ();
+    }
+
     public function sleep($milliseconds) {
         $time = $milliseconds / 1000;
         return new React\Promise\Promise(function ($resolve) use ($time) {
@@ -291,6 +301,35 @@ class Exchange extends \ccxt\Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function handle_deltas($orderbook, $deltas) {
+        for ($i = 0; $i < count($deltas); $i++) {
+            $this->handle_delta($orderbook, $deltas[$i]);
+        }
+    }
+
+    public function handle_delta($bookside, $delta) {
+        throw new NotSupported($this->id . ' handleDelta not supported yet');
+    }
+
+    public function get_cache_index($orderbook, $deltas) {
+        // return the first index of the cache that can be applied to the $orderbook or -1 if not possible
+        return -1;
+    }
+
+    public function find_timeframe($timeframe, $timeframes = null) {
+        if ($timeframes === null) {
+            $timeframes = $this->timeframes;
+        }
+        $keys = is_array($timeframes) ? array_keys($timeframes) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($timeframes[$key] === $timeframe) {
+                return $key;
+            }
+        }
+        return null;
+    }
 
     public function check_proxy_settings($url, $method, $headers, $body) {
         $proxyUrl = ($this->proxyUrl !== null) ? $this->proxyUrl : $this->proxy_url;
@@ -472,12 +511,49 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchTrades() is not supported yet');
     }
 
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchTradesForSymbols() is not supported yet');
+    }
+
+    public function watch_my_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchMyTradesForSymbols() is not supported yet');
+    }
+
+    public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOrdersForSymbols() is not supported yet');
+    }
+
+    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOHLCVForSymbols() is not supported yet');
+    }
+
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchOrderBookForSymbols() is not supported yet');
+    }
+
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDepositAddresses() is not supported yet');
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
+    }
+
+    public function fetch_rest_order_book_safe($symbol, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $limit, $params) {
+            $fetchSnapshotMaxRetries = $this->handleOption ('watchOrderBook', 'maxRetries', 3);
+            for ($i = 0; $i < $fetchSnapshotMaxRetries; $i++) {
+                try {
+                    $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $params));
+                    return $orderBook;
+                } catch (Exception $e) {
+                    if (($i + 1) === $fetchSnapshotMaxRetries) {
+                        throw $e;
+                    }
+                }
+            }
+            return null;
+        }) ();
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
@@ -561,7 +637,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_ws_ohlcv($ohlcv, $market = null) {
-        throw new NotSupported($this->id . ' parseWsOHLCV() is not supported yet');
+        return $this->parse_ohlcv($ohlcv, $market);
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
@@ -841,7 +917,14 @@ class Exchange extends \ccxt\Exchange {
             $oldNumber = $this->number;
             // we parse $trades here!
             $this->number = 'strval';
-            $trades = $this->parse_trades($rawTrades, $market);
+            $firstTrade = $this->safe_value($rawTrades, 0);
+            // parse $trades if they haven't already been parsed
+            $tradesAreParsed = (($firstTrade !== null) && (is_array($firstTrade) && array_key_exists('info', $firstTrade)) && (is_array($firstTrade) && array_key_exists('id', $firstTrade)));
+            if (!$tradesAreParsed) {
+                $trades = $this->parse_trades($rawTrades, $market);
+            } else {
+                $trades = $rawTrades;
+            }
             $this->number = $oldNumber;
             $tradesLength = 0;
             $isArray = gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades));
@@ -1004,12 +1087,12 @@ class Exchange extends \ccxt\Exchange {
             $entry['amount'] = $this->safe_number($entry, 'amount');
             $entry['price'] = $this->safe_number($entry, 'price');
             $entry['cost'] = $this->safe_number($entry, 'cost');
-            $fee = $this->safe_value($entry, 'fee', array());
-            $fee['cost'] = $this->safe_number($fee, 'cost');
-            if (is_array($fee) && array_key_exists('rate', $fee)) {
-                $fee['rate'] = $this->safe_number($fee, 'rate');
+            $tradeFee = $this->safe_value($entry, 'fee', array());
+            $tradeFee['cost'] = $this->safe_number($tradeFee, 'cost');
+            if (is_array($tradeFee) && array_key_exists('rate', $tradeFee)) {
+                $tradeFee['rate'] = $this->safe_number($tradeFee, 'rate');
             }
-            $entry['fee'] = $fee;
+            $entry['fee'] = $tradeFee;
         }
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = $this->safe_value($order, 'postOnly');
@@ -1479,8 +1562,18 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function market_symbols($symbols, ?string $type = null) {
+    public function market_symbols($symbols, ?string $type = null, $allowEmpty = true) {
         if ($symbols === null) {
+            if (!$allowEmpty) {
+                throw new ArgumentsRequired($this->id . ' empty list of $symbols is not supported');
+            }
+            return $symbols;
+        }
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            if (!$allowEmpty) {
+                throw new ArgumentsRequired($this->id . ' empty list of $symbols is not supported');
+            }
             return $symbols;
         }
         $result = array();
@@ -1751,6 +1844,17 @@ class Exchange extends \ccxt\Exchange {
             $percentageString = Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100');
             $position['percentage'] = $this->parse_number($percentageString);
         }
+        // if $contractSize is null get from $market
+        $contractSize = $this->safe_number($position, 'contractSize');
+        $symbol = $this->safe_string($position, 'symbol');
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+        }
+        if ($contractSize === null && $market !== null) {
+            $contractSize = $this->safe_number($market, 'contractSize');
+            $position['contractSize'] = $contractSize;
+        }
         return $position;
     }
 
@@ -1762,7 +1866,7 @@ class Exchange extends \ccxt\Exchange {
             $position = array_merge($this->parse_position($positions[$i], null), $params);
             $result[] = $position;
         }
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
     public function parse_accounts($accounts, $params = array ()) {
@@ -2000,6 +2104,16 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchPosition() is not supported yet');
     }
 
+    public function fetch_positions_by_symbol(string $symbol, $params = array ()) {
+        /**
+         * specifically fetches positions for specific $symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
+         * @param {string} $symbol unified market $symbol of the market the position is held in
+         * @param {array} $params extra parameters specific to the endpoint
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new NotSupported($this->id . ' fetchPositionsBySymbol() is not supported yet');
+    }
+
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchPositions() is not supported yet');
     }
@@ -2092,9 +2206,9 @@ class Exchange extends \ccxt\Exchange {
                     }
                     $inferredMarketType = ($marketType === null) ? $market['type'] : $marketType;
                     for ($i = 0; $i < count($markets); $i++) {
-                        $market = $markets[$i];
-                        if ($market[$inferredMarketType]) {
-                            return $market;
+                        $currentMarket = $markets[$i];
+                        if ($currentMarket[$inferredMarketType]) {
+                            return $currentMarket;
                         }
                     }
                 }
@@ -2521,7 +2635,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
     }
@@ -2536,6 +2650,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_open_interest(string $symbol, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchFundingRateHistory() is not supported yet');
     }
 
     public function parse_last_price($price, $market = null) {
@@ -2696,10 +2814,17 @@ class Exchange extends \ccxt\Exchange {
             $precision = $this->safe_value($networkItem, 'precision', $precision);
         }
         if ($precision === null) {
-            return $fee;
+            return $this->forceString ($fee);
         } else {
             return $this->decimal_to_precision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
         }
+    }
+
+    public function force_string($value) {
+        if (gettype($value) !== 'string') {
+            return $this->number_to_string($value);
+        }
+        return $value;
     }
 
     public function is_tick_precision() {
@@ -3322,7 +3447,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {array} $market ccxt $market
          * @param {int} [$since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [$limit] limits the number of items in the response
-         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
+         * @return {array[]} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structures}
          */
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {
@@ -3343,6 +3468,14 @@ class Exchange extends \ccxt\Exchange {
         return $market;
     }
 
+    public function parse_ws_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
+        $results = array();
+        for ($i = 0; $i < count($ohlcvs); $i++) {
+            $results[] = $this->parse_ws_ohlcv($ohlcvs[$i], $market);
+        }
+        return $results;
+    }
+
     public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
@@ -3352,7 +3485,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             if ($this->has['fetchDepositsWithdrawals']) {
                 return Async\await($this->fetchDepositsWithdrawals ($code, $since, $limit, $params));
@@ -3360,5 +3493,328 @@ class Exchange extends \ccxt\Exchange {
                 throw new NotSupported($this->id . ' fetchTransactions () is not supported yet');
             }
         }) ();
+    }
+
+    public function filter_by_array_positions($objects, int|string $key, $values = null, $indexed = true) {
+        /**
+         * @ignore
+         * Typed wrapper for filterByArray that returns a list of positions
+         */
+        return $this->filter_by_array($objects, $key, $values, $indexed);
+    }
+
+    public function resolve_promise_if_messagehash_matches($client, string $prefix, string $symbol, $data) {
+        $messageHashes = $this->findMessageHashes ($client, $prefix);
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            if ($this->in_array($symbol, $symbols)) {
+                $client->resolve ($data, $messageHash);
+            }
+        }
+    }
+
+    public function resolve_multiple_ohlcv($client, string $prefix, string $symbol, string $timeframe, $data) {
+        $messageHashes = $this->findMessageHashes ($client, 'multipleOHLCV::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsAndTimeframes = $parts[1];
+            $splitted = explode(',', $symbolsAndTimeframes);
+            $id = $symbol . '#' . $timeframe;
+            if ($this->in_array($id, $splitted)) {
+                $client->resolve (array( $symbol, $timeframe, $data ), $messageHash);
+            }
+        }
+    }
+
+    public function create_ohlcv_object(string $symbol, string $timeframe, $data) {
+        $res = array();
+        $res[$symbol] = array();
+        $res[$symbol][$timeframe] = $data;
+        return $res;
+    }
+
+    public function handle_max_entries_per_request_and_params(string $method, ?int $maxEntriesPerRequest = null, $params = array ()) {
+        $newMaxEntriesPerRequest = null;
+        list($newMaxEntriesPerRequest, $params) = $this->handle_option_and_params($params, $method, 'maxEntriesPerRequest');
+        if (($newMaxEntriesPerRequest !== null) && ($newMaxEntriesPerRequest !== $maxEntriesPerRequest)) {
+            $maxEntriesPerRequest = $newMaxEntriesPerRequest;
+        }
+        if ($maxEntriesPerRequest === null) {
+            $maxEntriesPerRequest = 1000; // default to 1000
+        }
+        return array( $maxEntriesPerRequest, $params );
+    }
+
+    public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array (), ?int $maxEntriesPerRequest = null) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $params, $maxEntriesPerRequest) {
+            $maxCalls = null;
+            list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
+            $maxRetries = null;
+            list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
+            $paginationDirection = null;
+            list($paginationDirection, $params) = $this->handle_option_and_params($params, $method, 'paginationDirection', 'backward');
+            $paginationTimestamp = null;
+            $calls = 0;
+            $result = array();
+            $errors = 0;
+            $until = $this->safe_integer_2($params, 'untill', 'till'); // do not omit it from $params here
+            list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
+            if (($paginationDirection === 'forward')) {
+                if ($since === null) {
+                    throw new ArgumentsRequired($this->id . ' pagination requires a $since argument when $paginationDirection set to forward');
+                }
+                $paginationTimestamp = $since;
+            }
+            while (($calls < $maxCalls)) {
+                $calls += 1;
+                try {
+                    if ($paginationDirection === 'backward') {
+                        // do it backwards, starting from the $last
+                        // UNTIL filtering is required in order to work
+                        if ($paginationTimestamp !== null) {
+                            $params['until'] = $paginationTimestamp - 1;
+                        }
+                        $response = Async\await($this->$method ($symbol, null, $maxEntriesPerRequest, $params));
+                        $responseLength = count($response);
+                        if ($this->verbose) {
+                            $this->log ('Dynamic pagination call', $calls, 'method', $method, 'response length', $responseLength, 'timestamp', $paginationTimestamp);
+                        }
+                        if ($responseLength === 0) {
+                            break;
+                        }
+                        $errors = 0;
+                        $result = $this->array_concat($result, $response);
+                        $firstElement = $this->safe_value($response, 0);
+                        $paginationTimestamp = $this->safe_integer_2($firstElement, 'timestamp', 0);
+                        if (($since !== null) && ($paginationTimestamp <= $since)) {
+                            break;
+                        }
+                    } else {
+                        // do it forwards, starting from the $since
+                        $response = Async\await($this->$method ($symbol, $paginationTimestamp, $maxEntriesPerRequest, $params));
+                        $responseLength = count($response);
+                        if ($this->verbose) {
+                            $this->log ('Dynamic pagination call', $calls, 'method', $method, 'response length', $responseLength, 'timestamp', $paginationTimestamp);
+                        }
+                        if ($responseLength === 0) {
+                            break;
+                        }
+                        $errors = 0;
+                        $result = $this->array_concat($result, $response);
+                        $last = $this->safe_value($response, $responseLength - 1);
+                        $paginationTimestamp = $this->safe_integer($last, 'timestamp') - 1;
+                        if (($until !== null) && ($paginationTimestamp >= $until)) {
+                            break;
+                        }
+                    }
+                } catch (Exception $e) {
+                    $errors += 1;
+                    if ($errors > $maxRetries) {
+                        throw $e;
+                    }
+                }
+            }
+            $uniqueResults = $this->remove_repeated_elements_from_array($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
+        }) ();
+    }
+
+    public function safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array ()) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $timeframe, $params) {
+            $maxRetries = null;
+            list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
+            $errors = 0;
+            try {
+                if ($timeframe && $method !== 'fetchFundingRateHistory') {
+                    return Async\await($this->$method ($symbol, $timeframe, $since, $limit, $params));
+                } else {
+                    return Async\await($this->$method ($symbol, $since, $limit, $params));
+                }
+            } catch (Exception $e) {
+                if ($e instanceof RateLimitExceeded) {
+                    throw $e; // if we are rate limited, we should not retry and fail fast
+                }
+                $errors += 1;
+                if ($errors > $maxRetries) {
+                    throw $e;
+                }
+            }
+        }) ();
+    }
+
+    public function fetch_paginated_call_deterministic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array (), $maxEntriesPerRequest = null) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $timeframe, $params, $maxEntriesPerRequest) {
+            $maxCalls = null;
+            list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
+            list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
+            $current = $this->milliseconds ();
+            $tasks = array();
+            $time = $this->parse_timeframe($timeframe) * 1000;
+            $step = $time * $maxEntriesPerRequest;
+            $currentSince = $current - ($maxCalls * $step) - 1;
+            if ($since !== null) {
+                $currentSince = max ($currentSince, $since);
+            }
+            $until = $this->safe_integer_2($params, 'until', 'till'); // do not omit it here
+            if ($until !== null) {
+                $requiredCalls = (int) ceil(($until - $since) / $step);
+                if ($requiredCalls > $maxCalls) {
+                    throw new BadRequest($this->id . ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the $since-$until gap. Current paginationCalls $limit is ' . (string) $maxCalls . ' required calls is ' . (string) $requiredCalls);
+                }
+            }
+            for ($i = 0; $i < $maxCalls; $i++) {
+                if (($until !== null) && ($currentSince >= $until)) {
+                    break;
+                }
+                $tasks[] = $this->safe_deterministic_call($method, $symbol, $currentSince, $maxEntriesPerRequest, $timeframe, $params);
+                $currentSince = $this->sum ($currentSince, $step) - 1;
+            }
+            $results = Async\await(Promise\all($tasks));
+            $result = array();
+            for ($i = 0; $i < count($results); $i++) {
+                $result = $this->array_concat($result, $results[$i]);
+            }
+            $uniqueResults = $this->remove_repeated_elements_from_array($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
+        }) ();
+    }
+
+    public function fetch_paginated_call_cursor(string $method, ?string $symbol = null, $since = null, $limit = null, $params = array (), $cursorReceived = null, $cursorSent = null, $cursorIncrement = null, $maxEntriesPerRequest = null) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $params, $cursorReceived, $cursorSent, $cursorIncrement, $maxEntriesPerRequest) {
+            $maxCalls = null;
+            list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
+            $maxRetries = null;
+            list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
+            list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
+            $cursorValue = null;
+            $i = 0;
+            $errors = 0;
+            $result = array();
+            while ($i < $maxCalls) {
+                try {
+                    if ($cursorValue !== null) {
+                        if ($cursorIncrement !== null) {
+                            $cursorValue = $this->parseToInt ($cursorValue) . $cursorIncrement;
+                        }
+                        $params[$cursorSent] = $cursorValue;
+                    }
+                    $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));
+                    $errors = 0;
+                    $responseLength = count($response);
+                    if ($this->verbose) {
+                        $this->log ('Cursor pagination call', $i + 1, 'method', $method, 'response length', $responseLength, 'cursor', $cursorValue);
+                    }
+                    if ($responseLength === 0) {
+                        break;
+                    }
+                    $result = $this->array_concat($result, $response);
+                    $last = $this->safe_value($response, $responseLength - 1);
+                    $cursorValue = $this->safe_value($last['info'], $cursorReceived);
+                    if ($cursorValue === null) {
+                        break;
+                    }
+                } catch (Exception $e) {
+                    $errors += 1;
+                    if ($errors > $maxRetries) {
+                        throw $e;
+                    }
+                }
+                $i += 1;
+            }
+            $sorted = $this->sortCursorPaginatedResult ($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($sorted, $since, $limit, $key);
+        }) ();
+    }
+
+    public function fetch_paginated_call_incremental(string $method, ?string $symbol = null, $since = null, $limit = null, $params = array (), $pageKey = null, $maxEntriesPerRequest = null) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest) {
+            $maxCalls = null;
+            list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
+            $maxRetries = null;
+            list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
+            list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
+            $i = 0;
+            $errors = 0;
+            $result = array();
+            while ($i < $maxCalls) {
+                try {
+                    $params[$pageKey] = $i + 1;
+                    $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));
+                    $errors = 0;
+                    $responseLength = count($response);
+                    if ($this->verbose) {
+                        $this->log ('Incremental pagination call', $i + 1, 'method', $method, 'response length', $responseLength);
+                    }
+                    if ($responseLength === 0) {
+                        break;
+                    }
+                    $result = $this->array_concat($result, $response);
+                } catch (Exception $e) {
+                    $errors += 1;
+                    if ($errors > $maxRetries) {
+                        throw $e;
+                    }
+                }
+                $i += 1;
+            }
+            $sorted = $this->sortCursorPaginatedResult ($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($sorted, $since, $limit, $key);
+        }) ();
+    }
+
+    public function sort_cursor_paginated_result($result) {
+        $first = $this->safe_value($result, 0);
+        if ($first !== null) {
+            if (is_array($first) && array_key_exists('timestamp', $first)) {
+                return $this->sort_by($result, 'timestamp');
+            }
+            if (is_array($first) && array_key_exists('id', $first)) {
+                return $this->sort_by($result, 'id');
+            }
+        }
+        return $result;
+    }
+
+    public function remove_repeated_elements_from_array($input) {
+        $uniqueResult = array();
+        for ($i = 0; $i < count($input); $i++) {
+            $entry = $input[$i];
+            $id = $this->safe_string($entry, 'id');
+            if ($id !== null) {
+                if ($this->safe_string($uniqueResult, $id) === null) {
+                    $uniqueResult[$id] = $entry;
+                }
+            } else {
+                $timestamp = $this->safe_integer_2($entry, 'timestamp', 0);
+                if ($timestamp !== null) {
+                    if ($this->safe_string($uniqueResult, $timestamp) === null) {
+                        $uniqueResult[$timestamp] = $entry;
+                    }
+                }
+            }
+        }
+        $values = is_array($uniqueResult) ? array_values($uniqueResult) : array();
+        $valuesLength = count($values);
+        if ($valuesLength > 0) {
+            return $values;
+        }
+        return $input;
+    }
+
+    public function handle_until_option($key, $request, $params, $multiplier = 1) {
+        $until = $this->safe_value_2($params, 'until', 'till');
+        if ($until !== null) {
+            $request[$key] = $this->parseToInt ($until * $multiplier);
+            $params = $this->omit ($params, array( 'until', 'till' ));
+        }
+        return array( $request, $params );
     }
 }

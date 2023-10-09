@@ -53,7 +53,7 @@ class huobijp(ccxt.async_support.huobijp):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the huobijp api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -115,7 +115,7 @@ class huobijp(ccxt.async_support.huobijp):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the huobijp api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -256,7 +256,7 @@ class huobijp(ccxt.async_support.huobijp):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the huobijp api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         if (limit is not None) and (limit != 150):
             raise ExchangeError(self.id + ' watchOrderBook accepts limit = 150 only')
@@ -316,8 +316,7 @@ class huobijp(ccxt.async_support.huobijp):
         # unroll the accumulated deltas
         messages = orderbook.cache
         for i in range(0, len(messages)):
-            message = messages[i]
-            self.handle_order_book_message(client, message, orderbook)
+            self.handle_order_book_message(client, messages[i], orderbook)
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 

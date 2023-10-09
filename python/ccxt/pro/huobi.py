@@ -95,7 +95,9 @@ class huobi(ccxt.async_support.huobi):
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'api': 'api',  # or api-aws for clients hosted on AWS
-                'maxOrderBookSyncAttempts': 3,
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
                 'ws': {
                     'gunzip': True,
                 },
@@ -127,7 +129,7 @@ class huobi(ccxt.async_support.huobi):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -194,7 +196,7 @@ class huobi(ccxt.async_support.huobi):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -310,7 +312,7 @@ class huobi(ccxt.async_support.huobi):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -374,7 +376,7 @@ class huobi(ccxt.async_support.huobi):
             snapshotOrderBook = self.order_book(snapshot, snapshotLimit)
             client.resolve(snapshotOrderBook, id)
             if (sequence is not None) and (nonce < sequence):
-                maxAttempts = self.safe_integer(self.options, 'maxOrderBookSyncAttempts', 3)
+                maxAttempts = self.handle_option('watchOrderBook', 'maxRetries', 3)
                 numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
                 # retry to synchronize if we have not reached maxAttempts yet
                 if numAttempts < maxAttempts:
@@ -391,8 +393,7 @@ class huobi(ccxt.async_support.huobi):
                 orderbook.reset(snapshot)
                 # unroll the accumulated deltas
                 for i in range(0, len(messages)):
-                    message = messages[i]
-                    self.handle_order_book_message(client, message, orderbook)
+                    self.handle_order_book_message(client, messages[i], orderbook)
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
         except Exception as e:
@@ -609,9 +610,10 @@ class huobi(ccxt.async_support.huobi):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
         """
         self.check_required_credentials()
+        await self.load_markets()
         type = None
         marketId = '*'  # wildcard
         market = None
@@ -620,7 +622,6 @@ class huobi(ccxt.async_support.huobi):
         trades = None
         subType = None
         if symbol is not None:
-            await self.load_markets()
             market = self.market(symbol)
             symbol = market['symbol']
             type = market['type']
@@ -695,7 +696,7 @@ class huobi(ccxt.async_support.huobi):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         type = None
@@ -1119,7 +1120,7 @@ class huobi(ccxt.async_support.huobi):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         type = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', type)
@@ -1530,7 +1531,7 @@ class huobi(ccxt.async_support.huobi):
         if privateType == 'trade.clearing':
             self.handle_my_trade(client, message)
             return
-        if privateType.find('accounts.update') != -1:
+        if privateType.find('accounts.update') >= 0:
             self.handle_balance(client, message)
             return
         if privateType == 'orders':
@@ -1540,9 +1541,9 @@ class huobi(ccxt.async_support.huobi):
         op = self.safe_string(message, 'op')
         if op == 'notify':
             topic = self.safe_string(message, 'topic', '')
-            if topic.find('orders') != -1:
+            if topic.find('orders') >= 0:
                 self.handle_order(client, message)
-            if topic.find('account') != -1:
+            if topic.find('account') >= 0:
                 self.handle_balance(client, message)
 
     async def pong(self, client, message):
@@ -1559,13 +1560,13 @@ class huobi(ccxt.async_support.huobi):
             action = self.safe_string(message, 'action')
             if action == 'ping':
                 data = self.safe_value(message, 'data')
-                ping = self.safe_integer(data, 'ts')
-                await client.send({'action': 'pong', 'data': {'ts': ping}})
+                pingTs = self.safe_integer(data, 'ts')
+                await client.send({'action': 'pong', 'data': {'ts': pingTs}})
                 return
             op = self.safe_string(message, 'op')
             if op == 'ping':
-                ping = self.safe_integer(message, 'ts')
-                await client.send({'op': 'pong', 'ts': ping})
+                pingTs = self.safe_integer(message, 'ts')
+                await client.send({'op': 'pong', 'ts': pingTs})
         except Exception as e:
             error = NetworkError(self.id + ' pong failed ' + self.json(e))
             client.reset(error)
@@ -1594,8 +1595,8 @@ class huobi(ccxt.async_support.huobi):
         #        data: {'user-id': '35930539'}
         #    }
         #
-        client.resolve(message, 'auth')
-        return message
+        promise = client.futures['authenticated']
+        promise.resolve(message)
 
     def handle_error_message(self, client: Client, message):
         #
@@ -1919,7 +1920,7 @@ class huobi(ccxt.async_support.huobi):
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
 
     async def subscribe_private(self, channel, messageHash, type, subtype, params={}, subscriptionParams={}):
-        requestId = self.nonce()
+        requestId = self.request_id()
         subscription = {
             'id': requestId,
             'messageHash': messageHash,
@@ -1958,12 +1959,12 @@ class huobi(ccxt.async_support.huobi):
         if url is None or hostname is None or type is None:
             raise ArgumentsRequired(self.id + ' authenticate requires a url, hostname and type argument')
         self.check_required_credentials()
-        messageHash = 'auth'
+        messageHash = 'authenticated'
         relativePath = url.replace('wss://' + hostname, '')
         client = self.client(url)
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
-            future = client.future(messageHash)
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             timestamp = self.ymdhms(self.milliseconds(), 'T')
             signatureParams = None
             if type == 'spot':
@@ -1986,7 +1987,7 @@ class huobi(ccxt.async_support.huobi):
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             request = None
             if type == 'spot':
-                params = {
+                newParams = {
                     'authType': 'api',
                     'accessKey': self.apiKey,
                     'signatureMethod': 'HmacSHA256',
@@ -1995,13 +1996,13 @@ class huobi(ccxt.async_support.huobi):
                     'signature': signature,
                 }
                 request = {
-                    'params': params,
+                    'params': newParams,
                     'action': 'req',
-                    'ch': messageHash,
+                    'ch': 'auth',
                 }
             else:
                 request = {
-                    'op': messageHash,
+                    'op': 'auth',
                     'type': 'api',
                     'AccessKeyId': self.apiKey,
                     'SignatureMethod': 'HmacSHA256',
@@ -2009,5 +2010,11 @@ class huobi(ccxt.async_support.huobi):
                     'Timestamp': timestamp,
                     'Signature': signature,
                 }
-            await self.watch(url, messageHash, request, messageHash, future)
-        return await future
+            requestId = self.request_id()
+            subscription = {
+                'id': requestId,
+                'messageHash': messageHash,
+                'params': params,
+            }
+            self.watch(url, messageHash, request, messageHash, subscription)
+        return future

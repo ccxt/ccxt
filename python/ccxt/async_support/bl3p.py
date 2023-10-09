@@ -23,6 +23,7 @@ class bl3p(Exchange, ImplicitAPI):
             'rateLimit': 1000,
             'version': '1',
             'comment': 'An exchange market by BitonicNL',
+            'pro': False,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -34,6 +35,9 @@ class bl3p(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -66,6 +70,7 @@ class bl3p(Exchange, ImplicitAPI):
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': False,
+                'ws': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
@@ -132,7 +137,7 @@ class bl3p(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bl3p api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         response = await self.privatePostGENMKTMoneyInfo(params)
@@ -152,7 +157,7 @@ class bl3p(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bl3p api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         market = self.market(symbol)
         request = {
@@ -210,7 +215,7 @@ class bl3p(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bl3p api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         market = self.market(symbol)
         request = {
@@ -235,6 +240,16 @@ class bl3p(Exchange, ImplicitAPI):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades
+        #
+        #     {
+        #         "trade_id": "2518789",
+        #         "date": "1694348697745",
+        #         "amount_int": "2959153",
+        #         "price_int": "2416231440"
+        #     }
+        #
         id = self.safe_string(trade, 'trade_id')
         timestamp = self.safe_integer(trade, 'date')
         price = self.safe_string(trade, 'price_int')
@@ -263,12 +278,26 @@ class bl3p(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bl3p api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         market = self.market(symbol)
         response = await self.publicGetMarketTrades(self.extend({
             'market': market['id'],
         }, params))
+        #
+        #    {
+        #        "result": "success",
+        #        "data": {
+        #            "trades": [
+        #                {
+        #                    "trade_id": "2518789",
+        #                    "date": "1694348697745",
+        #                    "amount_int": "2959153",
+        #                    "price_int": "2416231440"
+        #                },
+        #            ]
+        #        }
+        #     }
         result = self.parse_trades(response['data']['trades'], market, since, limit)
         return result
 
@@ -276,7 +305,7 @@ class bl3p(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the bl3p api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.privatePostGENMKTMoneyInfo(params)
@@ -327,13 +356,18 @@ class bl3p(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://github.com/BitonicNL/bl3p-api/blob/master/examples/nodejs/example.md#21---create-an-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bl3p api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int [params.amount_funds]: maximal EUR amount to spend(*1e5)
+        :param str [params.fee_currency]: 'EUR' or 'BTC'
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         market = self.market(symbol)
         amountString = self.number_to_string(amount)
@@ -359,7 +393,7 @@ class bl3p(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bl3p api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         request = {
             'order_id': id,

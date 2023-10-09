@@ -1,4 +1,5 @@
 import Exchange from './abstract/wavesexchange.js';
+import { Precise } from './base/Precise.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
 /**
  * @class wavesexchange
@@ -47,7 +48,7 @@ export default class wavesexchange extends Exchange {
     customAmountToPrecision(symbol: any, amount: any): number;
     currencyToPrecision(code: any, amount: any, networkCode?: any): number;
     fromPrecision(amount: any, scale: any): string;
-    toPrecision(amount: any, scale: any): string;
+    toPrecision(amount: any, scale: any): Precise;
     currencyFromPrecision(currency: any, amount: any): string;
     priceFromPrecision(symbol: any, price: any): string;
     safeGetDynamic(settings: any): any;

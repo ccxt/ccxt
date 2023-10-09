@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
 /**
  * @class woo
  * @extends Exchange
@@ -200,14 +200,14 @@ export default class woo extends Exchange {
         previousFundingDatetime: string;
     }>;
     fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchLeverage(symbol: string, params?: {}): Promise<{
         info: any;
         leverage: number;
     }>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    fetchPosition(symbol?: string, params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
+    fetchPosition(symbol?: string, params?: {}): Promise<import("./base/types.js").Position>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     defaultNetworkCodeForCurrency(code: any): any;
 }

@@ -30,6 +30,7 @@ class Client {
     public $futures = array();
     public $subscriptions = array();
     public $rejections = array();
+    public $options = array();
 
     public $on_message_callback;
     public $on_error_callback;
@@ -50,6 +51,7 @@ class Client {
     public $gunzip = false;
     public $inflate = false;
     public $throttler = null;
+    public $throttle = null;
     public $connection = null;
     public $connected; // connection-related Future
     public $isConnected = false;

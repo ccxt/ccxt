@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinex.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
 /**
  * @class coinex
  * @extends Exchange
@@ -39,6 +39,7 @@ export default class coinex extends Exchange {
     fetchMarginBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchSpotBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchSwapBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    fetchFinancialBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): import("./base/types.js").Order;
@@ -74,9 +75,9 @@ export default class coinex extends Exchange {
         network: any;
     };
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    fetchPosition(symbol: string, params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): any;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
@@ -157,7 +158,7 @@ export default class coinex extends Exchange {
         };
     }>;
     parseTransactionStatus(status: any): string;
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<any>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<FundingRateHistory[]>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;

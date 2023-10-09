@@ -74,6 +74,7 @@ class kuna(Exchange, ImplicitAPI):
                 'api': {
                     'xreserve': 'https://api.xreserve.fund',
                     'v3': 'https://api.kuna.io',
+                    'v4': 'https://api.kuna.io',
                     'public': 'https://kuna.io',  # v2
                     'private': 'https://kuna.io',  # v2
                 },
@@ -90,6 +91,54 @@ class kuna(Exchange, ImplicitAPI):
                     },
                     'post': {
                         'delegate-transfer': 1,
+                    },
+                },
+                'v4': {
+                    'private': {
+                        'get': {
+                            'me': 1,
+                            'getBalance': 1,
+                            'active': 1,
+                            'order/history': 1,
+                            'order/private/{id}/trades': 1,
+                            'order/details/{id}?withTrades={withTrades}': 1,
+                            'trade/history': 1,
+                            'transaction/{hash}': 1,
+                            'deposit/preRequest': 1,
+                            'deposit/crypto/address': 1,
+                            'deposit/crypto/getMerchantAddress': 1,
+                            'deposit/history': 1,
+                            'deposit/details/{depositId}': 1,
+                            'withdraw/preRequest': 1,
+                            'withdraw/history': 1,
+                            'withdraw/details/{withdrawId}': 1,
+                            'kuna-code/{id}': 1,
+                            'kuna-code/{code}/check': 1,
+                            'kuna-code/issued-by-me': 1,
+                            'kuna-code/redeemed-by-me': 1,
+                        },
+                        'post': {
+                            'order/create': 1,
+                            'order/cancel': 1,
+                            'order/cancel/multi': 1,
+                            'deposit/crypto/generateAddress': 1,
+                            'deposit/crypto/generateMerchantAddress': 1,
+                            'withdraw/create': 1,
+                            'kuna-code': 1,
+                        },
+                        'put': {
+                            'kuna-code/redeem': 1,
+                        },
+                    },
+                    'public': {
+                        'get': {
+                            'timestamp': 1,
+                            'fees': 1,
+                            'currencies?type={type}': 1,
+                            'markets/getAll': 1,
+                            'markets/tickers?pairs={pairs}': 1,
+                            'order/book/{pairs}': 1,
+                        },
                     },
                 },
                 'v3': {
@@ -299,6 +348,9 @@ class kuna(Exchange, ImplicitAPI):
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
             },
+            'options': {
+                # 'account': 'pro'      # Only for pro accounts
+            },
         })
 
     def fetch_time(self, params={}):
@@ -410,7 +462,7 @@ class kuna(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -456,7 +508,7 @@ class kuna(Exchange, ImplicitAPI):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -475,7 +527,7 @@ class kuna(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -491,7 +543,7 @@ class kuna(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [limit]: max number of orders to return, default is None
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: an `order book structure <https://docs.ccxt.com/#/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>`
         """
         return self.fetch_order_book(symbol, limit, params)
 
@@ -502,7 +554,7 @@ class kuna(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -630,7 +682,7 @@ class kuna(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         self.load_markets()
         response = self.privateGetMembersMe(params)
@@ -643,9 +695,9 @@ class kuna(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -666,7 +718,7 @@ class kuna(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: not used by kuna cancelOrder()
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         request = {
@@ -725,7 +777,7 @@ class kuna(Exchange, ImplicitAPI):
         fetches information on an order made by the user
         :param str symbol: not used by kuna fetchOrder
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         request = {
@@ -741,7 +793,7 @@ class kuna(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
@@ -763,7 +815,7 @@ class kuna(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -811,16 +863,42 @@ class kuna(Exchange, ImplicitAPI):
         url = None
         if isinstance(api, list):
             version, access = api
-            url = self.urls['api'][version] + '/' + version + '/' + self.implode_params(path, params)
-            if access == 'public':
-                if method == 'GET':
-                    if params:
-                        url += '?' + self.urlencode(params)
-                elif (method == 'POST') or (method == 'PUT'):
-                    headers = {'Content-Type': 'application/json'}
-                    body = self.json(params)
-            elif access == 'private':
-                raise NotSupported(self.id + ' private v3 API is not supported yet')
+            if version == 'v3':
+                url = self.urls['api'][version] + '/' + version + '/' + self.implode_params(path, params)
+                if access == 'public':
+                    if method == 'GET':
+                        if params:
+                            url += '?' + self.urlencode(params)
+                    elif (method == 'POST') or (method == 'PUT'):
+                        headers = {'Content-Type': 'application/json'}
+                        body = self.json(params)
+                elif access == 'private':
+                    raise NotSupported(self.id + ' private v3 API is not supported yet')
+            elif version == 'v4':
+                splitPath = path.split('/')
+                splitPathLength = len(splitPath)
+                urlPath = ''
+                if (splitPathLength > 1) and (splitPath[0] != 'kuna-code'):
+                    pathTail = ''
+                    for i in range(1, splitPathLength):
+                        pathTail += splitPath[i]
+                    urlPath = '/' + version + '/' + splitPath[0] + '/' + access + '/' + self.implode_params(pathTail, params)
+                else:
+                    urlPath = '/' + version + '/' + access + '/' + self.implode_params(path, params)
+                url = self.urls['api'][version] + urlPath
+                if access == 'private':
+                    nonce = self.nonce()
+                    auth = urlPath + nonce + self.json(params)
+                    headers = {
+                        'content-type': 'application/json',
+                        'accept': 'application/json',
+                        'nonce': nonce,
+                        'public-key': self.apiKey,
+                        'signature': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha384, 'hex'),
+                    }
+                    account = self.safe_string(self.options, 'account')
+                    if account == 'pro':
+                        headers['account'] = 'pro'
         else:
             request = '/api/' + self.version + '/' + self.implode_params(path, params)
             if 'extension' in self.urls:

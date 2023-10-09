@@ -4,8 +4,6 @@
 import * as functions from './functions.js'
 const {
     isNode
-    , keys
-    , values
     , deepExtend
     , extend
     , clone
@@ -42,7 +40,6 @@ const {
     , implodeParams
     , extractParams
     , json
-    , vwap
     , merge
     , binaryConcat
     , hash
@@ -71,6 +68,7 @@ const {
     , safeStringLower2
     , yymmdd
     , base58ToBinary
+    , binaryToBase58
     , safeTimestamp2
     , rawencode
     , keysort
@@ -98,7 +96,6 @@ const {
     , urlencodeNested
     , parseDate
     , ymd
-    , isArray
     , base64ToString
     , crc32
     , TRUNCATE
@@ -109,6 +106,12 @@ const {
     , SIGNIFICANT_DIGITS
 } = functions
 
+import {
+    keys as keysFunc,
+    values as valuesFunc,
+    inArray as inArrayFunc,
+    vwap as vwapFunc
+} from './functions.js'
 // import exceptions from "./errors.js"
 
  import { // eslint-disable-line object-curly-newline
@@ -139,8 +142,8 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide } from './types';
-export {Market, Trade, Fee, Ticker} from './types'
+import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory } from './types.js';
+export {Market, Trade, Fee, Position, Ticker} from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
@@ -330,8 +333,8 @@ export default class Exchange {
 
     deepExtend = deepExtend
     isNode = isNode
-    keys = keys
-    values = values
+    keys = keysFunc
+    values = valuesFunc
     extend = extend
     clone = clone
     flatten = flatten
@@ -367,7 +370,7 @@ export default class Exchange {
     implodeParams = implodeParams
     extractParams = extractParams
     json = json
-    vwap = vwap
+    vwap = vwapFunc
     merge = merge
     binaryConcat = binaryConcat
     hash = hash
@@ -393,6 +396,7 @@ export default class Exchange {
     uuid22 = uuid22
     safeIntegerProduct2 = safeIntegerProduct2
     safeIntegerProduct = safeIntegerProduct
+    binaryToBase58 = binaryToBase58
     base58ToBinary = base58ToBinary
     base64ToBinary = base64ToBinary
     safeTimestamp2 = safeTimestamp2
@@ -421,7 +425,7 @@ export default class Exchange {
     urlencodeNested = urlencodeNested
     parseDate = parseDate
     ymd = ymd
-    isArray = isArray
+    isArray = inArrayFunc
     base64ToString = base64ToString
     crc32 = crc32
 
@@ -514,6 +518,7 @@ export default class Exchange {
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
+                'fetchPositionsBySymbol': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchStatus': 'emulated',
@@ -537,6 +542,17 @@ export default class Exchange {
                 'signIn': undefined,
                 'transfer': undefined,
                 'withdraw': undefined,
+                'watchOrderBook': undefined,
+                'watchOrders': undefined,
+                'watchMyTrades': undefined,
+                'watchTickers': undefined,
+                'watchTicker': undefined,
+                'watchTrades': undefined,
+                'watchTradesForSymbols': undefined,
+                'watchOrderBookForSymbols': undefined,
+                'watchOHLCVForSymbols': undefined,
+                'watchBalance': undefined,
+                'watchOHLCV': undefined,
             },
             'urls': {
                 'logo': undefined,
@@ -611,7 +627,6 @@ export default class Exchange {
             'commonCurrencies': { // gets extended/overwritten in subclasses
                 'XBT': 'BTC',
                 'BCC': 'BCH',
-                'BCHABC': 'BCH',
                 'BCHSV': 'BSV',
             },
             'precisionMode': DECIMAL_PLACES,
@@ -1103,20 +1118,6 @@ export default class Exchange {
         }
     }
 
-    // method to override
-
-    findTimeframe (timeframe, timeframes = undefined) {
-        timeframes = timeframes || this.timeframes;
-        const keys = Object.keys (timeframes);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (timeframes[key] === timeframe) {
-                return key;
-            }
-        }
-        return undefined;
-    }
-
     spawn (method, ... args): Future {
         const future = createFuture ()
         method.apply (this, args).then (future.resolve).catch (future.reject)
@@ -1272,15 +1273,13 @@ export default class Exchange {
 
     async close () {
         const clients = Object.values (this.clients || {});
+        const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i] as WsClient;
             delete this.clients[client.url];
-            await client.close ();
+            closedClients.push(client.close ());
         }
-    }
-
-    handleDelta(bookside, delta, nonce = undefined) {
-        //stub
+        return Promise.all (closedClients);
     }
 
     async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {
@@ -1288,13 +1287,13 @@ export default class Exchange {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
         }
-        const maxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+        const maxRetries = this.handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
         let tries = 0;
         try {
             const stored = this.orderbooks[symbol];
             while (tries < maxRetries) {
                 const cache = stored.cache;
-                const orderBook = await this.fetchOrderBook (symbol, limit, params);
+                const orderBook = await this.fetchRestOrderBookSafe (symbol, limit, params);
                 const index = this.getCacheIndex (orderBook, cache);
                 if (index >= 0) {
                     stored.reset (orderBook);
@@ -1311,18 +1310,6 @@ export default class Exchange {
             client.reject (e, messageHash);
             await this.loadOrderBook (client, messageHash, symbol, limit, params);
         }
-    }
-
-    handleDeltas (orderbook, deltas, nonce = undefined) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (orderbook, deltas[i]);
-        }
-    }
-
-    // eslint-disable-next-line no-unused-vars
-    getCacheIndex (orderbook, deltas) {
-        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
-        return -1;
     }
 
     convertToBigInt(value: string) {
@@ -1386,6 +1373,35 @@ export default class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    handleDeltas (orderbook, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (orderbook, deltas[i]);
+        }
+    }
+
+    handleDelta (bookside, delta) {
+        throw new NotSupported (this.id + ' handleDelta not supported yet');
+    }
+
+    getCacheIndex (orderbook, deltas) {
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        return -1;
+    }
+
+    findTimeframe (timeframe, timeframes = undefined) {
+        if (timeframes === undefined) {
+            timeframes = this.timeframes;
+        }
+        const keys = Object.keys (timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+        return undefined;
+    }
 
     checkProxySettings (url, method, headers, body) {
         let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
@@ -1567,12 +1583,47 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
 
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
+    }
+
+    async watchMyTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        throw new NotSupported (this.id + ' watchMyTradesForSymbols() is not supported yet');
+    }
+
+    async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        throw new NotSupported (this.id + ' watchOrdersForSymbols() is not supported yet');
+    }
+
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
+        throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        throw new NotSupported (this.id + ' watchOrderBookForSymbols() is not supported yet');
+    }
+
     async fetchDepositAddresses (codes: string[] = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchDepositAddresses() is not supported yet');
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
+    }
+
+    async fetchRestOrderBookSafe (symbol, limit = undefined, params = {}) {
+        const fetchSnapshotMaxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+        for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
+            try {
+                const orderBook = await this.fetchOrderBook (symbol, limit, params);
+                return orderBook;
+            } catch (e) {
+                if ((i + 1) === fetchSnapshotMaxRetries) {
+                    throw e;
+                }
+            }
+        }
+        return undefined;
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -1635,7 +1686,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parsePosition() is not supported yet');
     }
 
-    parseFundingRateHistory (info, market = undefined) {
+    parseFundingRateHistory (info, market = undefined): FundingRateHistory {
         throw new NotSupported (this.id + ' parseFundingRateHistory() is not supported yet');
     }
 
@@ -1656,7 +1707,7 @@ export default class Exchange {
     }
 
     parseWsOHLCV (ohlcv, market = undefined) {
-        throw new NotSupported (this.id + ' parseWsOHLCV() is not supported yet');
+        return this.parseOHLCV (ohlcv, market);
     }
 
     async fetchFundingRates (symbols: string[] = undefined, params = {}): Promise<any> {
@@ -1936,7 +1987,14 @@ export default class Exchange {
             const oldNumber = this.number;
             // we parse trades as strings here!
             (this as any).number = String;
-            trades = this.parseTrades (rawTrades, market);
+            const firstTrade = this.safeValue (rawTrades, 0);
+            // parse trades if they haven't already been parsed
+            const tradesAreParsed = ((firstTrade !== undefined) && ('info' in firstTrade) && ('id' in firstTrade));
+            if (!tradesAreParsed) {
+                trades = this.parseTrades (rawTrades, market);
+            } else {
+                trades = rawTrades;
+            }
             this.number = oldNumber;
             let tradesLength = 0;
             const isArray = Array.isArray (trades);
@@ -2099,12 +2157,12 @@ export default class Exchange {
             entry['amount'] = this.safeNumber (entry, 'amount');
             entry['price'] = this.safeNumber (entry, 'price');
             entry['cost'] = this.safeNumber (entry, 'cost');
-            const fee = this.safeValue (entry, 'fee', {});
-            fee['cost'] = this.safeNumber (fee, 'cost');
-            if ('rate' in fee) {
-                fee['rate'] = this.safeNumber (fee, 'rate');
+            const tradeFee = this.safeValue (entry, 'fee', {});
+            tradeFee['cost'] = this.safeNumber (tradeFee, 'cost');
+            if ('rate' in tradeFee) {
+                tradeFee['rate'] = this.safeNumber (tradeFee, 'rate');
             }
-            entry['fee'] = fee;
+            entry['fee'] = tradeFee;
         }
         let timeInForce = this.safeString (order, 'timeInForce');
         let postOnly = this.safeValue (order, 'postOnly');
@@ -2572,8 +2630,18 @@ export default class Exchange {
         return result;
     }
 
-    marketSymbols (symbols, type: string = undefined) {
+    marketSymbols (symbols, type: string = undefined, allowEmpty = true) {
         if (symbols === undefined) {
+            if (!allowEmpty) {
+                throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
+            }
+            return symbols;
+        }
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            if (!allowEmpty) {
+                throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
+            }
             return symbols;
         }
         const result = [];
@@ -2831,7 +2899,7 @@ export default class Exchange {
         return this.markets;
     }
 
-    safePosition (position) {
+    safePosition (position): Position {
         // simplified version of: /pull/12765/
         const unrealizedPnlString = this.safeString (position, 'unrealisedPnl');
         const initialMarginString = this.safeString (position, 'initialMargin');
@@ -2844,10 +2912,21 @@ export default class Exchange {
             const percentageString = Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100');
             position['percentage'] = this.parseNumber (percentageString);
         }
-        return position;
+        // if contractSize is undefined get from market
+        let contractSize = this.safeNumber (position, 'contractSize');
+        const symbol = this.safeString (position, 'symbol');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (contractSize === undefined && market !== undefined) {
+            contractSize = this.safeNumber (market, 'contractSize');
+            position['contractSize'] = contractSize;
+        }
+        return position as any;
     }
 
-    parsePositions (positions, symbols: string[] = undefined, params = {}) {
+    parsePositions (positions, symbols: string[] = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
         positions = this.toArray (positions);
         const result = [];
@@ -2855,7 +2934,7 @@ export default class Exchange {
             const position = this.extend (this.parsePosition (positions[i], undefined), params);
             result.push (position);
         }
-        return this.filterByArray (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     parseAccounts (accounts, params = {}) {
@@ -3073,15 +3152,27 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet');
     }
 
-    async fetchPosition (symbol: string, params = {}): Promise<any> {
+    async fetchPosition (symbol: string, params = {}): Promise<Position> {
         throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<any> {
+    async fetchPositionsBySymbol (symbol: string, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name exchange#fetchPositionsBySymbol
+         * @description specifically fetches positions for specific symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new NotSupported (this.id + ' fetchPositionsBySymbol() is not supported yet');
+    }
+
+    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
     }
 
-    async fetchPositionsRisk (symbols: string[] = undefined, params = {}) {
+    async fetchPositionsRisk (symbols: string[] = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
     }
 
@@ -3169,9 +3260,9 @@ export default class Exchange {
                     }
                     const inferredMarketType = (marketType === undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
-                        const market = markets[i];
-                        if (market[inferredMarketType]) {
-                            return market;
+                        const currentMarket = markets[i];
+                        if (currentMarket[inferredMarketType]) {
+                            return currentMarket;
                         }
                     }
                 }
@@ -3575,7 +3666,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         throw new NotSupported (this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
@@ -3590,6 +3681,10 @@ export default class Exchange {
 
     async fetchOpenInterest (symbol: string, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
+    }
+
+    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+        throw new NotSupported (this.id + ' fetchFundingRateHistory() is not supported yet');
     }
 
     parseLastPrice (price, market = undefined): any {
@@ -3736,10 +3831,17 @@ export default class Exchange {
             precision = this.safeValue (networkItem, 'precision', precision);
         }
         if (precision === undefined) {
-            return fee;
+            return this.forceString (fee);
         } else {
             return this.decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
         }
+    }
+
+    forceString (value) {
+        if (typeof value !== 'string') {
+            return this.numberToString (value);
+        }
+        return value;
     }
 
     isTickPrecision () {
@@ -3969,7 +4071,7 @@ export default class Exchange {
         return interests;
     }
 
-    parseFundingRateHistories (response, market = undefined, since: Int = undefined, limit: Int = undefined) {
+    parseFundingRateHistories (response, market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
         const rates = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -3977,7 +4079,7 @@ export default class Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         const symbol = (market === undefined) ? undefined : market['symbol'];
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
     safeSymbol (marketId, market = undefined, delimiter = undefined, marketType = undefined) {
@@ -4355,7 +4457,7 @@ export default class Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @returns {object[]} an array of [funding history structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
         const result = [];
         for (let i = 0; i < incomes.length; i++) {
@@ -4376,6 +4478,14 @@ export default class Exchange {
         return market;
     }
 
+    parseWsOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined) {
+        const results = [];
+        for (let i = 0; i < ohlcvs.length; i++) {
+            results.push (this.parseWsOHLCV (ohlcvs[i], market));
+        }
+        return results;
+    }
+
     async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         /**
          * @method
@@ -4386,13 +4496,327 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         if (this.has['fetchDepositsWithdrawals']) {
             return await this.fetchDepositsWithdrawals (code, since, limit, params);
         } else {
             throw new NotSupported (this.id + ' fetchTransactions () is not supported yet');
         }
+    }
+
+    filterByArrayPositions (objects, key: IndexType, values = undefined, indexed = true): Position[] {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of positions
+         */
+        return this.filterByArray (objects, key, values, indexed) as Position[];
+    }
+
+    resolvePromiseIfMessagehashMatches (client, prefix: string, symbol: string, data) {
+        const messageHashes = this.findMessageHashes (client, prefix);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            if (this.inArray (symbol, symbols)) {
+                client.resolve (data, messageHash);
+            }
+        }
+    }
+
+    resolveMultipleOHLCV (client, prefix: string, symbol: string, timeframe: string, data) {
+        const messageHashes = this.findMessageHashes (client, 'multipleOHLCV::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsAndTimeframes = parts[1];
+            const splitted = symbolsAndTimeframes.split (',');
+            const id = symbol + '#' + timeframe;
+            if (this.inArray (id, splitted)) {
+                client.resolve ([ symbol, timeframe, data ], messageHash);
+            }
+        }
+    }
+
+    createOHLCVObject (symbol: string, timeframe: string, data): Dictionary<Dictionary<OHLCV[]>> {
+        const res = {};
+        res[symbol] = {};
+        res[symbol][timeframe] = data;
+        return res;
+    }
+
+    handleMaxEntriesPerRequestAndParams (method: string, maxEntriesPerRequest: Int = undefined, params = {}): [Int, any] {
+        let newMaxEntriesPerRequest = undefined;
+        [ newMaxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
+        if ((newMaxEntriesPerRequest !== undefined) && (newMaxEntriesPerRequest !== maxEntriesPerRequest)) {
+            maxEntriesPerRequest = newMaxEntriesPerRequest;
+        }
+        if (maxEntriesPerRequest === undefined) {
+            maxEntriesPerRequest = 1000; // default to 1000
+        }
+        return [ maxEntriesPerRequest, params ];
+    }
+
+    async fetchPaginatedCallDynamic (method: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}, maxEntriesPerRequest: Int = undefined): Promise<any> {
+        let maxCalls = undefined;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
+        let maxRetries = undefined;
+        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        let paginationDirection = undefined;
+        [ paginationDirection, params ] = this.handleOptionAndParams (params, method, 'paginationDirection', 'backward');
+        let paginationTimestamp = undefined;
+        let calls = 0;
+        let result = [];
+        let errors = 0;
+        const until = this.safeInteger2 (params, 'untill', 'till'); // do not omit it from params here
+        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        if ((paginationDirection === 'forward')) {
+            if (since === undefined) {
+                throw new ArgumentsRequired (this.id + ' pagination requires a since argument when paginationDirection set to forward');
+            }
+            paginationTimestamp = since;
+        }
+        while ((calls < maxCalls)) {
+            calls += 1;
+            try {
+                if (paginationDirection === 'backward') {
+                    // do it backwards, starting from the last
+                    // UNTIL filtering is required in order to work
+                    if (paginationTimestamp !== undefined) {
+                        params['until'] = paginationTimestamp - 1;
+                    }
+                    const response = await this[method] (symbol, undefined, maxEntriesPerRequest, params);
+                    const responseLength = response.length;
+                    if (this.verbose) {
+                        this.log ('Dynamic pagination call', calls, 'method', method, 'response length', responseLength, 'timestamp', paginationTimestamp);
+                    }
+                    if (responseLength === 0) {
+                        break;
+                    }
+                    errors = 0;
+                    result = this.arrayConcat (result, response);
+                    const firstElement = this.safeValue (response, 0);
+                    paginationTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
+                    if ((since !== undefined) && (paginationTimestamp <= since)) {
+                        break;
+                    }
+                } else {
+                    // do it forwards, starting from the since
+                    const response = await this[method] (symbol, paginationTimestamp, maxEntriesPerRequest, params);
+                    const responseLength = response.length;
+                    if (this.verbose) {
+                        this.log ('Dynamic pagination call', calls, 'method', method, 'response length', responseLength, 'timestamp', paginationTimestamp);
+                    }
+                    if (responseLength === 0) {
+                        break;
+                    }
+                    errors = 0;
+                    result = this.arrayConcat (result, response);
+                    const last = this.safeValue (response, responseLength - 1);
+                    paginationTimestamp = this.safeInteger (last, 'timestamp') - 1;
+                    if ((until !== undefined) && (paginationTimestamp >= until)) {
+                        break;
+                    }
+                }
+            } catch (e) {
+                errors += 1;
+                if (errors > maxRetries) {
+                    throw e;
+                }
+            }
+        }
+        const uniqueResults = this.removeRepeatedElementsFromArray (result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit (uniqueResults, since, limit, key);
+    }
+
+    async safeDeterministicCall (method: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, timeframe: string = undefined, params = {}) {
+        let maxRetries = undefined;
+        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        let errors = 0;
+        try {
+            if (timeframe && method !== 'fetchFundingRateHistory') {
+                return await this[method] (symbol, timeframe, since, limit, params);
+            } else {
+                return await this[method] (symbol, since, limit, params);
+            }
+        } catch (e) {
+            if (e instanceof RateLimitExceeded) {
+                throw e; // if we are rate limited, we should not retry and fail fast
+            }
+            errors += 1;
+            if (errors > maxRetries) {
+                throw e;
+            }
+        }
+    }
+
+    async fetchPaginatedCallDeterministic (method: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, timeframe: string = undefined, params = {}, maxEntriesPerRequest = undefined): Promise<any> {
+        let maxCalls = undefined;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
+        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        const current = this.milliseconds ();
+        const tasks = [];
+        const time = this.parseTimeframe (timeframe) * 1000;
+        const step = time * maxEntriesPerRequest;
+        let currentSince = current - (maxCalls * step) - 1;
+        if (since !== undefined) {
+            currentSince = Math.max (currentSince, since);
+        }
+        const until = this.safeInteger2 (params, 'until', 'till'); // do not omit it here
+        if (until !== undefined) {
+            const requiredCalls = Math.ceil ((until - since) / step);
+            if (requiredCalls > maxCalls) {
+                throw new BadRequest (this.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + maxCalls.toString () + ' required calls is ' + requiredCalls.toString ());
+            }
+        }
+        for (let i = 0; i < maxCalls; i++) {
+            if ((until !== undefined) && (currentSince >= until)) {
+                break;
+            }
+            tasks.push (this.safeDeterministicCall (method, symbol, currentSince, maxEntriesPerRequest, timeframe, params));
+            currentSince = this.sum (currentSince, step) - 1;
+        }
+        const results = await Promise.all (tasks);
+        let result = [];
+        for (let i = 0; i < results.length; i++) {
+            result = this.arrayConcat (result, results[i]);
+        }
+        const uniqueResults = this.removeRepeatedElementsFromArray (result) as any;
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit (uniqueResults, since, limit, key);
+    }
+
+    async fetchPaginatedCallCursor (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined): Promise<any> {
+        let maxCalls = undefined;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
+        let maxRetries = undefined;
+        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        let cursorValue = undefined;
+        let i = 0;
+        let errors = 0;
+        let result = [];
+        while (i < maxCalls) {
+            try {
+                if (cursorValue !== undefined) {
+                    if (cursorIncrement !== undefined) {
+                        cursorValue = this.parseToInt (cursorValue) + cursorIncrement;
+                    }
+                    params[cursorSent] = cursorValue;
+                }
+                const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                errors = 0;
+                const responseLength = response.length;
+                if (this.verbose) {
+                    this.log ('Cursor pagination call', i + 1, 'method', method, 'response length', responseLength, 'cursor', cursorValue);
+                }
+                if (responseLength === 0) {
+                    break;
+                }
+                result = this.arrayConcat (result, response);
+                const last = this.safeValue (response, responseLength - 1);
+                cursorValue = this.safeValue (last['info'], cursorReceived);
+                if (cursorValue === undefined) {
+                    break;
+                }
+            } catch (e) {
+                errors += 1;
+                if (errors > maxRetries) {
+                    throw e;
+                }
+            }
+            i += 1;
+        }
+        const sorted = this.sortCursorPaginatedResult (result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit (sorted, since, limit, key);
+    }
+
+    async fetchPaginatedCallIncremental (method: string, symbol: string = undefined, since = undefined, limit = undefined, params = {}, pageKey = undefined, maxEntriesPerRequest = undefined): Promise<any> {
+        let maxCalls = undefined;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
+        let maxRetries = undefined;
+        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        [ maxEntriesPerRequest, params ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, params);
+        let i = 0;
+        let errors = 0;
+        let result = [];
+        while (i < maxCalls) {
+            try {
+                params[pageKey] = i + 1;
+                const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                errors = 0;
+                const responseLength = response.length;
+                if (this.verbose) {
+                    this.log ('Incremental pagination call', i + 1, 'method', method, 'response length', responseLength);
+                }
+                if (responseLength === 0) {
+                    break;
+                }
+                result = this.arrayConcat (result, response);
+            } catch (e) {
+                errors += 1;
+                if (errors > maxRetries) {
+                    throw e;
+                }
+            }
+            i += 1;
+        }
+        const sorted = this.sortCursorPaginatedResult (result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit (sorted, since, limit, key);
+    }
+
+    sortCursorPaginatedResult (result) {
+        const first = this.safeValue (result, 0);
+        if (first !== undefined) {
+            if ('timestamp' in first) {
+                return this.sortBy (result, 'timestamp');
+            }
+            if ('id' in first) {
+                return this.sortBy (result, 'id');
+            }
+        }
+        return result;
+    }
+
+    removeRepeatedElementsFromArray (input) {
+        const uniqueResult = {};
+        for (let i = 0; i < input.length; i++) {
+            const entry = input[i];
+            const id = this.safeString (entry, 'id');
+            if (id !== undefined) {
+                if (this.safeString (uniqueResult, id) === undefined) {
+                    uniqueResult[id] = entry;
+                }
+            } else {
+                const timestamp = this.safeInteger2 (entry, 'timestamp', 0);
+                if (timestamp !== undefined) {
+                    if (this.safeString (uniqueResult, timestamp) === undefined) {
+                        uniqueResult[timestamp] = entry;
+                    }
+                }
+            }
+        }
+        const values = Object.values (uniqueResult);
+        const valuesLength = values.length;
+        if (valuesLength > 0) {
+            return values as any;
+        }
+        return input;
+    }
+
+    handleUntilOption (key, request, params, multiplier = 1) {
+        const until = this.safeValue2 (params, 'until', 'till');
+        if (until !== undefined) {
+            request[key] = this.parseToInt (until * multiplier);
+            params = this.omit (params, [ 'until', 'till' ]);
+        }
+        return [ request, params ];
     }
 }
 
