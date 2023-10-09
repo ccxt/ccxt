@@ -893,7 +893,12 @@ export default class bingx extends bingxRest {
         }
         if (e === 'ORDER_TRADE_UPDATE') {
             this.handleOrder (client, message);
-            this.handleMyTrades (client, message);
+            const data = this.safeValue (message, 'o', {});
+            const type = this.safeString (data, 'x');
+            const status = this.safeString (data, 'X');
+            if ((type === 'TRADE') && (status === 'FILLED')) {
+                this.handleMyTrades (client, message);
+            }
         }
     }
 }
