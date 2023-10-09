@@ -319,13 +319,13 @@ export default class btcmarkets extends Exchange {
         const tagTo = tag;
         const addressFrom = undefined;
         const tagFrom = undefined;
-        const fee = this.safeNumber (transaction, 'fee');
+        const fee = this.safeString (transaction, 'fee');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const currencyId = this.safeString (transaction, 'assetName');
         const code = this.safeCurrencyCode (currencyId);
         let amount = this.safeString (transaction, 'amount');
         if (fee) {
-            amount = Precise.stringNeg (fee);
+            amount = Precise.stringSub (amount, fee);
         }
         return {
             'id': this.safeString (transaction, 'id'),
@@ -347,7 +347,7 @@ export default class btcmarkets extends Exchange {
             'comment': undefined,
             'fee': {
                 'currency': code,
-                'cost': fee,
+                'cost': this.parseNumber (fee),
                 'rate': undefined,
             },
             'info': transaction,
