@@ -893,12 +893,13 @@ export default class bingx extends Exchange {
         const currencyId = this.safeString (trade, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
         const m = this.safeValue (trade, 'm', false);
+        const marketId = this.safeString (trade, 's');
         return this.safeTrade ({
             'id': this.safeStringN (trade, [ 'id', 't' ]),
             'info': trade,
             'timestamp': time,
             'datetime': this.iso8601 (time),
-            'symbol': this.safeSymbol (undefined, market, '-', type),
+            'symbol': this.safeSymbol (marketId, market, '-', type),
             'order': this.safeString (trade, 'orderId'),
             'type': undefined,
             'side': side,
