@@ -680,8 +680,32 @@ export default class bingx extends bingxRest {
         //           m: false
         //         }
         //       }
+        // swap
+        //    {
+        //        "e": "ORDER_TRADE_UPDATE",
+        //        "E": 1696843635475,
+        //        "o": {
+        //           "s": "LTC-USDT",
+        //           "c": "",
+        //           "i": "1711312357852147712",
+        //           "S": "BUY",
+        //           "o": "MARKET",
+        //           "q": "0.10000000",
+        //           "p": "64.35010000",
+        //           "ap": "64.36000000",
+        //           "x": "TRADE",
+        //           "X": "FILLED",
+        //           "N": "USDT",
+        //           "n": "-0.00321800",
+        //           "T": 0,
+        //           "wt": "MARK_PRICE",
+        //           "ps": "LONG",
+        //           "rp": "0.00000000",
+        //           "z": "0.10000000"
+        //        }
+        //    }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeValue2 (message, 'data', 'o', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -730,8 +754,33 @@ export default class bingx extends bingxRest {
         //         }
         //       }
         //
+        //  swap
+        //    {
+        //        "e": "ORDER_TRADE_UPDATE",
+        //        "E": 1696843635475,
+        //        "o": {
+        //           "s": "LTC-USDT",
+        //           "c": "",
+        //           "i": "1711312357852147712",
+        //           "S": "BUY",
+        //           "o": "MARKET",
+        //           "q": "0.10000000",
+        //           "p": "64.35010000",
+        //           "ap": "64.36000000",
+        //           "x": "TRADE",
+        //           "X": "FILLED",
+        //           "N": "USDT",
+        //           "n": "-0.00321800",
+        //           "T": 0,
+        //           "wt": "MARK_PRICE",
+        //           "ps": "LONG",
+        //           "rp": "0.00000000",
+        //           "z": "0.10000000"
+        //        }
+        //    }
         //
-        const result = this.safeValue (message, 'data');
+        const isSpot = ('dataType' in message);
+        const result = this.safeValue2 (message, 'data', 'o', {});
         let cachedTrades = this.myTrades;
         if (cachedTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -740,10 +789,9 @@ export default class bingx extends bingxRest {
         }
         const parsed = this.parseTrade (result);
         const symbol = parsed['symbol'];
-        const market = this.market (symbol);
         const spotHash = 'spot:mytrades';
         const swapHash = 'swap:mytrades';
-        const messageHash = market['spot'] ? spotHash : swapHash;
+        const messageHash = isSpot ? spotHash : swapHash;
         cachedTrades.append (parsed);
         client.resolve (cachedTrades, messageHash);
         client.resolve (cachedTrades, messageHash + ':' + symbol);
@@ -837,10 +885,15 @@ export default class bingx extends bingxRest {
                 this.handleMyTrades (client, message);
             }
             this.handleOrder (client, message);
+            return;
         }
         const e = this.safeString (message, 'e');
         if (e === 'ACCOUNT_UPDATE') {
             this.handleBalance (client, message);
+        }
+        if (e === 'ORDER_TRADE_UPDATE') {
+            this.handleOrder (client, message);
+            this.handleMyTrades (client, message);
         }
     }
 }

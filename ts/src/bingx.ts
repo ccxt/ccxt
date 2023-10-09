@@ -883,6 +883,9 @@ export default class bingx extends Exchange {
         if (datetimeId !== undefined) {
             time = this.parse8601 (datetimeId);
         }
+        if (time === 0) {
+            time = undefined;
+        }
         const isBuyerMaker = this.safeValue2 (trade, 'buyerMaker', 'isBuyerMaker');
         let side = undefined;
         if (isBuyerMaker !== undefined) {
@@ -900,7 +903,7 @@ export default class bingx extends Exchange {
             'timestamp': time,
             'datetime': this.iso8601 (time),
             'symbol': this.safeSymbol (marketId, market, '-', type),
-            'order': this.safeString (trade, 'orderId'),
+            'order': this.safeString2 (trade, 'orderId', 'i'),
             'type': this.safeStringLower (trade, 'o'),
             'side': side,
             'takerOrMaker': (isBuyerMaker || m) ? 'maker' : 'taker',
