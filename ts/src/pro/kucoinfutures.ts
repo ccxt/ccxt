@@ -201,6 +201,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
+        this.checkRequiredSymbol ('watchPosition', symbol);
         await this.loadMarkets ();
         const url = await this.negotiate (true);
         const market = this.market (symbol);
