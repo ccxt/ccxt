@@ -1467,7 +1467,7 @@ export default class Exchange {
         return undefined;
     }
 
-    checkProxyUrlSettings (url, method, headers, body) {
+    checkProxyUrlSettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
         let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
         const proxyUrlCallback = (this.proxyUrlCallback !== undefined) ? this.proxyUrlCallback : this.proxy_url_callback;
         if (proxyUrlCallback !== undefined) {
@@ -1492,12 +1492,6 @@ export default class Exchange {
             throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
         return proxyUrl;
-    }
-
-    checkConflictingProxies (proxyAgentSet, proxyUrlSet) {
-        if (proxyAgentSet && proxyUrlSet) {
-            throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
-        }
     }
 
     checkProxySettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
@@ -1539,6 +1533,12 @@ export default class Exchange {
             throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
         return [ httpProxy, httpsProxy, socksProxy ];
+    }
+
+    checkConflictingProxies (proxyAgentSet, proxyUrlSet) {
+        if (proxyAgentSet && proxyUrlSet) {
+            throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
     }
 
     findMessageHashes (client, element: string): string[] {

@@ -325,19 +325,21 @@ function checkPrecisionAccuracy (exchange, skippedProperties, method, entry, key
     }
 }
 
-function clearProxySettings (exchange, skippedProperties) {
-    const proxyUrl = exchange.proxyUrl;
-    const httpProxy = exchange.httpProxy;
-    const httpsProxy = exchange.httpsProxy;
-    const socksProxy = exchange.socksProxy;
+function removeProxyOptions (exchange, skippedProperties) {
+    const proxyUrl = exchange.checkProxyUrlSettings ();
+    const [ httpProxy, httpsProxy, socksProxy ] = exchange.checkProxySettings ();
     exchange.proxyUrl = undefined;
+    exchange.proxy_url = undefined;
     exchange.httpProxy = undefined;
+    exchange.http_proxy = undefined;
     exchange.httpsProxy = undefined;
+    exchange.https_proxy = undefined;
     exchange.socksProxy = undefined;
+    exchange.socks_proxy = undefined;
     return [ proxyUrl, httpProxy, httpsProxy, socksProxy ];
 }
 
-function setProxySettings (exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy) {
+function setProxyOptions (exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy) {
     exchange.proxyUrl = proxyUrl;
     exchange.httpProxy = httpProxy;
     exchange.httpsProxy = httpsProxy;
@@ -363,6 +365,6 @@ export default {
     checkPrecisionAccuracy,
     assertValidCurrencyIdAndCode,
     assertType,
-    clearProxySettings,
-    setProxySettings,
+    removeProxyOptions,
+    setProxyOptions,
 };
