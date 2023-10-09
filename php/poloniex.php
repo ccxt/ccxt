@@ -395,9 +395,16 @@ class poloniex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+         * @param {int} [$params->until] timestamp in ms
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 500);
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -410,6 +417,7 @@ class poloniex extends Exchange {
             // $limit should in between 100 and 500
             $request['limit'] = $limit;
         }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->publicGetMarketsSymbolCandles (array_merge($request, $params));
         //
         //     array(
@@ -945,9 +953,16 @@ class poloniex extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params);
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -962,6 +977,7 @@ class poloniex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->privateGetTrades (array_merge($request, $params));
         //
         //     array(

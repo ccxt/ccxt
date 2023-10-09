@@ -446,13 +446,13 @@ export default class bitbns extends Exchange {
             if (numParts > 1) {
                 let currencyId = this.safeString (parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
+                const account = this.account ();
+                account['free'] = this.safeString (data, key);
+                account['used'] = this.safeString (data, 'inorder' + currencyId);
                 if (currencyId === 'Money') {
                     currencyId = 'INR';
                 }
                 const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (data, key);
-                account['used'] = this.safeString (data, 'inorder' + currencyId);
                 result[code] = account;
             }
         }

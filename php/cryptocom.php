@@ -642,9 +642,15 @@ class cryptocom extends Exchange {
          * @param {int} [$limit] the maximum number of order structures to retrieve, default 100 max 100
          * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params);
+        }
         $market = null;
         $request = array();
         if ($symbol !== null) {
@@ -716,9 +722,15 @@ class cryptocom extends Exchange {
          * @param {int} [$limit] the maximum number of $trades to fetch
          * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params);
+        }
         $market = $this->market($symbol);
         $request = array(
             'instrument_name' => $market['id'],
@@ -769,9 +781,15 @@ class cryptocom extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 300);
+        }
         $market = $this->market($symbol);
         $request = array(
             'instrument_name' => $market['id'],
@@ -1239,9 +1257,15 @@ class cryptocom extends Exchange {
          * @param {int} [$limit] the maximum number of trade structures to retrieve
          * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params);
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -2728,10 +2752,16 @@ class cryptocom extends Exchange {
          * @param {int} [$limit] the maximum amount of [funding rate structures] to fetch
          * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [$params->until] $timestamp in ms for the ending date filter, default is the current time
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
          */
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
+        }
         $market = $this->market($symbol);
         if (!$market['swap']) {
             throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');

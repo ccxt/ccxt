@@ -3,6 +3,7 @@ import { Int, OrderSide, OrderType } from './base/types.js';
 /**
  * @class kuna
  * @extends Exchange
+ * @description Use the public-key as your apiKey
  */
 export default class kuna extends Exchange {
     describe(): any;

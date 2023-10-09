@@ -146,14 +146,19 @@ export default class binance extends binanceRest {
         // valid <levels> are 5, 10, or 20
         //
         // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        if (limit !== undefined) {
-            if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500) && (limit !== 1000)) {
-                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000');
-            }
-        }
-        //
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (limit !== undefined) {
+            if (market['contract']) {
+                if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500) && (limit !== 1000)) {
+                    throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000');
+                }
+            } else {
+                if (limit > 5000) {
+                    throw new ExchangeError (this.id + ' watchOrderBook limit argument must be less than or equal to 5000');
+                }
+            }
+        }
         let type = market['type'];
         if (market['contract']) {
             type = market['linear'] ? 'future' : 'delivery';

@@ -437,12 +437,12 @@ class bitbns(Exchange, ImplicitAPI):
             if numParts > 1:
                 currencyId = self.safe_string(parts, 1)
                 # note that "Money" stands for INR - the only fiat in bitbns
-                if currencyId == 'Money':
-                    currencyId = 'INR'
-                code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['free'] = self.safe_string(data, key)
                 account['used'] = self.safe_string(data, 'inorder' + currencyId)
+                if currencyId == 'Money':
+                    currencyId = 'INR'
+                code = self.safe_currency_code(currencyId)
                 result[code] = account
         return self.safe_balance(result)
 

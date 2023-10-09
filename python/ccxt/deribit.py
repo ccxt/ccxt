@@ -500,7 +500,7 @@ class deribit(Exchange, ImplicitAPI):
         defaultCode = self.safe_value(self.options, 'code', 'BTC')
         options = self.safe_value(self.options, methodName, {})
         code = self.safe_value(options, 'code', defaultCode)
-        return self.safe_value(params, 'code', code)
+        return self.safe_value_2(params, 'code', code)
 
     def fetch_status(self, params={}):
         """

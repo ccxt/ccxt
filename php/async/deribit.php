@@ -495,7 +495,7 @@ class deribit extends Exchange {
         $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
         $options = $this->safe_value($this->options, $methodName, array());
         $code = $this->safe_value($options, 'code', $defaultCode);
-        return $this->safe_value($params, 'code', $code);
+        return $this->safe_value_2($params, 'code', $code);
     }
 
     public function fetch_status($params = array ()) {

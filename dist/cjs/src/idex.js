@@ -1516,7 +1516,7 @@ class idex extends idex$1 {
         //
         //    { serverTime: '1655258263236' }
         //
-        return this.safeNumber(response, 'serverTime');
+        return this.safeInteger(response, 'serverTime');
     }
     async fetchWithdrawal(id, code = undefined, params = {}) {
         /**

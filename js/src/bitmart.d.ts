@@ -267,6 +267,9 @@ export default class bitmart extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
+    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

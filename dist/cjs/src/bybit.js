@@ -245,6 +245,7 @@ class bybit extends bybit$1 {
                         'v5/market/insurance': 2.5,
                         'v5/market/risk-limit': 2.5,
                         'v5/market/delivery-price': 2.5,
+                        'v5/market/account-ratio': 2.5,
                         // spot leverage token
                         'v5/spot-lever-token/info': 2.5,
                         'v5/spot-lever-token/reference': 2.5,
@@ -646,6 +647,7 @@ class bybit extends bybit$1 {
                         // c2c lending
                         'v5/lending/purchase': 2.5,
                         'v5/lending/redeem': 2.5,
+                        'v5/lending/redeem-cancel': 2.5,
                     },
                     'delete': {
                         // spot
@@ -2384,10 +2386,16 @@ class bybit extends bybit$1 {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         this.checkRequiredSymbol('fetchOHLCV', symbol);
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2622,12 +2630,18 @@ class bybit extends bybit$1 {
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @param {int} [params.until] timestamp in ms of the latest funding rate
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
         if (limit === undefined) {
             limit = 200;
+        }
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 200);
         }
         const request = {
             // 'category': '', // Product type. linear,inverse
@@ -3526,11 +3540,38 @@ class bybit extends bybit$1 {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined;
         }
+        const avgPrice = this.omitZero(this.safeString(order, 'avgPrice'));
         const rawTimeInForce = this.safeString(order, 'timeInForce');
         const timeInForce = this.parseTimeInForce(rawTimeInForce);
         const stopPrice = this.omitZero(this.safeString(order, 'triggerPrice'));
-        const takeProfitPrice = this.omitZero(this.safeString(order, 'takeProfit'));
-        const stopLossPrice = this.omitZero(this.safeString(order, 'stopLoss'));
+        const reduceOnly = this.safeValue(order, 'reduceOnly');
+        let takeProfitPrice = this.omitZero(this.safeString(order, 'takeProfit'));
+        let stopLossPrice = this.omitZero(this.safeString(order, 'stopLoss'));
+        const triggerDirection = this.safeString(order, 'triggerDirection');
+        const isAscending = (triggerDirection === '1');
+        const isStopOrderType2 = (stopPrice !== undefined) && reduceOnly;
+        if ((stopLossPrice === undefined) && isStopOrderType2) {
+            // check if order is stop order type 2 - stopLossPrice
+            if (isAscending && (side === 'buy')) {
+                // stopLoss order against short position
+                stopLossPrice = stopPrice;
+            }
+            if (!isAscending && (side === 'sell')) {
+                // stopLoss order against a long position
+                stopLossPrice = stopPrice;
+            }
+        }
+        if ((takeProfitPrice === undefined) && isStopOrderType2) {
+            // check if order is stop order type 2 - takeProfitPrice
+            if (isAscending && (side === 'sell')) {
+                // takeprofit order against a long position
+                takeProfitPrice = stopPrice;
+            }
+            if (!isAscending && (side === 'buy')) {
+                // takeprofit order against a short position
+                takeProfitPrice = stopPrice;
+            }
+        }
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -3552,7 +3593,7 @@ class bybit extends bybit$1 {
             'stopLossPrice': stopLossPrice,
             'amount': amount,
             'cost': cost,
-            'average': undefined,
+            'average': avgPrice,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -3604,6 +3645,14 @@ class bybit extends bybit$1 {
          * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [params.mmp] *option only* market maker protection
+         * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'up' or 'down'
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -3709,13 +3758,21 @@ class bybit extends bybit$1 {
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
         const isBuy = side === 'buy';
-        const ascending = stopLossTriggerPrice ? !isBuy : isBuy;
+        const setTriggerDirection = (stopLossTriggerPrice || triggerPrice) ? !isBuy : isBuy;
+        const defaultTriggerDirection = setTriggerDirection ? 2 : 1;
+        const triggerDirection = this.safeString(params, 'triggerDirection');
+        params = this.omit(params, 'triggerDirection');
+        let selectedDirection = defaultTriggerDirection;
+        if (triggerDirection !== undefined) {
+            const isAsending = ((triggerDirection === 'up') || (triggerDirection === '1'));
+            selectedDirection = isAsending ? 1 : 2;
+        }
         if (triggerPrice !== undefined) {
-            request['triggerDirection'] = ascending ? 2 : 1;
+            request['triggerDirection'] = selectedDirection;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-            request['triggerDirection'] = ascending ? 2 : 1;
+            request['triggerDirection'] = selectedDirection;
             triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['reduceOnly'] = true;
@@ -3963,6 +4020,16 @@ class bybit extends bybit$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+         * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+         * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredSymbol('editOrder', symbol);
@@ -4005,9 +4072,9 @@ class bybit extends bybit$1 {
         if (amount !== undefined) {
             request['qty'] = this.amountToPrecision(symbol, amount);
         }
-        let triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
+        let triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeString(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeString(params, 'takeProfitPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
@@ -4018,16 +4085,25 @@ class bybit extends bybit$1 {
             triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
         }
         if (triggerPrice !== undefined) {
-            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+            const triggerPriceRequest = (triggerPrice === '0') ? triggerPrice : this.priceToPrecision(symbol, triggerPrice);
+            request['triggerPrice'] = triggerPriceRequest;
+            const triggerBy = this.safeString(params, 'triggerBy', 'LastPrice');
+            request['triggerBy'] = triggerBy;
         }
         if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                request['stopLoss'] = this.priceToPrecision(symbol, slTriggerPrice);
+                const slTriggerPrice = this.safeString2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
+                const stopLossRequest = (slTriggerPrice === '0') ? slTriggerPrice : this.priceToPrecision(symbol, slTriggerPrice);
+                request['stopLoss'] = stopLossRequest;
+                const slTriggerBy = this.safeString(params, 'slTriggerBy', 'LastPrice');
+                request['slTriggerBy'] = slTriggerBy;
             }
             if (isTakeProfit) {
-                const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                request['takeProfit'] = this.priceToPrecision(symbol, tpTriggerPrice);
+                const tpTriggerPrice = this.safeString2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
+                const takeProfitRequest = (tpTriggerPrice === '0') ? tpTriggerPrice : this.priceToPrecision(symbol, tpTriggerPrice);
+                request['takeProfit'] = takeProfitRequest;
+                const tpTriggerBy = this.safeString(params, 'tpTriggerBy', 'LastPrice');
+                request['tpTriggerBy'] = tpTriggerBy;
             }
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -4386,9 +4462,16 @@ class bybit extends bybit$1 {
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchOrders', symbol, since, limit, params, 'nextPageCursor', 'nextPageCursor', undefined, 50);
+        }
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const request = {};
@@ -4760,9 +4843,15 @@ class bybit extends bybit$1 {
          * @param {boolean} [params.stop] true if stop order
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchMyTrades', symbol, since, limit, params, 'nextPageCursor', 'nextPageCursor', undefined, 100);
+        }
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const request = {};
@@ -4976,11 +5065,17 @@ class bybit extends bybit$1 {
          * @param {int} [params.until] the latest time in ms to fetch deposits for, default = 30 days after since
          *
          * EXCHANGE SPECIFIC PARAMETERS
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {string} [params.cursor] used for pagination
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
         */
         await this.loadMarkets();
-        const request = {
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchDeposits', code, since, limit, params, 'nextPageCursor', 'nextPageCursor', undefined, 50);
+        }
+        let request = {
         // 'coin': currency['id'],
         // 'limit': 20, // max 50
         // 'cursor': '',
@@ -4996,6 +5091,7 @@ class bybit extends bybit$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const response = await this.privateGetV5AssetDepositQueryRecord(this.extend(request, params));
         //
         //     {
@@ -5037,10 +5133,17 @@ class bybit extends bybit$1 {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
-        const request = {
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchWithdrawals', code, since, limit, params, 'nextPageCursor', 'nextPageCursor', undefined, 50);
+        }
+        let request = {
         // 'coin': currency['id'],
         // 'limit': 20, // max 50
         // 'cusor': '',
@@ -5056,6 +5159,7 @@ class bybit extends bybit$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const response = await this.privateGetV5AssetWithdrawQueryRecord(this.extend(request, params));
         //
         //     {
@@ -6321,6 +6425,11 @@ class bybit extends bybit$1 {
             throw new errors.BadRequest(this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         await this.loadMarkets();
+        const paginate = this.safeValue(params, 'paginate');
+        if (paginate) {
+            params = this.omit(params, 'paginate');
+            return await this.fetchPaginatedCallDeterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500);
+        }
         const market = this.market(symbol);
         if (market['spot'] || market['option']) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterestHistory() symbol does not support market ' + symbol);
@@ -6533,11 +6642,18 @@ class bybit extends bybit$1 {
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of  transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchTransfers', code, since, limit, params, 'nextPageCursor', 'nextPageCursor', undefined, 50);
+        }
         let currency = undefined;
-        const request = {};
+        let request = {};
         if (code !== undefined) {
             currency = this.safeCurrencyCode(code);
             request['coin'] = currency;
@@ -6548,6 +6664,7 @@ class bybit extends bybit$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const response = await this.privateGetV5AssetTransferQueryInterTransferList(this.extend(request, params));
         //
         //     {
@@ -6571,9 +6688,8 @@ class bybit extends bybit$1 {
         //         "time": 1670988271677
         //     }
         //
-        const data = this.safeValue(response, 'result', {});
-        const transfers = this.safeValue(data, 'list', []);
-        return this.parseTransfers(transfers, currency, since, limit);
+        const data = this.addPaginationCursorToResult(response);
+        return this.parseTransfers(data, currency, since, limit);
     }
     async borrowMargin(code, amount, symbol = undefined, params = {}) {
         /**
