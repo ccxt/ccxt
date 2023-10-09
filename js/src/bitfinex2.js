@@ -2607,9 +2607,6 @@ export default class bitfinex2 extends Exchange {
         else if (type.indexOf('fee') >= 0 || type.indexOf('charged') >= 0) {
             return 'fee';
         }
-        else if (type.indexOf('exchange') >= 0 || type.indexOf('position') >= 0) {
-            return 'trade';
-        }
         else if (type.indexOf('rebate') >= 0) {
             return 'rebate';
         }
@@ -2621,6 +2618,9 @@ export default class bitfinex2 extends Exchange {
         }
         else if (type.indexOf('payment') >= 0) {
             return 'payout';
+        }
+        else if (type.indexOf('exchange') >= 0 || type.indexOf('position') >= 0) {
+            return 'trade';
         }
         else {
             return type;

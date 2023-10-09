@@ -2579,8 +2579,6 @@ class bitfinex2 extends Exchange {
             return null;
         } elseif (mb_strpos($type, 'fee') !== false || mb_strpos($type, 'charged') !== false) {
             return 'fee';
-        } elseif (mb_strpos($type, 'exchange') !== false || mb_strpos($type, 'position') !== false) {
-            return 'trade';
         } elseif (mb_strpos($type, 'rebate') !== false) {
             return 'rebate';
         } elseif (mb_strpos($type, 'deposit') !== false || mb_strpos($type, 'withdrawal') !== false) {
@@ -2589,6 +2587,8 @@ class bitfinex2 extends Exchange {
             return 'transfer';
         } elseif (mb_strpos($type, 'payment') !== false) {
             return 'payout';
+        } elseif (mb_strpos($type, 'exchange') !== false || mb_strpos($type, 'position') !== false) {
+            return 'trade';
         } else {
             return $type;
         }
