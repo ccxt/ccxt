@@ -45,7 +45,6 @@ if [ "$PYTHON_EXIT_CODE" != "0" ]; then
     exit $ESLINT_EXIT_CODE
 fi
 
-
 # Run PHP linting
 npm run check-php-syntax
 
