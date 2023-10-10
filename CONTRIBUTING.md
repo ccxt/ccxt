@@ -533,12 +533,6 @@ if (foo !== undefined) {
 }
 ```
 
-Or:
-
-```javascript
-if ('foo' in params) {
-}
-```
 
 #### Using Base Class Cryptography Methods For Authentication
 
