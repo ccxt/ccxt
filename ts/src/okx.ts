@@ -1400,7 +1400,7 @@ export default class okx extends Exchange {
             'expiryDatetime': this.iso8601 (expiry),
             'strike': strikePrice,
             'optionType': optionType,
-            'listed': this.safeInteger (market, 'listTime'),
+            'created': this.safeInteger (market, 'listTime'),
             'precision': {
                 'amount': this.safeNumber (market, 'lotSz'),
                 'price': this.parseNumber (tickSize),
