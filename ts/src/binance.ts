@@ -76,9 +76,11 @@ export default class binance extends Exchange {
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
+                'fetchLiquidations': false,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMyLiquidations': true,
                 'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -8994,6 +8996,216 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
+        };
+    }
+
+    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchMyLiquidations
+         * @description retrieves the users liquidated positions
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-force-liquidation-record-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#user-39-s-force-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#user-39-s-force-orders-user_data
+         * @param {string|undefined} [symbol] unified CCXT market symbol
+         * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
+         * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the binance api endpoint
+         * @param {int|undefined} [params.until] timestamp in ms of the latest liquidation
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets ();
+        this.checkRequiredSymbol ('fetchMyLiquidations', symbol);
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'autoCloseType': 'LIQUIDATION',
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            if (market['spot']) {
+                request['size'] = limit;
+            } else {
+                request['limit'] = limit;
+            }
+        }
+        const until = this.safeIntegerN (params, [ 'until', 'till', 'endTime' ]);
+        params = this.omit (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.sapiGetMarginForceLiquidationRec (this.extend (request, params));
+        } else if (market['linear']) {
+            response = await this.fapiPrivateGetForceOrders (this.extend (request, params));
+        } else if (market['inverse']) {
+            response = await this.dapiPrivateGetForceOrders (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
+        }
+        //
+        // margin
+        //
+        //     {
+        //         "rows": [
+        //             {
+        //                 "avgPrice": "0.00388359",
+        //                 "executedQty": "31.39000000",
+        //                 "orderId": 180015097,
+        //                 "price": "0.00388110",
+        //                 "qty": "31.39000000",
+        //                 "side": "SELL",
+        //                 "symbol": "BNBBTC",
+        //                 "timeInForce": "GTC",
+        //                 "isIsolated": true,
+        //                 "updatedTime": 1558941374745
+        //             }
+        //         ],
+        //         "total": 1
+        //     }
+        //
+        // linear
+        //
+        //     [
+        //         {
+        //             "orderId": 6071832819,
+        //             "symbol": "BTCUSDT",
+        //             "status": "FILLED",
+        //             "clientOrderId": "autoclose-1596107620040000020",
+        //             "price": "10871.09",
+        //             "avgPrice": "10913.21000",
+        //             "origQty": "0.001",
+        //             "executedQty": "0.001",
+        //             "cumQuote": "10.91321",
+        //             "timeInForce": "IOC",
+        //             "type": "LIMIT",
+        //             "reduceOnly": false,
+        //             "closePosition": false,
+        //             "side": "SELL",
+        //             "positionSide": "BOTH",
+        //             "stopPrice": "0",
+        //             "workingType": "CONTRACT_PRICE",
+        //             "origType": "LIMIT",
+        //             "time": 1596107620044,
+        //             "updateTime": 1596107620087
+        //         },
+        //     ]
+        //
+        // inverse
+        //
+        //     [
+        //         {
+        //             "orderId": 165123080,
+        //             "symbol": "BTCUSD_200925",
+        //             "pair": "BTCUSD",
+        //             "status": "FILLED",
+        //             "clientOrderId": "autoclose-1596542005017000006",
+        //             "price": "11326.9",
+        //             "avgPrice": "11326.9",
+        //             "origQty": "1",
+        //             "executedQty": "1",
+        //             "cumBase": "0.00882854",
+        //             "timeInForce": "IOC",
+        //             "type": "LIMIT",
+        //             "reduceOnly": false,
+        //             "closePosition": false,
+        //             "side": "SELL",
+        //             "positionSide": "BOTH",
+        //             "stopPrice": "0",
+        //             "workingType": "CONTRACT_PRICE",
+        //             "priceProtect": false,
+        //             "origType": "LIMIT",
+        //             "time": 1596542005019,
+        //             "updateTime": 1596542005050
+        //         },
+        //     ]
+        //
+        const liquidations = this.safeValue (response, 'rows', response);
+        return this.parseLiquidations (liquidations, market, since, limit);
+    }
+
+    parseLiquidation (liquidation, market = undefined) {
+        //
+        // margin
+        //
+        //     {
+        //         "avgPrice": "0.00388359",
+        //         "executedQty": "31.39000000",
+        //         "orderId": 180015097,
+        //         "price": "0.00388110",
+        //         "qty": "31.39000000",
+        //         "side": "SELL",
+        //         "symbol": "BNBBTC",
+        //         "timeInForce": "GTC",
+        //         "isIsolated": true,
+        //         "updatedTime": 1558941374745
+        //     }
+        //
+        // linear
+        //
+        //     {
+        //         "orderId": 6071832819,
+        //         "symbol": "BTCUSDT",
+        //         "status": "FILLED",
+        //         "clientOrderId": "autoclose-1596107620040000020",
+        //         "price": "10871.09",
+        //         "avgPrice": "10913.21000",
+        //         "origQty": "0.001",
+        //         "executedQty": "0.001",
+        //         "cumQuote": "10.91321",
+        //         "timeInForce": "IOC",
+        //         "type": "LIMIT",
+        //         "reduceOnly": false,
+        //         "closePosition": false,
+        //         "side": "SELL",
+        //         "positionSide": "BOTH",
+        //         "stopPrice": "0",
+        //         "workingType": "CONTRACT_PRICE",
+        //         "origType": "LIMIT",
+        //         "time": 1596107620044,
+        //         "updateTime": 1596107620087
+        //     }
+        //
+        // inverse
+        //
+        //     {
+        //         "orderId": 165123080,
+        //         "symbol": "BTCUSD_200925",
+        //         "pair": "BTCUSD",
+        //         "status": "FILLED",
+        //         "clientOrderId": "autoclose-1596542005017000006",
+        //         "price": "11326.9",
+        //         "avgPrice": "11326.9",
+        //         "origQty": "1",
+        //         "executedQty": "1",
+        //         "cumBase": "0.00882854",
+        //         "timeInForce": "IOC",
+        //         "type": "LIMIT",
+        //         "reduceOnly": false,
+        //         "closePosition": false,
+        //         "side": "SELL",
+        //         "positionSide": "BOTH",
+        //         "stopPrice": "0",
+        //         "workingType": "CONTRACT_PRICE",
+        //         "priceProtect": false,
+        //         "origType": "LIMIT",
+        //         "time": 1596542005019,
+        //         "updateTime": 1596542005050
+        //     }
+        //
+        const marketId = this.safeString (liquidation, 'symbol');
+        const timestamp = this.safeInteger2 (liquidation, 'updatedTime', 'updateTime');
+        return {
+            'info': liquidation,
+            'symbol': this.safeSymbol (marketId, market),
+            'amount': this.safeNumber (liquidation, 'executedQty'),
+            'price': this.safeNumber (liquidation, 'avgPrice'),
+            'value': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         };
     }
 }
