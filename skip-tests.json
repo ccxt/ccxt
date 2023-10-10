@@ -591,6 +591,8 @@
     "cex": {
         "skipWs": true,
         "skipMethods": {
+            "proxyUrl":"probably proxy location does not work or cex implementation broken",
+            "httpProxy":"probably proxy location does not work or cex implementation broken",
             "loadMarkets": {
                 "active":"is undefined"
             },
