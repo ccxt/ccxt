@@ -24,7 +24,7 @@ export default class binance extends Exchange {
             'rateLimit': 50,
             'certified': true,
             'pro': true,
-            // new metainfo interface
+            // new metainfo2 interface
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -2699,7 +2699,7 @@ export default class binance extends Exchange {
         //                 "unrealizedProfit":"0.00000000",
         //                 "positionInitialMargin":"0",
         //                 "openOrderInitialMargin":"0",
-        //                 "leverage":"20",
+        //                 "leverage":"21",
         //                 "isolated":false,
         //                 "entryPrice":"0.00000",
         //                 "maxNotional":"5000000",
