@@ -27,7 +27,6 @@ if [ "$MODIFIED_TS_FILES" != "" ]; then
     eslint $MODIFIED_TS_FILES
 fi
 
-
 ESLINT_EXIT_CODE=$?
 
 # Run python linting
@@ -39,6 +38,5 @@ PYTHON_EXIT_CODE=$?
 npm run check-php-syntax
 
 PHP_EXIT_CODE=$?
-
 
 exit $((ESLINT_EXIT_CODE + PYTHON_EXIT_CODE + PHP_EXIT_CODE))
