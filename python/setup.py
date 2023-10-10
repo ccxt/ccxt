@@ -92,7 +92,8 @@ setup(
             'yarl>=1.7.2',
         ],
         'qa': [
-            'flake8==3.7.9',
+            'ruff==0.0.292',
+            'pre-commit==3.4.0'
         ],
     },
     project_urls=project_urls,
