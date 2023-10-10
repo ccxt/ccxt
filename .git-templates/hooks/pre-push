@@ -37,7 +37,6 @@ fi
 
 # Run python linting
 ruff ./python/ccxt
-
 PYTHON_EXIT_CODE=$?
 
 if [ "$PYTHON_EXIT_CODE" != "0" ]; then
@@ -47,7 +46,6 @@ fi
 
 # Run PHP linting
 npm run check-php-syntax
-
 PHP_EXIT_CODE=$?
 
 if [ "$PHP_EXIT_CODE" != "0" ]; then
