@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.3'
+__version__ = '4.1.9'
 
 # -----------------------------------------------------------------------------
 
@@ -3565,6 +3565,9 @@ class Exchange(object):
     def fetch_open_interest(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
+    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported yet')
+
     def parse_last_price(self, price, market=None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
 
@@ -4255,3 +4258,217 @@ class Exchange(object):
         res[symbol] = {}
         res[symbol][timeframe] = data
         return res
+
+    def handle_max_entries_per_request_and_params(self, method: str, maxEntriesPerRequest: Optional[int] = None, params={}):
+        newMaxEntriesPerRequest = None
+        newMaxEntriesPerRequest, params = self.handle_option_and_params(params, method, 'maxEntriesPerRequest')
+        if (newMaxEntriesPerRequest is not None) and (newMaxEntriesPerRequest != maxEntriesPerRequest):
+            maxEntriesPerRequest = newMaxEntriesPerRequest
+        if maxEntriesPerRequest is None:
+            maxEntriesPerRequest = 1000  # default to 1000
+        return [maxEntriesPerRequest, params]
+
+    def fetch_paginated_call_dynamic(self, method: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}, maxEntriesPerRequest: Optional[int] = None):
+        maxCalls = None
+        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
+        maxRetries = None
+        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
+        paginationDirection = None
+        paginationDirection, params = self.handle_option_and_params(params, method, 'paginationDirection', 'backward')
+        paginationTimestamp = None
+        calls = 0
+        result = []
+        errors = 0
+        until = self.safe_integer_2(params, 'untill', 'till')  # do not omit it from params here
+        maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
+        if (paginationDirection == 'forward'):
+            if since is None:
+                raise ArgumentsRequired(self.id + ' pagination requires a since argument when paginationDirection set to forward')
+            paginationTimestamp = since
+        while((calls < maxCalls)):
+            calls += 1
+            try:
+                if paginationDirection == 'backward':
+                    # do it backwards, starting from the last
+                    # UNTIL filtering is required in order to work
+                    if paginationTimestamp is not None:
+                        params['until'] = paginationTimestamp - 1
+                    response = getattr(self, method)(symbol, None, maxEntriesPerRequest, params)
+                    responseLength = len(response)
+                    if self.verbose:
+                        self.log('Dynamic pagination call', calls, 'method', method, 'response length', responseLength, 'timestamp', paginationTimestamp)
+                    if responseLength == 0:
+                        break
+                    errors = 0
+                    result = self.array_concat(result, response)
+                    firstElement = self.safe_value(response, 0)
+                    paginationTimestamp = self.safe_integer_2(firstElement, 'timestamp', 0)
+                    if (since is not None) and (paginationTimestamp <= since):
+                        break
+                else:
+                    # do it forwards, starting from the since
+                    response = getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequest, params)
+                    responseLength = len(response)
+                    if self.verbose:
+                        self.log('Dynamic pagination call', calls, 'method', method, 'response length', responseLength, 'timestamp', paginationTimestamp)
+                    if responseLength == 0:
+                        break
+                    errors = 0
+                    result = self.array_concat(result, response)
+                    last = self.safe_value(response, responseLength - 1)
+                    paginationTimestamp = self.safe_integer(last, 'timestamp') - 1
+                    if (until is not None) and (paginationTimestamp >= until):
+                        break
+            except Exception as e:
+                errors += 1
+                if errors > maxRetries:
+                    raise e
+        uniqueResults = self.remove_repeated_elements_from_array(result)
+        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
+        return self.filter_by_since_limit(uniqueResults, since, limit, key)
+
+    def safe_deterministic_call(self, method: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, timeframe: Optional[str] = None, params={}):
+        maxRetries = None
+        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
+        errors = 0
+        try:
+            if timeframe and method != 'fetchFundingRateHistory':
+                return getattr(self, method)(symbol, timeframe, since, limit, params)
+            else:
+                return getattr(self, method)(symbol, since, limit, params)
+        except Exception as e:
+            if isinstance(e, RateLimitExceeded):
+                raise e  # if we are rate limited, we should not retry and fail fast
+            errors += 1
+            if errors > maxRetries:
+                raise e
+
+    def fetch_paginated_call_deterministic(self, method: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, timeframe: Optional[str] = None, params={}, maxEntriesPerRequest=None):
+        maxCalls = None
+        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
+        maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
+        current = self.milliseconds()
+        tasks = []
+        time = self.parse_timeframe(timeframe) * 1000
+        step = time * maxEntriesPerRequest
+        currentSince = current - (maxCalls * step) - 1
+        if since is not None:
+            currentSince = max(currentSince, since)
+        until = self.safe_integer_2(params, 'until', 'till')  # do not omit it here
+        if until is not None:
+            requiredCalls = int(math.ceil((until - since)) / step)
+            if requiredCalls > maxCalls:
+                raise BadRequest(self.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + str(maxCalls) + ' required calls is ' + str(requiredCalls))
+        for i in range(0, maxCalls):
+            if (until is not None) and (currentSince >= until):
+                break
+            tasks.append(self.safe_deterministic_call(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params))
+            currentSince = self.sum(currentSince, step) - 1
+        results = tasks
+        result = []
+        for i in range(0, len(results)):
+            result = self.array_concat(result, results[i])
+        uniqueResults = self.remove_repeated_elements_from_array(result)
+        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
+        return self.filter_by_since_limit(uniqueResults, since, limit, key)
+
+    def fetch_paginated_call_cursor(self, method: str, symbol: Optional[str] = None, since=None, limit=None, params={}, cursorReceived=None, cursorSent=None, cursorIncrement=None, maxEntriesPerRequest=None):
+        maxCalls = None
+        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
+        maxRetries = None
+        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
+        maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
+        cursorValue = None
+        i = 0
+        errors = 0
+        result = []
+        while(i < maxCalls):
+            try:
+                if cursorValue is not None:
+                    if cursorIncrement is not None:
+                        cursorValue = self.parseToInt(cursorValue) + cursorIncrement
+                    params[cursorSent] = cursorValue
+                response = getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
+                errors = 0
+                responseLength = len(response)
+                if self.verbose:
+                    self.log('Cursor pagination call', i + 1, 'method', method, 'response length', responseLength, 'cursor', cursorValue)
+                if responseLength == 0:
+                    break
+                result = self.array_concat(result, response)
+                last = self.safe_value(response, responseLength - 1)
+                cursorValue = self.safe_value(last['info'], cursorReceived)
+                if cursorValue is None:
+                    break
+            except Exception as e:
+                errors += 1
+                if errors > maxRetries:
+                    raise e
+            i += 1
+        sorted = self.sortCursorPaginatedResult(result)
+        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
+        return self.filter_by_since_limit(sorted, since, limit, key)
+
+    def fetch_paginated_call_incremental(self, method: str, symbol: Optional[str] = None, since=None, limit=None, params={}, pageKey=None, maxEntriesPerRequest=None):
+        maxCalls = None
+        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
+        maxRetries = None
+        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
+        maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
+        i = 0
+        errors = 0
+        result = []
+        while(i < maxCalls):
+            try:
+                params[pageKey] = i + 1
+                response = getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
+                errors = 0
+                responseLength = len(response)
+                if self.verbose:
+                    self.log('Incremental pagination call', i + 1, 'method', method, 'response length', responseLength)
+                if responseLength == 0:
+                    break
+                result = self.array_concat(result, response)
+            except Exception as e:
+                errors += 1
+                if errors > maxRetries:
+                    raise e
+            i += 1
+        sorted = self.sortCursorPaginatedResult(result)
+        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
+        return self.filter_by_since_limit(sorted, since, limit, key)
+
+    def sort_cursor_paginated_result(self, result):
+        first = self.safe_value(result, 0)
+        if first is not None:
+            if 'timestamp' in first:
+                return self.sort_by(result, 'timestamp')
+            if 'id' in first:
+                return self.sort_by(result, 'id')
+        return result
+
+    def remove_repeated_elements_from_array(self, input):
+        uniqueResult = {}
+        for i in range(0, len(input)):
+            entry = input[i]
+            id = self.safe_string(entry, 'id')
+            if id is not None:
+                if self.safe_string(uniqueResult, id) is None:
+                    uniqueResult[id] = entry
+            else:
+                timestamp = self.safe_integer_2(entry, 'timestamp', 0)
+                if timestamp is not None:
+                    if self.safe_string(uniqueResult, timestamp) is None:
+                        uniqueResult[timestamp] = entry
+        values = list(uniqueResult.values())
+        valuesLength = len(values)
+        if valuesLength > 0:
+            return values
+        return input
+
+    def handle_until_option(self, key, request, params, multiplier=1):
+        until = self.safe_value_2(params, 'until', 'till')
+        if until is not None:
+            request[key] = self.parseToInt(until * multiplier)
+            params = self.omit(params, ['until', 'till'])
+        return [request, params]

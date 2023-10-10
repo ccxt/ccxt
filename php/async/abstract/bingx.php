@@ -232,6 +232,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function account_v1_private_post_innertransfer_authorizesubaccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
     }
+    public function user_auth_private_post_userdatastream($params = array()) {
+        return $this->request('userDataStream', array('user', 'auth', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function copytrading_v1_private_get_swap_trace_currenttrack($params = array()) {
         return $this->request('swap/trace/currentTrack', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -477,6 +480,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function accountV1PrivatePostInnerTransferAuthorizeSubAccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function userAuthPrivatePostUserDataStream($params = array()) {
+        return $this->request('userDataStream', array('user', 'auth', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function copyTradingV1PrivateGetSwapTraceCurrentTrack($params = array()) {
         return $this->request('swap/trace/currentTrack', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));

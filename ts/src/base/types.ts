@@ -327,6 +327,14 @@ export interface BorrowRate {
     info: any;
 }
 
+export interface FundingRateHistory {
+    info: any;
+    symbol: string;
+    fundingRate: number;
+    timestamp?: number
+    datetime?: string;
+}
+
 /** [ timestamp, open, high, low, close, volume ] */
 export type OHLCV = [number, number, number, number, number, number];
 

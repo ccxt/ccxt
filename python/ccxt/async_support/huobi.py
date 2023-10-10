@@ -2275,14 +2275,23 @@ class huobi(Exchange, ImplicitAPI):
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
+        see https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param int [params.until]: the latest time in ms to fetch trades for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2317,6 +2326,7 @@ class huobi(Exchange, ImplicitAPI):
             if since is not None:
                 request['start-time'] = since  # a date within 120 days from today
                 # request['end-time'] = self.sum(since, 172800000)  # 48 hours window
+            request, params = self.handle_until_option('end-time', request, params)
             method = 'spotPrivateGetV1OrderMatchresults'
         else:
             self.check_required_symbol('fetchMyTrades', symbol)
@@ -2325,6 +2335,7 @@ class huobi(Exchange, ImplicitAPI):
             if since is not None:
                 request['start_time'] = since  # a date within 120 days from today
                 # request['end_time'] = self.sum(request['start_time'], 172800000)  # 48 hours window
+            request, params = self.handle_until_option('end_time', request, params)
             if limit is not None:
                 request['page_size'] = limit  # default 100, max 500
             if market['linear']:
@@ -2417,6 +2428,10 @@ class huobi(Exchange, ImplicitAPI):
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit=1000, params={}):
         """
+        see https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
+        see https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-trade-records-of-a-contract
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-trade-records-of-a-contract
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -2516,9 +2531,14 @@ class huobi(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
         market = self.market(symbol)
         request = {
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -3350,6 +3370,7 @@ class huobi(Exchange, ImplicitAPI):
         if since is not None:
             request['start-time'] = since  # a window of 48 hours within 180 days
             request['end-time'] = self.sum(since, 48 * 60 * 60 * 1000)
+        request, params = self.handle_until_option('end-time', request, params)
         if limit is not None:
             request['size'] = limit
         response = await getattr(self, method)(self.extend(request, params))
@@ -3417,6 +3438,7 @@ class huobi(Exchange, ImplicitAPI):
                 # request['end_time'] = since + 172800000  # 48 hours window
             request['contract'] = market['id']
             request['type'] = 1  # 1:All Orders,2:Order in Finished Status
+        request, params = self.handle_until_option('end_time', request, params)
         if market['linear']:
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchContractOrders', params)
@@ -3606,6 +3628,12 @@ class huobi(Exchange, ImplicitAPI):
 
     async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+        see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -3613,6 +3641,7 @@ class huobi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the huobi api endpoint
         :param bool [params.stop]: *contract only* if the orders are stop trigger orders or not
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
+        :param int [params.until]: the latest time in ms to fetch entries for
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
@@ -3633,14 +3662,26 @@ class huobi(Exchange, ImplicitAPI):
 
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+        see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params, 100)
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3655,6 +3696,9 @@ class huobi(Exchange, ImplicitAPI):
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -5526,6 +5570,8 @@ class huobi(Exchange, ImplicitAPI):
 
     async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
         fetches historical funding rate prices
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: not used by huobi, but filtered internally by ccxt
@@ -5534,6 +5580,10 @@ class huobi(Exchange, ImplicitAPI):
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'page_index', 'current_page', 1, 50)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -5570,10 +5620,12 @@ class huobi(Exchange, ImplicitAPI):
         # }
         #
         data = self.safe_value(response, 'data')
+        cursor = self.safe_value(data, 'current_page')
         result = self.safe_value(data, 'data', [])
         rates = []
         for i in range(0, len(result)):
             entry = result[i]
+            entry['current_page'] = cursor
             marketId = self.safe_string(entry, 'contract_code')
             symbolInner = self.safe_symbol(marketId)
             timestamp = self.safe_integer(entry, 'funding_time')
@@ -6651,14 +6703,21 @@ class huobi(Exchange, ImplicitAPI):
 
     async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
         :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params, 500)
         accountId = await self.fetch_account_id_by_type('spot', None, None, params)
         request = {
             'accountId': accountId,
@@ -6678,6 +6737,7 @@ class huobi(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit  # max 500
+        request, params = self.handle_until_option('endTime', request, params)
         response = await self.spotPrivateGetV2AccountLedger(self.extend(request, params))
         #
         #     {
