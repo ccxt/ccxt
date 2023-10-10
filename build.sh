@@ -134,7 +134,7 @@ for exchange in "${WS_EXCHANGES[@]}"; do
 done
 # faster version of post-transpile
 npm run check-php-syntax
-cd python && ruff -- ${PYTHON_FILES[*]} && cd ..
+cd python && ruff ${PYTHON_FILES[*]} && cd ..
 
 
 ### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###
