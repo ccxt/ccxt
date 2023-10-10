@@ -3883,6 +3883,9 @@ export default class coinex extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000) as FundingRateHistory[];
         }
+        if (limit === undefined) {
+            limit = 100;
+        }
         const market = this.market (symbol);
         let request = {
             'market': market['id'],
