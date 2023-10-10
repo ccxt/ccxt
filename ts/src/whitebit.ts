@@ -285,13 +285,14 @@ export default class whitebit extends Exchange {
         //          "stockPrec": "3",          // Stock currency precision
         //          "moneyPrec": "2",          // Precision of money currency
         //          "feePrec": "4",            // Fee precision
-        //          "makerFee": "0.001",       // Default maker fee ratio
-        //          "takerFee": "0.001",       // Default taker fee ratio
+        //          "makerFee": "0.1",         // Default maker fee ratio
+        //          "takerFee": "0.1",         // Default taker fee ratio
         //          "minAmount": "0.001",      // Minimal amount of stock to trade
         //          "minTotal": "0.001",       // Minimal amount of money to trade
         //          "tradesEnabled": true,     // Is trading enabled
         //          "isCollateral": true,      // Is margin trading enabled
-        //          "type": "spot"             // Market type. Possible values: "spot", "futures"
+        //          "type": "spot",            // Market type. Possible values: "spot", "futures"
+        //          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
         //        },
         //        {
         //          ...
@@ -332,6 +333,10 @@ export default class whitebit extends Exchange {
             } else {
                 type = 'spot';
             }
+            const takerFeeRate = this.safeString (market, 'takerFee');
+            const taker = Precise.stringDiv (takerFeeRate, '100');
+            const makerFeeRate = this.safeString (market, 'makerFee');
+            const maker = Precise.stringDiv (makerFeeRate, '100');
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -351,8 +356,8 @@ export default class whitebit extends Exchange {
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'taker': this.safeNumber (market, 'makerFee'),
-                'maker': this.safeNumber (market, 'takerFee'),
+                'taker': this.parseNumber (taker),
+                'maker': this.parseNumber (maker),
                 'contractSize': contractSize,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -377,7 +382,7 @@ export default class whitebit extends Exchange {
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'minTotal'),
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'maxTotal'),
                     },
                 },
                 'info': market,
@@ -841,7 +846,7 @@ export default class whitebit extends Exchange {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['depth'] = limit; // default = 50, maximum = 100
+            request['limit'] = limit; // default = 100, maximum = 100
         }
         const response = await this.v4PublicGetOrderbookMarket (this.extend (request, params));
         //
