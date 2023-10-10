@@ -93,7 +93,6 @@ setup(
         ],
         'qa': [
             'ruff==0.0.292',
-            'pre-commit==3.4.0'
         ],
     },
     project_urls=project_urls,
