@@ -5,8 +5,9 @@ import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Currency, Int, OrderSide, OrderType } from './base/types.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
+import { Precise } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
 
@@ -22,11 +23,11 @@ export default class kuna extends Exchange {
             'name': 'Kuna',
             'countries': [ 'UA' ],
             'rateLimit': 1000,
-            'version': 'v2',
+            'version': 'v4',
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -132,9 +133,11 @@ export default class kuna extends Exchange {
                             'timestamp': 1,
                             'fees': 1,
                             'currencies?type={type}': 1,
+                            'currencies': 1,
                             'markets/getAll': 1,
                             'markets/tickers?pairs={pairs}': 1,
                             'order/book/{pairs}': 1,
+                            'trade/book/{pairs}': 1,
                         },
                     },
                 },
@@ -359,11 +362,108 @@ export default class kuna extends Exchange {
          * @param {object} [params] extra parameters specific to the kuna api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetTimestamp (params);
+        const response = await this.v4PublicGetTimestamp (params);
         //
-        //     1594911427
+        //    {
+        //        "timestamp": 1686740531,
+        //        "timestamp_miliseconds": 1686740531725
+        //    }
         //
-        return response * 1000;
+        return this.safeInteger (response, 'timestamp_miliseconds');
+    }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} [params] extra parameters specific to the kuna api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.v4PublicGetCurrencies (params);
+        //
+        //    [
+        //        {
+        //            "code": "BTC",
+        //            "name": "Bitcoin",
+        //            "payload": {
+        //                "chart": "https://kuna-pro.kuna.io/bitcoin-chart",
+        //                "icons": {
+        //                    "svg": "https://kuna-pro.kuna.io/icon-btc-svg",
+        //                    "png2x": "https://kuna-pro.kuna.io/icon-btc-png2x",
+        //                    "png3x": "https://kuna-pro.kuna.io/icon-btc-png3x",
+        //                    "svgXL": "https://kuna-pro.kuna.io/icon-btc-svg"
+        //                },
+        //                "pngChart": "https://kuna-pro.kuna.io/png-bitcoin-chart"
+        //            },
+        //            "position": 1,
+        //            "precision": 8,
+        //            "tradePrecision": 6,
+        //            "type": "Crypto"
+        //        }
+        //    ]
+        //
+        return this.parseCurrencies (response);
+    }
+
+    parseCurrencies (currencies, params = {}) {
+        currencies = this.toArray (currencies);
+        const result = [];
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = this.parseCurrency (currencies[i]);
+            result.push (currency);
+        }
+        return result as Currency[];
+    }
+
+    parseCurrency (currency) {
+        //
+        //    {
+        //        "code": "BTC",
+        //        "name": "Bitcoin",
+        //        "payload": {
+        //            "chart": "https://kuna-pro.kuna.io/bitcoin-chart",
+        //            "icons": {
+        //                "svg": "https://kuna-pro.kuna.io/icon-btc-svg",
+        //                "png2x": "https://kuna-pro.kuna.io/icon-btc-png2x",
+        //                "png3x": "https://kuna-pro.kuna.io/icon-btc-png3x",
+        //                "svgXL": "https://kuna-pro.kuna.io/icon-btc-svg"
+        //            },
+        //            "pngChart": "https://kuna-pro.kuna.io/png-bitcoin-chart"
+        //        },
+        //        "position": 1,
+        //        "precision": 8,
+        //        "tradePrecision": 6,
+        //        "type": "Crypto"
+        //    }
+        //
+        const currencyId = this.safeString (currency, 'code');
+        const precision = this.safeString (currency, 'precision');
+        const tradePrecision = this.safeString (currency, 'tradePrecision');
+        return {
+            'info': currency,
+            'id': currencyId,
+            'code': this.safeCurrencyCode (currencyId),
+            'type': undefined,
+            'margin': undefined,
+            'name': this.safeString (currency, 'name'),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': Precise.stringMin (precision, tradePrecision),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+        };
     }
 
     async fetchMarkets (params = {}) {
@@ -374,91 +474,82 @@ export default class kuna extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const quotes = [ 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' ];
-        const markets = [];
-        const response = await this.publicGetTickers (params);
+        const response = await this.v4PublicGetMarketsGetAll (params);
         //
-        //    {
-        //        shibuah: {
-        //            at: '1644463685',
-        //            ticker: {
-        //                buy: '0.000911',
-        //                sell: '0.00092',
-        //                low: '0.000872',
-        //                high: '0.000963',
-        //                last: '0.000911',
-        //                vol: '1539278096.0',
-        //                price: '1434244.211249'
-        //            }
+        //    [
+        //        {
+        //            "pair": "BTC_USDT",               // Traded pair of assets
+        //            "baseAsset": {                    // The base asset of the traded pair, the one to sell or buy as a result of the trade
+        //                 "code": "BTC",
+        //                 "precision": 6               // Maximum amount of digits for the decimal part of a number
+        //            },
+        //            "quoteAsset": {                   // The quoted asset of the traded pair, the one to use to sell or buy the base asset
+        //                "code": "USDT",
+        //                "precision": 2                // Maximum amount of digits for the decimal part of a number
+        //            },
+        //            "tickerPriceChange": "-0.07"      // Relative change compared with the last tick
         //        }
-        //    }
+        //    ]
         //
-        const ids = Object.keys (response);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            for (let j = 0; j < quotes.length; j++) {
-                const quoteId = quotes[j];
-                // usd gets matched before usdt in usdtusd USDT/USD
-                // https://github.com/ccxt/ccxt/issues/9868
-                const slicedId = id.slice (1);
-                const index = slicedId.indexOf (quoteId);
-                const slicePart = slicedId.slice (index);
-                if ((index > 0) && (slicePart === quoteId)) {
-                    // usd gets matched before usdt in usdtusd USDT/USD
-                    // https://github.com/ccxt/ccxt/issues/9868
-                    const baseId = id[0] + slicedId.replace (quoteId, '');
-                    const base = this.safeCurrencyCode (baseId);
-                    const quote = this.safeCurrencyCode (quoteId);
-                    markets.push ({
-                        'id': id,
-                        'symbol': base + '/' + quote,
-                        'base': base,
-                        'quote': quote,
-                        'settle': undefined,
-                        'baseId': baseId,
-                        'quoteId': quoteId,
-                        'settleId': undefined,
-                        'type': 'spot',
-                        'spot': true,
-                        'margin': false,
-                        'swap': false,
-                        'future': false,
-                        'option': false,
-                        'active': undefined,
-                        'contract': false,
-                        'linear': undefined,
-                        'inverse': undefined,
-                        'contractSize': undefined,
-                        'expiry': undefined,
-                        'expiryDatetime': undefined,
-                        'strike': undefined,
-                        'optionType': undefined,
-                        'precision': {
-                            'amount': undefined,
-                            'price': undefined,
-                        },
-                        'limits': {
-                            'leverage': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                            'amount': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                            'price': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                            'cost': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                        },
-                        'info': undefined,
-                    });
-                }
-            }
+        const markets = [];
+        for (let i = 0; i < response.length; i++) {
+            const marketId = this.safeString (response, 'pair');
+            const baseAsset = this.safeValue (response, 'baseAsset');
+            const quoteAsset = this.safeValue (response, 'quoteAsset');
+            const baseId = this.safeString (baseAsset, 'code');
+            const quoteId = this.safeString (quoteAsset, 'code');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const basePrecision = this.safeString (baseAsset, 'precision');
+            const quotePrecision = this.safeString (quoteAsset, 'precision');
+            markets.push ({
+                'id': marketId,
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (basePrecision)),
+                    'price': this.parseNumber (this.parsePrecision (quotePrecision)),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': undefined,
+            });
         }
         return markets;
     }
@@ -469,49 +560,82 @@ export default class kuna extends Exchange {
          * @name kuna#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] 5, 10, 20, 50, 100, 500, or 1000 (default)
          * @param {object} [params] extra parameters specific to the kuna api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market['id'],
+            'pairs': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default = 300
+            request['limit'] = limit;
         }
-        const orderbook = await this.publicGetDepth (this.extend (request, params));
-        const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, market['symbol'], timestamp);
+        const orderbook = await this.v4PublicGetOrderBookPairs (this.extend (request, params));
+        //
+        //    {
+        //        "asks": [               // An array of sell orders
+        //            [
+        //                "16950",        // Sell price, level 1
+        //                "0.001"         // Sell quantity, level 1
+        //            ],
+        //            [
+        //                "17000",        // Sell price, level 2
+        //                "0.01"          // Sell quantity, level 2
+        //            ]
+        //        ],
+        //        "bids": [               // An array of buy orders
+        //            [
+        //                "16700",        // Sell price, level 1
+        //                "0.01"          // Sell quantity, level 1
+        //            ],
+        //            [
+        //                "16000",        // Sell price, level 2
+        //                "0.001"         // Sell quantity, level 2
+        //            ]
+        //        ]
+        //    }
+        //
+        return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 0, 1);
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.safeTimestamp (ticker, 'at');
-        ticker = ticker['ticker'];
-        const symbol = this.safeSymbol (undefined, market);
-        const last = this.safeString (ticker, 'last');
+        //
+        //    {
+        //        "pair": "BTC_USDT",                                   // Traded pair
+        //        "percentagePriceChange": "-0.03490931899641581",      // Relative price change, in percent
+        //        "price": "27900",                                     // Current median price
+        //        "equivalentPrice": "",                                // TBD
+        //        "high": "29059.69",                                   // Highest price
+        //        "low": "27900",                                       // Lowest price
+        //        "baseVolume": "2.9008499999999993",                   // Traded volume as base
+        //        "quoteVolume": "82251.41477976",                      // Traded volume as quote
+        //        "bestBidPrice": "27926.91",                           // The best bid price now
+        //        "bestAskPrice": "27970.02",                           // The best ask price now
+        //        "priceChange": "-973.9700000000012"                   // Absolute price change
+        //    }
+        //
+        const marketId = this.safeString (ticker, 'pair');
         return this.safeTicker ({
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'info': ticker,
+            'symbol': this.safeSymbol (marketId, market),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
-            'bid': this.safeString (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeString (ticker, 'sell'),
-            'askVolume': undefined,
+            'bid': this.safeString (ticker, 'bestBidPrice'),
+            'ask': this.safeString (ticker, 'bestAskPrice'),
             'vwap': undefined,
             'open': this.safeString (ticker, 'open'),
-            'close': last,
-            'last': last,
+            'close': undefined,
+            'last': undefined,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': this.safeString (ticker, 'priceChange'),
+            'percentage': this.safeString (ticker, 'percentagePriceChange'),
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'vol'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
         }, market);
     }
 
@@ -519,23 +643,37 @@ export default class kuna extends Exchange {
         /**
          * @method
          * @name kuna#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market. The average is not returned in the response, but the median can be accessed via response['info']['price']
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the kuna api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetTickers (params);
-        const ids = Object.keys (response);
-        const result = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const market = this.safeMarket (id);
-            const symbol = market['symbol'];
-            result[symbol] = this.parseTicker (response[id], market);
-        }
-        return this.filterByArray (result, 'symbol', symbols);
+        const marketIds = this.marketIds (symbols);
+        const request = {
+            'pairs': marketIds.join (','),
+        };
+        const response = await this.v4PublicGetMarketsTickersPairsPairs (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "pair": "BTC_USDT",                                   // Traded pair
+        //            "percentagePriceChange": "-0.03490931899641581",      // Relative price change, in percent
+        //            "price": "27900",                                     // Current median price
+        //            "equivalentPrice": "",                                // TBD
+        //            "high": "29059.69",                                   // Highest price
+        //            "low": "27900",                                       // Lowest price
+        //            "baseVolume": "2.9008499999999993",                   // Traded volume as base
+        //            "quoteVolume": "82251.41477976",                      // Traded volume as quote
+        //            "bestBidPrice": "27926.91",                           // The best bid price now
+        //            "bestAskPrice": "27970.02",                           // The best ask price now
+        //            "priceChange": "-973.9700000000012"                   // Absolute price change
+        //        }
+        //        ...
+        //    ]
+        //
+        return this.parseTickers (response, symbols, params);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -550,14 +688,34 @@ export default class kuna extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market['id'],
+            'pairs': market['id'],
         };
-        const response = await this.publicGetTickersMarket (this.extend (request, params));
-        return this.parseTicker (response, market);
+        const response = await this.v4PublicGetMarketsTickersPairsPairs (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "pair": "BTC_USDT",                                   // Traded pair
+        //            "percentagePriceChange": "-0.03490931899641581",      // Relative price change, in percent
+        //            "price": "27900",                                     // Current median price
+        //            "equivalentPrice": "",                                // TBD
+        //            "high": "29059.69",                                   // Highest price
+        //            "low": "27900",                                       // Lowest price
+        //            "baseVolume": "2.9008499999999993",                   // Traded volume as base
+        //            "quoteVolume": "82251.41477976",                      // Traded volume as quote
+        //            "bestBidPrice": "27926.91",                           // The best bid price now
+        //            "bestAskPrice": "27970.02",                           // The best ask price now
+        //            "priceChange": "-973.9700000000012"                   // Absolute price change
+        //        }
+        //        ...
+        //    ]
+        //
+        const ticker = this.safeString (response, 0);
+        return this.parseTicker (ticker, market);
     }
 
     async fetchL3OrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
+         * TODO: double check
          * @method
          * @name kuna#fetchL3OrderBook
          * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -576,7 +734,7 @@ export default class kuna extends Exchange {
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {int} [limit] between 1 and 100, 25 by default
          * @param {object} [params] extra parameters specific to the kuna api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
@@ -585,20 +743,17 @@ export default class kuna extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.publicGetTrades (this.extend (request, params));
+        const response = await this.v4PublicGetTradeBookPairs (this.extend (request, params));
         //
-        //      [
-        //          {
-        //              "id":11353466,
-        //              "price":"3000.16",
-        //              "volume":"0.000397",
-        //              "funds":"1.19106352",
-        //              "market":"ethusdt",
-        //              "created_at":"2022-04-12T18:32:36Z",
-        //              "side":null,
-        //              "trend":"sell"
-        //          },
-        //      ]
+        //    {
+        //        "id": "3e5591ba-2778-4d85-8851-54284045ea44",       // Unique identifier of a trade
+        //        "pair": "BTC_USDT",                                 // Market pair that is being traded
+        //        "quoteQuantity": "11528.8118",                      // Qty of the quote asset, USDT in this example
+        //        "matchPrice": "18649",                              // Exchange price at the moment of execution
+        //        "matchQuantity": "0.6182",                          // Qty of the base asset, BTC in this example
+        //        "createdAt": "2022-09-23T14:30:41.486Z",            // Date-time of trade execution, UTC
+        //        "side": "Ask"                                       // Trade type: `Ask` or `Bid`. Bid for buying base asset, Ask for selling base asset (e.g. for BTC_USDT trading pair, BTC is the base asset).
+        //    }
         //
         return this.parseTrades (response, market, since, limit);
     }
@@ -607,94 +762,33 @@ export default class kuna extends Exchange {
         //
         // fetchTrades (public)
         //
-        //      {
-        //          "id":11353466,
-        //          "price":"3000.16",
-        //          "volume":"0.000397",
-        //          "funds":"1.19106352",
-        //          "market":"ethusdt",
-        //          "created_at":"2022-04-12T18:32:36Z",
-        //          "side":null,
-        //          "trend":"sell"
-        //      }
+        //    {
+        //        "id": "3e5591ba-2778-4d85-8851-54284045ea44",       // Unique identifier of a trade
+        //        "pair": "BTC_USDT",                                 // Market pair that is being traded
+        //        "quoteQuantity": "11528.8118",                      // Qty of the quote asset, USDT in this example
+        //        "matchPrice": "18649",                              // Exchange price at the moment of execution
+        //        "matchQuantity": "0.6182",                          // Qty of the base asset, BTC in this example
+        //        "createdAt": "2022-09-23T14:30:41.486Z",            // Date-time of trade execution, UTC
+        //        "side": "Ask"                                       // Trade type: `Ask` or `Bid`. Bid for buying base asset, Ask for selling base asset (e.g. for BTC_USDT trading pair, BTC is the base asset).
+        //    }
         //
-        // fetchMyTrades (private)
-        //
-        //      {
-        //          "id":11353719,
-        //          "price":"0.13566",
-        //          "volume":"99.0",
-        //          "funds":"13.43034",
-        //          "market":"dogeusdt",
-        //          "created_at":"2022-04-12T18:58:44Z",
-        //          "side":"ask",
-        //          "order_id":1665670371,
-        //          "trend":"buy"
-        //      }
-        //
-        const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        }
-        let side = this.safeString2 (trade, 'side', 'trend');
-        if (side !== undefined) {
-            const sideMap = {
-                'ask': 'sell',
-                'bid': 'buy',
-            };
-            side = this.safeString (sideMap, side, side);
-        }
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'volume');
-        const costString = this.safeNumber (trade, 'funds');
-        const orderId = this.safeString (trade, 'order_id');
-        const id = this.safeString (trade, 'id');
+        const datetime = this.safeString (trade, 'createdAt');
+        const marketId = this.safeString (trade, 'pair');
         return this.safeTrade ({
-            'id': id,
             'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'id': this.safeString (trade, 'id'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'symbol': this.safeSymbol (marketId, market),
             'type': undefined,
-            'side': side,
-            'order': orderId,
+            'side': this.safeStringLower (trade, 'side'),
+            'order': undefined,
             'takerOrMaker': undefined,
-            'price': priceString,
-            'amount': amountString,
-            'cost': costString,
+            'price': this.safeString (trade, 'matchPrice'),
+            'amount': this.safeString (trade, 'matchQuantity'),
+            'cost': this.safeString (trade, 'quoteQuantity'),
             'fee': undefined,
         }, market);
-    }
-
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name kuna#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the kuna api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        await this.loadMarkets ();
-        const trades = await this.fetchTrades (symbol, since, limit, params);
-        const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit);
-        const result = [];
-        for (let i = 0; i < ohlcvc.length; i++) {
-            const ohlcv = ohlcvc[i];
-            result.push ([
-                ohlcv[0],
-                ohlcv[1],
-                ohlcv[2],
-                ohlcv[3],
-                ohlcv[4],
-                ohlcv[5],
-            ]);
-        }
-        return result;
     }
 
     parseBalance (response) {
