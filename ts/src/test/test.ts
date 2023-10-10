@@ -732,10 +732,20 @@ export default class testMainClass extends baseMainTestClass {
         // these tests should be synchronously executed, because of conflicting nature of proxy settings
         for (let i = 0; i < supportedProxyTests.length; i++) {
             const proxyTestName = supportedProxyTests[i];
-            const result = await this.testSafe (proxyTestName, exchange, [], true);
-            if (!result) {
-                // if result is false, then exception would have been already "dumped"
-                exitScript ();
+            // try proxy several times
+            const maxRetries = 3;
+            let exception = undefined;
+            for (let j = 0; j < maxRetries; j++) {
+                try {
+                    await this.testMethod (proxyTestName, exchange, [], true);
+                    break; // if successfull, then break
+                } catch (e) {
+                    exception = e;
+                }
+            }
+            // if exception was set, then throw it
+            if (exception) {
+                throw new Error ('[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception));
             }
         }
     }
