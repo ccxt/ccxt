@@ -2076,7 +2076,7 @@ class binance(Exchange, ImplicitAPI):
         #             {
         #                 "symbol":"BTCUSDT",
         #                 "status":"TRADING",
-        #                 "maintMarginPercent":"2.5000",
+        #                 "maintMarginPercent":"2.5100",
         #                 "requiredMarginPercent":"5.0000",
         #                 "baseAsset":"BTC",
         #                 "quoteAsset":"USDT",
