@@ -2730,10 +2730,15 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the gateio api endpoint
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume(units in quote currency)
         """
         self.load_markets()
         market = self.market(symbol)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
         if market['option']:
             return self.fetch_option_ohlcv(symbol, timeframe, since, limit, params)
         price = self.safe_string(params, 'price')
@@ -2878,9 +2883,15 @@ class gate(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the gate api endpoint
+        :param int [params.until]: timestamp in ms of the latest trade to fetch
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
         market = self.market(symbol)
         #
         # spot
@@ -2911,6 +2922,10 @@ class gate(Exchange, ImplicitAPI):
             'future': 'publicDeliveryGetSettleTrades',
             'option': 'publicOptionsGetTrades',
         })
+        until = self.safe_integer_2(params, 'to', 'until')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['to'] = self.parse_to_int(until / 1000)
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
         if since is not None and (market['contract']):
@@ -3012,9 +3027,14 @@ class gate(Exchange, ImplicitAPI):
         :param int [params.offset]: *contract only* list offset, starting from 0
         :param str [params.last_id]: *contract only* specify list staring point using the id of last record in previous list-query results
         :param int [params.count_total]: *contract only* whether to return total number matched, default to 0(no return)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         type = None
         marginMode = None
         request = {}
@@ -3260,10 +3280,16 @@ class gate(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
+        :param int [params.until]: end time in ms
         :param dict [params]: extra parameters specific to the gate api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchDeposits', code, since, limit, params)
         request = {}
         currency = None
         if code is not None:
@@ -3275,6 +3301,7 @@ class gate(Exchange, ImplicitAPI):
             start = self.parse_to_int(since / 1000)
             request['from'] = start
             request['to'] = self.sum(start, 30 * 24 * 60 * 60)
+        request, params = self.handle_until_option('to', request, params)
         response = self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
@@ -3285,9 +3312,15 @@ class gate(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the gate api endpoint
+        :param int [params.until]: end time in ms
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchWithdrawals', code, since, limit, params)
         request = {}
         currency = None
         if code is not None:
@@ -3299,6 +3332,7 @@ class gate(Exchange, ImplicitAPI):
             start = self.parse_to_int(since / 1000)
             request['from'] = start
             request['to'] = self.sum(start, 30 * 24 * 60 * 60)
+        request, params = self.handle_until_option('to', request, params)
         response = self.privateWalletGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
@@ -3386,6 +3420,13 @@ class gate(Exchange, ImplicitAPI):
         #        "memo": null
         #    }
         #
+        #     {
+        #         "currency":"usdt",
+        #         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        #         "amount":"1880",
+        #         "chain":"eth"
+        #     }
+        #
         id = self.safe_string(transaction, 'id')
         type = None
         amountString = self.safe_string(transaction, 'amount')
@@ -3399,6 +3440,7 @@ class gate(Exchange, ImplicitAPI):
         feeCostString = self.safe_string(transaction, 'fee')
         if type == 'withdrawal':
             amountString = Precise.string_sub(amountString, feeCostString)
+        networkId = self.safe_string_upper(transaction, 'chain')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         txid = self.safe_string(transaction, 'txid')
@@ -3413,7 +3455,7 @@ class gate(Exchange, ImplicitAPI):
             'txid': txid,
             'currency': code,
             'amount': self.parse_number(amountString),
-            'network': None,
+            'network': self.network_id_to_code(networkId),
             'address': address,
             'addressTo': None,
             'addressFrom': None,
@@ -5430,6 +5472,10 @@ class gate(Exchange, ImplicitAPI):
         :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOpenInterestHistory', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 100)
         market = self.market(symbol)
         if not market['swap']:
             raise BadRequest(self.id + ' fetchOpenInterest() supports swap markets only')
@@ -5672,9 +5718,15 @@ class gate(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the gate api endpoint
+        :param int [params.until]: end time in ms
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params)
         type = None
         currency = None
         response = None
@@ -5693,6 +5745,7 @@ class gate(Exchange, ImplicitAPI):
             request['from'] = since
         if limit is not None:
             request['limit'] = limit
+        request, params = self.handle_until_option('to', request, params)
         if type == 'spot':
             response = self.privateSpotGetAccountBook(self.extend(request, params))
         elif type == 'margin':

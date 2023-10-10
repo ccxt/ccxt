@@ -827,7 +827,7 @@ class bitrue(Exchange, ImplicitAPI):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_string(ticker, 'percentChange'),
+            'percentage': Precise.string_mul(self.safe_string(ticker, 'percentChange'), '10000'),
             'average': None,
             'baseVolume': self.safe_string(ticker, 'baseVolume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),

@@ -1431,7 +1431,7 @@ class idex(Exchange, ImplicitAPI):
         #
         #    {serverTime: '1655258263236'}
         #
-        return self.safe_number(response, 'serverTime')
+        return self.safe_integer(response, 'serverTime')
 
     async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """

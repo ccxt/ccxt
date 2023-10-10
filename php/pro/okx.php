@@ -1066,8 +1066,8 @@ class okx extends \ccxt\async\okx {
         // filter orders with no last $trade id
         for ($i = 0; $i < count($rawOrders); $i++) {
             $rawOrder = $rawOrders[$i];
-            $tradeId = $this->safe_string($rawOrder, 'tradeId');
-            if (!$this->is_empty($tradeId)) {
+            $tradeId = $this->safe_string($rawOrder, 'tradeId', '');
+            if (strlen($tradeId) > 0) {
                 $order = $this->parse_order($rawOrder);
                 $filteredOrders[] = $order;
             }

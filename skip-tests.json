@@ -48,6 +48,7 @@
     },
     "binance": {
         "httpsProxy": "http://51.83.140.52:11230",
+        "skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -79,6 +80,7 @@
     },
     "binancecoinm": {
         "httpsProxy": "http://51.83.140.52:11230",
+        "skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
@@ -97,6 +99,7 @@
     },
     "binanceusdm": {
         "httpsProxy": "http://51.83.140.52:11230",
+        "skipPhpAsync": true,
         "skipWs": true,
         "skipMethods": {
             "fetchTickers": {
@@ -120,6 +123,7 @@
     },
     "tokocrypto": {
         "httpsProxy": "http://51.83.140.52:11230",
+        "skipPhpAsync": true,
         "skipWs": true
     },
     "bitbank": {
@@ -492,7 +496,6 @@
         }
     },
     "bybit": {
-        "skip": "403 forbidden, RateLimitExceeded",
         "skipMethods": {
             "fetchTickers": {
                 "symbol" :"returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT"
@@ -912,7 +915,8 @@
         }
     },
     "kuna": {
-        "httpsProxy": "http://51.83.140.52:11230"
+        "httpsProxy": "http://51.83.140.52:11230",
+        "skipPhpAsync": true
     },
     "kucoin": {
         "skipWs": true,
@@ -1359,6 +1363,9 @@
             "fetchOrderBook": {
                 "ask": "multiple ask prices are equal in ob https://app.travis-ci.com/github/ccxt/ccxt/builds/264706670#L2228",
                 "bid": "multiple bid prices are equal https://app.travis-ci.com/github/ccxt/ccxt/builds/265172859#L2745"
+            },
+            "watchTrades": {
+                "side": "undefined"
             }
         }
     }

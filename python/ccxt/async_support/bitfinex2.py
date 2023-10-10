@@ -20,6 +20,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
@@ -360,6 +361,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 'exact': {
+                    '11010': RateLimitExceeded,
                     '10001': PermissionDenied,  # api_key: permission invalid(#10001)
                     '10020': BadRequest,
                     '10100': AuthenticationError,
@@ -1237,14 +1239,20 @@ class bitfinex2(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://docs.bitfinex.com/reference/rest-public-tickers-history
+        see https://docs.bitfinex.com/reference/rest-public-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param int [params.until]: the latest time in ms to fetch entries for
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params, 10000)
         market = self.market(symbol)
         sort = '-1'
         request = {
@@ -1256,6 +1264,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 10000)  # default 120, max 10000
         request['sort'] = sort
+        request, params = self.handle_until_option('end', request, params)
         response = await self.publicGetTradesSymbolHist(self.extend(request, params))
         #
         #     [
@@ -1280,14 +1289,17 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 10000)
         market = self.market(symbol)
         if limit is None:
-            limit = 100  # default 100, max 5000
-        if since is None:
-            duration = self.parse_timeframe(timeframe)
-            since = self.milliseconds() - duration * limit * 1000
+            limit = 10000  # default 100, max 5000
         request = {
             'symbol': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -1295,6 +1307,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'start': since,
             'limit': limit,
         }
+        request, params = self.handle_until_option('end', request, params)
         response = await self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         #
         #     [
@@ -1726,15 +1739,22 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         # returns the most recent closed or canceled orders up to circa two weeks ago
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
         request = {}
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit  # default 25, max 2500
+        request, params = self.handle_until_option('end', request, params)
         market = None
         response = None
         if symbol is None:
@@ -2444,6 +2464,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody):
+        # ['error', 11010, 'ratelimit: error']
         if response is not None:
             if not isinstance(response, list):
                 message = self.safe_string_2(response, 'message', 'error')
@@ -2453,6 +2474,8 @@ class bitfinex2(Exchange, ImplicitAPI):
                 raise ExchangeError(self.id + ' ' + body)
         elif response == '':
             raise ExchangeError(self.id + ' returned empty response')
+        if statusCode == 429:
+            raise RateLimitExceeded(self.id + ' ' + body)
         if statusCode == 500:
             # See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             errorCode = self.safe_string(response, 1, '')
@@ -2536,16 +2559,23 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
         :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :param int [params.until]: timestamp in ms of the latest ledger entry
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure>`
         """
         await self.load_markets()
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params, 2500)
         currency = None
         request = {}
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit  # max 2500
+        request, params = self.handle_until_option('end', request, params)
         response = None
         if code is not None:
             currency = self.currency(code)
@@ -2634,14 +2664,23 @@ class bitfinex2(Exchange, ImplicitAPI):
         see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `funding rate structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
         """
         await self.load_markets()
         self.check_required_symbol('fetchFundingRateHistory', symbol)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 5000)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
+        if since is not None:
+            request['start'] = since
+        request, params = self.handle_until_option('end', request, params)
         response = await self.publicGetStatusDerivSymbolHist(self.extend(request, params))
         #
         #   [

@@ -84,6 +84,7 @@ class bingx(Exchange, ImplicitAPI):
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
                     'wallets': 'https://open-api.{hostname}/openApi',
+                    'user': 'https://open-api.{hostname}/openApi',
                     'subAccount': 'https://open-api.{hostname}/openApi',
                     'account': 'https://open-api.{hostname}/openApi',
                 },
@@ -252,6 +253,15 @@ class bingx(Exchange, ImplicitAPI):
                         },
                     },
                 },
+                'user': {
+                    'auth': {
+                        'private': {
+                            'post': {
+                                'userDataStream': 1,
+                            },
+                        },
+                    },
+                },
                 'copyTrading': {
                     'v1': {
                         'private': {
@@ -314,6 +324,7 @@ class bingx(Exchange, ImplicitAPI):
                     '100001': AuthenticationError,
                     '100412': AuthenticationError,
                     '100202': InsufficientFunds,
+                    '100204': BadRequest,
                     '100400': BadRequest,
                     '100440': ExchangeError,
                     '100500': ExchangeError,
@@ -330,6 +341,7 @@ class bingx(Exchange, ImplicitAPI):
             'commonCurrencies': {
             },
             'options': {
+                'defaultType': 'spot',
                 'accountsByType': {
                     'spot': 'FUND',
                     'swap': 'PFUTURES',
@@ -628,9 +640,14 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bingx api endpoint
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -642,6 +659,10 @@ class bingx(Exchange, ImplicitAPI):
             request['limit'] = limit
         else:
             request['limit'] = 50
+        until = self.safe_integer_2(params, 'until', 'startTime')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['startTime'] = until
         response = None
         if market['spot']:
             response = await self.spotV1PublicGetMarketKline(self.extend(request, params))
@@ -809,35 +830,61 @@ class bingx(Exchange, ImplicitAPI):
         #        filledTime: '2023-07-04T20:56:01.000+0800'
         #    }
         #
-        time = self.safe_integer_2(trade, 'time', 'filledTm')
+        #
+        # ws
+        #
+        # spot
+        #
+        #    {
+        #        E: 1690214529432,
+        #        T: 1690214529386,
+        #        e: 'trade',
+        #        m: True,
+        #        p: '29110.19',
+        #        q: '0.1868',
+        #        s: 'BTC-USDT',
+        #        t: '57903921'
+        #    }
+        #
+        # swap
+        #
+        #    {
+        #        q: '0.0421',
+        #        p: '29023.5',
+        #        T: 1690221401344,
+        #        m: False,
+        #        s: 'BTC-USDT'
+        #    }
+        #
+        time = self.safe_integer_n(trade, ['time', 'filledTm', 'T'])
         datetimeId = self.safe_string(trade, 'filledTm')
         if datetimeId is not None:
             time = self.parse8601(datetimeId)
+        if time == 0:
+            time = None
         isBuyerMaker = self.safe_value_2(trade, 'buyerMaker', 'isBuyerMaker')
-        takeOrMaker = None
-        side = None
-        if isBuyerMaker is not None:
-            side = 'sell' if isBuyerMaker else 'buy'
-            takeOrMaker = 'taker'
+        side = self.safe_string_lower_2(trade, 'side', 'S')
         cost = self.safe_string(trade, 'quoteQty')
         type = 'spot' if (cost is None) else 'swap'
-        currencyId = self.safe_string(trade, 'currency')
+        currencyId = self.safe_string_2(trade, 'currency', 'N')
         currencyCode = self.safe_currency_code(currencyId)
+        m = self.safe_value(trade, 'm', False)
+        marketId = self.safe_string(trade, 's')
         return self.safe_trade({
-            'id': self.safe_string_2(trade, 'id', 'orderId'),
+            'id': self.safe_string_n(trade, ['id', 't']),
             'info': trade,
             'timestamp': time,
             'datetime': self.iso8601(time),
-            'symbol': self.safe_symbol(None, market, '-', type),
-            'order': None,
-            'type': None,
-            'side': side,
-            'takerOrMaker': takeOrMaker,
-            'price': self.safe_string(trade, 'price'),
-            'amount': self.safe_string_2(trade, 'qty', 'amount'),
+            'symbol': self.safe_symbol(marketId, market, '-', type),
+            'order': self.safe_string_2(trade, 'orderId', 'i'),
+            'type': self.safe_string_lower(trade, 'o'),
+            'side': self.parse_order_side(side),
+            'takerOrMaker': 'maker' if (isBuyerMaker or m) else 'taker',
+            'price': self.safe_string_2(trade, 'price', 'p'),
+            'amount': self.safe_string_n(trade, ['qty', 'amount', 'q']),
             'cost': cost,
             'fee': {
-                'cost': self.parse_number(Precise.string_abs(self.safe_string(trade, 'commission'))),
+                'cost': self.parse_number(Precise.string_abs(self.safe_string_2(trade, 'commission', 'n'))),
                 'currency': currencyCode,
                 'rate': None,
             },
@@ -1001,10 +1048,16 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate to fetch
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns [dict]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1013,6 +1066,10 @@ class bingx(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
+        until = self.safe_integer_2(params, 'until', 'startTime')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['startTime'] = until
         response = await self.swapV2PublicGetQuoteFundingRate(self.extend(request, params))
         #
         #    {
@@ -1444,8 +1501,9 @@ class bingx(Exchange, ImplicitAPI):
             'liquidationPrice': None,
             'entryPrice': self.safe_number_2(position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': self.safe_number(position, 'unrealizedProfit'),
+            'realizedPnl': self.safe_number(position, 'realisedProfit'),
             'percentage': None,
-            'contracts': None,
+            'contracts': self.safe_number(position, 'positionAmt'),
             'contractSize': None,
             'markPrice': None,
             'lastPrice': None,
@@ -1456,7 +1514,7 @@ class bingx(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'collateral': self.safe_string(position, 'positionAmt'),
+            'collateral': self.safe_number(position, 'positionAmt'),
             'initialMargin': self.safe_number(position, 'initialMargin'),
             'initialMarginPercentage': None,
             'leverage': self.safe_number(position, 'leverage'),
@@ -1477,6 +1535,8 @@ class bingx(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bingx api endpoint
         :param bool [params.postOnly]: True to place a post only order
+        :param str [params.timeInForce]: spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+        :param bool [params.reduceOnly]: *swap only* True or False whether the order is reduce only
         :param float [params.triggerPrice]: *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
         :param float [params.stopLossPrice]: *swap only* stop loss trigger price
         :param float [params.takeProfitPrice]: *swap only* take profit trigger price
@@ -1484,8 +1544,10 @@ class bingx(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
+        postOnly = None
         response = None
-        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('createOrder', market, params)
         type = type.upper()
         request = {
             'symbol': market['id'],
@@ -1493,71 +1555,80 @@ class bingx(Exchange, ImplicitAPI):
             'side': side.upper(),
         }
         isMarketOrder = type == 'MARKET'
-        isSpotMarket = marketType == 'spot'
-        stopPriceRaw = None
-        stopPrice = None
-        stopLossPrice = None
-        takeProfitPrice = None
-        if not isSpotMarket:
-            stopPriceRaw = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-            if stopPriceRaw is not None:
-                stopPrice = self.price_to_precision(symbol, stopPriceRaw)
-            stopLossPrice = self.safe_value(params, 'stopLossPrice')
-            takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        if (stopLossPrice is not None) and (takeProfitPrice is not None):
-            raise InvalidOrder('Order is either a takeProfit order or a stopLoss order')
-        if (type == 'LIMIT') or (type == 'TRIGGER_LIMIT'):
-            request['price'] = self.price_to_precision(symbol, price)
-            if (stopPrice is not None):
-                request['type'] = 'TRIGGER_LIMIT'
-                request['stopPrice'] = stopPrice
-            if type == 'TRIGGER_LIMIT':
-                if stopPrice is None:
-                    raise InvalidOrder('TRIGGER_LIMIT requires a triggerPrice / stopPrice')
-                request['stopPrice'] = stopPrice
-        if isMarketOrder or (type == 'TRIGGER_MARKET'):
-            if (stopPrice is not None):
-                request['type'] = 'TRIGGER_MARKET'
-                request['stopPrice'] = stopPrice
-            if type == 'TRIGGER_MARKET':
-                if stopPrice is None:
-                    raise InvalidOrder('TRIGGER_MARKET requires a triggerPrice / stopPrice')
-                request['stopPrice'] = stopPrice
-        exchangeSpecificTifParam = self.safe_string_upper_n(params, ['force', 'timeInForce'])
-        postOnly = None
-        postOnly, params = self.handle_post_only(isMarketOrder, exchangeSpecificTifParam == 'POC', params)
-        if isSpotMarket:
+        isSpot = marketType == 'spot'
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        if timeInForce == 'IOC':
+            request['timeInForce'] = 'IOC'
+        if isSpot:
+            postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'POC', params)
+            if postOnly or (timeInForce == 'POC'):
+                request['timeInForce'] = 'POC'
             createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
-            if createMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
-                if price is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+            if isMarketOrder and (side == 'buy'):
+                if createMarketBuyOrderRequiresPrice:
+                    if price is None:
+                        raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                    else:
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        cost = self.parse_number(Precise.string_mul(amountString, priceString))
+                        request['quoteOrderQty'] = self.price_to_precision(symbol, cost)
                 else:
-                    amountString = self.number_to_string(amount)
-                    priceString = self.number_to_string(price)
-                    cost = self.parse_number(Precise.string_mul(amountString, priceString))
-                    request['quoteOrderQty'] = self.price_to_precision(symbol, cost)
+                    request['quoteOrderQty'] = self.price_to_precision(symbol, amount)
             else:
                 request['quantity'] = self.amount_to_precision(symbol, amount)
+            if not isMarketOrder:
+                request['price'] = self.price_to_precision(symbol, price)
+            response = await self.spotV1PrivatePostTradeOrder(self.extend(request, params))
         else:
+            postOnly, params = self.handle_post_only(isMarketOrder, timeInForce == 'PostOnly', params)
+            if postOnly or (timeInForce == 'PostOnly'):
+                request['timeInForce'] = 'PostOnly'
+            elif timeInForce == 'GTC':
+                request['timeInForce'] = 'GTC'
+            elif timeInForce == 'FOK':
+                request['timeInForce'] = 'FOK'
+            if (type == 'LIMIT') or (type == 'TRIGGER_LIMIT') or (type == 'STOP') or (type == 'TAKE_PROFIT'):
+                request['price'] = self.price_to_precision(symbol, price)
+            triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
+            stopLossPrice = self.safe_number(params, 'stopLossPrice')
+            takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
+            isTriggerOrder = triggerPrice is not None
+            isStopLossPriceOrder = stopLossPrice is not None
+            isTakeProfitPriceOrder = takeProfitPrice is not None
+            if isTriggerOrder:
+                request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+                if isMarketOrder or (type == 'TRIGGER_MARKET'):
+                    request['type'] = 'TRIGGER_MARKET'
+                elif (type == 'LIMIT') or (type == 'TRIGGER_LIMIT'):
+                    request['type'] = 'TRIGGER_LIMIT'
+            elif isStopLossPriceOrder or isTakeProfitPriceOrder:
+                # This can be used to set the stop loss and take profit, but the position needs to be opened first
+                if isStopLossPriceOrder:
+                    request['stopPrice'] = self.price_to_precision(symbol, stopLossPrice)
+                    if isMarketOrder or (type == 'STOP_MARKET'):
+                        request['type'] = 'STOP_MARKET'
+                    elif (type == 'LIMIT') or (type == 'STOP'):
+                        request['type'] = 'STOP'
+                elif isTakeProfitPriceOrder:
+                    request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
+                    if isMarketOrder or (type == 'TAKE_PROFIT_MARKET'):
+                        request['type'] = 'TAKE_PROFIT_MARKET'
+                    elif (type == 'LIMIT') or (type == 'TAKE_PROFIT'):
+                        request['type'] = 'TAKE_PROFIT'
+            reduceOnly = self.safe_value(params, 'reduceOnly', False)
+            positionSide = None
+            if reduceOnly:
+                positionSide = 'SHORT' if (side == 'buy') else 'LONG'
+            else:
+                positionSide = 'LONG' if (side == 'buy') else 'SHORT'
+            request['positionSide'] = positionSide
             request['quantity'] = self.amount_to_precision(symbol, amount)
-        if (stopLossPrice is not None):
-            request['type'] = 'STOP_MARKET'
-            request['stopPrice'] = self.price_to_precision(symbol, stopLossPrice)
-        if (takeProfitPrice is not None):
-            request['type'] = 'TAKE_PROFIT_MARKET'
-            request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
-        if postOnly:
-            request['timeInForce'] = 'POC'
-        elif exchangeSpecificTifParam == 'POC':
-            request['timeInForce'] = 'POC'
-        elif not isSpotMarket:
-            request['timeInForce'] = 'GTC'
-        if isSpotMarket:
-            response = await self.spotV1PrivatePostTradeOrder(self.extend(request, query))
-        else:
-            response = await self.swapV2PrivatePostTradeOrder(self.extend(request, query))
+            params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+            response = await self.swapV2PrivatePostTradeOrder(self.extend(request, params))
         #
         # spot
+        #
         #    {
         #        "code": 0,
         #        "msg": "",
@@ -1577,23 +1648,34 @@ class bingx(Exchange, ImplicitAPI):
         #
         # swap
         #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #          "order": {
-        #            "symbol": "BTC-USDT",
-        #            "orderId": 1590973236294713344,
-        #            "side": "BUY",
-        #            "positionSide": "LONG",
-        #            "type": "LIMIT"
-        #          }
-        #        }
-        #    }
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": {
+        #             "order": {
+        #                 "symbol": "BTC-USDT",
+        #                 "orderId": 1709036527545438208,
+        #                 "side": "BUY",
+        #                 "positionSide": "LONG",
+        #                 "type": "TRIGGER_LIMIT",
+        #                 "clientOrderID": "",
+        #                 "workingType": ""
+        #             }
+        #         }
+        #     }
         #
-        data = self.safe_value(response, 'data')
-        first = self.safe_value(data, 'order', data)
-        return self.parse_order(first, market)
+        data = self.safe_value(response, 'data', {})
+        order = self.safe_value(data, 'order', data)
+        return self.parse_order(order, market)
+
+    def parse_order_side(self, side):
+        sides = {
+            'BUY': 'buy',
+            'SELL': 'sell',
+            'SHORT': 'sell',
+            'LONG': 'buy',
+        }
+        return self.safe_string(sides, side, side)
 
     def parse_order(self, order, market=None):
         #
@@ -1663,44 +1745,54 @@ class bingx(Exchange, ImplicitAPI):
         #
         # fetchOrder, fetchOpenOrders, fetchClosedOrders
         #
-        #    {
-        #        "symbol": "LINK-USDT",
-        #        "orderId": 1585839271162413056,
-        #        "side": "BUY",
-        #        "positionSide": "LONG",
-        #        "type": "TRIGGER_MARKET",
-        #        "origQty": "5.0",
-        #        "price": "9",
-        #        "executedQty": "0.0",
-        #        "avgPrice": "0",
-        #        "cumQuote": "0",
-        #        "stopPrice": "5",
-        #        "profit": "0.0000",
-        #        "commission": "0.000000",
-        #        "status": "CANCELLED",
-        #        "time": 1667631605000,
-        #        "updateTime": 1667631605000
-        #    }
+        #     {
+        #         "symbol": "BTC-USDT",
+        #         "orderId": 1709036527545438208,
+        #         "side": "BUY",
+        #         "positionSide": "LONG",
+        #         "type": "TRIGGER_LIMIT",
+        #         "origQty": "0.0010",
+        #         "price": "22000.0",
+        #         "executedQty": "0.0000",
+        #         "avgPrice": "0.0",
+        #         "cumQuote": "",
+        #         "stopPrice": "23000.0",
+        #         "profit": "",
+        #         "commission": "",
+        #         "status": "NEW",
+        #         "time": 1696301035187,
+        #         "updateTime": 1696301035187,
+        #         "clientOrderId": "",
+        #         "leverage": "",
+        #         "takeProfit": "",
+        #         "stopLoss": "",
+        #         "advanceAttr": 0,
+        #         "positionID": 0,
+        #         "takeProfitEntrustPrice": 0,
+        #         "stopLossEntrustPrice": 0,
+        #         "orderType": "",
+        #         "workingType": "MARK_PRICE"
+        #     }
         #
-        positionSide = self.safe_string(order, 'positionSide')
+        positionSide = self.safe_string_2(order, 'positionSide', 'ps')
         marketType = 'spot' if (positionSide is None) else 'swap'
-        marketId = self.safe_string(order, 'symbol')
+        marketId = self.safe_string_2(order, 'symbol', 's')
         symbol = self.safe_symbol(marketId, market, '-', marketType)
-        orderId = self.safe_string(order, 'orderId')
-        side = self.safe_string_lower(order, 'side')
-        type = self.safe_string_lower(order, 'type')
-        timestamp = self.safe_integer_2(order, 'time', 'transactTime')
-        lastTradeTimestamp = self.safe_integer(order, 'updateTime')
-        price = self.safe_string(order, 'price')
-        average = self.safe_string(order, 'avgPrice')
-        amount = self.safe_string(order, 'origQty')
-        filled = self.safe_string(order, 'executedQty')
-        statusId = self.safe_string(order, 'status')
+        orderId = self.safe_string_2(order, 'orderId', 'i')
+        side = self.safe_string_lower_2(order, 'side', 'S')
+        type = self.safe_string_lower_2(order, 'type', 'o')
+        timestamp = self.safe_integer_n(order, ['time', 'transactTime', 'E'])
+        lastTradeTimestamp = self.safe_integer_2(order, 'updateTime', 'T')
+        price = self.safe_string_2(order, 'price', 'p')
+        average = self.safe_string_2(order, 'avgPrice', 'ap')
+        amount = self.safe_string_2(order, 'origQty', 'q')
+        filled = self.safe_string_2(order, 'executedQty', 'z')
+        statusId = self.safe_string_2(order, 'status', 'X')
         fee = {
-            'currency': self.safe_string(order, 'feeAsset'),
-            'rate': self.safe_string_2(order, 'fee', 'commission'),
+            'currency': self.safe_string_2(order, 'feeAsset', 'N'),
+            'rate': self.safe_string_n(order, ['fee', 'commission', 'n']),
         }
-        clientOrderId = self.safe_string(order, 'clientOrderId')
+        clientOrderId = self.safe_string_2(order, 'clientOrderId', 'c')
         return self.safe_order({
             'info': order,
             'id': orderId,
@@ -1708,14 +1800,17 @@ class bingx(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
             'postOnly': None,
-            'side': side,
+            'side': self.parse_order_side(side),
             'price': price,
-            'stopPrice': self.safe_number(order, 'triggerPrice'),
-            'triggerPrice': self.safe_number(order, 'triggerPrice'),
+            'stopPrice': self.safe_number(order, 'stopPrice'),
+            'triggerPrice': self.safe_number(order, 'stopPrice'),
+            'stopLossPrice': self.safe_number(order, 'stopLoss'),
+            'takeProfitPrice': self.safe_number(order, 'takeProfit'),
             'average': average,
             'cost': None,
             'amount': amount,

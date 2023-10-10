@@ -69,6 +69,7 @@ class kuna extends Exchange {
                 'api' => array(
                     'xreserve' => 'https://api.xreserve.fund',
                     'v3' => 'https://api.kuna.io',
+                    'v4' => 'https://api.kuna.io',
                     'public' => 'https://kuna.io', // v2
                     'private' => 'https://kuna.io', // v2
                 ),
@@ -85,6 +86,54 @@ class kuna extends Exchange {
                     ),
                     'post' => array(
                         'delegate-transfer' => 1,
+                    ),
+                ),
+                'v4' => array(
+                    'private' => array(
+                        'get' => array(
+                            'me' => 1,
+                            'getBalance' => 1,
+                            'active' => 1,
+                            'order/history' => 1,
+                            'order/private/{id}/trades' => 1,
+                            'order/details/{id}?withTrades={withTrades}' => 1,
+                            'trade/history' => 1,
+                            'transaction/{hash}' => 1,
+                            'deposit/preRequest' => 1,
+                            'deposit/crypto/address' => 1,
+                            'deposit/crypto/getMerchantAddress' => 1,
+                            'deposit/history' => 1,
+                            'deposit/details/{depositId}' => 1,
+                            'withdraw/preRequest' => 1,
+                            'withdraw/history' => 1,
+                            'withdraw/details/{withdrawId}' => 1,
+                            'kuna-code/{id}' => 1,
+                            'kuna-code/{code}/check' => 1,
+                            'kuna-code/issued-by-me' => 1,
+                            'kuna-code/redeemed-by-me' => 1,
+                        ),
+                        'post' => array(
+                            'order/create' => 1,
+                            'order/cancel' => 1,
+                            'order/cancel/multi' => 1,
+                            'deposit/crypto/generateAddress' => 1,
+                            'deposit/crypto/generateMerchantAddress' => 1,
+                            'withdraw/create' => 1,
+                            'kuna-code' => 1,
+                        ),
+                        'put' => array(
+                            'kuna-code/redeem' => 1,
+                        ),
+                    ),
+                    'public' => array(
+                        'get' => array(
+                            'timestamp' => 1,
+                            'fees' => 1,
+                            'currencies?type={type}' => 1,
+                            'markets/getAll' => 1,
+                            'markets/tickers?pairs={pairs}' => 1,
+                            'order/book/{pairs}' => 1,
+                        ),
                     ),
                 ),
                 'v3' => array(
@@ -293,6 +342,9 @@ class kuna extends Exchange {
             'exceptions' => array(
                 '2002' => '\\ccxt\\InsufficientFunds',
                 '2003' => '\\ccxt\\OrderNotFound',
+            ),
+            'options' => array(
+                // 'account' => 'pro'      // Only for pro accounts
             ),
         ));
     }
@@ -872,18 +924,49 @@ class kuna extends Exchange {
         $url = null;
         if (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api))) {
             list($version, $access) = $api;
-            $url = $this->urls['api'][$version] . '/' . $version . '/' . $this->implode_params($path, $params);
-            if ($access === 'public') {
-                if ($method === 'GET') {
-                    if ($params) {
-                        $url .= '?' . $this->urlencode($params);
+            if ($version === 'v3') {
+                $url = $this->urls['api'][$version] . '/' . $version . '/' . $this->implode_params($path, $params);
+                if ($access === 'public') {
+                    if ($method === 'GET') {
+                        if ($params) {
+                            $url .= '?' . $this->urlencode($params);
+                        }
+                    } elseif (($method === 'POST') || ($method === 'PUT')) {
+                        $headers = array( 'Content-Type' => 'application/json' );
+                        $body = $this->json($params);
                     }
-                } elseif (($method === 'POST') || ($method === 'PUT')) {
-                    $headers = array( 'Content-Type' => 'application/json' );
-                    $body = $this->json($params);
+                } elseif ($access === 'private') {
+                    throw new NotSupported($this->id . ' private v3 API is not supported yet');
                 }
-            } elseif ($access === 'private') {
-                throw new NotSupported($this->id . ' private v3 API is not supported yet');
+            } elseif ($version === 'v4') {
+                $splitPath = explode('/', $path);
+                $splitPathLength = count($splitPath);
+                $urlPath = '';
+                if (($splitPathLength > 1) && ($splitPath[0] !== 'kuna-code')) {
+                    $pathTail = '';
+                    for ($i = 1; $i < $splitPathLength; $i++) {
+                        $pathTail .= $splitPath[$i];
+                    }
+                    $urlPath = '/' . $version . '/' . $splitPath[0] . '/' . $access . '/' . $this->implode_params($pathTail, $params);
+                } else {
+                    $urlPath = '/' . $version . '/' . $access . '/' . $this->implode_params($path, $params);
+                }
+                $url = $this->urls['api'][$version] . $urlPath;
+                if ($access === 'private') {
+                    $nonce = $this->nonce();
+                    $auth = $urlPath . $nonce . $this->json($params);
+                    $headers = array(
+                        'content-type' => 'application/json',
+                        'accept' => 'application/json',
+                        'nonce' => $nonce,
+                        'public-key' => $this->apiKey,
+                        'signature' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha384', 'hex'),
+                    );
+                    $account = $this->safe_string($this->options, 'account');
+                    if ($account === 'pro') {
+                        $headers['account'] = 'pro';
+                    }
+                }
             }
         } else {
             $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);

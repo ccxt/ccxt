@@ -76,6 +76,7 @@ interface Exchange {
     subAccountV1PrivatePostUpdateStatus(params?: {}): Promise<implicitReturnType>;
     accountV1PrivateGetUid(params?: {}): Promise<implicitReturnType>;
     accountV1PrivatePostInnerTransferAuthorizeSubAccount(params?: {}): Promise<implicitReturnType>;
+    userAuthPrivatePostUserDataStream(params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivateGetSwapTraceCurrentTrack(params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSwapTraceCloseTrackOrder(params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSwapTraceSetTPSL(params?: {}): Promise<implicitReturnType>;

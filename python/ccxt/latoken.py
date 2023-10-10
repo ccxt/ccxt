@@ -13,7 +13,6 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -44,6 +43,10 @@ class latoken(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createPostOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': False,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -924,16 +927,16 @@ class latoken(Exchange, ImplicitAPI):
         #
         # createOrder
         #
-        #     {
-        #         "orderId":"1563460093.134037.704945@0370:2",
-        #         "cliOrdId":"",
-        #         "pairId":370,
-        #         "symbol":"ETHBTC",
-        #         "side":"sell",
-        #         "orderType":"limit",
-        #         "price":1.0,
-        #         "amount":1.0
-        #     }
+        #    {
+        #        "baseCurrency": "f7dac554-8139-4ff6-841f-0e586a5984a0",
+        #        "quoteCurrency": "a5a7a7a9-e2a3-43f9-8754-29a02f6b709b",
+        #        "side": "BID",
+        #        "clientOrderId": "my-wonderful-order-number-71566",
+        #        "price": "10103.19",
+        #        "stopPrice": "10103.19",
+        #        "quantity": "3.21",
+        #        "timestamp": 1568185507
+        #    }
         #
         # fetchOrder, fetchOpenOrders, fetchOrders
         #
@@ -995,6 +998,7 @@ class latoken(Exchange, ImplicitAPI):
                 status = 'open'
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'condition'))
+        triggerPrice = self.safe_string(order, 'stopPrice')
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1009,8 +1013,8 @@ class latoken(Exchange, ImplicitAPI):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1023,21 +1027,31 @@ class latoken(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
+        see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrdersByPair
+        see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyActiveStopOrdersByPair  # stop
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the latoken api endpoint
+        :param boolean [params.trigger]: True if fetching trigger orders
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+       """
         self.load_markets()
+        response = None
+        market = None
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        params = self.omit(params, 'stop')
+        self.check_required_symbol('fetchOpenOrders', symbol)
+        # privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         market = self.market(symbol)
         request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
-        response = self.privateGetAuthOrderPairCurrencyQuoteActive(self.extend(request, params))
+        if isTrigger:
+            response = self.privateGetAuthStopOrderPairCurrencyQuoteActive(self.extend(request, params))
+        else:
+            response = self.privateGetAuthOrderPairCurrencyQuoteActive(self.extend(request, params))
         #
         #     [
         #         {
@@ -1065,10 +1079,15 @@ class latoken(Exchange, ImplicitAPI):
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
+        see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrders
+        see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrdersByPair
+        see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrders       # stop
+        see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrdersByPair  # stop
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the latoken api endpoint
+        :param boolean [params.trigger]: True if fetching trigger orders
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
@@ -1078,16 +1097,25 @@ class latoken(Exchange, ImplicitAPI):
             # 'from': self.milliseconds(),
             # 'limit': limit,  # default '100'
         }
-        method = 'privateGetAuthOrder'
         market = None
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        params = self.omit(params, ['stop', 'trigger'])
+        if limit is not None:
+            request['limit'] = limit  # default 100
+        response = None
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
             request['quote'] = market['quoteId']
-            method = 'privateGetAuthOrderPairCurrencyQuote'
-        if limit is not None:
-            request['limit'] = limit  # default 100
-        response = getattr(self, method)(self.extend(request, params))
+            if isTrigger:
+                response = self.privateGetAuthStopOrderPairCurrencyQuote(self.extend(request, params))
+            else:
+                response = self.privateGetAuthOrderPairCurrencyQuote(self.extend(request, params))
+        else:
+            if isTrigger:
+                response = self.privateGetAuthStopOrder(self.extend(request, params))
+            else:
+                response = self.privateGetAuthOrder(self.extend(request, params))
         #
         #     [
         #         {
@@ -1115,15 +1143,24 @@ class latoken(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        :param str symbol: not used by latoken fetchOrder
+        see https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
+        see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
+        :param str [symbol]: not used by latoken fetchOrder
         :param dict [params]: extra parameters specific to the latoken api endpoint
+        :param boolean [params.trigger]: True if fetching a trigger order
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         request = {
             'id': id,
         }
-        response = self.privateGetAuthOrderGetOrderId(self.extend(request, params))
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        params = self.omit(params, ['stop', 'trigger'])
+        response = None
+        if isTrigger:
+            response = self.privateGetAuthStopOrderGetOrderId(self.extend(request, params))
+        else:
+            response = self.privateGetAuthOrderGetOrderId(self.extend(request, params))
         #
         #     {
         #         "id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
@@ -1149,12 +1186,19 @@ class latoken(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://api.latoken.com/doc/v2/#tag/Order/operation/placeOrder
+        see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/placeStopOrder  # stop
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the latoken api endpoint
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param str [params.condition]: "GTC", "IOC", or  "FOK"
+        :param str [params.clientOrderId]: [0 .. 50] characters, client's custom order id(free field for your convenience)
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
@@ -1169,39 +1213,55 @@ class latoken(Exchange, ImplicitAPI):
             'clientOrderId': self.uuid(),  # 50 characters max
             # 'price': self.price_to_precision(symbol, price),
             # 'quantity': self.amount_to_precision(symbol, amount),
+            'quantity': self.amount_to_precision(symbol, amount),
+            'timestamp': self.seconds(),
         }
         if uppercaseType == 'LIMIT':
             request['price'] = self.price_to_precision(symbol, price)
-        request['quantity'] = self.amount_to_precision(symbol, amount)
-        request['timestamp'] = self.seconds()
-        response = self.privatePostAuthOrderPlace(self.extend(request, params))
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        params = self.omit(params, ['triggerPrice', 'stopPrice'])
+        response = None
+        if triggerPrice is not None:
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
+            response = self.privatePostAuthStopOrderPlace(self.extend(request, params))
+        else:
+            response = self.privatePostAuthOrderPlace(self.extend(request, params))
         #
-        #     {
-        #         "orderId":"1563460093.134037.704945@0370:2",
-        #         "cliOrdId":"",
-        #         "pairId":370,
-        #         "symbol":"ETHBTC",
-        #         "side":"sell",
-        #         "orderType":"limit",
-        #         "price":1.0,
-        #         "amount":1.0
-        #     }
+        #    {
+        #        "baseCurrency": "f7dac554-8139-4ff6-841f-0e586a5984a0",
+        #        "quoteCurrency": "a5a7a7a9-e2a3-43f9-8754-29a02f6b709b",
+        #        "side": "BID",
+        #        "clientOrderId": "my-wonderful-order-number-71566",
+        #        "price": "10103.19",
+        #        "stopPrice": "10103.19",
+        #        "quantity": "3.21",
+        #        "timestamp": 1568185507
+        #    }
         #
         return self.parse_order(response, market)
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
+        see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
+        see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  # stop
         :param str id: order id
         :param str symbol: not used by latoken cancelOrder()
         :param dict [params]: extra parameters specific to the latoken api endpoint
+        :param boolean [params.trigger]: True if cancelling a trigger order
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         request = {
             'id': id,
         }
-        response = self.privatePostAuthOrderCancel(self.extend(request, params))
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        params = self.omit(params, ['stop', 'trigger'])
+        response = None
+        if isTrigger:
+            response = self.privatePostAuthStopOrderCancel(self.extend(request, params))
+        else:
+            response = self.privatePostAuthOrderCancel(self.extend(request, params))
         #
         #     {
         #         "id": "12345678-1234-1244-1244-123456789012",
@@ -1216,8 +1276,11 @@ class latoken(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders in a market
+        see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
+        see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the latoken api endpoint
+        :param boolean [params.trigger]: True if cancelling trigger orders
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
@@ -1225,14 +1288,23 @@ class latoken(Exchange, ImplicitAPI):
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
         }
-        method = 'privatePostAuthOrderCancelAll'
         market = None
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        params = self.omit(params, ['stop', 'trigger'])
+        response = None
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
             request['quote'] = market['quoteId']
-            method = 'privatePostAuthOrderCancelAllCurrencyQuote'
-        response = getattr(self, method)(self.extend(request, params))
+            if isTrigger:
+                response = self.privatePostAuthStopOrderCancelAllCurrencyQuote(self.extend(request, params))
+            else:
+                response = self.privatePostAuthOrderCancelAllCurrencyQuote(self.extend(request, params))
+        else:
+            if isTrigger:
+                response = self.privatePostAuthStopOrderCancelAll(self.extend(request, params))
+            else:
+                response = self.privatePostAuthOrderCancelAll(self.extend(request, params))
         #
         #     {
         #         "message":"cancellation request successfully submitted",

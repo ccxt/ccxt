@@ -869,14 +869,22 @@ class bitmex extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
              * fetches information on multiple orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitmex api endpoint
+             * @param {int} [$params->until] the earliest time in ms to fetch orders for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params, 100));
+            }
             $market = null;
             $request = array();
             if ($symbol !== null) {
@@ -888,6 +896,11 @@ class bitmex extends Exchange {
             }
             if ($limit !== null) {
                 $request['count'] = $limit;
+            }
+            $until = $this->safe_integer_2($params, 'until', 'endTime');
+            if ($until !== null) {
+                $params = $this->omit($params, array( 'until' ));
+                $request['endTime'] = $this->iso8601($until);
             }
             $request = $this->deep_extend($request, $params);
             // why the hassle? urlencode in python is kinda broken for nested dicts.
@@ -939,14 +952,21 @@ class bitmex extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://www.bitmex.com/api/explorer/#!/Execution/Execution_getTradeHistory
              * fetch all trades made by the user
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitmex api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, 100));
+            }
             $market = null;
             $request = array();
             if ($symbol !== null) {
@@ -958,6 +978,11 @@ class bitmex extends Exchange {
             }
             if ($limit !== null) {
                 $request['count'] = $limit;
+            }
+            $until = $this->safe_integer_2($params, 'until', 'endTime');
+            if ($until !== null) {
+                $params = $this->omit($params, array( 'until' ));
+                $request['endTime'] = $this->iso8601($until);
             }
             $request = $this->deep_extend($request, $params);
             // why the hassle? urlencode in python is kinda broken for nested dicts.
@@ -1416,15 +1441,22 @@ class bitmex extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_getBucketed
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] $timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the bitmex api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params));
+            }
             // send JSON key/value pairs, such as array("key" => "value")
             // $filter by individual fields and do advanced queries on timestamps
             // $filter = array( 'key' => 'value' );
@@ -1444,6 +1476,11 @@ class bitmex extends Exchange {
             );
             if ($limit !== null) {
                 $request['count'] = $limit; // default 100, max 500
+            }
+            $until = $this->safe_integer_2($params, 'until', 'endTime');
+            if ($until !== null) {
+                $params = $this->omit($params, array( 'until' ));
+                $request['endTime'] = $this->iso8601($until);
             }
             $duration = $this->parse_timeframe($timeframe) * 1000;
             $fetchOHLCVOpenTimestamp = $this->safe_value($this->options, 'fetchOHLCVOpenTimestamp', true);
@@ -1729,14 +1766,21 @@ class bitmex extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_get
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the bitmex api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1749,6 +1793,11 @@ class bitmex extends Exchange {
             }
             if ($limit !== null) {
                 $request['count'] = min ($limit, 1000); // api maximum 1000
+            }
+            $until = $this->safe_integer_2($params, 'until', 'endTime');
+            if ($until !== null) {
+                $params = $this->omit($params, array( 'until' ));
+                $request['endTime'] = $this->iso8601($until);
             }
             $response = Async\await($this->publicGetTrade (array_merge($request, $params)));
             //

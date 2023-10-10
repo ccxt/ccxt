@@ -837,14 +837,21 @@ class bitmex(Exchange, ImplicitAPI):
 
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://www.bitmex.com/api/explorer/#not /Order/Order_getOrders
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param int [params.until]: the earliest time in ms to fetch orders for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params, 100)
         market = None
         request = {}
         if symbol is not None:
@@ -854,6 +861,10 @@ class bitmex(Exchange, ImplicitAPI):
             request['startTime'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
+        until = self.safe_integer_2(params, 'until', 'endTime')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['endTime'] = self.iso8601(until)
         request = self.deep_extend(request, params)
         # why the hassle? urlencode in python is kinda broken for nested dicts.
         # E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
@@ -894,14 +905,20 @@ class bitmex(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://www.bitmex.com/api/explorer/#not /Execution/Execution_getTradeHistory
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, 100)
         market = None
         request = {}
         if symbol is not None:
@@ -911,6 +928,10 @@ class bitmex(Exchange, ImplicitAPI):
             request['startTime'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
+        until = self.safe_integer_2(params, 'until', 'endTime')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['endTime'] = self.iso8601(until)
         request = self.deep_extend(request, params)
         # why the hassle? urlencode in python is kinda broken for nested dicts.
         # E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
@@ -1333,15 +1354,21 @@ class bitmex(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://www.bitmex.com/api/explorer/#not /Trade/Trade_getBucketed
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params)
         # send JSON key/value pairs, such as {"key": "value"}
         # filter by individual fields and do advanced queries on timestamps
         # filter = {'key': 'value'}
@@ -1361,6 +1388,10 @@ class bitmex(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['count'] = limit  # default 100, max 500
+        until = self.safe_integer_2(params, 'until', 'endTime')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['endTime'] = self.iso8601(until)
         duration = self.parse_timeframe(timeframe) * 1000
         fetchOHLCVOpenTimestamp = self.safe_value(self.options, 'fetchOHLCVOpenTimestamp', True)
         # if since is not set, they will return candles starting from 2017-01-01
@@ -1628,14 +1659,20 @@ class bitmex(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://www.bitmex.com/api/explorer/#not /Trade/Trade_get
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1647,6 +1684,10 @@ class bitmex(Exchange, ImplicitAPI):
             request['reverse'] = True
         if limit is not None:
             request['count'] = min(limit, 1000)  # api maximum 1000
+        until = self.safe_integer_2(params, 'until', 'endTime')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['endTime'] = self.iso8601(until)
         response = self.publicGetTrade(self.extend(request, params))
         #
         #     [
