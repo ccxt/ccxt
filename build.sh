@@ -134,6 +134,8 @@ for exchange in "${WS_EXCHANGES[@]}"; do
 done
 # faster version of post-transpile
 npm run check-php-syntax
+
+echo "$msgPrefix Linting python files: ${PYTHON_FILES[@]}"
 ruff ${PYTHON_FILES[*]}
 
 
