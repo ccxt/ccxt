@@ -19,6 +19,7 @@
         "skipWs": true
     },
     "ascendex": {
+        "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -49,6 +50,7 @@
     "binance": {
         "httpProxy": "http://5.75.153.75:8002",
         "skipWs": true,
+        "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC",
@@ -1093,6 +1095,7 @@
         }
     },
     "phemex": {
+        "skipPhpAsync": true,
         "skipMethods": {
             "loadMarkets": {
                 "contractSize": "broken for some markets",
@@ -1196,6 +1199,7 @@
     },
     "kraken": {
         "skipWs": true,
+        "skipPhpAsync": true,
         "skipMethods": {
             "fetchCurrencies": {
                 "withdraw": "undefined",
