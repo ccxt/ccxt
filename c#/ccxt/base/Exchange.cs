@@ -379,9 +379,9 @@ public partial class Exchange
         return this.currencies;
     }
 
-    public void log(string s)
+    public void log(object s)
     {
-        Console.WriteLine(s);
+        Console.WriteLine((string)s);
     }
 
     public string totp(object a)
