@@ -525,6 +525,23 @@ public partial class Exchange
         }
     }
 
+    public struct FundingRateHistory
+    {
+        public string? symbol;
+        public Int64? timestamp;
+        public string? datetime;
+        public double? fundingRate;
+
+        public FundingRateHistory(object fundingRateEntry)
+        {
+            symbol = SafeString(fundingRateEntry, "symbol");
+            datetime = SafeString(fundingRateEntry, "datetime");
+            timestamp = SafeInteger(fundingRateEntry, "timestamp");
+            fundingRate = SafeFloat(fundingRateEntry, "fundingRate");
+        }
+    }
+
+
     public struct Transaction
     {
         public string? id;
