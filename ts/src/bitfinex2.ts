@@ -601,6 +601,7 @@ export default class bitfinex2 extends Exchange {
             'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
             'pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745,
             'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
+            'pub:info:tx:status', // provides withdrawal/deposit statuses 1 = active, 0 = disabled
         ];
         const config = labels.join (',');
         const request = {
@@ -693,6 +694,7 @@ export default class bitfinex2 extends Exchange {
             'pool': this.indexBy (this.safeValue (response, 5, []), 0),
             'explorer': this.indexBy (this.safeValue (response, 6, []), 0),
             'fees': this.indexBy (this.safeValue (response, 7, []), 0),
+            'networkStatus': this.indexBy (this.safeValue (response, 9, []), 0),
         };
         const ids = this.safeValue (response, 0, []);
         const result = {};
@@ -714,6 +716,40 @@ export default class bitfinex2 extends Exchange {
             const undl = this.safeValue (indexed['undl'], id, []);
             const precision = '8'; // default precision, todo: fix "magic constants"
             const fid = 'f' + id;
+            let isWithdrawEnabled = false;
+            let isDepositEnabled = false;
+            const networks = {};
+            const currencyNetworks = this.safeValue (response, 8, []);
+            const cleanId = id.replace ('F0', '');
+            for (let j = 0; j < currencyNetworks.length; j++) {
+                const pair = currencyNetworks[j];
+                const networkId = this.safeString (pair, 0);
+                const currencyId = this.safeString (this.safeValue (pair, 1, []), 0);
+                if (currencyId === cleanId) {
+                    const network = rawType ?? this.safeNetwork (networkId);
+                    const networkStatus = this.safeValue (indexed['networkStatus'], networkId, []);
+                    const depositEnable = this.safeInteger (networkStatus, 1, 0) === 1;
+                    const withdrawEnable = this.safeInteger (networkStatus, 2, 0) === 1;
+                    isDepositEnabled = depositEnable || isDepositEnabled;
+                    isWithdrawEnabled = withdrawEnable || isWithdrawEnabled;
+                    networks[network] = {
+                        'info': networkId,
+                        'id': networkId.toLowerCase (),
+                        'network': network,
+                        'active': depositEnable && withdrawEnable,
+                        'deposit': depositEnable,
+                        'withdraw': withdrawEnable,
+                        'fee': undefined,
+                        'precision': undefined,
+                        'limits': {
+                            'withdraw': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                    };
+                }
+            }
             result[code] = {
                 'id': fid,
                 'uppercaseId': id,
@@ -721,9 +757,9 @@ export default class bitfinex2 extends Exchange {
                 'info': [ id, label, pool, feeValues, undl ],
                 'type': type,
                 'name': name,
-                'active': true,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'active': isWithdrawEnabled && isDepositEnabled,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'precision': parseInt (precision),
                 'limits': {
@@ -738,33 +774,6 @@ export default class bitfinex2 extends Exchange {
                 },
                 'networks': {},
             };
-            const networks = {};
-            const currencyNetworks = this.safeValue (response, 8, []);
-            const cleanId = id.replace ('F0', '');
-            for (let j = 0; j < currencyNetworks.length; j++) {
-                const pair = currencyNetworks[j];
-                const networkId = this.safeString (pair, 0);
-                const currencyId = this.safeString (this.safeValue (pair, 1, []), 0);
-                if (currencyId === cleanId) {
-                    const network = rawType ?? this.safeNetwork (networkId);
-                    networks[network] = {
-                        'info': networkId,
-                        'id': networkId.toLowerCase (),
-                        'network': network,
-                        'active': undefined,
-                        'deposit': undefined,
-                        'withdraw': undefined,
-                        'fee': undefined,
-                        'precision': undefined,
-                        'limits': {
-                            'withdraw': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                        },
-                    };
-                }
-            }
             const keysNetworks = Object.keys (networks);
             const networksLength = keysNetworks.length;
             if (networksLength > 0) {

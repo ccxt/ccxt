@@ -1546,18 +1546,18 @@ export default class bybit extends Exchange {
             let minWithdrawFeeString = undefined;
             let minWithdrawString = undefined;
             let minDepositString = undefined;
-            let deposit = false;
-            let withdraw = false;
+            let isTokenDepositable = false;
+            let isTokenWithdrawable = false;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
                 const networkCode = this.networkIdToCode (networkId);
                 const precision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'minAccuracy')));
                 minPrecision = (minPrecision === undefined) ? precision : Math.min (minPrecision, precision);
-                const depositAllowed = this.safeInteger (chain, 'chainDeposit') === 1;
-                deposit = (depositAllowed) ? depositAllowed : deposit;
-                const withdrawAllowed = this.safeInteger (chain, 'chainWithdraw') === 1;
-                withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
+                const isDepositEnabled = this.safeInteger (chain, 'chainDeposit') === 1;
+                const isWithdrawalEnabled = this.safeInteger (chain, 'chainWithdraw') === 1;
+                isTokenDepositable = isDepositEnabled || isTokenDepositable;
+                isTokenWithdrawable = isWithdrawalEnabled || isTokenWithdrawable;
                 const withdrawFeeString = this.safeString (chain, 'withdrawFee');
                 if (withdrawFeeString !== undefined) {
                     minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise.stringMin (withdrawFeeString, minWithdrawFeeString);
@@ -1574,9 +1574,9 @@ export default class bybit extends Exchange {
                     'info': chain,
                     'id': networkId,
                     'network': networkCode,
-                    'active': depositAllowed && withdrawAllowed,
-                    'deposit': depositAllowed,
-                    'withdraw': withdrawAllowed,
+                    'active': isDepositEnabled && isWithdrawalEnabled,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawalEnabled,
                     'fee': this.parseNumber (withdrawFeeString),
                     'precision': precision,
                     'limits': {
@@ -1596,9 +1596,9 @@ export default class bybit extends Exchange {
                 'code': code,
                 'id': currencyId,
                 'name': name,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': isTokenDepositable && isTokenWithdrawable,
+                'deposit': isTokenDepositable,
+                'withdraw': isTokenWithdrawable,
                 'fee': this.parseNumber (minWithdrawFeeString),
                 'precision': minPrecision,
                 'limits': {

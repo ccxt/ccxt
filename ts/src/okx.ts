@@ -1577,17 +1577,17 @@ export default class okx extends Exchange {
             const chains = dataByCurrencyId[currencyId];
             const networks = {};
             let currencyActive = false;
-            let depositEnabled = false;
-            let withdrawEnabled = false;
+            let isTokenDepositable = false;
+            let isTokenWithdrawable = false;
             let maxPrecision = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const canDeposit = this.safeValue (chain, 'canDep');
-                depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
-                const canWithdraw = this.safeValue (chain, 'canWd');
-                withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
+                const isDepositEnabled = this.safeValue (chain, 'canDep');
+                const isWithdrawalEnabled = this.safeValue (chain, 'canWd');
+                isTokenDepositable = isDepositEnabled || isTokenDepositable;
+                isTokenWithdrawable = isWithdrawalEnabled || isTokenWithdrawable;
                 const canInternal = this.safeValue (chain, 'canInternal');
-                const active = (canDeposit && canWithdraw && canInternal) ? true : false;
+                const active = (isDepositEnabled && isWithdrawalEnabled && canInternal) ? true : false;
                 currencyActive = (active) ? active : currencyActive;
                 const networkId = this.safeString (chain, 'chain');
                 if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
@@ -1604,8 +1604,8 @@ export default class okx extends Exchange {
                         'id': networkId,
                         'network': networkCode,
                         'active': active,
-                        'deposit': canDeposit,
-                        'withdraw': canWithdraw,
+                        'deposit': isDepositEnabled,
+                        'withdraw': isWithdrawalEnabled,
                         'fee': this.safeNumber (chain, 'minFee'),
                         'precision': this.parseNumber (precision),
                         'limits': {
@@ -1625,8 +1625,8 @@ export default class okx extends Exchange {
                 'id': currencyId,
                 'name': this.safeString (firstChain, 'name'),
                 'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'deposit': isTokenDepositable,
+                'withdraw': isTokenWithdrawable,
                 'fee': undefined,
                 'precision': this.parseNumber (maxPrecision),
                 'limits': {
