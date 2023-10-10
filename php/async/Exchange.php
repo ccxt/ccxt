@@ -143,9 +143,9 @@ class Exchange extends \ccxt\Exchange {
             $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
             if ($userAgent) {
                 if (gettype($userAgent) === 'string') {
-                    $headers = $this->extend(['User-Agent' => $userAgent], $headers);
+                    $headers = array_merge(['User-Agent' => $userAgent], $headers);
                 } elseif ((gettype($userAgent) === 'array') && array_key_exists('User-Agent', $userAgent)) {
-                    $headers = $this->extend($userAgent, $headers);
+                    $headers = array_merge($userAgent, $headers);
                 }
             }
             // set final headers
@@ -368,7 +368,7 @@ class Exchange extends \ccxt\Exchange {
         return null;
     }
 
-    public function check_proxy_url_settings($url, $method, $headers, $body) {
+    public function check_proxy_url_settings($url = null, $method = null, $headers = null, $body = null) {
         $proxyUrl = ($this->proxyUrl !== null) ? $this->proxyUrl : $this->proxy_url;
         $proxyUrlCallback = ($this->proxyUrlCallback !== null) ? $this->proxyUrlCallback : $this->proxy_url_callback;
         if ($proxyUrlCallback !== null) {
@@ -393,12 +393,6 @@ class Exchange extends \ccxt\Exchange {
             throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : $proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
         return $proxyUrl;
-    }
-
-    public function check_conflicting_proxies($proxyAgentSet, $proxyUrlSet) {
-        if ($proxyAgentSet && $proxyUrlSet) {
-            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
-        }
     }
 
     public function check_proxy_settings($url = null, $method = null, $headers = null, $body = null) {
@@ -440,6 +434,12 @@ class Exchange extends \ccxt\Exchange {
             throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, $httpProxy, $httpsProxy, socksProxy');
         }
         return array( $httpProxy, $httpsProxy, $socksProxy );
+    }
+
+    public function check_conflicting_proxies($proxyAgentSet, $proxyUrlSet) {
+        if ($proxyAgentSet && $proxyUrlSet) {
+            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
     }
 
     public function find_message_hashes($client, string $element) {
