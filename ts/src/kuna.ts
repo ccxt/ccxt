@@ -375,6 +375,7 @@ export default class kuna extends Exchange {
          * @method
          * @name kuna#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://docs.kuna.io/docs/get-time-on-the-server
          * @param {object} [params] extra parameters specific to the kuna api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -393,6 +394,7 @@ export default class kuna extends Exchange {
          * @method
          * @name kuna#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.kuna.io/docs/get-information-about-available-currencies
          * @param {object} [params] extra parameters specific to the kuna api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -487,6 +489,7 @@ export default class kuna extends Exchange {
          * @method
          * @name kuna#fetchMarkets
          * @description retrieves data on all markets for kuna
+         * @see https://docs.kuna.io/docs/get-all-traded-markets
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -575,6 +578,7 @@ export default class kuna extends Exchange {
          * @method
          * @name kuna#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.kuna.io/docs/get-public-orders-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] 5, 10, 20, 50, 100, 500, or 1000 (default)
          * @param {object} [params] extra parameters specific to the kuna api endpoint
@@ -660,11 +664,15 @@ export default class kuna extends Exchange {
          * @method
          * @name kuna#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market. The average is not returned in the response, but the median can be accessed via response['info']['price']
+         * @see https://docs.kuna.io/docs/get-market-info-by-tickers
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the kuna api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers () requires a symbols argument');
+        }
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
         const request = {
@@ -697,6 +705,7 @@ export default class kuna extends Exchange {
          * @method
          * @name kuna#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.kuna.io/docs/get-market-info-by-tickers
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the kuna api endpoint
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
@@ -748,6 +757,7 @@ export default class kuna extends Exchange {
          * @method
          * @name kuna#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.kuna.io/docs/get-public-trades-book
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] between 1 and 100, 25 by default
