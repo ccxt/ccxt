@@ -105,7 +105,6 @@ interface Exchange {
     privatePortfolioPatchSpotOrdersOrderId (params?: {}): Promise<implicitReturnType>;
     privateSpotGetFee (params?: {}): Promise<implicitReturnType>;
     privateSpotGetBatchFee (params?: {}): Promise<implicitReturnType>;
-    privateAccountGetDetail (params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccounts (params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccountBook (params?: {}): Promise<implicitReturnType>;
     privateSpotGetOpenOrders (params?: {}): Promise<implicitReturnType>;

@@ -587,213 +587,6 @@ export default class kucoin extends Exchange {
                     'mining': 'pool',
                     'hf': 'trade_hf',
                 },
-                'networks': {
-                    'BTC': 'btc',
-                    'BTCNATIVESEGWIT': 'bech32',
-                    'ERC20': 'eth',
-                    'TRC20': 'trx',
-                    'HRC20': 'heco',
-                    'MATIC': 'matic',
-                    'KCC': 'kcc', // kucoin community chain
-                    'SOL': 'sol',
-                    'ALGO': 'algo',
-                    'EOS': 'eos',
-                    'BEP20': 'bsc',
-                    'BEP2': 'bnb',
-                    'ARBONE': 'arbitrum',
-                    'AVAXX': 'avax',
-                    'AVAXC': 'avaxc',
-                    'TLOS': 'tlos', // tlosevm is different
-                    'CFX': 'cfx',
-                    'ACA': 'aca',
-                    'OPTIMISM': 'optimism',
-                    'ONT': 'ont',
-                    'GLMR': 'glmr',
-                    'CSPR': 'cspr',
-                    'KLAY': 'klay',
-                    'XRD': 'xrd',
-                    'RVN': 'rvn',
-                    'NEAR': 'near',
-                    'APT': 'aptos',
-                    'ETHW': 'ethw',
-                    'TON': 'ton',
-                    'BCH': 'bch',
-                    'BSV': 'bchsv',
-                    'BCHA': 'bchabc',
-                    'OSMO': 'osmo',
-                    'NANO': 'nano',
-                    'XLM': 'xlm',
-                    'VET': 'vet',
-                    'IOST': 'iost',
-                    'ZIL': 'zil',
-                    'XRP': 'xrp',
-                    'TOMO': 'tomo',
-                    'XMR': 'xmr',
-                    'COTI': 'coti',
-                    'XTZ': 'xtz',
-                    'ADA': 'ada',
-                    'WAX': 'waxp',
-                    'THETA': 'theta',
-                    'ONE': 'one',
-                    'IOTEX': 'iotx',
-                    'NULS': 'nuls',
-                    'KSM': 'ksm',
-                    'LTC': 'ltc',
-                    'WAVES': 'waves',
-                    'DOT': 'dot',
-                    'STEEM': 'steem',
-                    'QTUM': 'qtum',
-                    'DOGE': 'doge',
-                    'FIL': 'fil',
-                    'XYM': 'xym',
-                    'FLUX': 'flux',
-                    'ATOM': 'atom',
-                    'XDC': 'xdc',
-                    'KDA': 'kda',
-                    'ICP': 'icp',
-                    'CELO': 'celo',
-                    'LSK': 'lsk',
-                    'VSYS': 'vsys',
-                    'KAR': 'kar',
-                    'XCH': 'xch',
-                    'FLOW': 'flow',
-                    'BAND': 'band',
-                    'EGLD': 'egld',
-                    'HBAR': 'hbar',
-                    'XPR': 'xpr',
-                    'AR': 'ar',
-                    'FTM': 'ftm',
-                    'KAVA': 'kava',
-                    'KMA': 'kma',
-                    'XEC': 'xec',
-                    'IOTA': 'iota',
-                    'HNT': 'hnt',
-                    'ASTR': 'astr',
-                    'PDEX': 'pdex',
-                    'METIS': 'metis',
-                    'ZEC': 'zec',
-                    'POKT': 'pokt',
-                    'OASYS': 'oas',
-                    'OASIS': 'oasis', // a.k.a. ROSE
-                    'ETC': 'etc',
-                    'AKT': 'akt',
-                    'FSN': 'fsn',
-                    'SCRT': 'scrt',
-                    'CFG': 'cfg',
-                    'ICX': 'icx',
-                    'KMD': 'kmd',
-                    'NEM': 'NEM',
-                    'STX': 'stx',
-                    'DGB': 'dgb',
-                    'DCR': 'dcr',
-                    'CKB': 'ckb', // ckb2 is just odd entry
-                    'ELA': 'ela', // esc might be another chain elastos smart chain
-                    'HYDRA': 'hydra',
-                    'BTM': 'btm',
-                    'KARDIA': 'kai',
-                    'SXP': 'sxp', // a.k.a. solar swipe
-                    'NEBL': 'nebl',
-                    'ZEN': 'zen',
-                    'SDN': 'sdn',
-                    'LTO': 'lto',
-                    'WEMIX': 'wemix',
-                    // 'BOBA': 'boba', // tbd
-                    'EVER': 'ever',
-                    'BNC': 'bnc',
-                    'BNCDOT': 'bncdot',
-                    // 'CMP': 'cmp', // todo: after consensus
-                    'AION': 'aion',
-                    'GRIN': 'grin',
-                    'LOKI': 'loki',
-                    'QKC': 'qkc',
-                    'TT': 'TT',
-                    'PIVX': 'pivx',
-                    'SERO': 'sero',
-                    'METER': 'meter',
-                    'STATEMINE': 'statemine', // a.k.a. RMRK
-                    'DVPN': 'dvpn',
-                    'XPRT': 'xprt',
-                    'MOVR': 'movr',
-                    'ERGO': 'ergo',
-                    'ABBC': 'abbc',
-                    'DIVI': 'divi',
-                    'PURA': 'pura',
-                    'DFI': 'dfi',
-                    // 'NEO': 'neo', // tbd neo legacy
-                    'NEON3': 'neon3',
-                    'DOCK': 'dock',
-                    'TRUE': 'true',
-                    'CS': 'cs',
-                    'ORAI': 'orai',
-                    // below will be uncommented after consensus
-                    // 'BITCOINDIAMON': 'bcd',
-                    // 'BITCOINGOLD': 'btg',
-                    // 'HTR': 'htr',
-                    // 'DEROHE': 'derohe',
-                    // 'NDAU': 'ndau',
-                    // 'HPB': 'hpb',
-                    // 'AXE': 'axe',
-                    // 'BITCOINPRIVATE': 'btcp',
-                    // 'EDGEWARE': 'edg',
-                    // 'JUPITER': 'jup',
-                    // 'VELAS': 'vlx', // vlxevm is different
-                    // // 'terra' luna lunc TBD
-                    // 'DIGITALBITS': 'xdb',
-                    // // fra is fra-emv on kucoin
-                    // 'PASTEL': 'psl',
-                    // // sysevm
-                    // 'CONCORDIUM': 'ccd',
-                    // 'AURORA': 'aurora',
-                    // 'PHA': 'pha', // a.k.a. khala
-                    // 'PAL': 'pal',
-                    // 'RSK': 'rbtc',
-                    // 'NIX': 'nix',
-                    // 'NIM': 'nim',
-                    // 'NRG': 'nrg',
-                    // 'RFOX': 'rfox',
-                    // 'PIONEER': 'neer',
-                    // 'PIXIE': 'pix',
-                    // 'ALEPHZERO': 'azero',
-                    // 'ACHAIN': 'act', // actevm is different
-                    // 'BOSCOIN': 'bos',
-                    // 'ELECTRONEUM': 'etn',
-                    // 'GOCHAIN': 'go',
-                    // 'SOPHIATX': 'sphtx',
-                    // 'WANCHAIN': 'wan',
-                    // 'ZEEPIN': 'zpt',
-                    // 'MATRIXAI': 'man',
-                    // 'METADIUM': 'meta',
-                    // 'METAHASH': 'mhc',
-                    // // eosc --"eosforce" tbd
-                    // 'IOTCHAIN': 'itc',
-                    // 'CONTENTOS': 'cos',
-                    // 'CPCHAIN': 'cpc',
-                    // 'INTCHAIN': 'int',
-                    // // 'DASH': 'dash', tbd digita-cash
-                    // 'WALTONCHAIN': 'wtc',
-                    // 'CONSTELLATION': 'dag',
-                    // 'ONELEDGER': 'olt',
-                    // 'AIRDAO': 'amb', // a.k.a. AMBROSUS
-                    // 'ENERGYWEB': 'ewt',
-                    // 'WAVESENTERPRISE': 'west',
-                    // 'HYPERCASH': 'hc',
-                    // 'ENECUUM': 'enq',
-                    // 'HAVEN': 'xhv',
-                    // 'CHAINX': 'pcx',
-                    // // 'FLUXOLD': 'zel', // zel seems old chain (with uppercase FLUX in kucoin UI and with id 'zel')
-                    // 'BUMO': 'bu',
-                    // 'DEEPONION': 'onion',
-                    // 'ULORD': 'ut',
-                    // 'ASCH': 'xas',
-                    // 'SOLARIS': 'xlr',
-                    // 'APOLLO': 'apl',
-                    // 'PIRATECHAIN': 'arrr',
-                    // 'ULTRA': 'uos',
-                    // 'EMONEY': 'ngm',
-                    // 'AURORACHAIN': 'aoa',
-                    // 'KLEVER': 'klv',
-                    // undetermined: xns(insolar), rhoc, luk (luniverse), kts (klimatas), bchn (bitcoin cash node), god (shallow entry), lit (litmus),
-                },
                 'marginModes': {
                     'cross': 'MARGIN_TRADE',
                     'isolated': 'MARGIN_ISOLATED_TRADE',
@@ -1088,8 +881,8 @@ export default class kucoin extends Exchange {
             const id = this.safeString (entry, 'currency');
             const name = this.safeString (entry, 'fullName');
             const code = this.safeCurrencyCode (id);
-            let isWithdrawEnabled = undefined;
-            let isDepositEnabled = undefined;
+            let isTokenWithdrawable = false;
+            let isTokenDepositable = false;
             const networks = {};
             const chains = this.safeValue (entry, 'chains', []);
             const extraChainsData = this.indexBy (this.safeValue (additionalDataGrouped, id, []), 'chain');
@@ -1100,28 +893,20 @@ export default class kucoin extends Exchange {
                 const chain = chains[j];
                 const chainId = this.safeString (chain, 'chain');
                 const networkCode = this.networkIdToCode (chainId);
-                const chainWithdrawEnabled = this.safeValue (chain, 'isWithdrawEnabled', false);
-                if (isWithdrawEnabled === undefined) {
-                    isWithdrawEnabled = chainWithdrawEnabled;
-                } else {
-                    isWithdrawEnabled = isWithdrawEnabled || chainWithdrawEnabled;
-                }
-                const chainDepositEnabled = this.safeValue (chain, 'isDepositEnabled', false);
-                if (isDepositEnabled === undefined) {
-                    isDepositEnabled = chainDepositEnabled;
-                } else {
-                    isDepositEnabled = isDepositEnabled || chainDepositEnabled;
-                }
+                const isWithdrawalEnabled = this.safeValue (chain, 'isWithdrawEnabled', false);
+                const isDepositEnabled = this.safeValue (chain, 'isDepositEnabled', false);
+                isTokenDepositable = isDepositEnabled || isTokenDepositable;
+                isTokenWithdrawable = isWithdrawalEnabled || isTokenWithdrawable;
                 const chainExtraData = this.safeValue (extraChainsData, chainId, {});
                 networks[networkCode] = {
                     'info': chain,
                     'id': chainId,
                     'name': this.safeString (chain, 'chainName'),
                     'code': networkCode,
-                    'active': chainWithdrawEnabled && chainDepositEnabled,
+                    'active': isWithdrawalEnabled && isDepositEnabled,
                     'fee': this.safeNumber (chain, 'withdrawalMinFee'),
-                    'deposit': chainDepositEnabled,
-                    'withdraw': chainWithdrawEnabled,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawalEnabled,
                     'precision': this.parseNumber (this.parsePrecision (this.safeString (chainExtraData, 'walletPrecision'))),
                     'limits': {
                         'withdraw': {
@@ -1144,9 +929,9 @@ export default class kucoin extends Exchange {
                 'type': isFiat ? 'fiat' : 'crypto',
                 'precision': precision,
                 'info': entry,
-                'active': (isDepositEnabled || isWithdrawEnabled),
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
+                'active': (isTokenDepositable || isTokenWithdrawable),
+                'deposit': isTokenDepositable,
+                'withdraw': isTokenWithdrawable,
                 'fee': undefined,
                 'limits': this.limits,
                 'networks': networks,

@@ -1594,11 +1594,11 @@ export default class gate extends Exchange {
             const withdrawDisabled = this.safeValue (entry, 'withdraw_disabled', false);
             const depositDisabled = this.safeValue (entry, 'deposit_disabled', false);
             const tradeDisabled = this.safeValue (entry, 'trade_disabled', false);
-            const withdrawEnabled = !withdrawDisabled;
-            const depositEnabled = !depositDisabled;
+            const isWithdrawalEnabled = !withdrawDisabled;
+            const isDepositEnabled = !depositDisabled;
             const tradeEnabled = !tradeDisabled;
             const listed = !delisted;
-            const active = listed && tradeEnabled && withdrawEnabled && depositEnabled;
+            const active = listed && tradeEnabled && isWithdrawalEnabled && isDepositEnabled;
             if (this.safeValue (result, code) === undefined) {
                 result[code] = {
                     'id': code.toLowerCase (),
@@ -1606,8 +1606,8 @@ export default class gate extends Exchange {
                     'info': undefined,
                     'name': undefined,
                     'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawalEnabled,
                     'fee': undefined,
                     'fees': [],
                     'precision': this.parseNumber ('1e-4'),
@@ -1615,10 +1615,10 @@ export default class gate extends Exchange {
                     'networks': {},
                 };
             }
-            let depositAvailable = this.safeValue (result[code], 'deposit');
-            depositAvailable = (depositEnabled) ? depositEnabled : depositAvailable;
-            let withdrawAvailable = this.safeValue (result[code], 'withdraw');
-            withdrawAvailable = (withdrawEnabled) ? withdrawEnabled : withdrawAvailable;
+            let isTokenDepositable = this.safeValue (result[code], 'deposit');
+            let isTokenWithdrawable = this.safeValue (result[code], 'withdraw');
+            isTokenDepositable = isDepositEnabled || isTokenDepositable;
+            isTokenWithdrawable = isWithdrawalEnabled || isTokenWithdrawable;
             const networks = this.safeValue (result[code], 'networks', {});
             networks[networkCode] = {
                 'info': entry,
@@ -1626,8 +1626,8 @@ export default class gate extends Exchange {
                 'network': networkCode,
                 'currencyId': currencyId,
                 'lowerCaseCurrencyId': currencyIdLower,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawalEnabled,
                 'active': active,
                 'fee': undefined,
                 'precision': this.parseNumber ('1e-4'),
@@ -1650,9 +1650,9 @@ export default class gate extends Exchange {
             const info = this.safeValue (result[code], 'info', []);
             info.push (entry);
             result[code]['info'] = info;
-            result[code]['active'] = depositAvailable && withdrawAvailable;
-            result[code]['deposit'] = depositAvailable;
-            result[code]['withdraw'] = withdrawAvailable;
+            result[code]['active'] = isTokenDepositable && isTokenWithdrawable;
+            result[code]['deposit'] = isTokenDepositable;
+            result[code]['withdraw'] = isTokenWithdrawable;
         }
         return result;
     }
@@ -2168,6 +2168,7 @@ export default class gate extends Exchange {
             'info': fee,
             'withdraw': {
                 'fee': this.safeNumber (fee, 'withdraw_fix'),
+                'min': this.safeNumber (fee, 'withdraw_amount_mini'),
                 'percentage': false,
             },
             'deposit': {

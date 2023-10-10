@@ -2918,8 +2918,8 @@ export default class huobi extends Exchange {
             let minPrecision = undefined;
             let minWithdraw = undefined;
             let maxWithdraw = undefined;
-            let deposit = false;
-            let withdraw = false;
+            let isTokenDepositable = false;
+            let isTokenWithdrawable = false;
             for (let j = 0; j < chains.length; j++) {
                 const chainEntry = chains[j];
                 const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
@@ -2928,11 +2928,11 @@ export default class huobi extends Exchange {
                 maxWithdraw = this.safeNumber (chainEntry, 'maxWithdrawAmt');
                 const withdrawStatus = this.safeString (chainEntry, 'withdrawStatus');
                 const depositStatus = this.safeString (chainEntry, 'depositStatus');
-                const withdrawEnabled = (withdrawStatus === 'allowed');
-                const depositEnabled = (depositStatus === 'allowed');
-                withdraw = (withdrawEnabled) ? withdrawEnabled : withdraw;
-                deposit = (depositEnabled) ? depositEnabled : deposit;
-                const active = withdrawEnabled && depositEnabled;
+                const isWithdrawalEnabled = (withdrawStatus === 'allowed');
+                const isDepositEnabled = (depositStatus === 'allowed');
+                isTokenDepositable = isDepositEnabled || isTokenDepositable;
+                isTokenWithdrawable = isWithdrawalEnabled || isTokenWithdrawable;
+                const active = isWithdrawalEnabled && isDepositEnabled;
                 const precision = this.parsePrecision (this.safeString (chainEntry, 'withdrawPrecision'));
                 if (precision !== undefined) {
                     minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
@@ -2954,8 +2954,8 @@ export default class huobi extends Exchange {
                         },
                     },
                     'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawalEnabled,
                     'fee': fee,
                     'precision': this.parseNumber (precision),
                 };
@@ -2965,8 +2965,8 @@ export default class huobi extends Exchange {
                 'code': code,
                 'id': currencyId,
                 'active': currencyActive,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'deposit': isTokenDepositable,
+                'withdraw': isTokenWithdrawable,
                 'fee': undefined,
                 'name': undefined,
                 'limits': {
