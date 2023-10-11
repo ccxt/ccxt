@@ -6388,7 +6388,7 @@ export default class gate extends Exchange {
         if (!market['swap']) {
             throw new NotSupported (this.id + ' fetchLiquidations() supports swap markets only');
         }
-        const request = {
+        let request = {
             'settle': market['settleId'],
             'contract': market['id'],
         };
@@ -6398,11 +6398,7 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeIntegerN (params, [ 'until', 'till', 'to' ]);
-        params = this.omit (params, [ 'until', 'till' ]);
-        if (until !== undefined) {
-            request['to'] = until;
-        }
+        [ request, params ] = this.handleUntilOption ('to', request, params);
         const response = await this.publicFuturesGetSettleLiqOrders (this.extend (request, params));
         //
         //     [
