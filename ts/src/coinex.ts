@@ -3214,7 +3214,7 @@ export default class coinex extends Exchange {
         const liquidationPrice = this.safeString (position, 'liq_price');
         const entryPrice = this.safeString (position, 'open_price');
         const unrealizedPnl = this.safeString (position, 'profit_unreal');
-        const contractSize = this.safeString (position, 'amount');
+        const contracts = this.safeNumber (position, 'amount');
         const sideInteger = this.safeInteger (position, 'side');
         const side = (sideInteger === 1) ? 'short' : 'long';
         const timestamp = this.safeTimestamp (position, 'update_time');
@@ -3232,8 +3232,8 @@ export default class coinex extends Exchange {
             'entryPrice': entryPrice,
             'unrealizedPnl': unrealizedPnl,
             'percentage': undefined,
-            'contracts': undefined,
-            'contractSize': contractSize,
+            'contracts': contracts,
+            'contractSize': undefined,
             'markPrice': undefined,
             'lastPrice': undefined,
             'side': side,
