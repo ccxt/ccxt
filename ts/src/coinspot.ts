@@ -6,6 +6,7 @@ import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -408,18 +409,10 @@ export default class coinspot extends Exchange {
         const buyTrades = this.safeValue (response, 'buyorders', []);
         for (let i = 0; i < buyTrades.length; i++) {
             buyTrades[i]['side'] = 'buy';
-            const audTotal = this.safeNumber (buyTrades[i], 'audtotal');
-            buyTrades[i]['total'] = audTotal;
-            const total = this.safeNumber (buyTrades[i], 'total');
-            const amount = this.safeNumber (buyTrades[i], 'amount');
-            buyTrades[i]['price'] = total / amount;
         }
         const sellTrades = this.safeValue (response, 'sellorders', []);
         for (let i = 0; i < sellTrades.length; i++) {
             sellTrades[i]['side'] = 'sell';
-            const total = this.safeNumber (sellTrades[i], 'total');
-            const amount = this.safeNumber (sellTrades[i], 'amount');
-            sellTrades[i]['price'] = total / amount;
         }
         const trades = this.arrayConcat (buyTrades, sellTrades);
         return this.parseTrades (trades, market, since, limit);
@@ -451,33 +444,33 @@ export default class coinspot extends Exchange {
         //       side: 'buy',
         //       price: 0.5168600000125209
         //     }
-        let priceString = undefined;
         let timestamp = undefined;
-        let side = undefined;
+        let priceString = undefined;
         let fee = undefined;
-        const feeCurrencyId = 'AUD';
+        const audTotal = this.safeString (trade, 'audtotal');
+        const costString = this.safeString (trade, 'total', audTotal);
+        const side = this.safeString (trade, 'side');
+        const amountString = this.safeString (trade, 'amount');
+        const marketId = this.safeString (trade, 'market');
+        const symbol = this.safeSymbol (marketId, market, '/');
         const solddate = this.safeInteger (trade, 'solddate');
         if (solddate !== undefined) {
             priceString = this.safeString (trade, 'rate');
             timestamp = solddate;
         } else {
-            priceString = this.safeString (trade, 'price');
-            side = this.safeString (trade, 'side');
+            priceString = Precise.stringDiv (costString, amountString);
             const createdString = this.safeString (trade, 'created');
             timestamp = this.parse8601 (createdString);
-            const audfeeExGst = this.safeNumber (trade, 'audfeeExGst');
-            const audGst = this.safeNumber (trade, 'audGst');
+            const audfeeExGst = this.safeString (trade, 'audfeeExGst');
+            const audGst = this.safeString (trade, 'audGst');
             // The transaction fee which consumers pay is inclusive of GST by default
-            const feeCost = this.sum (audfeeExGst, audGst);
+            const feeCost = Precise.stringAdd (audfeeExGst, audGst);
+            const feeCurrencyId = 'AUD';
             fee = {
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             };
         }
-        const amountString = this.safeString (trade, 'amount');
-        const costString = this.safeNumber (trade, 'total');
-        const marketId = this.safeString (trade, 'market');
-        const symbol = this.safeSymbol (marketId, market, '/');
         return this.safeTrade ({
             'info': trade,
             'id': undefined,
@@ -488,9 +481,9 @@ export default class coinspot extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': priceString,
-            'amount': amountString,
-            'cost': costString,
+            'price': this.parseNumber (priceString),
+            'amount': this.parseNumber (amountString),
+            'cost': this.parseNumber (costString),
             'fee': fee,
         }, market);
     }
