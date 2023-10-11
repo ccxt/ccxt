@@ -175,6 +175,13 @@ export default class bingx extends Exchange {
                             },
                         },
                     },
+                    'v3': {
+                        'public': {
+                            'get': {
+                                'quote/klines': 1,
+                            },
+                        },
+                    },
                 },
                 'contract': {
                     'v1': {
@@ -641,12 +648,12 @@ export default class bingx extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
+         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @param {string} [params.price] "mark" or "index" for mark price and index price candles
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -667,19 +674,17 @@ export default class bingx extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
-        } else {
-            request['limit'] = 50;
         }
-        const until = this.safeInteger2 (params, 'until', 'startTime');
+        const until = this.safeInteger2 (params, 'until', 'endTime');
         if (until !== undefined) {
             params = this.omit (params, [ 'until' ]);
-            request['startTime'] = until;
+            request['endTime'] = until;
         }
         let response = undefined;
         if (market['spot']) {
             response = await this.spotV1PublicGetMarketKline (this.extend (request, params));
         } else {
-            response = await this.swapV2PublicGetQuoteKlines (this.extend (request, params));
+            response = await this.swapV3PublicGetQuoteKlines (this.extend (request, params));
         }
         //
         //    {
