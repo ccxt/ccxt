@@ -2699,7 +2699,7 @@ export default class bitmex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -2708,11 +2708,7 @@ export default class bitmex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeIntegerN (params, [ 'until', 'till', 'endTime' ]);
-        params = this.omit (params, [ 'until', 'till' ]);
-        if (until !== undefined) {
-            request['endTime'] = until;
-        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         const response = await this.publicGetLiquidation (this.extend (request, params));
         //
         //     [
