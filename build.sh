@@ -134,7 +134,9 @@ for exchange in "${WS_EXCHANGES[@]}"; do
 done
 # faster version of post-transpile
 npm run check-php-syntax
-cd python && tox -e qa -- ${PYTHON_FILES[*]} && cd ..
+
+echo "$msgPrefix Linting python files: ${PYTHON_FILES[@]}"
+ruff ${PYTHON_FILES[*]}
 
 
 ### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###
