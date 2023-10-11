@@ -2947,9 +2947,9 @@ export default class deribit extends Exchange {
          * @name deribit#fetchLiquidations
          * @description retrieves the public liquidations of a trading pair
          * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
-         * @param {string} [symbol] unified CCXT market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
-         * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the deribit api endpoint
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
@@ -2978,7 +2978,7 @@ export default class deribit extends Exchange {
         //                     "type": "bankruptcy",
         //                     "timestamp": 1696579200041,
         //                     "funded": 10000.0,
-        //                     "session_bankruptcy": 10000.0
+        //                     "session_bankrupcy": 10000.0
         //                     "session_profit_loss": 112951.68715857354,
         //                     "session_tax": 0.15,
         //                     "session_tax_rate": 0.0015,
@@ -3004,9 +3004,9 @@ export default class deribit extends Exchange {
          * @name deribit#fetchMyLiquidations
          * @description retrieves the users liquidated positions
          * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
-         * @param {string} [symbol] unified CCXT market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
-         * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the deribit api endpoint
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
@@ -3035,7 +3035,7 @@ export default class deribit extends Exchange {
         //                     "type": "bankruptcy",
         //                     "timestamp": 1696579200041,
         //                     "funded": 10000.0,
-        //                     "session_bankruptcy": 10000.0
+        //                     "session_bankrupcy": 10000.0
         //                     "session_profit_loss": 112951.68715857354,
         //                     "session_tax": 0.15,
         //                     "session_tax_rate": 0.0015,
@@ -3060,9 +3060,9 @@ export default class deribit extends Exchange {
         //     {
         //         "type": "bankruptcy",
         //         "timestamp": 1696579200041,
-        //         "funded": 10000.0,
-        //         "session_bankruptcy": 0.001,
-        //         "session_profit_loss": 12951.68715857354,
+        //         "funded": 1,
+        //         "session_bankrupcy": 0.001,
+        //         "session_profit_loss": 0.001,
         //         "session_tax": 0.0015,
         //         "session_tax_rate": 0.0015,
         //         "socialized": 0.001,
@@ -3072,9 +3072,11 @@ export default class deribit extends Exchange {
         return {
             'info': liquidation,
             'symbol': this.safeSymbol (undefined, market),
-            'amount': this.safeNumber (liquidation, 'funded'),
+            'contracts': undefined,
+            'contractSize': this.safeNumber (market, 'contractSize'),
             'price': undefined,
-            'value': this.safeNumber (liquidation, 'session_bankruptcy'), // total value of the loss
+            'baseValue': this.safeNumber (liquidation, 'session_bankrupcy'),
+            'quoteValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };

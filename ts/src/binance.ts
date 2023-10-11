@@ -9007,11 +9007,11 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/spot/en/#get-force-liquidation-record-user_data
          * @see https://binance-docs.github.io/apidocs/futures/en/#user-39-s-force-orders-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#user-39-s-force-orders-user_data
-         * @param {string} [symbol] unified CCXT market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
-         * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the binance api endpoint
-         * @param {int|undefined} [params.until] timestamp in ms of the latest liquidation
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
@@ -9200,9 +9200,11 @@ export default class binance extends Exchange {
         return {
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),
-            'amount': this.safeNumber (liquidation, 'executedQty'),
+            'contracts': this.safeNumber (liquidation, 'executedQty'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
             'price': this.safeNumber (liquidation, 'avgPrice'),
-            'value': undefined,
+            'baseValue': this.safeNumber (liquidation, 'cumBase'),
+            'quoteValue': this.safeNumber (liquidation, 'cumQuote'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };

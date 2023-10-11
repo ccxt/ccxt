@@ -3970,11 +3970,11 @@ export default class bitmart extends Exchange {
          * @name bitmart#fetchMyLiquidations
          * @description retrieves the users liquidated positions
          * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
-         * @param {string} [symbol] unified CCXT market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
-         * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the bitmart api endpoint
-         * @param {int|undefined} [params.until] timestamp in ms of the latest liquidation
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
@@ -4052,12 +4052,19 @@ export default class bitmart extends Exchange {
         //
         const marketId = this.safeString (liquidation, 'symbol');
         const timestamp = this.safeInteger (liquidation, 'update_time');
+        const contractsString = this.safeString (liquidation, 'deal_size');
+        const contractSizeString = this.safeString (market, 'contractSize');
+        const priceString = this.safeString (liquidation, 'deal_avg_price');
+        const baseValueString = Precise.stringMul (contractsString, contractSizeString);
+        const quoteValueString = Precise.stringMul (baseValueString, priceString);
         return {
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),
-            'amount': this.safeNumber (liquidation, 'deal_size'),
-            'price': this.safeNumber (liquidation, 'deal_avg_price'),
-            'value': undefined,
+            'contracts': this.parseNumber (contractsString),
+            'contractSize': this.parseNumber (contractSizeString),
+            'price': this.parseNumber (priceString),
+            'baseValue': this.parseNumber (baseValueString),
+            'quoteValue': this.parseNumber (quoteValueString),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };

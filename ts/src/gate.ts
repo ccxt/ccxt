@@ -6315,11 +6315,11 @@ export default class gate extends Exchange {
          * @name gate#fetchLiquidations
          * @description retrieves the public liquidations of a trading pair
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-liquidation-history
-         * @param {string} [symbol] unified CCXT market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
-         * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the gate api endpoint
-         * @param {int|undefined} [params.until] timestamp in ms of the latest liquidation
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
@@ -6366,9 +6366,9 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
-         * @param {string} [symbol] unified CCXT market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
-         * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the gate api endpoint
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
@@ -6476,14 +6476,23 @@ export default class gate extends Exchange {
         //
         const marketId = this.safeString (liquidation, 'contract');
         const timestamp = this.safeTimestamp (liquidation, 'time');
-        const amount = this.safeString2 (liquidation, 'size', 'settle_size');
-        const value = this.safeString (liquidation, 'pnl');
+        const contractsStringRaw = this.safeString2 (liquidation, 'size', 'settle_size');
+        const contractsString = Precise.stringAbs (contractsStringRaw);
+        const contractSizeString = this.safeString (market, 'contractSize');
+        const priceString = this.safeString2 (liquidation, 'liq_price', 'fill_price');
+        const baseValueString = Precise.stringMul (contractsString, contractSizeString);
+        let quoteValueString = this.safeString (liquidation, 'pnl');
+        if (quoteValueString === undefined) {
+            quoteValueString = Precise.stringMul (baseValueString, priceString);
+        }
         return {
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),
-            'amount': this.parseNumber (Precise.stringAbs (amount)),
-            'price': this.safeNumber2 (liquidation, 'liq_price', 'fill_price'),
-            'value': this.parseNumber (Precise.stringAbs (value)),
+            'contracts': this.parseNumber (contractsString),
+            'contractSize': this.parseNumber (contractSizeString),
+            'price': this.parseNumber (priceString),
+            'baseValue': this.parseNumber (baseValueString),
+            'quoteValue': this.parseNumber (Precise.stringAbs (quoteValueString)),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
