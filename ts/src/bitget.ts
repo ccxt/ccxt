@@ -1408,8 +1408,8 @@ export default class bitget extends Exchange {
             this.options['networkCodeReplacements'][code] = {};
             const chains = this.safeValue (entry, 'chains', []);
             const networks = {};
-            let deposit = false;
-            let withdraw = false;
+            let isTokenDepositable = false;
+            let isTokenWithdrawable = false;
             let minWithdrawString = undefined;
             let minDepositString = undefined;
             let minWithdrawFeeString = undefined;
@@ -1418,11 +1418,11 @@ export default class bitget extends Exchange {
                 const networkId = this.safeString (chain, 'chain');
                 const networkCode = this.networkIdToCode (networkId, code);
                 const withdrawEnabled = this.safeString (chain, 'withdrawable');
-                const canWithdraw = withdrawEnabled === 'true';
-                withdraw = (canWithdraw) ? canWithdraw : withdraw;
+                const isWithdrawalEnabled = withdrawEnabled === 'true';
                 const depositEnabled = this.safeString (chain, 'rechargeable');
-                const canDeposit = depositEnabled === 'true';
-                deposit = (canDeposit) ? canDeposit : deposit;
+                const isDepositEnabled = depositEnabled === 'true';
+                isTokenDepositable = isDepositEnabled || isTokenDepositable;
+                isTokenWithdrawable = isWithdrawalEnabled || isTokenWithdrawable;
                 const networkWithdrawFeeString = this.safeString (chain, 'withdrawFee');
                 if (networkWithdrawFeeString !== undefined) {
                     minWithdrawFeeString = (minWithdrawFeeString === undefined) ? networkWithdrawFeeString : Precise.stringMin (networkWithdrawFeeString, minWithdrawFeeString);
@@ -1450,9 +1450,9 @@ export default class bitget extends Exchange {
                             'max': undefined,
                         },
                     },
-                    'active': canWithdraw && canDeposit,
-                    'withdraw': canWithdraw,
-                    'deposit': canDeposit,
+                    'active': isWithdrawalEnabled && isDepositEnabled,
+                    'withdraw': isWithdrawalEnabled,
+                    'deposit': isDepositEnabled,
                     'fee': this.parseNumber (networkWithdrawFeeString),
                     'precision': undefined,
                 };
@@ -1464,9 +1464,9 @@ export default class bitget extends Exchange {
                 'networks': networks,
                 'type': undefined,
                 'name': undefined,
-                'active': deposit && withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': isTokenDepositable && isTokenWithdrawable,
+                'deposit': isTokenDepositable,
+                'withdraw': isTokenWithdrawable,
                 'fee': this.parseNumber (minWithdrawFeeString),
                 'precision': undefined,
                 'limits': {

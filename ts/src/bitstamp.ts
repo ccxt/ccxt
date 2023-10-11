@@ -514,7 +514,7 @@ export default class bitstamp extends Exchange {
         return result;
     }
 
-    constructCurrencyObject (id, code, name, precision, minCost, originalPayload) {
+    constructCurrencyObject (id, code, name, precision, minCost, originalPayload, isDepositEnabled, isWithdrawEnabled) {
         let currencyType = 'crypto';
         const description = this.describe ();
         if (this.isFiat (code)) {
@@ -527,9 +527,9 @@ export default class bitstamp extends Exchange {
             'info': originalPayload, // the original payload
             'type': currencyType,
             'name': name,
-            'active': true,
-            'deposit': undefined,
-            'withdraw': undefined,
+            'active': isDepositEnabled && isWithdrawEnabled,
+            'deposit': isDepositEnabled,
+            'withdraw': isWithdrawEnabled,
             'fee': this.safeNumber (description['fees']['funding']['withdraw'], code),
             'precision': tickSize,
             'limits': {
@@ -579,7 +579,9 @@ export default class bitstamp extends Exchange {
          * @param {object} [params] extra parameters specific to the bitstamp api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.fetchMarketsFromCache (params);
+        const marketsPromise = this.fetchMarketsFromCache (params);
+        const currenciesPromise = this.publicGetCurrencies ();
+        const response = await Promise.all ([ marketsPromise, currenciesPromise ]);
         //
         //     [
         //         {
@@ -594,9 +596,12 @@ export default class bitstamp extends Exchange {
         //         },
         //     ]
         //
+        const markets = response[0];
+        const currencies = response[1];
+        const indexedCurrencies = this.indexBy (currencies, 'currency');
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
             const name = this.safeString (market, 'name');
             let [ base, quote ] = name.split ('/');
             const baseId = base.toLowerCase ();
@@ -610,11 +615,17 @@ export default class bitstamp extends Exchange {
             const cost = parts[0];
             if (!(base in result)) {
                 const baseDecimals = this.safeInteger (market, 'base_decimals');
-                result[base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
+                const matchedCurrency = this.safeValue (indexedCurrencies, base, {});
+                const isDepositEnabled = this.safeString (matchedCurrency, 'deposit') === 'Enabled';
+                const isWithdrawEnabled = this.safeString (matchedCurrency, 'withdrawal') === 'Enabled';
+                result[base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market, isDepositEnabled, isWithdrawEnabled);
             }
             if (!(quote in result)) {
                 const counterDecimals = this.safeInteger (market, 'counter_decimals');
-                result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
+                const matchedCurrency = this.safeValue (indexedCurrencies, base, {});
+                const isDepositEnabled = this.safeString (matchedCurrency, 'deposit') === 'Enabled';
+                const isWithdrawEnabled = this.safeString (matchedCurrency, 'withdrawal') === 'Enabled';
+                result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market, isDepositEnabled, isWithdrawEnabled);
             }
         }
         return result;

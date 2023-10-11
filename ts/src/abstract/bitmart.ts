@@ -100,7 +100,6 @@ interface Exchange {
     privatePostContractPrivateSubmitPlanOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateCancelPlanOrder (params?: {}): Promise<implicitReturnType>;
     privatePostContractPrivateSubmitLeverage (params?: {}): Promise<implicitReturnType>;
-    privatePostContractPrivateTrades (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
