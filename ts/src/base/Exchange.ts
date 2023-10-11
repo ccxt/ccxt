@@ -3645,7 +3645,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
     }
 
-    async fetchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         throw new NotSupported (this.id + ' fetchMyLiquidations() is not supported yet');
     }
 

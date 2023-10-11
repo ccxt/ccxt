@@ -3966,7 +3966,7 @@ export default class bitmart extends Exchange {
         });
     }
 
-    async fetchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchMyLiquidations

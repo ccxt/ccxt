@@ -9094,7 +9094,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async fetchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchMyLiquidations
@@ -9102,7 +9102,7 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/spot/en/#get-force-liquidation-record-user_data
          * @see https://binance-docs.github.io/apidocs/futures/en/#user-39-s-force-orders-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#user-39-s-force-orders-user_data
-         * @param {string} symbol unified CCXT market symbol
+         * @param {string} [symbol] unified CCXT market symbol
          * @param {int} [since] the earliest time in ms to fetch liquidations for
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the binance api endpoint
@@ -9110,11 +9110,22 @@ export default class binance extends Exchange {
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        let request = {
-            'symbol': market['id'],
-            'autoCloseType': 'LIQUIDATION',
-        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let type = undefined;
+        [ params, type ] = this.handleMarketTypeAndParams ('fetchMyLiquidations', market, params);
+        let subType = undefined;
+        [ params, subType ] = this.handleSubTypeAndParams ('fetchMyLiquidations', market, params, 'linear');
+        let request = {};
+        if (type !== 'spot') {
+            request['autoCloseType'] = 'LIQUIDATION';
+        }
+        if (market !== undefined) {
+            const symbolKey = market['spot'] ? 'isolatedSymbol' : 'symbol';
+            request[symbolKey] = market['id'];
+        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -9127,11 +9138,11 @@ export default class binance extends Exchange {
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         let response = undefined;
-        if (market['spot']) {
+        if (type === 'spot') {
             response = await this.sapiGetMarginForceLiquidationRec (this.extend (request, params));
-        } else if (market['linear']) {
+        } else if (subType === 'linear') {
             response = await this.fapiPrivateGetForceOrders (this.extend (request, params));
-        } else if (market['inverse']) {
+        } else if (subType === 'inverse') {
             response = await this.dapiPrivateGetForceOrders (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');

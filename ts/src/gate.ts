@@ -6419,7 +6419,7 @@ export default class gate extends Exchange {
         return this.parseLiquidations (response, market, since, limit);
     }
 
-    async fetchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchMyLiquidations
