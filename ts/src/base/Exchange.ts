@@ -4844,7 +4844,7 @@ export default class Exchange {
             'openInterestValue': this.safeNumber (interest, 'openInterestValue'),
             'timestamp': this.safeInteger (interest, 'timestamp'),
             'datetime': this.safeString (interest, 'datetime'),
-            'info': this.safeString (interest, 'info'),
+            'info': this.safeValue (interest, 'info'),
         });
     }
 }
