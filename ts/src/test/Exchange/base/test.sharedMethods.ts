@@ -287,9 +287,10 @@ function assertInteger (exchange, skippedProperties, method, entry, key) {
     }
     const logText = logTemplate (exchange, method, entry);
     if (entry !== undefined) {
-        const value = exchange.safeNumber (entry, key);
+        const value = exchange.safeValue (entry, key);
         if (value !== undefined) {
-            assert (Number.isInteger (value), '"' + stringValue (key) + '" key (value "' + stringValue (value) + '") is not an integer' + logText);
+            const isInteger = Number.isInteger (value);
+            assert (isInteger, '"' + stringValue (key) + '" key (value "' + stringValue (value) + '") is not an integer' + logText);
         }
     }
 }

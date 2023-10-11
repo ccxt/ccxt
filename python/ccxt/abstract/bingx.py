@@ -54,6 +54,7 @@ class ImplicitAPI:
     swap_v2_private_delete_trade_order = swapV2PrivateDeleteTradeOrder = Entry('trade/order', ['swap', 'v2', 'private'], 'DELETE', {'cost': 3})
     swap_v2_private_delete_trade_batchorders = swapV2PrivateDeleteTradeBatchOrders = Entry('trade/batchOrders', ['swap', 'v2', 'private'], 'DELETE', {'cost': 3})
     swap_v2_private_delete_trade_allopenorders = swapV2PrivateDeleteTradeAllOpenOrders = Entry('trade/allOpenOrders', ['swap', 'v2', 'private'], 'DELETE', {'cost': 3})
+    swap_v3_public_get_quote_klines = swapV3PublicGetQuoteKlines = Entry('quote/klines', ['swap', 'v3', 'public'], 'GET', {'cost': 1})
     contract_v1_private_get_allposition = contractV1PrivateGetAllPosition = Entry('allPosition', ['contract', 'v1', 'private'], 'GET', {'cost': 3})
     contract_v1_private_get_allorders = contractV1PrivateGetAllOrders = Entry('allOrders', ['contract', 'v1', 'private'], 'GET', {'cost': 3})
     contract_v1_private_get_balance = contractV1PrivateGetBalance = Entry('balance', ['contract', 'v1', 'private'], 'GET', {'cost': 3})

@@ -1536,7 +1536,7 @@ class Exchange(BaseExchange):
             result.append(self.market_id(symbols[i]))
         return result
 
-    def market_symbols(self, symbols, type: Optional[str] = None, allowEmpty=True):
+    def market_symbols(self, symbols, type: Optional[str] = None, allowEmpty=True, sameTypeOnly=False, sameSubTypeOnly=False):
         if symbols is None:
             if not allowEmpty:
                 raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
@@ -1547,10 +1547,21 @@ class Exchange(BaseExchange):
                 raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
             return symbols
         result = []
+        marketType = None
+        isLinearSubType = None
         for i in range(0, len(symbols)):
             market = self.market(symbols[i])
+            if sameTypeOnly and (marketType is not None):
+                if market['type'] != marketType:
+                    raise BadRequest(self.id + ' symbols must be of the same type, either ' + marketType + ' or ' + market['type'] + '.')
+            if sameSubTypeOnly and (isLinearSubType is not None):
+                if market['linear'] != isLinearSubType:
+                    raise BadRequest(self.id + ' symbols must be of the same subType, either linear or inverse.')
             if type is not None and market['type'] != type:
-                raise BadRequest(self.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request')
+                raise BadRequest(self.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request')
+            marketType = market['type']
+            if not market['spot']:
+                isLinearSubType = market['linear']
             symbol = self.safe_string(market, 'symbol', symbols[i])
             result.append(symbol)
         return result
@@ -1706,7 +1717,7 @@ class Exchange(BaseExchange):
         value = self.safe_string_2(dictionary, key1, key2)
         return self.parse_number(value, d)
 
-    def parse_order_book(self, orderbook: object, symbol: str, timestamp: Optional[float] = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 0, amountKey: IndexType = 1):
+    def parse_order_book(self, orderbook: object, symbol: str, timestamp: Optional[int] = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 0, amountKey: IndexType = 1):
         bids = self.parse_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey)
         asks = self.parse_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey)
         return {
