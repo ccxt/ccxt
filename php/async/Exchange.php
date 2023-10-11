@@ -41,11 +41,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.1.9';
+$version = '4.1.10';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.9';
+    const VERSION = '4.1.10';
 
     public $browser;
     public $marketsLoading = null;
@@ -1335,7 +1335,7 @@ class Exchange extends \ccxt\Exchange {
         //     string = true
         //
         //     array(
-        //         array( 'currency' => 'BTC', 'cost' => '0.3'  ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.4'  ),
         //         array( 'currency' => 'BTC', 'cost' => '0.6', 'rate' => '0.00123' ),
         //         array( 'currency' => 'BTC', 'cost' => '0.5', 'rate' => '0.00456' ),
         //         array( 'currency' => 'USDT', 'cost' => '12.3456' ),

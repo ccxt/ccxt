@@ -308,13 +308,13 @@ class btcmarkets extends Exchange {
         $tagTo = $tag;
         $addressFrom = null;
         $tagFrom = null;
-        $fee = $this->safe_number($transaction, 'fee');
+        $fee = $this->safe_string($transaction, 'fee');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $currencyId = $this->safe_string($transaction, 'assetName');
         $code = $this->safe_currency_code($currencyId);
-        $amount = $this->safe_number($transaction, 'amount');
+        $amount = $this->safe_string($transaction, 'amount');
         if ($fee) {
-            $amount -= $fee;
+            $amount = Precise::string_sub($amount, $fee);
         }
         return array(
             'id' => $this->safe_string($transaction, 'id'),
@@ -329,14 +329,14 @@ class btcmarkets extends Exchange {
             'tagTo' => $tagTo,
             'tagFrom' => $tagFrom,
             'type' => $type,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'currency' => $code,
             'status' => $status,
             'updated' => $lastUpdate,
             'comment' => null,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $fee,
+                'cost' => $this->parse_number($fee),
                 'rate' => null,
             ),
             'info' => $transaction,

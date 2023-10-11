@@ -473,9 +473,12 @@ class bitbns(Exchange, ImplicitAPI):
         # note that "Money" stands for INR - the only fiat in bitbns
         return self.parse_balance(response)
 
-    def parse_order_status(self, status):
+    def parse_status(self, status):
         statuses = {
+            '-1': 'cancelled',
             '0': 'open',
+            '1': 'open',
+            '2': 'done',
             # 'PARTIALLY_FILLED': 'open',
             # 'FILLED': 'closed',
             # 'CANCELED': 'canceled',
@@ -490,106 +493,101 @@ class bitbns(Exchange, ImplicitAPI):
         # createOrder
         #
         #     {
-        #         "data":"Successfully placed bid to purchase currency",
-        #         "status":1,
-        #         "error":null,
-        #         "id":5424475,
-        #         "code":200
+        #         "data": "Successfully placed bid to purchase currency",
+        #         "status": 1,
+        #         "error": null,
+        #         "id": 5424475,
+        #         "code": 200
         #     }
         #
-        # fetchOrder
+        # fetchOpenOrders, fetchOrder
         #
-        #     {
-        #         "entry_id":5424475,
-        #         "btc":0.01,
-        #         "rate":2000,
-        #         "time":"2021-04-25T17:05:42.000Z",
-        #         "type":0,
-        #         "status":0,
-        #         "total":0.01,
-        #         "avg_cost":null,
-        #         "side":"BUY",
-        #         "amount":0.01,
-        #         "remaining":0.01,
-        #         "filled":0,
-        #         "cost":null,
-        #         "fee":0.05
-        #     }
+        #    {
+        #        "entry_id": 5424475,
+        #        "btc": 0.01,
+        #        "rate": 2000,
+        #        "time": "2021-04-25T17:05:42.000Z",
+        #        "type": 0,
+        #        "status": 0
+        #        "t_rate": 0.45,                       # only stop orders
+        #        "trail": 0                            # only stop orders
+        #    }
         #
-        # fetchOpenOrders
+        # cancelOrder
         #
-        #     {
-        #         "entry_id":5424475,
-        #         "btc":0.01,
-        #         "rate":2000,
-        #         "time":"2021-04-25T17:05:42.000Z",
-        #         "type":0,
-        #         "status":0
-        #     }
+        #    {
+        #        "data": "Successfully cancelled the order",
+        #        "status": 1,
+        #        "error": null,
+        #        "code": 200
+        #    }
         #
         id = self.safe_string_2(order, 'id', 'entry_id')
-        marketId = self.safe_string(order, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
-        timestamp = self.parse8601(self.safe_string(order, 'time'))
-        price = self.safe_string(order, 'rate')
-        amount = self.safe_string_2(order, 'amount', 'btc')
-        filled = self.safe_string(order, 'filled')
-        remaining = self.safe_string(order, 'remaining')
-        average = self.safe_string(order, 'avg_cost')
-        cost = self.safe_string(order, 'cost')
-        type = self.safe_string_lower(order, 'type')
-        if type == '0':
-            type = 'limit'
-        status = self.parse_order_status(self.safe_string(order, 'status'))
-        side = self.safe_string_lower(order, 'side')
-        feeCost = self.safe_number(order, 'fee')
-        fee = None
-        if feeCost is not None:
-            feeCurrencyCode = None
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            }
+        datetime = self.safe_string(order, 'time')
+        triggerPrice = self.safe_string(order, 't_rate')
+        side = self.safe_string(order, 'type')
+        if side == '0':
+            side = 'buy'
+        elif side == '1':
+            side = 'sell'
+        data = self.safe_string(order, 'data')
+        status = self.safe_string(order, 'status')
+        if data == 'Successfully cancelled the order':
+            status = 'cancelled'
+        else:
+            status = self.parse_status(status)
         return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
             'lastTradeTimestamp': None,
-            'symbol': symbol,
-            'type': type,
+            'symbol': self.safe_string(market, 'symbol'),
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
-            'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
-            'remaining': remaining,
+            'price': self.safe_string(order, 'rate'),
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'amount': self.safe_string(order, 'btc'),
+            'cost': None,
+            'average': None,
+            'filled': None,
+            'remaining': None,
             'status': status,
-            'fee': fee,
+            'fee': {
+                'cost': None,
+                'currency': None,
+                'rate': None,
+            },
             'trades': None,
         }, market)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/place-orders
+        see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/market-orders-quantity  # market orders
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bitbns api endpoint
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param float [params.target_rate]: *requires params.trail_rate when set, type must be 'limit'* a bracket order is placed when set
+        :param float [params.trail_rate]: *requires params.target_rate when set, type must be 'limit'* a bracket order is placed when set
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if type != 'limit' and type != 'market':
-            raise ExchangeError(self.id + ' allows limit and market orders only')
         self.load_markets()
         market = self.market(symbol)
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 't_rate'])
+        targetRate = self.safe_string(params, 'target_rate')
+        trailRate = self.safe_string(params, 'trail_rate')
+        params = self.omit(params, ['triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate'])
         request = {
             'side': side.upper(),
             'symbol': market['uppercaseId'],
@@ -597,18 +595,19 @@ class bitbns(Exchange, ImplicitAPI):
             # 'target_rate': self.price_to_precision(symbol, targetRate),
             # 't_rate': self.price_to_precision(symbol, stopPrice),
             # 'trail_rate': self.price_to_precision(symbol, trailRate),
-            # To Place Simple Buy or Sell Order use rate
-            # To Place Stoploss Buy or Sell Order use rate & t_rate
-            # To Place Bracket Buy or Sell Order use rate , t_rate, target_rate & trail_rate
         }
         method = 'v2PostOrders'
         if type == 'limit':
             request['rate'] = self.price_to_precision(symbol, price)
-        elif type == 'market':
+        else:
             method = 'v1PostPlaceMarketOrderQntySymbol'
             request['market'] = market['quoteId']
-        else:
-            raise ExchangeError(self.id + ' allows limit and market orders only')
+        if triggerPrice is not None:
+            request['t_rate'] = self.price_to_precision(symbol, triggerPrice)
+        if targetRate is not None:
+            request['target_rate'] = self.price_to_precision(symbol, targetRate)
+        if trailRate is not None:
+            request['trail_rate'] = self.price_to_precision(symbol, trailRate)
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -624,27 +623,37 @@ class bitbns(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
+        see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/cancel-orders
+        see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/cancel-stop-loss-orders
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitbns api endpoint
+        :param boolean [params.trigger]: True if cancelling a trigger order
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        quoteSide = 'usdtcancelOrder' if (market['quoteId'] == 'USDT') else 'cancelOrder'
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        params = self.omit(params, ['trigger', 'stop'])
         request = {
             'entry_id': id,
             'symbol': market['uppercaseId'],
-            'side': quoteSide,
         }
+        response = None
+        tail = 'StopLossOrder' if isTrigger else 'Order'
+        quoteSide = 'usdtcancel' if (market['quoteId'] == 'USDT') else 'cancel'
+        quoteSide += tail
+        request['side'] = quoteSide
         response = self.v2PostCancel(self.extend(request, params))
         return self.parse_order(response, market)
 
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
+        see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/order-status
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitbns api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
@@ -657,6 +666,9 @@ class bitbns(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'entry_id': id,
         }
+        trigger = self.safe_value_2(params, 'trigger', 'stop')
+        if trigger:
+            raise BadRequest(self.id + ' fetchOrder cannot fetch stop orders')
         response = self.v1PostOrderStatusSymbol(self.extend(request, params))
         #
         #     {
@@ -690,21 +702,26 @@ class bitbns(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
+        see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit
+        see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit/order-status-stop-limit
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
-        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param int [limit]: the maximum number of open orders structures to retrieve
         :param dict [params]: extra parameters specific to the bitbns api endpoint
+        :param boolean [params.trigger]: True if fetching trigger orders
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        quoteSide = 'usdtListOpenOrders' if (market['quoteId'] == 'USDT') else 'listOpenOrders'
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        params = self.omit(params, ['trigger', 'stop'])
+        quoteSide = 'usdtListOpen' if (market['quoteId'] == 'USDT') else 'listOpen'
         request = {
             'symbol': market['uppercaseId'],
-            'side': quoteSide,
             'page': 0,
+            'side': (quoteSide + 'StopOrders') if isTrigger else (quoteSide + 'Orders'),
         }
         response = self.v2PostGetordersnew(self.extend(request, params))
         #
@@ -717,6 +734,9 @@ class bitbns(Exchange, ImplicitAPI):
         #                 "time":"2021-04-25T17:05:42.000Z",
         #                 "type":0,
         #                 "status":0
+        #                 "t_rate":0.45,                       # only stop orders
+        #                 "type":1,                            # only stop orders
+        #                 "trail":0                            # only stop orders
         #             }
         #         ],
         #         "status":1,
@@ -1108,7 +1128,7 @@ class bitbns(Exchange, ImplicitAPI):
                 'body': body,
             }
             payload = self.string_to_base64(self.json(auth))
-            signature = self.hmac(payload, self.encode(self.secret), hashlib.sha512)
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
             headers['X-BITBNS-PAYLOAD'] = payload
             headers['X-BITBNS-SIGNATURE'] = signature
             headers['Content-Type'] = 'application/x-www-form-urlencoded'

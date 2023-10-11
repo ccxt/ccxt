@@ -3273,7 +3273,6 @@ class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
-         * @param {string} [$params->code] marginCoin unified $currency $code
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
@@ -3288,32 +3287,27 @@ class bitget extends Exchange {
         if ($sandboxMode) {
             $productType = 'S' . $productType;
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         if ($marketType === 'spot') {
             throw new NotSupported($this->id . ' cancelAllOrders () does not support spot markets');
         }
         $request = array(
             'productType' => $productType,
+            'marginCoin' => $market['settleId'],
         );
-        $method = null;
-        $stop = $this->safe_value($query, 'stop');
-        $planType = $this->safe_string($query, 'planType');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $planType = $this->safe_string($params, 'planType');
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $response = null;
         if ($stop !== null || $planType !== null) {
             if ($planType === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $planType parameter for $stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan');
             }
-            $method = 'privateMixPostPlanCancelAllPlan';
+            $response = $this->privateMixPostPlanCancelAllPlan (array_merge($request, $params));
         } else {
-            $code = $this->safe_string_2($params, 'code', 'marginCoin');
-            if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $code argument [marginCoin] in the params');
-            }
-            $currency = $this->currency($code);
-            $request['marginCoin'] = $this->safe_currency_code($code, $currency);
-            $method = 'privateMixPostOrderCancelAllOrders';
+            $response = $this->privateMixPostOrderCancelAllOrders (array_merge($request, $params));
         }
-        $ommitted = $this->omit($query, array( 'stop', 'code', 'marginCoin' ));
-        $response = $this->$method (array_merge($request, $ommitted));
         //
         //     {
         //         "code" => "00000",
