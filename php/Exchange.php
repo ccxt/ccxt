@@ -2063,6 +2063,10 @@ class Exchange {
         return intval($value);
     }
 
+    public function string_to_chars ($value) {
+        return str_split($value);
+    }
+
     function valueIsDefined($value){
         return isset($value) && !is_null($value);
     }
