@@ -8126,17 +8126,13 @@ export default class huobi extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const tradeType = this.safeInteger (params, 'trade_type', 0);
-        const request = {
+        let request = {
             'trade_type': tradeType,
         };
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        const until = this.safeIntegerN (params, [ 'until', 'till', 'end_time' ]);
-        params = this.omit (params, [ 'until', 'till' ]);
-        if (until !== undefined) {
-            request['end_time'] = until;
-        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
         let response = undefined;
         if (market['swap']) {
             request['contract'] = market['id'];
