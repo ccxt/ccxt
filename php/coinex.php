@@ -883,7 +883,7 @@ class coinex extends Exchange {
         //         message => 'OK'
         //     }
         //
-        return $this->safe_number($response, 'data');
+        return $this->safe_integer($response, 'data');
     }
 
     public function fetch_order_book(string $symbol, $limit = 20, $params = array ()) {

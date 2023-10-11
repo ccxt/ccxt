@@ -543,7 +543,6 @@ export default class coinsph extends Exchange {
             const quoteId = this.safeString(market, 'quoteAsset');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            const isActive = this.safeString(market, 'status') === 'TRADING';
             const limits = this.indexBy(this.safeValue(market, 'filters'), 'filterType');
             const amountLimits = this.safeValue(limits, 'LOT_SIZE', {});
             const priceLimits = this.safeValue(limits, 'PRICE_FILTER', {});
@@ -563,7 +562,7 @@ export default class coinsph extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': isActive,
+                'active': this.safeStringLower(market, 'status') === 'trading',
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,

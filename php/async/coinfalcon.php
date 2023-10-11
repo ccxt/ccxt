@@ -957,9 +957,9 @@ class coinfalcon extends Exchange {
         $amountString = $this->safe_string($transaction, 'amount');
         $amount = $this->parse_number($amountString);
         $feeCostString = $this->safe_string($transaction, 'fee');
-        $feeCost = 0;
+        $feeCost = '0';
         if ($feeCostString !== null) {
-            $feeCost = $this->parse_number($feeCostString);
+            $feeCost = $feeCostString;
         }
         return array(
             'info' => $transaction,
@@ -981,7 +981,7 @@ class coinfalcon extends Exchange {
             'updated' => null,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCost),
             ),
         );
     }

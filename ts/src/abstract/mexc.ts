@@ -57,6 +57,8 @@ interface Exchange {
     spotPrivateGetRebateDetailKickback (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetRebateReferCode (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetRebateAffiliateCommission (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetRebateAffiliateWithdraw (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetRebateAffiliateCommissionDetail (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetMxDeductEnable (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetUserDataStream (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostOrder (params?: {}): Promise<implicitReturnType>;

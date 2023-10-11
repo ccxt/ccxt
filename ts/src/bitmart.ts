@@ -183,6 +183,8 @@ export default class bitmart extends Exchange {
                         'spot/v1/margin/isolated/account': 6,
                         'spot/v1/trade_fee': 6,
                         'spot/v1/user_fee': 6,
+                        // broker
+                        'spot/v1/broker/rebate': 1,
                         // contract
                         'contract/private/assets-detail': 5,
                         'contract/private/order': 1.2,

@@ -2359,21 +2359,31 @@ export default class huobi extends Exchange {
         /**
          * @method
          * @name huobi#fetchMyTrades
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the huobi api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
-        const request = {
+        let request = {
         // spot -----------------------------------------------------------
         // 'symbol': market['id'],
         // 'types': 'buy-market,sell-market,buy-limit,sell-limit,buy-ioc,sell-ioc,buy-limit-maker,sell-limit-maker,buy-stop-limit,sell-stop-limit',
@@ -2405,6 +2415,7 @@ export default class huobi extends Exchange {
                 request['start-time'] = since; // a date within 120 days from today
                 // request['end-time'] = this.sum (since, 172800000); // 48 hours window
             }
+            [request, params] = this.handleUntilOption('end-time', request, params);
             method = 'spotPrivateGetV1OrderMatchresults';
         }
         else {
@@ -2415,6 +2426,7 @@ export default class huobi extends Exchange {
                 request['start_time'] = since; // a date within 120 days from today
                 // request['end_time'] = this.sum (request['start_time'], 172800000); // 48 hours window
             }
+            [request, params] = this.handleUntilOption('end_time', request, params);
             if (limit !== undefined) {
                 request['page_size'] = limit; // default 100, max 500
             }
@@ -2519,6 +2531,10 @@ export default class huobi extends Exchange {
         /**
          * @method
          * @name huobi#fetchTrades
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-trade-records-of-a-contract
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-trade-records-of-a-contract
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -2629,9 +2645,15 @@ export default class huobi extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the huobi api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
+        }
         const market = this.market(symbol);
         const request = {
             'period': this.safeString(this.timeframes, timeframe, timeframe),
@@ -3544,7 +3566,7 @@ export default class huobi extends Exchange {
         }
         await this.loadMarkets();
         let market = undefined;
-        const request = {
+        let request = {
             // spot_private_get_v1_order_orders GET /v1/order/orders ----------
             // 'symbol': market['id'], // required
             // 'types': 'buy-market,sell-market,buy-limit,sell-limit,buy-ioc,sell-ioc,buy-stop-limit,sell-stop-limit,buy-limit-fok,sell-limit-fok,buy-stop-limit-fok,sell-stop-limit-fok',
@@ -3569,6 +3591,7 @@ export default class huobi extends Exchange {
             request['start-time'] = since; // a window of 48 hours within 180 days
             request['end-time'] = this.sum(since, 48 * 60 * 60 * 1000);
         }
+        [request, params] = this.handleUntilOption('end-time', request, params);
         if (limit !== undefined) {
             request['size'] = limit;
         }
@@ -3612,7 +3635,7 @@ export default class huobi extends Exchange {
         this.checkRequiredSymbol('fetchContractOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
-        const request = {
+        let request = {
             // POST /api/v1/contract_hisorders inverse futures ----------------
             // 'symbol': market['settleId'], // BTC, ETH, ...
             // 'order_type': '1', // 1 limit，3 opponent，4 lightning, 5 trigger order, 6 pst_only, 7 optimal_5, 8 optimal_10, 9 optimal_20, 10 fok, 11 ioc
@@ -3641,6 +3664,7 @@ export default class huobi extends Exchange {
             request['contract'] = market['id'];
             request['type'] = 1; // 1:All Orders,2:Order in Finished Status
         }
+        [request, params] = this.handleUntilOption('end_time', request, params);
         if (market['linear']) {
             let marginMode = undefined;
             [marginMode, params] = this.handleMarginModeAndParams('fetchContractOrders', params);
@@ -3851,6 +3875,12 @@ export default class huobi extends Exchange {
         /**
          * @method
          * @name huobi#fetchOrders
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -3858,6 +3888,7 @@ export default class huobi extends Exchange {
          * @param {object} [params] extra parameters specific to the huobi api endpoint
          * @param {bool} [params.stop] *contract only* if the orders are stop trigger orders or not
          * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -3884,14 +3915,27 @@ export default class huobi extends Exchange {
         /**
          * @method
          * @name huobi#fetchClosedOrders
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the huobi api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchClosedOrders', symbol, since, limit, params, 100);
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -3911,6 +3955,9 @@ export default class huobi extends Exchange {
         /**
          * @method
          * @name huobi#fetchOpenOrders
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -6021,6 +6068,8 @@ export default class huobi extends Exchange {
         /**
          * @method
          * @name huobi#fetchFundingRateHistory
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
          * @description fetches historical funding rate prices
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] not used by huobi, but filtered internally by ccxt
@@ -6029,6 +6078,11 @@ export default class huobi extends Exchange {
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, params, 'page_index', 'current_page', 1, 50);
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -6068,10 +6122,12 @@ export default class huobi extends Exchange {
         // }
         //
         const data = this.safeValue(response, 'data');
+        const cursor = this.safeValue(data, 'current_page');
         const result = this.safeValue(data, 'data', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
+            entry['current_page'] = cursor;
             const marketId = this.safeString(entry, 'contract_code');
             const symbolInner = this.safeSymbol(marketId);
             const timestamp = this.safeInteger(entry, 'funding_time');
@@ -7232,16 +7288,24 @@ export default class huobi extends Exchange {
         /**
          * @method
          * @name huobi#fetchLedger
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the huobi api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params, 500);
+        }
         const accountId = await this.fetchAccountIdByType('spot', undefined, undefined, params);
-        const request = {
+        let request = {
             'accountId': accountId,
             // 'currency': code,
             // 'transactTypes': 'all', // default all
@@ -7262,6 +7326,7 @@ export default class huobi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 500
         }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const response = await this.spotPrivateGetV2AccountLedger(this.extend(request, params));
         //
         //     {

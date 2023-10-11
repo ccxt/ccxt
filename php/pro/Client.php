@@ -30,6 +30,7 @@ class Client {
     public $futures = array();
     public $subscriptions = array();
     public $rejections = array();
+    public $options = array();
 
     public $on_message_callback;
     public $on_error_callback;

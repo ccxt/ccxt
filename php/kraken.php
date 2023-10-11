@@ -855,9 +855,15 @@ class kraken extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the kraken api endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 720);
+        }
         $market = $this->market($symbol);
         $parsedTimeframe = $this->safe_integer($this->timeframes, $timeframe);
         $request = array(
@@ -906,7 +912,7 @@ class kraken extends Exchange {
         //     {
         //         'LTFK7F-N2CUX-PNY4SX' => array(
         //             refid => "TSJTGT-DT7WN-GPPQMJ",
-        //             $time =>  1520102320.555,
+        //             time =>  1520102320.555,
         //             $type => "trade",
         //             aclass => "currency",
         //             asset => "XETH",
@@ -931,11 +937,7 @@ class kraken extends Exchange {
         } else {
             $direction = 'in';
         }
-        $time = $this->safe_number($item, 'time');
-        $timestamp = null;
-        if ($time !== null) {
-            $timestamp = $this->parse_to_int($time * 1000);
-        }
+        $timestamp = $this->safe_integer_product($item, 'time', 1000);
         return array(
             'info' => $item,
             'id' => $id,
@@ -960,12 +962,14 @@ class kraken extends Exchange {
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * @param {string} $code unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
          * @param {int} [$limit] max number of $ledger entrys to return, default is null
          * @param {array} [$params] extra parameters specific to the kraken api endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest $ledger entry
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ledger-structure $ledger structure}
          */
         // https://www.kraken.com/features/api#get-ledgers-info
@@ -979,6 +983,7 @@ class kraken extends Exchange {
         if ($since !== null) {
             $request['start'] = $this->parse_to_int($since / 1000);
         }
+        list($request, $params) = $this->handle_until_option('end', $request, $params);
         $response = $this->privatePostLedgers (array_merge($request, $params));
         // {  error => array(),
         //   $result => { $ledger => { 'LPUAIB-TS774-UKHP7X' => array(   refid => "A2B4HBV-L4MDIE-JU4N3N",
@@ -1454,7 +1459,7 @@ class kraken extends Exchange {
             $id = $this->safe_string($txid, 0);
         }
         $clientOrderId = $this->safe_string($order, 'userref');
-        $rawTrades = $this->safe_value($order, 'trades');
+        $rawTrades = $this->safe_value($order, 'trades', array());
         $trades = array();
         for ($i = 0; $i < count($rawTrades); $i++) {
             $rawTrade = $rawTrades[$i];
@@ -1905,6 +1910,7 @@ class kraken extends Exchange {
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * fetch all unfilled currently open $orders
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * @param {string} $symbol unified $market $symbol
@@ -1936,12 +1942,14 @@ class kraken extends Exchange {
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * fetches information on multiple closed $orders made by the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
          * @param {array} [$params] extra parameters specific to the kraken api endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest entry
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
@@ -1955,6 +1963,7 @@ class kraken extends Exchange {
             $request['userref'] = $clientOrderId;
             $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
         }
+        list($request, $params) = $this->handle_until_option('end', $request, $params);
         $response = $this->privatePostClosedOrders (array_merge($request, $query));
         //
         //     {
@@ -2136,6 +2145,7 @@ class kraken extends Exchange {
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * fetch all deposits made to an account
          * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * @param {string} $code unified $currency $code
