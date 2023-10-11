@@ -1649,7 +1649,7 @@ class Exchange(object):
     def convert_to_big_int(self, value):
         return int(value) if isinstance(value, str) else value
 
-    def string_to_chars(self, value):
+    def string_to_chars_array(self, value):
         return list(value)
 
     def valueIsDefined(self, value):

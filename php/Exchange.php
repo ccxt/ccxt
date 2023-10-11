@@ -2063,7 +2063,7 @@ class Exchange {
         return intval($value);
     }
 
-    public function string_to_chars ($value) {
+    public function string_to_chars_array ($value) {
         return str_split($value);
     }
 

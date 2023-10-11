@@ -1316,7 +1316,7 @@ export default class Exchange {
         return BigInt(value); // used on XT
     }
 
-    stringToChars (value) {
+    stringToCharsArray (value) {
         return value.split ('');
     }
 
