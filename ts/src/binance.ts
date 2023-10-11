@@ -9111,7 +9111,7 @@ export default class binance extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        let request = {
             'symbol': market['id'],
             'autoCloseType': 'LIQUIDATION',
         };
@@ -9125,11 +9125,7 @@ export default class binance extends Exchange {
                 request['limit'] = limit;
             }
         }
-        const until = this.safeIntegerN (params, [ 'until', 'till', 'endTime' ]);
-        params = this.omit (params, [ 'until', 'till' ]);
-        if (until !== undefined) {
-            request['endTime'] = until;
-        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         let response = undefined;
         if (market['spot']) {
             response = await this.sapiGetMarginForceLiquidationRec (this.extend (request, params));
