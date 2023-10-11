@@ -1397,6 +1397,7 @@ class woo extends woo$1 {
         /**
          * @method
          * @name woo#fetchOHLCV
+         * @see https://docs.woo.org/#kline-public
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -2363,8 +2364,26 @@ class woo extends woo$1 {
         return this.filterByArray(result, 'symbol', symbols);
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @see https://docs.woo.org/#get-funding-rate-history-for-one-market-public
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
+         * @param {object} [params] extra parameters specific to the woo api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest funding rate
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
+         */
         await this.loadMarkets();
-        const request = {};
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25);
+        }
+        let request = {};
         if (symbol !== undefined) {
             const market = this.market(symbol);
             symbol = market['symbol'];
@@ -2373,6 +2392,7 @@ class woo extends woo$1 {
         if (since !== undefined) {
             request['start_t'] = this.parseToInt(since / 1000);
         }
+        [request, params] = this.handleUntilOption('end_t', request, params, 0.001);
         const response = await this.v1PublicGetFundingRateHistory(this.extend(request, params));
         //
         //     {

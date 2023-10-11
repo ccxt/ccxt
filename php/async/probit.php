@@ -1521,6 +1521,8 @@ class probit extends Exchange {
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
+            } else {
+                $request['limit'] = 100;
             }
             $response = Async\await($this->privateGetTransferPayment (array_merge($request, $params)));
             //

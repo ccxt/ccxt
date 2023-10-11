@@ -307,13 +307,13 @@ class btcmarkets(Exchange, ImplicitAPI):
         tagTo = tag
         addressFrom = None
         tagFrom = None
-        fee = self.safe_number(transaction, 'fee')
+        fee = self.safe_string(transaction, 'fee')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         currencyId = self.safe_string(transaction, 'assetName')
         code = self.safe_currency_code(currencyId)
-        amount = self.safe_number(transaction, 'amount')
+        amount = self.safe_string(transaction, 'amount')
         if fee:
-            amount -= fee
+            amount = Precise.string_sub(amount, fee)
         return {
             'id': self.safe_string(transaction, 'id'),
             'txid': txid,
@@ -327,14 +327,14 @@ class btcmarkets(Exchange, ImplicitAPI):
             'tagTo': tagTo,
             'tagFrom': tagFrom,
             'type': type,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'currency': code,
             'status': status,
             'updated': lastUpdate,
             'comment': None,
             'fee': {
                 'currency': code,
-                'cost': fee,
+                'cost': self.parse_number(fee),
                 'rate': None,
             },
             'info': transaction,

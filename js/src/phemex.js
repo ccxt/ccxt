@@ -4331,12 +4331,30 @@ export default class phemex extends Exchange {
         return this.safeString(statuses, status, status);
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name phemex#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @see https://phemex-docs.github.io/#query-funding-rate-history-2
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
+         * @param {object} [params] extra parameters specific to the phemex api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] timestamp in ms of the latest funding rate
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
+         */
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const isUsdtSettled = market['settle'] === 'USDT';
         if (!market['swap']) {
             throw new BadRequest(this.id + ' fetchFundingRateHistory() supports swap contracts only');
+        }
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100);
         }
         let customSymbol = undefined;
         if (isUsdtSettled) {
@@ -4345,7 +4363,7 @@ export default class phemex extends Exchange {
         else {
             customSymbol = '.' + market['baseId'] + 'FR8H';
         }
-        const request = {
+        let request = {
             'symbol': customSymbol,
         };
         if (since !== undefined) {
@@ -4354,6 +4372,7 @@ export default class phemex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        [request, params] = this.handleUntilOption('end', request, params);
         let response = undefined;
         if (isUsdtSettled) {
             response = await this.v2GetApiDataPublicDataFundingRateHistory(this.extend(request, params));
