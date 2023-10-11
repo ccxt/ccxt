@@ -496,6 +496,7 @@
         }
     },
     "bybit": {
+        "skipWs": "temporarily skipped because of RL issues. after proxy merge, turn it back on",
         "skipMethods": {
             "fetchTickers": {
                 "symbol" :"returned symbol is not same as requested symbol. i.e. BTC/USDT:USDT vs BTC/USDT"
