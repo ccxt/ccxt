@@ -62,6 +62,7 @@ export default class bitmart extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchLiquidations': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyLiquidations': true,
@@ -3963,22 +3964,23 @@ export default class bitmart extends Exchange {
         });
     }
 
-    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#fetchMyLiquidations
          * @description retrieves the users liquidated positions
          * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
-         * @param {string} symbol unified CCXT market symbol
+         * @param {string} [symbol] unified CCXT market symbol
+         * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
+         * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the bitmart api endpoint
-         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @param {int|undefined} [params.until] timestamp in ms of the latest liquidation
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
-        this.checkRequiredSymbol ('fetchMyLiquidations', symbol);
         const market = this.market (symbol);
         if (!market['swap']) {
-            throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' orders');
+            throw new NotSupported (this.id + ' fetchMyLiquidations() supports swap markets only');
         }
         const request = {
             'symbol': market['id'],
@@ -4055,6 +4057,7 @@ export default class bitmart extends Exchange {
             'symbol': this.safeSymbol (marketId, market),
             'amount': this.safeNumber (liquidation, 'deal_size'),
             'price': this.safeNumber (liquidation, 'deal_avg_price'),
+            'value': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };

@@ -8999,7 +8999,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchMyLiquidations
@@ -9007,7 +9007,7 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/spot/en/#get-force-liquidation-record-user_data
          * @see https://binance-docs.github.io/apidocs/futures/en/#user-39-s-force-orders-user_data
          * @see https://binance-docs.github.io/apidocs/delivery/en/#user-39-s-force-orders-user_data
-         * @param {string|undefined} [symbol] unified CCXT market symbol
+         * @param {string} [symbol] unified CCXT market symbol
          * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
          * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the binance api endpoint
@@ -9015,7 +9015,6 @@ export default class binance extends Exchange {
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
-        this.checkRequiredSymbol ('fetchMyLiquidations', symbol);
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],

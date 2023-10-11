@@ -8042,7 +8042,7 @@ export default class huobi extends Exchange {
         };
     }
 
-    async fetchLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchLiquidations
@@ -8050,7 +8050,7 @@ export default class huobi extends Exchange {
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
          * @see https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
-         * @param {string|undefined} [symbol] unified CCXT market symbol
+         * @param {string} [symbol] unified CCXT market symbol
          * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
          * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the huobi api endpoint
@@ -8059,7 +8059,6 @@ export default class huobi extends Exchange {
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
-        this.checkRequiredSymbol ('fetchLiquidations', symbol);
         const market = this.market (symbol);
         const tradeType = this.safeInteger (params, 'trade_type', 0);
         const request = {

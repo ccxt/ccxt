@@ -6309,24 +6309,23 @@ export default class gate extends Exchange {
         return underlyings;
     }
 
-    async fetchLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchLiquidations
          * @description retrieves the public liquidations of a trading pair
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-liquidation-history
-         * @param {string|undefined} [symbol] unified CCXT market symbol
+         * @param {string} [symbol] unified CCXT market symbol
          * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
          * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the gate api endpoint
-         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @param {int|undefined} [params.until] timestamp in ms of the latest liquidation
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
-        this.checkRequiredSymbol ('fetchLiquidations', symbol);
         const market = this.market (symbol);
         if (!market['swap']) {
-            throw new BadRequest (this.id + ' fetchLiquidations() supports swap markets only');
+            throw new NotSupported (this.id + ' fetchLiquidations() supports swap markets only');
         }
         const request = {
             'settle': market['settleId'],
@@ -6359,7 +6358,7 @@ export default class gate extends Exchange {
         return this.parseLiquidations (response, market, since, limit);
     }
 
-    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gate#fetchMyLiquidations
@@ -6367,36 +6366,33 @@ export default class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
-         * @param {string|undefined} [symbol] unified CCXT market symbol
+         * @param {string} [symbol] unified CCXT market symbol
          * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
          * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the gate api endpoint
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
-        this.checkRequiredSymbol ('fetchMyLiquidations', symbol);
         const market = this.market (symbol);
         const request = {
             'contract': market['id'],
         };
-        let type = undefined;
         let response = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyLiquidations', market, params);
-        if ((type === 'swap') || (type === 'future')) {
+        if ((market['swap']) || (market['future'])) {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
             request['settle'] = market['settleId'];
-        } else if (type === 'option') {
+        } else if (market['option']) {
             const marketId = market['id'];
             const optionParts = marketId.split ('-');
             request['underlying'] = this.safeString (optionParts, 0);
         }
-        if (type === 'swap') {
+        if (market['swap']) {
             response = await this.privateFuturesGetSettleLiquidates (this.extend (request, params));
-        } else if (type === 'future') {
+        } else if (market['future']) {
             response = await this.privateDeliveryGetSettleLiquidates (this.extend (request, params));
-        } else if (type === 'option') {
+        } else if (market['option']) {
             response = await this.privateOptionsGetPositionClose (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' orders');

@@ -2941,20 +2941,19 @@ export default class deribit extends Exchange {
         };
     }
 
-    async fetchLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchLiquidations
          * @description retrieves the public liquidations of a trading pair
          * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
-         * @param {string|undefined} [symbol] unified CCXT market symbol
+         * @param {string} [symbol] unified CCXT market symbol
          * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
          * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the deribit api endpoint
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
-        this.checkRequiredSymbol ('fetchLiquidations', symbol);
         const market = this.market (symbol);
         if (market['spot']) {
             throw new NotSupported (this.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets');
@@ -2999,20 +2998,19 @@ export default class deribit extends Exchange {
         return this.parseLiquidations (settlements, market, since, limit);
     }
 
-    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchMyLiquidations
          * @description retrieves the users liquidated positions
          * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
-         * @param {string|undefined} [symbol] unified CCXT market symbol
+         * @param {string} [symbol] unified CCXT market symbol
          * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
          * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the deribit api endpoint
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
-        this.checkRequiredSymbol ('fetchMyLiquidations', symbol);
         const market = this.market (symbol);
         if (market['spot']) {
             throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
@@ -3070,14 +3068,10 @@ export default class deribit extends Exchange {
         //         "socialized": 0.001,
         //     }
         //
-        let marketId = undefined;
-        if (market !== undefined) {
-            marketId = market['id'];
-        }
         const timestamp = this.safeInteger (liquidation, 'timestamp');
         return {
             'info': liquidation,
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': this.safeSymbol (undefined, market),
             'amount': this.safeNumber (liquidation, 'funded'),
             'price': undefined,
             'value': this.safeNumber (liquidation, 'session_bankruptcy'), // total value of the loss
