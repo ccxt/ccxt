@@ -2382,7 +2382,7 @@ export default class binance extends Exchange {
                 },
             },
             'info': market,
-            'created': undefined,
+            'created': this.safeInteger (market, 'onboardDate'), // present in inverse & linear apis
         };
         if ('PRICE_FILTER' in filtersByType) {
             const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
