@@ -8050,11 +8050,11 @@ export default class huobi extends Exchange {
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
          * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
          * @see https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
-         * @param {string} [symbol] unified CCXT market symbol
-         * @param {int|undefined} [since] the earliest time in ms to fetch liquidations for
-         * @param {int|undefined} [limit] the maximum number of liquidation structures to retrieve
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the huobi api endpoint
-         * @param {int|undefined} [params.until] timestamp in ms of the latest liquidation
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
          * @param {int} [params.tradeType] default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
@@ -8135,9 +8135,11 @@ export default class huobi extends Exchange {
         return {
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),
-            'amount': this.safeNumber (liquidation, 'amount'),
+            'contracts': this.safeNumber (liquidation, 'volume'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
             'price': this.safeNumber (liquidation, 'price'),
-            'value': this.safeNumber (liquidation, 'trade_turnover'),
+            'baseValue': this.safeNumber (liquidation, 'amount'),
+            'quoteValue': this.safeNumber (liquidation, 'trade_turnover'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
