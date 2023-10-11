@@ -834,6 +834,7 @@ export default class whitebit extends Exchange {
         /**
          * @method
          * @name whitebit#fetchOrderBook
+         * @see https://whitebit-exchange.github.io/api-docs/public/http-v4/#orderbook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -868,7 +869,7 @@ export default class whitebit extends Exchange {
         //          ]
         //      }
         //
-        const timestamp = this.parseToInt (Precise.stringMul (this.safeString (response, 'timestamp'), '1000'));
+        const timestamp = this.safeIntegerProduct (response, 'timestamp', 1000);
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
