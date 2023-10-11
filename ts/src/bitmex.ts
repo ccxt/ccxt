@@ -60,9 +60,11 @@ export default class bitmex extends Exchange {
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': true,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -2631,6 +2633,74 @@ export default class bitmex extends Exchange {
             }
         }
         return cost;
+    }
+
+    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchLiquidations
+         * @description retrieves the public liquidations of a trading pair
+         * @see https://www.bitmex.com/api/explorer/#!/Liquidation/Liquidation_get
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const until = this.safeIntegerN (params, [ 'until', 'till', 'endTime' ]);
+        params = this.omit (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicGetLiquidation (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "orderID": "string",
+        //             "symbol": "string",
+        //             "side": "string",
+        //             "price": 0,
+        //             "leavesQty": 0
+        //         }
+        //     ]
+        //
+        return this.parseLiquidations (response, market, since, limit);
+    }
+
+    parseLiquidation (liquidation, market = undefined) {
+        //
+        //     {
+        //         "orderID": "string",
+        //         "symbol": "string",
+        //         "side": "string",
+        //         "price": 0,
+        //         "leavesQty": 0
+        //     }
+        //
+        const marketId = this.safeString (liquidation, 'symbol');
+        return {
+            'info': liquidation,
+            'symbol': this.safeSymbol (marketId, market),
+            'contracts': undefined,
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'price': this.safeNumber (liquidation, 'price'),
+            'baseValue': undefined,
+            'quoteValue': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
