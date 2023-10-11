@@ -3979,22 +3979,19 @@ export default class bitmart extends Exchange {
          * @param {int} [params.until] timestamp in ms of the latest liquidation
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
+        this.checkRequiredSymbol ('fetchMyLiquidations', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new NotSupported (this.id + ' fetchMyLiquidations() supports swap markets only');
         }
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        const until = this.safeIntegerN (params, [ 'until', 'till', 'end_time' ]);
-        params = this.omit (params, [ 'until', 'till' ]);
-        if (until !== undefined) {
-            request['end_time'] = until;
-        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
         const response = await this.privateGetContractPrivateOrderHistory (this.extend (request, params));
         //
         //     {
