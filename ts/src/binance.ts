@@ -251,6 +251,7 @@ export default class binance extends Exchange {
                         'loan/vip/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/request/data': 2.6668, // Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
+                        'loan/vip/request/interestRate': 2.6668, // Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
                         'loan/income': 40.002, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
