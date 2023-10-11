@@ -495,7 +495,7 @@ export default class deribit extends Exchange {
         const defaultCode = this.safeValue (this.options, 'code', 'BTC');
         const options = this.safeValue (this.options, methodName, {});
         const code = this.safeValue (options, 'code', defaultCode);
-        return this.safeValue2 (params, 'code', code);
+        return this.safeValue (params, 'code', code);
     }
 
     async fetchStatus (params = {}) {
