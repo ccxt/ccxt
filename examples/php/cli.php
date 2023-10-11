@@ -4,13 +4,20 @@ error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
 
-$root = dirname(dirname(dirname(__FILE__)));
-include $root . '/ccxt.php';;
+$ccxtroot = dirname(dirname(dirname(__FILE__)));	//when this is in $ccxtroot/examples/php/cli.php
+$root = dirname($ccxtroot);
+if(basename($root) == 'ccxt'){$root = dirname($root);}
+if(basename($root) == 'vendor'){$autoloadFile = $root.DIRECTORY_SEPARATOR.'autoload.php';}
+else{$autoloadFile = $root. DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';}
+if (file_exists($autoloadFile)) {
+    require_once $autoloadFile;
+}
+include $ccxtroot . '/ccxt.php';
 
 
 use React\Async;
 
-date_default_timezone_set('UTC');
+//date_default_timezone_set('UTC');
 
 echo 'PHP v' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION . "\n";
 echo 'CCXT version :' . \ccxt\async\Exchange::VERSION . "\n";
@@ -43,6 +50,7 @@ $main = function() use ($argv) {
         $new_updates = count(array_filter($args, function ($option) { return strstr($option, '--newUpdates') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--newUpdates') === false; }));
 
+        $ccxtroot = dirname(dirname(dirname(__FILE__)));	//when this is in $ccxtroot/examples/php/cli.php
         $id = $args[1];
         $member = $args[2];
         $args = array_slice($args, 3);
@@ -50,8 +58,8 @@ $main = function() use ($argv) {
 
         if ($exchange_found) {
 
-            $keys_global = './keys.json';
-            $keys_local = './keys.local.json';
+            $keys_global = $ccxtroot.'/keys.json';
+            $keys_local = $ccxtroot.'/keys.local.json';
             $keys_file = file_exists($keys_local) ? $keys_local : $keys_global;
 
             $config = json_decode(file_get_contents($keys_file), true);
@@ -114,7 +122,7 @@ $main = function() use ($argv) {
                     return $arg;
             }, $args);
 
-            $markets_path = '.cache/' . $exchange->id . '-markets.json';
+            $markets_path = $ccxtroot.'.cache/' . $exchange->id . '-markets.json';
             if (file_exists($markets_path)) {
                 $markets = json_decode(file_get_contents($markets_path), true);
                 $exchange->markets = $markets;
@@ -132,6 +140,11 @@ $main = function() use ($argv) {
                 $is_ws_method = true;
             }
 
+            if (property_exists($exchange, $member))
+			{
+				echo print_r($exchange->$member, true) . "\n";
+				exit(0);
+			}
             while (true) {
 
                 try {
@@ -177,7 +190,25 @@ $main = function() use ($argv) {
         }
 
     } else {
-        print_r('Usage: php -f ' . __FILE__ . " exchange_id member [args...]\n");
+		echo "This is an example of a basic command-line interface to all exchanges\n";
+        echo 'Usage: php -f ' . __FILE__ . " exchange_id method [args...]\n";
+        echo "Examples:\n";
+        echo 'php -f ' . __FILE__ ." bybit has\n";
+        echo 'php -f ' . __FILE__ .' okcoin fetchOHLCV BTC/USD 15m'."\n";
+        echo 'php -f ' . __FILE__ ." bitfinex fetchBalance\n";
+        echo 'php -f ' . __FILE__ .' kraken fetchOrderBook ETH/BTC'."\n";
+        echo "Supported exchanges:\n\e[0;32m".implode(', ', \ccxt\Exchange::$exchanges)."\e[0m\n";
+        echo "Supported options:\n";
+        echo "--verbose         Print verbose output\n";
+        echo "--debug           Print debugging output\n";
+        echo "--spot            Set defaultType\n";
+        echo "--swap            Set defaultType\n";
+        echo "--future          Set defaultType\n";
+        echo "--option          Set defaultType\n";
+        echo "--newUpdates      Set newUpdates flag. See \e[4;34m".'https://docs.ccxt.com/#/ccxt.pro.manual?id=newupdates-mode'."\e[0m\n";
+        echo "--sandbox         Use the exchange sandbox if available, same as --testnet\n";
+        echo "--testnet         Use the exchange testnet if available, same as --sandbox\n";
+        echo "--test            Use the exchange testnet if available, same as --sandbox\n";
         exit(1);
     }
 };
