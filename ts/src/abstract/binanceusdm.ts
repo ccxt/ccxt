@@ -62,6 +62,7 @@ interface binance {
     sapiGetLoanVipLoanableData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipCollateralData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipRequestData (params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanVipRequestInterestRate (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanIncome (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanOngoingOrders (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanLtvAdjustmentHistory (params?: {}): Promise<implicitReturnType>;
@@ -487,6 +488,8 @@ interface binance {
     fapiPrivateGetAdlQuantile (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetPmAccountInfo (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetOrderAmendment (params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetIncomeAsyn (params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetIncomeAsynId (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetOrderAsyn (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetOrderAsynId (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetTradeAsyn (params?: {}): Promise<implicitReturnType>;

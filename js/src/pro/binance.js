@@ -229,14 +229,8 @@ export default class binance extends binanceRest {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        if (limit !== undefined) {
-            if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500) && (limit !== 1000)) {
-                throw new ExchangeError(this.id + ' watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000');
-            }
-        }
-        //
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(symbols[0]);
         let type = firstMarket['type'];
         if (firstMarket['contract']) {
@@ -499,7 +493,7 @@ export default class binance extends binanceRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols, undefined, false, true, true);
         const options = this.safeValue(this.options, 'watchTradesForSymbols', {});
         const name = this.safeString(options, 'name', 'trade');
         const firstMarket = this.market(symbols[0]);
@@ -974,7 +968,7 @@ export default class binance extends binanceRest {
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const marketIds = this.marketIds(symbols);
         let market = undefined;
         let type = undefined;

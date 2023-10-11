@@ -1253,7 +1253,6 @@ class okx extends Exchange {
         for ($i = 0; $i < count($types); $i++) {
             $promises[] = $this->fetch_markets_by_type($types[$i], $params);
         }
-        // why not both ¯\_(ツ)_/¯
         $promises = $promises;
         for ($i = 0; $i < count($promises); $i++) {
             $result = $this->array_concat($result, $promises[$i]);
@@ -1388,6 +1387,7 @@ class okx extends Exchange {
             'expiryDatetime' => $this->iso8601($expiry),
             'strike' => $strikePrice,
             'optionType' => $optionType,
+            'created' => $this->safe_integer($market, 'listTime'),
             'precision' => array(
                 'amount' => $this->safe_number($market, 'lotSz'),
                 'price' => $this->parse_number($tickSize),
