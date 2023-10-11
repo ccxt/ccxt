@@ -3199,6 +3199,7 @@ export default class binance extends Exchange {
         await this.loadMarkets ();
         let type = undefined;
         let market = undefined;
+        symbols = this.marketSymbols (symbols, undefined, true, true);
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
             market = this.market (first);
