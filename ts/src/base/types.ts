@@ -228,6 +228,16 @@ export interface FundingRateHistory {
     datetime?: string;
 }
 
+export interface Liquidation {
+    info: any;
+    symbol: string;
+    timestamp?: number
+    datetime?: string;
+    price: number;
+    baseValue?: number;
+    quoteValue?: number;
+}
+
 /** [ timestamp, open, high, low, close, volume ] */
 export type OHLCV = [number, number, number, number, number, number];
 
