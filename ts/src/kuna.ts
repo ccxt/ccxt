@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/kuna.js';
-import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Currency, Int, OrderSide, OrderType } from './base/types.js';
@@ -34,15 +34,26 @@ export default class kuna extends Exchange {
                 'addMargin': false,
                 'borrowMargin': false,
                 'cancelOrder': true,
+                'cancelOrders': true,
+                'createDepositAddress': true,
                 'createOrder': true,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
-                'fetchBalance': true,
+                'createStopOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': false,
+                'fetchAccount': true,  // TODO
+                'fetchBalance': true,  // TODO
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchCurrencies': true,
+                'fetchDeposit': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -62,6 +73,7 @@ export default class kuna extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrdersByStatus': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -73,12 +85,15 @@ export default class kuna extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchWithdrawal': true,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'withdraw': true,
             },
             'timeframes': undefined,
             'urls': {
@@ -115,6 +130,7 @@ export default class kuna extends Exchange {
                             'active': 1,
                             'order/history': 1,
                             'order/private/{id}/trades': 1,
+                            'order/details/{id}': 1,
                             'order/details/{id}?withTrades={withTrades}': 1,
                             'trade/history': 1,
                             'transaction/{hash}': 1,
@@ -798,22 +814,48 @@ export default class kuna extends Exchange {
         //        "side": "Ask"                                       // Trade type: `Ask` or `Bid`. Bid for buying base asset, Ask for selling base asset (e.g. for BTC_USDT trading pair, BTC is the base asset).
         //    }
         //
+        // fetchMyTrades, fetchOrder (private)
+        //
+        //    {
+        //        id: "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
+        //        orderId: "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
+        //        pair: "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+        //        quantity: "1.5862",                                // Traded quantity of base asset
+        //        price: "19087",                                    // Price of the trade
+        //        isTaker: true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+        //        fee: "0.0039655",                                  // Exchange commission fee
+        //        feeCurrency: "BTC",                                // Currency of the commission
+        //        isBuyer: true,                                     // Buy or sell the base asset
+        //        quoteQuantity: "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+        //        createdAt: "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
+        //    }
+        //
         const datetime = this.safeString (trade, 'createdAt');
         const marketId = this.safeString (trade, 'pair');
+        const isTaker = this.safeValue (trade, 'isMaker');
+        let side = this.safeStringLower (trade, 'side');
+        if (side === undefined) {
+            const isBuyer = this.safeValue (trade, 'isBuyer');
+            side = isBuyer ? 'buy' : 'sell';
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'id'),
+            'symbol': this.safeSymbol (marketId, market),
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-            'symbol': this.safeSymbol (marketId, market),
             'type': undefined,
-            'side': this.safeStringLower (trade, 'side'),
+            'side': side,
             'order': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': isTaker ? 'taker' : 'maker',
             'price': this.safeString (trade, 'matchPrice'),
             'amount': this.safeString (trade, 'matchQuantity'),
             'cost': this.safeString (trade, 'quoteQuantity'),
-            'fee': undefined,
+            'fee': {
+                'cost': this.safeString (trade, 'fee'),
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
+                'rate': undefined,
+            },
         }, market);
     }
 
@@ -834,6 +876,7 @@ export default class kuna extends Exchange {
 
     async fetchBalance (params = {}) {
         /**
+         * TODO
          * @method
          * @name kuna#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
@@ -850,26 +893,57 @@ export default class kuna extends Exchange {
          * @method
          * @name kuna#createOrder
          * @description create a trade order
+         * @see https://docs.kuna.io/docs/create-a-new-order-private
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the kuna api endpoint
+         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.id] id must be a UUID format, if you do not specify id, it will be generated automatically.
+         * @param {float} [params.quoteQuantity] the max quantity of the quote asset to use for selling/buying
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
+        const capitalizedType = this.capitalize (type);
         const request = {
-            'market': market['id'],
-            'side': side,
-            'volume': amount.toString (),
-            'ord_type': type,
+            'pair': market['id'],
+            'orderSide': (side === 'buy') ? 'buy' : 'sell',
+            'quantity': amount.toString (),
+            'type': capitalizedType,
         };
-        if (type === 'limit') {
-            request['price'] = price.toString ();
+        if (capitalizedType === 'Limit') {
+            request['price'] = this.priceToPrecision (market['symbol'], price);
         }
-        const response = await this.privatePostOrders (this.extend (request, params));
+        if (triggerPrice !== undefined) {
+            if (capitalizedType === 'Market') {
+                throw new BadRequest (this.id + ' createOrder () cannot place trigger market orders, or trigger limit');
+            }
+            request['stopPrice'] = this.priceToPrecision (market['symbol'], triggerPrice);
+            if (capitalizedType !== 'TakeProfitLimit') {
+                request['type'] = 'StopLossLimit';
+            }
+        }
+        const response = await this.v4PrivatePostOrderCreate (this.extend (request, params));
+        //
+        //    {
+        //        "id": "b0fcb54c-2278-4f16-a300-02765faad8b0",     // ID  of your newly created order
+        //        "type": "Limit",                                  // Type of an order
+        //        "quantity": "0.06",                               // Original order quantity
+        //        "executedQuantity": "0",                          // Traded quantity in stock (>0 if traded)
+        //        "pair": "BTC_USDT",                               // Traded pair
+        //        "price": "26440.46",                              // Price of the trade
+        //        "status": "Open",                                 // The status of the order
+        //        "createdAt": "2023-07-11T08:01:30.550Z",          // Date-time of order creation, UTC
+        //        "updatedAt": "2023-07-11T08:01:30.550Z"           // Date-time of the last update of the order, UTC
+        //    }
+        //
         return this.parseOrder (response, market);
     }
 
@@ -879,24 +953,52 @@ export default class kuna extends Exchange {
          * @name kuna#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string} symbol not used by kuna cancelOrder ()
+         * @param {string} symbol not used by kuna cancelOrder
          * @param {object} [params] extra parameters specific to the kuna api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {
-            'id': id,
+            'orderId': id,
         };
-        const response = await this.privatePostOrderDelete (this.extend (request, params));
-        const order = this.parseOrder (response);
-        const status = order['status'];
-        if (status === 'closed' || status === 'canceled') {
-            throw new OrderNotFound (this.id + ' ' + this.json (order));
-        }
-        return order;
+        const response = await this.v4PrivatePostOrderCancel (this.extend (request, params));
+        //
+        //    {
+        //        "success": true
+        //    }
+        //
+        return this.parseOrder (response);
+    }
+
+    async cancelOrders (ids: string[], symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#cancelOrder
+         * @description cancels an open order
+         * @param {string} ids order ids
+         * @param {string} symbol not used by kuna cancelOrder
+         * @param {object} [params] extra parameters specific to the kuna api endpoint
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'orderIds': ids,
+        };
+        const response = await this.v4PrivatePostOrderCancel (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "id": "c7fc5b2b-bd9d-48c1-a458-a83412669fe2",   // Unique identifier of a canceled order
+        //            "success": true                                 // Status for this order
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseOrders (response);
     }
 
     parseOrderStatus (status) {
+        // TODO
         const statuses = {
             'done': 'closed',
             'wait': 'open',
@@ -906,36 +1008,80 @@ export default class kuna extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const marketId = this.safeString (order, 'market');
-        const symbol = this.safeSymbol (marketId, market);
-        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        const type = this.safeString (order, 'type');
-        const side = this.safeString (order, 'side');
-        const id = this.safeString (order, 'id');
+        //
+        // createOrder, fetchOrder, fetchOpenOrders, fetchOrdersByStatus
+        //
+        //    {
+        //        "id": "5992a049-8612-409d-8599-2c3d7298b106",     // Unique identifier of an order
+        //        "type": "Limit",                                  // Type of an order
+        //        "quantity": "5",                                  // Original order quantity
+        //        "executedQuantity": "0",                          // Traded quantity in stock (>0 if traded)
+        //        "cumulativeQuoteQty": "0",                        // Traded quantity in money (>0 if traded) *absent on createOrder*
+        //        "cost": "0.05",                                   // Total amount
+        //        "side": "Bid",                                    // Bid for buying base asset, Ask for selling base asset. FYI: For BTC_USDT trading pair, BTC is the base asset *absent on createOrder*
+        //        "pair": "TRX_USDT",                               // Traded pair
+        //        "price": "0.01",                                  // Price of the trade
+        //        "status": "Open",                                 // The status of the order
+        //        "createdAt": "2023-07-11T07:04:20.131Z",          // Date-time of order creation, UTC
+        //        "updatedAt": "2023-07-11T07:04:20.131Z"           // Date-time of the last update of the order, UTC
+        //        "closedAt": "2023-05-08T08:53:58.333Z"            // Date-time of order finish time, UTC *absent on fetchOpenOrders/createOrder*
+        //        "trades": [                                       // * fetchOrder only *
+        //            {
+        //                "id": "15ff497c-8d25-4155-8184-bb1f905cce1e",              // Unique identifier of a trade
+        //                "orderId": "4b9b9705-e85f-4180-bdec-219fbf025fa3",         // Unique identifier of an associated order
+        //                "pair": "BTC_USDT",                                        // Traded pair
+        //                "quantity": "0.00054",                                     // Traded quantity
+        //                "price": "27770",                                          // Traded price
+        //                "isTaker": false,                                          // Various fees for Makers and Takers; "Market" orders are always `true`
+        //                "fee": "0.000001350",                                      // Exchange commission fee
+        //                "feeCurrency": "BTC",                                      // Currency of the commission
+        //                "isBuyer": true,                                           // Buy or sell the base asset
+        //                "quoteQuantity": "14.9958",                                // Quote asset quantity
+        //                "createdAt": "2023-05-08T08:53:58.332Z"                    // Date-time of trade execution, UTC
+        //            }
+        //        ]
+        //    }
+        //
+        // cancelOrder, cancelOrders
+        //
+        //    {
+        //        "id": "c7fc5b2b-bd9d-48c1-a458-a83412669fe2",   // Unique identifier of a canceled order *absent on cancelOrder*
+        //        "success": true                                 // Status for this order
+        //    }
+        //
+        const marketId = this.safeString (order, 'pair');
+        const datetime = this.safeString (order, 'createdAt');
+        const triggerPrice = this.safeString (order, 'stopPrice');
+        let side = this.safeString (order, 'side');
+        if (side === 'Bid') {
+            side = 'buy';
+        } else if (side === 'Ask') {
+            side = 'sell';
+        }
+        const trades = this.safeValue (order, 'trades');
         return this.safeOrder ({
-            'id': id,
+            'info': order,
+            'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
+            'symbol': this.safeSymbol (marketId, market),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'lastTradeTimestamp': this.parse8601 (this.safeString (order, 'updatedAt')),
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'type': this.safeStringLower (order, 'type'),
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
             'price': this.safeString (order, 'price'),
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': this.safeString (order, 'volume'),
-            'filled': this.safeString (order, 'executed_volume'),
-            'remaining': this.safeString (order, 'remaining_volume'),
-            'trades': undefined,
-            'fee': undefined,
-            'info': order,
-            'cost': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'amount': this.safeString (order, 'quantity'),
+            'filled': this.safeString (order, 'executedQuantity'),
+            'remaining': undefined,
+            'trades': this.parseTrades (trades),
+            'cost': this.safeString (order, 'cost'),
             'average': undefined,
+            'fee': undefined,
         }, market);
     }
 
@@ -944,15 +1090,52 @@ export default class kuna extends Exchange {
          * @method
          * @name kuna#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://docs.kuna.io/docs/get-order-details-by-id
          * @param {string} symbol not used by kuna fetchOrder
          * @param {object} [params] extra parameters specific to the kuna api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {boolean} [params.withTrades] default == true, specify if the response should include trades associated with the order
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {
-            'id': parseInt (id),
+            'id': id,
+            'withTrades': true,
         };
-        const response = await this.privateGetOrder (this.extend (request, params));
+        const response = await this.v4PrivateGetOrderDetailsIdWithTradesWithTrades (this.extend (request, params));
+        //
+        //    {
+        //        "id": "4b9b9705-e85f-4180-bdec-219fbf025fa3",
+        //        "type": "Limit",
+        //        "quantity": "0.00054",
+        //        "executedQuantity": "0.00054",
+        //        "cumulativeQuoteQty": "14.99580",
+        //        "cost": "14.9958",
+        //        "side": "Bid",
+        //        "pair": "BTC_USDT",
+        //        "price": "27770",
+        //        "status": "Closed",
+        //        "createdAt": "2023-05-08T08:39:46.708Z",
+        //        "updatedAt": "2023-05-08T08:53:58.332Z",
+        //        "closedAt": "2023-05-08T08:53:58.333Z",
+        //        "trades": [
+        //            {
+        //                "id": "15ff497c-8d25-4155-8184-bb1f905cce1e",              // Unique identifier of a trade
+        //                "orderId": "4b9b9705-e85f-4180-bdec-219fbf025fa3",         // Unique identifier of an associated order
+        //                "pair": "BTC_USDT",                                        // Traded pair
+        //                "quantity": "0.00054",                                     // Traded quantity
+        //                "price": "27770",                                          // Traded price
+        //                "isTaker": false,                                          // Various fees for Makers and Takers; "Market" orders are always `true`
+        //                "fee": "0.000001350",                                      // Exchange commission fee
+        //                "feeCurrency": "BTC",                                      // Currency of the commission
+        //                "isBuyer": true,                                           // Buy or sell the base asset
+        //                "quoteQuantity": "14.9958",                                // Quote asset quantity
+        //                "createdAt": "2023-05-08T08:53:58.332Z"                    // Date-time of trade execution, UTC
+        //            }
+        //        ]
+        //    }
+        //
         return this.parseOrder (response);
     }
 
@@ -961,24 +1144,120 @@ export default class kuna extends Exchange {
          * @method
          * @name kuna#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.kuna.io/docs/get-active-client-orders-private
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] 1-100, the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the kuna api endpoint
+         * @param {int} [params.until] the latest timestamp (ms) to fetch orders for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.sort] asc (oldest-on-top) or desc (newest-on-top)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const request = {
-            'market': market['id'],
+            'pairs': market['id'],
         };
-        const response = await this.privateGetOrders (this.extend (request, params));
-        // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
-        // with order cache + fetchOpenOrders
-        // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
+        if (since !== undefined) {
+            request['start'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (until !== undefined) {
+            request['end'] = this.iso8601 (until);
+        }
+        const response = await this.v4PrivateGetActive (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "id": "5992a049-8612-409d-8599-2c3d7298b106",            // Unique identifier of an order
+        //            "type": "Limit",                                         // Type of an order
+        //            "quantity": "5",                                         // Original order quantity
+        //            "executedQuantity": "0",                                 // Traded quantity in stock (>0 if traded)
+        //            "cumulativeQuoteQty": "0",                               // Traded quantity in money (>0 if traded)
+        //            "cost": "0.05",                                          // Total amount
+        //            "side": "Bid",                                           // Bid for buying base asset, Ask for selling base asset. FYI: For BTC_USDT trading pair, BTC is the base asset
+        //            "pair": "TRX_USDT",                                      // Traded pair
+        //            "price": "0.01",                                         // Price of the trade
+        //            "status": "Open",                                        // The status of the order
+        //            "createdAt": "2023-07-11T07:04:20.131Z",                 // Date-time of order creation, UTC
+        //            "updatedAt": "2023-07-11T07:04:20.131Z"                  // Date-time of the last update of the order, UTC
+        //        }
+        //        ...
+        //    ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchOrdersByStatus
+         * @description fetch a list of orders
+         * @see https://docs.kuna.io/docs/get-private-orders-history
+         * @param {string} status canceled, closed, expired, open, pending, rejected, or waitStop
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] 1-100, the maximum number of open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the kuna api endpoint
+         * @param {int} [params.until] the latest timestamp (ms) to fetch orders for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.sort] asc (oldest-on-top) or desc (newest-on-top)
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        if (status === 'open') {
+            return this.fetchOpenOrders (symbol, since, limit, params);
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
+        let market = undefined;
+        const request = {
+            'status': this.capitalize (status),
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['pairs'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (until !== undefined) {
+            request['end'] = this.iso8601 (until);
+        }
+        const response = await this.v4PrivateGetOrderHistory (request);
+        //
+        //    [
+        //        {
+        //            "id": "4b9b9705-e85f-4180-bdec-219fbf025fa3",           // Unique identifier of an order
+        //            "type": "Limit",                                        // Type of an order
+        //            "quantity": "0.00054",                                  // Original order quantity
+        //            "executedQuantity": "0.00054",                          // Traded quantity in stock (>0 if traded)
+        //            "cumulativeQuoteQty": "14.99580",                       // Traded quantity in money (>0 if traded)
+        //            "cost": "14.9958",                                      // Total amount
+        //            "side": "Bid",                                          // Bid for buying base asset, Ask for selling base asset. FYI: For BTC_USDT trading pair, BTC is the base asset
+        //            "pair": "BTC_USDT",                                     // Traded pair
+        //            "price": "27770",                                       // Price of the trade
+        //            "status": "Closed",                                     // The status of the order
+        //            "createdAt": "2023-05-08T08:39:46.708Z",                // Date-time of order creation, UTC
+        //            "updatedAt": "2023-05-08T08:53:58.332Z",                // Date-time of the last update of the order, UTC
+        //            "closedAt": "2023-05-08T08:53:58.333Z"                  // Date-time of order finish time, UTC
+        //        },
+        //        ...
+        //    ]
+        //
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -987,37 +1266,432 @@ export default class kuna extends Exchange {
          * @method
          * @name kuna#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://docs.kuna.io/docs/get-private-trades-history
          * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {int} [since] not used by kuna fetchMyTrades
+         * @param {int} [limit] not used by kuna fetchMyTrades
          * @param {object} [params] extra parameters specific to the kuna api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.orderId] UUID of an order, to receive trades for this order only
+         * @param {string} [params.sort] asc (oldest-on-top) or desc (newest-on-top)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-        };
-        const response = await this.privateGetTradesMy (this.extend (request, params));
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
+        const response = await this.v4PrivateGetTradeHistory (this.extend (request, params));
         //
-        //      [
-        //          {
-        //              "id":11353719,
-        //              "price":"0.13566",
-        //              "volume":"99.0",
-        //              "funds":"13.43034",
-        //              "market":"dogeusdt",
-        //              "created_at":"2022-04-12T18:58:44Z",
-        //              "side":"ask",
-        //              "order_id":1665670371,
-        //              "trend":"buy"
-        //          },
-        //      ]
+        //    [
+        //        {
+        //            id: "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
+        //            orderId: "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
+        //            pair: "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+        //            quantity: "1.5862",                                // Traded quantity of base asset
+        //            price: "19087",                                    // Price of the trade
+        //            isTaker: true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+        //            fee: "0.0039655",                                  // Exchange commission fee
+        //            feeCurrency: "BTC",                                // Currency of the commission
+        //            isBuyer: true,                                     // Buy or sell the base asset
+        //            quoteQuantity: "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+        //            createdAt: "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
+        //        },
+        //    ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#withdraw
+         * @description make a withdrawal
+         * @see https://docs.kuna.io/docs/create-a-withdraw
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the kuna api endpoint
+         * @param {string} [params.chain] the chain to withdraw to
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         */
+        this.checkAddress (address);
+        const chain = this.safeString2 (params, 'chain', 'network');
+        params = this.omit (params, [ 'chain', 'network' ]);
+        if (chain === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a chain parameter or a network parameter');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const networkId = this.networkCodeToId (chain);
+        const request = {
+            // id	string	BODY	NO	-	id must be a UUID format. If you do not specify id, it will be generated automatically.
+            // currency	string	BODY	YES	-	Currency code (cryptocurrency or fiat). All available currencies are available through "Get information about available currencies" endpoint.
+            // address	string	BODY	NO	-	Withdraw address for cryptocurrency.
+            // paymentId	string	BODY	NO	-	Field for withdraw identifier Destination tag/Memo.
+            // paymentMethod	string	BODY	YES	-	Withdraw method for currency, should be taken from "Get info about withdrawal methods by currency name" endpoint (key field).
+            // withdrawAll	boolean	BODY	NO	true, false	This field says that the amount should also include a fee.
+            // amount	int	BODY	YES	-	Withdraw amount.
+        };
+        const response = await this.v4PrivatePostWithdrawCreate (this.extend (request, params));
+        //
+        //    {
+        //        "id": "edb17459-c9bf-4148-9ae6-7367d7f55d71",     // Unique identifier of a withdraw 
+        //        "status": "waitingForConfirmation"                // status of a withdraw. If you turn off withdrawal confirmation by email, it will return "Processing" status, which means that the transaction is already being processed on our side 
+        //    }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchWithdrawals
+         * @description fetch all withdrawals made to an account
+         * @see https://docs.kuna.io/docs/get-withdraw-history
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the kuna api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch deposits for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.status] Created, Canceled, PartiallyProcessed, Processing, Processed, WaitForConfirmation, Pending, AmlChecking
+         * @param {string} [params.sortField] amount (sorting by time), createdAt (sorting by date)
+         * @param {string} [params.sortOrder] asc (oldest-on-top), or desc (newest-on-top, default)
+         * @param {int} [params.skip] 0 - ... Select the number of transactions to skip
+         * @param {string} [params.address]
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        let currency = undefined;
+        if (currency !== undefined) {
+            currency = this.currency (code);
+        }
+        const request = {};
+        if (code !== undefined) {
+            request['currency'] = code;
+        }
+        if (since !== undefined) {
+            request['dateFrom'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['take'] = limit;
+        }
+        if (until !== undefined) {
+            request['dateTo'] = this.iso8601 (until);
+        }
+        const response = this.v4PrivateGetWithdrawHistory (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //          "id": "e9aa15b8-9c19-42eb-800a-026a7a153990",                                 // Unique identifier of withdrawal
+        //          "amount": "10.75",                                                            // Amount deducted from your account
+        //          "asset": "USDT",                                                              // Withdrawal currency
+        //          "merchantId": "16214228-5c0c-5abc-be6a-c90259b21d4e",                         // Internal ID (not for use)
+        //          "paymentCode": "TRX",                                                         // Blockchain name
+        //          "status": "Processed",                                                        // Withdrawal status
+        //          "type": "Withdraw",                                                           // Transaction type
+        //          "reason": [],                                                                 // Reason for manual transaction processing
+        //          "address": "TL3CWAwviQQYSnzHT4RotCWYnarnunQM46",                              // Withdrawal address
+        //          "memo": "",                                                                   // Withdrawal memo
+        //          "txId": "5ecc4e559b528c57be6723ac960a38211fbd3101ef4b59008452b3bd88c84621",   // Withdrawal transaction hash
+        //          "fee": "0.75",                                                                // Withdrawal fee
+        //          "processedAmount": "10",                                                      // Withdrawal amount
+        //          "createdAt": "2023-06-09T11:33:02.383Z",                                      // Withdrawal creation date
+        //          "updatedAt": "2023-06-09T11:34:25.317Z"                                       // Date of final withdrawal status
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseTransactions (response, currency);
+    }
+
+    async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchWithdrawal
+         * @description fetch data on a currency withdrawal via the withdrawal id
+         * @see https://docs.kuna.io/docs/get-withdraw-details-by-id
+         * @param {string} id withdrawal id
+         * @param {string} code not used by kuna.fetchWithdrawal
+         * @param {object} [params] extra parameters specific to the kuna api endpoint
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'withdrawId': id,
+        };
+        const response = await this.v4PrivateGetWithdrawDetailsWithdrawId (this.extend (request, params));
+        //
+        //    {
+        //        "id": "e9aa15b8-9c19-42eb-800a-026a7a153990",                                 // Unique identifier of withdrawal
+        //        "amount": "10.75",                                                            // Amount deducted from your account
+        //        "asset": "USDT",                                                              // Withdrawal currency
+        //        "merchantId": "16214228-5c0c-5abc-be6a-c90259b21d4e",                         // Internal ID (not for use)
+        //        "paymentCode": "TRX",                                                         // Blockchain name
+        //        "status": "Processed",                                                        // Withdrawal status
+        //        "type": "Withdraw",                                                           // Transaction type
+        //        "reason": [],                                                                 // Reason for manual transaction processing
+        //        "address": "TL3CWAwviQQYSnzHT4RotCWYnarnunQM46",                              // Withdrawal address
+        //        "memo": "",                                                                   // Withdrawal memo
+        //        "txId": "5ecc4e559b528c57be6723ac960a38211fbd3101ef4b59008452b3bd88c84621",   // Withdrawal transaction hash
+        //        "fee": "0.75",                                                                // Withdrawal fee
+        //        "processedAmount": "10",                                                      // Withdrawal amount
+        //        "createdAt": "2023-06-09T11:33:02.383Z",                                      // Withdrawal creation date
+        //        "updatedAt": "2023-06-09T11:34:25.317Z"                                       // Date of final withdrawal status
+        //    }
+        //
+        return this.parseTransaction (response);
+    }
+
+    async createDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name kuna#createDepositAddress
+         * @description create a currency deposit address
+         * @see https://docs.kuna.io/docs/generate-a-constant-crypto-address-for-deposit
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} [params] extra parameters specific to the kuna api endpoint
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'source': currency['id'],
+        };
+        const response = await this.v4PrivatePostDepositCryptoGenerateAddress (this.extend (request, params));
+        //
+        //    {
+        //        "id": "1300c2b6-ree4-4f1e-2a9d-e0f7ed0991a7",                // ID of your address
+        //        "source": "BTC",                                             // Blockchain name for which you want to get the address to deposit into the account
+        //        "address": "bc1qm6xfv0qsaaanx0egn6hca5vgsd4r7ak9ttha2a"      // Your deposit address
+        //    }
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    async fetchDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://docs.kuna.io/docs/find-crypto-address-for-deposit
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the kuna api endpoint
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'source': currency['id'],
+        };
+        const response = this.v4PrivateGetDepositCryptoAddress (this.extend (request, params));
+        //
+        //    {
+        //        "id": "c52b6646-fb91-4760-b147-a4f952e8652c",             // ID of the address.
+        //        "source": "BTC",                                          // Blockchain name for which you want to get the address to deposit into the account.
+        //        "address": "bc1qm6xfv0qsaaanx0egn6hca5vgsd4r7ak9ttha2a"   // Your deposit address
+        //    }
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (depositAddress: any, currency?: any) {
+        //
+        //    {
+        //        "id": "c52b6646-fb91-4760-b147-a4f952e8652c",             // ID of the address.
+        //        "source": "BTC",                                          // Blockchain name for which you want to get the address to deposit into the account.
+        //        "address": "bc1qm6xfv0qsaaanx0egn6hca5vgsd4r7ak9ttha2a"   // Your deposit address
+        //    }
+        //
+        const currencyId = this.safeString (depositAddress, 'source');
+        return {
+            'info': this.safeString (depositAddress, ''),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'network': undefined,
+            'address': this.safeString (depositAddress, 'address'),
+            'tag': undefined,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'Created': 'pending',
+            'Canceled': 'canceled',
+            'PartiallyProcessed': 'pending',
+            'Processing': 'pending',
+            'Processed': 'ok',
+            'WaitForConfirmation': 'pending',
+            'Pending': 'pending',
+            'AmlChecking': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @see https://docs.kuna.io/docs/get-deposit-history
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the kuna api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch deposits for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.status] Created, Canceled, PartiallyProcessed, Processing, Processed, WaitForConfirmation, Pending, AmlChecking
+         * @param {string} [params.sortField] amount (sorting by time), createdAt (sorting by date)
+         * @param {string} [params.sortOrder] asc (oldest-on-top), or desc (newest-on-top, default)
+         * @param {int} [params.skip] 0 - ... Select the number of transactions to skip
+         * @param {string} [params.address]
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        let currency = undefined;
+        if (currency !== undefined) {
+            currency = this.currency (code);
+        }
+        const request = {};
+        if (code !== undefined) {
+            request['currency'] = code;
+        }
+        if (since !== undefined) {
+            request['dateFrom'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['take'] = limit;
+        }
+        if (until !== undefined) {
+            request['dateTo'] = this.iso8601 (until);
+        }
+        const response = this.v4PrivateGetDepositHistory (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
+        //            "amount": "9.9",                                                            // Amount credited to your account
+        //            "asset": "USDT",                                                            // Deposit currency
+        //            "merchantId": "16214228-5c0c-5abc-be6a-c90259b21d4e",                       // Internal ID (not for use)
+        //            "paymentCode": "TRX",                                                       // Blockchain name
+        //            "status": "Processed",                                                      // Transactions status
+        //            "type": "Deposit",                                                          // Transaction type
+        //            "reason": [],                                                               // Reason for manual transaction processing
+        //            "address": "TNeBQz8RyGGiAYAR7r8G6QGxtTWDkpH4dV",                            // Deposit address
+        //            "memo": "",                                                                 // Deposit memo
+        //            "txId": "8a0b0c5a2ac5679879b71b2fa63b0a5c39f90bc8ff6c41e708906b398ac3d4ef", // Deposit transaction hash
+        //            "fee": "0.1",                                                               // Deposit fee
+        //            "processedAmount": "10",                                                    // Amount of deposit
+        //            "createdAt": "2023-06-13T12:55:01.256Z",                                    // Deposit receipt date
+        //            "updatedAt": "2023-06-13T12:55:01.696Z"                                     // Deposit credit date
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseTransactions (response, currency);
+    }
+
+    async fetchDeposit (id: string, code: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchDeposit
+         * @description fetch data on a currency deposit via the deposit id
+         * @see https://docs.kuna.io/docs/get-deposit-details-by-id
+         * @param {string} id deposit id
+         * @param {string} code filter by currency code
+         * @param {object} [params] extra parameters specific to the kuna api endpoint
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         */
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request = {
+            'depositId': id,
+        };
+        const response = await this.v4PrivateGetDepositDetailsDepositId (this.extend (request, params));
+        //
+        //    {
+        //        "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
+        //        "amount": "9.9",                                                            // Amount credited to your account
+        //        "asset": "USDT",                                                            // Deposit currency
+        //        "merchantId": "16214228-5c0c-5abc-be6a-c90259b21d4e",                       // Internal ID (not for use)
+        //        "paymentCode": "TRX",                                                       // Blockchain name
+        //        "status": "Processed",                                                      // Transactions status
+        //        "type": "Deposit",                                                          // Transaction type
+        //        "reason": [],                                                               // Reason for manual transaction processing
+        //        "address": "TNeBQz8RyGGiAYAR7r8G6QGxtTWDkpH4dV",                            // Deposit address
+        //        "memo": "",                                                                 // Deposit memo
+        //        "txId": "8a0b0c5a2ac5679879b71b2fa63b0a5c39f90bc8ff6c41e708906b398ac3d4ef", // Deposit transaction hash
+        //        "fee": "0.1",                                                               // Deposit fee
+        //        "processedAmount": "10",                                                    // Amount of deposit
+        //        "createdAt": "2023-06-13T12:55:01.256Z",                                    // Deposit receipt date
+        //        "updatedAt": "2023-06-13T12:55:01.696Z"                                     // Deposit credit date
+        //    }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //    {
+        //        "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
+        //        "amount": "9.9",                                                            // Amount credited to your account
+        //        "asset": "USDT",                                                            // Deposit currency
+        //        "merchantId": "16214228-5c0c-5abc-be6a-c90259b21d4e",                       // Internal ID (not for use)
+        //        "paymentCode": "TRX",                                                       // Blockchain name
+        //        "status": "Processed",                                                      // Transactions status
+        //        "type": "Deposit",                                                          // Transaction type
+        //        "reason": [],                                                               // Reason for manual transaction processing
+        //        "address": "TNeBQz8RyGGiAYAR7r8G6QGxtTWDkpH4dV",                            // Deposit address
+        //        "memo": "",                                                                 // Deposit memo
+        //        "txId": "8a0b0c5a2ac5679879b71b2fa63b0a5c39f90bc8ff6c41e708906b398ac3d4ef", // Deposit transaction hash
+        //        "fee": "0.1",                                                               // Deposit fee
+        //        "processedAmount": "10",                                                    // Amount of deposit
+        //        "createdAt": "2023-06-13T12:55:01.256Z",                                    // Deposit receipt date
+        //        "updatedAt": "2023-06-13T12:55:01.696Z"                                     // Deposit credit date
+        //    }
+        //
+        const datetime = this.safeString (transaction, 'createdAt');
+        const currencyId = this.safeString (transaction, 'asset');
+        const networkId = this.safeString (transaction, 'paymentCode');
+        const type = this.safeStringLower (transaction, 'type');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txId'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'network': this.networkIdToCode (networkId),
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'type': (type === 'withdraw') ? 'withdrawal' : type,
+            'currency': code,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'updated': this.parse8601 (this.safeString (transaction, 'updatedAt')),
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': this.safeString (transaction, 'memo'),
+            'fee': {
+                'cost': this.safeString (transaction, 'fee'),
+                'currency': code,
+            },
+        };
     }
 
     nonce () {
