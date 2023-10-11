@@ -2630,7 +2630,7 @@ export default class Exchange {
         return result;
     }
 
-    marketSymbols (symbols, type: string = undefined, allowEmpty = true, sameTypeOnly = false) {
+    marketSymbols (symbols, type: string = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
         if (symbols === undefined) {
             if (!allowEmpty) {
                 throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
@@ -2646,6 +2646,7 @@ export default class Exchange {
         }
         const result = [];
         let marketType = undefined;
+        let isLinearSubType = undefined;
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             if (sameTypeOnly && (marketType !== undefined)) {
@@ -2653,10 +2654,18 @@ export default class Exchange {
                     throw new BadRequest (this.id + ' symbols must be of same type, either ' + marketType + ' or ' + market['type'] + '.');
                 }
             }
+            if (sameSubTypeOnly && (isLinearSubType !== undefined)) {
+                if (market['linear'] !== isLinearSubType) {
+                    throw new BadRequest (this.id + ' symbols must be of same subType, either linear or inverse.');
+                }
+            }
             if (type !== undefined && market['type'] !== type) {
                 throw new BadRequest (this.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
             }
             marketType = market['type'];
+            if (!market['spot']) {
+                isLinearSubType = market['linear'];
+            }
             const symbol = this.safeString (market, 'symbol', symbols[i]);
             result.push (symbol);
         }
