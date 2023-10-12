@@ -1,7 +1,7 @@
 
 
 import ccxt from '../../js/ccxt.js';
-import countries from '../../build/countries.js';
+import {countries} from '../../build/countries.js';
 import asTable from 'as-table';
 import ololog from 'ololog'
 import ansicolor from 'ansicolor';
