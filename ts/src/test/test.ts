@@ -22,6 +22,7 @@ const NetworkError = ccxt.NetworkError;
 const DDoSProtection = ccxt.DDoSProtection;
 const OnMaintenance = ccxt.OnMaintenance;
 const RequestTimeout = ccxt.RequestTimeout;
+const NotSupported = ccxt.NotSupported;
 
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
@@ -282,6 +283,7 @@ export default class testMainClass extends baseMainTestClass {
                 const isNetworkError = (e instanceof NetworkError);
                 const isDDoSProtection = (e instanceof DDoSProtection);
                 const isRequestTimeout = (e instanceof RequestTimeout);
+                const isNotSupported = (e instanceof NotSupported);
                 const tempFailure = (isRateLimitExceeded || isNetworkError || isDDoSProtection || isRequestTimeout);
                 if (tempFailure) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
@@ -307,7 +309,11 @@ export default class testMainClass extends baseMainTestClass {
                     }
                 } else {
                     // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
-                    dump ('[TEST_FAILURE]', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                    if (isNotSupported) {
+                        dump ('[NOT_SUPPORTED]', exchange.id, methodName, argsStringified);
+                    } else {
+                        dump ('[TEST_FAILURE]', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                    }
                 }
                 return false;
             }
