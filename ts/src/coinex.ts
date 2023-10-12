@@ -3233,7 +3233,7 @@ export default class coinex extends Exchange {
             'unrealizedPnl': unrealizedPnl,
             'percentage': undefined,
             'contracts': contracts,
-            'contractSize': undefined,
+            'contractSize': this.safeNumber (market, 'contractSize'),
             'markPrice': undefined,
             'lastPrice': undefined,
             'side': side,
