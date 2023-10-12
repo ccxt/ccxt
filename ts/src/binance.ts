@@ -9115,9 +9115,9 @@ export default class binance extends Exchange {
             market = this.market (symbol);
         }
         let type = undefined;
-        [ params, type ] = this.handleMarketTypeAndParams ('fetchMyLiquidations', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyLiquidations', market, params);
         let subType = undefined;
-        [ params, subType ] = this.handleSubTypeAndParams ('fetchMyLiquidations', market, params, 'linear');
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyLiquidations', market, params, 'linear');
         let request = {};
         if (type !== 'spot') {
             request['autoCloseType'] = 'LIQUIDATION';
@@ -9130,7 +9130,7 @@ export default class binance extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            if (market['spot']) {
+            if (type === 'spot') {
                 request['size'] = limit;
             } else {
                 request['limit'] = limit;
