@@ -6580,7 +6580,7 @@ export default class okx extends Exchange {
             openInterestAmount = this.safeNumber(interest, 'oi');
             openInterestValue = this.safeNumber(interest, 'oiCcy');
         }
-        return {
+        return this.safeOpenInterest({
             'symbol': this.safeSymbol(id),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -6589,7 +6589,7 @@ export default class okx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
     setSandboxMode(enable) {
         super.setSandboxMode(enable);

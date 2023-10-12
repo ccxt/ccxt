@@ -3454,14 +3454,14 @@ class bitmart(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(interest, 'timestamp')
         id = self.safe_string(interest, 'symbol')
-        return {
+        return self.safe_open_interest({
             'symbol': self.safe_symbol(id, market),
             'openInterestAmount': self.safe_number(interest, 'open_interest'),
             'openInterestValue': self.safe_number(interest, 'open_interest_value'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """

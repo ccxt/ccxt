@@ -7706,10 +7706,9 @@ class huobi extends huobi$1 {
         const data = this.safeValue(response, 'data', []);
         const openInterest = this.parseOpenInterest(data[0], market);
         const timestamp = this.safeInteger(response, 'ts');
-        return this.extend(openInterest, {
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-        });
+        openInterest['timestamp'] = timestamp;
+        openInterest['datetime'] = this.iso8601(timestamp);
+        return openInterest;
     }
     parseOpenInterest(interest, market = undefined) {
         //
@@ -7767,7 +7766,7 @@ class huobi extends huobi$1 {
         const timestamp = this.safeInteger(interest, 'ts');
         const amount = this.safeNumber(interest, 'volume');
         const value = this.safeNumber(interest, 'value');
-        return {
+        return this.safeOpenInterest({
             'symbol': this.safeString(market, 'symbol'),
             'baseVolume': amount,
             'quoteVolume': value,
@@ -7776,7 +7775,7 @@ class huobi extends huobi$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
     async borrowMargin(code, amount, symbol = undefined, params = {}) {
         /**

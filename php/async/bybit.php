@@ -6456,14 +6456,14 @@ class bybit extends Exchange {
         //
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $value = $this->safe_number_2($interest, 'open_interest', 'openInterest');
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $market['symbol'],
             'openInterestAmount' => null,
             'openInterestValue' => $value,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function fetch_borrow_rate(string $code, $params = array ()) {

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.10'
+__version__ = '4.1.11'
 
 # -----------------------------------------------------------------------------
 
@@ -3293,3 +3293,15 @@ class Exchange(BaseExchange):
             request[key] = self.parseToInt(until * multiplier)
             params = self.omit(params, ['until', 'till'])
         return [request, params]
+
+    def safe_open_interest(self, interest, market=None):
+        return self.extend(interest, {
+            'symbol': self.safe_string(market, 'symbol'),
+            'baseVolume': self.safe_number(interest, 'baseVolume'),  # deprecated
+            'quoteVolume': self.safe_number(interest, 'quoteVolume'),  # deprecated
+            'openInterestAmount': self.safe_number(interest, 'openInterestAmount'),
+            'openInterestValue': self.safe_number(interest, 'openInterestValue'),
+            'timestamp': self.safe_integer(interest, 'timestamp'),
+            'datetime': self.safe_string(interest, 'datetime'),
+            'info': self.safe_value(interest, 'info'),
+        })

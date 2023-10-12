@@ -4388,6 +4388,18 @@ class Exchange {
         }
         return [request, params];
     }
+    safeOpenInterest(interest, market = undefined) {
+        return this.extend(interest, {
+            'symbol': this.safeString(market, 'symbol'),
+            'baseVolume': this.safeNumber(interest, 'baseVolume'),
+            'quoteVolume': this.safeNumber(interest, 'quoteVolume'),
+            'openInterestAmount': this.safeNumber(interest, 'openInterestAmount'),
+            'openInterestValue': this.safeNumber(interest, 'openInterestValue'),
+            'timestamp': this.safeInteger(interest, 'timestamp'),
+            'datetime': this.safeString(interest, 'datetime'),
+            'info': this.safeValue(interest, 'info'),
+        });
+    }
 }
 
 exports.Exchange = Exchange;

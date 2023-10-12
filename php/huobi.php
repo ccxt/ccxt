@@ -7485,10 +7485,9 @@ class huobi extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $openInterest = $this->parse_open_interest($data[0], $market);
         $timestamp = $this->safe_integer($response, 'ts');
-        return array_merge($openInterest, array(
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-        ));
+        $openInterest['timestamp'] = $timestamp;
+        $openInterest['datetime'] = $this->iso8601($timestamp);
+        return $openInterest;
     }
 
     public function parse_open_interest($interest, $market = null) {
@@ -7547,7 +7546,7 @@ class huobi extends Exchange {
         $timestamp = $this->safe_integer($interest, 'ts');
         $amount = $this->safe_number($interest, 'volume');
         $value = $this->safe_number($interest, 'value');
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $this->safe_string($market, 'symbol'),
             'baseVolume' => $amount,  // deprecated
             'quoteVolume' => $value,  // deprecated
@@ -7556,7 +7555,7 @@ class huobi extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {

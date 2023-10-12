@@ -1146,14 +1146,16 @@ class bingx(Exchange, ImplicitAPI):
         id = self.safe_string(interest, 'symbol')
         symbol = self.safe_symbol(id, market, '-', 'swap')
         openInterest = self.safe_number(interest, 'openInterest')
-        return {
+        return self.safe_open_interest({
             'symbol': symbol,
+            'baseVolume': None,
+            'quoteVolume': None,  # deprecated
             'openInterestAmount': None,
             'openInterestValue': openInterest,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol: str, params={}):
         """

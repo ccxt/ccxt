@@ -6613,7 +6613,7 @@ class okx extends Exchange {
             $openInterestAmount = $this->safe_number($interest, 'oi');
             $openInterestValue = $this->safe_number($interest, 'oiCcy');
         }
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($id),
             'baseVolume' => $baseVolume,  // deprecated
             'quoteVolume' => $quoteVolume,  // deprecated
@@ -6622,7 +6622,7 @@ class okx extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function set_sandbox_mode($enable) {
