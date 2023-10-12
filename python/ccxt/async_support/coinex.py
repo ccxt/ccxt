@@ -3043,7 +3043,7 @@ class coinex(Exchange, ImplicitAPI):
         liquidationPrice = self.safe_string(position, 'liq_price')
         entryPrice = self.safe_string(position, 'open_price')
         unrealizedPnl = self.safe_string(position, 'profit_unreal')
-        contractSize = self.safe_string(position, 'amount')
+        contracts = self.safe_number(position, 'amount')
         sideInteger = self.safe_integer(position, 'side')
         side = 'short' if (sideInteger == 1) else 'long'
         timestamp = self.safe_timestamp(position, 'update_time')
@@ -3061,8 +3061,8 @@ class coinex(Exchange, ImplicitAPI):
             'entryPrice': entryPrice,
             'unrealizedPnl': unrealizedPnl,
             'percentage': None,
-            'contracts': None,
-            'contractSize': contractSize,
+            'contracts': contracts,
+            'contractSize': self.safe_number(market, 'contractSize'),
             'markPrice': None,
             'lastPrice': None,
             'side': side,

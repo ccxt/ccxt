@@ -2388,6 +2388,7 @@ class binance extends binance$1 {
                 },
             },
             'info': market,
+            'created': this.safeInteger(market, 'onboardDate'), // present in inverse & linear apis
         };
         if ('PRICE_FILTER' in filtersByType) {
             const filter = this.safeValue(filtersByType, 'PRICE_FILTER', {});
@@ -9145,7 +9146,13 @@ class binance extends binance$1 {
         //     ]
         //
         if (market['option']) {
-            return this.parseOpenInterests(response, market);
+            const result = this.parseOpenInterests(response, market);
+            for (let i = 0; i < result.length; i++) {
+                const item = result[i];
+                if (item['symbol'] === symbol) {
+                    return item;
+                }
+            }
         }
         else {
             return this.parseOpenInterest(response, market);
@@ -9158,7 +9165,7 @@ class binance extends binance$1 {
         const value = this.safeNumber2(interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');
         // Inverse returns the number of contracts different from the base or quote volume in this case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-        return {
+        return this.safeOpenInterest({
             'symbol': this.safeSymbol(id, market, undefined, 'contract'),
             'baseVolume': market['inverse'] ? undefined : amount,
             'quoteVolume': value,
@@ -9167,7 +9174,7 @@ class binance extends binance$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
 }
 

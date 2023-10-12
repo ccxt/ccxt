@@ -7095,10 +7095,9 @@ class huobi(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         openInterest = self.parse_open_interest(data[0], market)
         timestamp = self.safe_integer(response, 'ts')
-        return self.extend(openInterest, {
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        })
+        openInterest['timestamp'] = timestamp
+        openInterest['datetime'] = self.iso8601(timestamp)
+        return openInterest
 
     def parse_open_interest(self, interest, market=None):
         #
@@ -7156,7 +7155,7 @@ class huobi(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(interest, 'ts')
         amount = self.safe_number(interest, 'volume')
         value = self.safe_number(interest, 'value')
-        return {
+        return self.safe_open_interest({
             'symbol': self.safe_string(market, 'symbol'),
             'baseVolume': amount,  # deprecated
             'quoteVolume': value,  # deprecated
@@ -7165,7 +7164,7 @@ class huobi(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """

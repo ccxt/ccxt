@@ -41,11 +41,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.1.10';
+$version = '4.1.11';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.10';
+    const VERSION = '4.1.11';
 
     public $browser;
     public $marketsLoading = null;
@@ -3832,5 +3832,18 @@ class Exchange extends \ccxt\Exchange {
             $params = $this->omit ($params, array( 'until', 'till' ));
         }
         return array( $request, $params );
+    }
+
+    public function safe_open_interest($interest, $market = null) {
+        return array_merge($interest, array(
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'baseVolume' => $this->safe_number($interest, 'baseVolume'), // deprecated
+            'quoteVolume' => $this->safe_number($interest, 'quoteVolume'), // deprecated
+            'openInterestAmount' => $this->safe_number($interest, 'openInterestAmount'),
+            'openInterestValue' => $this->safe_number($interest, 'openInterestValue'),
+            'timestamp' => $this->safe_integer($interest, 'timestamp'),
+            'datetime' => $this->safe_string($interest, 'datetime'),
+            'info' => $this->safe_value($interest, 'info'),
+        ));
     }
 }

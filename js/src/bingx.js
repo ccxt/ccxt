@@ -1178,14 +1178,16 @@ export default class bingx extends Exchange {
         const id = this.safeString(interest, 'symbol');
         const symbol = this.safeSymbol(id, market, '-', 'swap');
         const openInterest = this.safeNumber(interest, 'openInterest');
-        return {
+        return this.safeOpenInterest({
             'symbol': symbol,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
             'openInterestAmount': undefined,
             'openInterestValue': openInterest,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
     async fetchTicker(symbol, params = {}) {
         /**

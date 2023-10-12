@@ -1203,14 +1203,16 @@ class bingx extends Exchange {
         $id = $this->safe_string($interest, 'symbol');
         $symbol = $this->safe_symbol($id, $market, '-', 'swap');
         $openInterest = $this->safe_number($interest, 'openInterest');
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $symbol,
+            'baseVolume' => null,
+            'quoteVolume' => null,  // deprecated
             'openInterestAmount' => null,
             'openInterestValue' => $openInterest,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function fetch_ticker(string $symbol, $params = array ()) {

@@ -3660,14 +3660,14 @@ export default class bitmart extends Exchange {
         //
         const timestamp = this.safeInteger(interest, 'timestamp');
         const id = this.safeString(interest, 'symbol');
-        return {
+        return this.safeOpenInterest({
             'symbol': this.safeSymbol(id, market),
             'openInterestAmount': this.safeNumber(interest, 'open_interest'),
             'openInterestValue': this.safeNumber(interest, 'open_interest_value'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
         /**

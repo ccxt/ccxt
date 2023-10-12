@@ -2350,6 +2350,7 @@ class binance(Exchange, ImplicitAPI):
                 },
             },
             'info': market,
+            'created': self.safe_integer(market, 'onboardDate'),  # present in inverse & linear apis
         }
         if 'PRICE_FILTER' in filtersByType:
             filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
@@ -8418,7 +8419,11 @@ class binance(Exchange, ImplicitAPI):
         #     ]
         #
         if market['option']:
-            return self.parse_open_interests(response, market)
+            result = self.parse_open_interests(response, market)
+            for i in range(0, len(result)):
+                item = result[i]
+                if item['symbol'] == symbol:
+                    return item
         else:
             return self.parse_open_interest(response, market)
 
@@ -8429,7 +8434,7 @@ class binance(Exchange, ImplicitAPI):
         value = self.safe_number_2(interest, 'sumOpenInterestValue', 'sumOpenInterestUsd')
         # Inverse returns the number of contracts different from the base or quote hasattr(self, volume) case
         # compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-        return {
+        return self.safe_open_interest({
             'symbol': self.safe_symbol(id, market, None, 'contract'),
             'baseVolume': None if market['inverse'] else amount,  # deprecated
             'quoteVolume': value,  # deprecated
@@ -8438,4 +8443,4 @@ class binance(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)

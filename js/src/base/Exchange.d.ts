@@ -4,7 +4,7 @@ ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotA
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory } from './types.js';
+import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest } from './types.js';
 export { Market, Trade, Fee, Position, Ticker } from './types.js';
 /**
  * @class Exchange
@@ -730,7 +730,7 @@ export default class Exchange {
     fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchDeposits(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchOpenInterest(symbol: string, params?: {}): Promise<any>;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseLastPrice(price: any, market?: any): any;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
@@ -782,8 +782,8 @@ export default class Exchange {
     fetchLastPrices(symbols?: string[], params?: {}): Promise<void>;
     fetchTradingFees(params?: {}): Promise<any>;
     fetchTradingFee(symbol: string, params?: {}): Promise<any>;
-    parseOpenInterest(interest: any, market?: any): any;
-    parseOpenInterests(response: any, market?: any, since?: Int, limit?: Int): any;
+    parseOpenInterest(interest: any, market?: any): OpenInterest;
+    parseOpenInterests(response: any, market?: any, since?: Int, limit?: Int): OpenInterest[];
     fetchFundingRate(symbol: string, params?: {}): Promise<any>;
     fetchMarkOHLCV(symbol: any, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchIndexOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -815,5 +815,6 @@ export default class Exchange {
     sortCursorPaginatedResult(result: any): any;
     removeRepeatedElementsFromArray(input: any): any;
     handleUntilOption(key: any, request: any, params: any, multiplier?: number): any[];
+    safeOpenInterest(interest: any, market?: any): OpenInterest;
 }
 export { Exchange, };

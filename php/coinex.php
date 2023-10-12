@@ -3164,7 +3164,7 @@ class coinex extends Exchange {
         $liquidationPrice = $this->safe_string($position, 'liq_price');
         $entryPrice = $this->safe_string($position, 'open_price');
         $unrealizedPnl = $this->safe_string($position, 'profit_unreal');
-        $contractSize = $this->safe_string($position, 'amount');
+        $contracts = $this->safe_number($position, 'amount');
         $sideInteger = $this->safe_integer($position, 'side');
         $side = ($sideInteger === 1) ? 'short' : 'long';
         $timestamp = $this->safe_timestamp($position, 'update_time');
@@ -3182,8 +3182,8 @@ class coinex extends Exchange {
             'entryPrice' => $entryPrice,
             'unrealizedPnl' => $unrealizedPnl,
             'percentage' => null,
-            'contracts' => null,
-            'contractSize' => $contractSize,
+            'contracts' => $contracts,
+            'contractSize' => $this->safe_number($market, 'contractSize'),
             'markPrice' => null,
             'lastPrice' => null,
             'side' => $side,

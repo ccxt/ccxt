@@ -2370,6 +2370,7 @@ class binance extends Exchange {
                 ),
             ),
             'info' => $market,
+            'created' => $this->safe_integer($market, 'onboardDate'), // present in $inverse & $linear apis
         );
         if (is_array($filtersByType) && array_key_exists('PRICE_FILTER', $filtersByType)) {
             $filter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
@@ -8928,7 +8929,13 @@ class binance extends Exchange {
         //     )
         //
         if ($market['option']) {
-            return $this->parse_open_interests($response, $market);
+            $result = $this->parse_open_interests($response, $market);
+            for ($i = 0; $i < count($result); $i++) {
+                $item = $result[$i];
+                if ($item['symbol'] === $symbol) {
+                    return $item;
+                }
+            }
         } else {
             return $this->parse_open_interest($response, $market);
         }
@@ -8941,7 +8948,7 @@ class binance extends Exchange {
         $value = $this->safe_number_2($interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');
         // Inverse returns the number of contracts different from the base or quote property_exists($this, volume) case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($id, $market, null, 'contract'),
             'baseVolume' => $market['inverse'] ? null : $amount,  // deprecated
             'quoteVolume' => $value,  // deprecated
@@ -8950,6 +8957,6 @@ class binance extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 }
