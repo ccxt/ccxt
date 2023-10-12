@@ -441,6 +441,7 @@ export default class btcmarkets extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
