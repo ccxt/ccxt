@@ -619,6 +619,7 @@ export default class bingx extends Exchange {
                     'max': this.safeNumber (market, 'maxNotional'),
                 },
             },
+            'created': undefined,
             'info': market,
         };
         return entry;
