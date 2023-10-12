@@ -681,7 +681,7 @@ export default class testMainClass extends baseMainTestClass {
         const market = exchange.market (symbol);
         const isSpot = market['spot'];
         if (isSpot) {
-            tests['fetchCurrencies'] = [ symbol ];
+            tests['fetchCurrencies'] = [ ];
         } else {
             // derivatives only
             tests['fetchPositions'] = [ symbol ]; // this test fetches all positions for 1 symbol
