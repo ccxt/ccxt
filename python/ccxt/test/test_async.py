@@ -80,6 +80,10 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 
 class baseMainTestClass():
+    skippedMethods = {}
+    checkedPublicTests = {}
+    testFiles = {}
+    publicTests = {}
     pass
 
 
