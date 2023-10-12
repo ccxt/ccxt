@@ -5676,10 +5676,9 @@ export default class bybit extends Exchange {
         const timestamp = this.safeInteger (response, 'time');
         const first = this.safeValue (positions, 0, {});
         const position = this.parsePosition (first, market);
-        return this.extend (position, {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        });
+        position['timestamp'] = timestamp;
+        position['datetime'] = this.iso8601 (timestamp);
+        return position;
     }
 
     async fetchUsdcPositions (symbols: string[] = undefined, params = {}) {
@@ -5754,7 +5753,7 @@ export default class bybit extends Exchange {
             }
             results.push (this.parsePosition (rawPosition, market));
         }
-        return this.filterByArray (results, 'symbol', symbols, false);
+        return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
 
     async fetchPositions (symbols: string[] = undefined, params = {}) {
