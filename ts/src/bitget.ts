@@ -1479,6 +1479,7 @@ export default class bitget extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
             };
         }
         return result;
