@@ -1246,6 +1246,7 @@ export default class okx extends Exchange {
                 'type': type,
                 'currency': undefined,
                 'info': account,
+                'code': undefined,
             });
         }
         return result;
