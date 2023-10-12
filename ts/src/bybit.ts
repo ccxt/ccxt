@@ -1753,6 +1753,7 @@ export default class bybit extends Exchange {
                         'max': this.safeNumber (lotSizeFilter, 'maxOrderAmt'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1926,6 +1927,7 @@ export default class bybit extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.safeInteger (market, 'launchTime'),
                 'info': market,
             });
         }
@@ -2059,6 +2061,7 @@ export default class bybit extends Exchange {
                             'max': undefined,
                         },
                     },
+                    'created': this.safeInteger (market, 'launchTime'),
                     'info': market,
                 });
             }
