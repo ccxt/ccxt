@@ -262,6 +262,7 @@ export default class btcturk extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }
