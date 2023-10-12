@@ -294,6 +294,7 @@ export default class bitflyer extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
