@@ -4335,12 +4335,28 @@ class phemex extends Exchange {
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical funding rate prices
+             * @see https://phemex-docs.github.io/#query-funding-rate-history-2
+             * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+             * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+             * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
+             * @param {array} [$params] extra parameters specific to the phemex api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {int} [$params->until] $timestamp in ms of the latest funding rate
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
+             */
             $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $isUsdtSettled = $market['settle'] === 'USDT';
             if (!$market['swap']) {
                 throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap contracts only');
+            }
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 100));
             }
             $customSymbol = null;
             if ($isUsdtSettled) {
@@ -4357,6 +4373,7 @@ class phemex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
+            list($request, $params) = $this->handle_until_option('end', $request, $params);
             $response = null;
             if ($isUsdtSettled) {
                 $response = Async\await($this->v2GetApiDataPublicDataFundingRateHistory (array_merge($request, $params)));

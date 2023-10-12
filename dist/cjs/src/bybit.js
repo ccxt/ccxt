@@ -3510,9 +3510,13 @@ class bybit extends bybit$1 {
         //     }
         //
         const marketId = this.safeString(order, 'symbol');
-        let marketType = 'contract';
+        const isContract = ('tpslMode' in order);
+        let marketType = undefined;
         if (market !== undefined) {
             marketType = market['type'];
+        }
+        else {
+            marketType = isContract ? 'contract' : 'spot';
         }
         market = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = market['symbol'];
@@ -6448,14 +6452,14 @@ class bybit extends bybit$1 {
         //
         const timestamp = this.safeInteger(interest, 'timestamp');
         const value = this.safeNumber2(interest, 'open_interest', 'openInterest');
-        return {
+        return this.safeOpenInterest({
             'symbol': market['symbol'],
             'openInterestAmount': undefined,
             'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
     async fetchBorrowRate(code, params = {}) {
         /**

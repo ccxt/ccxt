@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\coinspot as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\Precise;
 use React\Async;
 
 class coinspot extends Exchange {
@@ -50,6 +51,7 @@ class coinspot extends Exchange {
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkOHLCV' => false,
+                'fetchMyTrades' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
@@ -356,6 +358,65 @@ class coinspot extends Exchange {
         }) ();
     }
 
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all $trades made by the user
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of $trades structures to retrieve
+             * @param {array} [$params] extra parameters specific to the bitbank api endpoint
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            if ($since !== null) {
+                $request['startdate'] = $this->yyyymmdd($since);
+            }
+            $response = Async\await($this->privatePostRoMyTransactions (array_merge($request, $params)));
+            //  {
+            //   status => 'ok',
+            //   buyorders => array(
+            //     array(
+            //       otc => false,
+            //       $market => 'ALGO/AUD',
+            //       amount => 386.95197925,
+            //       created => '2022-10-20T09:56:44.502Z',
+            //       audfeeExGst => 1.80018002,
+            //       audGst => 0.180018,
+            //       audtotal => 200
+            //     ),
+            //   ),
+            //   sellorders => array(
+            //     array(
+            //       otc => false,
+            //       $market => 'SOLO/ALGO',
+            //       amount => 154.52345614,
+            //       total => 115.78858204658796,
+            //       created => '2022-04-16T09:36:43.698Z',
+            //       audfeeExGst => 1.08995731,
+            //       audGst => 0.10899573,
+            //       audtotal => 118.7
+            //     ),
+            //   )
+            // }
+            $buyTrades = $this->safe_value($response, 'buyorders', array());
+            for ($i = 0; $i < count($buyTrades); $i++) {
+                $buyTrades[$i]['side'] = 'buy';
+            }
+            $sellTrades = $this->safe_value($response, 'sellorders', array());
+            for ($i = 0; $i < count($sellTrades); $i++) {
+                $sellTrades[$i]['side'] = 'sell';
+            }
+            $trades = $this->array_concat($buyTrades, $sellTrades);
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
+    }
+
     public function parse_trade($trade, $market = null) {
         //
         // public fetchTrades
@@ -369,12 +430,46 @@ class coinspot extends Exchange {
         //         "market":"BTC/AUD"
         //     }
         //
-        $priceString = $this->safe_string($trade, 'rate');
+        // private fetchMyTrades
+        //     {
+        //       otc => false,
+        //       $market => 'ALGO/AUD',
+        //       amount => 386.95197925,
+        //       created => '2022-10-20T09:56:44.502Z',
+        //       $audfeeExGst => 1.80018002,
+        //       $audGst => 0.180018,
+        //       audtotal => 200,
+        //       total => 200,
+        //       $side => 'buy',
+        //       price => 0.5168600000125209
+        //     }
+        $timestamp = null;
+        $priceString = null;
+        $fee = null;
+        $audTotal = $this->safe_string($trade, 'audtotal');
+        $costString = $this->safe_string($trade, 'total', $audTotal);
+        $side = $this->safe_string($trade, 'side');
         $amountString = $this->safe_string($trade, 'amount');
-        $costString = $this->safe_number($trade, 'total');
-        $timestamp = $this->safe_integer($trade, 'solddate');
         $marketId = $this->safe_string($trade, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '/');
+        $solddate = $this->safe_integer($trade, 'solddate');
+        if ($solddate !== null) {
+            $priceString = $this->safe_string($trade, 'rate');
+            $timestamp = $solddate;
+        } else {
+            $priceString = Precise::string_div($costString, $amountString);
+            $createdString = $this->safe_string($trade, 'created');
+            $timestamp = $this->parse8601($createdString);
+            $audfeeExGst = $this->safe_string($trade, 'audfeeExGst');
+            $audGst = $this->safe_string($trade, 'audGst');
+            // The transaction $fee which consumers pay is inclusive of GST by default
+            $feeCost = Precise::string_add($audfeeExGst, $audGst);
+            $feeCurrencyId = 'AUD';
+            $fee = array(
+                'cost' => $this->parse_number($feeCost),
+                'currency' => $this->safe_currency_code($feeCurrencyId),
+            );
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => null,
@@ -383,12 +478,12 @@ class coinspot extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'order' => null,
             'type' => null,
-            'side' => null,
+            'side' => $side,
             'takerOrMaker' => null,
-            'price' => $priceString,
-            'amount' => $amountString,
-            'cost' => $costString,
-            'fee' => null,
+            'price' => $this->parse_number($priceString),
+            'amount' => $this->parse_number($amountString),
+            'cost' => $this->parse_number($costString),
+            'fee' => $fee,
         ), $market);
     }
 

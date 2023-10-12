@@ -2101,7 +2101,7 @@ class Exchange {
         //     string = true
         //
         //     [
-        //         { 'currency': 'BTC', 'cost': '0.3'  },
+        //         { 'currency': 'BTC', 'cost': '0.4'  },
         //         { 'currency': 'BTC', 'cost': '0.6', 'rate': '0.00123' },
         //         { 'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456' },
         //         { 'currency': 'USDT', 'cost': '12.3456' },
@@ -2325,7 +2325,7 @@ class Exchange {
         }
         return result;
     }
-    marketSymbols(symbols, type = undefined, allowEmpty = true) {
+    marketSymbols(symbols, type = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
         if (symbols === undefined) {
             if (!allowEmpty) {
                 throw new errors.ArgumentsRequired(this.id + ' empty list of symbols is not supported');
@@ -2340,10 +2340,26 @@ class Exchange {
             return symbols;
         }
         const result = [];
+        let marketType = undefined;
+        let isLinearSubType = undefined;
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(symbols[i]);
+            if (sameTypeOnly && (marketType !== undefined)) {
+                if (market['type'] !== marketType) {
+                    throw new errors.BadRequest(this.id + ' symbols must be of the same type, either ' + marketType + ' or ' + market['type'] + '.');
+                }
+            }
+            if (sameSubTypeOnly && (isLinearSubType !== undefined)) {
+                if (market['linear'] !== isLinearSubType) {
+                    throw new errors.BadRequest(this.id + ' symbols must be of the same subType, either linear or inverse.');
+                }
+            }
             if (type !== undefined && market['type'] !== type) {
-                throw new errors.BadRequest(this.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+                throw new errors.BadRequest(this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+            }
+            marketType = market['type'];
+            if (!market['spot']) {
+                isLinearSubType = market['linear'];
             }
             const symbol = this.safeString(market, 'symbol', symbols[i]);
             result.push(symbol);
@@ -4371,6 +4387,18 @@ class Exchange {
             params = this.omit(params, ['until', 'till']);
         }
         return [request, params];
+    }
+    safeOpenInterest(interest, market = undefined) {
+        return this.extend(interest, {
+            'symbol': this.safeString(market, 'symbol'),
+            'baseVolume': this.safeNumber(interest, 'baseVolume'),
+            'quoteVolume': this.safeNumber(interest, 'quoteVolume'),
+            'openInterestAmount': this.safeNumber(interest, 'openInterestAmount'),
+            'openInterestValue': this.safeNumber(interest, 'openInterestValue'),
+            'timestamp': this.safeInteger(interest, 'timestamp'),
+            'datetime': this.safeString(interest, 'datetime'),
+            'info': this.safeValue(interest, 'info'),
+        });
     }
 }
 

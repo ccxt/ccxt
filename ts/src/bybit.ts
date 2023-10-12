@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3506,9 +3506,12 @@ export default class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        let marketType = 'contract';
+        const isContract = ('tpslMode' in order);
+        let marketType = undefined;
         if (market !== undefined) {
             marketType = market['type'];
+        } else {
+            marketType = isContract ? 'contract' : 'spot';
         }
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = market['symbol'];
@@ -6400,7 +6403,7 @@ export default class bybit extends Exchange {
         const paginate = this.safeValue (params, 'paginate');
         if (paginate) {
             params = this.omit (params, 'paginate');
-            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500);
+            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500) as OpenInterest[];
         }
         const market = this.market (symbol);
         if (market['spot'] || market['option']) {
@@ -6424,14 +6427,14 @@ export default class bybit extends Exchange {
         //
         const timestamp = this.safeInteger (interest, 'timestamp');
         const value = this.safeNumber2 (interest, 'open_interest', 'openInterest');
-        return {
+        return this.safeOpenInterest ({
             'symbol': market['symbol'],
             'openInterestAmount': undefined,
             'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        };
+        }, market);
     }
 
     async fetchBorrowRate (code: string, params = {}) {

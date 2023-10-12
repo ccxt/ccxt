@@ -47,7 +47,7 @@ class binance(Exchange, ImplicitAPI):
             'rateLimit': 50,
             'certified': True,
             'pro': True,
-            # new metainfo interface
+            # new metainfo2 interface
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -274,6 +274,7 @@ class binance(Exchange, ImplicitAPI):
                         'loan/vip/loanable/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/collateral/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/request/data': 2.6668,  # Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
+                        'loan/vip/request/interestRate': 2.6668,  # Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
                         'loan/income': 40.002,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/ongoing/orders': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/ltv/adjustment/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
@@ -788,10 +789,12 @@ class binance(Exchange, ImplicitAPI):
                         'adlQuantile': 5,
                         'pmAccountInfo': 5,
                         'orderAmendment': 1,
-                        'order/asyn': 5,
-                        'order/asyn/id': 5,
-                        'trade/asyn': 5,
-                        'trade/asyn/id': 5,
+                        'income/asyn': 1000,
+                        'income/asyn/id': 10,
+                        'order/asyn': 1000,
+                        'order/asyn/id': 10,
+                        'trade/asyn': 1000,
+                        'trade/asyn/id': 10,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -2346,6 +2349,7 @@ class binance(Exchange, ImplicitAPI):
                 },
             },
             'info': market,
+            'created': self.safe_integer(market, 'onboardDate'),  # present in inverse & linear apis
         }
         if 'PRICE_FILTER' in filtersByType:
             filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
@@ -2645,7 +2649,7 @@ class binance(Exchange, ImplicitAPI):
         #                 "unrealizedProfit":"0.00000000",
         #                 "positionInitialMargin":"0",
         #                 "openOrderInitialMargin":"0",
-        #                 "leverage":"20",
+        #                 "leverage":"21",
         #                 "isolated":false,
         #                 "entryPrice":"0.00000",
         #                 "maxNotional":"5000000",
@@ -3115,6 +3119,7 @@ class binance(Exchange, ImplicitAPI):
         self.load_markets()
         type = None
         market = None
+        symbols = self.market_symbols(symbols, None, True, True, True)
         if symbols is not None:
             first = self.safe_string(symbols, 0)
             market = self.market(first)
@@ -7754,7 +7759,7 @@ class binance(Exchange, ImplicitAPI):
                     body = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
+        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'papi'):
             self.check_required_credentials()
             if method == 'POST' and ((path == 'order') or (path == 'sor/order')):
                 # inject in implicit API calls
@@ -8413,7 +8418,11 @@ class binance(Exchange, ImplicitAPI):
         #     ]
         #
         if market['option']:
-            return self.parse_open_interests(response, market)
+            result = self.parse_open_interests(response, market)
+            for i in range(0, len(result)):
+                item = result[i]
+                if item['symbol'] == symbol:
+                    return item
         else:
             return self.parse_open_interest(response, market)
 
@@ -8424,7 +8433,7 @@ class binance(Exchange, ImplicitAPI):
         value = self.safe_number_2(interest, 'sumOpenInterestValue', 'sumOpenInterestUsd')
         # Inverse returns the number of contracts different from the base or quote hasattr(self, volume) case
         # compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-        return {
+        return self.safe_open_interest({
             'symbol': self.safe_symbol(id, market, None, 'contract'),
             'baseVolume': None if market['inverse'] else amount,  # deprecated
             'quoteVolume': value,  # deprecated
@@ -8433,4 +8442,4 @@ class binance(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)

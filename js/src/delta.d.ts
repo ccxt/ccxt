@@ -247,26 +247,8 @@ export default class delta extends Exchange {
         symbol: any;
         status: any;
     };
-    fetchOpenInterest(symbol: string, params?: {}): Promise<{
-        symbol: any;
-        baseVolume: number;
-        quoteVolume: number;
-        openInterestAmount: number;
-        openInterestValue: number;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
-    parseOpenInterest(interest: any, market?: any): {
-        symbol: any;
-        baseVolume: number;
-        quoteVolume: number;
-        openInterestAmount: number;
-        openInterestValue: number;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    };
+    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
+    parseOpenInterest(interest: any, market?: any): import("./base/types.js").OpenInterest;
     fetchLeverage(symbol: string, params?: {}): Promise<any>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

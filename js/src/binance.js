@@ -25,7 +25,7 @@ export default class binance extends Exchange {
             'rateLimit': 50,
             'certified': true,
             'pro': true,
-            // new metainfo interface
+            // new metainfo2 interface
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -252,6 +252,7 @@ export default class binance extends Exchange {
                         'loan/vip/loanable/data': 40,
                         'loan/vip/collateral/data': 40,
                         'loan/vip/request/data': 2.6668,
+                        'loan/vip/request/interestRate': 2.6668,
                         'loan/income': 40.002,
                         'loan/ongoing/orders': 40,
                         'loan/ltv/adjustment/history': 40,
@@ -766,10 +767,12 @@ export default class binance extends Exchange {
                         'adlQuantile': 5,
                         'pmAccountInfo': 5,
                         'orderAmendment': 1,
-                        'order/asyn': 5,
-                        'order/asyn/id': 5,
-                        'trade/asyn': 5,
-                        'trade/asyn/id': 5,
+                        'income/asyn': 1000,
+                        'income/asyn/id': 10,
+                        'order/asyn': 1000,
+                        'order/asyn/id': 10,
+                        'trade/asyn': 1000,
+                        'trade/asyn/id': 10,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -2388,6 +2391,7 @@ export default class binance extends Exchange {
                 },
             },
             'info': market,
+            'created': this.safeInteger(market, 'onboardDate'), // present in inverse & linear apis
         };
         if ('PRICE_FILTER' in filtersByType) {
             const filter = this.safeValue(filtersByType, 'PRICE_FILTER', {});
@@ -2715,7 +2719,7 @@ export default class binance extends Exchange {
         //                 "unrealizedProfit":"0.00000000",
         //                 "positionInitialMargin":"0",
         //                 "openOrderInitialMargin":"0",
-        //                 "leverage":"20",
+        //                 "leverage":"21",
         //                 "isolated":false,
         //                 "entryPrice":"0.00000",
         //                 "maxNotional":"5000000",
@@ -3217,6 +3221,7 @@ export default class binance extends Exchange {
         await this.loadMarkets();
         let type = undefined;
         let market = undefined;
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
         if (symbols !== undefined) {
             const first = this.safeString(symbols, 0);
             market = this.market(first);
@@ -8389,7 +8394,7 @@ export default class binance extends Exchange {
                 throw new AuthenticationError(this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
         }
-        else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2') || (api === 'papi')) {
             this.checkRequiredCredentials();
             if (method === 'POST' && ((path === 'order') || (path === 'sor/order'))) {
                 // inject in implicit API calls
@@ -9144,7 +9149,13 @@ export default class binance extends Exchange {
         //     ]
         //
         if (market['option']) {
-            return this.parseOpenInterests(response, market);
+            const result = this.parseOpenInterests(response, market);
+            for (let i = 0; i < result.length; i++) {
+                const item = result[i];
+                if (item['symbol'] === symbol) {
+                    return item;
+                }
+            }
         }
         else {
             return this.parseOpenInterest(response, market);
@@ -9157,7 +9168,7 @@ export default class binance extends Exchange {
         const value = this.safeNumber2(interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');
         // Inverse returns the number of contracts different from the base or quote volume in this case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-        return {
+        return this.safeOpenInterest({
             'symbol': this.safeSymbol(id, market, undefined, 'contract'),
             'baseVolume': market['inverse'] ? undefined : amount,
             'quoteVolume': value,
@@ -9166,6 +9177,6 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
 }

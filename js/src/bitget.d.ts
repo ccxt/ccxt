@@ -247,14 +247,7 @@ export default class bitget extends Exchange {
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
     setPositionMode(hedged: any, symbol?: string, params?: {}): Promise<any>;
-    fetchOpenInterest(symbol: string, params?: {}): Promise<{
-        symbol: any;
-        openInterestAmount: number;
-        openInterestValue: any;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
@@ -292,14 +285,7 @@ export default class bitget extends Exchange {
     };
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseTransferStatus(status: any): string;
-    parseOpenInterest(interest: any, market?: any): {
-        symbol: any;
-        openInterestAmount: number;
-        openInterestValue: any;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    };
+    parseOpenInterest(interest: any, market?: any): import("./base/types.js").OpenInterest;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

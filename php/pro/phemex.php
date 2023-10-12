@@ -27,10 +27,10 @@ class phemex extends \ccxt\async\phemex {
             ),
             'urls' => array(
                 'test' => array(
-                    'ws' => 'wss://testnet.phemex.com/ws',
+                    'ws' => 'wss://testnet-api.phemex.com/ws',
                 ),
                 'api' => array(
-                    'ws' => 'wss://phemex.com/ws',
+                    'ws' => 'wss://ws.phemex.com',
                 ),
             ),
             'options' => array(

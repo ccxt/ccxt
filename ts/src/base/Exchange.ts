@@ -142,7 +142,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation } from './types.js';
+import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation } from './types.js';
 export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation} from './types.js'
 
 // ----------------------------------------------------------------------------
@@ -2630,7 +2630,7 @@ export default class Exchange {
         return result;
     }
 
-    marketSymbols (symbols, type: string = undefined, allowEmpty = true) {
+    marketSymbols (symbols, type: string = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
         if (symbols === undefined) {
             if (!allowEmpty) {
                 throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
@@ -2645,10 +2645,26 @@ export default class Exchange {
             return symbols;
         }
         const result = [];
+        let marketType = undefined;
+        let isLinearSubType = undefined;
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
+            if (sameTypeOnly && (marketType !== undefined)) {
+                if (market['type'] !== marketType) {
+                    throw new BadRequest (this.id + ' symbols must be of the same type, either ' + marketType + ' or ' + market['type'] + '.');
+                }
+            }
+            if (sameSubTypeOnly && (isLinearSubType !== undefined)) {
+                if (market['linear'] !== isLinearSubType) {
+                    throw new BadRequest (this.id + ' symbols must be of the same subType, either linear or inverse.');
+                }
+            }
             if (type !== undefined && market['type'] !== type) {
-                throw new BadRequest (this.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+                throw new BadRequest (this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+            }
+            marketType = market['type'];
+            if (!market['spot']) {
+                isLinearSubType = market['linear'];
             }
             const symbol = this.safeString (market, 'symbol', symbols[i]);
             result.push (symbol);
@@ -2846,7 +2862,7 @@ export default class Exchange {
         return this.parseNumber (value, d);
     }
 
-    parseOrderBook (orderbook: object, symbol: string, timestamp: number = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1): OrderBook {
+    parseOrderBook (orderbook: object, symbol: string, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1): OrderBook {
         const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey);
         const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey);
         return {
@@ -3687,7 +3703,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
-    async fetchOpenInterest (symbol: string, params = {}): Promise<any> {
+    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
         throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
     }
 
@@ -4191,11 +4207,11 @@ export default class Exchange {
         return await this.fetchTradingFees (params);
     }
 
-    parseOpenInterest (interest, market = undefined): any {
+    parseOpenInterest (interest, market = undefined): OpenInterest {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
 
-    parseOpenInterests (response, market = undefined, since: Int = undefined, limit: Int = undefined) {
+    parseOpenInterests (response, market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -4825,6 +4841,19 @@ export default class Exchange {
             params = this.omit (params, [ 'until', 'till' ]);
         }
         return [ request, params ];
+    }
+
+    safeOpenInterest (interest, market = undefined): OpenInterest {
+        return this.extend (interest, {
+            'symbol': this.safeString (market, 'symbol'),
+            'baseVolume': this.safeNumber (interest, 'baseVolume'), // deprecated
+            'quoteVolume': this.safeNumber (interest, 'quoteVolume'), // deprecated
+            'openInterestAmount': this.safeNumber (interest, 'openInterestAmount'),
+            'openInterestValue': this.safeNumber (interest, 'openInterestValue'),
+            'timestamp': this.safeInteger (interest, 'timestamp'),
+            'datetime': this.safeString (interest, 'datetime'),
+            'info': this.safeValue (interest, 'info'),
+        });
     }
 
     parseLiquidation (liquidation, market = undefined): Liquidation {
