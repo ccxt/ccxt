@@ -3506,9 +3506,12 @@ export default class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        let marketType = 'contract';
+        const isContract = ('tpslMode' in order);
+        let marketType = undefined;
         if (market !== undefined) {
             marketType = market['type'];
+        } else {
+            marketType = isContract ? 'contract' : 'spot';
         }
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = market['symbol'];
