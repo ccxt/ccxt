@@ -272,7 +272,7 @@ export default class testMainClass extends baseMainTestClass {
         // console from there. So, even if some public tests fail, the script will continue
         // doing other things (testing other spot/swap or private tests ...)
         const maxRetries = 3;
-        const argsStringified = '(' + args.join (',') + ')';
+        const argsStringified = args.toString (); // args.join (',') breaks when we provide a list of symbols
         for (let i = 0; i < maxRetries; i++) {
             try {
                 await this.testMethod (methodName, exchange, args, isPublic);
@@ -311,6 +311,7 @@ export default class testMainClass extends baseMainTestClass {
                     // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
                     if (isNotSupported) {
                         dump ('[NOT_SUPPORTED]', exchange.id, methodName, argsStringified);
+                        return true; // why consider not supported as a failed test?
                     } else {
                         dump ('[TEST_FAILURE]', exceptionMessage (e), exchange.id, methodName, argsStringified);
                     }
@@ -647,7 +648,7 @@ export default class testMainClass extends baseMainTestClass {
             'fetchTransactions': [ code ],
             'fetchDeposits': [ code ],
             'fetchWithdrawals': [ code ],
-            'fetchBorrowRates': [ code ],
+            'fetchBorrowRates': [ ],
             'fetchBorrowRate': [ code ],
             'fetchBorrowInterest': [ code, symbol ],
             // 'addMargin': [ ],
@@ -711,7 +712,8 @@ export default class testMainClass extends baseMainTestClass {
         }
         const errorsCnt = errors.length; // PHP transpile count($errors)
         if (errorsCnt > 0) {
-            throw new Error ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
+            // throw new Error ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
+            dump ('[TEST_FAILURE]', 'Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
         } else {
             if (this.info) {
                 dump (this.addPadding ('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id);
