@@ -61,7 +61,6 @@ export default class alpaca extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
-                'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
