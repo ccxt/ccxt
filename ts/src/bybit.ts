@@ -5517,7 +5517,7 @@ export default class bybit extends Exchange {
             'referenceAccount': undefined,
             'referenceId': referenceId,
             'status': undefined,
-            'amount': this.parseNumber (amount),
+            'amount': this.parseNumber (Precise.stringAbs (amount)),
             'before': this.parseNumber (before),
             'after': this.parseNumber (after),
             'fee': this.parseNumber (this.safeString (item, 'fee')),
