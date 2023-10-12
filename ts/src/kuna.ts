@@ -39,11 +39,10 @@ export default class kuna extends Exchange {
                 'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
-                'createStopOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
-                'fetchAccount': true,  // TODO
-                'fetchBalance': true,  // TODO
+                'createStopOrder': true,
+                'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -398,11 +397,14 @@ export default class kuna extends Exchange {
         const response = await this.v4PublicGetTimestamp (params);
         //
         //    {
-        //        "timestamp": 1686740531,
-        //        "timestamp_miliseconds": 1686740531725
+        //        "data": {
+        //            "timestamp": 1686740531,
+        //            "timestamp_miliseconds": 1686740531725,
+        //        }
         //    }
         //
-        return this.safeInteger (response, 'timestamp_miliseconds');
+        const data = this.safeValue (response, 'data');
+        return this.safeInteger (data, 'timestamp_miliseconds');
     }
 
     async fetchCurrencies (params = {}) {
@@ -416,28 +418,31 @@ export default class kuna extends Exchange {
          */
         const response = await this.v4PublicGetCurrencies (params);
         //
-        //    [
-        //        {
-        //            "code": "BTC",
-        //            "name": "Bitcoin",
-        //            "payload": {
-        //                "chart": "https://kuna-pro.kuna.io/bitcoin-chart",
-        //                "icons": {
-        //                    "svg": "https://kuna-pro.kuna.io/icon-btc-svg",
-        //                    "png2x": "https://kuna-pro.kuna.io/icon-btc-png2x",
-        //                    "png3x": "https://kuna-pro.kuna.io/icon-btc-png3x",
-        //                    "svgXL": "https://kuna-pro.kuna.io/icon-btc-svg"
+        //    {
+        //        "data": [
+        //            {
+        //                "code": "BTC",
+        //                "name": "Bitcoin",
+        //                "payload": {
+        //                    "chart": "https://kuna-pro.kuna.io/bitcoin-chart",
+        //                    "icons": {
+        //                        "svg": "https://kuna-pro.kuna.io/icon-btc-svg",
+        //                        "png2x": "https://kuna-pro.kuna.io/icon-btc-png2x",
+        //                        "png3x": "https://kuna-pro.kuna.io/icon-btc-png3x",
+        //                        "svgXL": "https://kuna-pro.kuna.io/icon-btc-svg"
+        //                    },
+        //                    "pngChart": "https://kuna-pro.kuna.io/png-bitcoin-chart"
         //                },
-        //                "pngChart": "https://kuna-pro.kuna.io/png-bitcoin-chart"
-        //            },
-        //            "position": 1,
-        //            "precision": 8,
-        //            "tradePrecision": 6,
-        //            "type": "Crypto"
-        //        }
-        //    ]
+        //                "position": 1,
+        //                "precision": 8,
+        //                "tradePrecision": 6,
+        //                "type": "Crypto"
+        //            }
+        //        ]
+        //    }
         //
-        return this.parseCurrencies (response);
+        const data = this.safeValue (response, 'data');
+        return this.parseCurrencies (data);
     }
 
     parseCurrencies (currencies, params = {}) {
@@ -511,26 +516,30 @@ export default class kuna extends Exchange {
          */
         const response = await this.v4PublicGetMarketsGetAll (params);
         //
-        //    [
-        //        {
-        //            "pair": "BTC_USDT",               // Traded pair of assets
-        //            "baseAsset": {                    // The base asset of the traded pair, the one to sell or buy as a result of the trade
-        //                 "code": "BTC",
-        //                 "precision": 6               // Maximum amount of digits for the decimal part of a number
-        //            },
-        //            "quoteAsset": {                   // The quoted asset of the traded pair, the one to use to sell or buy the base asset
-        //                "code": "USDT",
-        //                "precision": 2                // Maximum amount of digits for the decimal part of a number
-        //            },
-        //            "tickerPriceChange": "-0.07"      // Relative change compared with the last tick
-        //        }
-        //    ]
+        //    {
+        //        "data": [
+        //            {
+        //                "pair": "BTC_USDT",               // Traded pair of assets
+        //                "baseAsset": {                    // The base asset of the traded pair, the one to sell or buy as a result of the trade
+        //                    "code": "BTC",
+        //                    "precision": 6               // Maximum amount of digits for the decimal part of a number
+        //                },
+        //                "quoteAsset": {                   // The quoted asset of the traded pair, the one to use to sell or buy the base asset
+        //                    "code": "USDT",
+        //                    "precision": 2                // Maximum amount of digits for the decimal part of a number
+        //                },
+        //                "tickerPriceChange": "-0.07"      // Relative change compared with the last tick
+        //            }
+        //        ]
+        //    }
         //
+        const data = this.safeValue (response, 'data');
         const markets = [];
-        for (let i = 0; i < response.length; i++) {
-            const marketId = this.safeString (response, 'pair');
-            const baseAsset = this.safeValue (response, 'baseAsset');
-            const quoteAsset = this.safeValue (response, 'quoteAsset');
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            const marketId = this.safeString (item, 'pair');
+            const baseAsset = this.safeValue (item, 'baseAsset');
+            const quoteAsset = this.safeValue (item, 'quoteAsset');
             const baseId = this.safeString (baseAsset, 'code');
             const quoteId = this.safeString (quoteAsset, 'code');
             const base = this.safeCurrencyCode (baseId);
@@ -608,32 +617,35 @@ export default class kuna extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const orderbook = await this.v4PublicGetOrderBookPairs (this.extend (request, params));
+        const response = await this.v4PublicGetOrderBookPairs (this.extend (request, params));
         //
-        //    {
-        //        "asks": [               // An array of sell orders
-        //            [
-        //                "16950",        // Sell price, level 1
-        //                "0.001"         // Sell quantity, level 1
-        //            ],
-        //            [
-        //                "17000",        // Sell price, level 2
-        //                "0.01"          // Sell quantity, level 2
-        //            ]
-        //        ],
-        //        "bids": [               // An array of buy orders
-        //            [
-        //                "16700",        // Sell price, level 1
-        //                "0.01"          // Sell quantity, level 1
-        //            ],
-        //            [
-        //                "16000",        // Sell price, level 2
-        //                "0.001"         // Sell quantity, level 2
-        //            ]
-        //        ]
-        //    }
+        //      {
+        //          "data": {
+        //              "asks": [               // An array of sell orders
+        //                  [
+        //                      "16950",        // Sell price, level 1
+        //                      "0.001"         // Sell quantity, level 1
+        //                  ],
+        //                  [
+        //                      "17000",        // Sell price, level 2
+        //                      "0.01"          // Sell quantity, level 2
+        //                  ]
+        //              ],
+        //              "bids": [               // An array of buy orders
+        //                  [
+        //                      "16700",        // Sell price, level 1
+        //                      "0.01"          // Sell quantity, level 1
+        //                  ],
+        //                  [
+        //                      "16000",        // Sell price, level 2
+        //                      "0.001"         // Sell quantity, level 2
+        //                  ]
+        //              ]
+        //          }
+        //      }
         //
-        return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 0, 1);
+        const data = this.safeValue (response, 'data');
+        return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 0, 1);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -696,24 +708,27 @@ export default class kuna extends Exchange {
         };
         const response = await this.v4PublicGetMarketsTickersPairsPairs (this.extend (request, params));
         //
-        //    [
-        //        {
-        //            "pair": "BTC_USDT",                                   // Traded pair
-        //            "percentagePriceChange": "-0.03490931899641581",      // Relative price change, in percent
-        //            "price": "27900",                                     // Current median price
-        //            "equivalentPrice": "",                                // TBD
-        //            "high": "29059.69",                                   // Highest price
-        //            "low": "27900",                                       // Lowest price
-        //            "baseVolume": "2.9008499999999993",                   // Traded volume as base
-        //            "quoteVolume": "82251.41477976",                      // Traded volume as quote
-        //            "bestBidPrice": "27926.91",                           // The best bid price now
-        //            "bestAskPrice": "27970.02",                           // The best ask price now
-        //            "priceChange": "-973.9700000000012"                   // Absolute price change
-        //        }
-        //        ...
-        //    ]
+        //    {
+        //        "data": [
+        //            {
+        //                "pair": "BTC_USDT",                                   // Traded pair
+        //                "percentagePriceChange": "-0.03490931899641581",      // Relative price change, in percent
+        //                "price": "27900",                                     // Current median price
+        //                "equivalentPrice": "",                                // TBD
+        //                "high": "29059.69",                                   // Highest price
+        //                "low": "27900",                                       // Lowest price
+        //                "baseVolume": "2.9008499999999993",                   // Traded volume as base
+        //                "quoteVolume": "82251.41477976",                      // Traded volume as quote
+        //                "bestBidPrice": "27926.91",                           // The best bid price now
+        //                "bestAskPrice": "27970.02",                           // The best ask price now
+        //                "priceChange": "-973.9700000000012"                   // Absolute price change
+        //            }
+        //            ...
+        //        ]
+        //    }
         //
-        return this.parseTickers (response, symbols, params);
+        const data = this.safeValue (response, 'data');
+        return this.parseTickers (data, symbols, params);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -733,24 +748,27 @@ export default class kuna extends Exchange {
         };
         const response = await this.v4PublicGetMarketsTickersPairsPairs (this.extend (request, params));
         //
-        //    [
-        //        {
-        //            "pair": "BTC_USDT",                                   // Traded pair
-        //            "percentagePriceChange": "-0.03490931899641581",      // Relative price change, in percent
-        //            "price": "27900",                                     // Current median price
-        //            "equivalentPrice": "",                                // TBD
-        //            "high": "29059.69",                                   // Highest price
-        //            "low": "27900",                                       // Lowest price
-        //            "baseVolume": "2.9008499999999993",                   // Traded volume as base
-        //            "quoteVolume": "82251.41477976",                      // Traded volume as quote
-        //            "bestBidPrice": "27926.91",                           // The best bid price now
-        //            "bestAskPrice": "27970.02",                           // The best ask price now
-        //            "priceChange": "-973.9700000000012"                   // Absolute price change
-        //        }
-        //        ...
-        //    ]
+        //    {
+        //        "data": [
+        //            {
+        //                "pair": "BTC_USDT",                                   // Traded pair
+        //                "percentagePriceChange": "-0.03490931899641581",      // Relative price change, in percent
+        //                "price": "27900",                                     // Current median price
+        //                "equivalentPrice": "",                                // TBD
+        //                "high": "29059.69",                                   // Highest price
+        //                "low": "27900",                                       // Lowest price
+        //                "baseVolume": "2.9008499999999993",                   // Traded volume as base
+        //                "quoteVolume": "82251.41477976",                      // Traded volume as quote
+        //                "bestBidPrice": "27926.91",                           // The best bid price now
+        //                "bestAskPrice": "27970.02",                           // The best ask price now
+        //                "priceChange": "-973.9700000000012"                   // Absolute price change
+        //            }
+        //            ...
+        //        ]
+        //    }
         //
-        const ticker = this.safeString (response, 0);
+        const data = this.safeValue (response, 'data');
+        const ticker = this.safeValue (data, 0);
         return this.parseTicker (ticker, market);
     }
 
@@ -788,16 +806,19 @@ export default class kuna extends Exchange {
         const response = await this.v4PublicGetTradeBookPairs (this.extend (request, params));
         //
         //    {
-        //        "id": "3e5591ba-2778-4d85-8851-54284045ea44",       // Unique identifier of a trade
-        //        "pair": "BTC_USDT",                                 // Market pair that is being traded
-        //        "quoteQuantity": "11528.8118",                      // Qty of the quote asset, USDT in this example
-        //        "matchPrice": "18649",                              // Exchange price at the moment of execution
-        //        "matchQuantity": "0.6182",                          // Qty of the base asset, BTC in this example
-        //        "createdAt": "2022-09-23T14:30:41.486Z",            // Date-time of trade execution, UTC
-        //        "side": "Ask"                                       // Trade type: `Ask` or `Bid`. Bid for buying base asset, Ask for selling base asset (e.g. for BTC_USDT trading pair, BTC is the base asset).
+        //        "data": {
+        //            "id": "3e5591ba-2778-4d85-8851-54284045ea44",       // Unique identifier of a trade
+        //            "pair": "BTC_USDT",                                 // Market pair that is being traded
+        //            "quoteQuantity": "11528.8118",                      // Qty of the quote asset, USDT in this example
+        //            "matchPrice": "18649",                              // Exchange price at the moment of execution
+        //            "matchQuantity": "0.6182",                          // Qty of the base asset, BTC in this example
+        //            "createdAt": "2022-09-23T14:30:41.486Z",            // Date-time of trade execution, UTC
+        //            "side": "Ask"                                       // Trade type: `Ask` or `Bid`. Bid for buying base asset, Ask for selling base asset (e.g. for BTC_USDT trading pair, BTC is the base asset).
+        //        }
         //    }
         //
-        return this.parseTrades (response, market, since, limit);
+        const data = this.safeValue (response, 'data');
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -895,12 +916,15 @@ export default class kuna extends Exchange {
         const response = await this.v4PrivateGetGetBalance (params);
         //
         //    {
-        //        "currency": "UAH",                    // Wallet currency
-        //        "balance": "7134.6",                  // Available balance, precision depends on the currency
-        //        "lockBalance": "100"                  // Minimum amount locked on the balance
+        //        "data": {
+        //            "currency": "UAH",                    // Wallet currency
+        //            "balance": "7134.6",                  // Available balance, precision depends on the currency
+        //            "lockBalance": "100"                  // Minimum amount locked on the balance
+        //        }
         //    }
         //
-        return this.parseBalance (response);
+        const data = this.safeValue (response, 'data');
+        return this.parseBalance (data);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
@@ -948,18 +972,21 @@ export default class kuna extends Exchange {
         const response = await this.v4PrivatePostOrderCreate (this.extend (request, params));
         //
         //    {
-        //        "id": "b0fcb54c-2278-4f16-a300-02765faad8b0",     // ID  of your newly created order
-        //        "type": "Limit",                                  // Type of an order
-        //        "quantity": "0.06",                               // Original order quantity
-        //        "executedQuantity": "0",                          // Traded quantity in stock (>0 if traded)
-        //        "pair": "BTC_USDT",                               // Traded pair
-        //        "price": "26440.46",                              // Price of the trade
-        //        "status": "Open",                                 // The status of the order
-        //        "createdAt": "2023-07-11T08:01:30.550Z",          // Date-time of order creation, UTC
-        //        "updatedAt": "2023-07-11T08:01:30.550Z"           // Date-time of the last update of the order, UTC
+        //        "data": {
+        //            "id": "b0fcb54c-2278-4f16-a300-02765faad8b0",     // ID  of your newly created order
+        //            "type": "Limit",                                  // Type of an order
+        //            "quantity": "0.06",                               // Original order quantity
+        //            "executedQuantity": "0",                          // Traded quantity in stock (>0 if traded)
+        //            "pair": "BTC_USDT",                               // Traded pair
+        //            "price": "26440.46",                              // Price of the trade
+        //            "status": "Open",                                 // The status of the order
+        //            "createdAt": "2023-07-11T08:01:30.550Z",          // Date-time of order creation, UTC
+        //            "updatedAt": "2023-07-11T08:01:30.550Z"           // Date-time of the last update of the order, UTC
+        //        }
         //    }
         //
-        return this.parseOrder (response, market);
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
@@ -968,7 +995,7 @@ export default class kuna extends Exchange {
          * @name kuna#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string} symbol not used by kuna cancelOrder
+         * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the kuna api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
@@ -979,10 +1006,17 @@ export default class kuna extends Exchange {
         const response = await this.v4PrivatePostOrderCancel (this.extend (request, params));
         //
         //    {
-        //        "success": true
+        //        "data": {
+        //            "success": true
+        //        }
         //    }
         //
-        return this.parseOrder (response);
+        const data = this.safeValue (response, 'data');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        return this.parseOrder (data, market);
     }
 
     async cancelOrders (ids: string[], symbol: string = undefined, params = {}) {
@@ -1001,15 +1035,18 @@ export default class kuna extends Exchange {
         };
         const response = await this.v4PrivatePostOrderCancel (this.extend (request, params));
         //
-        //    [
-        //        {
-        //            "id": "c7fc5b2b-bd9d-48c1-a458-a83412669fe2",   // Unique identifier of a canceled order
-        //            "success": true                                 // Status for this order
-        //        },
-        //        ...
-        //    ]
+        //    {
+        //        "data": [
+        //            {
+        //                "id": "c7fc5b2b-bd9d-48c1-a458-a83412669fe2",   // Unique identifier of a canceled order
+        //                "success": true                                 // Status for this order
+        //            },
+        //            ...
+        //        ]
+        //    }
         //
-        return this.parseOrders (response);
+        const data = this.safeValue (response, 'data');
+        return this.parseOrders (data);
     }
 
     parseOrderStatus (status) {
@@ -1121,37 +1158,40 @@ export default class kuna extends Exchange {
         const response = await this.v4PrivateGetOrderDetailsIdWithTradesWithTrades (this.extend (request, params));
         //
         //    {
-        //        "id": "4b9b9705-e85f-4180-bdec-219fbf025fa3",
-        //        "type": "Limit",
-        //        "quantity": "0.00054",
-        //        "executedQuantity": "0.00054",
-        //        "cumulativeQuoteQty": "14.99580",
-        //        "cost": "14.9958",
-        //        "side": "Bid",
-        //        "pair": "BTC_USDT",
-        //        "price": "27770",
-        //        "status": "Closed",
-        //        "createdAt": "2023-05-08T08:39:46.708Z",
-        //        "updatedAt": "2023-05-08T08:53:58.332Z",
-        //        "closedAt": "2023-05-08T08:53:58.333Z",
-        //        "trades": [
-        //            {
-        //                "id": "15ff497c-8d25-4155-8184-bb1f905cce1e",              // Unique identifier of a trade
-        //                "orderId": "4b9b9705-e85f-4180-bdec-219fbf025fa3",         // Unique identifier of an associated order
-        //                "pair": "BTC_USDT",                                        // Traded pair
-        //                "quantity": "0.00054",                                     // Traded quantity
-        //                "price": "27770",                                          // Traded price
-        //                "isTaker": false,                                          // Various fees for Makers and Takers; "Market" orders are always `true`
-        //                "fee": "0.000001350",                                      // Exchange commission fee
-        //                "feeCurrency": "BTC",                                      // Currency of the commission
-        //                "isBuyer": true,                                           // Buy or sell the base asset
-        //                "quoteQuantity": "14.9958",                                // Quote asset quantity
-        //                "createdAt": "2023-05-08T08:53:58.332Z"                    // Date-time of trade execution, UTC
-        //            }
-        //        ]
+        //        "data": {
+        //            "id": "4b9b9705-e85f-4180-bdec-219fbf025fa3",
+        //            "type": "Limit",
+        //            "quantity": "0.00054",
+        //            "executedQuantity": "0.00054",
+        //            "cumulativeQuoteQty": "14.99580",
+        //            "cost": "14.9958",
+        //            "side": "Bid",
+        //            "pair": "BTC_USDT",
+        //            "price": "27770",
+        //            "status": "Closed",
+        //            "createdAt": "2023-05-08T08:39:46.708Z",
+        //            "updatedAt": "2023-05-08T08:53:58.332Z",
+        //            "closedAt": "2023-05-08T08:53:58.333Z",
+        //            "trades": [
+        //                {
+        //                    "id": "15ff497c-8d25-4155-8184-bb1f905cce1e",              // Unique identifier of a trade
+        //                    "orderId": "4b9b9705-e85f-4180-bdec-219fbf025fa3",         // Unique identifier of an associated order
+        //                    "pair": "BTC_USDT",                                        // Traded pair
+        //                    "quantity": "0.00054",                                     // Traded quantity
+        //                    "price": "27770",                                          // Traded price
+        //                    "isTaker": false,                                          // Various fees for Makers and Takers; "Market" orders are always `true`
+        //                    "fee": "0.000001350",                                      // Exchange commission fee
+        //                    "feeCurrency": "BTC",                                      // Currency of the commission
+        //                    "isBuyer": true,                                           // Buy or sell the base asset
+        //                    "quoteQuantity": "14.9958",                                // Quote asset quantity
+        //                    "createdAt": "2023-05-08T08:53:58.332Z"                    // Date-time of trade execution, UTC
+        //                }
+        //            ]
+        //        }
         //    }
         //
-        return this.parseOrder (response);
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data);
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1191,25 +1231,28 @@ export default class kuna extends Exchange {
         }
         const response = await this.v4PrivateGetActive (this.extend (request, params));
         //
-        //    [
-        //        {
-        //            "id": "5992a049-8612-409d-8599-2c3d7298b106",            // Unique identifier of an order
-        //            "type": "Limit",                                         // Type of an order
-        //            "quantity": "5",                                         // Original order quantity
-        //            "executedQuantity": "0",                                 // Traded quantity in stock (>0 if traded)
-        //            "cumulativeQuoteQty": "0",                               // Traded quantity in money (>0 if traded)
-        //            "cost": "0.05",                                          // Total amount
-        //            "side": "Bid",                                           // Bid for buying base asset, Ask for selling base asset. FYI: For BTC_USDT trading pair, BTC is the base asset
-        //            "pair": "TRX_USDT",                                      // Traded pair
-        //            "price": "0.01",                                         // Price of the trade
-        //            "status": "Open",                                        // The status of the order
-        //            "createdAt": "2023-07-11T07:04:20.131Z",                 // Date-time of order creation, UTC
-        //            "updatedAt": "2023-07-11T07:04:20.131Z"                  // Date-time of the last update of the order, UTC
-        //        }
-        //        ...
-        //    ]
+        //    {
+        //        "data": [
+        //            {
+        //                "id": "5992a049-8612-409d-8599-2c3d7298b106",            // Unique identifier of an order
+        //                "type": "Limit",                                         // Type of an order
+        //                "quantity": "5",                                         // Original order quantity
+        //                "executedQuantity": "0",                                 // Traded quantity in stock (>0 if traded)
+        //                "cumulativeQuoteQty": "0",                               // Traded quantity in money (>0 if traded)
+        //                "cost": "0.05",                                          // Total amount
+        //                "side": "Bid",                                           // Bid for buying base asset, Ask for selling base asset. FYI: For BTC_USDT trading pair, BTC is the base asset
+        //                "pair": "TRX_USDT",                                      // Traded pair
+        //                "price": "0.01",                                         // Price of the trade
+        //                "status": "Open",                                        // The status of the order
+        //                "createdAt": "2023-07-11T07:04:20.131Z",                 // Date-time of order creation, UTC
+        //                "updatedAt": "2023-07-11T07:04:20.131Z"                  // Date-time of the last update of the order, UTC
+        //            }
+        //            ...
+        //        ]
+        //    }
         //
-        return this.parseOrders (response, market, since, limit);
+        const data = this.safeValue (response, 'data');
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1254,26 +1297,29 @@ export default class kuna extends Exchange {
         }
         const response = await this.v4PrivateGetOrderHistory (request);
         //
-        //    [
-        //        {
-        //            "id": "4b9b9705-e85f-4180-bdec-219fbf025fa3",           // Unique identifier of an order
-        //            "type": "Limit",                                        // Type of an order
-        //            "quantity": "0.00054",                                  // Original order quantity
-        //            "executedQuantity": "0.00054",                          // Traded quantity in stock (>0 if traded)
-        //            "cumulativeQuoteQty": "14.99580",                       // Traded quantity in money (>0 if traded)
-        //            "cost": "14.9958",                                      // Total amount
-        //            "side": "Bid",                                          // Bid for buying base asset, Ask for selling base asset. FYI: For BTC_USDT trading pair, BTC is the base asset
-        //            "pair": "BTC_USDT",                                     // Traded pair
-        //            "price": "27770",                                       // Price of the trade
-        //            "status": "Closed",                                     // The status of the order
-        //            "createdAt": "2023-05-08T08:39:46.708Z",                // Date-time of order creation, UTC
-        //            "updatedAt": "2023-05-08T08:53:58.332Z",                // Date-time of the last update of the order, UTC
-        //            "closedAt": "2023-05-08T08:53:58.333Z"                  // Date-time of order finish time, UTC
-        //        },
-        //        ...
-        //    ]
+        //    {
+        //        "data": [
+        //            {
+        //                "id": "4b9b9705-e85f-4180-bdec-219fbf025fa3",           // Unique identifier of an order
+        //                "type": "Limit",                                        // Type of an order
+        //                "quantity": "0.00054",                                  // Original order quantity
+        //                "executedQuantity": "0.00054",                          // Traded quantity in stock (>0 if traded)
+        //                "cumulativeQuoteQty": "14.99580",                       // Traded quantity in money (>0 if traded)
+        //                "cost": "14.9958",                                      // Total amount
+        //                "side": "Bid",                                          // Bid for buying base asset, Ask for selling base asset. FYI: For BTC_USDT trading pair, BTC is the base asset
+        //                "pair": "BTC_USDT",                                     // Traded pair
+        //                "price": "27770",                                       // Price of the trade
+        //                "status": "Closed",                                     // The status of the order
+        //                "createdAt": "2023-05-08T08:39:46.708Z",                // Date-time of order creation, UTC
+        //                "updatedAt": "2023-05-08T08:53:58.332Z",                // Date-time of the last update of the order, UTC
+        //                "closedAt": "2023-05-08T08:53:58.333Z"                  // Date-time of order finish time, UTC
+        //            },
+        //            ...
+        //        ]
+        //    }
         //
-        return this.parseOrders (response, market, since, limit);
+        const data = this.safeValue (response, 'data');
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1301,21 +1347,23 @@ export default class kuna extends Exchange {
         }
         const response = await this.v4PrivateGetTradeHistory (this.extend (request, params));
         //
-        //    [
-        //        {
-        //            id: "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
-        //            orderId: "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
-        //            pair: "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
-        //            quantity: "1.5862",                                // Traded quantity of base asset
-        //            price: "19087",                                    // Price of the trade
-        //            isTaker: true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
-        //            fee: "0.0039655",                                  // Exchange commission fee
-        //            feeCurrency: "BTC",                                // Currency of the commission
-        //            isBuyer: true,                                     // Buy or sell the base asset
-        //            quoteQuantity: "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
-        //            createdAt: "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
-        //        },
-        //    ]
+        //    {
+        //        "data": [
+        //            {
+        //                id: "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
+        //                orderId: "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
+        //                pair: "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+        //                quantity: "1.5862",                                // Traded quantity of base asset
+        //                price: "19087",                                    // Price of the trade
+        //                isTaker: true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+        //                fee: "0.0039655",                                  // Exchange commission fee
+        //                feeCurrency: "BTC",                                // Currency of the commission
+        //                isBuyer: true,                                     // Buy or sell the base asset
+        //                quoteQuantity: "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+        //                createdAt: "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
+        //            },
+        //        ]
+        //    }
         //
         return this.parseTrades (response, market, since, limit);
     }
@@ -1332,6 +1380,10 @@ export default class kuna extends Exchange {
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the kuna api endpoint
          * @param {string} [params.chain] the chain to withdraw to
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.id] id must be a uuid format, if you do not specify id, it will be generated automatically
+         * @param {boolean} [params.withdrawAll] this field says that the amount should also include a fee
          * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         this.checkAddress (address);
@@ -1344,22 +1396,25 @@ export default class kuna extends Exchange {
         const currency = this.currency (code);
         const networkId = this.networkCodeToId (chain);
         const request = {
-            // id	string	BODY	NO	-	id must be a UUID format. If you do not specify id, it will be generated automatically.
-            // currency	string	BODY	YES	-	Currency code (cryptocurrency or fiat). All available currencies are available through "Get information about available currencies" endpoint.
-            // address	string	BODY	NO	-	Withdraw address for cryptocurrency.
-            // paymentId	string	BODY	NO	-	Field for withdraw identifier Destination tag/Memo.
-            // paymentMethod	string	BODY	YES	-	Withdraw method for currency, should be taken from "Get info about withdrawal methods by currency name" endpoint (key field).
-            // withdrawAll	boolean	BODY	NO	true, false	This field says that the amount should also include a fee.
-            // amount	int	BODY	YES	-	Withdraw amount.
+            'currency': networkId,
+            'amount': amount,
+            'address': address,
+            'paymentMethod': chain, // TODO: double check, Withdraw method for currency, should be taken from "Get info about withdrawal methods by currency name" endpoint (key field).
         };
+        if (tag !== undefined) {
+            request['paymentId'] = tag;
+        }
         const response = await this.v4PrivatePostWithdrawCreate (this.extend (request, params));
         //
         //    {
-        //        "id": "edb17459-c9bf-4148-9ae6-7367d7f55d71",     // Unique identifier of a withdraw 
-        //        "status": "waitingForConfirmation"                // status of a withdraw. If you turn off withdrawal confirmation by email, it will return "Processing" status, which means that the transaction is already being processed on our side 
+        //        "data": {
+        //            "id": "edb17459-c9bf-4148-9ae6-7367d7f55d71",     // unique identifier of a withdraw
+        //            "status": "waitingForConfirmation"                // status of a withdraw, if you turn off withdrawal confirmation by email, it will return "processing" status, which means that the transaction is already being processed on our side
+        //        }
         //    }
         //
-        return this.parseTransaction (response, currency);
+        const data = this.safeValue (response, 'data');
+        return this.parseTransaction (data, currency);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1404,26 +1459,28 @@ export default class kuna extends Exchange {
         }
         const response = this.v4PrivateGetWithdrawHistory (this.extend (request, params));
         //
-        //    [
-        //        {
-        //          "id": "e9aa15b8-9c19-42eb-800a-026a7a153990",                                 // Unique identifier of withdrawal
-        //          "amount": "10.75",                                                            // Amount deducted from your account
-        //          "asset": "USDT",                                                              // Withdrawal currency
-        //          "merchantId": "16214228-5c0c-5abc-be6a-c90259b21d4e",                         // Internal ID (not for use)
-        //          "paymentCode": "TRX",                                                         // Blockchain name
-        //          "status": "Processed",                                                        // Withdrawal status
-        //          "type": "Withdraw",                                                           // Transaction type
-        //          "reason": [],                                                                 // Reason for manual transaction processing
-        //          "address": "TL3CWAwviQQYSnzHT4RotCWYnarnunQM46",                              // Withdrawal address
-        //          "memo": "",                                                                   // Withdrawal memo
-        //          "txId": "5ecc4e559b528c57be6723ac960a38211fbd3101ef4b59008452b3bd88c84621",   // Withdrawal transaction hash
-        //          "fee": "0.75",                                                                // Withdrawal fee
-        //          "processedAmount": "10",                                                      // Withdrawal amount
-        //          "createdAt": "2023-06-09T11:33:02.383Z",                                      // Withdrawal creation date
-        //          "updatedAt": "2023-06-09T11:34:25.317Z"                                       // Date of final withdrawal status
-        //        },
-        //        ...
-        //    ]
+        //    {
+        //        "data": [
+        //            {
+        //                "id": "e9aa15b8-9c19-42eb-800a-026a7a153990",                                 // Unique identifier of withdrawal
+        //                "amount": "10.75",                                                            // Amount deducted from your account
+        //                "asset": "USDT",                                                              // Withdrawal currency
+        //                "merchantId": "16214228-5c0c-5abc-be6a-c90259b21d4e",                         // Internal ID (not for use)
+        //                "paymentCode": "TRX",                                                         // Blockchain name
+        //                "status": "Processed",                                                        // Withdrawal status
+        //                "type": "Withdraw",                                                           // Transaction type
+        //                "reason": [],                                                                 // Reason for manual transaction processing
+        //                "address": "TL3CWAwviQQYSnzHT4RotCWYnarnunQM46",                              // Withdrawal address
+        //                "memo": "",                                                                   // Withdrawal memo
+        //                "txId": "5ecc4e559b528c57be6723ac960a38211fbd3101ef4b59008452b3bd88c84621",   // Withdrawal transaction hash
+        //                "fee": "0.75",                                                                // Withdrawal fee
+        //                "processedAmount": "10",                                                      // Withdrawal amount
+        //                "createdAt": "2023-06-09T11:33:02.383Z",                                      // Withdrawal creation date
+        //                "updatedAt": "2023-06-09T11:34:25.317Z"                                       // Date of final withdrawal status
+        //            },
+        //            ...
+        //        ]
+        //    }
         //
         return this.parseTransactions (response, currency);
     }
@@ -1446,24 +1503,27 @@ export default class kuna extends Exchange {
         const response = await this.v4PrivateGetWithdrawDetailsWithdrawId (this.extend (request, params));
         //
         //    {
-        //        "id": "e9aa15b8-9c19-42eb-800a-026a7a153990",                                 // Unique identifier of withdrawal
-        //        "amount": "10.75",                                                            // Amount deducted from your account
-        //        "asset": "USDT",                                                              // Withdrawal currency
-        //        "merchantId": "16214228-5c0c-5abc-be6a-c90259b21d4e",                         // Internal ID (not for use)
-        //        "paymentCode": "TRX",                                                         // Blockchain name
-        //        "status": "Processed",                                                        // Withdrawal status
-        //        "type": "Withdraw",                                                           // Transaction type
-        //        "reason": [],                                                                 // Reason for manual transaction processing
-        //        "address": "TL3CWAwviQQYSnzHT4RotCWYnarnunQM46",                              // Withdrawal address
-        //        "memo": "",                                                                   // Withdrawal memo
-        //        "txId": "5ecc4e559b528c57be6723ac960a38211fbd3101ef4b59008452b3bd88c84621",   // Withdrawal transaction hash
-        //        "fee": "0.75",                                                                // Withdrawal fee
-        //        "processedAmount": "10",                                                      // Withdrawal amount
-        //        "createdAt": "2023-06-09T11:33:02.383Z",                                      // Withdrawal creation date
-        //        "updatedAt": "2023-06-09T11:34:25.317Z"                                       // Date of final withdrawal status
+        //        "data": {
+        //            "id": "e9aa15b8-9c19-42eb-800a-026a7a153990",                                 // Unique identifier of withdrawal
+        //            "amount": "10.75",                                                            // Amount deducted from your account
+        //            "asset": "USDT",                                                              // Withdrawal currency
+        //            "merchantId": "16214228-5c0c-5abc-be6a-c90259b21d4e",                         // Internal ID (not for use)
+        //            "paymentCode": "TRX",                                                         // Blockchain name
+        //            "status": "Processed",                                                        // Withdrawal status
+        //            "type": "Withdraw",                                                           // Transaction type
+        //            "reason": [],                                                                 // Reason for manual transaction processing
+        //            "address": "TL3CWAwviQQYSnzHT4RotCWYnarnunQM46",                              // Withdrawal address
+        //            "memo": "",                                                                   // Withdrawal memo
+        //            "txId": "5ecc4e559b528c57be6723ac960a38211fbd3101ef4b59008452b3bd88c84621",   // Withdrawal transaction hash
+        //            "fee": "0.75",                                                                // Withdrawal fee
+        //            "processedAmount": "10",                                                      // Withdrawal amount
+        //            "createdAt": "2023-06-09T11:33:02.383Z",                                      // Withdrawal creation date
+        //            "updatedAt": "2023-06-09T11:34:25.317Z"                                       // Date of final withdrawal status
+        //        }
         //    }
         //
-        return this.parseTransaction (response);
+        const data = this.safeValue (response, 'data');
+        return this.parseTransaction (data);
     }
 
     async createDepositAddress (code: string, params = {}) {
@@ -1484,12 +1544,15 @@ export default class kuna extends Exchange {
         const response = await this.v4PrivatePostDepositCryptoGenerateAddress (this.extend (request, params));
         //
         //    {
-        //        "id": "1300c2b6-ree4-4f1e-2a9d-e0f7ed0991a7",                // ID of your address
-        //        "source": "BTC",                                             // Blockchain name for which you want to get the address to deposit into the account
-        //        "address": "bc1qm6xfv0qsaaanx0egn6hca5vgsd4r7ak9ttha2a"      // Your deposit address
+        //        "data": {
+        //            "id": "1300c2b6-ree4-4f1e-2a9d-e0f7ed0991a7",                // ID of your address
+        //            "source": "BTC",                                             // Blockchain name for which you want to get the address to deposit into the account
+        //            "address": "bc1qm6xfv0qsaaanx0egn6hca5vgsd4r7ak9ttha2a"      // Your deposit address
+        //        }
         //    }
         //
-        return this.parseDepositAddress (response, currency);
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositAddress (data, currency);
     }
 
     async fetchDepositAddress (code: string, params = {}) {
@@ -1510,15 +1573,18 @@ export default class kuna extends Exchange {
         const response = this.v4PrivateGetDepositCryptoAddress (this.extend (request, params));
         //
         //    {
-        //        "id": "c52b6646-fb91-4760-b147-a4f952e8652c",             // ID of the address.
-        //        "source": "BTC",                                          // Blockchain name for which you want to get the address to deposit into the account.
-        //        "address": "bc1qm6xfv0qsaaanx0egn6hca5vgsd4r7ak9ttha2a"   // Your deposit address
+        //        "data": {
+        //            "id": "c52b6646-fb91-4760-b147-a4f952e8652c",             // ID of the address.
+        //            "source": "BTC",                                          // Blockchain name for which you want to get the address to deposit into the account.
+        //            "address": "bc1qm6xfv0qsaaanx0egn6hca5vgsd4r7ak9ttha2a"   // Your deposit address
+        //        }
         //    }
         //
-        return this.parseDepositAddress (response, currency);
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositAddress (data, currency);
     }
 
-    parseDepositAddress (depositAddress: any, currency?: any) {
+    parseDepositAddress (depositAddress, currency = undefined) {
         //
         //    {
         //        "id": "c52b6646-fb91-4760-b147-a4f952e8652c",             // ID of the address.
@@ -1592,28 +1658,31 @@ export default class kuna extends Exchange {
         }
         const response = this.v4PrivateGetDepositHistory (this.extend (request, params));
         //
-        //    [
-        //        {
-        //            "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
-        //            "amount": "9.9",                                                            // Amount credited to your account
-        //            "asset": "USDT",                                                            // Deposit currency
-        //            "merchantId": "16214228-5c0c-5abc-be6a-c90259b21d4e",                       // Internal ID (not for use)
-        //            "paymentCode": "TRX",                                                       // Blockchain name
-        //            "status": "Processed",                                                      // Transactions status
-        //            "type": "Deposit",                                                          // Transaction type
-        //            "reason": [],                                                               // Reason for manual transaction processing
-        //            "address": "TNeBQz8RyGGiAYAR7r8G6QGxtTWDkpH4dV",                            // Deposit address
-        //            "memo": "",                                                                 // Deposit memo
-        //            "txId": "8a0b0c5a2ac5679879b71b2fa63b0a5c39f90bc8ff6c41e708906b398ac3d4ef", // Deposit transaction hash
-        //            "fee": "0.1",                                                               // Deposit fee
-        //            "processedAmount": "10",                                                    // Amount of deposit
-        //            "createdAt": "2023-06-13T12:55:01.256Z",                                    // Deposit receipt date
-        //            "updatedAt": "2023-06-13T12:55:01.696Z"                                     // Deposit credit date
-        //        },
-        //        ...
-        //    ]
+        //    {
+        //        "data": [
+        //            {
+        //                "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
+        //                "amount": "9.9",                                                            // Amount credited to your account
+        //                "asset": "USDT",                                                            // Deposit currency
+        //                "merchantId": "16214228-5c0c-5abc-be6a-c90259b21d4e",                       // Internal ID (not for use)
+        //                "paymentCode": "TRX",                                                       // Blockchain name
+        //                "status": "Processed",                                                      // Transactions status
+        //                "type": "Deposit",                                                          // Transaction type
+        //                "reason": [],                                                               // Reason for manual transaction processing
+        //                "address": "TNeBQz8RyGGiAYAR7r8G6QGxtTWDkpH4dV",                            // Deposit address
+        //                "memo": "",                                                                 // Deposit memo
+        //                "txId": "8a0b0c5a2ac5679879b71b2fa63b0a5c39f90bc8ff6c41e708906b398ac3d4ef", // Deposit transaction hash
+        //                "fee": "0.1",                                                               // Deposit fee
+        //                "processedAmount": "10",                                                    // Amount of deposit
+        //                "createdAt": "2023-06-13T12:55:01.256Z",                                    // Deposit receipt date
+        //                "updatedAt": "2023-06-13T12:55:01.696Z"                                     // Deposit credit date
+        //            },
+        //            ...
+        //        ]
+        //    }
         //
-        return this.parseTransactions (response, currency);
+        const data = this.safeValue (response, 'data');
+        return this.parseTransactions (data, currency);
     }
 
     async fetchDeposit (id: string, code: string = undefined, params = {}) {
@@ -1638,24 +1707,27 @@ export default class kuna extends Exchange {
         const response = await this.v4PrivateGetDepositDetailsDepositId (this.extend (request, params));
         //
         //    {
-        //        "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
-        //        "amount": "9.9",                                                            // Amount credited to your account
-        //        "asset": "USDT",                                                            // Deposit currency
-        //        "merchantId": "16214228-5c0c-5abc-be6a-c90259b21d4e",                       // Internal ID (not for use)
-        //        "paymentCode": "TRX",                                                       // Blockchain name
-        //        "status": "Processed",                                                      // Transactions status
-        //        "type": "Deposit",                                                          // Transaction type
-        //        "reason": [],                                                               // Reason for manual transaction processing
-        //        "address": "TNeBQz8RyGGiAYAR7r8G6QGxtTWDkpH4dV",                            // Deposit address
-        //        "memo": "",                                                                 // Deposit memo
-        //        "txId": "8a0b0c5a2ac5679879b71b2fa63b0a5c39f90bc8ff6c41e708906b398ac3d4ef", // Deposit transaction hash
-        //        "fee": "0.1",                                                               // Deposit fee
-        //        "processedAmount": "10",                                                    // Amount of deposit
-        //        "createdAt": "2023-06-13T12:55:01.256Z",                                    // Deposit receipt date
-        //        "updatedAt": "2023-06-13T12:55:01.696Z"                                     // Deposit credit date
+        //        "data": {
+        //            "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
+        //            "amount": "9.9",                                                            // Amount credited to your account
+        //            "asset": "USDT",                                                            // Deposit currency
+        //            "merchantId": "16214228-5c0c-5abc-be6a-c90259b21d4e",                       // Internal ID (not for use)
+        //            "paymentCode": "TRX",                                                       // Blockchain name
+        //            "status": "Processed",                                                      // Transactions status
+        //            "type": "Deposit",                                                          // Transaction type
+        //            "reason": [],                                                               // Reason for manual transaction processing
+        //            "address": "TNeBQz8RyGGiAYAR7r8G6QGxtTWDkpH4dV",                            // Deposit address
+        //            "memo": "",                                                                 // Deposit memo
+        //            "txId": "8a0b0c5a2ac5679879b71b2fa63b0a5c39f90bc8ff6c41e708906b398ac3d4ef", // Deposit transaction hash
+        //            "fee": "0.1",                                                               // Deposit fee
+        //            "processedAmount": "10",                                                    // Amount of deposit
+        //            "createdAt": "2023-06-13T12:55:01.256Z",                                    // Deposit receipt date
+        //            "updatedAt": "2023-06-13T12:55:01.696Z"                                     // Deposit credit date
+        //        }
         //    }
         //
-        return this.parseTransaction (response, currency);
+        const data = this.safeValue (response, 'data');
+        return this.parseTransaction (data, currency);
     }
 
     parseTransaction (transaction, currency = undefined) {
