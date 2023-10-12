@@ -860,15 +860,24 @@ export default class kuna extends Exchange {
     }
 
     parseBalance (response) {
-        const balances = this.safeValue (response, 'accounts', []);
-        const result = { 'info': balances };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+        //
+        //    [
+        //        {
+        //            "currency": "UAH",
+        //            "balance": "7134.6",
+        //            "lockBalance": "100"
+        //        }
+        //        ...
+        //    ]
+        //
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (balance, 'balance');
-            account['used'] = this.safeString (balance, 'locked');
+            account['used'] = this.safeString (balance, 'lockBalance');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -876,7 +885,6 @@ export default class kuna extends Exchange {
 
     async fetchBalance (params = {}) {
         /**
-         * TODO
          * @method
          * @name kuna#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
@@ -884,7 +892,14 @@ export default class kuna extends Exchange {
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetMembersMe (params);
+        const response = await this.v4PrivateGetGetBalance (params);
+        //
+        //    {
+        //        "currency": "UAH",                    // Wallet currency
+        //        "balance": "7134.6",                  // Available balance, precision depends on the currency
+        //        "lockBalance": "100"                  // Minimum amount locked on the balance
+        //    }
+        //
         return this.parseBalance (response);
     }
 
