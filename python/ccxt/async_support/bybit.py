@@ -3376,9 +3376,12 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        marketType = 'contract'
+        isContract = ('tpslMode' in order)
+        marketType = None
         if market is not None:
             marketType = market['type']
+        else:
+            marketType = 'contract' if isContract else 'spot'
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer_2(order, 'createdTime', 'createdAt')

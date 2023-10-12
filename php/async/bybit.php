@@ -3520,9 +3520,12 @@ class bybit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $marketType = 'contract';
+        $isContract = (is_array($order) && array_key_exists('tpslMode', $order));
+        $marketType = null;
         if ($market !== null) {
             $marketType = $market['type'];
+        } else {
+            $marketType = $isContract ? 'contract' : 'spot';
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
