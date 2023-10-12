@@ -6429,6 +6429,7 @@ export default class gate extends Exchange {
          * @param {object} [params] exchange specific parameters for the gate api endpoint
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
+        this.checkRequiredSymbol ('fetchMyLiquidations', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
