@@ -7578,10 +7578,9 @@ export default class huobi extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const openInterest = this.parseOpenInterest (data[0], market);
         const timestamp = this.safeInteger (response, 'ts');
-        return this.extend (openInterest, {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        });
+        openInterest['timestamp'] = timestamp;
+        openInterest['datetime'] = this.iso8601 (timestamp);
+        return openInterest;
     }
 
     parseOpenInterest (interest, market = undefined) {
@@ -7640,7 +7639,7 @@ export default class huobi extends Exchange {
         const timestamp = this.safeInteger (interest, 'ts');
         const amount = this.safeNumber (interest, 'volume');
         const value = this.safeNumber (interest, 'value');
-        return {
+        return this.safeOpenInterest ({
             'symbol': this.safeString (market, 'symbol'),
             'baseVolume': amount,  // deprecated
             'quoteVolume': value,  // deprecated
@@ -7649,7 +7648,7 @@ export default class huobi extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        };
+        }, market);
     }
 
     async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {

@@ -142,7 +142,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory } from './types.js';
+import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest } from './types.js';
 export {Market, Trade, Fee, Position, Ticker} from './types.js'
 
 // ----------------------------------------------------------------------------
@@ -3695,7 +3695,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
-    async fetchOpenInterest (symbol: string, params = {}): Promise<any> {
+    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
         throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
     }
 
@@ -4199,11 +4199,11 @@ export default class Exchange {
         return await this.fetchTradingFees (params);
     }
 
-    parseOpenInterest (interest, market = undefined): any {
+    parseOpenInterest (interest, market = undefined): OpenInterest {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
 
-    parseOpenInterests (response, market = undefined, since: Int = undefined, limit: Int = undefined) {
+    parseOpenInterests (response, market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -4833,6 +4833,19 @@ export default class Exchange {
             params = this.omit (params, [ 'until', 'till' ]);
         }
         return [ request, params ];
+    }
+
+    safeOpenInterest (interest, market = undefined): OpenInterest {
+        return this.extend (interest, {
+            'symbol': this.safeString (market, 'symbol'),
+            'baseVolume': this.safeNumber (interest, 'baseVolume'), // deprecated
+            'quoteVolume': this.safeNumber (interest, 'quoteVolume'), // deprecated
+            'openInterestAmount': this.safeNumber (interest, 'openInterestAmount'),
+            'openInterestValue': this.safeNumber (interest, 'openInterestValue'),
+            'timestamp': this.safeInteger (interest, 'timestamp'),
+            'datetime': this.safeString (interest, 'datetime'),
+            'info': this.safeValue (interest, 'info'),
+        });
     }
 }
 

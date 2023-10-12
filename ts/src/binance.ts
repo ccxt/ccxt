@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Market, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory } from './base/types.js';
+import { Market, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest } from './base/types.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -8965,7 +8965,7 @@ export default class binance extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenInterestHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500);
+            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500) as OpenInterest[];
         }
         const market = this.market (symbol);
         const request = {
@@ -9072,7 +9072,13 @@ export default class binance extends Exchange {
         //     ]
         //
         if (market['option']) {
-            return this.parseOpenInterests (response, market);
+            const result = this.parseOpenInterests (response, market);
+            for (let i = 0; i < result.length; i++) {
+                const item = result[i];
+                if (item['symbol'] === symbol) {
+                    return item;
+                }
+            }
         } else {
             return this.parseOpenInterest (response, market);
         }
@@ -9085,7 +9091,7 @@ export default class binance extends Exchange {
         const value = this.safeNumber2 (interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');
         // Inverse returns the number of contracts different from the base or quote volume in this case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-        return {
+        return this.safeOpenInterest ({
             'symbol': this.safeSymbol (id, market, undefined, 'contract'),
             'baseVolume': market['inverse'] ? undefined : amount,  // deprecated
             'quoteVolume': value,  // deprecated
@@ -9094,6 +9100,6 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        };
+        }, market);
     }
 }
