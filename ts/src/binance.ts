@@ -6416,10 +6416,20 @@ export default class binance extends Exchange {
 
     parseTradingFee (fee, market = undefined) {
         //
+        // spot
+        //     [
+        //       {
+        //         "symbol": "BTCUSDT",
+        //         "makerCommission": "0.001",
+        //         "takerCommission": "0.001"
+        //       }
+        //     ]
+        //
+        // swap
         //     {
-        //         "symbol": "ADABNB",
-        //         "makerCommission": 0.001,
-        //         "takerCommission": 0.001
+        //         "symbol": "BTCUSD_PERP",
+        //         "makerCommissionRate": "0.00015",  // 0.015%
+        //         "takerCommissionRate": "0.00040"   // 0.040%
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
@@ -6427,8 +6437,8 @@ export default class binance extends Exchange {
         return {
             'info': fee,
             'symbol': symbol,
-            'maker': this.safeNumber (fee, 'makerCommission'),
-            'taker': this.safeNumber (fee, 'takerCommission'),
+            'maker': this.safeNumber2 (fee, 'makerCommission', 'makerCommissionRate'),
+            'taker': this.safeNumber2 (fee, 'takerCommission', 'takerCommissionRate'),
         };
     }
 
@@ -6438,17 +6448,35 @@ export default class binance extends Exchange {
          * @name binance#fetchTradingFee
          * @description fetch the trading fees for a market
          * @see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#user-commission-rate-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#user-commission-rate-user_data
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const defaultType = this.safeString2 (this.options, 'fetchTradingFee', 'defaultType', 'linear');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTradingFee', market, params);
+        const isSpotOrMargin = (type === 'spot') || (type === 'margin');
+        const isLinear = this.isLinear (type, subType);
+        const isInverse = this.isInverse (type, subType);
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.sapiGetAssetTradeFee (this.extend (request, params));
+        let response = undefined;
+        if (isSpotOrMargin) {
+            response = await this.sapiGetAssetTradeFee (this.extend (request, params));
+        } else if (isLinear) {
+            response = await this.fapiPrivateGetCommissionRate (this.extend (request, params));
+        } else if (isInverse) {
+            response = await this.dapiPrivateGetCommissionRate (this.extend (request, params));
+        }
         //
+        // spot
         //     [
         //       {
         //         "symbol": "BTCUSDT",
@@ -6457,8 +6485,18 @@ export default class binance extends Exchange {
         //       }
         //     ]
         //
-        const first = this.safeValue (response, 0, {});
-        return this.parseTradingFee (first);
+        // swap
+        //     {
+        //         "symbol": "BTCUSD_PERP",
+        //         "makerCommissionRate": "0.00015",  // 0.015%
+        //         "takerCommissionRate": "0.00040"   // 0.040%
+        //     }
+        //
+        let data = response;
+        if (Array.isArray (data)) {
+            data = this.safeValue (data, 0, {});
+        }
+        return this.parseTradingFee (data);
     }
 
     async fetchTradingFees (params = {}) {
