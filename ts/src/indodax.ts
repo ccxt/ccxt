@@ -284,6 +284,7 @@ export default class indodax extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
