@@ -592,7 +592,7 @@ export default class kuna extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': undefined,
+                'info': item,
             });
         }
         return markets;
