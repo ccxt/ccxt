@@ -2717,8 +2717,17 @@ export default class Exchange {
                 const networkCodeReplacements = this.safeValue (this.options, 'networkCodeReplacements', {});
                 if (currencyCode in networkCodeReplacements) {
                     // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
-                    const replacementObject = networkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }, where 'ETH' is the networkCode
-                    networkId = this.safeString (replacementObject, networkCode);
+                    const replacementObject = networkCodeReplacements[currencyCode];
+                    const keys = Object.keys (replacementObject);
+                    for (let i = 0; i < keys.length; i++) {
+                        const key = keys[i];
+                        const value = replacementObject[key];
+                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
+                        if (value === networkCode) {
+                            networkId = key;
+                            break;
+                        }
+                    }
                 }
                 // if it wasn't found, we just set the provided value to network-id
                 if (networkId === undefined) {
@@ -4544,6 +4553,6 @@ export default class Exchange {
 }
 
 export {
-    Exchange,
+    Exchange
 };
 

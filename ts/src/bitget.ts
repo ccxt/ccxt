@@ -1361,6 +1361,12 @@ export default class bitget extends Exchange {
         return this.parseMarkets (data);
     }
 
+    networkCodeToId (networkCode, currencyCode) {
+        const networkIdsByCurrencyAndNetworkCodes = this.safeValue (this.options, 'networkIdsByCurrencyAndNetworkCodes', {});
+        const networkIdsByCodes = this.safeValue (networkIdsByCurrencyAndNetworkCodes, currencyCode, {});
+        return this.safeString (networkIdsByCodes, networkCode);
+    }
+
     async fetchCurrencies (params = {}) {
         /**
          * @method
@@ -1400,12 +1406,12 @@ export default class bitget extends Exchange {
         //
         const result = {};
         const data = this.safeValue (response, 'data', []);
-        this.options['networkCodeReplacements'] = {};
+        this.options['networkIdsByCurrencyAndNetworkCodes'] = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const id = this.safeString (entry, 'coinId');
             const code = this.safeCurrencyCode (this.safeString (entry, 'coinName'));
-            this.options['networkCodeReplacements'][code] = {};
+            this.options['networkIdsByCurrencyAndNetworkCodes'][code] = {};
             const chains = this.safeValue (entry, 'chains', []);
             const networks = {};
             let isTokenDepositable = false;
@@ -1435,7 +1441,7 @@ export default class bitget extends Exchange {
                 if (networkMinDepositString !== undefined) {
                     minDepositString = (minDepositString === undefined) ? networkMinDepositString : Precise.stringMin (networkMinDepositString, minDepositString);
                 }
-                this.options['networkCodeReplacements'][code][networkCode] = networkId; // we assume all networkCodes are unique by currency (e.g. no ERC20 and ETH for the same currency)
+                this.options['networkIdsByCurrencyAndNetworkCodes'][code][networkCode] = networkId; // we assume all networkCodes are unique by currency (e.g. no ERC20 and ETH for the same currency)
                 networks[networkCode] = {
                     'info': chain,
                     'id': networkId,
@@ -1636,7 +1642,7 @@ export default class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const networkId = this.networkCodeToId (chain);
+        const networkId = this.networkCodeToId (chain, code);
         const request = {
             'coin': currency['code'],
             'address': address,

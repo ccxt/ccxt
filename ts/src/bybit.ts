@@ -4822,12 +4822,13 @@ export default class bybit extends Exchange {
         const tag = this.safeString (depositAddress, 'tagDeposit');
         const code = this.safeString (currency, 'code');
         const chain = this.safeString (depositAddress, 'chain');
+        const network = this.networkIdToCode (chain);
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': chain,
+            'network': network,
             'info': depositAddress,
         };
     }

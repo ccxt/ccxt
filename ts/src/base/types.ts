@@ -192,6 +192,7 @@ export interface DepositAddressResponse {
     currency: string;
     address: string;
     info: any;
+    network?: string;
     tag?: string;
 }
 
