@@ -315,6 +315,7 @@ export default class hollaex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601 (this.safeString (market, 'created_at')),
                 'info': market,
             });
         }
