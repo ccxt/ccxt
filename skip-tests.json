@@ -805,7 +805,19 @@
                 "ask":"same",
                 "quoteVolume": "same",
                 "baseVolume": "same"
-            }
+            },
+            "fetchPositions":  "currently returns a lot of default/non open positions",
+            "fetchLedger": {
+                "currency": "undefined",
+                "status": "undefined",
+                "fee": "undefined",
+                "account": "undefined",
+                "referenceAccount": "undefined",
+                "referenceId": "undefined"
+            },
+            "fetchTradingFees": "sandbox does not have this endpoint",
+            "fetchDeposits": "sandbox does not have this endpoint",
+            "fetchWithdrawals": "sandbox does not have this endpoint"
         }
     },
     "hollaex": {
