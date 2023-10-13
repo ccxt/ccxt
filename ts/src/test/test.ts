@@ -272,7 +272,7 @@ export default class testMainClass extends baseMainTestClass {
         // console from there. So, even if some public tests fail, the script will continue
         // doing other things (testing other spot/swap or private tests ...)
         const maxRetries = 3;
-        const argsStringified = args.toString (); // args.join (',') breaks when we provide a list of symbols
+        const argsStringified = exchange.json (args); // args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
         for (let i = 0; i < maxRetries; i++) {
             try {
                 await this.testMethod (methodName, exchange, args, isPublic);
