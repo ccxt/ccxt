@@ -109,7 +109,18 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            }
+            },
+            "fetchPositions": "currently returns a lot of default/non open positions",
+            "fetchLedger": {
+                "account": "empty",
+                "status": "not provided",
+                "before": "not provided",
+                "after": "not provided",
+                "fee": "not provided",
+                "code": "not provided",
+                "referenceId": "not provided"
+            },
+            "fetchBalance": "tmp skip"
         }
     },
     "bit2c": {
@@ -504,7 +515,23 @@
             "fetchTicker": {
                 "symbol" :"same"
             },
-            "fetchTrades": "endpoint return Internal System Error"
+            "fetchTrades": "endpoint return Internal System Error",
+            "fetchCurrencies": {
+                "currencyIdAndCode": "temp skip"
+            },
+            "loadMarkets": {
+                "currencyIdAndCode": "temp skip"
+            },
+            "fetchPositions": "currently returns a lot of default/non open positions",
+            "fetchLedger": {
+                "account": "account is not provided",
+                "status": "status is not provided",
+                "fee": "undefined"
+            },
+            "fetchOpenInterestHistory": {
+                "openInterestAmount": "openInterestAmount is not provided"
+            },
+            "fetchBorrowRate": "does not work with unified account"
         }
     },
     "buda": {
@@ -943,6 +970,9 @@
         "skipMethods":{
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
+            },
+            "fetchPositions": {
+                "percentage": "percentage is not provided"
             }
         }
     },
@@ -1182,7 +1212,9 @@
         "skipMethods": {
             "loadMarkets": "linear & inverse must not be same",
             "fetchCurrencies": {
-                "info": "null"
+                "info": "null",
+                "currencyIdAndCode": "temp skip"
+
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume <= baseVolume * high : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2132",
@@ -1190,7 +1222,9 @@
             },
             "fetchTicker": {
                 "quoteVolume": "quoteVolume <= baseVolume * high <<< okx fetchTicker"
-            }
+            },
+            "fetchBorrowRate": "some fields that we can't skip missing",
+            "fetchBorrowRates": "same"
         }
     },
     "tidex": {
