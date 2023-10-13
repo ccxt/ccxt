@@ -3104,9 +3104,9 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLastPrices', market, params);
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
-        let method = undefined;
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPublicGetTickerPrice';
+            response = await this.fapiPublicGetTickerPrice (params);
             //
             //     [
             //         {
@@ -3118,7 +3118,7 @@ export default class binance extends Exchange {
             //     ]
             //
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPublicGetTickerPrice';
+            response = await this.dapiPublicGetTickerPrice (params);
             //
             //     [
             //         {
@@ -3130,7 +3130,7 @@ export default class binance extends Exchange {
             //     ]
             //
         } else if (type === 'spot') {
-            method = 'publicGetTickerPrice';
+            response = await this.publicGetTickerPrice (params);
             //
             //     [
             //         {
@@ -3143,7 +3143,6 @@ export default class binance extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
-        const response = await this[method] (params);
         return this.parseLastPrices (response, symbols);
     }
 
