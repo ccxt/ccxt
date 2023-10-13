@@ -1810,13 +1810,14 @@ export default class binance extends Exchange {
         const query = this.omit (params, 'type');
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTime', undefined, params);
-        let method = 'publicGetTime';
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPublicGetTime';
+            response = await this.fapiPublicGetTime (query);
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPublicGetTime';
+            response = await this.dapiPublicGetTime (query);
+        } else {
+            response = await this.publicGetTime (query);
         }
-        const response = await this[method] (query);
         return this.safeInteger (response, 'serverTime');
     }
 
@@ -2788,15 +2789,16 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        let method = 'publicGetDepth';
+        let response = undefined;
         if (market['option']) {
-            method = 'eapiPublicGetDepth';
+            response = await this.eapiPublicGetDepth (this.extend (request, params));
         } else if (market['linear']) {
-            method = 'fapiPublicGetDepth';
+            response = await this.fapiPublicGetDepth (this.extend (request, params));
         } else if (market['inverse']) {
-            method = 'dapiPublicGetDepth';
+            response = await this.dapiPublicGetDepth (this.extend (request, params));
+        } else {
+            response = await this.publicGetDepth (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // future
         //
@@ -3032,15 +3034,16 @@ export default class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = 'publicGetTicker24hr';
+        let response = undefined;
         if (market['option']) {
-            method = 'eapiPublicGetTicker';
+            response = await this.eapiPublicGetTicker (this.extend (request, params));
         } else if (market['linear']) {
-            method = 'fapiPublicGetTicker24hr';
+            response = await this.fapiPublicGetTicker24hr (this.extend (request, params));
         } else if (market['inverse']) {
-            method = 'dapiPublicGetTicker24hr';
+            response = await this.dapiPublicGetTicker24hr (this.extend (request, params));
+        } else {
+            response = await this.publicGetTicker24hr (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         if (Array.isArray (response)) {
             const firstTicker = this.safeValue (response, 0, {});
             return this.parseTicker (firstTicker, market);
@@ -3071,15 +3074,14 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
-        let method = undefined;
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPublicGetTickerBookTicker';
+            response = await this.fapiPublicGetTickerBookTicker (params);
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPublicGetTickerBookTicker';
+            response = await this.dapiPublicGetTickerBookTicker (params);
         } else {
-            method = 'publicGetTickerBookTicker';
+            response = await this.publicGetTickerBookTicker (params);
         }
-        const response = await this[method] (params);
         return this.parseTickers (response, symbols);
     }
 
@@ -3102,9 +3104,9 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLastPrices', market, params);
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
-        let method = undefined;
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPublicGetTickerPrice';
+            response = await this.fapiPublicGetTickerPrice (params);
             //
             //     [
             //         {
@@ -3116,7 +3118,7 @@ export default class binance extends Exchange {
             //     ]
             //
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPublicGetTickerPrice';
+            response = await this.dapiPublicGetTickerPrice (params);
             //
             //     [
             //         {
@@ -3128,7 +3130,7 @@ export default class binance extends Exchange {
             //     ]
             //
         } else if (type === 'spot') {
-            method = 'publicGetTickerPrice';
+            response = await this.publicGetTickerPrice (params);
             //
             //     [
             //         {
@@ -3141,7 +3143,6 @@ export default class binance extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
-        const response = await this[method] (params);
         return this.parseLastPrices (response, symbols);
     }
 
