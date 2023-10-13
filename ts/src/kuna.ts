@@ -5,7 +5,7 @@ import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Currency, Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 import { Precise } from '../ccxt.js';
 
@@ -447,12 +447,12 @@ export default class kuna extends Exchange {
 
     parseCurrencies (currencies, params = {}) {
         currencies = this.toArray (currencies);
-        const result = [];
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = this.parseCurrency (currencies[i]);
-            result.push (currency);
+            result[currency['code']] = currency;
         }
-        return result as Currency[];
+        return result;
     }
 
     parseCurrency (currency) {
