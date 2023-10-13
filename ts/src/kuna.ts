@@ -17,6 +17,14 @@ import { Precise } from '../ccxt.js';
  * @description Use the public-key as your apiKey
  */
 export default class kuna extends Exchange {
+    // TODO
+    // Public endpoints:
+    //     60 calls per minute.
+    // Private endpoints:
+    //     60 calls per minute for unauthenticated users;
+    //     300 calls per minute for authenticated users;
+    //     1200 calls per minute for authenticated PRO and VIP users.
+
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kuna',
@@ -124,35 +132,35 @@ export default class kuna extends Exchange {
                 'v4': {
                     'private': {
                         'get': {
-                            'me': 1,
-                            'getBalance': 1,
-                            'active': 1,
-                            'order/history': 1,
+                            'private/me': 1,
+                            'private/getBalance': 1,
+                            'private/active': 1,
+                            'order/private/history': 1,
                             'order/private/{id}/trades': 1,
-                            'order/details/{id}': 1,
-                            'order/details/{id}?withTrades={withTrades}': 1,
-                            'trade/history': 1,
-                            'transaction/{hash}': 1,
-                            'deposit/preRequest': 1,
-                            'deposit/crypto/address': 1,
-                            'deposit/crypto/getMerchantAddress': 1,
-                            'deposit/history': 1,
-                            'deposit/details/{depositId}': 1,
-                            'withdraw/preRequest': 1,
-                            'withdraw/history': 1,
-                            'withdraw/details/{withdrawId}': 1,
+                            'order/private/details/{id}': 1,
+                            'order/private/details/{id}?withTrades={withTrades}': 1,
+                            'trade/private/history': 1,
+                            'transaction/private/{hash}': 1,
+                            'deposit/private/preRequest': 1,
+                            'deposit/private/crypto/address': 1,
+                            'deposit/private/crypto/getMerchantAddress': 1,
+                            'deposit/private/history': 1,
+                            'deposit/private/details/{depositId}': 1,
+                            'withdraw/private/preRequest': 1,
+                            'withdraw/private/history': 1,
+                            'withdraw/private/details/{withdrawId}': 1,
                             'kuna-code/{id}': 1,
                             'kuna-code/{code}/check': 1,
                             'kuna-code/issued-by-me': 1,
                             'kuna-code/redeemed-by-me': 1,
                         },
                         'post': {
-                            'order/create': 1,
-                            'order/cancel': 1,
-                            'order/cancel/multi': 1,
-                            'deposit/crypto/generateAddress': 1,
-                            'deposit/crypto/generateMerchantAddress': 1,
-                            'withdraw/create': 1,
+                            'order/private/create': 1,
+                            'order/private/cancel': 1,
+                            'order/private/cancel/multi': 1,
+                            'deposit/private/crypto/generateAddress': 1,
+                            'deposit/private/crypto/generateMerchantAddress': 1,
+                            'withdraw/private/create': 1,
                             'kuna-code': 1,
                         },
                         'put': {
@@ -161,14 +169,14 @@ export default class kuna extends Exchange {
                     },
                     'public': {
                         'get': {
-                            'timestamp': 1,
-                            'fees': 1,
-                            'currencies?type={type}': 1,
-                            'currencies': 1,
-                            'markets/getAll': 1,
-                            'markets/tickers?pairs={pairs}': 1,
-                            'order/book/{pairs}': 1,
-                            'trade/book/{pairs}': 1,
+                            'public/timestamp': 1,
+                            'public/fees': 1,
+                            'public/currencies?type={type}': 1,
+                            'public/currencies': 1,
+                            'markets/public/getAll': 1,
+                            'markets/public/tickers?pairs={pairs}': 1,
+                            'order/public/book/{pairs}': 1,
+                            'trade/public/book/{pairs}': 1,
                         },
                     },
                 },
@@ -394,7 +402,7 @@ export default class kuna extends Exchange {
          * @param {object} [params] extra parameters specific to the kuna api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.v4PublicGetTimestamp (params);
+        const response = await this.v4PublicGetPublicTimestamp (params);
         //
         //    {
         //        "data": {
@@ -416,7 +424,7 @@ export default class kuna extends Exchange {
          * @param {object} [params] extra parameters specific to the kuna api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.v4PublicGetCurrencies (params);
+        const response = await this.v4PublicGetPublicCurrencies (params);
         //
         //    {
         //        "data": [
@@ -514,7 +522,7 @@ export default class kuna extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.v4PublicGetMarketsGetAll (params);
+        const response = await this.v4PublicGetMarketsPublicGetAll (params);
         //
         //    {
         //        "data": [
@@ -617,7 +625,7 @@ export default class kuna extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v4PublicGetOrderBookPairs (this.extend (request, params));
+        const response = await this.v4PublicGetOrderPublicBookPairs (this.extend (request, params));
         //
         //      {
         //          "data": {
@@ -706,7 +714,7 @@ export default class kuna extends Exchange {
         const request = {
             'pairs': marketIds.join (','),
         };
-        const response = await this.v4PublicGetMarketsTickersPairsPairs (this.extend (request, params));
+        const response = await this.v4PublicGetMarketsPublicTickersPairsPairs (this.extend (request, params));
         //
         //    {
         //        "data": [
@@ -746,7 +754,7 @@ export default class kuna extends Exchange {
         const request = {
             'pairs': market['id'],
         };
-        const response = await this.v4PublicGetMarketsTickersPairsPairs (this.extend (request, params));
+        const response = await this.v4PublicGetMarketsPublicTickersPairsPairs (this.extend (request, params));
         //
         //    {
         //        "data": [
@@ -803,7 +811,7 @@ export default class kuna extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.v4PublicGetTradeBookPairs (this.extend (request, params));
+        const response = await this.v4PublicGetTradePublicBookPairs (this.extend (request, params));
         //
         //    {
         //        "data": {
@@ -913,14 +921,14 @@ export default class kuna extends Exchange {
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v4PrivateGetGetBalance (params);
+        const response = await this.v4PrivateGetPrivateGetBalance (params);
         //
         //    {
-        //        "data": {
+        //        "data": [{
         //            "currency": "UAH",                    // Wallet currency
         //            "balance": "7134.6",                  // Available balance, precision depends on the currency
         //            "lockBalance": "100"                  // Minimum amount locked on the balance
-        //        }
+        //        }]
         //    }
         //
         const data = this.safeValue (response, 'data');
@@ -969,7 +977,7 @@ export default class kuna extends Exchange {
                 request['type'] = 'StopLossLimit';
             }
         }
-        const response = await this.v4PrivatePostOrderCreate (this.extend (request, params));
+        const response = await this.v4PrivatePostOrderPrivateCreate (this.extend (request, params));
         //
         //    {
         //        "data": {
@@ -1003,7 +1011,7 @@ export default class kuna extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response = await this.v4PrivatePostOrderCancel (this.extend (request, params));
+        const response = await this.v4PrivatePostOrderPrivateCancel (this.extend (request, params));
         //
         //    {
         //        "data": {
@@ -1021,6 +1029,7 @@ export default class kuna extends Exchange {
 
     async cancelOrders (ids: string[], symbol: string = undefined, params = {}) {
         /**
+         * TODO
          * @method
          * @name kuna#cancelOrder
          * @description cancels an open order
@@ -1033,7 +1042,7 @@ export default class kuna extends Exchange {
         const request = {
             'orderIds': ids,
         };
-        const response = await this.v4PrivatePostOrderCancel (this.extend (request, params));
+        const response = await this.v4PrivatePostOrderPrivateCancelMulti (this.extend (request, params));
         //
         //    {
         //        "data": [
@@ -1155,7 +1164,7 @@ export default class kuna extends Exchange {
             'id': id,
             'withTrades': true,
         };
-        const response = await this.v4PrivateGetOrderDetailsIdWithTradesWithTrades (this.extend (request, params));
+        const response = await this.v4PrivateGetOrderPrivateDetailsIdWithTradesWithTrades (this.extend (request, params));
         //
         //    {
         //        "data": {
@@ -1229,7 +1238,7 @@ export default class kuna extends Exchange {
         if (until !== undefined) {
             request['end'] = this.iso8601 (until);
         }
-        const response = await this.v4PrivateGetActive (this.extend (request, params));
+        const response = await this.v4PrivateGetPrivateActive (this.extend (request, params));
         //
         //    {
         //        "data": [
@@ -1295,7 +1304,7 @@ export default class kuna extends Exchange {
         if (until !== undefined) {
             request['end'] = this.iso8601 (until);
         }
-        const response = await this.v4PrivateGetOrderHistory (request);
+        const response = await this.v4PrivateGetOrderPrivateHistory (request);
         //
         //    {
         //        "data": [
@@ -1345,7 +1354,7 @@ export default class kuna extends Exchange {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        const response = await this.v4PrivateGetTradeHistory (this.extend (request, params));
+        const response = await this.v4PrivateGetTradePrivateHistory (this.extend (request, params));
         //
         //    {
         //        "data": [
@@ -1404,7 +1413,7 @@ export default class kuna extends Exchange {
         if (tag !== undefined) {
             request['paymentId'] = tag;
         }
-        const response = await this.v4PrivatePostWithdrawCreate (this.extend (request, params));
+        const response = await this.v4PrivatePostWithdrawPrivateCreate (this.extend (request, params));
         //
         //    {
         //        "data": {
@@ -1457,7 +1466,7 @@ export default class kuna extends Exchange {
         if (until !== undefined) {
             request['dateTo'] = this.iso8601 (until);
         }
-        const response = this.v4PrivateGetWithdrawHistory (this.extend (request, params));
+        const response = this.v4PrivateGetWithdrawPrivateHistory (this.extend (request, params));
         //
         //    {
         //        "data": [
@@ -1500,7 +1509,7 @@ export default class kuna extends Exchange {
         const request = {
             'withdrawId': id,
         };
-        const response = await this.v4PrivateGetWithdrawDetailsWithdrawId (this.extend (request, params));
+        const response = await this.v4PrivateGetWithdrawPrivateDetailsWithdrawId (this.extend (request, params));
         //
         //    {
         //        "data": {
@@ -1541,7 +1550,7 @@ export default class kuna extends Exchange {
         const request = {
             'source': currency['id'],
         };
-        const response = await this.v4PrivatePostDepositCryptoGenerateAddress (this.extend (request, params));
+        const response = await this.v4PrivatePostDepositPrivateCryptoGenerateAddress (this.extend (request, params));
         //
         //    {
         //        "data": {
@@ -1570,7 +1579,7 @@ export default class kuna extends Exchange {
         const request = {
             'source': currency['id'],
         };
-        const response = this.v4PrivateGetDepositCryptoAddress (this.extend (request, params));
+        const response = this.v4PrivateGetDepositPrivateCryptoAddress (this.extend (request, params));
         //
         //    {
         //        "data": {
@@ -1656,7 +1665,7 @@ export default class kuna extends Exchange {
         if (until !== undefined) {
             request['dateTo'] = this.iso8601 (until);
         }
-        const response = this.v4PrivateGetDepositHistory (this.extend (request, params));
+        const response = this.v4PrivateGetDepositPrivateHistory (this.extend (request, params));
         //
         //    {
         //        "data": [
@@ -1704,7 +1713,7 @@ export default class kuna extends Exchange {
         const request = {
             'depositId': id,
         };
-        const response = await this.v4PrivateGetDepositDetailsDepositId (this.extend (request, params));
+        const response = await this.v4PrivateGetDepositPrivateDetailsDepositId (this.extend (request, params));
         //
         //    {
         //        "data": {
@@ -1822,22 +1831,12 @@ export default class kuna extends Exchange {
                     throw new NotSupported (this.id + ' private v3 API is not supported yet');
                 }
             } else if (version === 'v4') {
-                const splitPath = path.split ('/');
-                const splitPathLength = splitPath.length;
-                let urlPath = '';
-                if ((splitPathLength > 1) && (splitPath[0] !== 'kuna-code')) {
-                    let pathTail = '';
-                    for (let i = 1; i < splitPathLength; i++) {
-                        pathTail += splitPath[i];
-                    }
-                    urlPath = '/' + version + '/' + splitPath[0] + '/' + access + '/' + this.implodeParams (pathTail, params);
-                } else {
-                    urlPath = '/' + version + '/' + access + '/' + this.implodeParams (path, params);
-                }
+                const urlPath = '/' + version + '/' + this.implodeParams (path, params);
                 url = this.urls['api'][version] + urlPath;
                 if (access === 'private') {
-                    const nonce = this.nonce ();
-                    const auth = urlPath + nonce + this.json (params);
+                    const nonce = this.nonce ().toString ();
+                    console.log (this.jsonToString (params));
+                    const auth = urlPath + nonce + this.jsonToString (params);
                     headers = {
                         'content-type': 'application/json',
                         'accept': 'application/json',
