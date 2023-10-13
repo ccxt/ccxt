@@ -6634,10 +6634,9 @@ class huobi(Exchange, ImplicitAPI):
             position = self.safe_value(positions, 0)
         timestamp = self.safe_integer(response, 'ts')
         parsed = self.parse_position(self.extend(position, omitted))
-        return self.extend(parsed, {
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        })
+        parsed['timestamp'] = timestamp
+        parsed['datetime'] = self.iso8601(timestamp)
+        return parsed
 
     def parse_ledger_entry_type(self, type):
         types = {

@@ -7000,10 +7000,9 @@ class huobi extends Exchange {
         }
         $timestamp = $this->safe_integer($response, 'ts');
         $parsed = $this->parse_position(array_merge($position, $omitted));
-        return array_merge($parsed, array(
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-        ));
+        $parsed['timestamp'] = $timestamp;
+        $parsed['datetime'] = $this->iso8601($timestamp);
+        return $parsed;
     }
 
     public function parse_ledger_entry_type($type) {

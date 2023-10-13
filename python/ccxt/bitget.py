@@ -1562,7 +1562,7 @@ class bitget(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a `code` argument')
         currency = self.currency(code)
         if since is None:
-            since = self.milliseconds() - 31556952000  # 1yr
+            since = self.milliseconds() - 7776000000  # 90 days
         request = {
             'coin': currency['code'],
             'startTime': since,
@@ -1705,7 +1705,7 @@ class bitget(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a `code` argument')
         currency = self.currency(code)
         if since is None:
-            since = self.milliseconds() - 31556952000  # 1yr
+            since = self.milliseconds() - 7776000000  # 90 days
         request = {
             'coin': currency['code'],
             'startTime': since,
@@ -3815,9 +3815,14 @@ class bitget(Exchange, ImplicitAPI):
         if market['spot']:
             response = self.privateSpotPostTradeFills(self.extend(request, params))
         else:
+            orderId = self.safe_string(params, 'orderId')  # when order id is not defined, startTime and endTime are required
             if since is not None:
                 request['startTime'] = since
+            elif orderId is None:
+                request['startTime'] = 0
             request, params = self.handle_until_option('endTime', params, request)
+            if not ('endTime' in request) and (orderId is None):
+                request['endTime'] = self.milliseconds()
             response = self.privateMixGetOrderFills(self.extend(request, params))
         #
         #     {

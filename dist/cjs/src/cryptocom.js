@@ -2953,7 +2953,7 @@ class cryptocom extends cryptocom$1 {
             const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
             result.push(this.parsePosition(entry, marketInner));
         }
-        return this.filterByArray(result, 'symbol', undefined, false);
+        return this.filterByArrayPositions(result, 'symbol', undefined, false);
     }
     parsePosition(position, market = undefined) {
         //

@@ -2064,6 +2064,7 @@ class okx(Exchange, ImplicitAPI):
             else:
                 response = self.publicGetMarketMarkPriceCandles(self.extend(request, params))
         elif price == 'index':
+            request['instId'] = market['info']['instFamily']  # okx index candles require instFamily instead of instId
             if isHistoryCandles:
                 response = self.publicGetMarketHistoryIndexCandles(self.extend(request, params))
             else:

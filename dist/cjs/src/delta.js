@@ -1672,7 +1672,7 @@ class delta extends delta$1 {
                 side = 'sell';
             }
         }
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -1698,7 +1698,7 @@ class delta extends delta$1 {
             'marginRatio': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
-        };
+        });
     }
     parseOrderStatus(status) {
         const statuses = {

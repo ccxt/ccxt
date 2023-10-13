@@ -2916,7 +2916,7 @@ class cryptocom extends Exchange {
             $marketInner = $this->safe_market($marketId, null, null, 'contract');
             $result[] = $this->parse_position($entry, $marketInner);
         }
-        return $this->filter_by_array($result, 'symbol', null, false);
+        return $this->filter_by_array_positions($result, 'symbol', null, false);
     }
 
     public function parse_position($position, $market = null) {

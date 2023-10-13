@@ -1622,7 +1622,7 @@ class delta(Exchange, ImplicitAPI):
                 side = 'buy'
             elif Precise.string_lt(sizeString, '0'):
                 side = 'sell'
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -1648,7 +1648,7 @@ class delta(Exchange, ImplicitAPI):
             'marginRatio': None,
             'stopLossPrice': None,
             'takeProfitPrice': None,
-        }
+        })
 
     def parse_order_status(self, status):
         statuses = {

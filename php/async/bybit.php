@@ -1762,6 +1762,7 @@ class bybit extends Exchange {
                             'max' => $this->safe_number($lotSizeFilter, 'maxOrderAmt'),
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -1937,6 +1938,7 @@ class bybit extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->safe_integer($market, 'launchTime'),
                     'info' => $market,
                 );
             }
@@ -2072,6 +2074,7 @@ class bybit extends Exchange {
                                 'max' => null,
                             ),
                         ),
+                        'created' => $this->safe_integer($market, 'launchTime'),
                         'info' => $market,
                     );
                 }
@@ -5706,10 +5709,9 @@ class bybit extends Exchange {
             $timestamp = $this->safe_integer($response, 'time');
             $first = $this->safe_value($positions, 0, array());
             $position = $this->parse_position($first, $market);
-            return array_merge($position, array(
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-            ));
+            $position['timestamp'] = $timestamp;
+            $position['datetime'] = $this->iso8601($timestamp);
+            return $position;
         }) ();
     }
 
@@ -5786,7 +5788,7 @@ class bybit extends Exchange {
                 }
                 $results[] = $this->parse_position($rawPosition, $market);
             }
-            return $this->filter_by_array($results, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
         }) ();
     }
 

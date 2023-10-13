@@ -2956,7 +2956,7 @@ export default class cryptocom extends Exchange {
             const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
             result.push(this.parsePosition(entry, marketInner));
         }
-        return this.filterByArray(result, 'symbol', undefined, false);
+        return this.filterByArrayPositions(result, 'symbol', undefined, false);
     }
     parsePosition(position, market = undefined) {
         //

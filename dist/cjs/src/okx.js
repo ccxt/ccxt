@@ -2112,6 +2112,7 @@ class okx extends okx$1 {
             }
         }
         else if (price === 'index') {
+            request['instId'] = market['info']['instFamily']; // okx index candles require instFamily instead of instId
             if (isHistoryCandles) {
                 response = await this.publicGetMarketHistoryIndexCandles(this.extend(request, params));
             }

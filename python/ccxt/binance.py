@@ -1806,12 +1806,13 @@ class binance(Exchange, ImplicitAPI):
         query = self.omit(params, 'type')
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchTime', None, params)
-        method = 'publicGetTime'
+        response = None
         if self.is_linear(type, subType):
-            method = 'fapiPublicGetTime'
+            response = self.fapiPublicGetTime(query)
         elif self.is_inverse(type, subType):
-            method = 'dapiPublicGetTime'
-        response = getattr(self, method)(query)
+            response = self.dapiPublicGetTime(query)
+        else:
+            response = self.publicGetTime(query)
         return self.safe_integer(response, 'serverTime')
 
     def fetch_currencies(self, params={}):
@@ -2730,14 +2731,15 @@ class binance(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
-        method = 'publicGetDepth'
+        response = None
         if market['option']:
-            method = 'eapiPublicGetDepth'
+            response = self.eapiPublicGetDepth(self.extend(request, params))
         elif market['linear']:
-            method = 'fapiPublicGetDepth'
+            response = self.fapiPublicGetDepth(self.extend(request, params))
         elif market['inverse']:
-            method = 'dapiPublicGetDepth'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.dapiPublicGetDepth(self.extend(request, params))
+        else:
+            response = self.publicGetDepth(self.extend(request, params))
         #
         # future
         #
@@ -2963,14 +2965,15 @@ class binance(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        method = 'publicGetTicker24hr'
+        response = None
         if market['option']:
-            method = 'eapiPublicGetTicker'
+            response = self.eapiPublicGetTicker(self.extend(request, params))
         elif market['linear']:
-            method = 'fapiPublicGetTicker24hr'
+            response = self.fapiPublicGetTicker24hr(self.extend(request, params))
         elif market['inverse']:
-            method = 'dapiPublicGetTicker24hr'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.dapiPublicGetTicker24hr(self.extend(request, params))
+        else:
+            response = self.publicGetTicker24hr(self.extend(request, params))
         if isinstance(response, list):
             firstTicker = self.safe_value(response, 0, {})
             return self.parse_ticker(firstTicker, market)
@@ -2996,14 +2999,13 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchBidsAsks', market, params)
         type, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
-        method = None
+        response = None
         if self.is_linear(type, subType):
-            method = 'fapiPublicGetTickerBookTicker'
+            response = self.fapiPublicGetTickerBookTicker(params)
         elif self.is_inverse(type, subType):
-            method = 'dapiPublicGetTickerBookTicker'
+            response = self.dapiPublicGetTickerBookTicker(params)
         else:
-            method = 'publicGetTickerBookTicker'
-        response = getattr(self, method)(params)
+            response = self.publicGetTickerBookTicker(params)
         return self.parse_tickers(response, symbols)
 
     def fetch_last_prices(self, symbols: Optional[List[str]] = None, params={}):
@@ -3023,9 +3025,9 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchLastPrices', market, params)
         type, params = self.handle_market_type_and_params('fetchLastPrices', market, params)
-        method = None
+        response = None
         if self.is_linear(type, subType):
-            method = 'fapiPublicGetTickerPrice'
+            response = self.fapiPublicGetTickerPrice(params)
             #
             #     [
             #         {
@@ -3037,7 +3039,7 @@ class binance(Exchange, ImplicitAPI):
             #     ]
             #
         elif self.is_inverse(type, subType):
-            method = 'dapiPublicGetTickerPrice'
+            response = self.dapiPublicGetTickerPrice(params)
             #
             #     [
             #         {
@@ -3049,7 +3051,7 @@ class binance(Exchange, ImplicitAPI):
             #     ]
             #
         elif type == 'spot':
-            method = 'publicGetTickerPrice'
+            response = self.publicGetTickerPrice(params)
             #
             #     [
             #         {
@@ -3061,7 +3063,6 @@ class binance(Exchange, ImplicitAPI):
             #
         else:
             raise NotSupported(self.id + ' fetchLastPrices() does not support ' + type + ' markets yet')
-        response = getattr(self, method)(params)
         return self.parse_last_prices(response, symbols)
 
     def parse_last_price(self, info, market=None):
@@ -6038,36 +6039,7 @@ class binance(Exchange, ImplicitAPI):
 
     def parse_trading_fee(self, fee, market=None):
         #
-        #     {
-        #         "symbol": "ADABNB",
-        #         "makerCommission": 0.001,
-        #         "takerCommission": 0.001
-        #     }
-        #
-        marketId = self.safe_string(fee, 'symbol')
-        symbol = self.safe_symbol(marketId, market, None, 'spot')
-        return {
-            'info': fee,
-            'symbol': symbol,
-            'maker': self.safe_number(fee, 'makerCommission'),
-            'taker': self.safe_number(fee, 'takerCommission'),
-        }
-
-    def fetch_trading_fee(self, symbol: str, params={}):
-        """
-        fetch the trading fees for a market
-        see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
-        :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the binance api endpoint
-        :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
-        """
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
-        response = self.sapiGetAssetTradeFee(self.extend(request, params))
-        #
+        # spot
         #     [
         #       {
         #         "symbol": "BTCUSDT",
@@ -6076,8 +6048,73 @@ class binance(Exchange, ImplicitAPI):
         #       }
         #     ]
         #
-        first = self.safe_value(response, 0, {})
-        return self.parse_trading_fee(first)
+        # swap
+        #     {
+        #         "symbol": "BTCUSD_PERP",
+        #         "makerCommissionRate": "0.00015",  # 0.015%
+        #         "takerCommissionRate": "0.00040"   # 0.040%
+        #     }
+        #
+        marketId = self.safe_string(fee, 'symbol')
+        symbol = self.safe_symbol(marketId, market, None, 'spot')
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.safe_number_2(fee, 'makerCommission', 'makerCommissionRate'),
+            'taker': self.safe_number_2(fee, 'takerCommission', 'takerCommissionRate'),
+        }
+
+    def fetch_trading_fee(self, symbol: str, params={}):
+        """
+        fetch the trading fees for a market
+        see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
+        see https://binance-docs.github.io/apidocs/futures/en/#user-commission-rate-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#user-commission-rate-user_data
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the binance api endpoint
+        :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        defaultType = self.safe_string_2(self.options, 'fetchTradingFee', 'defaultType', 'linear')
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchTradingFee', market, params)
+        isSpotOrMargin = (type == 'spot') or (type == 'margin')
+        isLinear = self.is_linear(type, subType)
+        isInverse = self.is_inverse(type, subType)
+        request = {
+            'symbol': market['id'],
+        }
+        response = None
+        if isSpotOrMargin:
+            response = self.sapiGetAssetTradeFee(self.extend(request, params))
+        elif isLinear:
+            response = self.fapiPrivateGetCommissionRate(self.extend(request, params))
+        elif isInverse:
+            response = self.dapiPrivateGetCommissionRate(self.extend(request, params))
+        #
+        # spot
+        #     [
+        #       {
+        #         "symbol": "BTCUSDT",
+        #         "makerCommission": "0.001",
+        #         "takerCommission": "0.001"
+        #       }
+        #     ]
+        #
+        # swap
+        #     {
+        #         "symbol": "BTCUSD_PERP",
+        #         "makerCommissionRate": "0.00015",  # 0.015%
+        #         "takerCommissionRate": "0.00040"   # 0.040%
+        #     }
+        #
+        data = response
+        if isinstance(data, list):
+            data = self.safe_value(data, 0, {})
+        return self.parse_trading_fee(data)
 
     def fetch_trading_fees(self, params={}):
         """
@@ -6090,11 +6127,10 @@ class binance(Exchange, ImplicitAPI):
         """
         self.load_markets()
         method = None
-        defaultType = self.safe_string_2(self.options, 'fetchTradingFees', 'defaultType', 'linear')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchTradingFees', None, params)
+        subType, params = self.handle_sub_type_and_params('fetchTradingFees', None, params, 'linear')
         isSpotOrMargin = (type == 'spot') or (type == 'margin')
         isLinear = self.is_linear(type, subType)
         isInverse = self.is_inverse(type, subType)

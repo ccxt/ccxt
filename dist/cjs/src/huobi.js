@@ -7215,10 +7215,9 @@ class huobi extends huobi$1 {
         }
         const timestamp = this.safeInteger(response, 'ts');
         const parsed = this.parsePosition(this.extend(position, omitted));
-        return this.extend(parsed, {
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-        });
+        parsed['timestamp'] = timestamp;
+        parsed['datetime'] = this.iso8601(timestamp);
+        return parsed;
     }
     parseLedgerEntryType(type) {
         const types = {

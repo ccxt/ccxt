@@ -2135,6 +2135,7 @@ class okx extends Exchange {
                     $response = Async\await($this->publicGetMarketMarkPriceCandles (array_merge($request, $params)));
                 }
             } elseif ($price === 'index') {
+                $request['instId'] = $market['info']['instFamily']; // okx index candles require instFamily instead of instId
                 if ($isHistoryCandles) {
                     $response = Async\await($this->publicGetMarketHistoryIndexCandles (array_merge($request, $params)));
                 } else {

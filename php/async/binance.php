@@ -1815,13 +1815,14 @@ class binance extends Exchange {
             $query = $this->omit($params, 'type');
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchTime', null, $params);
-            $method = 'publicGetTime';
+            $response = null;
             if ($this->is_linear($type, $subType)) {
-                $method = 'fapiPublicGetTime';
+                $response = Async\await($this->fapiPublicGetTime ($query));
             } elseif ($this->is_inverse($type, $subType)) {
-                $method = 'dapiPublicGetTime';
+                $response = Async\await($this->dapiPublicGetTime ($query));
+            } else {
+                $response = Async\await($this->publicGetTime ($query));
             }
-            $response = Async\await($this->$method ($query));
             return $this->safe_integer($response, 'serverTime');
         }) ();
     }
@@ -2793,15 +2794,16 @@ class binance extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
             }
-            $method = 'publicGetDepth';
+            $response = null;
             if ($market['option']) {
-                $method = 'eapiPublicGetDepth';
+                $response = Async\await($this->eapiPublicGetDepth (array_merge($request, $params)));
             } elseif ($market['linear']) {
-                $method = 'fapiPublicGetDepth';
+                $response = Async\await($this->fapiPublicGetDepth (array_merge($request, $params)));
             } elseif ($market['inverse']) {
-                $method = 'dapiPublicGetDepth';
+                $response = Async\await($this->dapiPublicGetDepth (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetDepth (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // future
             //
@@ -3037,15 +3039,16 @@ class binance extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $method = 'publicGetTicker24hr';
+            $response = null;
             if ($market['option']) {
-                $method = 'eapiPublicGetTicker';
+                $response = Async\await($this->eapiPublicGetTicker (array_merge($request, $params)));
             } elseif ($market['linear']) {
-                $method = 'fapiPublicGetTicker24hr';
+                $response = Async\await($this->fapiPublicGetTicker24hr (array_merge($request, $params)));
             } elseif ($market['inverse']) {
-                $method = 'dapiPublicGetTicker24hr';
+                $response = Async\await($this->dapiPublicGetTicker24hr (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetTicker24hr (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
                 $firstTicker = $this->safe_value($response, 0, array());
                 return $this->parse_ticker($firstTicker, $market);
@@ -3076,15 +3079,14 @@ class binance extends Exchange {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchBidsAsks', $market, $params);
             list($type, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
-            $method = null;
+            $response = null;
             if ($this->is_linear($type, $subType)) {
-                $method = 'fapiPublicGetTickerBookTicker';
+                $response = Async\await($this->fapiPublicGetTickerBookTicker ($params));
             } elseif ($this->is_inverse($type, $subType)) {
-                $method = 'dapiPublicGetTickerBookTicker';
+                $response = Async\await($this->dapiPublicGetTickerBookTicker ($params));
             } else {
-                $method = 'publicGetTickerBookTicker';
+                $response = Async\await($this->publicGetTickerBookTicker ($params));
             }
-            $response = Async\await($this->$method ($params));
             return $this->parse_tickers($response, $symbols);
         }) ();
     }
@@ -3107,9 +3109,9 @@ class binance extends Exchange {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchLastPrices', $market, $params);
             list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
-            $method = null;
+            $response = null;
             if ($this->is_linear($type, $subType)) {
-                $method = 'fapiPublicGetTickerPrice';
+                $response = Async\await($this->fapiPublicGetTickerPrice ($params));
                 //
                 //     array(
                 //         array(
@@ -3121,7 +3123,7 @@ class binance extends Exchange {
                 //     )
                 //
             } elseif ($this->is_inverse($type, $subType)) {
-                $method = 'dapiPublicGetTickerPrice';
+                $response = Async\await($this->dapiPublicGetTickerPrice ($params));
                 //
                 //     array(
                 //         {
@@ -3133,7 +3135,7 @@ class binance extends Exchange {
                 //     )
                 //
             } elseif ($type === 'spot') {
-                $method = 'publicGetTickerPrice';
+                $response = Async\await($this->publicGetTickerPrice ($params));
                 //
                 //     array(
                 //         array(
@@ -3146,7 +3148,6 @@ class binance extends Exchange {
             } else {
                 throw new NotSupported($this->id . ' fetchLastPrices() does not support ' . $type . ' markets yet');
             }
-            $response = Async\await($this->$method ($params));
             return $this->parse_last_prices($response, $symbols);
         }) ();
     }
@@ -6418,10 +6419,20 @@ class binance extends Exchange {
 
     public function parse_trading_fee($fee, $market = null) {
         //
+        // spot
+        //     array(
+        //       {
+        //         "symbol" => "BTCUSDT",
+        //         "makerCommission" => "0.001",
+        //         "takerCommission" => "0.001"
+        //       }
+        //     )
+        //
+        // swap
         //     {
-        //         "symbol" => "ADABNB",
-        //         "makerCommission" => 0.001,
-        //         "takerCommission" => 0.001
+        //         "symbol" => "BTCUSD_PERP",
+        //         "makerCommissionRate" => "0.00015",  // 0.015%
+        //         "takerCommissionRate" => "0.00040"   // 0.040%
         //     }
         //
         $marketId = $this->safe_string($fee, 'symbol');
@@ -6429,8 +6440,8 @@ class binance extends Exchange {
         return array(
             'info' => $fee,
             'symbol' => $symbol,
-            'maker' => $this->safe_number($fee, 'makerCommission'),
-            'taker' => $this->safe_number($fee, 'takerCommission'),
+            'maker' => $this->safe_number_2($fee, 'makerCommission', 'makerCommissionRate'),
+            'taker' => $this->safe_number_2($fee, 'takerCommission', 'takerCommissionRate'),
         );
     }
 
@@ -6439,17 +6450,35 @@ class binance extends Exchange {
             /**
              * fetch the trading fees for a $market
              * @see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#user-commission-rate-user_data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#user-commission-rate-user_data
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $defaultType = $this->safe_string_2($this->options, 'fetchTradingFee', 'defaultType', 'linear');
+            $type = $this->safe_string($params, 'type', $defaultType);
+            $params = $this->omit($params, 'type');
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchTradingFee', $market, $params);
+            $isSpotOrMargin = ($type === 'spot') || ($type === 'margin');
+            $isLinear = $this->is_linear($type, $subType);
+            $isInverse = $this->is_inverse($type, $subType);
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->sapiGetAssetTradeFee (array_merge($request, $params)));
+            $response = null;
+            if ($isSpotOrMargin) {
+                $response = Async\await($this->sapiGetAssetTradeFee (array_merge($request, $params)));
+            } elseif ($isLinear) {
+                $response = Async\await($this->fapiPrivateGetCommissionRate (array_merge($request, $params)));
+            } elseif ($isInverse) {
+                $response = Async\await($this->dapiPrivateGetCommissionRate (array_merge($request, $params)));
+            }
             //
+            // spot
             //     array(
             //       {
             //         "symbol" => "BTCUSDT",
@@ -6458,8 +6487,18 @@ class binance extends Exchange {
             //       }
             //     )
             //
-            $first = $this->safe_value($response, 0, array());
-            return $this->parse_trading_fee($first);
+            // swap
+            //     {
+            //         "symbol" => "BTCUSD_PERP",
+            //         "makerCommissionRate" => "0.00015",  // 0.015%
+            //         "takerCommissionRate" => "0.00040"   // 0.040%
+            //     }
+            //
+            $data = $response;
+            if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+                $data = $this->safe_value($data, 0, array());
+            }
+            return $this->parse_trading_fee($data);
         }) ();
     }
 
@@ -6475,11 +6514,10 @@ class binance extends Exchange {
              */
             Async\await($this->load_markets());
             $method = null;
-            $defaultType = $this->safe_string_2($this->options, 'fetchTradingFees', 'defaultType', 'linear');
-            $type = $this->safe_string($params, 'type', $defaultType);
-            $params = $this->omit($params, 'type');
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
             $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchTradingFees', null, $params);
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchTradingFees', null, $params, 'linear');
             $isSpotOrMargin = ($type === 'spot') || ($type === 'margin');
             $isLinear = $this->is_linear($type, $subType);
             $isInverse = $this->is_inverse($type, $subType);
