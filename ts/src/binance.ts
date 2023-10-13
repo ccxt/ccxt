@@ -9156,11 +9156,6 @@ export default class binance extends Exchange {
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         let response = undefined;
         if (type === 'spot') {
-            let paginate = false;
-            [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyLiquidations', 'paginate');
-            if (paginate) {
-                return await this.fetchPaginatedCallIncremental ('fetchMyLiquidations', symbol, since, limit, params, 'current') as Liquidation[];
-            }
             response = await this.sapiGetMarginForceLiquidationRec (this.extend (request, params));
         } else if (subType === 'linear') {
             response = await this.fapiPrivateGetForceOrders (this.extend (request, params));
