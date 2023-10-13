@@ -290,6 +290,7 @@ export default class poloniex extends Exchange {
                     '21352': BadSymbol, // Trading for this currency is frozen
                     '21353': PermissionDenied, // Trading for US customers is not supported
                     '21354': PermissionDenied, // Account needs to be verified via email before trading is enabled. Contact support
+                    '21359': OrderNotFound, // { "code" : 21359, "message" : "Order was already canceled or filled." }
                     '21360': InvalidOrder, // { "code" : 21360, "message" : "Order size exceeds the limit.Please enter a smaller amount and try again." }
                     '24106': BadRequest, // Invalid market depth
                     '24201': ExchangeNotAvailable, // Service busy. Try again later
