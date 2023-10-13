@@ -3074,15 +3074,14 @@ export default class binance extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
-        let method = undefined;
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPublicGetTickerBookTicker';
+            response = await this.fapiPublicGetTickerBookTicker (params);
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPublicGetTickerBookTicker';
+            response = await this.dapiPublicGetTickerBookTicker (params);
         } else {
-            method = 'publicGetTickerBookTicker';
+            response = await this.publicGetTickerBookTicker (params);
         }
-        const response = await this[method] (params);
         return this.parseTickers (response, symbols);
     }
 
