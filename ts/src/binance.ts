@@ -1810,13 +1810,14 @@ export default class binance extends Exchange {
         const query = this.omit (params, 'type');
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTime', undefined, params);
-        let method = 'publicGetTime';
+        let response = undefined;
         if (this.isLinear (type, subType)) {
-            method = 'fapiPublicGetTime';
+            response = await this.fapiPublicGetTime (query);
         } else if (this.isInverse (type, subType)) {
-            method = 'dapiPublicGetTime';
+            response = await this.dapiPublicGetTime (query);
+        } else {
+            response = await this.publicGetTime (query);
         }
-        const response = await this[method] (query);
         return this.safeInteger (response, 'serverTime');
     }
 
