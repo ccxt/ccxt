@@ -891,7 +891,7 @@ export default class kucoin extends Exchange {
             const chainsLength = chains.length;
             for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
-                const chainId = this.safeString (chain, 'chain');
+                const chainId = this.safeString (chain, 'chainId');
                 const networkCode = this.networkIdToCode (chainId);
                 const isWithdrawalEnabled = this.safeValue (chain, 'isWithdrawEnabled', false);
                 const isDepositEnabled = this.safeValue (chain, 'isDepositEnabled', false);
@@ -1476,7 +1476,7 @@ export default class kucoin extends Exchange {
             'currency': code,
             'address': address,
             'tag': this.safeString (depositAddress, 'memo'),
-            'network': this.networkIdToCode (this.safeString (depositAddress, 'chain')),
+            // it's hard to retrieve the network here, the api returns the chain name, not the id
         };
     }
 

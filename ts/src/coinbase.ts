@@ -497,12 +497,11 @@ export default class coinbase extends Exchange {
         const currencyIdV3 = this.safeString (account, 'currency');
         const currency = this.safeValue (account, 'currency', {});
         const currencyId = this.safeString (currency, 'code', currencyIdV3);
-        const typeV3 = this.safeString (account, 'name');
+        const typeV3 = this.safeString (account, 'type'); // ACCOUNT_TYPE_FIAT or ACCOUNT_TYPE_CRYPTO
         const typeV2 = this.safeString (account, 'type');
-        const parts = typeV3.split (' ');
         return {
             'id': this.safeString2 (account, 'id', 'uuid'),
-            'type': (active !== undefined) ? this.safeStringLower (parts, 1) : typeV2,
+            'type': (active !== undefined) ? typeV3 : typeV2,
             'code': this.safeCurrencyCode (currencyId),
             'info': account,
             'active': active,
@@ -524,7 +523,7 @@ export default class coinbase extends Exchange {
             await this.loadAccounts ();
             for (let i = 0; i < this.accounts.length; i++) {
                 const account = this.accounts[i];
-                if (account['code'] === code && account['type'] === 'wallet') {
+                if (account['code'] === code && account['type'] === 'ACCOUNT_TYPE_CRYPTO') {
                     accountId = account['id'];
                     break;
                 }
@@ -576,10 +575,12 @@ export default class coinbase extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const tag = this.safeString (data, 'destination_tag');
         const address = this.safeString (data, 'address');
+        const network = this.safeString (data, 'network');
         return {
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': network,
             'info': response,
         };
     }
