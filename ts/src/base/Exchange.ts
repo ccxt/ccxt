@@ -142,8 +142,8 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest } from './types.js';
-export {Market, Trade, Fee, Position, Ticker} from './types.js'
+import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation } from './types.js';
+export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation} from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
@@ -3661,6 +3661,14 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
     }
 
+    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        throw new NotSupported (this.id + ' fetchMyLiquidations() is not supported yet');
+    }
+
+    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        throw new NotSupported (this.id + ' fetchLiquidations() is not supported yet');
+    }
+
     async fetchMyTradesWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' fetchMyTradesWs() is not supported yet');
     }
@@ -4846,6 +4854,32 @@ export default class Exchange {
             'datetime': this.safeString (interest, 'datetime'),
             'info': this.safeValue (interest, 'info'),
         });
+    }
+
+    parseLiquidation (liquidation, market = undefined): Liquidation {
+        throw new NotSupported (this.id + ' parseLiquidation () is not supported yet');
+    }
+
+    parseLiquidations (liquidations, market = undefined, since: Int = undefined, limit: Int = undefined): Liquidation[] {
+        /**
+         * @ignore
+         * @method
+         * @description parses liquidation info from the exchange response
+         * @param {object[]} liquidations each item describes an instance of a liquidation event
+         * @param {object} market ccxt market
+         * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
+         * @param {int} [limit] limits the number of items in the response
+         * @returns {object[]} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        const result = [];
+        for (let i = 0; i < liquidations.length; i++) {
+            const entry = liquidations[i];
+            const parsed = this.parseLiquidation (entry, market);
+            result.push (parsed);
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 }
 

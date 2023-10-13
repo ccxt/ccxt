@@ -239,6 +239,16 @@ export interface OpenInterest {
     info: any;
 }
 
+export interface Liquidation {
+    info: any;
+    symbol: string;
+    timestamp?: number
+    datetime?: string;
+    price: number;
+    baseValue?: number;
+    quoteValue?: number;
+}
+
 /** [ timestamp, open, high, low, close, volume ] */
 export type OHLCV = [number, number, number, number, number, number];
 

@@ -60,9 +60,11 @@ export default class deribit extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMyLiquidations': true,
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -2942,6 +2944,171 @@ export default class deribit extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+        };
+    }
+
+    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchLiquidations
+         * @description retrieves the public liquidations of a trading pair
+         * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the deribit api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchLiquidations', symbol, since, limit, params, 'continuation', 'continuation', undefined);
+        }
+        const market = this.market (symbol);
+        if (market['spot']) {
+            throw new NotSupported (this.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets');
+        }
+        const request = {
+            'instrument_name': market['id'],
+            'type': 'bankruptcy',
+        };
+        if (since !== undefined) {
+            request['search_start_timestamp'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this.publicGetGetLastSettlementsByInstrument (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "settlements": [
+        //                 {
+        //                     "type": "bankruptcy",
+        //                     "timestamp": 1696579200041,
+        //                     "funded": 10000.0,
+        //                     "session_bankrupcy": 10000.0
+        //                     "session_profit_loss": 112951.68715857354,
+        //                     "session_tax": 0.15,
+        //                     "session_tax_rate": 0.0015,
+        //                     "socialized": 0.001,
+        //                 },
+        //             ],
+        //             "continuation": "5dHzoGyD8Hs8KURoUhfgXgHpJTA5oyapoudSmNeAfEftqRbjNE6jNNUpo2oCu1khnZL9ao"
+        //         },
+        //         "usIn": 1696652052254890,
+        //         "usOut": 1696652052255733,
+        //         "usDiff": 843,
+        //         "testnet": false
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const cursor = this.safeString (result, 'continuation');
+        const settlements = this.safeValue (result, 'settlements', []);
+        const settlementsWithCursor = this.addPaginationCursorToResult (cursor, settlements);
+        return this.parseLiquidations (settlementsWithCursor, market, since, limit);
+    }
+
+    addPaginationCursorToResult (cursor, data) {
+        if (cursor !== undefined) {
+            const dataLength = data.length;
+            if (dataLength > 0) {
+                const first = data[0];
+                const last = data[dataLength - 1];
+                first['continuation'] = cursor;
+                last['continuation'] = cursor;
+                data[0] = first;
+                data[dataLength - 1] = last;
+            }
+        }
+        return data;
+    }
+
+    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchMyLiquidations
+         * @description retrieves the users liquidated positions
+         * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the deribit api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        this.checkRequiredSymbol ('fetchMyLiquidations', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
+        }
+        const request = {
+            'instrument_name': market['id'],
+            'type': 'bankruptcy',
+        };
+        if (since !== undefined) {
+            request['search_start_timestamp'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this.privateGetGetSettlementHistoryByInstrument (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "settlements": [
+        //                 {
+        //                     "type": "bankruptcy",
+        //                     "timestamp": 1696579200041,
+        //                     "funded": 10000.0,
+        //                     "session_bankrupcy": 10000.0
+        //                     "session_profit_loss": 112951.68715857354,
+        //                     "session_tax": 0.15,
+        //                     "session_tax_rate": 0.0015,
+        //                     "socialized": 0.001,
+        //                 },
+        //             ],
+        //             "continuation": "5dHzoGyD8Hs8KURoUhfgXgHpJTA5oyapoudSmNeAfEftqRbjNE6jNNUpo2oCu1khnZL9ao"
+        //         },
+        //         "usIn": 1696652052254890,
+        //         "usOut": 1696652052255733,
+        //         "usDiff": 843,
+        //         "testnet": false
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const settlements = this.safeValue (result, 'settlements', []);
+        return this.parseLiquidations (settlements, market, since, limit);
+    }
+
+    parseLiquidation (liquidation, market = undefined) {
+        //
+        //     {
+        //         "type": "bankruptcy",
+        //         "timestamp": 1696579200041,
+        //         "funded": 1,
+        //         "session_bankrupcy": 0.001,
+        //         "session_profit_loss": 0.001,
+        //         "session_tax": 0.0015,
+        //         "session_tax_rate": 0.0015,
+        //         "socialized": 0.001,
+        //     }
+        //
+        const timestamp = this.safeInteger (liquidation, 'timestamp');
+        return {
+            'info': liquidation,
+            'symbol': this.safeSymbol (undefined, market),
+            'contracts': undefined,
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'price': undefined,
+            'baseValue': this.safeNumber (liquidation, 'session_bankrupcy'),
+            'quoteValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         };
     }
 
