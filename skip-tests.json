@@ -1330,6 +1330,16 @@
             "fetchCurrencies":{
                 "withdraw": "undefined",
                 "deposit": "undefined"
+            },
+            "fetchPositions": {
+                "leverage": "undefined",
+                "percentage": "undefined",
+                "hedged": "undefined",
+                "stopLossPrice": "undefined",
+                "takeProfitPrice": "undefined",
+                "id": "undefined",
+                "marginRatio": "undefined",
+                "collateral": "undefined"
             }
         }
 	},

@@ -188,7 +188,7 @@ function assertGreaterOrEqual (exchange, skippedProperties, method, entry, key, 
     }
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
-    if (value !== undefined) {
+    if (value !== undefined && compareTo !== undefined) {
         assert (Precise.stringGe (value, compareTo), stringValue (key) + ' key (with a value of ' + stringValue (value) + ') was expected to be >= ' + stringValue (compareTo) + logText);
     }
 }
@@ -199,7 +199,7 @@ function assertLess (exchange, skippedProperties, method, entry, key, compareTo)
     }
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
-    if (value !== undefined) {
+    if (value !== undefined && compareTo !== undefined) {
         assert (Precise.stringLt (value, compareTo), stringValue (key) + ' key (with a value of ' + stringValue (value) + ') was expected to be < ' + stringValue (compareTo) + logText);
     }
 }
@@ -210,7 +210,7 @@ function assertLessOrEqual (exchange, skippedProperties, method, entry, key, com
     }
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
-    if (value !== undefined) {
+    if (value !== undefined && compareTo !== undefined) {
         assert (Precise.stringLe (value, compareTo), stringValue (key) + ' key (with a value of ' + stringValue (value) + ') was expected to be <= ' + stringValue (compareTo) + logText);
     }
 }
@@ -221,7 +221,7 @@ function assertEqual (exchange, skippedProperties, method, entry, key, compareTo
     }
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
-    if (value !== undefined) {
+    if (value !== undefined && compareTo !== undefined) {
         assert (Precise.stringEq (value, compareTo), stringValue (key) + ' key (with a value of ' + stringValue (value) + ') was expected to be equal to ' + stringValue (compareTo) + logText);
     }
 }
