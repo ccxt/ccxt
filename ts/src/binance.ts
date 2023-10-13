@@ -3034,15 +3034,16 @@ export default class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = 'publicGetTicker24hr';
+        let response = undefined;
         if (market['option']) {
-            method = 'eapiPublicGetTicker';
+            response = await this.eapiPublicGetTicker (this.extend (request, params));
         } else if (market['linear']) {
-            method = 'fapiPublicGetTicker24hr';
+            response = await this.fapiPublicGetTicker24hr (this.extend (request, params));
         } else if (market['inverse']) {
-            method = 'dapiPublicGetTicker24hr';
+            response = await this.dapiPublicGetTicker24hr (this.extend (request, params));
+        } else {
+            response = await this.publicGetTicker24hr (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         if (Array.isArray (response)) {
             const firstTicker = this.safeValue (response, 0, {});
             return this.parseTicker (firstTicker, market);
