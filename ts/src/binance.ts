@@ -2789,15 +2789,16 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        let method = 'publicGetDepth';
+        let response = undefined;
         if (market['option']) {
-            method = 'eapiPublicGetDepth';
+            response = await this.eapiPublicGetDepth (this.extend (request, params));
         } else if (market['linear']) {
-            method = 'fapiPublicGetDepth';
+            response = await this.fapiPublicGetDepth (this.extend (request, params));
         } else if (market['inverse']) {
-            method = 'dapiPublicGetDepth';
+            response = await this.dapiPublicGetDepth (this.extend (request, params));
+        } else {
+            response = await this.publicGetDepth (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // future
         //
