@@ -670,7 +670,7 @@ export default class ascendex extends Exchange {
                         'max': this.safeNumber (market, 'maxNotional'),
                     },
                 },
-                'created': this.safeString (market, 'tradingStartTime'),
+                'created': this.safeInteger (market, 'tradingStartTime'),
                 'info': market,
             });
         }
