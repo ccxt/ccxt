@@ -98,6 +98,7 @@ const {
     , ymd
     , base64ToString
     , crc32
+    , jsonToString
     , TRUNCATE
     , ROUND
     , DECIMAL_PLACES
@@ -428,6 +429,7 @@ export default class Exchange {
     isArray = inArrayFunc
     base64ToString = base64ToString
     crc32 = crc32
+    jsonToString = jsonToString
 
     describe () {
         return {
