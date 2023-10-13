@@ -654,6 +654,7 @@ class bitfinex extends bitfinex$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

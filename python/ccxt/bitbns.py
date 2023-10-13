@@ -280,6 +280,7 @@ class bitbns(Exchange, ImplicitAPI):
                         'max': self.safe_number(costLimits, 'max'),
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result

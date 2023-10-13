@@ -610,6 +610,7 @@ class bingx extends bingx$1 {
                     'max': this.safeNumber(market, 'maxNotional'),
                 },
             },
+            'created': undefined,
             'info': market,
         };
         return entry;

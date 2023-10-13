@@ -229,6 +229,7 @@ export default class btcalpha extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

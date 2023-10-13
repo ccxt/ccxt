@@ -384,6 +384,7 @@ class bitvavo extends bitvavo$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

@@ -585,6 +585,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,  # todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for self
                 'info': market,
             })
         return result

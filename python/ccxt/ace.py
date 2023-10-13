@@ -249,6 +249,7 @@ class ace(Exchange, ImplicitAPI):
                     'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
                 },
                 'active': None,
+                'created': None,
                 'info': market,
             })
         return result

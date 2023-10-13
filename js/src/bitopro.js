@@ -361,6 +361,7 @@ export default class bitopro extends Exchange {
                     'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
                 },
                 'active': active,
+                'created': undefined,
                 'info': market,
             });
         }

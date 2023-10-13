@@ -1474,6 +1474,7 @@ class bitget extends bitget$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
             };
         }
         return result;

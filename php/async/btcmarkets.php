@@ -441,6 +441,7 @@ class btcmarkets extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }

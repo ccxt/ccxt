@@ -460,6 +460,7 @@ export {
     MinMax,
     Position,
     FundingRateHistory,
+    Liquidation,
     ace,
     alpaca,
     ascendex,

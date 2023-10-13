@@ -630,6 +630,7 @@ class bingx extends Exchange {
                     'max' => $this->safe_number($market, 'maxNotional'),
                 ),
             ),
+            'created' => null,
             'info' => $market,
         );
         return $entry;

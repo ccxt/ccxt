@@ -278,6 +278,7 @@ class bitbns extends Exchange {
                             'max' => $this->safe_number($costLimits, 'max'),
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }

@@ -56,6 +56,7 @@ export default class bingx extends Exchange {
                 max: number;
             };
         };
+        created: any;
         info: any;
     };
     fetchMarkets(params?: {}): Promise<any>;

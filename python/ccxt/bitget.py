@@ -1472,6 +1472,7 @@ class bitget(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
             }
         return result
 

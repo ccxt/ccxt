@@ -70,9 +70,11 @@ class binance extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
+                'fetchLiquidations' => false,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMyLiquidations' => true,
                 'fetchMySettlementHistory' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -8996,5 +8998,227 @@ class binance extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
         ), $market);
+    }
+
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * retrieves the users liquidated positions
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-force-liquidation-record-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#user-39-s-force-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#user-39-s-force-orders-user_data
+         * @param {string} [$symbol] unified CCXT $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch $liquidations for
+         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+         * @param {array} [$params] exchange specific parameters for the binance api endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest liquidation
+         * @param {boolean} [$params->paginate] *spot only* default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+         */
+        $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyLiquidations', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_incremental('fetchMyLiquidations', $symbol, $since, $limit, $params, 'current', 100);
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMyLiquidations', $market, $params);
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchMyLiquidations', $market, $params, 'linear');
+        $request = array();
+        if ($type !== 'spot') {
+            $request['autoCloseType'] = 'LIQUIDATION';
+        }
+        if ($market !== null) {
+            $symbolKey = $market['spot'] ? 'isolatedSymbol' : 'symbol';
+            $request[$symbolKey] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            if ($type === 'spot') {
+                $request['size'] = $limit;
+            } else {
+                $request['limit'] = $limit;
+            }
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $response = null;
+        if ($type === 'spot') {
+            $response = $this->sapiGetMarginForceLiquidationRec (array_merge($request, $params));
+        } elseif ($subType === 'linear') {
+            $response = $this->fapiPrivateGetForceOrders (array_merge($request, $params));
+        } elseif ($subType === 'inverse') {
+            $response = $this->dapiPrivateGetForceOrders (array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' markets');
+        }
+        //
+        // margin
+        //
+        //     {
+        //         "rows" => array(
+        //             {
+        //                 "avgPrice" => "0.00388359",
+        //                 "executedQty" => "31.39000000",
+        //                 "orderId" => 180015097,
+        //                 "price" => "0.00388110",
+        //                 "qty" => "31.39000000",
+        //                 "side" => "SELL",
+        //                 "symbol" => "BNBBTC",
+        //                 "timeInForce" => "GTC",
+        //                 "isIsolated" => true,
+        //                 "updatedTime" => 1558941374745
+        //             }
+        //         ),
+        //         "total" => 1
+        //     }
+        //
+        // linear
+        //
+        //     array(
+        //         array(
+        //             "orderId" => 6071832819,
+        //             "symbol" => "BTCUSDT",
+        //             "status" => "FILLED",
+        //             "clientOrderId" => "autoclose-1596107620040000020",
+        //             "price" => "10871.09",
+        //             "avgPrice" => "10913.21000",
+        //             "origQty" => "0.001",
+        //             "executedQty" => "0.001",
+        //             "cumQuote" => "10.91321",
+        //             "timeInForce" => "IOC",
+        //             "type" => "LIMIT",
+        //             "reduceOnly" => false,
+        //             "closePosition" => false,
+        //             "side" => "SELL",
+        //             "positionSide" => "BOTH",
+        //             "stopPrice" => "0",
+        //             "workingType" => "CONTRACT_PRICE",
+        //             "origType" => "LIMIT",
+        //             "time" => 1596107620044,
+        //             "updateTime" => 1596107620087
+        //         ),
+        //     )
+        //
+        // inverse
+        //
+        //     array(
+        //         array(
+        //             "orderId" => 165123080,
+        //             "symbol" => "BTCUSD_200925",
+        //             "pair" => "BTCUSD",
+        //             "status" => "FILLED",
+        //             "clientOrderId" => "autoclose-1596542005017000006",
+        //             "price" => "11326.9",
+        //             "avgPrice" => "11326.9",
+        //             "origQty" => "1",
+        //             "executedQty" => "1",
+        //             "cumBase" => "0.00882854",
+        //             "timeInForce" => "IOC",
+        //             "type" => "LIMIT",
+        //             "reduceOnly" => false,
+        //             "closePosition" => false,
+        //             "side" => "SELL",
+        //             "positionSide" => "BOTH",
+        //             "stopPrice" => "0",
+        //             "workingType" => "CONTRACT_PRICE",
+        //             "priceProtect" => false,
+        //             "origType" => "LIMIT",
+        //             "time" => 1596542005019,
+        //             "updateTime" => 1596542005050
+        //         ),
+        //     )
+        //
+        $liquidations = $this->safe_value($response, 'rows', $response);
+        return $this->parse_liquidations($liquidations, $market, $since, $limit);
+    }
+
+    public function parse_liquidation($liquidation, $market = null) {
+        //
+        // margin
+        //
+        //     {
+        //         "avgPrice" => "0.00388359",
+        //         "executedQty" => "31.39000000",
+        //         "orderId" => 180015097,
+        //         "price" => "0.00388110",
+        //         "qty" => "31.39000000",
+        //         "side" => "SELL",
+        //         "symbol" => "BNBBTC",
+        //         "timeInForce" => "GTC",
+        //         "isIsolated" => true,
+        //         "updatedTime" => 1558941374745
+        //     }
+        //
+        // linear
+        //
+        //     {
+        //         "orderId" => 6071832819,
+        //         "symbol" => "BTCUSDT",
+        //         "status" => "FILLED",
+        //         "clientOrderId" => "autoclose-1596107620040000020",
+        //         "price" => "10871.09",
+        //         "avgPrice" => "10913.21000",
+        //         "origQty" => "0.001",
+        //         "executedQty" => "0.001",
+        //         "cumQuote" => "10.91321",
+        //         "timeInForce" => "IOC",
+        //         "type" => "LIMIT",
+        //         "reduceOnly" => false,
+        //         "closePosition" => false,
+        //         "side" => "SELL",
+        //         "positionSide" => "BOTH",
+        //         "stopPrice" => "0",
+        //         "workingType" => "CONTRACT_PRICE",
+        //         "origType" => "LIMIT",
+        //         "time" => 1596107620044,
+        //         "updateTime" => 1596107620087
+        //     }
+        //
+        // inverse
+        //
+        //     {
+        //         "orderId" => 165123080,
+        //         "symbol" => "BTCUSD_200925",
+        //         "pair" => "BTCUSD",
+        //         "status" => "FILLED",
+        //         "clientOrderId" => "autoclose-1596542005017000006",
+        //         "price" => "11326.9",
+        //         "avgPrice" => "11326.9",
+        //         "origQty" => "1",
+        //         "executedQty" => "1",
+        //         "cumBase" => "0.00882854",
+        //         "timeInForce" => "IOC",
+        //         "type" => "LIMIT",
+        //         "reduceOnly" => false,
+        //         "closePosition" => false,
+        //         "side" => "SELL",
+        //         "positionSide" => "BOTH",
+        //         "stopPrice" => "0",
+        //         "workingType" => "CONTRACT_PRICE",
+        //         "priceProtect" => false,
+        //         "origType" => "LIMIT",
+        //         "time" => 1596542005019,
+        //         "updateTime" => 1596542005050
+        //     }
+        //
+        $marketId = $this->safe_string($liquidation, 'symbol');
+        $timestamp = $this->safe_integer_2($liquidation, 'updatedTime', 'updateTime');
+        return array(
+            'info' => $liquidation,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'contracts' => $this->safe_number($liquidation, 'executedQty'),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'price' => $this->safe_number($liquidation, 'avgPrice'),
+            'baseValue' => $this->safe_number($liquidation, 'cumBase'),
+            'quoteValue' => $this->safe_number($liquidation, 'cumQuote'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 }
