@@ -369,7 +369,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "price": 34893
         //    }
         //
-        const marketId = this.safeStringLower (trade, 'product_id');
+        const marketId = this.safeString (trade, 'product_id');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'time');
         return this.safeTrade ({
