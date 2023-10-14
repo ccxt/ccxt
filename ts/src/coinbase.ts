@@ -1511,7 +1511,7 @@ export default class coinbase extends Exchange {
     }
 
     parseBalance (response, params = {}) {
-        const balances = this.safeValue (response, 'data', []);
+        const balances = response;
         const accounts = this.safeValue (params, 'type', this.options['accounts']);
         const result = { 'info': response };
         for (let b = 0; b < balances.length; b++) {
@@ -1549,51 +1549,63 @@ export default class coinbase extends Exchange {
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
-        const request = {
-            'limit': 100,
-        };
-        const response = await this.v2PrivateGetAccounts (this.extend (request, params));
-        //
-        //     {
-        //         "pagination":{
-        //             "ending_before":null,
-        //             "starting_after":null,
-        //             "previous_ending_before":null,
-        //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
-        //             "limit":100,
-        //             "order":"desc",
-        //             "previous_uri":null,
-        //             "next_uri":"/v2/accounts?limit=100\u0026starting_after=6b17acd6-2e68-5eb0-9f45-72d67cef578b"
-        //         },
-        //         "data":[
-        //             {
-        //                 "id":"94ad58bc-0f15-5309-b35a-a4c86d7bad60",
-        //                 "name":"MINA Wallet",
-        //                 "primary":false,
-        //                 "type":"wallet",
-        //                 "currency":{
-        //                     "code":"MINA",
-        //                     "name":"Mina",
-        //                     "color":"#EA6B48",
-        //                     "sort_index":397,
-        //                     "exponent":9,
-        //                     "type":"crypto",
-        //                     "address_regex":"^(B62)[A-Za-z0-9]{52}$",
-        //                     "asset_id":"a4ffc575-942c-5e26-b70c-cb3befdd4229",
-        //                     "slug":"mina"
-        //                 },
-        //                 "balance":{"amount":"0.000000000","currency":"MINA"},
-        //                 "created_at":"2022-03-25T00:36:16Z",
-        //                 "updated_at":"2022-03-25T00:36:16Z",
-        //                 "resource":"account",
-        //                 "resource_path":"/v2/accounts/94ad58bc-0f15-5309-b35a-a4c86d7bad60",
-        //                 "allow_deposits":true,
-        //                 "allow_withdrawals":true
-        //             },
-        //         ]
-        //     }
-        //
-        return this.parseBalance (response, params);
+        let hasNext = true;
+        let starting_after = null;
+        let accounts = [];
+        while (hasNext) {
+            const request: {limit: number; starting_after?: string;} = {
+                'limit': 250,
+            };
+            if (starting_after) {
+                request.starting_after = starting_after;
+            }
+            const accountsResponse = await this.v2PrivateGetAccounts (this.extend (request, params));
+            //
+            //     {
+            //         "pagination":{
+            //             "ending_before":null,
+            //             "starting_after":null,
+            //             "previous_ending_before":null,
+            //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
+            //             "limit":100,
+            //             "order":"desc",
+            //             "previous_uri":null,
+            //             "next_uri":"/v2/accounts?limit=100\u0026starting_after=6b17acd6-2e68-5eb0-9f45-72d67cef578b"
+            //         },
+            //         "data":[
+            //             {
+            //                 "id":"94ad58bc-0f15-5309-b35a-a4c86d7bad60",
+            //                 "name":"MINA Wallet",
+            //                 "primary":false,
+            //                 "type":"wallet",
+            //                 "currency":{
+            //                     "code":"MINA",
+            //                     "name":"Mina",
+            //                     "color":"#EA6B48",
+            //                     "sort_index":397,
+            //                     "exponent":9,
+            //                     "type":"crypto",
+            //                     "address_regex":"^(B62)[A-Za-z0-9]{52}$",
+            //                     "asset_id":"a4ffc575-942c-5e26-b70c-cb3befdd4229",
+            //                     "slug":"mina"
+            //                 },
+            //                 "balance":{"amount":"0.000000000","currency":"MINA"},
+            //                 "created_at":"2022-03-25T00:36:16Z",
+            //                 "updated_at":"2022-03-25T00:36:16Z",
+            //                 "resource":"account",
+            //                 "resource_path":"/v2/accounts/94ad58bc-0f15-5309-b35a-a4c86d7bad60",
+            //                 "allow_deposits":true,
+            //                 "allow_withdrawals":true
+            //             },
+            //         ]
+            //     }
+            //
+            hasNext = this.safeValue (accountsResponse.pagination, 'next_uri');
+            starting_after = this.safeValue (accountsResponse.pagination, 'next_starting_after');
+            const result = this.safeValue (accountsResponse, 'data', []);
+            accounts = accounts.concat (result);
+        }
+        return this.parseBalance (accounts, params);
     }
 
     async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
