@@ -91,6 +91,7 @@ export default class bitget extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': true,
@@ -5275,6 +5276,74 @@ export default class bitget extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
+    async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
+         * @param {string} code unified currency code of the currency to repay
+         * @param {string} amount the amount to repay
+         * @param {string} [symbol] unified market symbol
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.marginMode] 'isolated' or 'cross', symbol is required for 'isolated'
+         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['info']['coinName'],
+            'repayAmount': this.currencyToPrecision (code, amount),
+        };
+        let response = undefined;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('repayMargin', params);
+        if ((symbol !== undefined) || (marginMode === 'isolated')) {
+            this.checkRequiredSymbol ('repayMargin', symbol);
+            const market = this.market (symbol);
+            const marketId = market['id'];
+            const parts = marketId.split ('_');
+            const marginMarketId = this.safeStringUpper (parts, 0);
+            request['symbol'] = marginMarketId;
+            response = await this.privateMarginPostIsolatedAccountRepay (this.extend (request, params));
+        } else {
+            response = await this.privateMarginPostCrossAccountRepay (this.extend (request, params));
+        }
+        //
+        // isolated
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1697251988593,
+        //         "data": {
+        //             "remainDebtAmount": "0",
+        //             "clientOid": null,
+        //             "symbol": "BTCUSDT",
+        //             "coin": "BTC",
+        //             "repayAmount": "0.00100001"
+        //         }
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1697252151042,
+        //         "data": {
+        //             "remainDebtAmount": "0",
+        //             "clientOid": null,
+        //             "coin": "BTC",
+        //             "repayAmount": "0.00010001"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseMarginLoan (data, currency);
+    }
+
     parseMarginLoan (info, currency = undefined) {
         //
         // isolated: borrowMargin
@@ -5294,6 +5363,25 @@ export default class bitget extends Exchange {
         //         "borrowAmount": "0.0001"
         //     }
         //
+        // isolated: repayMargin
+        //
+        //     {
+        //         "remainDebtAmount": "0",
+        //         "clientOid": null,
+        //         "symbol": "BTCUSDT",
+        //         "coin": "BTC",
+        //         "repayAmount": "0.00100001"
+        //     }
+        //
+        // cross: repayMargin
+        //
+        //     {
+        //         "remainDebtAmount": "0",
+        //         "clientOid": null,
+        //         "coin": "BTC",
+        //         "repayAmount": "0.00010001"
+        //     }
+        //
         const currencyId = this.safeString (info, 'coin');
         const marketId = this.safeString (info, 'symbol');
         let symbol = undefined;
@@ -5303,7 +5391,7 @@ export default class bitget extends Exchange {
         return {
             'id': this.safeString (info, 'clientOid'),
             'currency': this.safeCurrencyCode (currencyId, currency),
-            'amount': this.safeNumber (info, 'borrowAmount'),
+            'amount': this.safeNumber2 (info, 'borrowAmount', 'repayAmount'),
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
