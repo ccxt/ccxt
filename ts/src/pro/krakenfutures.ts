@@ -103,6 +103,9 @@ export default class krakenfutures extends krakenfuturesRest {
         };
         const marketIds = [ ];
         let messageHash = name;
+        if (symbols === undefined) {
+            symbols = [];
+        }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             marketIds.push (this.marketId (symbol));
@@ -171,6 +174,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const method = this.safeString (this.options, 'watchTickerMethod', 'ticker'); // or ticker_lite
         const name = this.safeString2 (params, 'method', 'watchTickerMethod', method);
         params = this.omit (params, [ 'watchTickerMethod', 'method' ]);
+        symbols = this.marketSymbols (symbols, undefined, false);
         return await this.subscribePublic (name, symbols, params);
     }
 
