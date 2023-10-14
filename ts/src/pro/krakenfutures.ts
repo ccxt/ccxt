@@ -427,7 +427,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         const timestamp = this.safeInteger (trade, 'tradeTime');
-        const marketId = this.safeStringLower (trade, 'symbol');
+        const marketId = this.safeString (trade, 'symbol');
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'tradeId'),
@@ -507,7 +507,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         const order = this.safeValue (message, 'order');
         if (order !== undefined) {
-            const marketId = this.safeStringLower (order, 'instrument');
+            const marketId = this.safeString (order, 'instrument');
             const messageHash = 'orders';
             const symbol = this.safeSymbol (marketId);
             const orderId = this.safeString (order, 'order_id');
@@ -700,7 +700,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 status = 'cancelled';
             }
         }
-        const marketId = this.safeStringLower (unparsedOrder, 'instrument');
+        const marketId = this.safeString (unparsedOrder, 'instrument');
         const timestamp = this.safeString (unparsedOrder, 'time');
         const direction = this.safeInteger (unparsedOrder, 'direction');
         return this.safeOrder ({
@@ -782,7 +782,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "volumeQuote": 6899673.0
         //    }
         //
-        const marketId = this.safeStringLower (message, 'product_id');
+        const marketId = this.safeString (message, 'product_id');
         const feed = this.safeString (message, 'feed');
         if (marketId !== undefined) {
             const ticker = this.parseWsTicker (message);
@@ -844,7 +844,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "volumeQuote": 6899673.0
         //    }
         //
-        const marketId = this.safeStringLower (ticker, 'product_id');
+        const marketId = this.safeString (ticker, 'product_id');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
@@ -903,7 +903,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //        ]
         //    }
         //
-        const marketId = this.safeStringLower (message, 'product_id');
+        const marketId = this.safeString (message, 'product_id');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'book:' + symbol;
@@ -944,7 +944,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "timestamp": 1612269953629
         //    }
         //
-        const marketId = this.safeStringLower (message, 'product_id');
+        const marketId = this.safeString (message, 'product_id');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'book:' + symbol;
@@ -1250,7 +1250,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         const timestamp = this.safeInteger (trade, 'time');
-        const marketId = this.safeStringLower (trade, 'instrument');
+        const marketId = this.safeString (trade, 'instrument');
         market = this.safeMarket (marketId, market);
         const isBuy = this.safeValue (trade, 'buy');
         const feeCurrencyId = this.safeString (trade, 'fee_currency');
