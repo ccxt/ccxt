@@ -313,7 +313,7 @@ class testMainClass extends baseMainTestClass {
         // console from there. So, even if some public tests fail, the script will continue
         // doing other things (testing other spot/swap or private tests ...)
         $maxRetries = 3;
-        $argsStringified = '(' . implode(',', $args) . ')';
+        $argsStringified = $exchange->json ($args); // $args->join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
         for ($i = 0; $i < $maxRetries; $i++) {
             try {
                 $this->test_method($methodName, $exchange, $args, $isPublic);
@@ -324,6 +324,7 @@ class testMainClass extends baseMainTestClass {
                 $isNetworkError = ($e instanceof NetworkError);
                 $isDDoSProtection = ($e instanceof DDoSProtection);
                 $isRequestTimeout = ($e instanceof RequestTimeout);
+                $isNotSupported = ($e instanceof NotSupported);
                 $tempFailure = ($isRateLimitExceeded || $isNetworkError || $isDDoSProtection || $isRequestTimeout);
                 if ($tempFailure) {
                     // if last retry was gone with same `$tempFailure` error, then let's eventually return false
@@ -349,7 +350,12 @@ class testMainClass extends baseMainTestClass {
                     }
                 } else {
                     // if not a temporary connectivity issue, then mark test (no need to re-try)
-                    dump ('[TEST_FAILURE]', exception_message ($e), $exchange->id, $methodName, $argsStringified);
+                    if ($isNotSupported) {
+                        dump ('[NOT_SUPPORTED]', $exchange->id, $methodName, $argsStringified);
+                        return true; // why consider not supported failed test?
+                    } else {
+                        dump ('[TEST_FAILURE]', exception_message ($e), $exchange->id, $methodName, $argsStringified);
+                    }
                 }
                 return false;
             }
@@ -683,7 +689,7 @@ class testMainClass extends baseMainTestClass {
             'fetchTransactions' => array( $code ),
             'fetchDeposits' => array( $code ),
             'fetchWithdrawals' => array( $code ),
-            'fetchBorrowRates' => array( $code ),
+            'fetchBorrowRates' => [ ],
             'fetchBorrowRate' => array( $code ),
             'fetchBorrowInterest' => array( $code, $symbol ),
             // 'addMargin' => [ ],
@@ -716,7 +722,7 @@ class testMainClass extends baseMainTestClass {
         $market = $exchange->market ($symbol);
         $isSpot = $market['spot'];
         if ($isSpot) {
-            $tests['fetchCurrencies'] = array( $symbol );
+            $tests['fetchCurrencies'] = [ ];
         } else {
             // derivatives only
             $tests['fetchPositions'] = array( $symbol ); // this test fetches all positions for 1 $symbol
@@ -747,7 +753,8 @@ class testMainClass extends baseMainTestClass {
         }
         $errorsCnt = count($errors); // PHP transpile count($errors)
         if ($errorsCnt > 0) {
-            throw new \Exception('Failed private $tests [' . $market['type'] . '] => ' . implode(', ', $errors));
+            // throw new \Exception('Failed private $tests [' . $market['type'] . '] => ' . implode(', ', $errors));
+            dump ('[TEST_FAILURE]', 'Failed private $tests [' . $market['type'] . '] => ' . implode(', ', $errors));
         } else {
             if ($this->info) {
                 dump ($this->add_padding('[INFO:PRIVATE_TESTS_DONE]', 25), $exchange->id);

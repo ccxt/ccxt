@@ -2786,7 +2786,7 @@ class bybit extends Exchange {
             $feeToken = $this->safe_string($trade, 'feeTokenId');
             $feeCurrency = $this->safe_currency_code($feeToken);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => Precise::string_abs($feeCost),
                 'currency' => $feeCurrency,
             );
         }
@@ -2950,7 +2950,7 @@ class bybit extends Exchange {
                 $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['settle'];
             }
             $fee = array(
-                'cost' => $feeCostString,
+                'cost' => Precise::string_abs($feeCostString),
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -5551,7 +5551,7 @@ class bybit extends Exchange {
             'referenceAccount' => null,
             'referenceId' => $referenceId,
             'status' => null,
-            'amount' => $this->parse_number($amount),
+            'amount' => $this->parse_number(Precise::string_abs($amount)),
             'before' => $this->parse_number($before),
             'after' => $this->parse_number($after),
             'fee' => $this->parse_number($this->safe_string($item, 'fee')),

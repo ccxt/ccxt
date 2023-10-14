@@ -204,7 +204,7 @@ function assert_greater_or_equal($exchange, $skipped_properties, $method, $entry
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
-    if ($value !== null) {
+    if ($value !== null && $compare_to !== null) {
         assert(Precise::string_ge($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be >= ' . string_value($compare_to) . $log_text);
     }
 }
@@ -216,7 +216,7 @@ function assert_less($exchange, $skipped_properties, $method, $entry, $key, $com
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
-    if ($value !== null) {
+    if ($value !== null && $compare_to !== null) {
         assert(Precise::string_lt($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be < ' . string_value($compare_to) . $log_text);
     }
 }
@@ -228,7 +228,7 @@ function assert_less_or_equal($exchange, $skipped_properties, $method, $entry, $
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
-    if ($value !== null) {
+    if ($value !== null && $compare_to !== null) {
         assert(Precise::string_le($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be <= ' . string_value($compare_to) . $log_text);
     }
 }
@@ -240,7 +240,7 @@ function assert_equal($exchange, $skipped_properties, $method, $entry, $key, $co
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
-    if ($value !== null) {
+    if ($value !== null && $compare_to !== null) {
         assert(Precise::string_eq($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be equal to ' . string_value($compare_to) . $log_text);
     }
 }

@@ -34,7 +34,7 @@ function testOrder(exchange, skippedProperties, method, entry, symbol, now) {
     testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestamp(exchange, skippedProperties, method, entry, now);
     //
-    testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK']);
+    testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK', 'PO']);
     testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'status', ['open', 'closed', 'canceled']);
     testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'side', ['buy', 'sell']);
     testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'postOnly', [true, false]);
