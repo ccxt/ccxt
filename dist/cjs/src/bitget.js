@@ -3883,8 +3883,16 @@ class bitget extends bitget$1 {
         //
         const data = this.safeValue(response, 'data');
         if (data !== undefined) {
-            const result = this.safeValue(data, 'orderList', data);
-            return this.addPaginationCursorToResult(data, result);
+            if ('orderList' in data) {
+                const orderList = this.safeValue(data, 'orderList');
+                if (!orderList) {
+                    return [];
+                }
+                return this.addPaginationCursorToResult(data, orderList);
+            }
+            else {
+                return this.addPaginationCursorToResult(response, data);
+            }
         }
         const parsedData = JSON.parse(response);
         return this.safeValue(parsedData, 'data', []);

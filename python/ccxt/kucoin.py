@@ -1198,6 +1198,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'id': accountId,
                 'type': type,
                 'currency': code,
+                'code': code,
                 'info': account,
             })
         return result

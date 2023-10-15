@@ -45,7 +45,7 @@ def test_order(exchange, skipped_properties, method, entry, symbol, now):
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
     test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry, now)
     #
-    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK'])
+    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK', 'PO'])
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'status', ['open', 'closed', 'canceled'])
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'side', ['buy', 'sell'])
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'postOnly', [True, False])

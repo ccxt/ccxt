@@ -2681,7 +2681,7 @@ class bybit(Exchange, ImplicitAPI):
             feeToken = self.safe_string(trade, 'feeTokenId')
             feeCurrency = self.safe_currency_code(feeToken)
             fee = {
-                'cost': feeCost,
+                'cost': Precise.string_abs(feeCost),
                 'currency': feeCurrency,
             }
         return self.safe_trade({
@@ -2832,7 +2832,7 @@ class bybit(Exchange, ImplicitAPI):
             else:
                 feeCurrencyCode = market['base'] if market['inverse'] else market['settle']
             fee = {
-                'cost': feeCostString,
+                'cost': Precise.string_abs(feeCostString),
                 'currency': feeCurrencyCode,
             }
         return self.safe_trade({
@@ -5213,7 +5213,7 @@ class bybit(Exchange, ImplicitAPI):
             'referenceAccount': None,
             'referenceId': referenceId,
             'status': None,
-            'amount': self.parse_number(amount),
+            'amount': self.parse_number(Precise.string_abs(amount)),
             'before': self.parse_number(before),
             'after': self.parse_number(after),
             'fee': self.parse_number(self.safe_string(item, 'fee')),

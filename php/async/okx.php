@@ -1250,6 +1250,7 @@ class okx extends Exchange {
                     'type' => $type,
                     'currency' => null,
                     'info' => $account,
+                    'code' => null,
                 );
             }
             return $result;

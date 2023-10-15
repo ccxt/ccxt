@@ -8060,13 +8060,15 @@ class binance extends Exchange {
         $type = null;
         $subType = null;
         $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $method = null;
         $request = array();
         list($type, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchLedger', null, $params);
         if ($type === 'option') {
             $this->check_required_argument('fetchLedger', $code, 'code');
-            $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
             $method = 'eapiPrivateGetBill';
         } elseif ($this->is_linear($type, $subType)) {

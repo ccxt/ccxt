@@ -8263,13 +8263,15 @@ export default class binance extends Exchange {
         let type = undefined;
         let subType = undefined;
         let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         let method = undefined;
         const request = {};
         [type, params] = this.handleMarketTypeAndParams('fetchLedger', undefined, params);
         [subType, params] = this.handleSubTypeAndParams('fetchLedger', undefined, params);
         if (type === 'option') {
             this.checkRequiredArgument('fetchLedger', code, 'code');
-            currency = this.currency(code);
             request['currency'] = currency['id'];
             method = 'eapiPrivateGetBill';
         }

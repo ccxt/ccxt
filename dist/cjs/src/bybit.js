@@ -2774,7 +2774,7 @@ class bybit extends bybit$1 {
             const feeToken = this.safeString(trade, 'feeTokenId');
             const feeCurrency = this.safeCurrencyCode(feeToken);
             fee = {
-                'cost': feeCost,
+                'cost': Precise["default"].stringAbs(feeCost),
                 'currency': feeCurrency,
             };
         }
@@ -2940,7 +2940,7 @@ class bybit extends bybit$1 {
                 feeCurrencyCode = market['inverse'] ? market['base'] : market['settle'];
             }
             fee = {
-                'cost': feeCostString,
+                'cost': Precise["default"].stringAbs(feeCostString),
                 'currency': feeCurrencyCode,
             };
         }
@@ -5540,7 +5540,7 @@ class bybit extends bybit$1 {
             'referenceAccount': undefined,
             'referenceId': referenceId,
             'status': undefined,
-            'amount': this.parseNumber(amount),
+            'amount': this.parseNumber(Precise["default"].stringAbs(amount)),
             'before': this.parseNumber(before),
             'after': this.parseNumber(after),
             'fee': this.parseNumber(this.safeString(item, 'fee')),

@@ -109,7 +109,18 @@
             "fetchTicker": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
                 "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            }
+            },
+            "fetchPositions": "currently returns a lot of default/non open positions",
+            "fetchLedger": {
+                "account": "empty",
+                "status": "not provided",
+                "before": "not provided",
+                "after": "not provided",
+                "fee": "not provided",
+                "code": "not provided",
+                "referenceId": "not provided"
+            },
+            "fetchBalance": "tmp skip"
         }
     },
     "bit2c": {
@@ -504,7 +515,23 @@
             "fetchTicker": {
                 "symbol" :"same"
             },
-            "fetchTrades": "endpoint return Internal System Error"
+            "fetchTrades": "endpoint return Internal System Error",
+            "fetchCurrencies": {
+                "currencyIdAndCode": "temp skip"
+            },
+            "loadMarkets": {
+                "currencyIdAndCode": "temp skip"
+            },
+            "fetchPositions": "currently returns a lot of default/non open positions",
+            "fetchLedger": {
+                "account": "account is not provided",
+                "status": "status is not provided",
+                "fee": "undefined"
+            },
+            "fetchOpenInterestHistory": {
+                "openInterestAmount": "openInterestAmount is not provided"
+            },
+            "fetchBorrowRate": "does not work with unified account"
         }
     },
     "buda": {
@@ -778,7 +805,19 @@
                 "ask":"same",
                 "quoteVolume": "same",
                 "baseVolume": "same"
-            }
+            },
+            "fetchPositions":  "currently returns a lot of default/non open positions",
+            "fetchLedger": {
+                "currency": "undefined",
+                "status": "undefined",
+                "fee": "undefined",
+                "account": "undefined",
+                "referenceAccount": "undefined",
+                "referenceId": "undefined"
+            },
+            "fetchTradingFees": "sandbox does not have this endpoint",
+            "fetchDeposits": "sandbox does not have this endpoint",
+            "fetchWithdrawals": "sandbox does not have this endpoint"
         }
     },
     "hollaex": {
@@ -943,6 +982,9 @@
         "skipMethods":{
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
+            },
+            "fetchPositions": {
+                "percentage": "percentage is not provided"
             }
         }
     },
@@ -1182,7 +1224,9 @@
         "skipMethods": {
             "loadMarkets": "linear & inverse must not be same",
             "fetchCurrencies": {
-                "info": "null"
+                "info": "null",
+                "currencyIdAndCode": "temp skip"
+
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume <= baseVolume * high : https://app.travis-ci.com/github/ccxt/ccxt/builds/263319874#L2132",
@@ -1190,7 +1234,9 @@
             },
             "fetchTicker": {
                 "quoteVolume": "quoteVolume <= baseVolume * high <<< okx fetchTicker"
-            }
+            },
+            "fetchBorrowRate": "some fields that we can't skip missing",
+            "fetchBorrowRates": "same"
         }
     },
     "tidex": {
@@ -1209,13 +1255,10 @@
         }
     },
     "krakenfutures": {
-        "skip": "continious timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/265225134#L2431",
+        "//skip": "continious timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/265225134#L2431",
+        "skipWs": true,
         "skipMethods": {
-            "loadMarkets": {
-                "type":"unexpected market type",
-                "limits": "messed",
-                "active":"is undefined"
-            },
+            "loadMarkets": "skip loadMarkets",
             "fetchCurrencies": {
                 "withdraw": "undefined",
                 "deposit": "undefined"
@@ -1296,6 +1339,16 @@
             "fetchCurrencies":{
                 "withdraw": "undefined",
                 "deposit": "undefined"
+            },
+            "fetchPositions": {
+                "leverage": "undefined",
+                "percentage": "undefined",
+                "hedged": "undefined",
+                "stopLossPrice": "undefined",
+                "takeProfitPrice": "undefined",
+                "id": "undefined",
+                "marginRatio": "undefined",
+                "collateral": "undefined"
             }
         }
 	},

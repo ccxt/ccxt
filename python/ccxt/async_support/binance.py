@@ -7640,13 +7640,14 @@ class binance(Exchange, ImplicitAPI):
         type = None
         subType = None
         currency = None
+        if code is not None:
+            currency = self.currency(code)
         method = None
         request = {}
         type, params = self.handle_market_type_and_params('fetchLedger', None, params)
         subType, params = self.handle_sub_type_and_params('fetchLedger', None, params)
         if type == 'option':
             self.check_required_argument('fetchLedger', code, 'code')
-            currency = self.currency(code)
             request['currency'] = currency['id']
             method = 'eapiPrivateGetBill'
         elif self.is_linear(type, subType):

@@ -1197,6 +1197,7 @@ class kucoin extends kucoin$1 {
                 'id': accountId,
                 'type': type,
                 'currency': code,
+                'code': code,
                 'info': account,
             });
         }

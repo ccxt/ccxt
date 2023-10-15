@@ -1238,6 +1238,7 @@ class okx extends okx$1 {
                 'type': type,
                 'currency': undefined,
                 'info': account,
+                'code': undefined,
             });
         }
         return result;
