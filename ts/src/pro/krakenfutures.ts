@@ -332,7 +332,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         const channel = this.safeString (message, 'feed');
-        const marketId = this.safeString (message, 'product_id');
+        const marketId = this.safeStringLower (message, 'product_id');
         if (marketId !== undefined) {
             const market = this.market (marketId);
             const symbol = market['symbol'];
