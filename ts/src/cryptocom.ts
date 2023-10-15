@@ -562,6 +562,7 @@ export default class cryptocom extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

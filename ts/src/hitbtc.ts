@@ -734,6 +734,7 @@ export default class hitbtc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
