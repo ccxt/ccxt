@@ -1,24 +1,12 @@
 {
+  "extends": "../tsconfig-base.json",
   "compilerOptions": {
-    "target": "es2020",
-    "lib": [],
-    "types": ["node"],
-    "module": "ES2022",
-    "moduleResolution": "Node",
-    "allowJs": true,
-    "checkJs": false,
+    "composite": true, 
     "rootDir": "./ts",
     "outDir": "./js",
-    "removeComments": false,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "noImplicitAny": false,
-    "skipLibCheck": true,
-    "strictNullChecks":false
   },
   "include": [
-    "./ts/*.ts",
+    "./ts/**/*",
   ],
   "exclude": [
     "node_modules/",
