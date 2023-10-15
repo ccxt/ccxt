@@ -58,9 +58,11 @@ class bitmex extends bitmex$1 {
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': true,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -855,14 +857,22 @@ class bitmex extends bitmex$1 {
         /**
          * @method
          * @name bitmex#fetchOrders
+         * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @param {int} [params.until] the earliest time in ms to fetch orders for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, params, 100);
+        }
         let market = undefined;
         let request = {};
         if (symbol !== undefined) {
@@ -874,6 +884,11 @@ class bitmex extends bitmex$1 {
         }
         if (limit !== undefined) {
             request['count'] = limit;
+        }
+        const until = this.safeInteger2(params, 'until', 'endTime');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['endTime'] = this.iso8601(until);
         }
         request = this.deepExtend(request, params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
@@ -922,14 +937,21 @@ class bitmex extends bitmex$1 {
         /**
          * @method
          * @name bitmex#fetchMyTrades
+         * @see https://www.bitmex.com/api/explorer/#!/Execution/Execution_getTradeHistory
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params, 100);
+        }
         let market = undefined;
         let request = {};
         if (symbol !== undefined) {
@@ -941,6 +963,11 @@ class bitmex extends bitmex$1 {
         }
         if (limit !== undefined) {
             request['count'] = limit;
+        }
+        const until = this.safeInteger2(params, 'until', 'endTime');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['endTime'] = this.iso8601(until);
         }
         request = this.deepExtend(request, params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
@@ -1390,15 +1417,22 @@ class bitmex extends bitmex$1 {
         /**
          * @method
          * @name bitmex#fetchOHLCV
+         * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_getBucketed
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params);
+        }
         // send JSON key/value pairs, such as {"key": "value"}
         // filter by individual fields and do advanced queries on timestamps
         // let filter = { 'key': 'value' };
@@ -1418,6 +1452,11 @@ class bitmex extends bitmex$1 {
         };
         if (limit !== undefined) {
             request['count'] = limit; // default 100, max 500
+        }
+        const until = this.safeInteger2(params, 'until', 'endTime');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['endTime'] = this.iso8601(until);
         }
         const duration = this.parseTimeframe(timeframe) * 1000;
         const fetchOHLCVOpenTimestamp = this.safeValue(this.options, 'fetchOHLCVOpenTimestamp', true);
@@ -1702,14 +1741,21 @@ class bitmex extends bitmex$1 {
         /**
          * @method
          * @name bitmex#fetchTrades
+         * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_get
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchTrades', symbol, since, limit, params);
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1723,6 +1769,11 @@ class bitmex extends bitmex$1 {
         }
         if (limit !== undefined) {
             request['count'] = Math.min(limit, 1000); // api maximum 1000
+        }
+        const until = this.safeInteger2(params, 'until', 'endTime');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['endTime'] = this.iso8601(until);
         }
         const response = await this.publicGetTrade(this.extend(request, params));
         //
@@ -2598,6 +2649,74 @@ class bitmex extends bitmex$1 {
             }
         }
         return cost;
+    }
+    async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchLiquidations
+         * @description retrieves the public liquidations of a trading pair
+         * @see https://www.bitmex.com/api/explorer/#!/Liquidation/Liquidation_get
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchLiquidations', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchLiquidations', symbol, since, limit, params);
+        }
+        const market = this.market(symbol);
+        let request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        const response = await this.publicGetLiquidation(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "orderID": "string",
+        //             "symbol": "string",
+        //             "side": "string",
+        //             "price": 0,
+        //             "leavesQty": 0
+        //         }
+        //     ]
+        //
+        return this.parseLiquidations(response, market, since, limit);
+    }
+    parseLiquidation(liquidation, market = undefined) {
+        //
+        //     {
+        //         "orderID": "string",
+        //         "symbol": "string",
+        //         "side": "string",
+        //         "price": 0,
+        //         "leavesQty": 0
+        //     }
+        //
+        const marketId = this.safeString(liquidation, 'symbol');
+        return {
+            'info': liquidation,
+            'symbol': this.safeSymbol(marketId, market),
+            'contracts': undefined,
+            'contractSize': this.safeNumber(market, 'contractSize'),
+            'price': this.safeNumber(liquidation, 'price'),
+            'baseValue': undefined,
+            'quoteValue': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

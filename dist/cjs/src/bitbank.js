@@ -246,6 +246,7 @@ class bitbank extends bitbank$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }

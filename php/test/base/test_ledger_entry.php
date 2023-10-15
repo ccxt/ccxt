@@ -39,5 +39,4 @@ function test_ledger_entry($exchange, $skipped_properties, $method, $entry, $req
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'amount', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'before', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'after', '0');
-    assert_fee_structure($exchange, $skipped_properties, $method, $entry, 'fee');
 }

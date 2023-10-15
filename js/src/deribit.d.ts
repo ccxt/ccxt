@@ -1,5 +1,5 @@
 import Exchange from './abstract/deribit.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
 /**
  * @class deribit
  * @extends Exchange
@@ -162,7 +162,7 @@ export default class deribit extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     }>;
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseFundingRate(contract: any, market?: any): {
         info: any;
         symbol: any;
@@ -181,6 +181,20 @@ export default class deribit extends Exchange {
         previousFundingRate: any;
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
+    };
+    fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    addPaginationCursorToResult(cursor: any, data: any): any;
+    fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
+    parseLiquidation(liquidation: any, market?: any): {
+        info: any;
+        symbol: any;
+        contracts: any;
+        contractSize: number;
+        price: any;
+        baseValue: number;
+        quoteValue: any;
+        timestamp: number;
+        datetime: string;
     };
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest } from './base/types.js';
 /**
  * @class gate
  * @extends Exchange
@@ -210,14 +210,14 @@ export default class gate extends Exchange {
     fetchBalance(params?: {}): Promise<{
         info: any;
     }>;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    fetchOptionOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOptionOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseTrade(trade: any, market?: any): Trade;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
@@ -226,7 +226,7 @@ export default class gate extends Exchange {
         txid: string;
         currency: any;
         amount: number;
-        network: any;
+        network: string;
         address: string;
         addressTo: any;
         addressFrom: any;
@@ -251,7 +251,7 @@ export default class gate extends Exchange {
         txid: string;
         currency: any;
         amount: number;
-        network: any;
+        network: string;
         address: string;
         addressTo: any;
         addressFrom: any;
@@ -371,7 +371,7 @@ export default class gate extends Exchange {
         total: number;
         status: string;
     }>;
-    fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
     parseOpenInterest(interest: any, market?: any): {
         symbol: string;
         openInterestAmount: number;
@@ -411,5 +411,18 @@ export default class gate extends Exchange {
     parseLedgerEntryType(type: any): string;
     setPositionMode(hedged: any, symbol?: any, params?: {}): Promise<any>;
     fetchUnderlyingAssets(params?: {}): Promise<any[]>;
+    fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
+    fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
+    parseLiquidation(liquidation: any, market?: any): {
+        info: any;
+        symbol: any;
+        contracts: number;
+        contractSize: number;
+        price: number;
+        baseValue: number;
+        quoteValue: number;
+        timestamp: number;
+        datetime: string;
+    };
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

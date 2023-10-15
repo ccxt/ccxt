@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1400,6 +1400,7 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#fetchOHLCV
+         * @see https://docs.woo.org/#kline-public
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -2393,8 +2394,26 @@ export default class woo extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @see https://docs.woo.org/#get-funding-rate-history-for-one-market-public
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
+         * @param {object} [params] extra parameters specific to the woo api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest funding rate
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
+         */
         await this.loadMarkets ();
-        const request = {};
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25) as FundingRateHistory[];
+        }
+        let request = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
@@ -2403,6 +2422,7 @@ export default class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = this.parseToInt (since / 1000);
         }
+        [ request, params ] = this.handleUntilOption ('end_t', request, params, 0.001);
         const response = await this.v1PublicGetFundingRateHistory (this.extend (request, params));
         //
         //     {
@@ -2438,7 +2458,7 @@ export default class woo extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
     async fetchLeverage (symbol: string, params = {}) {

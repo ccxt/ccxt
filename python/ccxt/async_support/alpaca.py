@@ -314,6 +314,7 @@ class alpaca(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': asset,
             })
         return markets

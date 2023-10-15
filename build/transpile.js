@@ -288,6 +288,13 @@ class Transpiler {
             [ /\.customParseOrderBook\s/g, '.custom_parse_order_book'],
             [ /\.filterByArrayPositions\s/g, '.filter_by_array_positions'],
             [ /\.handleTriggerPrices\s/g, '.handle_trigger_prices'],
+            [ /\.handleMaxEntriesPerRequestAndParams\s/g, '.handle_max_entries_per_request_and_params'],
+            [ /\.safeDeterministicCall\s/g, '.safe_deterministic_call'],
+            [ /\.fetchPaginatedCallDynamic\s/g, '.fetch_paginated_call_dynamic'],
+            [ /\.fetchPaginatedCallDeterministic\s/g, '.fetch_paginated_call_deterministic'],
+            [ /\.fetchPaginatedCallCursor\s/g, '.fetch_paginated_call_cursor'],
+            [ /\.removeRepeatedElementsFromArray\s/g, '.remove_repeated_elements_from_array'],
+            [ /\.handleUntilOption\s/g, '.handle_until_option'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -2429,7 +2436,7 @@ class Transpiler {
         const fileHeaders = {
             pyAsync: [
                 "import asyncio",
-                "import ccxt.async_support as ccxt  # noqa: E402",
+                "import ccxt.pro as ccxt  # noqa: E402",
                 "",
                 "",
                 "",
@@ -2472,30 +2479,37 @@ class Transpiler {
                 const transpiled = transpiler.transpileDifferentLanguages(fileConfig, tsContent);
                 let [ phpAsyncBody, pythonAsyncBody ] = [ transpiled[0].content, transpiled[1].content  ];
                 // ###### replace common (synchronity agnostic) syntaxes ######
-                const fixPython = (body, isAsync)=> {
+                const fixPython = (body)=> {
                     return this.regexAll (body, [
                         [ /console\.log/g, 'print' ],
+                        // in python import ccxt.pro as ccxt
+                        [ /ccxt.pro/g, 'ccxt' ],
                         // cases like: exchange = new ccxt.binance ()
                         //[ / ccxt\.(.?)\(/g, 'ccxt.' + '$2\(' ],
                         // cases like: exchange = new ccxt['name' or name] ()
                         [ /ccxt\[(.*?)\]/g, 'getattr(ccxt, $1)'],
+                        // cases like: exchange = new ccxt.pro['name' or name] ()
+                        [ /ccxt.pro\[(.*?)\]/g, 'getattr(ccxt, $1)'],
                     ]);
                 };
-                const fixPhp = (body, isAsync)=> {
-                    let asyncSub = isAsync ? 'async\\' : '';
+                const fixPhp = (body)=> {
                     const regexes = [
                         [ /\$console\->log/g, 'var_dump' ],
+                        // cases like: exchange = new ccxt.pro.huobi ()
+                        [  /new \$ccxt->pro->/g, 'new \\ccxt\\pro\\' ],
                         // cases like: exchange = new ccxt.huobi ()
-                        [ /new \$ccxt->/g, 'new \\ccxt\\' + asyncSub ],
+                        [ /new \$ccxt->/g, 'new \\ccxt\\async\\' ],
                         // cases like: exchange = new ccxt['huobi' or varname] ()
-                        [ /new \$ccxt\[(?:['"]|)(.*?)(?:['"]|)\]\(/g, 'new (\'\\\\ccxt\\\\' + asyncSub + '$1\')(' ],
+                        [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\async\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
+                        // cases like: exchange = new ccxt.pro['huobi' or varname] ()
+                        [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\\async\\pro\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\pro\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
                     ];
                     return this.regexAll (body, regexes);
                 };
 
                 const finalBodies = {};
-                finalBodies.pyAsync = fixPython (pythonAsyncBody, true);
-                finalBodies.phpAsync = fixPhp (phpAsyncBody, true);
+                finalBodies.pyAsync = fixPython (pythonAsyncBody);
+                finalBodies.phpAsync = fixPhp (phpAsyncBody);
 
                 // specifically in python (not needed in other langs), we need add `await .close()` inside matching methods
                 for (const funcName of allDetectedFunctionNames) {

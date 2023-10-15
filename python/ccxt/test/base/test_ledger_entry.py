@@ -45,4 +45,3 @@ def test_ledger_entry(exchange, skipped_properties, method, entry, requested_cod
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'amount', '0')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'before', '0')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'after', '0')
-    test_shared_methods.assert_fee_structure(exchange, skipped_properties, method, entry, 'fee')

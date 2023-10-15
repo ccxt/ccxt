@@ -11,7 +11,7 @@ sys.path.append(root + '/python')
 
 # ----------------------------------------------------------------------------
 import asyncio
-import ccxt.async_support as ccxt  # noqa: E402
+import ccxt.pro as ccxt  # noqa: E402
 
 
 # AUTO-TRANSPILE #

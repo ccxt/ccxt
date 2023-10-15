@@ -508,6 +508,7 @@ export default class bitstamp extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

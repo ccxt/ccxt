@@ -567,6 +567,7 @@ class bigone extends bigone$1 {
                         'max': this.safeNumber(market, 'max_quote_value'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push(entry);

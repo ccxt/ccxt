@@ -92,7 +92,7 @@ setup(
             'yarl>=1.7.2',
         ],
         'qa': [
-            'ruff===0.0.292',
+            'ruff==0.0.292',
         ],
     },
     project_urls=project_urls,

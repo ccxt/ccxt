@@ -10,15 +10,6 @@ import { TICK_SIZE } from '../../../base/functions/number.js';
 function logTemplate(exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json(entry) + ' >>> ';
 }
-function isInteger(value) {
-    const isNumeric = (typeof value === 'number');
-    if (isNumeric) {
-        return (value % 1) === 0;
-    }
-    else {
-        return false;
-    }
-}
 function stringValue(value) {
     let stringVal = undefined;
     if (typeof value === 'string') {
@@ -113,7 +104,7 @@ function assertTimestamp(exchange, skippedProperties, method, entry, nowToCheck 
     const ts = entry[keyNameOrIndex];
     if (ts !== undefined) {
         assert(typeof ts === 'number', 'timestamp is not numeric' + logText);
-        assert(isInteger(ts), 'timestamp should be an integer' + logText);
+        assert(Number.isInteger(ts), 'timestamp should be an integer' + logText);
         const minTs = 1230940800000; // 03 Jan 2009 - first block
         const maxTs = 2147483648000; // 03 Jan 2009 - first block
         assert(ts > minTs, 'timestamp is impossible to be before ' + minTs.toString() + ' (03.01.2009)' + logText); // 03 Jan 2009 - first block
@@ -196,7 +187,7 @@ function assertGreaterOrEqual(exchange, skippedProperties, method, entry, key, c
     }
     const logText = logTemplate(exchange, method, entry);
     const value = exchange.safeString(entry, key);
-    if (value !== undefined) {
+    if (value !== undefined && compareTo !== undefined) {
         assert(Precise.stringGe(value, compareTo), stringValue(key) + ' key (with a value of ' + stringValue(value) + ') was expected to be >= ' + stringValue(compareTo) + logText);
     }
 }
@@ -206,7 +197,7 @@ function assertLess(exchange, skippedProperties, method, entry, key, compareTo) 
     }
     const logText = logTemplate(exchange, method, entry);
     const value = exchange.safeString(entry, key);
-    if (value !== undefined) {
+    if (value !== undefined && compareTo !== undefined) {
         assert(Precise.stringLt(value, compareTo), stringValue(key) + ' key (with a value of ' + stringValue(value) + ') was expected to be < ' + stringValue(compareTo) + logText);
     }
 }
@@ -216,7 +207,7 @@ function assertLessOrEqual(exchange, skippedProperties, method, entry, key, comp
     }
     const logText = logTemplate(exchange, method, entry);
     const value = exchange.safeString(entry, key);
-    if (value !== undefined) {
+    if (value !== undefined && compareTo !== undefined) {
         assert(Precise.stringLe(value, compareTo), stringValue(key) + ' key (with a value of ' + stringValue(value) + ') was expected to be <= ' + stringValue(compareTo) + logText);
     }
 }
@@ -226,7 +217,7 @@ function assertEqual(exchange, skippedProperties, method, entry, key, compareTo)
     }
     const logText = logTemplate(exchange, method, entry);
     const value = exchange.safeString(entry, key);
-    if (value !== undefined) {
+    if (value !== undefined && compareTo !== undefined) {
         assert(Precise.stringEq(value, compareTo), stringValue(key) + ' key (with a value of ' + stringValue(value) + ') was expected to be equal to ' + stringValue(compareTo) + logText);
     }
 }
@@ -255,7 +246,7 @@ function assertInArray(exchange, skippedProperties, method, entry, key, expected
 function assertFeeStructure(exchange, skippedProperties, method, entry, key) {
     const logText = logTemplate(exchange, method, entry);
     const keyString = stringValue(key);
-    if (isInteger(key)) {
+    if (Number.isInteger(key)) {
         assert(Array.isArray(entry), 'fee container is expected to be an array' + logText);
         assert(key < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
     }
@@ -288,9 +279,10 @@ function assertInteger(exchange, skippedProperties, method, entry, key) {
     }
     const logText = logTemplate(exchange, method, entry);
     if (entry !== undefined) {
-        const value = exchange.safeNumber(entry, key);
+        const value = exchange.safeValue(entry, key);
         if (value !== undefined) {
-            assert(isInteger(value), '"' + stringValue(key) + '" key (value "' + stringValue(value) + '") is not an integer' + logText);
+            const isInteger = Number.isInteger(value);
+            assert(isInteger, '"' + stringValue(key) + '" key (value "' + stringValue(value) + '") is not an integer' + logText);
         }
     }
 }

@@ -259,6 +259,7 @@ class btcturk extends btcturk$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }

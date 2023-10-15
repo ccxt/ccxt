@@ -346,6 +346,7 @@ class blockchaincom extends blockchaincom$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
             });
         }
         return result;

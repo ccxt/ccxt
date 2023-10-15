@@ -258,6 +258,7 @@ class bithumb extends bithumb$1 {
                         },
                         'cost': {}, // set via options
                     },
+                    'created': undefined,
                     'info': market,
                 }, extension);
                 result.push(entry);

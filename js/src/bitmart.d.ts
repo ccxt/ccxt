@@ -212,22 +212,8 @@ export default class bitmart extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchOpenInterest(symbol: string, params?: {}): Promise<{
-        symbol: any;
-        openInterestAmount: number;
-        openInterestValue: number;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
-    parseOpenInterest(interest: any, market?: any): {
-        symbol: any;
-        openInterestAmount: number;
-        openInterestValue: number;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    };
+    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
+    parseOpenInterest(interest: any, market?: any): import("./base/types.js").OpenInterest;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
@@ -266,6 +252,21 @@ export default class bitmart extends Exchange {
         previousFundingRate: number;
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
+    };
+    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
+    fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
+    parseLiquidation(liquidation: any, market?: any): {
+        info: any;
+        symbol: any;
+        contracts: number;
+        contractSize: number;
+        price: number;
+        baseValue: number;
+        quoteValue: number;
+        timestamp: number;
+        datetime: string;
     };
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

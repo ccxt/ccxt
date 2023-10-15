@@ -890,7 +890,7 @@ export default class coinex extends Exchange {
         //         message: 'OK'
         //     }
         //
-        return this.safeNumber(response, 'data');
+        return this.safeInteger(response, 'data');
     }
     async fetchOrderBook(symbol, limit = 20, params = {}) {
         /**
@@ -3209,7 +3209,7 @@ export default class coinex extends Exchange {
         const liquidationPrice = this.safeString(position, 'liq_price');
         const entryPrice = this.safeString(position, 'open_price');
         const unrealizedPnl = this.safeString(position, 'profit_unreal');
-        const contractSize = this.safeString(position, 'amount');
+        const contracts = this.safeNumber(position, 'amount');
         const sideInteger = this.safeInteger(position, 'side');
         const side = (sideInteger === 1) ? 'short' : 'long';
         const timestamp = this.safeTimestamp(position, 'update_time');
@@ -3227,8 +3227,8 @@ export default class coinex extends Exchange {
             'entryPrice': entryPrice,
             'unrealizedPnl': unrealizedPnl,
             'percentage': undefined,
-            'contracts': undefined,
-            'contractSize': contractSize,
+            'contracts': contracts,
+            'contractSize': this.safeNumber(market, 'contractSize'),
             'markPrice': undefined,
             'lastPrice': undefined,
             'side': side,
@@ -3841,23 +3841,34 @@ export default class coinex extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
-    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchFundingRateHistory
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http038_funding_history
          * @description fetches historical funding rate prices
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] timestamp in ms of the latest funding rate
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000);
+        }
+        if (limit === undefined) {
+            limit = 100;
+        }
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'market': market['id'],
             'limit': limit,
             'offset': 0,
@@ -3866,6 +3877,7 @@ export default class coinex extends Exchange {
         if (since !== undefined) {
             request['start_time'] = since;
         }
+        [request, params] = this.handleUntilOption('end_time', request, params);
         const response = await this.perpetualPublicGetMarketFundingHistory(this.extend(request, params));
         //
         //     {

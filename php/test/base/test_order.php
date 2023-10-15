@@ -39,7 +39,7 @@ function test_order($exchange, $skipped_properties, $method, $entry, $symbol, $n
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
     assert_timestamp($exchange, $skipped_properties, $method, $entry, $now);
     //
-    assert_in_array($exchange, $skipped_properties, $method, $entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK']);
+    assert_in_array($exchange, $skipped_properties, $method, $entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK', 'PO']);
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'status', ['open', 'closed', 'canceled']);
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'side', ['buy', 'sell']);
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'postOnly', [true, false]);

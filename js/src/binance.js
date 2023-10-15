@@ -25,7 +25,7 @@ export default class binance extends Exchange {
             'rateLimit': 50,
             'certified': true,
             'pro': true,
-            // new metainfo interface
+            // new metainfo2 interface
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -72,14 +72,16 @@ export default class binance extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
-                'fetchL3OrderBook': undefined,
+                'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
+                'fetchLiquidations': false,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMyLiquidations': true,
                 'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -111,6 +113,7 @@ export default class binance extends Exchange {
                 'fetchTransfers': true,
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
+                'fetchWithdrawAddresses': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -251,6 +254,7 @@ export default class binance extends Exchange {
                         'loan/vip/loanable/data': 40,
                         'loan/vip/collateral/data': 40,
                         'loan/vip/request/data': 2.6668,
+                        'loan/vip/request/interestRate': 2.6668,
                         'loan/income': 40.002,
                         'loan/ongoing/orders': 40,
                         'loan/ltv/adjustment/history': 40,
@@ -765,10 +769,12 @@ export default class binance extends Exchange {
                         'adlQuantile': 5,
                         'pmAccountInfo': 5,
                         'orderAmendment': 1,
-                        'order/asyn': 5,
-                        'order/asyn/id': 5,
-                        'trade/asyn': 5,
-                        'trade/asyn/id': 5,
+                        'income/asyn': 1000,
+                        'income/asyn/id': 10,
+                        'order/asyn': 1000,
+                        'order/asyn/id': 10,
+                        'trade/asyn': 1000,
+                        'trade/asyn/id': 10,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -1806,14 +1812,16 @@ export default class binance extends Exchange {
         const query = this.omit(params, 'type');
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchTime', undefined, params);
-        let method = 'publicGetTime';
+        let response = undefined;
         if (this.isLinear(type, subType)) {
-            method = 'fapiPublicGetTime';
+            response = await this.fapiPublicGetTime(query);
         }
         else if (this.isInverse(type, subType)) {
-            method = 'dapiPublicGetTime';
+            response = await this.dapiPublicGetTime(query);
         }
-        const response = await this[method](query);
+        else {
+            response = await this.publicGetTime(query);
+        }
         return this.safeInteger(response, 'serverTime');
     }
     async fetchCurrencies(params = {}) {
@@ -2387,6 +2395,7 @@ export default class binance extends Exchange {
                 },
             },
             'info': market,
+            'created': this.safeInteger(market, 'onboardDate'), // present in inverse & linear apis
         };
         if ('PRICE_FILTER' in filtersByType) {
             const filter = this.safeValue(filtersByType, 'PRICE_FILTER', {});
@@ -2714,7 +2723,7 @@ export default class binance extends Exchange {
         //                 "unrealizedProfit":"0.00000000",
         //                 "positionInitialMargin":"0",
         //                 "openOrderInitialMargin":"0",
-        //                 "leverage":"20",
+        //                 "leverage":"21",
         //                 "isolated":false,
         //                 "entryPrice":"0.00000",
         //                 "maxNotional":"5000000",
@@ -2798,17 +2807,19 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        let method = 'publicGetDepth';
+        let response = undefined;
         if (market['option']) {
-            method = 'eapiPublicGetDepth';
+            response = await this.eapiPublicGetDepth(this.extend(request, params));
         }
         else if (market['linear']) {
-            method = 'fapiPublicGetDepth';
+            response = await this.fapiPublicGetDepth(this.extend(request, params));
         }
         else if (market['inverse']) {
-            method = 'dapiPublicGetDepth';
+            response = await this.dapiPublicGetDepth(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.publicGetDepth(this.extend(request, params));
+        }
         //
         // future
         //
@@ -3042,17 +3053,19 @@ export default class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = 'publicGetTicker24hr';
+        let response = undefined;
         if (market['option']) {
-            method = 'eapiPublicGetTicker';
+            response = await this.eapiPublicGetTicker(this.extend(request, params));
         }
         else if (market['linear']) {
-            method = 'fapiPublicGetTicker24hr';
+            response = await this.fapiPublicGetTicker24hr(this.extend(request, params));
         }
         else if (market['inverse']) {
-            method = 'dapiPublicGetTicker24hr';
+            response = await this.dapiPublicGetTicker24hr(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.publicGetTicker24hr(this.extend(request, params));
+        }
         if (Array.isArray(response)) {
             const firstTicker = this.safeValue(response, 0, {});
             return this.parseTicker(firstTicker, market);
@@ -3082,17 +3095,16 @@ export default class binance extends Exchange {
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchBidsAsks', market, params);
         [type, params] = this.handleMarketTypeAndParams('fetchBidsAsks', market, params);
-        let method = undefined;
+        let response = undefined;
         if (this.isLinear(type, subType)) {
-            method = 'fapiPublicGetTickerBookTicker';
+            response = await this.fapiPublicGetTickerBookTicker(params);
         }
         else if (this.isInverse(type, subType)) {
-            method = 'dapiPublicGetTickerBookTicker';
+            response = await this.dapiPublicGetTickerBookTicker(params);
         }
         else {
-            method = 'publicGetTickerBookTicker';
+            response = await this.publicGetTickerBookTicker(params);
         }
-        const response = await this[method](params);
         return this.parseTickers(response, symbols);
     }
     async fetchLastPrices(symbols = undefined, params = {}) {
@@ -3114,9 +3126,9 @@ export default class binance extends Exchange {
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchLastPrices', market, params);
         [type, params] = this.handleMarketTypeAndParams('fetchLastPrices', market, params);
-        let method = undefined;
+        let response = undefined;
         if (this.isLinear(type, subType)) {
-            method = 'fapiPublicGetTickerPrice';
+            response = await this.fapiPublicGetTickerPrice(params);
             //
             //     [
             //         {
@@ -3129,7 +3141,7 @@ export default class binance extends Exchange {
             //
         }
         else if (this.isInverse(type, subType)) {
-            method = 'dapiPublicGetTickerPrice';
+            response = await this.dapiPublicGetTickerPrice(params);
             //
             //     [
             //         {
@@ -3142,7 +3154,7 @@ export default class binance extends Exchange {
             //
         }
         else if (type === 'spot') {
-            method = 'publicGetTickerPrice';
+            response = await this.publicGetTickerPrice(params);
             //
             //     [
             //         {
@@ -3156,7 +3168,6 @@ export default class binance extends Exchange {
         else {
             throw new NotSupported(this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
         }
-        const response = await this[method](params);
         return this.parseLastPrices(response, symbols);
     }
     parseLastPrice(info, market = undefined) {
@@ -3216,6 +3227,7 @@ export default class binance extends Exchange {
         await this.loadMarkets();
         let type = undefined;
         let market = undefined;
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
         if (symbols !== undefined) {
             const first = this.safeString(symbols, 0);
             market = this.market(first);
@@ -3308,6 +3320,14 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#index-price-kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price-kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#mark-price-kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -3315,9 +3335,15 @@ export default class binance extends Exchange {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string} [params.price] "mark" or "index" for mark price and index price candles
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
+        }
         const market = this.market(symbol);
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
@@ -3652,12 +3678,18 @@ export default class binance extends Exchange {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {int} [params.until] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
          * @param {int} [params.fetchTradesMethod] 'publicGetAggTrades' (spot default), 'fapiPublicGetAggTrades' (swap default), 'dapiPublicGetAggTrades' (future default), 'eapiPublicGetTrades' (option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.fromId] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchTrades', symbol, since, limit, params);
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -4623,6 +4655,11 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-order-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#query-order-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#query-order-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-single-order-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-order-user_data
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
@@ -4674,15 +4711,27 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol('fetchOrders', symbol);
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, params);
+        }
         const market = this.market(symbol);
         const defaultType = this.safeString2(this.options, 'fetchOrders', 'defaultType', 'spot');
         const type = this.safeString(params, 'type', defaultType);
@@ -4705,6 +4754,11 @@ export default class binance extends Exchange {
             if (marginMode === 'isolated') {
                 request['isIsolated'] = true;
             }
+        }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['endTime'] = until;
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -4793,7 +4847,16 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchOpenOrders
+         * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
          * @description fetch all unfilled currently open orders
+         * @see https://binance-docs.github.io/apidocs/spot/en/#current-open-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-open-orders-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -4861,10 +4924,16 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const orders = await this.fetchOrders(symbol, since, limit, params);
@@ -4882,6 +4951,7 @@ export default class binance extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol('fetchCanceledOrders', symbol);
@@ -4900,6 +4970,11 @@ export default class binance extends Exchange {
          * @method
          * @name binance#cancelOrder
          * @description cancels an open order
+         * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-order-trade
+         * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-order-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#cancel-order-trade
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#cancel-option-order-trade
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the binance api endpoint
@@ -5002,6 +5077,7 @@ export default class binance extends Exchange {
          * @name binance#cancelOrders
          * @description cancel multiple orders
          * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#cancel-multiple-orders-trade
          * @param {[string]} ids order ids
          * @param {string} [symbol] unified market symbol
          * @param {object} [params] extra parameters specific to the bingx api endpoint
@@ -5070,6 +5146,10 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -5097,13 +5177,24 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
+        }
         const request = {};
         let market = undefined;
         let type = undefined;
@@ -5236,6 +5327,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchMyDustTrades
          * @description fetch all dust trades made by the user
+         * @see https://binance-docs.github.io/apidocs/spot/en/#dustlog-user_data
          * @param {string} symbol not used by binance fetchMyDustTrades ()
          * @param {int} [since] the earliest time in ms to fetch my dust trades for
          * @param {int} [limit] the maximum number of dust trades to retrieve
@@ -5373,16 +5465,25 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchDeposits
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
          * @description fetch all deposits made to an account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#deposit-history-supporting-network-user_data
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {bool} [params.fiat] if true, only fiat deposits will be returned
-         * @param {int} [params.until] the latest time in ms to fetch deposits for
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchDeposits', code, since, limit, params);
+        }
         let currency = undefined;
         let response = undefined;
         const request = {};
@@ -5390,6 +5491,7 @@ export default class binance extends Exchange {
         const fiatOnly = this.safeValue(params, 'fiat', false);
         params = this.omit(params, 'fiatOnly');
         const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
         if (fiatOnly || (code in legalMoney)) {
             if (code !== undefined) {
                 currency = this.currency(code);
@@ -5477,19 +5579,35 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchWithdrawals
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
          * @description fetch all withdrawals made from an account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {bool} [params.fiat] if true, only fiat withdrawals will be returned
+         * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchWithdrawals', code, since, limit, params);
+        }
         const legalMoney = this.safeValue(this.options, 'legalMoney', {});
         const fiatOnly = this.safeValue(params, 'fiat', false);
         params = this.omit(params, 'fiatOnly');
         const request = {};
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['endTime'] = until;
+        }
         let response = undefined;
         let currency = undefined;
         if (fiatOnly || (code in legalMoney)) {
@@ -5941,14 +6059,23 @@ export default class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchTransfers
+         * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
          * @description fetch a history of internal transfers made on an account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch transfers for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchTransfers', code, since, limit, params);
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -5981,6 +6108,11 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['endTime'] = until;
+        }
         const response = await this.sapiGetAssetTransfer(this.extend(request, params));
         //
         //     {
@@ -6005,6 +6137,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
@@ -6080,6 +6213,7 @@ export default class binance extends Exchange {
          * @name binance#fetchTransactionFees
          * @deprecated
          * @description please use fetchDepositWithdrawFees instead
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
          * @param {string[]|undefined} codes not used by binance fetchTransactionFees ()
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object[]} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
@@ -6193,6 +6327,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
          * @param {string[]|undefined} codes not used by binance fetchDepositWithdrawFees ()
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object[]} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
@@ -6316,6 +6451,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#withdraw
          * @description make a withdrawal
+         * @see https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -6351,37 +6487,7 @@ export default class binance extends Exchange {
     }
     parseTradingFee(fee, market = undefined) {
         //
-        //     {
-        //         "symbol": "ADABNB",
-        //         "makerCommission": 0.001,
-        //         "takerCommission": 0.001
-        //     }
-        //
-        const marketId = this.safeString(fee, 'symbol');
-        const symbol = this.safeSymbol(marketId, market, undefined, 'spot');
-        return {
-            'info': fee,
-            'symbol': symbol,
-            'maker': this.safeNumber(fee, 'makerCommission'),
-            'taker': this.safeNumber(fee, 'takerCommission'),
-        };
-    }
-    async fetchTradingFee(symbol, params = {}) {
-        /**
-         * @method
-         * @name binance#fetchTradingFee
-         * @description fetch the trading fees for a market
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the binance api endpoint
-         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
-         */
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.sapiGetAssetTradeFee(this.extend(request, params));
-        //
+        // spot
         //     [
         //       {
         //         "symbol": "BTCUSDT",
@@ -6390,24 +6496,97 @@ export default class binance extends Exchange {
         //       }
         //     ]
         //
-        const first = this.safeValue(response, 0, {});
-        return this.parseTradingFee(first);
+        // swap
+        //     {
+        //         "symbol": "BTCUSD_PERP",
+        //         "makerCommissionRate": "0.00015",  // 0.015%
+        //         "takerCommissionRate": "0.00040"   // 0.040%
+        //     }
+        //
+        const marketId = this.safeString(fee, 'symbol');
+        const symbol = this.safeSymbol(marketId, market, undefined, 'spot');
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber2(fee, 'makerCommission', 'makerCommissionRate'),
+            'taker': this.safeNumber2(fee, 'takerCommission', 'takerCommissionRate'),
+        };
+    }
+    async fetchTradingFee(symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#user-commission-rate-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#user-commission-rate-user_data
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const defaultType = this.safeString2(this.options, 'fetchTradingFee', 'defaultType', 'linear');
+        const type = this.safeString(params, 'type', defaultType);
+        params = this.omit(params, 'type');
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchTradingFee', market, params);
+        const isSpotOrMargin = (type === 'spot') || (type === 'margin');
+        const isLinear = this.isLinear(type, subType);
+        const isInverse = this.isInverse(type, subType);
+        const request = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        if (isSpotOrMargin) {
+            response = await this.sapiGetAssetTradeFee(this.extend(request, params));
+        }
+        else if (isLinear) {
+            response = await this.fapiPrivateGetCommissionRate(this.extend(request, params));
+        }
+        else if (isInverse) {
+            response = await this.dapiPrivateGetCommissionRate(this.extend(request, params));
+        }
+        //
+        // spot
+        //     [
+        //       {
+        //         "symbol": "BTCUSDT",
+        //         "makerCommission": "0.001",
+        //         "takerCommission": "0.001"
+        //       }
+        //     ]
+        //
+        // swap
+        //     {
+        //         "symbol": "BTCUSD_PERP",
+        //         "makerCommissionRate": "0.00015",  // 0.015%
+        //         "takerCommissionRate": "0.00040"   // 0.040%
+        //     }
+        //
+        let data = response;
+        if (Array.isArray(data)) {
+            data = this.safeValue(data, 0, {});
+        }
+        return this.parseTradingFee(data);
     }
     async fetchTradingFees(params = {}) {
         /**
          * @method
          * @name binance#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         let method = undefined;
-        const defaultType = this.safeString2(this.options, 'fetchTradingFees', 'defaultType', 'linear');
-        const type = this.safeString(params, 'type', defaultType);
-        params = this.omit(params, 'type');
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchTradingFees', undefined, params);
         let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('fetchTradingFees', undefined, params);
+        [subType, params] = this.handleSubTypeAndParams('fetchTradingFees', undefined, params, 'linear');
         const isSpotOrMargin = (type === 'spot') || (type === 'margin');
         const isLinear = this.isLinear(type, subType);
         const isInverse = this.isInverse(type, subType);
@@ -6575,6 +6754,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#futuresTransfer
          * @description transfer between futures account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#new-future-account-transfer-user_data
          * @param {string} code unified currency code
          * @param {float} amount the amount to transfer
          * @param {string} type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
@@ -6605,6 +6785,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchFundingRate
          * @description fetch the current funding rate
+         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
@@ -6647,16 +6829,24 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchFundingRateHistory
          * @description fetches historical funding rate prices
+         * @see https://binance-docs.github.io/apidocs/futures/en/#get-funding-rate-history
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#get-funding-rate-history-of-perpetual-futures
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {int} [params.until] timestamp in ms of the latest funding rate
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         await this.loadMarkets();
         const request = {};
         let method = undefined;
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params);
+        }
         const defaultType = this.safeString2(this.options, 'fetchFundingRateHistory', 'defaultType', 'future');
         const type = this.safeString(params, 'type', defaultType);
         let market = undefined;
@@ -6717,6 +6907,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchFundingRates
          * @description fetch the funding rate for multiple markets
+         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a dictionary of [funding rates structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure}, indexe by market symbols
@@ -7245,6 +7437,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @see https://binance-docs.github.io/apidocs/futures/en/#notional-and-leverage-brackets-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#notional-bracket-for-symbol-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}, indexed by market symbols
@@ -7533,6 +7727,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchAccountPositions
          * @description fetch account positions
+         * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} data on account positions
@@ -7570,6 +7766,7 @@ export default class binance extends Exchange {
          * @name binance#fetchPositionsRisk
          * @description fetch positions risk
          * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} data on the positions risk
@@ -7666,6 +7863,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
+         * @see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -7713,6 +7912,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#setLeverage
          * @description set the level of leverage for a market
+         * @see https://binance-docs.github.io/apidocs/futures/en/#change-initial-leverage-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#change-initial-leverage-trade
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the binance api endpoint
@@ -7749,6 +7950,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
+         * @see https://binance-docs.github.io/apidocs/futures/en/#change-margin-type-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#change-margin-type-trade
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the binance api endpoint
@@ -7817,6 +8020,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#setPositionMode
          * @description set hedged to true or false for a market
+         * @see https://binance-docs.github.io/apidocs/futures/en/#change-position-mode-trade
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#change-position-mode-trade
          * @param {bool} hedged set to true to use dualSidePosition
          * @param {string} symbol not used by binance setPositionMode ()
          * @param {object} [params] extra parameters specific to the binance api endpoint
@@ -8045,19 +8250,28 @@ export default class binance extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entrys to return
          * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest ledger entry
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params);
+        }
         let type = undefined;
         let subType = undefined;
         let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         let method = undefined;
         const request = {};
         [type, params] = this.handleMarketTypeAndParams('fetchLedger', undefined, params);
         [subType, params] = this.handleSubTypeAndParams('fetchLedger', undefined, params);
         if (type === 'option') {
             this.checkRequiredArgument('fetchLedger', code, 'code');
-            currency = this.currency(code);
             request['currency'] = currency['id'];
             method = 'eapiPrivateGetBill';
         }
@@ -8075,6 +8289,11 @@ export default class binance extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['endTime'] = until;
         }
         const response = await this[method](this.extend(request, params));
         //
@@ -8222,7 +8441,7 @@ export default class binance extends Exchange {
                 throw new AuthenticationError(this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
         }
-        else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2') || (api === 'papi')) {
             this.checkRequiredCredentials();
             if (method === 'POST' && ((path === 'order') || (path === 'sor/order'))) {
                 // inject in implicit API calls
@@ -8505,6 +8724,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
@@ -8534,6 +8754,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchBorrowRateHistory
          * @description retrieves a history of a currencies borrow interest rate at specific time slots
+         * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data
          * @param {string} code unified currency code
          * @param {int} [since] timestamp for the earliest borrow rate
          * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure} to retrieve
@@ -8607,6 +8828,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#createGiftCode
          * @description create gift code
+         * @see https://binance-docs.github.io/apidocs/spot/en/#create-a-single-token-gift-card-user_data
          * @param {string} code gift code
          * @param {float} amount amount of currency for the gift
          * @param {object} [params] extra parameters specific to the binance api endpoint
@@ -8644,6 +8866,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#redeemGiftCode
          * @description redeem gift code
+         * @see https://binance-docs.github.io/apidocs/spot/en/#redeem-a-binance-gift-card-user_data
          * @param {string} giftcardCode
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} response from the exchange
@@ -8670,6 +8893,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#verifyGiftCode
          * @description verify gift code
+         * @see https://binance-docs.github.io/apidocs/spot/en/#verify-binance-gift-card-by-gift-card-number-user_data
          * @param {string} id reference number id
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} response from the exchange
@@ -8693,6 +8917,7 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-interest-history-user_data
          * @param {string} code unified currency code
          * @param {string} symbol unified market symbol when fetch interest in isolated markets
          * @param {int} [since] the earliest time in ms to fetch borrrow interest for
@@ -8845,6 +9070,8 @@ export default class binance extends Exchange {
          * @method
          * @name binance#fetchOpenInterestHistory
          * @description Retrieves the open interest history of a currency
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#open-interest-statistics
+         * @see https://binance-docs.github.io/apidocs/futures/en/#open-interest-statistics
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
          * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
@@ -8857,6 +9084,11 @@ export default class binance extends Exchange {
             throw new BadRequest(this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenInterestHistory', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500);
+        }
         const market = this.market(symbol);
         const request = {
             'period': this.safeString(this.timeframes, timeframe, timeframe),
@@ -8964,7 +9196,13 @@ export default class binance extends Exchange {
         //     ]
         //
         if (market['option']) {
-            return this.parseOpenInterests(response, market);
+            const result = this.parseOpenInterests(response, market);
+            for (let i = 0; i < result.length; i++) {
+                const item = result[i];
+                if (item['symbol'] === symbol) {
+                    return item;
+                }
+            }
         }
         else {
             return this.parseOpenInterest(response, market);
@@ -8977,7 +9215,7 @@ export default class binance extends Exchange {
         const value = this.safeNumber2(interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');
         // Inverse returns the number of contracts different from the base or quote volume in this case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-        return {
+        return this.safeOpenInterest({
             'symbol': this.safeSymbol(id, market, undefined, 'contract'),
             'baseVolume': market['inverse'] ? undefined : amount,
             'quoteVolume': value,
@@ -8986,6 +9224,232 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
+        }, market);
+    }
+    async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchMyLiquidations
+         * @description retrieves the users liquidated positions
+         * @see https://binance-docs.github.io/apidocs/spot/en/#get-force-liquidation-record-user_data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#user-39-s-force-orders-user_data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#user-39-s-force-orders-user_data
+         * @param {string} [symbol] unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the binance api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyLiquidations', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental('fetchMyLiquidations', symbol, since, limit, params, 'current', 100);
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchMyLiquidations', market, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchMyLiquidations', market, params, 'linear');
+        let request = {};
+        if (type !== 'spot') {
+            request['autoCloseType'] = 'LIQUIDATION';
+        }
+        if (market !== undefined) {
+            const symbolKey = market['spot'] ? 'isolatedSymbol' : 'symbol';
+            request[symbolKey] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            if (type === 'spot') {
+                request['size'] = limit;
+            }
+            else {
+                request['limit'] = limit;
+            }
+        }
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.sapiGetMarginForceLiquidationRec(this.extend(request, params));
+        }
+        else if (subType === 'linear') {
+            response = await this.fapiPrivateGetForceOrders(this.extend(request, params));
+        }
+        else if (subType === 'inverse') {
+            response = await this.dapiPrivateGetForceOrders(this.extend(request, params));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
+        }
+        //
+        // margin
+        //
+        //     {
+        //         "rows": [
+        //             {
+        //                 "avgPrice": "0.00388359",
+        //                 "executedQty": "31.39000000",
+        //                 "orderId": 180015097,
+        //                 "price": "0.00388110",
+        //                 "qty": "31.39000000",
+        //                 "side": "SELL",
+        //                 "symbol": "BNBBTC",
+        //                 "timeInForce": "GTC",
+        //                 "isIsolated": true,
+        //                 "updatedTime": 1558941374745
+        //             }
+        //         ],
+        //         "total": 1
+        //     }
+        //
+        // linear
+        //
+        //     [
+        //         {
+        //             "orderId": 6071832819,
+        //             "symbol": "BTCUSDT",
+        //             "status": "FILLED",
+        //             "clientOrderId": "autoclose-1596107620040000020",
+        //             "price": "10871.09",
+        //             "avgPrice": "10913.21000",
+        //             "origQty": "0.001",
+        //             "executedQty": "0.001",
+        //             "cumQuote": "10.91321",
+        //             "timeInForce": "IOC",
+        //             "type": "LIMIT",
+        //             "reduceOnly": false,
+        //             "closePosition": false,
+        //             "side": "SELL",
+        //             "positionSide": "BOTH",
+        //             "stopPrice": "0",
+        //             "workingType": "CONTRACT_PRICE",
+        //             "origType": "LIMIT",
+        //             "time": 1596107620044,
+        //             "updateTime": 1596107620087
+        //         },
+        //     ]
+        //
+        // inverse
+        //
+        //     [
+        //         {
+        //             "orderId": 165123080,
+        //             "symbol": "BTCUSD_200925",
+        //             "pair": "BTCUSD",
+        //             "status": "FILLED",
+        //             "clientOrderId": "autoclose-1596542005017000006",
+        //             "price": "11326.9",
+        //             "avgPrice": "11326.9",
+        //             "origQty": "1",
+        //             "executedQty": "1",
+        //             "cumBase": "0.00882854",
+        //             "timeInForce": "IOC",
+        //             "type": "LIMIT",
+        //             "reduceOnly": false,
+        //             "closePosition": false,
+        //             "side": "SELL",
+        //             "positionSide": "BOTH",
+        //             "stopPrice": "0",
+        //             "workingType": "CONTRACT_PRICE",
+        //             "priceProtect": false,
+        //             "origType": "LIMIT",
+        //             "time": 1596542005019,
+        //             "updateTime": 1596542005050
+        //         },
+        //     ]
+        //
+        const liquidations = this.safeValue(response, 'rows', response);
+        return this.parseLiquidations(liquidations, market, since, limit);
+    }
+    parseLiquidation(liquidation, market = undefined) {
+        //
+        // margin
+        //
+        //     {
+        //         "avgPrice": "0.00388359",
+        //         "executedQty": "31.39000000",
+        //         "orderId": 180015097,
+        //         "price": "0.00388110",
+        //         "qty": "31.39000000",
+        //         "side": "SELL",
+        //         "symbol": "BNBBTC",
+        //         "timeInForce": "GTC",
+        //         "isIsolated": true,
+        //         "updatedTime": 1558941374745
+        //     }
+        //
+        // linear
+        //
+        //     {
+        //         "orderId": 6071832819,
+        //         "symbol": "BTCUSDT",
+        //         "status": "FILLED",
+        //         "clientOrderId": "autoclose-1596107620040000020",
+        //         "price": "10871.09",
+        //         "avgPrice": "10913.21000",
+        //         "origQty": "0.001",
+        //         "executedQty": "0.001",
+        //         "cumQuote": "10.91321",
+        //         "timeInForce": "IOC",
+        //         "type": "LIMIT",
+        //         "reduceOnly": false,
+        //         "closePosition": false,
+        //         "side": "SELL",
+        //         "positionSide": "BOTH",
+        //         "stopPrice": "0",
+        //         "workingType": "CONTRACT_PRICE",
+        //         "origType": "LIMIT",
+        //         "time": 1596107620044,
+        //         "updateTime": 1596107620087
+        //     }
+        //
+        // inverse
+        //
+        //     {
+        //         "orderId": 165123080,
+        //         "symbol": "BTCUSD_200925",
+        //         "pair": "BTCUSD",
+        //         "status": "FILLED",
+        //         "clientOrderId": "autoclose-1596542005017000006",
+        //         "price": "11326.9",
+        //         "avgPrice": "11326.9",
+        //         "origQty": "1",
+        //         "executedQty": "1",
+        //         "cumBase": "0.00882854",
+        //         "timeInForce": "IOC",
+        //         "type": "LIMIT",
+        //         "reduceOnly": false,
+        //         "closePosition": false,
+        //         "side": "SELL",
+        //         "positionSide": "BOTH",
+        //         "stopPrice": "0",
+        //         "workingType": "CONTRACT_PRICE",
+        //         "priceProtect": false,
+        //         "origType": "LIMIT",
+        //         "time": 1596542005019,
+        //         "updateTime": 1596542005050
+        //     }
+        //
+        const marketId = this.safeString(liquidation, 'symbol');
+        const timestamp = this.safeInteger2(liquidation, 'updatedTime', 'updateTime');
+        return {
+            'info': liquidation,
+            'symbol': this.safeSymbol(marketId, market),
+            'contracts': this.safeNumber(liquidation, 'executedQty'),
+            'contractSize': this.safeNumber(market, 'contractSize'),
+            'price': this.safeNumber(liquidation, 'avgPrice'),
+            'baseValue': this.safeNumber(liquidation, 'cumBase'),
+            'quoteValue': this.safeNumber(liquidation, 'cumQuote'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
         };
     }
 }

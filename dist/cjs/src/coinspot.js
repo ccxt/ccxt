@@ -4,6 +4,7 @@ var coinspot$1 = require('./abstract/coinspot.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
+var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -49,6 +50,7 @@ class coinspot extends coinspot$1 {
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
                 'fetchMarkOHLCV': false,
+                'fetchMyTrades': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
@@ -348,6 +350,64 @@ class coinspot extends coinspot$1 {
         const trades = this.safeValue(response, 'orders', []);
         return this.parseTrades(trades, market, since, limit);
     }
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinspot#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitbank api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         */
+        await this.loadMarkets();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        if (since !== undefined) {
+            request['startdate'] = this.yyyymmdd(since);
+        }
+        const response = await this.privatePostRoMyTransactions(this.extend(request, params));
+        //  {
+        //   status: 'ok',
+        //   buyorders: [
+        //     {
+        //       otc: false,
+        //       market: 'ALGO/AUD',
+        //       amount: 386.95197925,
+        //       created: '2022-10-20T09:56:44.502Z',
+        //       audfeeExGst: 1.80018002,
+        //       audGst: 0.180018,
+        //       audtotal: 200
+        //     },
+        //   ],
+        //   sellorders: [
+        //     {
+        //       otc: false,
+        //       market: 'SOLO/ALGO',
+        //       amount: 154.52345614,
+        //       total: 115.78858204658796,
+        //       created: '2022-04-16T09:36:43.698Z',
+        //       audfeeExGst: 1.08995731,
+        //       audGst: 0.10899573,
+        //       audtotal: 118.7
+        //     },
+        //   ]
+        // }
+        const buyTrades = this.safeValue(response, 'buyorders', []);
+        for (let i = 0; i < buyTrades.length; i++) {
+            buyTrades[i]['side'] = 'buy';
+        }
+        const sellTrades = this.safeValue(response, 'sellorders', []);
+        for (let i = 0; i < sellTrades.length; i++) {
+            sellTrades[i]['side'] = 'sell';
+        }
+        const trades = this.arrayConcat(buyTrades, sellTrades);
+        return this.parseTrades(trades, market, since, limit);
+    }
     parseTrade(trade, market = undefined) {
         //
         // public fetchTrades
@@ -361,12 +421,47 @@ class coinspot extends coinspot$1 {
         //         "market":"BTC/AUD"
         //     }
         //
-        const priceString = this.safeString(trade, 'rate');
+        // private fetchMyTrades
+        //     {
+        //       otc: false,
+        //       market: 'ALGO/AUD',
+        //       amount: 386.95197925,
+        //       created: '2022-10-20T09:56:44.502Z',
+        //       audfeeExGst: 1.80018002,
+        //       audGst: 0.180018,
+        //       audtotal: 200,
+        //       total: 200,
+        //       side: 'buy',
+        //       price: 0.5168600000125209
+        //     }
+        let timestamp = undefined;
+        let priceString = undefined;
+        let fee = undefined;
+        const audTotal = this.safeString(trade, 'audtotal');
+        const costString = this.safeString(trade, 'total', audTotal);
+        const side = this.safeString(trade, 'side');
         const amountString = this.safeString(trade, 'amount');
-        const costString = this.safeNumber(trade, 'total');
-        const timestamp = this.safeInteger(trade, 'solddate');
         const marketId = this.safeString(trade, 'market');
         const symbol = this.safeSymbol(marketId, market, '/');
+        const solddate = this.safeInteger(trade, 'solddate');
+        if (solddate !== undefined) {
+            priceString = this.safeString(trade, 'rate');
+            timestamp = solddate;
+        }
+        else {
+            priceString = Precise["default"].stringDiv(costString, amountString);
+            const createdString = this.safeString(trade, 'created');
+            timestamp = this.parse8601(createdString);
+            const audfeeExGst = this.safeString(trade, 'audfeeExGst');
+            const audGst = this.safeString(trade, 'audGst');
+            // The transaction fee which consumers pay is inclusive of GST by default
+            const feeCost = Precise["default"].stringAdd(audfeeExGst, audGst);
+            const feeCurrencyId = 'AUD';
+            fee = {
+                'cost': this.parseNumber(feeCost),
+                'currency': this.safeCurrencyCode(feeCurrencyId),
+            };
+        }
         return this.safeTrade({
             'info': trade,
             'id': undefined,
@@ -375,12 +470,12 @@ class coinspot extends coinspot$1 {
             'datetime': this.iso8601(timestamp),
             'order': undefined,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'takerOrMaker': undefined,
-            'price': priceString,
-            'amount': amountString,
-            'cost': costString,
-            'fee': undefined,
+            'price': this.parseNumber(priceString),
+            'amount': this.parseNumber(amountString),
+            'cost': this.parseNumber(costString),
+            'fee': fee,
         }, market);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {

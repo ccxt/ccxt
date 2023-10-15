@@ -10,7 +10,7 @@ install:
   - set PATH=%APPDATA%\npm;C:\Python38;C:\Python38\Scripts;%PATH%
   - npm install
   - python -m pip install --upgrade pip setuptools
-  - pip install tox cryptography requests # common packages
+  - pip install tox cryptography requests ruff # common packages
   - set PATH=C:\Program Files\curl;%PATH%
   - setx PATH "%PATH%"
   - ps: Set-Service wuauserv -StartupType Manual

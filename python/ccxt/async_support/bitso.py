@@ -466,6 +466,7 @@ class bitso(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'maximum_value'),
                     },
                 },
+                'created': None,
                 'info': market,
             }, fee))
         return result

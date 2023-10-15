@@ -147,12 +147,15 @@ class binance(ccxt.async_support.binance):
         # valid <levels> are 5, 10, or 20
         #
         # default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-        if limit is not None:
-            if (limit != 5) and (limit != 10) and (limit != 20) and (limit != 50) and (limit != 100) and (limit != 500) and (limit != 1000):
-                raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 5, 10, 20, 50, 100, 500 or 1000')
-        #
         await self.load_markets()
         market = self.market(symbol)
+        if limit is not None:
+            if market['contract']:
+                if (limit != 5) and (limit != 10) and (limit != 20) and (limit != 50) and (limit != 100) and (limit != 500) and (limit != 1000):
+                    raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 5, 10, 20, 50, 100, 500 or 1000')
+            else:
+                if limit > 5000:
+                    raise ExchangeError(self.id + ' watchOrderBook limit argument must be less than or equal to 5000')
         type = market['type']
         if market['contract']:
             type = 'future' if market['linear'] else 'delivery'
@@ -222,12 +225,8 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        if limit is not None:
-            if (limit != 5) and (limit != 10) and (limit != 20) and (limit != 50) and (limit != 100) and (limit != 500) and (limit != 1000):
-                raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 5, 10, 20, 50, 100, 500 or 1000')
-        #
         await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
         if firstMarket['contract']:
@@ -455,7 +454,7 @@ class binance(ccxt.async_support.binance):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols, None, False, True, True)
         options = self.safe_value(self.options, 'watchTradesForSymbols', {})
         name = self.safe_string(options, 'name', 'trade')
         firstMarket = self.market(symbols[0])
@@ -897,7 +896,7 @@ class binance(ccxt.async_support.binance):
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols, None, True, True, True)
         marketIds = self.market_ids(symbols)
         market = None
         type = None

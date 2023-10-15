@@ -702,6 +702,7 @@ class bitrue extends bitrue$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push(entry);
@@ -829,7 +830,7 @@ class bitrue extends bitrue$1 {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString(ticker, 'percentChange'),
+            'percentage': Precise["default"].stringMul(this.safeString(ticker, 'percentChange'), '10000'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'baseVolume'),
             'quoteVolume': this.safeString(ticker, 'quoteVolume'),

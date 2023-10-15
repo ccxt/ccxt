@@ -1687,7 +1687,7 @@ class delta extends Exchange {
                 $side = 'sell';
             }
         }
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -1713,7 +1713,7 @@ class delta extends Exchange {
             'marginRatio' => null,
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
-        );
+        ));
     }
 
     public function parse_order_status($status) {
@@ -2831,7 +2831,7 @@ class delta extends Exchange {
         //
         $timestamp = $this->safe_integer_product($interest, 'timestamp', 0.001);
         $marketId = $this->safe_string($interest, 'symbol');
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($marketId, $market),
             'baseVolume' => $this->safe_number($interest, 'oi_value'),
             'quoteVolume' => $this->safe_number($interest, 'oi_value_usd'),
@@ -2840,7 +2840,7 @@ class delta extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function fetch_leverage(string $symbol, $params = array ()) {

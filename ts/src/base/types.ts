@@ -220,6 +220,35 @@ export interface Position {
     info: any;
 }
 
+export interface FundingRateHistory {
+    info: any;
+    symbol: string;
+    fundingRate: number;
+    timestamp?: number
+    datetime?: string;
+}
+
+export interface OpenInterest {
+    symbol: string;
+    openInterestAmount?: number;
+    openInterestValue?: number;
+    baseVolume?: number;
+    quoteVolume?: number;
+    timestamp?: number;
+    datetime?: string;
+    info: any;
+}
+
+export interface Liquidation {
+    info: any;
+    symbol: string;
+    timestamp?: number
+    datetime?: string;
+    price: number;
+    baseValue?: number;
+    quoteValue?: number;
+}
+
 /** [ timestamp, open, high, low, close, volume ] */
 export type OHLCV = [number, number, number, number, number, number];
 

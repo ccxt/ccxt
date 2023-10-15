@@ -1,5 +1,5 @@
 import Exchange from './abstract/hitbtc.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV } from './base/types.js';
 /**
  * @class hitbtc
  * @extends Exchange
@@ -80,7 +80,7 @@ export default class hitbtc extends Exchange {
         maker: number;
     }>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;

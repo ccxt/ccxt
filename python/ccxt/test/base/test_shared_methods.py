@@ -22,14 +22,6 @@ def log_template(exchange, method, entry):
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json(entry) + ' >>> '
 
 
-def is_integer(value):
-    is_numeric = (isinstance(value, numbers.Real))
-    if is_numeric:
-        return (value % 1) == 0
-    else:
-        return False
-
-
 def string_value(value):
     string_val = None
     if isinstance(value, str):
@@ -112,7 +104,7 @@ def assert_timestamp(exchange, skipped_properties, method, entry, now_to_check=N
     ts = entry[key_name_or_index]
     if ts is not None:
         assert isinstance(ts, numbers.Real), 'timestamp is not numeric' + log_text
-        assert is_integer(ts), 'timestamp should be an integer' + log_text
+        assert isinstance(ts, numbers.Integral), 'timestamp should be an integer' + log_text
         min_ts = 1230940800000  # 03 Jan 2009 - first block
         max_ts = 2147483648000  # 03 Jan 2009 - first block
         assert ts > min_ts, 'timestamp is impossible to be before ' + str(min_ts) + ' (03.01.2009)' + log_text  # 03 Jan 2009 - first block
@@ -186,7 +178,7 @@ def assert_greater_or_equal(exchange, skipped_properties, method, entry, key, co
         return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
-    if value is not None:
+    if value is not None and compare_to is not None:
         assert Precise.string_ge(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be >= ' + string_value(compare_to) + log_text
 
 
@@ -195,7 +187,7 @@ def assert_less(exchange, skipped_properties, method, entry, key, compare_to):
         return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
-    if value is not None:
+    if value is not None and compare_to is not None:
         assert Precise.string_lt(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be < ' + string_value(compare_to) + log_text
 
 
@@ -204,7 +196,7 @@ def assert_less_or_equal(exchange, skipped_properties, method, entry, key, compa
         return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
-    if value is not None:
+    if value is not None and compare_to is not None:
         assert Precise.string_le(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be <= ' + string_value(compare_to) + log_text
 
 
@@ -213,7 +205,7 @@ def assert_equal(exchange, skipped_properties, method, entry, key, compare_to):
         return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
-    if value is not None:
+    if value is not None and compare_to is not None:
         assert Precise.string_eq(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be equal to ' + string_value(compare_to) + log_text
 
 
@@ -240,7 +232,7 @@ def assert_in_array(exchange, skipped_properties, method, entry, key, expected_a
 def assert_fee_structure(exchange, skipped_properties, method, entry, key):
     log_text = log_template(exchange, method, entry)
     key_string = string_value(key)
-    if is_integer(key):
+    if isinstance(key, numbers.Integral):
         assert isinstance(entry, list), 'fee container is expected to be an array' + log_text
         assert key < len(entry), 'fee key ' + key_string + ' was expected to be present in entry' + log_text
     else:
@@ -269,9 +261,10 @@ def assert_integer(exchange, skipped_properties, method, entry, key):
         return
     log_text = log_template(exchange, method, entry)
     if entry is not None:
-        value = exchange.safe_number(entry, key)
+        value = exchange.safe_value(entry, key)
         if value is not None:
-            assert is_integer(value), '\"' + string_value(key) + '\" key (value \"' + string_value(value) + '\") is not an integer' + log_text
+            is_integer = isinstance(value, numbers.Integral)
+            assert is_integer, '\"' + string_value(key) + '\" key (value \"' + string_value(value) + '\") is not an integer' + log_text
 
 
 def check_precision_accuracy(exchange, skipped_properties, method, entry, key):

@@ -468,6 +468,7 @@ class bitso extends bitso$1 {
                         'max': this.safeNumber(market, 'maximum_value'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             }, fee));
         }

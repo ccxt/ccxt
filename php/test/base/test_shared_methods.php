@@ -15,16 +15,6 @@ function log_template($exchange, $method, $entry) {
 }
 
 
-function is_integer($value) {
-    $is_numeric = ((is_int($value) || is_float($value)));
-    if ($is_numeric) {
-        return ($value % 1) === 0;
-    } else {
-        return false;
-    }
-}
-
-
 function string_value($value) {
     $string_val = null;
     if (is_string($value)) {
@@ -121,7 +111,7 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
     $ts = $entry[$key_name_or_index];
     if ($ts !== null) {
         assert((is_int($ts) || is_float($ts)), 'timestamp is not numeric' . $log_text);
-        assert(is_integer($ts), 'timestamp should be an integer' . $log_text);
+        assert(is_int($ts), 'timestamp should be an integer' . $log_text);
         $min_ts = 1230940800000; // 03 Jan 2009 - first block
         $max_ts = 2147483648000; // 03 Jan 2009 - first block
         assert($ts > $min_ts, 'timestamp is impossible to be before ' . ((string) $min_ts) . ' (03.01.2009)' . $log_text); // 03 Jan 2009 - first block
@@ -214,7 +204,7 @@ function assert_greater_or_equal($exchange, $skipped_properties, $method, $entry
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
-    if ($value !== null) {
+    if ($value !== null && $compare_to !== null) {
         assert(Precise::string_ge($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be >= ' . string_value($compare_to) . $log_text);
     }
 }
@@ -226,7 +216,7 @@ function assert_less($exchange, $skipped_properties, $method, $entry, $key, $com
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
-    if ($value !== null) {
+    if ($value !== null && $compare_to !== null) {
         assert(Precise::string_lt($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be < ' . string_value($compare_to) . $log_text);
     }
 }
@@ -238,7 +228,7 @@ function assert_less_or_equal($exchange, $skipped_properties, $method, $entry, $
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
-    if ($value !== null) {
+    if ($value !== null && $compare_to !== null) {
         assert(Precise::string_le($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be <= ' . string_value($compare_to) . $log_text);
     }
 }
@@ -250,7 +240,7 @@ function assert_equal($exchange, $skipped_properties, $method, $entry, $key, $co
     }
     $log_text = log_template($exchange, $method, $entry);
     $value = $exchange->safe_string($entry, $key);
-    if ($value !== null) {
+    if ($value !== null && $compare_to !== null) {
         assert(Precise::string_eq($value, $compare_to), string_value($key) . ' key (with a value of ' . string_value($value) . ') was expected to be equal to ' . string_value($compare_to) . $log_text);
     }
 }
@@ -285,7 +275,7 @@ function assert_in_array($exchange, $skipped_properties, $method, $entry, $key, 
 function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $key) {
     $log_text = log_template($exchange, $method, $entry);
     $key_string = string_value($key);
-    if (is_integer($key)) {
+    if (is_int($key)) {
         assert(gettype($entry) === 'array' && array_keys($entry) === array_keys(array_keys($entry)), 'fee container is expected to be an array' . $log_text);
         assert($key < count($entry), 'fee key ' . $key_string . ' was expected to be present in entry' . $log_text);
     } else {
@@ -321,9 +311,10 @@ function assert_integer($exchange, $skipped_properties, $method, $entry, $key) {
     }
     $log_text = log_template($exchange, $method, $entry);
     if ($entry !== null) {
-        $value = $exchange->safe_number($entry, $key);
+        $value = $exchange->safe_value($entry, $key);
         if ($value !== null) {
-            assert(is_integer($value), '\"' . string_value($key) . '\" key (value \"' . string_value($value) . '\") is not an integer' . $log_text);
+            $is_integer = is_int($value);
+            assert($is_integer, '\"' . string_value($key) . '\" key (value \"' . string_value($value) . '\") is not an integer' . $log_text);
         }
     }
 }
