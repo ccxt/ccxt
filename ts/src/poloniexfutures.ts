@@ -1273,7 +1273,7 @@ export default class poloniexfutures extends Exchange {
         }
         const request = {};
         if (!stop) {
-            request['status'] = status === 'open' ? 'active' : 'done';
+            request['status'] = (status === 'open') ? 'active' : 'done';
         } else if (status !== 'open') {
             throw new BadRequest (this.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders');
         }
