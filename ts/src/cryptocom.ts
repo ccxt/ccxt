@@ -41,7 +41,7 @@ export default class cryptocom extends Exchange {
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': true,
+                'fetchBorrowRates': false,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
@@ -2334,39 +2334,6 @@ export default class cryptocom extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': info,
         };
-    }
-
-    async fetchBorrowRates (params = {}) {
-        /**
-         * @method
-         * @name cryptocom#fetchBorrowRates
-         * @description fetch the borrow interest rates of all currencies
-         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} a list of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
-         */
-        await this.loadMarkets ();
-        const response = await this.v2PrivatePostPrivateMarginGetUserConfig (params);
-        //
-        //     {
-        //         "id": 1656707947456,
-        //         "method": "private/margin/get-user-config",
-        //         "code": 0,
-        //         "result": {
-        //             "stake_amount": 6,
-        //             "currency_configs": [
-        //                 {
-        //                     "currency": "AGLD",
-        //                     "hourly_rate": 0.00003334,
-        //                     "max_borrow_limit": 342.4032393,
-        //                     "min_borrow_limit": 30
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'result', {});
-        const rates = this.safeValue (data, 'currency_configs', []);
-        return this.parseBorrowRates (rates, 'currency');
     }
 
     parseBorrowRates (info, codeKey) {
