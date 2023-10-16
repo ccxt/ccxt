@@ -190,6 +190,13 @@ class bingx(Exchange, ImplicitAPI):
                             },
                         },
                     },
+                    'v3': {
+                        'public': {
+                            'get': {
+                                'quote/klines': 1,
+                            },
+                        },
+                    },
                 },
                 'contract': {
                     'v1': {
@@ -609,6 +616,7 @@ class bingx(Exchange, ImplicitAPI):
                     'max': self.safe_number(market, 'maxNotional'),
                 },
             },
+            'created': None,
             'info': market,
         }
         return entry
@@ -632,12 +640,12 @@ class bingx(Exchange, ImplicitAPI):
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
         see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
+        see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns [[int]]: A list of candles ordered, open, high, low, close, volume
@@ -656,17 +664,15 @@ class bingx(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        else:
-            request['limit'] = 50
-        until = self.safe_integer_2(params, 'until', 'startTime')
+        until = self.safe_integer_2(params, 'until', 'endTime')
         if until is not None:
             params = self.omit(params, ['until'])
-            request['startTime'] = until
+            request['endTime'] = until
         response = None
         if market['spot']:
             response = self.spotV1PublicGetMarketKline(self.extend(request, params))
         else:
-            response = self.swapV2PublicGetQuoteKlines(self.extend(request, params))
+            response = self.swapV3PublicGetQuoteKlines(self.extend(request, params))
         #
         #    {
         #        "code": 0,
@@ -1141,14 +1147,16 @@ class bingx(Exchange, ImplicitAPI):
         id = self.safe_string(interest, 'symbol')
         symbol = self.safe_symbol(id, market, '-', 'swap')
         openInterest = self.safe_number(interest, 'openInterest')
-        return {
+        return self.safe_open_interest({
             'symbol': symbol,
+            'baseVolume': None,
+            'quoteVolume': None,  # deprecated
             'openInterestAmount': None,
             'openInterestValue': openInterest,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol: str, params={}):
         """

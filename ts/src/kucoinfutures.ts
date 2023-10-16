@@ -1046,7 +1046,7 @@ export default class kucoinfutures extends kucoin {
         //
         const symbol = this.safeString (position, 'symbol');
         market = this.safeMarket (symbol, market);
-        const timestamp = this.safeNumber (position, 'currentTimestamp');
+        const timestamp = this.safeInteger (position, 'currentTimestamp');
         const size = this.safeString (position, 'currentQty');
         let side = undefined;
         if (Precise.stringGt (size, '0')) {

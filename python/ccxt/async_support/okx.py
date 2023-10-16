@@ -1246,6 +1246,7 @@ class okx(Exchange, ImplicitAPI):
                 'type': type,
                 'currency': None,
                 'info': account,
+                'code': None,
             })
         return result
 
@@ -1261,7 +1262,6 @@ class okx(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(types)):
             promises.append(self.fetch_markets_by_type(types[i], params))
-        # why not both ¯\_(ツ)_/¯
         promises = await asyncio.gather(*promises)
         for i in range(0, len(promises)):
             result = self.array_concat(result, promises[i])
@@ -1388,6 +1388,7 @@ class okx(Exchange, ImplicitAPI):
             'expiryDatetime': self.iso8601(expiry),
             'strike': strikePrice,
             'optionType': optionType,
+            'created': self.safe_integer(market, 'listTime'),
             'precision': {
                 'amount': self.safe_number(market, 'lotSz'),
                 'price': self.parse_number(tickSize),
@@ -2065,6 +2066,7 @@ class okx(Exchange, ImplicitAPI):
             else:
                 response = await self.publicGetMarketMarkPriceCandles(self.extend(request, params))
         elif price == 'index':
+            request['instId'] = market['info']['instFamily']  # okx index candles require instFamily instead of instId
             if isHistoryCandles:
                 response = await self.publicGetMarketHistoryIndexCandles(self.extend(request, params))
             else:
@@ -6163,7 +6165,7 @@ class okx(Exchange, ImplicitAPI):
             baseVolume = self.safe_number(interest, 'oiCcy')
             openInterestAmount = self.safe_number(interest, 'oi')
             openInterestValue = self.safe_number(interest, 'oiCcy')
-        return {
+        return self.safe_open_interest({
             'symbol': self.safe_symbol(id),
             'baseVolume': baseVolume,  # deprecated
             'quoteVolume': quoteVolume,  # deprecated
@@ -6172,7 +6174,7 @@ class okx(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     def set_sandbox_mode(self, enable):
         super(okx, self).set_sandbox_mode(enable)

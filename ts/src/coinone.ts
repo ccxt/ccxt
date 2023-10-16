@@ -232,6 +232,7 @@ export default class coinone extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': ticker,
             });
         }

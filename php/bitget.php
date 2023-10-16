@@ -1468,6 +1468,7 @@ class bitget extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
             );
         }
         return $result;
@@ -1566,7 +1567,7 @@ class bitget extends Exchange {
         }
         $currency = $this->currency($code);
         if ($since === null) {
-            $since = $this->milliseconds() - 31556952000; // 1yr
+            $since = $this->milliseconds() - 7776000000; // 90 days
         }
         $request = array(
             'coin' => $currency['code'],
@@ -1719,7 +1720,7 @@ class bitget extends Exchange {
         }
         $currency = $this->currency($code);
         if ($since === null) {
-            $since = $this->milliseconds() - 31556952000; // 1yr
+            $since = $this->milliseconds() - 7776000000; // 90 days
         }
         $request = array(
             'coin' => $currency['code'],
@@ -3273,7 +3274,6 @@ class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
-         * @param {string} [$params->code] marginCoin unified $currency $code
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
@@ -3288,32 +3288,27 @@ class bitget extends Exchange {
         if ($sandboxMode) {
             $productType = 'S' . $productType;
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         if ($marketType === 'spot') {
             throw new NotSupported($this->id . ' cancelAllOrders () does not support spot markets');
         }
         $request = array(
             'productType' => $productType,
+            'marginCoin' => $market['settleId'],
         );
-        $method = null;
-        $stop = $this->safe_value($query, 'stop');
-        $planType = $this->safe_string($query, 'planType');
+        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $planType = $this->safe_string($params, 'planType');
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $response = null;
         if ($stop !== null || $planType !== null) {
             if ($planType === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $planType parameter for $stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan');
             }
-            $method = 'privateMixPostPlanCancelAllPlan';
+            $response = $this->privateMixPostPlanCancelAllPlan (array_merge($request, $params));
         } else {
-            $code = $this->safe_string_2($params, 'code', 'marginCoin');
-            if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $code argument [marginCoin] in the params');
-            }
-            $currency = $this->currency($code);
-            $request['marginCoin'] = $this->safe_currency_code($code, $currency);
-            $method = 'privateMixPostOrderCancelAllOrders';
+            $response = $this->privateMixPostOrderCancelAllOrders (array_merge($request, $params));
         }
-        $ommitted = $this->omit($query, array( 'stop', 'code', 'marginCoin' ));
-        $response = $this->$method (array_merge($request, $ommitted));
         //
         //     {
         //         "code" => "00000",
@@ -3829,8 +3824,15 @@ class bitget extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         if ($data !== null) {
-            $result = $this->safe_value($data, 'orderList', $data);
-            return $this->add_pagination_cursor_to_result($data, $result);
+            if (is_array($data) && array_key_exists('orderList', $data)) {
+                $orderList = $this->safe_value($data, 'orderList');
+                if (!$orderList) {
+                    return array();
+                }
+                return $this->add_pagination_cursor_to_result($data, $orderList);
+            } else {
+                return $this->add_pagination_cursor_to_result($response, $data);
+            }
         }
         $parsedData = json_decode($response, $as_associative_array = true);
         return $this->safe_value($parsedData, 'data', array());
@@ -3987,10 +3989,16 @@ class bitget extends Exchange {
         if ($market['spot']) {
             $response = $this->privateSpotPostTradeFills (array_merge($request, $params));
         } else {
+            $orderId = $this->safe_string($params, 'orderId'); // when order id is not defined, startTime and endTime are required
             if ($since !== null) {
                 $request['startTime'] = $since;
+            } elseif ($orderId === null) {
+                $request['startTime'] = 0;
             }
             list($request, $params) = $this->handle_until_option('endTime', $params, $request);
+            if (!(is_array($request) && array_key_exists('endTime', $request)) && ($orderId === null)) {
+                $request['endTime'] = $this->milliseconds();
+            }
             $response = $this->privateMixGetOrderFills (array_merge($request, $params));
         }
         //
@@ -4002,7 +4010,7 @@ class bitget extends Exchange {
         //         {
         //           accountId => '6394957606',
         //           $symbol => 'LTCUSDT_SPBL',
-        //           orderId => '864752115272552448',
+        //           $orderId => '864752115272552448',
         //           fillId => '864752115685969921',
         //           orderType => 'limit',
         //           side => 'buy',
@@ -5106,14 +5114,14 @@ class bitget extends Exchange {
         $id = $this->safe_string($interest, 'symbol');
         $symbol = $this->safe_symbol($id, $market);
         $amount = $this->safe_number($interest, 'amount');
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $symbol,
             'openInterestAmount' => $amount,
             'openInterestValue' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

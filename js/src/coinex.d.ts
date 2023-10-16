@@ -158,7 +158,7 @@ export default class coinex extends Exchange {
         };
     }>;
     parseTransactionStatus(status: any): string;
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<FundingRateHistory[]>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;

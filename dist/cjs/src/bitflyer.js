@@ -292,6 +292,7 @@ class bitflyer extends bitflyer$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

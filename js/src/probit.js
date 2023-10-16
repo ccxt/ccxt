@@ -1493,6 +1493,9 @@ export default class probit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        else {
+            request['limit'] = 100;
+        }
         const response = await this.privateGetTransferPayment(this.extend(request, params));
         //
         //     {

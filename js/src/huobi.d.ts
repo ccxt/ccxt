@@ -269,7 +269,7 @@ export default class huobi extends Exchange {
     };
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
-    fetchPosition(symbol: string, params?: {}): Promise<any>;
+    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: any): {
         id: string;
@@ -292,18 +292,9 @@ export default class huobi extends Exchange {
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any>;
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
-    fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchOpenInterest(symbol: string, params?: {}): Promise<any>;
-    parseOpenInterest(interest: any, market?: any): {
-        symbol: string;
-        baseVolume: number;
-        quoteVolume: number;
-        openInterestAmount: number;
-        openInterestValue: number;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    };
+    fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OpenInterest[]>;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
+    parseOpenInterest(interest: any, market?: any): import("./base/types.js").OpenInterest;
     borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
     repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: any): {
@@ -323,6 +314,18 @@ export default class huobi extends Exchange {
         info: any;
         symbol: any;
         price: number;
+        timestamp: number;
+        datetime: string;
+    };
+    fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
+    parseLiquidation(liquidation: any, market?: any): {
+        info: any;
+        symbol: any;
+        contracts: number;
+        contractSize: number;
+        price: number;
+        baseValue: number;
+        quoteValue: number;
         timestamp: number;
         datetime: string;
     };

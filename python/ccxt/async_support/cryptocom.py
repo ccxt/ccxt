@@ -2775,7 +2775,7 @@ class cryptocom(Exchange, ImplicitAPI):
             marketId = self.safe_string(entry, 'instrument_name')
             marketInner = self.safe_market(marketId, None, None, 'contract')
             result.append(self.parse_position(entry, marketInner))
-        return self.filter_by_array(result, 'symbol', None, False)
+        return self.filter_by_array_positions(result, 'symbol', None, False)
 
     def parse_position(self, position, market=None):
         #

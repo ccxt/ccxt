@@ -505,6 +505,7 @@ class bitstamp extends bitstamp$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

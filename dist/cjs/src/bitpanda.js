@@ -430,6 +430,7 @@ class bitpanda extends bitpanda$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

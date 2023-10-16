@@ -57,8 +57,10 @@ class bitmart extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchLiquidations' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
+                'fetchMyLiquidations' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -3603,14 +3605,14 @@ class bitmart extends Exchange {
         //
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $id = $this->safe_string($interest, 'symbol');
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($id, $market),
             'openInterestAmount' => $this->safe_number($interest, 'open_interest'),
             'openInterestValue' => $this->safe_number($interest, 'open_interest_value'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
@@ -3877,6 +3879,107 @@ class bitmart extends Exchange {
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
         ));
+    }
+
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * retrieves the users liquidated positions
+         * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch liquidations for
+         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+         * @param {array} [$params] exchange specific parameters for the bitmart api endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest liquidation
+         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+         */
+        $this->check_required_symbol('fetchMyLiquidations', $symbol);
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new NotSupported($this->id . ' fetchMyLiquidations() supports swap markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($since !== null) {
+            $request['start_time'] = $since;
+        }
+        list($request, $params) = $this->handle_until_option('end_time', $request, $params);
+        $response = $this->privateGetContractPrivateOrderHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "Ok",
+        //         "data" => array(
+        //             array(
+        //                 "order_id" => "231007865458273",
+        //                 "client_order_id" => "",
+        //                 "price" => "27407.9",
+        //                 "size" => "1",
+        //                 "symbol" => "BTCUSDT",
+        //                 "state" => 4,
+        //                 "side" => 3,
+        //                 "type" => "liquidate",
+        //                 "leverage" => "10",
+        //                 "open_type" => "isolated",
+        //                 "deal_avg_price" => "27422.6",
+        //                 "deal_size" => "1",
+        //                 "create_time" => 1696405864011,
+        //                 "update_time" => 1696405864045
+        //             ),
+        //         ),
+        //         "trace" => "4cad855074664097ac6ba4257c47305d.71.16965658195443021"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $checkLiquidation = $this->safe_string($entry, 'type');
+            if ($checkLiquidation === 'liquidate') {
+                $result[] = $entry;
+            }
+        }
+        return $this->parse_liquidations($result, $market, $since, $limit);
+    }
+
+    public function parse_liquidation($liquidation, $market = null) {
+        //
+        //     {
+        //         "order_id" => "231007865458273",
+        //         "client_order_id" => "",
+        //         "price" => "27407.9",
+        //         "size" => "1",
+        //         "symbol" => "BTCUSDT",
+        //         "state" => 4,
+        //         "side" => 3,
+        //         "type" => "market",
+        //         "leverage" => "10",
+        //         "open_type" => "isolated",
+        //         "deal_avg_price" => "27422.6",
+        //         "deal_size" => "1",
+        //         "create_time" => 1696405864011,
+        //         "update_time" => 1696405864045
+        //     }
+        //
+        $marketId = $this->safe_string($liquidation, 'symbol');
+        $timestamp = $this->safe_integer($liquidation, 'update_time');
+        $contractsString = $this->safe_string($liquidation, 'deal_size');
+        $contractSizeString = $this->safe_string($market, 'contractSize');
+        $priceString = $this->safe_string($liquidation, 'deal_avg_price');
+        $baseValueString = Precise::string_mul($contractsString, $contractSizeString);
+        $quoteValueString = Precise::string_mul($baseValueString, $priceString);
+        return array(
+            'info' => $liquidation,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'contracts' => $this->parse_number($contractsString),
+            'contractSize' => $this->parse_number($contractSizeString),
+            'price' => $this->parse_number($priceString),
+            'baseValue' => $this->parse_number($baseValueString),
+            'quoteValue' => $this->parse_number($quoteValueString),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function nonce() {

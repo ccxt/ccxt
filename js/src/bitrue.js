@@ -699,6 +699,7 @@ export default class bitrue extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push(entry);

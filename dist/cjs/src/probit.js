@@ -1496,6 +1496,9 @@ class probit extends probit$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        else {
+            request['limit'] = 100;
+        }
         const response = await this.privateGetTransferPayment(this.extend(request, params));
         //
         //     {

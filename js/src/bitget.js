@@ -1471,6 +1471,7 @@ export default class bitget extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
             };
         }
         return result;
@@ -1570,7 +1571,7 @@ export default class bitget extends Exchange {
         }
         const currency = this.currency(code);
         if (since === undefined) {
-            since = this.milliseconds() - 31556952000; // 1yr
+            since = this.milliseconds() - 7776000000; // 90 days
         }
         let request = {
             'coin': currency['code'],
@@ -1726,7 +1727,7 @@ export default class bitget extends Exchange {
         }
         const currency = this.currency(code);
         if (since === undefined) {
-            since = this.milliseconds() - 31556952000; // 1yr
+            since = this.milliseconds() - 7776000000; // 90 days
         }
         let request = {
             'coin': currency['code'],
@@ -3318,7 +3319,6 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @param {string} [params.code] marginCoin unified currency code
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
@@ -3333,33 +3333,28 @@ export default class bitget extends Exchange {
         if (sandboxMode) {
             productType = 'S' + productType;
         }
-        const [marketType, query] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         if (marketType === 'spot') {
             throw new NotSupported(this.id + ' cancelAllOrders () does not support spot markets');
         }
         const request = {
             'productType': productType,
+            'marginCoin': market['settleId'],
         };
-        let method = undefined;
-        const stop = this.safeValue(query, 'stop');
-        const planType = this.safeString(query, 'planType');
+        const stop = this.safeValue2(params, 'stop', 'trigger');
+        const planType = this.safeString(params, 'planType');
+        params = this.omit(params, ['stop', 'trigger']);
+        let response = undefined;
         if (stop !== undefined || planType !== undefined) {
             if (planType === undefined) {
                 throw new ArgumentsRequired(this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan');
             }
-            method = 'privateMixPostPlanCancelAllPlan';
+            response = await this.privateMixPostPlanCancelAllPlan(this.extend(request, params));
         }
         else {
-            const code = this.safeString2(params, 'code', 'marginCoin');
-            if (code === undefined) {
-                throw new ArgumentsRequired(this.id + ' cancelAllOrders () requires a code argument [marginCoin] in the params');
-            }
-            const currency = this.currency(code);
-            request['marginCoin'] = this.safeCurrencyCode(code, currency);
-            method = 'privateMixPostOrderCancelAllOrders';
+            response = await this.privateMixPostOrderCancelAllOrders(this.extend(request, params));
         }
-        const ommitted = this.omit(query, ['stop', 'code', 'marginCoin']);
-        const response = await this[method](this.extend(request, ommitted));
         //
         //     {
         //         "code": "00000",
@@ -3885,8 +3880,16 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue(response, 'data');
         if (data !== undefined) {
-            const result = this.safeValue(data, 'orderList', data);
-            return this.addPaginationCursorToResult(data, result);
+            if ('orderList' in data) {
+                const orderList = this.safeValue(data, 'orderList');
+                if (!orderList) {
+                    return [];
+                }
+                return this.addPaginationCursorToResult(data, orderList);
+            }
+            else {
+                return this.addPaginationCursorToResult(response, data);
+            }
         }
         const parsedData = JSON.parse(response);
         return this.safeValue(parsedData, 'data', []);
@@ -4045,10 +4048,17 @@ export default class bitget extends Exchange {
             response = await this.privateSpotPostTradeFills(this.extend(request, params));
         }
         else {
+            const orderId = this.safeString(params, 'orderId'); // when order id is not defined, startTime and endTime are required
             if (since !== undefined) {
                 request['startTime'] = since;
             }
+            else if (orderId === undefined) {
+                request['startTime'] = 0;
+            }
             [request, params] = this.handleUntilOption('endTime', params, request);
+            if (!('endTime' in request) && (orderId === undefined)) {
+                request['endTime'] = this.milliseconds();
+            }
             response = await this.privateMixGetOrderFills(this.extend(request, params));
         }
         //
@@ -5176,14 +5186,14 @@ export default class bitget extends Exchange {
         const id = this.safeString(interest, 'symbol');
         const symbol = this.safeSymbol(id, market);
         const amount = this.safeNumber(interest, 'amount');
-        return {
+        return this.safeOpenInterest({
             'symbol': symbol,
             'openInterestAmount': amount,
             'openInterestValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {

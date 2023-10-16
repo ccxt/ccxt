@@ -62,8 +62,10 @@ export default class bitmart extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchLiquidations': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
+                'fetchMyLiquidations': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -3680,14 +3682,14 @@ export default class bitmart extends Exchange {
         //
         const timestamp = this.safeInteger (interest, 'timestamp');
         const id = this.safeString (interest, 'symbol');
-        return {
+        return this.safeOpenInterest ({
             'symbol': this.safeSymbol (id, market),
             'openInterestAmount': this.safeNumber (interest, 'open_interest'),
             'openInterestValue': this.safeNumber (interest, 'open_interest_value'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        };
+        }, market);
     }
 
     async setLeverage (leverage, symbol: string = undefined, params = {}) {
@@ -3962,6 +3964,109 @@ export default class bitmart extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+
+    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchMyLiquidations
+         * @description retrieves the users liquidated positions
+         * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmart api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        this.checkRequiredSymbol ('fetchMyLiquidations', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new NotSupported (this.id + ' fetchMyLiquidations() supports swap markets only');
+        }
+        let request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
+        const response = await this.privateGetContractPrivateOrderHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": [
+        //             {
+        //                 "order_id": "231007865458273",
+        //                 "client_order_id": "",
+        //                 "price": "27407.9",
+        //                 "size": "1",
+        //                 "symbol": "BTCUSDT",
+        //                 "state": 4,
+        //                 "side": 3,
+        //                 "type": "liquidate",
+        //                 "leverage": "10",
+        //                 "open_type": "isolated",
+        //                 "deal_avg_price": "27422.6",
+        //                 "deal_size": "1",
+        //                 "create_time": 1696405864011,
+        //                 "update_time": 1696405864045
+        //             },
+        //         ],
+        //         "trace": "4cad855074664097ac6ba4257c47305d.71.16965658195443021"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const checkLiquidation = this.safeString (entry, 'type');
+            if (checkLiquidation === 'liquidate') {
+                result.push (entry);
+            }
+        }
+        return this.parseLiquidations (result, market, since, limit);
+    }
+
+    parseLiquidation (liquidation, market = undefined) {
+        //
+        //     {
+        //         "order_id": "231007865458273",
+        //         "client_order_id": "",
+        //         "price": "27407.9",
+        //         "size": "1",
+        //         "symbol": "BTCUSDT",
+        //         "state": 4,
+        //         "side": 3,
+        //         "type": "market",
+        //         "leverage": "10",
+        //         "open_type": "isolated",
+        //         "deal_avg_price": "27422.6",
+        //         "deal_size": "1",
+        //         "create_time": 1696405864011,
+        //         "update_time": 1696405864045
+        //     }
+        //
+        const marketId = this.safeString (liquidation, 'symbol');
+        const timestamp = this.safeInteger (liquidation, 'update_time');
+        const contractsString = this.safeString (liquidation, 'deal_size');
+        const contractSizeString = this.safeString (market, 'contractSize');
+        const priceString = this.safeString (liquidation, 'deal_avg_price');
+        const baseValueString = Precise.stringMul (contractsString, contractSizeString);
+        const quoteValueString = Precise.stringMul (baseValueString, priceString);
+        return {
+            'info': liquidation,
+            'symbol': this.safeSymbol (marketId, market),
+            'contracts': this.parseNumber (contractsString),
+            'contractSize': this.parseNumber (contractSizeString),
+            'price': this.parseNumber (priceString),
+            'baseValue': this.parseNumber (baseValueString),
+            'quoteValue': this.parseNumber (quoteValueString),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 
     nonce () {

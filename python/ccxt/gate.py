@@ -125,10 +125,12 @@ class gate(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
+                'fetchLiquidations': True,
                 'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMyLiquidations': True,
                 'fetchMySettlementHistory': True,
                 'fetchMyTrades': True,
                 'fetchNetworkDepositAddress': True,
@@ -5980,6 +5982,178 @@ class gate(Exchange, ImplicitAPI):
             if name is not None:
                 underlyings.append(name)
         return underlyings
+
+    def fetch_liquidations(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        retrieves the public liquidations of a trading pair
+        see https://www.gate.io/docs/developers/apiv4/en/#retrieve-liquidation-history
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the gate api endpoint
+        :param int [params.until]: timestamp in ms of the latest liquidation
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' fetchLiquidations() supports swap markets only')
+        request = {
+            'settle': market['settleId'],
+            'contract': market['id'],
+        }
+        if since is not None:
+            request['from'] = since
+        if limit is not None:
+            request['limit'] = limit
+        request, params = self.handle_until_option('to', request, params)
+        response = self.publicFuturesGetSettleLiqOrders(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "contract": "BTC_USDT",
+        #             "left": 0,
+        #             "size": -165,
+        #             "fill_price": "28070",
+        #             "order_price": "28225",
+        #             "time": 1696736132
+        #         },
+        #     ]
+        #
+        return self.parse_liquidations(response, market, since, limit)
+
+    def fetch_my_liquidations(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        retrieves the users liquidated positions
+        see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history
+        see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history-2
+        see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the gate api endpoint
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        self.check_required_symbol('fetchMyLiquidations', symbol)
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'contract': market['id'],
+        }
+        response = None
+        if (market['swap']) or (market['future']):
+            if limit is not None:
+                request['limit'] = limit
+            request['settle'] = market['settleId']
+        elif market['option']:
+            marketId = market['id']
+            optionParts = marketId.split('-')
+            request['underlying'] = self.safe_string(optionParts, 0)
+        if market['swap']:
+            response = self.privateFuturesGetSettleLiquidates(self.extend(request, params))
+        elif market['future']:
+            response = self.privateDeliveryGetSettleLiquidates(self.extend(request, params))
+        elif market['option']:
+            response = self.privateOptionsGetPositionClose(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' orders')
+        #
+        # swap and future
+        #
+        #     [
+        #         {
+        #             "time": 1548654951,
+        #             "contract": "BTC_USDT",
+        #             "size": 600,
+        #             "leverage": "25",
+        #             "margin": "0.006705256878",
+        #             "entry_price": "3536.123",
+        #             "liq_price": "3421.54",
+        #             "mark_price": "3420.27",
+        #             "order_id": 317393847,
+        #             "order_price": "3405",
+        #             "fill_price": "3424",
+        #             "left": 0
+        #         }
+        #     ]
+        #
+        # option
+        #
+        #     [
+        #         {
+        #             "time": 1631764800,
+        #             "pnl": "-42914.291",
+        #             "settle_size": "-10001",
+        #             "side": "short",
+        #             "contract": "BTC_USDT-20210916-5000-C",
+        #             "text": "settled"
+        #         }
+        #     ]
+        #
+        return self.parse_liquidations(response, market, since, limit)
+
+    def parse_liquidation(self, liquidation, market=None):
+        #
+        # fetchLiquidations
+        #
+        #     {
+        #         "contract": "BTC_USDT",
+        #         "left": 0,
+        #         "size": -165,
+        #         "fill_price": "28070",
+        #         "order_price": "28225",
+        #         "time": 1696736132
+        #     }
+        #
+        # swap and future: fetchMyLiquidations
+        #
+        #     {
+        #         "time": 1548654951,
+        #         "contract": "BTC_USDT",
+        #         "size": 600,
+        #         "leverage": "25",
+        #         "margin": "0.006705256878",
+        #         "entry_price": "3536.123",
+        #         "liq_price": "3421.54",
+        #         "mark_price": "3420.27",
+        #         "order_id": 317393847,
+        #         "order_price": "3405",
+        #         "fill_price": "3424",
+        #         "left": 0
+        #     }
+        #
+        # option: fetchMyLiquidations
+        #
+        #     {
+        #         "time": 1631764800,
+        #         "pnl": "-42914.291",
+        #         "settle_size": "-10001",
+        #         "side": "short",
+        #         "contract": "BTC_USDT-20210916-5000-C",
+        #         "text": "settled"
+        #     }
+        #
+        marketId = self.safe_string(liquidation, 'contract')
+        timestamp = self.safe_timestamp(liquidation, 'time')
+        contractsStringRaw = self.safe_string_2(liquidation, 'size', 'settle_size')
+        contractsString = Precise.string_abs(contractsStringRaw)
+        contractSizeString = self.safe_string(market, 'contractSize')
+        priceString = self.safe_string_2(liquidation, 'liq_price', 'fill_price')
+        baseValueString = Precise.string_mul(contractsString, contractSizeString)
+        quoteValueString = self.safe_string(liquidation, 'pnl')
+        if quoteValueString is None:
+            quoteValueString = Precise.string_mul(baseValueString, priceString)
+        return {
+            'info': liquidation,
+            'symbol': self.safe_symbol(marketId, market),
+            'contracts': self.parse_number(contractsString),
+            'contractSize': self.parse_number(contractSizeString),
+            'price': self.parse_number(priceString),
+            'baseValue': self.parse_number(baseValueString),
+            'quoteValue': self.parse_number(Precise.string_abs(quoteValueString)),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

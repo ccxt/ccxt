@@ -79,8 +79,10 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchLiquidations': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
+                'fetchMyLiquidations': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
@@ -3454,14 +3456,14 @@ class bitmart(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(interest, 'timestamp')
         id = self.safe_string(interest, 'symbol')
-        return {
+        return self.safe_open_interest({
             'symbol': self.safe_symbol(id, market),
             'openInterestAmount': self.safe_number(interest, 'open_interest'),
             'openInterestValue': self.safe_number(interest, 'open_interest_value'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
@@ -3717,6 +3719,101 @@ class bitmart(Exchange, ImplicitAPI):
             'stopLossPrice': None,
             'takeProfitPrice': None,
         })
+
+    async def fetch_my_liquidations(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        retrieves the users liquidated positions
+        see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the bitmart api endpoint
+        :param int [params.until]: timestamp in ms of the latest liquidation
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        self.check_required_symbol('fetchMyLiquidations', symbol)
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' fetchMyLiquidations() supports swap markets only')
+        request = {
+            'symbol': market['id'],
+        }
+        if since is not None:
+            request['start_time'] = since
+        request, params = self.handle_until_option('end_time', request, params)
+        response = await self.privateGetContractPrivateOrderHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": [
+        #             {
+        #                 "order_id": "231007865458273",
+        #                 "client_order_id": "",
+        #                 "price": "27407.9",
+        #                 "size": "1",
+        #                 "symbol": "BTCUSDT",
+        #                 "state": 4,
+        #                 "side": 3,
+        #                 "type": "liquidate",
+        #                 "leverage": "10",
+        #                 "open_type": "isolated",
+        #                 "deal_avg_price": "27422.6",
+        #                 "deal_size": "1",
+        #                 "create_time": 1696405864011,
+        #                 "update_time": 1696405864045
+        #             },
+        #         ],
+        #         "trace": "4cad855074664097ac6ba4257c47305d.71.16965658195443021"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            checkLiquidation = self.safe_string(entry, 'type')
+            if checkLiquidation == 'liquidate':
+                result.append(entry)
+        return self.parse_liquidations(result, market, since, limit)
+
+    def parse_liquidation(self, liquidation, market=None):
+        #
+        #     {
+        #         "order_id": "231007865458273",
+        #         "client_order_id": "",
+        #         "price": "27407.9",
+        #         "size": "1",
+        #         "symbol": "BTCUSDT",
+        #         "state": 4,
+        #         "side": 3,
+        #         "type": "market",
+        #         "leverage": "10",
+        #         "open_type": "isolated",
+        #         "deal_avg_price": "27422.6",
+        #         "deal_size": "1",
+        #         "create_time": 1696405864011,
+        #         "update_time": 1696405864045
+        #     }
+        #
+        marketId = self.safe_string(liquidation, 'symbol')
+        timestamp = self.safe_integer(liquidation, 'update_time')
+        contractsString = self.safe_string(liquidation, 'deal_size')
+        contractSizeString = self.safe_string(market, 'contractSize')
+        priceString = self.safe_string(liquidation, 'deal_avg_price')
+        baseValueString = Precise.string_mul(contractsString, contractSizeString)
+        quoteValueString = Precise.string_mul(baseValueString, priceString)
+        return {
+            'info': liquidation,
+            'symbol': self.safe_symbol(marketId, market),
+            'contracts': self.parse_number(contractsString),
+            'contractSize': self.parse_number(contractSizeString),
+            'price': self.parse_number(priceString),
+            'baseValue': self.parse_number(baseValueString),
+            'quoteValue': self.parse_number(quoteValueString),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
 
     def nonce(self):
         return self.milliseconds()

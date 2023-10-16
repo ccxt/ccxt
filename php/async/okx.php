@@ -1250,6 +1250,7 @@ class okx extends Exchange {
                     'type' => $type,
                     'currency' => null,
                     'info' => $account,
+                    'code' => null,
                 );
             }
             return $result;
@@ -1270,7 +1271,6 @@ class okx extends Exchange {
             for ($i = 0; $i < count($types); $i++) {
                 $promises[] = $this->fetch_markets_by_type($types[$i], $params);
             }
-            // why not both ¯\_(ツ)_/¯
             $promises = Async\await(Promise\all($promises));
             for ($i = 0; $i < count($promises); $i++) {
                 $result = $this->array_concat($result, $promises[$i]);
@@ -1406,6 +1406,7 @@ class okx extends Exchange {
             'expiryDatetime' => $this->iso8601($expiry),
             'strike' => $strikePrice,
             'optionType' => $optionType,
+            'created' => $this->safe_integer($market, 'listTime'),
             'precision' => array(
                 'amount' => $this->safe_number($market, 'lotSz'),
                 'price' => $this->parse_number($tickSize),
@@ -2135,6 +2136,7 @@ class okx extends Exchange {
                     $response = Async\await($this->publicGetMarketMarkPriceCandles (array_merge($request, $params)));
                 }
             } elseif ($price === 'index') {
+                $request['instId'] = $market['info']['instFamily']; // okx index candles require instFamily instead of instId
                 if ($isHistoryCandles) {
                     $response = Async\await($this->publicGetMarketHistoryIndexCandles (array_merge($request, $params)));
                 } else {
@@ -6613,7 +6615,7 @@ class okx extends Exchange {
             $openInterestAmount = $this->safe_number($interest, 'oi');
             $openInterestValue = $this->safe_number($interest, 'oiCcy');
         }
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($id),
             'baseVolume' => $baseVolume,  // deprecated
             'quoteVolume' => $quoteVolume,  // deprecated
@@ -6622,7 +6624,7 @@ class okx extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function set_sandbox_mode($enable) {

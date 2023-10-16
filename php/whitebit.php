@@ -54,6 +54,7 @@ class whitebit extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
@@ -278,13 +279,14 @@ class whitebit extends Exchange {
         //          "stockPrec" => "3",          // Stock currency precision
         //          "moneyPrec" => "2",          // Precision of money currency
         //          "feePrec" => "4",            // Fee precision
-        //          "makerFee" => "0.001",       // Default maker fee ratio
-        //          "takerFee" => "0.001",       // Default taker fee ratio
+        //          "makerFee" => "0.1",         // Default $maker fee ratio
+        //          "takerFee" => "0.1",         // Default $taker fee ratio
         //          "minAmount" => "0.001",      // Minimal amount of stock to trade
         //          "minTotal" => "0.001",       // Minimal amount of money to trade
         //          "tradesEnabled" => true,     // Is trading enabled
         //          "isCollateral" => true,      // Is $margin trading enabled
-        //          "type" => "spot"             // Market $type-> Possible values => "spot", "futures"
+        //          "type" => "spot",            // Market $type-> Possible values => "spot", "futures"
+        //          "maxTotal" => "1000000000"   // Maximum total(amount * price) of money to trade
         //        ),
         //        {
         //          ...
@@ -325,6 +327,10 @@ class whitebit extends Exchange {
             } else {
                 $type = 'spot';
             }
+            $takerFeeRate = $this->safe_string($market, 'takerFee');
+            $taker = Precise::string_div($takerFeeRate, '100');
+            $makerFeeRate = $this->safe_string($market, 'makerFee');
+            $maker = Precise::string_div($makerFeeRate, '100');
             $entry = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -344,8 +350,8 @@ class whitebit extends Exchange {
                 'contract' => $contract,
                 'linear' => $linear,
                 'inverse' => $inverse,
-                'taker' => $this->safe_number($market, 'makerFee'),
-                'maker' => $this->safe_number($market, 'takerFee'),
+                'taker' => $this->parse_number($taker),
+                'maker' => $this->parse_number($maker),
                 'contractSize' => $contractSize,
                 'expiry' => null,
                 'expiryDatetime' => null,
@@ -370,7 +376,7 @@ class whitebit extends Exchange {
                     ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'minTotal'),
-                        'max' => null,
+                        'max' => $this->safe_number($market, 'maxTotal'),
                     ),
                 ),
                 'info' => $market,
@@ -808,6 +814,7 @@ class whitebit extends Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://whitebit-exchange.github.io/api-docs/public/http-v4/#orderbook
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -820,7 +827,7 @@ class whitebit extends Exchange {
             'market' => $market['id'],
         );
         if ($limit !== null) {
-            $request['depth'] = $limit; // default = 50, maximum = 100
+            $request['limit'] = $limit; // default = 100, maximum = 100
         }
         $response = $this->v4PublicGetOrderbookMarket (array_merge($request, $params));
         //
@@ -842,7 +849,7 @@ class whitebit extends Exchange {
         //          )
         //      }
         //
-        $timestamp = $this->parse_to_int(Precise::string_mul($this->safe_string($response, 'timestamp'), '1000'));
+        $timestamp = $this->safe_integer_product($response, 'timestamp', 1000);
         return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
@@ -1051,10 +1058,7 @@ class whitebit extends Exchange {
             }
             $limit = min ($limit, $maxLimit);
             $start = $this->parse_to_int($since / 1000);
-            $duration = $this->parse_timeframe($timeframe);
-            $end = $this->sum($start, $duration * $limit);
             $request['start'] = $start;
-            $request['end'] = $end;
         }
         if ($limit !== null) {
             $request['limit'] = min ($limit, 1440);

@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import { Market, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory } from './base/types.js';
+import { Market, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation } from './base/types.js';
 /**
  * @class binance
  * @extends Exchange
@@ -71,6 +71,7 @@ export default class binance extends Exchange {
             };
         };
         info: any;
+        created: number;
     };
     parseBalanceHelper(entry: any): import("./base/types.js").Balance;
     parseBalanceCustom(response: any, type?: any, marginMode?: any): Balances;
@@ -493,16 +494,19 @@ export default class binance extends Exchange {
         datetime: any;
         info: any;
     };
-    fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchOpenInterest(symbol: string, params?: {}): Promise<any>;
-    parseOpenInterest(interest: any, market?: any): {
+    fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
+    parseOpenInterest(interest: any, market?: any): OpenInterest;
+    fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    parseLiquidation(liquidation: any, market?: any): {
+        info: any;
         symbol: any;
-        baseVolume: number;
-        quoteVolume: number;
-        openInterestAmount: number;
-        openInterestValue: number;
+        contracts: number;
+        contractSize: number;
+        price: number;
+        baseValue: number;
+        quoteValue: number;
         timestamp: number;
         datetime: string;
-        info: any;
     };
 }

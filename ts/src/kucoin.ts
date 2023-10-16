@@ -1203,6 +1203,7 @@ export default class kucoin extends Exchange {
                 'id': accountId,
                 'type': type,
                 'currency': code,
+                'code': code,
                 'info': account,
             });
         }

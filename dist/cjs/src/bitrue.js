@@ -702,6 +702,7 @@ class bitrue extends bitrue$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push(entry);

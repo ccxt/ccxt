@@ -573,6 +573,7 @@ class bitfinex2 extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null, // todo => the api needs revision for extra $params & endpoints for possibility of returning a timestamp for this
                 'info' => $market,
             );
         }

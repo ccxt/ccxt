@@ -113,10 +113,12 @@ class gate extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
+                'fetchLiquidations' => true,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMyLiquidations' => true,
                 'fetchMySettlementHistory' => true,
                 'fetchMyTrades' => true,
                 'fetchNetworkDepositAddress' => true,
@@ -6383,6 +6385,192 @@ class gate extends Exchange {
             }
             return $underlyings;
         }) ();
+    }
+
+    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * retrieves the public liquidations of a trading pair
+             * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-liquidation-history
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the gate api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest liquidation
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new NotSupported($this->id . ' fetchLiquidations() supports swap markets only');
+            }
+            $request = array(
+                'settle' => $market['settleId'],
+                'contract' => $market['id'],
+            );
+            if ($since !== null) {
+                $request['from'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            list($request, $params) = $this->handle_until_option('to', $request, $params);
+            $response = Async\await($this->publicFuturesGetSettleLiqOrders (array_merge($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "contract" => "BTC_USDT",
+            //             "left" => 0,
+            //             "size" => -165,
+            //             "fill_price" => "28070",
+            //             "order_price" => "28225",
+            //             "time" => 1696736132
+            //         ),
+            //     )
+            //
+            return $this->parse_liquidations($response, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * retrieves the users liquidated positions
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history-2
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the gate api endpoint
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            $this->check_required_symbol('fetchMyLiquidations', $symbol);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'contract' => $market['id'],
+            );
+            $response = null;
+            if (($market['swap']) || ($market['future'])) {
+                if ($limit !== null) {
+                    $request['limit'] = $limit;
+                }
+                $request['settle'] = $market['settleId'];
+            } elseif ($market['option']) {
+                $marketId = $market['id'];
+                $optionParts = explode('-', $marketId);
+                $request['underlying'] = $this->safe_string($optionParts, 0);
+            }
+            if ($market['swap']) {
+                $response = Async\await($this->privateFuturesGetSettleLiquidates (array_merge($request, $params)));
+            } elseif ($market['future']) {
+                $response = Async\await($this->privateDeliveryGetSettleLiquidates (array_merge($request, $params)));
+            } elseif ($market['option']) {
+                $response = Async\await($this->privateOptionsGetPositionClose (array_merge($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' orders');
+            }
+            //
+            // swap and future
+            //
+            //     array(
+            //         {
+            //             "time" => 1548654951,
+            //             "contract" => "BTC_USDT",
+            //             "size" => 600,
+            //             "leverage" => "25",
+            //             "margin" => "0.006705256878",
+            //             "entry_price" => "3536.123",
+            //             "liq_price" => "3421.54",
+            //             "mark_price" => "3420.27",
+            //             "order_id" => 317393847,
+            //             "order_price" => "3405",
+            //             "fill_price" => "3424",
+            //             "left" => 0
+            //         }
+            //     )
+            //
+            // option
+            //
+            //     array(
+            //         {
+            //             "time" => 1631764800,
+            //             "pnl" => "-42914.291",
+            //             "settle_size" => "-10001",
+            //             "side" => "short",
+            //             "contract" => "BTC_USDT-20210916-5000-C",
+            //             "text" => "settled"
+            //         }
+            //     )
+            //
+            return $this->parse_liquidations($response, $market, $since, $limit);
+        }) ();
+    }
+
+    public function parse_liquidation($liquidation, $market = null) {
+        //
+        // fetchLiquidations
+        //
+        //     {
+        //         "contract" => "BTC_USDT",
+        //         "left" => 0,
+        //         "size" => -165,
+        //         "fill_price" => "28070",
+        //         "order_price" => "28225",
+        //         "time" => 1696736132
+        //     }
+        //
+        // swap and future => fetchMyLiquidations
+        //
+        //     {
+        //         "time" => 1548654951,
+        //         "contract" => "BTC_USDT",
+        //         "size" => 600,
+        //         "leverage" => "25",
+        //         "margin" => "0.006705256878",
+        //         "entry_price" => "3536.123",
+        //         "liq_price" => "3421.54",
+        //         "mark_price" => "3420.27",
+        //         "order_id" => 317393847,
+        //         "order_price" => "3405",
+        //         "fill_price" => "3424",
+        //         "left" => 0
+        //     }
+        //
+        // option => fetchMyLiquidations
+        //
+        //     {
+        //         "time" => 1631764800,
+        //         "pnl" => "-42914.291",
+        //         "settle_size" => "-10001",
+        //         "side" => "short",
+        //         "contract" => "BTC_USDT-20210916-5000-C",
+        //         "text" => "settled"
+        //     }
+        //
+        $marketId = $this->safe_string($liquidation, 'contract');
+        $timestamp = $this->safe_timestamp($liquidation, 'time');
+        $contractsStringRaw = $this->safe_string_2($liquidation, 'size', 'settle_size');
+        $contractsString = Precise::string_abs($contractsStringRaw);
+        $contractSizeString = $this->safe_string($market, 'contractSize');
+        $priceString = $this->safe_string_2($liquidation, 'liq_price', 'fill_price');
+        $baseValueString = Precise::string_mul($contractsString, $contractSizeString);
+        $quoteValueString = $this->safe_string($liquidation, 'pnl');
+        if ($quoteValueString === null) {
+            $quoteValueString = Precise::string_mul($baseValueString, $priceString);
+        }
+        return array(
+            'info' => $liquidation,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'contracts' => $this->parse_number($contractsString),
+            'contractSize' => $this->parse_number($contractSizeString),
+            'price' => $this->parse_number($priceString),
+            'baseValue' => $this->parse_number($baseValueString),
+            'quoteValue' => $this->parse_number(Precise::string_abs($quoteValueString)),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

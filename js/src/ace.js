@@ -239,6 +239,7 @@ export default class ace extends Exchange {
                     'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
                 },
                 'active': undefined,
+                'created': undefined,
                 'info': market,
             });
         }

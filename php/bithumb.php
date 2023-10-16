@@ -256,6 +256,7 @@ class bithumb extends Exchange {
                         ),
                         'cost' => array(), // set via options
                     ),
+                    'created' => null,
                     'info' => $market,
                 ), $extension);
                 $result[] = $entry;

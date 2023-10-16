@@ -658,6 +658,7 @@ export default class bitfinex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

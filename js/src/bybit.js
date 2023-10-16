@@ -1747,6 +1747,7 @@ export default class bybit extends Exchange {
                         'max': this.safeNumber(lotSizeFilter, 'maxOrderAmt'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1921,6 +1922,7 @@ export default class bybit extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.safeInteger(market, 'launchTime'),
                 'info': market,
             });
         }
@@ -2053,6 +2055,7 @@ export default class bybit extends Exchange {
                             'max': undefined,
                         },
                     },
+                    'created': this.safeInteger(market, 'launchTime'),
                     'info': market,
                 });
             }
@@ -2768,7 +2771,7 @@ export default class bybit extends Exchange {
             const feeToken = this.safeString(trade, 'feeTokenId');
             const feeCurrency = this.safeCurrencyCode(feeToken);
             fee = {
-                'cost': feeCost,
+                'cost': Precise.stringAbs(feeCost),
                 'currency': feeCurrency,
             };
         }
@@ -2934,7 +2937,7 @@ export default class bybit extends Exchange {
                 feeCurrencyCode = market['inverse'] ? market['base'] : market['settle'];
             }
             fee = {
-                'cost': feeCostString,
+                'cost': Precise.stringAbs(feeCostString),
                 'currency': feeCurrencyCode,
             };
         }
@@ -3507,9 +3510,13 @@ export default class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString(order, 'symbol');
-        let marketType = 'contract';
+        const isContract = ('tpslMode' in order);
+        let marketType = undefined;
         if (market !== undefined) {
             marketType = market['type'];
+        }
+        else {
+            marketType = isContract ? 'contract' : 'spot';
         }
         market = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = market['symbol'];
@@ -5530,7 +5537,7 @@ export default class bybit extends Exchange {
             'referenceAccount': undefined,
             'referenceId': referenceId,
             'status': undefined,
-            'amount': this.parseNumber(amount),
+            'amount': this.parseNumber(Precise.stringAbs(amount)),
             'before': this.parseNumber(before),
             'after': this.parseNumber(after),
             'fee': this.parseNumber(this.safeString(item, 'fee')),
@@ -5687,10 +5694,9 @@ export default class bybit extends Exchange {
         const timestamp = this.safeInteger(response, 'time');
         const first = this.safeValue(positions, 0, {});
         const position = this.parsePosition(first, market);
-        return this.extend(position, {
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-        });
+        position['timestamp'] = timestamp;
+        position['datetime'] = this.iso8601(timestamp);
+        return position;
     }
     async fetchUsdcPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -5765,7 +5771,7 @@ export default class bybit extends Exchange {
             }
             results.push(this.parsePosition(rawPosition, market));
         }
-        return this.filterByArray(results, 'symbol', symbols, false);
+        return this.filterByArrayPositions(results, 'symbol', symbols, false);
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**
@@ -6448,14 +6454,14 @@ export default class bybit extends Exchange {
         //
         const timestamp = this.safeInteger(interest, 'timestamp');
         const value = this.safeNumber2(interest, 'open_interest', 'openInterest');
-        return {
+        return this.safeOpenInterest({
             'symbol': market['symbol'],
             'openInterestAmount': undefined,
             'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
     async fetchBorrowRate(code, params = {}) {
         /**

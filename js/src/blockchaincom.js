@@ -343,6 +343,7 @@ export default class blockchaincom extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
             });
         }
         return result;

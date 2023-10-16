@@ -1622,7 +1622,7 @@ class delta(Exchange, ImplicitAPI):
                 side = 'buy'
             elif Precise.string_lt(sizeString, '0'):
                 side = 'sell'
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -1648,7 +1648,7 @@ class delta(Exchange, ImplicitAPI):
             'marginRatio': None,
             'stopLossPrice': None,
             'takeProfitPrice': None,
-        }
+        })
 
     def parse_order_status(self, status):
         statuses = {
@@ -2690,7 +2690,7 @@ class delta(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer_product(interest, 'timestamp', 0.001)
         marketId = self.safe_string(interest, 'symbol')
-        return {
+        return self.safe_open_interest({
             'symbol': self.safe_symbol(marketId, market),
             'baseVolume': self.safe_number(interest, 'oi_value'),
             'quoteVolume': self.safe_number(interest, 'oi_value_usd'),
@@ -2699,7 +2699,7 @@ class delta(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     async def fetch_leverage(self, symbol: str, params={}):
         """

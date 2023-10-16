@@ -381,6 +381,7 @@ export default class bitvavo extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

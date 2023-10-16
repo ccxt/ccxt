@@ -1750,6 +1750,7 @@ class bybit extends bybit$1 {
                         'max': this.safeNumber(lotSizeFilter, 'maxOrderAmt'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1924,6 +1925,7 @@ class bybit extends bybit$1 {
                         'max': undefined,
                     },
                 },
+                'created': this.safeInteger(market, 'launchTime'),
                 'info': market,
             });
         }
@@ -2056,6 +2058,7 @@ class bybit extends bybit$1 {
                             'max': undefined,
                         },
                     },
+                    'created': this.safeInteger(market, 'launchTime'),
                     'info': market,
                 });
             }
@@ -2771,7 +2774,7 @@ class bybit extends bybit$1 {
             const feeToken = this.safeString(trade, 'feeTokenId');
             const feeCurrency = this.safeCurrencyCode(feeToken);
             fee = {
-                'cost': feeCost,
+                'cost': Precise["default"].stringAbs(feeCost),
                 'currency': feeCurrency,
             };
         }
@@ -2937,7 +2940,7 @@ class bybit extends bybit$1 {
                 feeCurrencyCode = market['inverse'] ? market['base'] : market['settle'];
             }
             fee = {
-                'cost': feeCostString,
+                'cost': Precise["default"].stringAbs(feeCostString),
                 'currency': feeCurrencyCode,
             };
         }
@@ -3510,9 +3513,13 @@ class bybit extends bybit$1 {
         //     }
         //
         const marketId = this.safeString(order, 'symbol');
-        let marketType = 'contract';
+        const isContract = ('tpslMode' in order);
+        let marketType = undefined;
         if (market !== undefined) {
             marketType = market['type'];
+        }
+        else {
+            marketType = isContract ? 'contract' : 'spot';
         }
         market = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = market['symbol'];
@@ -5533,7 +5540,7 @@ class bybit extends bybit$1 {
             'referenceAccount': undefined,
             'referenceId': referenceId,
             'status': undefined,
-            'amount': this.parseNumber(amount),
+            'amount': this.parseNumber(Precise["default"].stringAbs(amount)),
             'before': this.parseNumber(before),
             'after': this.parseNumber(after),
             'fee': this.parseNumber(this.safeString(item, 'fee')),
@@ -5690,10 +5697,9 @@ class bybit extends bybit$1 {
         const timestamp = this.safeInteger(response, 'time');
         const first = this.safeValue(positions, 0, {});
         const position = this.parsePosition(first, market);
-        return this.extend(position, {
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-        });
+        position['timestamp'] = timestamp;
+        position['datetime'] = this.iso8601(timestamp);
+        return position;
     }
     async fetchUsdcPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -5768,7 +5774,7 @@ class bybit extends bybit$1 {
             }
             results.push(this.parsePosition(rawPosition, market));
         }
-        return this.filterByArray(results, 'symbol', symbols, false);
+        return this.filterByArrayPositions(results, 'symbol', symbols, false);
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**
@@ -6448,14 +6454,14 @@ class bybit extends bybit$1 {
         //
         const timestamp = this.safeInteger(interest, 'timestamp');
         const value = this.safeNumber2(interest, 'open_interest', 'openInterest');
-        return {
+        return this.safeOpenInterest({
             'symbol': market['symbol'],
             'openInterestAmount': undefined,
             'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
     async fetchBorrowRate(code, params = {}) {
         /**

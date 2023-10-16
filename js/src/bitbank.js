@@ -243,6 +243,7 @@ export default class bitbank extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }

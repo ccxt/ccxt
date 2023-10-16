@@ -1473,6 +1473,7 @@ class bitget(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
             }
         return result
 
@@ -1563,7 +1564,7 @@ class bitget(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a `code` argument')
         currency = self.currency(code)
         if since is None:
-            since = self.milliseconds() - 31556952000  # 1yr
+            since = self.milliseconds() - 7776000000  # 90 days
         request = {
             'coin': currency['code'],
             'startTime': since,
@@ -1706,7 +1707,7 @@ class bitget(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a `code` argument')
         currency = self.currency(code)
         if since is None:
-            since = self.milliseconds() - 31556952000  # 1yr
+            since = self.milliseconds() - 7776000000  # 90 days
         request = {
             'coin': currency['code'],
             'startTime': since,
@@ -3157,7 +3158,6 @@ class bitget(Exchange, ImplicitAPI):
         see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :param str [params.code]: marginCoin unified currency code
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
@@ -3170,28 +3170,24 @@ class bitget(Exchange, ImplicitAPI):
         productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
         if sandboxMode:
             productType = 'S' + productType
-        marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if marketType == 'spot':
             raise NotSupported(self.id + ' cancelAllOrders() does not support spot markets')
         request = {
             'productType': productType,
+            'marginCoin': market['settleId'],
         }
-        method = None
-        stop = self.safe_value(query, 'stop')
-        planType = self.safe_string(query, 'planType')
+        stop = self.safe_value_2(params, 'stop', 'trigger')
+        planType = self.safe_string(params, 'planType')
+        params = self.omit(params, ['stop', 'trigger'])
+        response = None
         if stop is not None or planType is not None:
             if planType is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan')
-            method = 'privateMixPostPlanCancelAllPlan'
+            response = await self.privateMixPostPlanCancelAllPlan(self.extend(request, params))
         else:
-            code = self.safe_string_2(params, 'code', 'marginCoin')
-            if code is None:
-                raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a code argument [marginCoin] in the params')
-            currency = self.currency(code)
-            request['marginCoin'] = self.safe_currency_code(code, currency)
-            method = 'privateMixPostOrderCancelAllOrders'
-        ommitted = self.omit(query, ['stop', 'code', 'marginCoin'])
-        response = await getattr(self, method)(self.extend(request, ommitted))
+            response = await self.privateMixPostOrderCancelAllOrders(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
@@ -3677,8 +3673,13 @@ class bitget(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data')
         if data is not None:
-            result = self.safe_value(data, 'orderList', data)
-            return self.add_pagination_cursor_to_result(data, result)
+            if 'orderList' in data:
+                orderList = self.safe_value(data, 'orderList')
+                if not orderList:
+                    return []
+                return self.add_pagination_cursor_to_result(data, orderList)
+            else:
+                return self.add_pagination_cursor_to_result(response, data)
         parsedData = json.loads(response)
         return self.safe_value(parsedData, 'data', [])
 
@@ -3821,9 +3822,14 @@ class bitget(Exchange, ImplicitAPI):
         if market['spot']:
             response = await self.privateSpotPostTradeFills(self.extend(request, params))
         else:
+            orderId = self.safe_string(params, 'orderId')  # when order id is not defined, startTime and endTime are required
             if since is not None:
                 request['startTime'] = since
+            elif orderId is None:
+                request['startTime'] = 0
             request, params = self.handle_until_option('endTime', params, request)
+            if not ('endTime' in request) and (orderId is None):
+                request['endTime'] = self.milliseconds()
             response = await self.privateMixGetOrderFills(self.extend(request, params))
         #
         #     {
@@ -4870,14 +4876,14 @@ class bitget(Exchange, ImplicitAPI):
         id = self.safe_string(interest, 'symbol')
         symbol = self.safe_symbol(id, market)
         amount = self.safe_number(interest, 'amount')
-        return {
+        return self.safe_open_interest({
             'symbol': symbol,
             'openInterestAmount': amount,
             'openInterestValue': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

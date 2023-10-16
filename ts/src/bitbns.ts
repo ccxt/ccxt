@@ -279,6 +279,7 @@ export default class bitbns extends Exchange {
                         'max': this.safeNumber (costLimits, 'max'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

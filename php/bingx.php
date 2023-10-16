@@ -174,6 +174,13 @@ class bingx extends Exchange {
                             ),
                         ),
                     ),
+                    'v3' => array(
+                        'public' => array(
+                            'get' => array(
+                                'quote/klines' => 1,
+                            ),
+                        ),
+                    ),
                 ),
                 'contract' => array(
                     'v1' => array(
@@ -607,6 +614,7 @@ class bingx extends Exchange {
                     'max' => $this->safe_number($market, 'maxNotional'),
                 ),
             ),
+            'created' => null,
             'info' => $market,
         );
         return $entry;
@@ -632,12 +640,12 @@ class bingx extends Exchange {
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
+         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the bingx api endpoint
-         * @param {string} [$params->price] "mark" or "index" for mark price and index price candles
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
@@ -658,19 +666,17 @@ class bingx extends Exchange {
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
-        } else {
-            $request['limit'] = 50;
         }
-        $until = $this->safe_integer_2($params, 'until', 'startTime');
+        $until = $this->safe_integer_2($params, 'until', 'endTime');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until' ));
-            $request['startTime'] = $until;
+            $request['endTime'] = $until;
         }
         $response = null;
         if ($market['spot']) {
             $response = $this->spotV1PublicGetMarketKline (array_merge($request, $params));
         } else {
-            $response = $this->swapV2PublicGetQuoteKlines (array_merge($request, $params));
+            $response = $this->swapV3PublicGetQuoteKlines (array_merge($request, $params));
         }
         //
         //    {
@@ -1168,14 +1174,16 @@ class bingx extends Exchange {
         $id = $this->safe_string($interest, 'symbol');
         $symbol = $this->safe_symbol($id, $market, '-', 'swap');
         $openInterest = $this->safe_number($interest, 'openInterest');
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $symbol,
+            'baseVolume' => null,
+            'quoteVolume' => null,  // deprecated
             'openInterestAmount' => null,
             'openInterestValue' => $openInterest,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function fetch_ticker(string $symbol, $params = array ()) {
