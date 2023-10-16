@@ -2587,7 +2587,7 @@ class Transpiler {
         let jsFiles = [];
         this.getAllFilesRecursively(jsFolder, jsFiles);
 
-        jsFiles.filter(f => !f.includes(".d.ts") && !f.includes (".tsbuildinfo")).map (jsFilePath => {
+        jsFiles.filter(f => !f.includes(".d.ts") && !f.includes(".tsbuildinfo")).map (jsFilePath => {
             const content = fs.readFileSync (jsFilePath, 'utf8');
             if (content.indexOf (this.getJsPreamble()) === -1) {
                 let contents = [
