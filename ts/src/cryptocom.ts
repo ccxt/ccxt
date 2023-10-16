@@ -335,6 +335,7 @@ export default class cryptocom extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '219': InvalidOrder,
                     '10001': ExchangeError,
                     '10002': PermissionDenied,
                     '10003': PermissionDenied,
@@ -1060,7 +1061,7 @@ export default class cryptocom extends Exchange {
         }
         const postOnly = this.safeValue (params, 'postOnly', false);
         if ((postOnly) || (timeInForce === 'PO')) {
-            request['exec_inst'] = 'POST_ONLY';
+            request['exec_inst'] = [ 'POST_ONLY' ];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
         const triggerPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'ref_price' ]);
@@ -2018,10 +2019,16 @@ export default class cryptocom extends Exchange {
         const created = this.safeInteger (order, 'create_time');
         const marketId = this.safeString (order, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
-        const execInst = this.safeString (order, 'exec_inst');
-        let postOnly = undefined;
+        const execInst = this.safeValue (order, 'exec_inst');
+        let postOnly = false;
         if (execInst !== undefined) {
-            postOnly = (execInst === 'POST_ONLY');
+            for (let i = 0; i < execInst.length; i++) {
+                const inst = execInst[i];
+                if (inst === 'POST_ONLY') {
+                    postOnly = true;
+                    break;
+                }
+            }
         }
         const feeCurrency = this.safeString (order, 'fee_instrument_name');
         return this.safeOrder ({
@@ -3054,7 +3061,14 @@ export default class cryptocom extends Exchange {
             const paramsKeys = Object.keys (keysorted);
             let strSortKey = '';
             for (let i = 0; i < paramsKeys.length; i++) {
-                strSortKey = strSortKey + paramsKeys[i].toString () + requestParams[paramsKeys[i]].toString ();
+                const key = paramsKeys[i].toString ();
+                let value = requestParams[paramsKeys[i]];
+                if (Array.isArray (value)) {
+                    value = value.join (',');
+                } else {
+                    value = value.toString ();
+                }
+                strSortKey = strSortKey + key + value;
             }
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
