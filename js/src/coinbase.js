@@ -1076,6 +1076,7 @@ export default class coinbase extends Exchange {
                         'max': this.safeNumber(market, 'quote_max_size'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

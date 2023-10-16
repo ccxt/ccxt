@@ -1100,6 +1100,7 @@ class coinbase extends Exchange {
                             'max' => $this->safe_number($market, 'quote_max_size'),
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }

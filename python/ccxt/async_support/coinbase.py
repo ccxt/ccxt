@@ -1053,6 +1053,7 @@ class coinbase(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'quote_max_size'),
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result

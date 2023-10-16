@@ -1095,6 +1095,7 @@ class gate extends Exchange {
                         'max' => $margin ? $this->safe_number($market, 'max_quote_amount') : null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -1293,6 +1294,7 @@ class gate extends Exchange {
                     'max' => null,
                 ),
             ),
+            'created' => null,
             'info' => $market,
         );
     }
@@ -1414,6 +1416,7 @@ class gate extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->safe_integer_product($market, 'create_time', 1000),
                     'info' => $market,
                 );
             }

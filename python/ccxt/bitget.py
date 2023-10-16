@@ -48,11 +48,12 @@ class bitget(Exchange, ImplicitAPI):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': False,
+                'margin': None,
                 'swap': True,
                 'future': True,
                 'option': False,
                 'addMargin': True,
+                'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -111,6 +112,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'repayMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': True,
@@ -1296,6 +1298,7 @@ class bitget(Exchange, ImplicitAPI):
                     'max': None,
                 },
             },
+            'created': None,
             'info': market,
         }
 
@@ -4883,6 +4886,185 @@ class bitget(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'info': interest,
         }, market)
+
+    def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+        """
+        create a loan to borrow margin
+        see https://bitgetlimited.github.io/apidoc/en/margin/#cross-borrow
+        see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-borrow
+        :param str code: unified currency code of the currency to borrow
+        :param str amount: the amount to borrow
+        :param str [symbol]: unified market symbol
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :param str [params.marginMode]: 'isolated' or 'cross', symbol is required for 'isolated'
+        :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['info']['coinName'],
+            'borrowAmount': self.currency_to_precision(code, amount),
+        }
+        response = None
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('borrowMargin', params)
+        if (symbol is not None) or (marginMode == 'isolated'):
+            self.check_required_symbol('borrowMargin', symbol)
+            market = self.market(symbol)
+            marketId = market['id']
+            parts = marketId.split('_')
+            marginMarketId = self.safe_string_upper(parts, 0)
+            request['symbol'] = marginMarketId
+            response = self.privateMarginPostIsolatedAccountBorrow(self.extend(request, params))
+        else:
+            response = self.privateMarginPostCrossAccountBorrow(self.extend(request, params))
+        #
+        # isolated
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697250952516,
+        #         "data": {
+        #             "clientOid": null,
+        #             "symbol": "BTCUSDT",
+        #             "coin": "BTC",
+        #             "borrowAmount": "0.001"
+        #         }
+        #     }
+        #
+        # cross
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697251314271,
+        #         "data": {
+        #             "clientOid": null,
+        #             "coin": "BTC",
+        #             "borrowAmount": "0.0001"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_margin_loan(data, currency)
+
+    def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
+        see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
+        :param str code: unified currency code of the currency to repay
+        :param str amount: the amount to repay
+        :param str [symbol]: unified market symbol
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :param str [params.marginMode]: 'isolated' or 'cross', symbol is required for 'isolated'
+        :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['info']['coinName'],
+            'repayAmount': self.currency_to_precision(code, amount),
+        }
+        response = None
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('repayMargin', params)
+        if (symbol is not None) or (marginMode == 'isolated'):
+            self.check_required_symbol('repayMargin', symbol)
+            market = self.market(symbol)
+            marketId = market['id']
+            parts = marketId.split('_')
+            marginMarketId = self.safe_string_upper(parts, 0)
+            request['symbol'] = marginMarketId
+            response = self.privateMarginPostIsolatedAccountRepay(self.extend(request, params))
+        else:
+            response = self.privateMarginPostCrossAccountRepay(self.extend(request, params))
+        #
+        # isolated
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697251988593,
+        #         "data": {
+        #             "remainDebtAmount": "0",
+        #             "clientOid": null,
+        #             "symbol": "BTCUSDT",
+        #             "coin": "BTC",
+        #             "repayAmount": "0.00100001"
+        #         }
+        #     }
+        #
+        # cross
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697252151042,
+        #         "data": {
+        #             "remainDebtAmount": "0",
+        #             "clientOid": null,
+        #             "coin": "BTC",
+        #             "repayAmount": "0.00010001"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_margin_loan(data, currency)
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        # isolated: borrowMargin
+        #
+        #     {
+        #         "clientOid": null,
+        #         "symbol": "BTCUSDT",
+        #         "coin": "BTC",
+        #         "borrowAmount": "0.001"
+        #     }
+        #
+        # cross: borrowMargin
+        #
+        #     {
+        #         "clientOid": null,
+        #         "coin": "BTC",
+        #         "borrowAmount": "0.0001"
+        #     }
+        #
+        # isolated: repayMargin
+        #
+        #     {
+        #         "remainDebtAmount": "0",
+        #         "clientOid": null,
+        #         "symbol": "BTCUSDT",
+        #         "coin": "BTC",
+        #         "repayAmount": "0.00100001"
+        #     }
+        #
+        # cross: repayMargin
+        #
+        #     {
+        #         "remainDebtAmount": "0",
+        #         "clientOid": null,
+        #         "coin": "BTC",
+        #         "repayAmount": "0.00010001"
+        #     }
+        #
+        currencyId = self.safe_string(info, 'coin')
+        marketId = self.safe_string(info, 'symbol')
+        symbol = None
+        if marketId is not None:
+            symbol = self.safe_symbol(marketId)
+        return {
+            'id': self.safe_string(info, 'clientOid'),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number_2(info, 'borrowAmount', 'repayAmount'),
+            'symbol': symbol,
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

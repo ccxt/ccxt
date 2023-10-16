@@ -752,6 +752,7 @@ class bitmart extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -859,6 +860,7 @@ class bitmart extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => $this->safe_integer($market, 'open_timestamp'),
                 'info' => $market,
             );
         }

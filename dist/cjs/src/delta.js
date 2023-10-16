@@ -819,6 +819,7 @@ class delta extends delta$1 {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'launch_time')),
                 'info': market,
             });
         }

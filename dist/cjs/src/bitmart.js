@@ -757,6 +757,7 @@ class bitmart extends bitmart$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -863,6 +864,7 @@ class bitmart extends bitmart$1 {
                         'max': undefined,
                     },
                 },
+                'created': this.safeInteger(market, 'open_timestamp'),
                 'info': market,
             });
         }

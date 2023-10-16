@@ -1105,6 +1105,7 @@ class gate(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'max_quote_amount') if margin else None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -1295,6 +1296,7 @@ class gate(Exchange, ImplicitAPI):
                     'max': None,
                 },
             },
+            'created': None,
             'info': market,
         }
 
@@ -1415,6 +1417,7 @@ class gate(Exchange, ImplicitAPI):
                             'max': None,
                         },
                     },
+                    'created': self.safe_integer_product(market, 'create_time', 1000),
                     'info': market,
                 })
         return result

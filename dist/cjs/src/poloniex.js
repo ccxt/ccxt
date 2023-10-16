@@ -552,6 +552,7 @@ class poloniex extends poloniex$1 {
                         'max': undefined,
                     },
                 },
+                'created': this.safeInteger(market, 'tradableStartTime'),
                 'info': market,
             });
         }

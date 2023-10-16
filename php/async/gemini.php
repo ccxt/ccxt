@@ -659,6 +659,7 @@ class gemini extends Exchange {
                     'max' => null,
                 ),
             ),
+            'created' => null,
             'info' => $response,
         );
     }

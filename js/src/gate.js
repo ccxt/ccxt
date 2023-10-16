@@ -1098,6 +1098,7 @@ export default class gate extends Exchange {
                         'max': margin ? this.safeNumber(market, 'max_quote_amount') : undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1295,6 +1296,7 @@ export default class gate extends Exchange {
                     'max': undefined,
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }
@@ -1415,6 +1417,7 @@ export default class gate extends Exchange {
                             'max': undefined,
                         },
                     },
+                    'created': this.safeIntegerProduct(market, 'create_time', 1000),
                     'info': market,
                 });
             }

@@ -562,6 +562,7 @@ class poloniex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.safe_integer(market, 'tradableStartTime'),
                 'info': market,
             })
         return result

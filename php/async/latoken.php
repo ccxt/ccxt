@@ -366,6 +366,7 @@ class latoken extends Exchange {
                                 'max' => $this->safe_number($market, 'maxOrderCost' . $capitalizedQuote),
                             ),
                         ),
+                        'created' => $this->safe_integer($market, 'created'),
                         'info' => $market,
                     );
                 }

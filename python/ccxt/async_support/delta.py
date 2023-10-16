@@ -802,6 +802,7 @@ class delta(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.parse8601(self.safe_string(market, 'launch_time')),
                 'info': market,
             })
         return result
