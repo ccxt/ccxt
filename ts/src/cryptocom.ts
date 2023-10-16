@@ -3061,7 +3061,14 @@ export default class cryptocom extends Exchange {
             const paramsKeys = Object.keys (keysorted);
             let strSortKey = '';
             for (let i = 0; i < paramsKeys.length; i++) {
-                strSortKey = strSortKey + paramsKeys[i].toString () + requestParams[paramsKeys[i]].toString ();
+                const key = paramsKeys[i].toString ();
+                let value = requestParams[paramsKeys[i]];
+                if (Array.isArray (value)) {
+                    value = value.join (',');
+                } else {
+                    value = value.toString ();
+                }
+                strSortKey = strSortKey + key + value;
             }
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
