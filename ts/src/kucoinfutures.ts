@@ -509,7 +509,7 @@ export default class kucoinfutures extends kucoin {
                         'max': this.safeNumber (market, 'quoteMaxSize'),
                     },
                 },
-                'created': this.parse8601 (this.safeString (market, 'firstOpenDate')),
+                'created': this.safeInteger (market, 'firstOpenDate'),
                 'info': market,
             });
         }
