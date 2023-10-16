@@ -9128,6 +9128,7 @@ export default class binance extends Exchange {
         } else {
             return this.parseOpenInterest (response, market);
         }
+        return undefined;
     }
 
     parseOpenInterest (interest, market = undefined) {
