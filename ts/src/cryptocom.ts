@@ -2019,10 +2019,16 @@ export default class cryptocom extends Exchange {
         const created = this.safeInteger (order, 'create_time');
         const marketId = this.safeString (order, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
-        const execInst = this.safeString (order, 'exec_inst');
-        let postOnly = undefined;
+        const execInst = this.safeValue (order, 'exec_inst');
+        let postOnly = false;
         if (execInst !== undefined) {
-            postOnly = (execInst === 'POST_ONLY');
+            for (let i = 0; i < execInst.length; i++) {
+                const inst = execInst[i];
+                if (inst === 'POST_ONLY') {
+                    postOnly = true;
+                    break;
+                }
+            }
         }
         const feeCurrency = this.safeString (order, 'fee_instrument_name');
         return this.safeOrder ({
