@@ -761,6 +761,7 @@ export default class bitmart extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -868,6 +869,7 @@ export default class bitmart extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.safeInteger (market, 'open_timestamp'),
                 'info': market,
             });
         }
