@@ -88,10 +88,10 @@ function assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck
     const logText = logTemplate (exchange, method, entry);
     const skipValue = exchange.safeValue (skippedProperties, keyNameOrIndex);
     if (skipValue !== undefined) {
-        return;
+        return; // skipped
     }
-    const isObject = typeof keyNameOrIndex === 'string';
-    if (isObject) {
+    const isDateTimeObject = typeof keyNameOrIndex === 'string';
+    if (isDateTimeObject) {
         assert ((keyNameOrIndex in entry), 'timestamp key "' + keyNameOrIndex + '" is missing from structure' + logText);
     } else {
         // if index was provided (mostly from fetchOHLCV) then we check if it exists, as mandatory
@@ -107,7 +107,7 @@ function assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck
         assert (ts < maxTs, 'timestamp more than ' + maxTs.toString () + ' (19.01.2038)' + logText); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         if (nowToCheck !== undefined) {
             const maxMsOffset = 60000; // 1 min
-            assert (ts < nowToCheck + maxMsOffset, 'returned timestamp (' + exchange.iso8601 (ts) + ') is ahead of the current time (' + exchange.iso8601 (nowToCheck) + ')' + logText);
+            assert (ts < nowToCheck + maxMsOffset, 'returned item timestamp (' + exchange.iso8601 (ts) + ') is ahead of the current time (' + exchange.iso8601 (nowToCheck) + ')' + logText);
         }
     }
 }
@@ -119,9 +119,9 @@ function assertTimestampAndDatetime (exchange, skippedProperties, method, entry,
         return;
     }
     assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck, keyNameOrIndex);
-    const isObject = typeof keyNameOrIndex === 'string';
+    const isDateTimeObject = typeof keyNameOrIndex === 'string';
     // only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
-    if (isObject) {
+    if (isDateTimeObject) {
         // we also test 'datetime' here because it's certain sibling of 'timestamp'
         assert (('datetime' in entry), '"datetime" key is missing from structure' + logText);
         const dt = entry['datetime'];
