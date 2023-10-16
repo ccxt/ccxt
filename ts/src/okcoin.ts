@@ -926,12 +926,15 @@ export default class okcoin extends Exchange {
         let symbol = base + '/' + quote;
         let expiryDatetime = this.safeString (market, 'delivery');
         let expiry = undefined;
+        let createdDatetime = this.safeString (market, 'listing');
+        let createdTimestamp = undefined;
         const strike = this.safeValue (market, 'strike');
         if (contract) {
             symbol = symbol + ':' + settle;
             if (future || option) {
                 if (future) {
                     expiryDatetime += 'T00:00:00Z';
+                    createdDatetime += 'T00:00:00Z';
                 }
                 expiry = this.parse8601 (expiryDatetime);
                 symbol = symbol + '-' + this.yymmdd (expiry);
@@ -941,6 +944,7 @@ export default class okcoin extends Exchange {
                 }
             }
         }
+        createdTimestamp = this.parse8601 (createdDatetime);
         const lotSize = this.safeNumber2 (market, 'lot_size', 'trade_increment');
         const minPrice = this.safeString (market, 'tick_size');
         const minAmountString = this.safeString2 (market, 'min_size', 'base_min_size');
@@ -1000,6 +1004,7 @@ export default class okcoin extends Exchange {
                     'max': undefined,
                 },
             },
+            'created': createdTimestamp,
             'info': market,
         });
     }
