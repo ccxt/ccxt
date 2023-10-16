@@ -2260,53 +2260,6 @@ export default class cryptocom extends Exchange {
         };
     }
 
-    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
-        let currency = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['start_ts'] = since;
-        }
-        if (limit !== undefined) {
-            request['page_size'] = limit;
-        }
-        const response = await this.v2PrivatePostPrivateMarginGetInterestHistory (this.extend (request, params));
-        //
-        //     {
-        //         "id": 1656705829020,
-        //         "method": "private/margin/get-interest-history",
-        //         "code": 0,
-        //         "result": {
-        //             "list": [
-        //                 {
-        //                     "loan_id": "2643528867803765921",
-        //                     "currency": "USDT",
-        //                     "interest": 0.00000004,
-        //                     "time": 1656702899559,
-        //                     "stake_amount": 6,
-        //                     "interest_rate": 0.000025
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'result', {});
-        const rows = this.safeValue (data, 'list', []);
-        let interest = undefined;
-        for (let i = 0; i < rows.length; i++) {
-            interest = this.parseBorrowInterests (rows, market);
-        }
-        return this.filterByCurrencySinceLimit (interest, code, since, limit);
-    }
-
     parseBorrowInterest (info, market = undefined) {
         //
         //     {
