@@ -944,7 +944,6 @@ export default class okcoin extends Exchange {
                 }
             }
         }
-        createdTimestamp = this.parse8601 (createdDatetime);
         const lotSize = this.safeNumber2 (market, 'lot_size', 'trade_increment');
         const minPrice = this.safeString (market, 'tick_size');
         const minAmountString = this.safeString2 (market, 'min_size', 'base_min_size');
@@ -1004,7 +1003,7 @@ export default class okcoin extends Exchange {
                     'max': undefined,
                 },
             },
-            'created': createdTimestamp,
+            'created': this.parse8601 (createdDatetime),
             'info': market,
         });
     }
