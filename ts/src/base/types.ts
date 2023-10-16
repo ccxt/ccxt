@@ -219,6 +219,8 @@ export interface OpenInterest {
     symbol: string;
     openInterestAmount?: number;
     openInterestValue?: number;
+    baseVolume?: number;
+    quoteVolume?: number;
     timestamp?: number;
     datetime?: string;
     info: any;
