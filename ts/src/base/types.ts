@@ -55,6 +55,7 @@ export interface Market {
         leverage?: MinMax,
         price?: MinMax,
     };
+    created?: number | undefined;
     info: any;
 }
 
