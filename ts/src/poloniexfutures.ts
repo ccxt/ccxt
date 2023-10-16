@@ -342,6 +342,7 @@ export default class poloniexfutures extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.safeInteger (market, 'firstOpenDate'),
                 'info': market,
             });
         }
