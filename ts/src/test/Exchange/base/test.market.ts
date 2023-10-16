@@ -154,6 +154,7 @@ function testMarket (exchange, skippedProperties, method, market) {
     if (market['future'] || market['option']) {
         // future or option markets need 'expiry' and 'expiryDatetime'
         assert (market['expiry'] !== undefined, '"expiry" must be defined when "future" is true' + logText);
+        testSharedMethods.assertTimestamp (exchange, skippedProperties, method, market, undefined, 'expiry');
         assert (market['expiryDatetime'] !== undefined, '"expiryDatetime" must be defined when "future" is true' + logText);
         // expiry datetime should be correct
         const isoString = exchange.iso8601 (market['expiry']);
@@ -196,6 +197,7 @@ function testMarket (exchange, skippedProperties, method, market) {
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['settleId'], market['settle']);
     }
+    testSharedMethods.assertTimestamp (exchange, skippedProperties, method, market, undefined, 'created');
 }
 
 export default testMarket;
