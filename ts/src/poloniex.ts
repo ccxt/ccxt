@@ -559,6 +559,7 @@ export default class poloniex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.safeInteger (market, 'tradableStartTime'),
                 'info': market,
             });
         }
