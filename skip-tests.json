@@ -660,8 +660,37 @@
                 "active":"is undefined",
                 "currencyIdAndCode": "from travis location (USA) these webapi endpoints cant be loaded"
             },
-            "fetchTickers": "timestamp might be of 1970-01-01T00:00:00.000Z",
-            "fetchTicker": "same"
+            "fetchTickers": {
+                "timestamp": "timestamp might be of 1970-01-01T00:00:00.000Z",
+                "quoteVolume": "can't be infered"
+            },
+            "fetchTicker": {
+                "timestamp": "timestamp might be of 1970-01-01T00:00:00.000Z",
+                "quoteVolume": "can't be infered"
+
+            },
+            "fetchPositions": {
+                "entryPrice": "entryPrice is not provided",
+                "markPrice": "undefined",
+                "notional": "undefined",
+                "leverage": "undefined",
+                "liquidationPrice": "undefined",
+                "marginMode": "undefined",
+                "percentage": "undefined",
+                "marginRatio": "undefined",
+                "stopLossPrice": "undefined",
+                "takeProfitPrice": "undefined",
+                "maintenanceMargin": "undefined",
+                "initialMarginPercentage": "undefined",
+                "maintenanceMarginPercentage": "undefined",
+                "hedged": "undefined",
+                "side": "undefined",
+                "contracts": "undefined"
+            },
+            "fetchAccounts": {
+                "type": "type is not provided",
+                "code": "not provided"
+            }
         }
     },
     "currencycom": {
@@ -1255,7 +1284,7 @@
         }
     },
     "krakenfutures": {
-        "//skip": "continious timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/265225134#L2431",
+        "skip": "continious timeouts https://app.travis-ci.com/github/ccxt/ccxt/builds/265225134#L2431",
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": "skip loadMarkets",
