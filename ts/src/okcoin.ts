@@ -927,7 +927,6 @@ export default class okcoin extends Exchange {
         let expiryDatetime = this.safeString (market, 'delivery');
         let expiry = undefined;
         let createdDatetime = this.safeString (market, 'listing');
-        let createdTimestamp = undefined;
         const strike = this.safeValue (market, 'strike');
         if (contract) {
             symbol = symbol + ':' + settle;
