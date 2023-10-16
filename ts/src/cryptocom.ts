@@ -335,6 +335,7 @@ export default class cryptocom extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '219': InvalidOrder,
                     '10001': ExchangeError,
                     '10002': PermissionDenied,
                     '10003': PermissionDenied,
@@ -1060,7 +1061,7 @@ export default class cryptocom extends Exchange {
         }
         const postOnly = this.safeValue (params, 'postOnly', false);
         if ((postOnly) || (timeInForce === 'PO')) {
-            request['exec_inst'] = 'POST_ONLY';
+            request['exec_inst'] = [ 'POST_ONLY' ];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
         const triggerPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'ref_price' ]);
