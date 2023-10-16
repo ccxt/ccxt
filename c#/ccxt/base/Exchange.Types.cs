@@ -487,6 +487,26 @@ public partial class Exchange
         }
     }
 
+    public struct Liquidation
+    {
+        public string? symbol;
+        public double? quoteValue;
+        public double? baseValue;
+        public Int64? timestamp;
+        public string? datetime;
+        public Dictionary<string, object> info;
+
+        public Liquidation(object openInterest)
+        {
+            symbol = SafeString(openInterest, "symbol");
+            quoteValue = SafeFloat(openInterest, "quoteValue");
+            baseValue = SafeFloat(openInterest, "baseValue");
+            timestamp = SafeInteger(openInterest, "timestamp");
+            datetime = SafeString(openInterest, "datetime");
+            info = SafeValue(openInterest, "info", new Dictionary<string, object>()) as Dictionary<string, object>;
+        }
+    }
+
     public struct FundingRate
     {
         public string? symbol;
