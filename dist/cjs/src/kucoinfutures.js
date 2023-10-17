@@ -505,6 +505,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'max': this.safeNumber(market, 'quoteMaxSize'),
                     },
                 },
+                'created': this.safeInteger(market, 'firstOpenDate'),
                 'info': market,
             });
         }

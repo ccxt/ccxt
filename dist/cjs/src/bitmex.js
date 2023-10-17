@@ -660,6 +660,7 @@ class bitmex extends bitmex$1 {
                         'max': positionIsQuote ? maxOrderQty : undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'listing')),
                 'info': market,
             });
         }

@@ -382,6 +382,7 @@ class bittrex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.parse8601(self.safe_string(market, 'createdAt')),
                 'info': market,
             })
         return result

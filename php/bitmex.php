@@ -657,6 +657,7 @@ class bitmex extends Exchange {
                         'max' => $positionIsQuote ? $maxOrderQty : null,
                     ),
                 ),
+                'created' => $this->parse8601($this->safe_string($market, 'listing')),
                 'info' => $market,
             );
         }

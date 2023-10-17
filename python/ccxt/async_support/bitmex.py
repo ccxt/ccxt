@@ -656,6 +656,7 @@ class bitmex(Exchange, ImplicitAPI):
                         'max': maxOrderQty if positionIsQuote else None,
                     },
                 },
+                'created': self.parse8601(self.safe_string(market, 'listing')),
                 'info': market,
             })
         return result

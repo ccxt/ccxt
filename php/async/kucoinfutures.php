@@ -514,6 +514,7 @@ class kucoinfutures extends kucoin {
                             'max' => $this->safe_number($market, 'quoteMaxSize'),
                         ),
                     ),
+                    'created' => $this->safe_integer($market, 'firstOpenDate'),
                     'info' => $market,
                 );
             }
