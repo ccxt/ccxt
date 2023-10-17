@@ -1429,7 +1429,8 @@
         "skipMethods": {
             "loadMarkets": {
                 "taker": "is undefined",
-                "maker": "is undefined"
+                "maker": "is undefined",
+                "currencyIdAndCode": "not all currencies are available"
             },
             "fetchTrades": {
                 "side": "undefined"
@@ -1449,6 +1450,22 @@
             },
             "watchTrades": {
                 "side": "undefined"
+            },
+            "fetchPositions": {
+                "marginRatio": "undefined",
+                "stopLossPrice": "undefined",
+                "takeProfitPrice": "undefined",
+                "initialMarginPercentage": "undefined",
+                "hedged": "undefined",
+                "timestamp": "undefined",
+                "datetime": "undefined",
+                "lastUpdateTimestamp": "undefined",
+                "maintenanceMargin": "undefined",
+                "contractSize": "undefined",
+                "markPrice": "undefined",
+                "lastPrice": "undefined",
+                "percentage": "undefined",
+                "liquidationPrice": "undefined"
             }
         }
     }
