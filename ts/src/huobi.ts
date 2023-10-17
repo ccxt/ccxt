@@ -1701,6 +1701,13 @@ export default class huobi extends Exchange {
             // 7 Settlement Completed
             // 8 Delivered
             // 9 Suspending of Trade
+            let created = undefined;
+            let createdDate = this.safeString (market, 'create_date'); // i.e 20230101
+            if (createdDate !== undefined) {
+                const createdArray = this.stringToCharsArray (createdDate);
+                createdDate = createdArray[0] + createdArray[1] + createdArray[2] + createdArray[3] + '-' + createdArray[4] + createdArray[5] + '-' + createdArray[6] + createdArray[7] + ' 00:00:00';
+                created = this.parse8601 (createdDate);
+            }
             result.push ({
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1753,6 +1760,7 @@ export default class huobi extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': created,
                 'info': market,
             });
         }
