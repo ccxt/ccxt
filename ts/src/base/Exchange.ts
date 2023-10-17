@@ -1893,6 +1893,9 @@ export default class Exchange {
             const result = this.extend (cleanStructure, market);
             // set undefined swap/future/etc
             if (result['spot']) {
+                if (result['contract'] === undefined) {
+                    result['contract'] = false;
+                }
                 if (result['swap'] === undefined) {
                     result['swap'] = false;
                 }
