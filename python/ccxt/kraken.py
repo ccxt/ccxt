@@ -513,6 +513,7 @@ class kraken(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         result = self.append_inactive_markets(result)

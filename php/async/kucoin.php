@@ -993,6 +993,7 @@ class kucoin extends Exchange {
                             'max' => $this->safe_number($market, 'quoteMaxSize'),
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }

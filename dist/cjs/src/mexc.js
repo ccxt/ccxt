@@ -1164,6 +1164,7 @@ class mexc extends mexc$1 {
                         'max': maxQuoteAmount,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1275,6 +1276,7 @@ class mexc extends mexc$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

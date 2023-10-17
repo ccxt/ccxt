@@ -349,6 +349,7 @@ class probit(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'max_cost'),
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result

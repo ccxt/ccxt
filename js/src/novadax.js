@@ -303,6 +303,7 @@ export default class novadax extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

@@ -606,6 +606,7 @@ class phemex extends Exchange {
                     'max' => $this->parse_number($this->safe_string($market, 'maxOrderQty')),
                 ),
             ),
+            'created' => null,
             'info' => $market,
         );
     }
@@ -705,6 +706,7 @@ class phemex extends Exchange {
                     'max' => $this->parse_safe_number($this->safe_string($market, 'maxOrderValue')),
                 ),
             ),
+            'created' => null,
             'info' => $market,
         );
     }

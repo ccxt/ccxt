@@ -754,6 +754,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             }
             if 'PRICE_FILTER' in filtersByType:

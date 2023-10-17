@@ -496,6 +496,7 @@ class kraken extends kraken$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

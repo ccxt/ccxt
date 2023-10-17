@@ -395,6 +395,7 @@ class whitebit(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'maxTotal'),
                     },
                 },
+                'created': None,
                 'info': market,
             }
             result.append(entry)

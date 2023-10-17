@@ -1157,6 +1157,7 @@ class mexc extends Exchange {
                         'max' => $maxQuoteAmount,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -1269,6 +1270,7 @@ class mexc extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }

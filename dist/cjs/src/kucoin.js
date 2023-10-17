@@ -986,6 +986,7 @@ class kucoin extends kucoin$1 {
                         'max': this.safeNumber(market, 'quoteMaxSize'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

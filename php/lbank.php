@@ -222,6 +222,7 @@ class lbank extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $id,
             );
         }

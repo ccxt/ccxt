@@ -379,6 +379,7 @@ class whitebit extends Exchange {
                         'max' => $this->safe_number($market, 'maxTotal'),
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
             $result[] = $entry;
