@@ -1850,6 +1850,7 @@ export default class Exchange {
             'swap': undefined,
             'future': undefined,
             'option': undefined,
+            'index': undefined,
             'active': undefined,
             'contract': undefined,
             'linear': undefined,
@@ -1902,8 +1903,8 @@ export default class Exchange {
                 if (result['future'] === undefined) {
                     result['future'] = false;
                 }
-                if (result['option'] === undefined) {
-                    result['option'] = false;
+                if (result['index'] === undefined) {
+                    result['index'] = false;
                 }
             }
             return result;
