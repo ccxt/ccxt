@@ -45,7 +45,7 @@ function testPosition (exchange, skippedProperties, method, entry, symbol, now) 
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'liquidationPrice', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'markPrice', '0');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'collateral', '0');
-    testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'percentage', '0');
+    // testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'percentage', '0'); // percentage might be < 0
 }
 
 export default testPosition;

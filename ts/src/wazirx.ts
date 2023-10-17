@@ -601,7 +601,7 @@ export default class wazirx extends Exchange {
     }
 
     parseBalance (response) {
-        const result = { };
+        const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const id = this.safeString (balance, 'asset');

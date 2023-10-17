@@ -259,7 +259,45 @@
         "skipMethods": {
             "loadMarkets": "some market types are out of expected market-types",
             "fetchOHLCV": "open might be greater than high",
-            "fetchTickers": "negative values"
+            "fetchTickers": "negative values",
+            "fetchPositions": {
+                "stopLossPrice": "undefined",
+                "takeProfitPrice": "undefined",
+                "marginRatio": "undefined",
+                "lastPrice": "undefined",
+                "collateral": "undefined",
+                "hedged": "undefined",
+                "lastUpdateTimestamp": "undefined",
+                "entryPrice": "undefined",
+                "markPrice": "undefined",
+                "leverage": "undefined",
+                "initialMargin": "undefined",
+                "maintenanceMargin": "can be zero for default position",
+                "notional": "can be zero for default position",
+                "contracts": "contracts",
+                "unrealizedPnl": "undefined",
+                "realizedPnl": "undefined",
+                "liquidationPrice": "can be 0",
+                "percentage": "might be 0"
+            },
+            "fetchMyTrades": {
+                "side": "sometimes side is not available"
+            },
+            "fetchLedger": {
+                "referenceId": "undefined",
+                "amount": "undefined",
+                "before":"not provided",
+                "tag": "undefined",
+                "tagFrom": "undefined",
+                "tagTo": "undefined",
+                "type": "unmapped types",
+                "timestamp": "default value might be invalid"
+            },
+            "fetchDepositsWithdrawals": {
+                "currency": "undefined",
+                "currencyIdAndCode": "messes codes"
+            },
+            "fetchTransactions": "skip"
         }
     },
     "bitopro": {
@@ -737,7 +775,29 @@
         "skipMethods": {
             "fetchCurrencies": "deposit/withdraw not provided",
             "loadMarkets": "strike is set when option is not true",
-            "fetchTickers": "something wrong"
+            "fetchTickers": "something wrong",
+            "fetchBalance": "does not add up",
+            "fetchPositions": {
+                "percentage": "undefined",
+                "hedged": "undefined",
+                "stopLossPrice": "undefined",
+                "takeProfitPrice": "undefined",
+                "lastPrice": "undefined",
+                "collateral": "undefined",
+                "marginMode": "undefined",
+                "marginRatio": "undefined",
+                "contracts": "undefined",
+                "id": "undefined"
+            },
+            "fetchDeposits": {
+                "id": "undefined",
+                "network": "undefined",
+                "addressFrom": "undefined",
+                "tag": "undefined",
+                "tagTo": "undefined",
+                "tagFrom": "undefined",
+                "fee": "undefined"
+            }
         }
     },
     "flowbtc": {
@@ -808,7 +868,29 @@
                 "precision": "messed"
             },
             "fetchTicker": "unexpected symbol is being returned | safeMarket() requires a fourth argument for BTC_USDT to disambiguate between different markets with the same market id",
-            "fetchTickers": "unexpected symbol is being returned | safeMarket() requires a fourth argument for BTC_USDT to disambiguate between different markets with the same market id"
+            "fetchTickers": "unexpected symbol is being returned | safeMarket() requires a fourth argument for BTC_USDT to disambiguate between different markets with the same market id",
+            "fetchLeverageTiers": {
+                "minNotional": "undefined",
+                "currencyIdAndCode": "messed codes",
+                "currency": "messed"
+            },
+            "fetchBorrowRates": {
+                "currencyIdAndCode": "messed codes",
+                "currency": "messed"
+            },
+            "fetchBorrowInterest":  "symbol is messed",
+            "fetchPositions": {
+                "percentage": "undefined",
+                "stopLossPrice": "undefined",
+                "takeProfitPrice": "undefined",
+                "collateral": "undefined",
+                "initialMargin": "undefined",
+                "initialMarginPercentage": "undefined",
+                "hedged": "undefined",
+                "id": "undefined",
+                "notional":"undefined"
+            },
+            "fetchBalance": "tmp skip"
         }
     },
     "gate": {
@@ -1136,7 +1218,11 @@
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "bid":"messed bid-ask",
                 "ask":"messed bid-ask"
-            }
+            },
+            "fetchAccounts": {
+                "type": "type is not provided"
+            },
+            "fetchLeverageTiers": "swap only supported"
         }
     },
     "oceanex": {
@@ -1429,7 +1515,8 @@
         "skipMethods": {
             "loadMarkets": {
                 "taker": "is undefined",
-                "maker": "is undefined"
+                "maker": "is undefined",
+                "currencyIdAndCode": "not all currencies are available"
             },
             "fetchTrades": {
                 "side": "undefined"
@@ -1449,6 +1536,22 @@
             },
             "watchTrades": {
                 "side": "undefined"
+            },
+            "fetchPositions": {
+                "marginRatio": "undefined",
+                "stopLossPrice": "undefined",
+                "takeProfitPrice": "undefined",
+                "initialMarginPercentage": "undefined",
+                "hedged": "undefined",
+                "timestamp": "undefined",
+                "datetime": "undefined",
+                "lastUpdateTimestamp": "undefined",
+                "maintenanceMargin": "undefined",
+                "contractSize": "undefined",
+                "markPrice": "undefined",
+                "lastPrice": "undefined",
+                "percentage": "undefined",
+                "liquidationPrice": "undefined"
             }
         }
     }

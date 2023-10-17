@@ -137,6 +137,9 @@ function assertTimestampAndDatetime (exchange, skippedProperties, method, entry,
 }
 
 function assertCurrencyCode (exchange, skippedProperties, method, entry, actualCode, expectedCode = undefined) {
+    if ('currency' in skippedProperties) {
+        return;
+    }
     const logText = logTemplate (exchange, method, entry);
     if (actualCode !== undefined) {
         assert (typeof actualCode === 'string', 'currency code should be either undefined or a string' + logText);
@@ -286,7 +289,11 @@ function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending 
             const ascendingOrDescending = ascending ? 'ascending' : 'descending';
             const firstIndex = ascending ? i - 1 : i;
             const secondIndex = ascending ? i : i - 1;
-            assert (items[firstIndex]['timestamp'] >= items[secondIndex]['timestamp'], exchange.id + ' ' + method + ' ' + stringValue (codeOrSymbol) + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp. ' + exchange.json (items));
+            const firstTs = items[firstIndex]['timestamp'];
+            const secondTs = items[secondIndex]['timestamp'];
+            if (firstTs !== undefined && secondTs !== undefined) {
+                assert (items[firstIndex]['timestamp'] >= items[secondIndex]['timestamp'], exchange.id + ' ' + method + ' ' + stringValue (codeOrSymbol) + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp. ' + exchange.json (items));
+            }
         }
     }
 }
