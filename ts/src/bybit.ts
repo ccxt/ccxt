@@ -3628,7 +3628,7 @@ export default class bybit extends Exchange {
         const result = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
         const length = result.length;
         if (length === 0) {
-            throw new OrderNotFound ('Order ' + id + ' does not exist.');
+            throw new OrderNotFound ('Order ' + id.toString () + ' does not exist.');
         }
         if (length > 1) {
             throw new InvalidOrder (this.id + ' returned more than one order');
