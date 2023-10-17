@@ -1833,8 +1833,8 @@ export default class Exchange {
         }, currency);
     }
 
-    marketStructure (market: object = {}) {
-        return this.extend ({
+    marketStructure (market: object = undefined) {
+        const plainStructure = {
             'id': undefined,
             'lowercaseId': undefined,
             'symbol': undefined,
@@ -1888,7 +1888,11 @@ export default class Exchange {
             },
             'created': undefined,
             'info': undefined,
-        }, market);
+        };
+        if (market !== undefined) {
+            return this.extend (plainStructure, market);
+        }
+        return plainStructure;
     }
 
     setMarkets (markets, currencies = undefined) {
