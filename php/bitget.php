@@ -2612,21 +2612,23 @@ class bitget extends Exchange {
 
     public function fetch_balance($params = array ()) {
         /**
-         * $query for balance and get the amount of funds available for trading or funds locked in orders
+         * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-account-assets
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-list
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotGetAccountAssets',
-            'swap' => 'privateMixGetAccountAccounts',
-        ));
         $request = array();
-        if ($marketType === 'swap') {
+        $marketType = null;
+        $marginMode = null;
+        $response = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
+        if (($marketType === 'swap') || ($marketType === 'future')) {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
             $productType = ($subType === 'linear') ? 'UMCBL' : 'DMCBL';
@@ -2634,45 +2636,102 @@ class bitget extends Exchange {
                 $productType = 'S' . $productType;
             }
             $request['productType'] = $productType;
+            $response = $this->privateMixGetAccountAccounts (array_merge($request, $params));
+        } elseif ($marginMode === 'isolated') {
+            $response = $this->privateMarginGetIsolatedAccountAssets (array_merge($request, $params));
+        } elseif ($marginMode === 'cross') {
+            $response = $this->privateMarginGetCrossAccountAssets (array_merge($request, $params));
+        } elseif ($marketType === 'spot') {
+            $response = $this->privateSpotGetAccountAssets (array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchBalance() does not support ' . $marketType . ' accounts');
         }
-        $response = $this->$method (array_merge($request, $query));
         // spot
+        //
         //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645928868827,
-        //       $data => array(
-        //         {
-        //           coinId => 1,
-        //           coinName => 'BTC',
-        //           available => '0.00070000',
-        //           frozen => '0.00000000',
-        //           lock => '0.00000000',
-        //           uTime => '1645921706000'
-        //         }
-        //       )
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1697507299139,
+        //         "data" => array(
+        //             array(
+        //                 "coinId" => 1,
+        //                 "coinName" => "BTC",
+        //                 "available" => "0.00000000",
+        //                 "frozen" => "0.00000000",
+        //                 "lock" => "0.00000000",
+        //                 "uTime" => "1697248128000"
+        //             ),
+        //         )
         //     }
         //
         // swap
+        //
         //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645928929251,
-        //       $data => array(
-        //         {
-        //           marginCoin => 'USDT',
-        //           locked => '0',
-        //           available => '8.078525',
-        //           crossMaxAvailable => '8.078525',
-        //           fixedMaxAvailable => '8.078525',
-        //           maxTransferOut => '8.078525',
-        //           equity => '10.02508',
-        //           usdtEquity => '10.02508',
-        //           btcEquity => '0.00026057027'
-        //         }
-        //       )
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1697507505367,
+        //         "data" => array(
+        //             array(
+        //                 "marginCoin" => "STETH",
+        //                 "locked" => "0",
+        //                 "available" => "0",
+        //                 "crossMaxAvailable" => "0",
+        //                 "fixedMaxAvailable" => "0",
+        //                 "maxTransferOut" => "0",
+        //                 "equity" => "0",
+        //                 "usdtEquity" => "0",
+        //                 "btcEquity" => "0",
+        //                 "crossRiskRate" => "0",
+        //                 "unrealizedPL" => "0",
+        //                 "bonus" => "0"
+        //             ),
+        //         )
         //     }
-        $data = $this->safe_value($response, 'data');
+        //
+        // isolated margin
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1697501436571,
+        //         "data" => array(
+        //             array(
+        //                 "symbol" => "BTCUSDT",
+        //                 "coin" => "BTC",
+        //                 "totalAmount" => "0.00021654",
+        //                 "available" => "0.00021654",
+        //                 "transferable" => "0.00021654",
+        //                 "frozen" => "0",
+        //                 "borrow" => "0",
+        //                 "interest" => "0",
+        //                 "net" => "0.00021654",
+        //                 "ctime" => "1697248128071"
+        //             ),
+        //         )
+        //     }
+        //
+        // cross margin
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1697515463804,
+        //         "data" => array(
+        //             array(
+        //                 "coin" => "BTC",
+        //                 "totalAmount" => "0.00024996",
+        //                 "available" => "0.00024996",
+        //                 "transferable" => "0.00004994",
+        //                 "frozen" => "0",
+        //                 "borrow" => "0.0001",
+        //                 "interest" => "0.00000001",
+        //                 "net" => "0.00014995",
+        //                 "ctime" => "1697251265504"
+        //             ),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
         return $this->parse_balance($data);
     }
 
@@ -2682,42 +2741,80 @@ class bitget extends Exchange {
         // spot
         //
         //     {
-        //         coinId => '1',
-        //         coinName => 'BTC',
-        //         available => '0.00099900',
-        //         $frozen => '0.00000000',
-        //         lock => '0.00000000',
-        //         uTime => '1661595535000'
+        //         "coinId" => 1,
+        //         "coinName" => "BTC",
+        //         "available" => "0.00000000",
+        //         "frozen" => "0.00000000",
+        //         "lock" => "0.00000000",
+        //         "uTime" => "1697248128000"
         //     }
         //
         // swap
         //
         //     {
-        //         marginCoin => 'BTC',
-        //         $locked => '0.00001948',
-        //         available => '0.00006622',
-        //         crossMaxAvailable => '0.00004674',
-        //         fixedMaxAvailable => '0.00004674',
-        //         maxTransferOut => '0.00004674',
-        //         equity => '0.00006622',
-        //         usdtEquity => '1.734307497491',
-        //         btcEquity => '0.000066229058',
-        //         crossRiskRate => '0.066308887072',
-        //         unrealizedPL => '0',
-        //         bonus => '0'
+        //         "marginCoin" => "STETH",
+        //         "locked" => "0",
+        //         "available" => "0",
+        //         "crossMaxAvailable" => "0",
+        //         "fixedMaxAvailable" => "0",
+        //         "maxTransferOut" => "0",
+        //         "equity" => "0",
+        //         "usdtEquity" => "0",
+        //         "btcEquity" => "0",
+        //         "crossRiskRate" => "0",
+        //         "unrealizedPL" => "0",
+        //         "bonus" => "0"
+        //     }
+        //
+        // isolated margin
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "coin" => "BTC",
+        //         "totalAmount" => "0.00021654",
+        //         "available" => "0.00021654",
+        //         "transferable" => "0.00021654",
+        //         "frozen" => "0",
+        //         "borrow" => "0",
+        //         "interest" => "0",
+        //         "net" => "0.00021654",
+        //         "ctime" => "1697248128071"
+        //     }
+        //
+        // cross margin
+        //
+        //     {
+        //         "coin" => "BTC",
+        //         "totalAmount" => "0.00024995",
+        //         "available" => "0.00024995",
+        //         "transferable" => "0.00004993",
+        //         "frozen" => "0",
+        //         "borrow" => "0.0001",
+        //         "interest" => "0.00000001",
+        //         "net" => "0.00014994",
+        //         "ctime" => "1697251265504"
         //     }
         //
         for ($i = 0; $i < count($balance); $i++) {
             $entry = $balance[$i];
-            $currencyId = $this->safe_string_2($entry, 'coinName', 'marginCoin');
-            $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $spotAccountFree = $this->safe_string($entry, 'available');
-            $contractAccountFree = $this->safe_string($entry, 'maxTransferOut');
-            $account['free'] = ($contractAccountFree !== null) ? $contractAccountFree : $spotAccountFree;
-            $frozen = $this->safe_string($entry, 'frozen');
-            $locked = $this->safe_string_2($entry, 'lock', 'locked');
-            $account['used'] = Precise::string_add($frozen, $locked);
+            $currencyId = $this->safe_string_n($entry, array( 'coinName', 'marginCoin', 'coin' ));
+            $code = $this->safe_currency_code($currencyId);
+            $borrow = $this->safe_string($entry, 'borrow');
+            if ($borrow !== null) {
+                $interest = $this->safe_string($entry, 'interest');
+                $account['free'] = $this->safe_string($entry, 'transferable');
+                $account['total'] = $this->safe_string($entry, 'totalAmount');
+                $account['debt'] = Precise::string_add($borrow, $interest);
+            } else {
+                // Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
+                $spotAccountFree = $this->safe_string($entry, 'available');
+                $contractAccountFree = $this->safe_string($entry, 'maxTransferOut');
+                $account['free'] = ($contractAccountFree !== null) ? $contractAccountFree : $spotAccountFree;
+                $frozen = $this->safe_string($entry, 'frozen');
+                $locked = $this->safe_string_2($entry, 'lock', 'locked');
+                $account['used'] = Precise::string_add($frozen, $locked);
+            }
             $result[$code] = $account;
         }
         return $this->safe_balance($result);

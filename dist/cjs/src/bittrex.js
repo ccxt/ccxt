@@ -366,6 +366,7 @@ class bittrex extends bittrex$1 {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'createdAt')),
                 'info': market,
             });
         }

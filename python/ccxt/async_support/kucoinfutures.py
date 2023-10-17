@@ -516,6 +516,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'max': self.safe_number(market, 'quoteMaxSize'),
                     },
                 },
+                'created': self.safe_integer(market, 'firstOpenDate'),
                 'info': market,
             })
         return result

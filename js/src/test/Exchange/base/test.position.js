@@ -31,7 +31,7 @@ function testPosition(exchange, skippedProperties, method, entry, symbol, now) {
     };
     const emptyotAllowedFor = ['liquidationPrice', 'initialMargin', 'initialMarginPercentage', 'maintenanceMargin', 'maintenanceMarginPercentage', 'marginRatio'];
     testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyotAllowedFor);
-    testSharedMethods.assertTimestamp(exchange, skippedProperties, method, entry, now);
+    testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
     testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, 'symbol', symbol);
     testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'side', ['long', 'short']);
     testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'marginMode', ['cross', 'isolated']);

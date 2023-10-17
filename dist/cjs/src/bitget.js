@@ -2641,18 +2641,20 @@ class bitget extends bitget$1 {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-account-assets
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-list
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
         await this.loadMarkets();
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotGetAccountAssets',
-            'swap': 'privateMixGetAccountAccounts',
-        });
         const request = {};
-        if (marketType === 'swap') {
+        let marketType = undefined;
+        let marginMode = undefined;
+        let response = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
+        if ((marketType === 'swap') || (marketType === 'future')) {
             let subType = undefined;
             [subType, params] = this.handleSubTypeAndParams('fetchBalance', undefined, params);
             let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
@@ -2660,45 +2662,106 @@ class bitget extends bitget$1 {
                 productType = 'S' + productType;
             }
             request['productType'] = productType;
+            response = await this.privateMixGetAccountAccounts(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, query));
+        else if (marginMode === 'isolated') {
+            response = await this.privateMarginGetIsolatedAccountAssets(this.extend(request, params));
+        }
+        else if (marginMode === 'cross') {
+            response = await this.privateMarginGetCrossAccountAssets(this.extend(request, params));
+        }
+        else if (marketType === 'spot') {
+            response = await this.privateSpotGetAccountAssets(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchBalance() does not support ' + marketType + ' accounts');
+        }
         // spot
+        //
         //     {
-        //       code: '00000',
-        //       msg: 'success',
-        //       requestTime: 1645928868827,
-        //       data: [
-        //         {
-        //           coinId: 1,
-        //           coinName: 'BTC',
-        //           available: '0.00070000',
-        //           frozen: '0.00000000',
-        //           lock: '0.00000000',
-        //           uTime: '1645921706000'
-        //         }
-        //       ]
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1697507299139,
+        //         "data": [
+        //             {
+        //                 "coinId": 1,
+        //                 "coinName": "BTC",
+        //                 "available": "0.00000000",
+        //                 "frozen": "0.00000000",
+        //                 "lock": "0.00000000",
+        //                 "uTime": "1697248128000"
+        //             },
+        //         ]
         //     }
         //
         // swap
+        //
         //     {
-        //       code: '00000',
-        //       msg: 'success',
-        //       requestTime: 1645928929251,
-        //       data: [
-        //         {
-        //           marginCoin: 'USDT',
-        //           locked: '0',
-        //           available: '8.078525',
-        //           crossMaxAvailable: '8.078525',
-        //           fixedMaxAvailable: '8.078525',
-        //           maxTransferOut: '8.078525',
-        //           equity: '10.02508',
-        //           usdtEquity: '10.02508',
-        //           btcEquity: '0.00026057027'
-        //         }
-        //       ]
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1697507505367,
+        //         "data": [
+        //             {
+        //                 "marginCoin": "STETH",
+        //                 "locked": "0",
+        //                 "available": "0",
+        //                 "crossMaxAvailable": "0",
+        //                 "fixedMaxAvailable": "0",
+        //                 "maxTransferOut": "0",
+        //                 "equity": "0",
+        //                 "usdtEquity": "0",
+        //                 "btcEquity": "0",
+        //                 "crossRiskRate": "0",
+        //                 "unrealizedPL": "0",
+        //                 "bonus": "0"
+        //             },
+        //         ]
         //     }
-        const data = this.safeValue(response, 'data');
+        //
+        // isolated margin
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1697501436571,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "coin": "BTC",
+        //                 "totalAmount": "0.00021654",
+        //                 "available": "0.00021654",
+        //                 "transferable": "0.00021654",
+        //                 "frozen": "0",
+        //                 "borrow": "0",
+        //                 "interest": "0",
+        //                 "net": "0.00021654",
+        //                 "ctime": "1697248128071"
+        //             },
+        //         ]
+        //     }
+        //
+        // cross margin
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1697515463804,
+        //         "data": [
+        //             {
+        //                 "coin": "BTC",
+        //                 "totalAmount": "0.00024996",
+        //                 "available": "0.00024996",
+        //                 "transferable": "0.00004994",
+        //                 "frozen": "0",
+        //                 "borrow": "0.0001",
+        //                 "interest": "0.00000001",
+        //                 "net": "0.00014995",
+        //                 "ctime": "1697251265504"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue(response, 'data', []);
         return this.parseBalance(data);
     }
     parseBalance(balance) {
@@ -2707,42 +2770,81 @@ class bitget extends bitget$1 {
         // spot
         //
         //     {
-        //         coinId: '1',
-        //         coinName: 'BTC',
-        //         available: '0.00099900',
-        //         frozen: '0.00000000',
-        //         lock: '0.00000000',
-        //         uTime: '1661595535000'
+        //         "coinId": 1,
+        //         "coinName": "BTC",
+        //         "available": "0.00000000",
+        //         "frozen": "0.00000000",
+        //         "lock": "0.00000000",
+        //         "uTime": "1697248128000"
         //     }
         //
         // swap
         //
         //     {
-        //         marginCoin: 'BTC',
-        //         locked: '0.00001948',
-        //         available: '0.00006622',
-        //         crossMaxAvailable: '0.00004674',
-        //         fixedMaxAvailable: '0.00004674',
-        //         maxTransferOut: '0.00004674',
-        //         equity: '0.00006622',
-        //         usdtEquity: '1.734307497491',
-        //         btcEquity: '0.000066229058',
-        //         crossRiskRate: '0.066308887072',
-        //         unrealizedPL: '0',
-        //         bonus: '0'
+        //         "marginCoin": "STETH",
+        //         "locked": "0",
+        //         "available": "0",
+        //         "crossMaxAvailable": "0",
+        //         "fixedMaxAvailable": "0",
+        //         "maxTransferOut": "0",
+        //         "equity": "0",
+        //         "usdtEquity": "0",
+        //         "btcEquity": "0",
+        //         "crossRiskRate": "0",
+        //         "unrealizedPL": "0",
+        //         "bonus": "0"
+        //     }
+        //
+        // isolated margin
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "coin": "BTC",
+        //         "totalAmount": "0.00021654",
+        //         "available": "0.00021654",
+        //         "transferable": "0.00021654",
+        //         "frozen": "0",
+        //         "borrow": "0",
+        //         "interest": "0",
+        //         "net": "0.00021654",
+        //         "ctime": "1697248128071"
+        //     }
+        //
+        // cross margin
+        //
+        //     {
+        //         "coin": "BTC",
+        //         "totalAmount": "0.00024995",
+        //         "available": "0.00024995",
+        //         "transferable": "0.00004993",
+        //         "frozen": "0",
+        //         "borrow": "0.0001",
+        //         "interest": "0.00000001",
+        //         "net": "0.00014994",
+        //         "ctime": "1697251265504"
         //     }
         //
         for (let i = 0; i < balance.length; i++) {
             const entry = balance[i];
-            const currencyId = this.safeString2(entry, 'coinName', 'marginCoin');
-            const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
-            const spotAccountFree = this.safeString(entry, 'available');
-            const contractAccountFree = this.safeString(entry, 'maxTransferOut');
-            account['free'] = (contractAccountFree !== undefined) ? contractAccountFree : spotAccountFree;
-            const frozen = this.safeString(entry, 'frozen');
-            const locked = this.safeString2(entry, 'lock', 'locked');
-            account['used'] = Precise["default"].stringAdd(frozen, locked);
+            const currencyId = this.safeStringN(entry, ['coinName', 'marginCoin', 'coin']);
+            const code = this.safeCurrencyCode(currencyId);
+            const borrow = this.safeString(entry, 'borrow');
+            if (borrow !== undefined) {
+                const interest = this.safeString(entry, 'interest');
+                account['free'] = this.safeString(entry, 'transferable');
+                account['total'] = this.safeString(entry, 'totalAmount');
+                account['debt'] = Precise["default"].stringAdd(borrow, interest);
+            }
+            else {
+                // Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
+                const spotAccountFree = this.safeString(entry, 'available');
+                const contractAccountFree = this.safeString(entry, 'maxTransferOut');
+                account['free'] = (contractAccountFree !== undefined) ? contractAccountFree : spotAccountFree;
+                const frozen = this.safeString(entry, 'frozen');
+                const locked = this.safeString2(entry, 'lock', 'locked');
+                account['used'] = Precise["default"].stringAdd(frozen, locked);
+            }
             result[code] = account;
         }
         return this.safeBalance(result);

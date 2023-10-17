@@ -369,6 +369,7 @@ export default class bittrex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'createdAt')),
                 'info': market,
             });
         }
