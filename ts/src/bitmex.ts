@@ -666,6 +666,7 @@ export default class bitmex extends Exchange {
                         'max': positionIsQuote ? maxOrderQty : undefined,
                     },
                 },
+                'created': this.parse8601 (this.safeString (market, 'listing')),
                 'info': market,
             });
         }
