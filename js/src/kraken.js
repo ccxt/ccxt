@@ -955,7 +955,7 @@ export default class kraken extends Exchange {
         else {
             direction = 'in';
         }
-        const timestamp = this.safeIntegerProduct(item, 'time', 1000);
+        const timestamp = this.safeTimestamp(item, 'time');
         return {
             'info': item,
             'id': id,

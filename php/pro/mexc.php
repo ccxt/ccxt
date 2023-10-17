@@ -348,7 +348,7 @@ class mexc extends \ccxt\async\mexc {
         //     }
         //
         return array(
-            $this->safe_integer_product($ohlcv, 't', 1000),
+            $this->safe_timestamp($ohlcv, 't'),
             $this->safe_number($ohlcv, 'o'),
             $this->safe_number($ohlcv, 'h'),
             $this->safe_number($ohlcv, 'l'),

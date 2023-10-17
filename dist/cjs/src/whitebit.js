@@ -861,7 +861,7 @@ class whitebit extends whitebit$1 {
         //          ]
         //      }
         //
-        const timestamp = this.safeIntegerProduct(response, 'timestamp', 1000);
+        const timestamp = this.safeTimestamp(response, 'timestamp');
         return this.parseOrderBook(response, symbol, timestamp);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {

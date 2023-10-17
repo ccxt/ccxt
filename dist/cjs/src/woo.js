@@ -400,7 +400,7 @@ class woo extends woo$1 {
                         'max': undefined,
                     },
                 },
-                'created': this.safeIntegerProduct(market, 'created_time', 1000),
+                'created': this.safeTimestamp(market, 'created_time'),
                 'info': market,
             });
         }

@@ -1414,7 +1414,7 @@ class gate extends gate$1 {
                             'max': undefined,
                         },
                     },
-                    'created': this.safeIntegerProduct(market, 'create_time', 1000),
+                    'created': this.safeTimestamp(market, 'create_time'),
                     'info': market,
                 });
             }
@@ -5845,7 +5845,7 @@ class gate extends gate$1 {
         //        lsr_taker: '9.3765153315902'
         //    }
         //
-        const timestamp = this.safeIntegerProduct(interest, 'time', 1000);
+        const timestamp = this.safeTimestamp(interest, 'time');
         return {
             'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': this.safeNumber(interest, 'open_interest'),
