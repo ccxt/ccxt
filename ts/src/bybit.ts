@@ -3533,9 +3533,15 @@ export default class bybit extends Exchange {
         let fee = undefined;
         const feeCostString = this.safeString (order, 'cumExecFee');
         if (feeCostString !== undefined) {
+            let feeCurrency = undefined;
+            if (market['spot']) {
+                feeCurrency = (side === 'buy') ? market['quote'] : market['base'];
+            } else {
+                feeCurrency = market['settle'];
+            }
             fee = {
                 'cost': feeCostString,
-                'currency': market['settle'],
+                'currency': feeCurrency,
             };
         }
         let clientOrderId = this.safeString (order, 'orderLinkId');
