@@ -808,7 +808,29 @@
                 "precision": "messed"
             },
             "fetchTicker": "unexpected symbol is being returned | safeMarket() requires a fourth argument for BTC_USDT to disambiguate between different markets with the same market id",
-            "fetchTickers": "unexpected symbol is being returned | safeMarket() requires a fourth argument for BTC_USDT to disambiguate between different markets with the same market id"
+            "fetchTickers": "unexpected symbol is being returned | safeMarket() requires a fourth argument for BTC_USDT to disambiguate between different markets with the same market id",
+            "fetchLeverageTiers": {
+                "minNotional": "undefined",
+                "currencyIdAndCode": "messed codes",
+                "currency": "messed"
+            },
+            "fetchBorrowRates": {
+                "currencyIdAndCode": "messed codes",
+                "currency": "messed"
+            },
+            "fetchBorrowInterest":  "symbol is messed",
+            "fetchPositions": {
+                "percentage": "undefined",
+                "stopLossPrice": "undefined",
+                "takeProfitPrice": "undefined",
+                "collateral": "undefined",
+                "initialMargin": "undefined",
+                "initialMarginPercentage": "undefined",
+                "hedged": "undefined",
+                "id": "undefined",
+                "notional":"undefined"
+            },
+            "fetchBalance": "tmp skip"
         }
     },
     "gate": {

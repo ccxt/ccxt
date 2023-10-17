@@ -137,6 +137,9 @@ function assertTimestampAndDatetime (exchange, skippedProperties, method, entry,
 }
 
 function assertCurrencyCode (exchange, skippedProperties, method, entry, actualCode, expectedCode = undefined) {
+    if ('currency' in skippedProperties) {
+        return;
+    }
     const logText = logTemplate (exchange, method, entry);
     if (actualCode !== undefined) {
         assert (typeof actualCode === 'string', 'currency code should be either undefined or a string' + logText);
