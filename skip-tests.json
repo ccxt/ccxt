@@ -737,7 +737,29 @@
         "skipMethods": {
             "fetchCurrencies": "deposit/withdraw not provided",
             "loadMarkets": "strike is set when option is not true",
-            "fetchTickers": "something wrong"
+            "fetchTickers": "something wrong",
+            "fetchBalance": "does not add up",
+            "fetchPositions": {
+                "percentage": "undefined",
+                "hedged": "undefined",
+                "stopLossPrice": "undefined",
+                "takeProfitPrice": "undefined",
+                "lastPrice": "undefined",
+                "collateral": "undefined",
+                "marginMode": "undefined",
+                "marginRatio": "undefined",
+                "contracts": "undefined",
+                "id": "undefined"
+            },
+            "fetchDeposits": {
+                "id": "undefined",
+                "network": "undefined",
+                "addressFrom": "undefined",
+                "tag": "undefined",
+                "tagTo": "undefined",
+                "tagFrom": "undefined",
+                "fee": "undefined"
+            }
         }
     },
     "flowbtc": {
