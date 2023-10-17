@@ -1180,7 +1180,11 @@
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "bid":"messed bid-ask",
                 "ask":"messed bid-ask"
-            }
+            },
+            "fetchAccounts": {
+                "type": "type is not provided"
+            },
+            "fetchLeverageTiers": "swap only supported"
         }
     },
     "oceanex": {
