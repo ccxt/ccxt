@@ -500,6 +500,7 @@ export default class kraken extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

@@ -388,6 +388,7 @@ export default class zonda extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': item,
             });
         }
