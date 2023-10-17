@@ -37,6 +37,7 @@ export default class gemini extends Exchange {
                 'createDepositAddress': true,
                 'createMarketOrder': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
