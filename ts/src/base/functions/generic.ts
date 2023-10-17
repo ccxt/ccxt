@@ -187,8 +187,6 @@ const merge = (target, ...args) => {
     return Object.assign ({}, target, overwrite)
 };
 
-const jsonToString = (json) => `{` + Object.entries(json).map (([key, value]) => `"${key}": "${json[key]}"`) + `}`;
-
 export {
     keys
     , values
@@ -250,10 +248,8 @@ export {
 
     // ------------------------------------------------------------------------
 
-    , merge
+    , merge,
 
     // ----------------------------------------------------------------------------
-
-    , jsonToString
 
 };
