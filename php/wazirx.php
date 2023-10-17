@@ -585,7 +585,7 @@ class wazirx extends Exchange {
     }
 
     public function parse_balance($response) {
-        $result = array( );
+        $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $id = $this->safe_string($balance, 'asset');

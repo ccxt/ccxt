@@ -150,6 +150,9 @@ function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, 
 
 
 function assert_currency_code($exchange, $skipped_properties, $method, $entry, $actual_code, $expected_code = null) {
+    if (is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) {
+        return;
+    }
     $log_text = log_template($exchange, $method, $entry);
     if ($actual_code !== null) {
         assert(is_string($actual_code), 'currency code should be either undefined or a string' . $log_text);
@@ -310,7 +313,11 @@ function assert_timestamp_order($exchange, $method, $code_or_symbol, $items, $as
             $ascending_or_descending = $ascending ? 'ascending' : 'descending';
             $first_index = $ascending ? $i - 1 : $i;
             $second_index = $ascending ? $i : $i - 1;
-            assert($items[$first_index]['timestamp'] >= $items[$second_index]['timestamp'], $exchange->id . ' ' . $method . ' ' . string_value($code_or_symbol) . ' must return a ' . $ascending_or_descending . ' sorted array of items by timestamp. ' . $exchange->json($items));
+            $first_ts = $items[$first_index]['timestamp'];
+            $second_ts = $items[$second_index]['timestamp'];
+            if ($first_ts !== null && $second_ts !== null) {
+                assert($items[$first_index]['timestamp'] >= $items[$second_index]['timestamp'], $exchange->id . ' ' . $method . ' ' . string_value($code_or_symbol) . ' must return a ' . $ascending_or_descending . ' sorted array of items by timestamp. ' . $exchange->json($items));
+            }
         }
     }
 }

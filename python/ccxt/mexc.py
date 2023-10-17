@@ -2597,7 +2597,7 @@ class mexc(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         marketType = self.handle_market_type_and_params('fetchOrdersByState', market, params)
         if marketType == 'spot':
-            raise BadRequest(self.id + ' fetchOrdersByState() is not supported for ' + marketType)
+            raise NotSupported(self.id + ' fetchOrdersByState() is not supported for ' + marketType)
         else:
             request['states'] = state
             return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -3810,6 +3810,7 @@ class mexc(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `leverage tiers structures <https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure>`, indexed by market symbols
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols, 'swap', True, True)
         response = self.contractPublicGetDetail(params)
         #
         #     {

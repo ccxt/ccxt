@@ -1504,7 +1504,7 @@ class bingx(Exchange, ImplicitAPI):
             'info': position,
             'id': self.safe_string(position, 'positionId'),
             'symbol': self.safe_symbol(marketId, market, '-', 'swap'),
-            'notional': self.safe_string(position, 'positionAmt'),
+            'notional': self.safe_number(position, 'positionAmt'),
             'marginMode': marginMode,
             'liquidationPrice': None,
             'entryPrice': self.safe_number_2(position, 'avgPrice', 'entryPrice'),

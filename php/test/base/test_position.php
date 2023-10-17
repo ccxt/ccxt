@@ -54,5 +54,4 @@ function test_position($exchange, $skipped_properties, $method, $entry, $symbol,
     assert_greater($exchange, $skipped_properties, $method, $entry, 'liquidationPrice', '0');
     assert_greater($exchange, $skipped_properties, $method, $entry, 'markPrice', '0');
     assert_greater($exchange, $skipped_properties, $method, $entry, 'collateral', '0');
-    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'percentage', '0');
 }

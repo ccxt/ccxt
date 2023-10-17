@@ -2742,7 +2742,7 @@ export default class mexc extends Exchange {
         }
         const [marketType] = this.handleMarketTypeAndParams('fetchOrdersByState', market, params);
         if (marketType === 'spot') {
-            throw new BadRequest(this.id + ' fetchOrdersByState() is not supported for ' + marketType);
+            throw new NotSupported(this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         }
         else {
             request['states'] = state;
@@ -4047,6 +4047,7 @@ export default class mexc extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, 'swap', true, true);
         const response = await this.contractPublicGetDetail(params);
         //
         //     {

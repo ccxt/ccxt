@@ -60,4 +60,3 @@ def test_position(exchange, skipped_properties, method, entry, symbol, now):
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'liquidationPrice', '0')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'markPrice', '0')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'collateral', '0')
-    test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'percentage', '0')

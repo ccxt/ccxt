@@ -1041,6 +1041,7 @@ class bitmex extends bitmex$1 {
             'Deposit': 'transaction',
             'Transfer': 'transfer',
             'AffiliatePayout': 'referral',
+            'SpotTrade': 'trade',
         };
         return this.safeString(types, type, type);
     }
@@ -1578,9 +1579,9 @@ class bitmex extends bitmex$1 {
             const feeCurrencyCode = this.safeCurrencyCode(currencyId);
             const feeRateString = this.safeString(trade, 'commission');
             fee = {
-                'cost': feeCostString,
+                'cost': Precise["default"].stringAbs(feeCostString),
                 'currency': feeCurrencyCode,
-                'rate': feeRateString,
+                'rate': Precise["default"].stringAbs(feeRateString),
             };
         }
         // Trade or Funding
@@ -2108,7 +2109,8 @@ class bitmex extends bitmex$1 {
         //         }
         //     ]
         //
-        return this.parsePositions(response, symbols);
+        const results = this.parsePositions(response, symbols);
+        return this.filterByArrayPositions(results, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //

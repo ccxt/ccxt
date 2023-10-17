@@ -1544,7 +1544,7 @@ class bingx extends Exchange {
             'info' => $position,
             'id' => $this->safe_string($position, 'positionId'),
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
-            'notional' => $this->safe_string($position, 'positionAmt'),
+            'notional' => $this->safe_number($position, 'positionAmt'),
             'marginMode' => $marginMode,
             'liquidationPrice' => null,
             'entryPrice' => $this->safe_number_2($position, 'avgPrice', 'entryPrice'),

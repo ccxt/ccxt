@@ -1033,6 +1033,7 @@ class bitmex extends Exchange {
             'Deposit' => 'transaction',
             'Transfer' => 'transfer',
             'AffiliatePayout' => 'referral',
+            'SpotTrade' => 'trade',
         );
         return $this->safe_string($types, $type, $type);
     }
@@ -1568,9 +1569,9 @@ class bitmex extends Exchange {
             $feeCurrencyCode = $this->safe_currency_code($currencyId);
             $feeRateString = $this->safe_string($trade, 'commission');
             $fee = array(
-                'cost' => $feeCostString,
+                'cost' => Precise::string_abs($feeCostString),
                 'currency' => $feeCurrencyCode,
-                'rate' => $feeRateString,
+                'rate' => Precise::string_abs($feeRateString),
             );
         }
         // Trade or Funding
@@ -2088,7 +2089,8 @@ class bitmex extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_positions($response, $symbols);
+        $results = $this->parse_positions($response, $symbols);
+        return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
     public function parse_position($position, $market = null) {

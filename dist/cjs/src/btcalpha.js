@@ -307,7 +307,8 @@ class btcalpha extends btcalpha$1 {
         //        sell: '22521.11'
         //    }
         //
-        const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 1000000);
+        const timestampStr = this.safeString(ticker, 'timestamp');
+        const timestamp = parseInt(Precise["default"].stringMul(timestampStr, '1000000'));
         const marketId = this.safeString(ticker, 'pair');
         market = this.safeMarket(marketId, market, '_');
         const last = this.safeString(ticker, 'last');

@@ -2705,7 +2705,7 @@ class mexc extends Exchange {
         }
         list($marketType) = $this->handle_market_type_and_params('fetchOrdersByState', $market, $params);
         if ($marketType === 'spot') {
-            throw new BadRequest($this->id . ' fetchOrdersByState() is not supported for ' . $marketType);
+            throw new NotSupported($this->id . ' fetchOrdersByState() is not supported for ' . $marketType);
         } else {
             $request['states'] = $state;
             return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
@@ -3989,6 +3989,7 @@ class mexc extends Exchange {
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols, 'swap', true, true);
         $response = $this->contractPublicGetDetail ($params);
         //
         //     {

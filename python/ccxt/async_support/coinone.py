@@ -604,10 +604,16 @@ class coinone(Exchange, ImplicitAPI):
         id = self.safe_string(order, 'orderId')
         baseId = self.safe_string(order, 'baseCurrency')
         quoteId = self.safe_string(order, 'targetCurrency')
-        base = self.safe_currency_code(baseId, market['base'])
-        quote = self.safe_currency_code(quoteId, market['quote'])
-        symbol = base + '/' + quote
-        market = self.safe_market(symbol, market, '/')
+        base = None
+        quote = None
+        if baseId is not None:
+            base = self.safe_currency_code(baseId, self.safe_string(market, 'base'))
+        if quoteId is not None:
+            quote = self.safe_currency_code(quoteId, self.safe_string(market, 'quote'))
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = base + '/' + quote
+            market = self.safe_market(symbol, market, '/')
         timestamp = self.safe_timestamp_2(order, 'timestamp', 'updatedAt')
         side = self.safe_string_2(order, 'type', 'side')
         if side == 'ask':

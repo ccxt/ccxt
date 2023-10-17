@@ -136,6 +136,8 @@ def assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, n
 
 
 def assert_currency_code(exchange, skipped_properties, method, entry, actual_code, expected_code=None):
+    if 'currency' in skipped_properties:
+        return
     log_text = log_template(exchange, method, entry)
     if actual_code is not None:
         assert isinstance(actual_code, str), 'currency code should be either undefined or a string' + log_text
@@ -262,7 +264,10 @@ def assert_timestamp_order(exchange, method, code_or_symbol, items, ascending=Fa
             ascending_or_descending = 'ascending' if ascending else 'descending'
             first_index = i - 1 if ascending else i
             second_index = i if ascending else i - 1
-            assert items[first_index]['timestamp'] >= items[second_index]['timestamp'], exchange.id + ' ' + method + ' ' + string_value(code_or_symbol) + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp. ' + exchange.json(items)
+            first_ts = items[first_index]['timestamp']
+            second_ts = items[second_index]['timestamp']
+            if first_ts is not None and second_ts is not None:
+                assert items[first_index]['timestamp'] >= items[second_index]['timestamp'], exchange.id + ' ' + method + ' ' + string_value(code_or_symbol) + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp. ' + exchange.json(items)
 
 
 def assert_integer(exchange, skipped_properties, method, entry, key):
