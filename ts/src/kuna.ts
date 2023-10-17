@@ -10,6 +10,13 @@ import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 import { Precise } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
+// TODO
+// Public endpoints:
+//     60 calls per minute.
+// Private endpoints:
+//     60 calls per minute for unauthenticated users;
+//     300 calls per minute for authenticated users;
+//     1200 calls per minute for authenticated PRO and VIP users.
 
 /**
  * @class kuna
@@ -17,14 +24,6 @@ import { Precise } from '../ccxt.js';
  * @description Use the public-key as your apiKey
  */
 export default class kuna extends Exchange {
-    // TODO
-    // Public endpoints:
-    //     60 calls per minute.
-    // Private endpoints:
-    //     60 calls per minute for unauthenticated users;
-    //     300 calls per minute for authenticated users;
-    //     1200 calls per minute for authenticated PRO and VIP users.
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kuna',
@@ -961,7 +960,7 @@ export default class kuna extends Exchange {
         const capitalizedType = this.capitalize (type);
         const request = {
             'pair': market['id'],
-            'orderSide': (side === 'buy') ? 'buy' : 'sell',
+            'orderSide': (side === 'buy') ? 'Bid' : 'Ask',
             'quantity': amount.toString (),
             'type': capitalizedType,
         };
@@ -1834,11 +1833,13 @@ export default class kuna extends Exchange {
                 const urlPath = '/' + version + '/' + this.implodeParams (path, params);
                 url = this.urls['api'][version] + urlPath;
                 if (access === 'private') {
+                    if (method !== 'GET') {
+                        body = params;
+                    }
                     const nonce = this.nonce ().toString ();
-                    console.log (this.jsonToString (params));
-                    const auth = urlPath + nonce + this.jsonToString (params);
+                    const auth = urlPath + nonce + this.json (params);
                     headers = {
-                        'content-type': 'application/json',
+                        'Content-Type': 'application/json',
                         'accept': 'application/json',
                         'nonce': nonce,
                         'public-key': this.apiKey,
@@ -1879,7 +1880,7 @@ export default class kuna extends Exchange {
                 }
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': JSON.stringify (body), 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
