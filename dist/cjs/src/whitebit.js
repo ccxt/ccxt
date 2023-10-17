@@ -57,6 +57,7 @@ class whitebit extends whitebit$1 {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -383,6 +384,7 @@ class whitebit extends whitebit$1 {
                         'max': this.safeNumber(market, 'maxTotal'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push(entry);

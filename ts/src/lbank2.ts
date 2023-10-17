@@ -425,6 +425,7 @@ export default class lbank2 extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -522,6 +523,7 @@ export default class lbank2 extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

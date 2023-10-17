@@ -403,6 +403,7 @@ export default class woo extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.safeIntegerProduct (market, 'created_time', 1000),
                 'info': market,
             });
         }

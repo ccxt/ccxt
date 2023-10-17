@@ -470,6 +470,7 @@ class upbit extends upbit$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

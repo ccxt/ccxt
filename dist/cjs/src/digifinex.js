@@ -653,6 +653,7 @@ class digifinex extends digifinex$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

@@ -31,11 +31,12 @@ class bitget extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => false,
+                'margin' => null,
                 'swap' => true,
                 'future' => true,
                 'option' => false,
                 'addMargin' => true,
+                'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -94,6 +95,7 @@ class bitget extends Exchange {
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
+                'repayMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
@@ -1299,6 +1301,7 @@ class bitget extends Exchange {
                     'max' => null,
                 ),
             ),
+            'created' => null,
             'info' => $market,
         );
     }
@@ -1484,6 +1487,7 @@ class bitget extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                 );
             }
             return $result;
@@ -1586,7 +1590,7 @@ class bitget extends Exchange {
             }
             $currency = $this->currency($code);
             if ($since === null) {
-                $since = $this->milliseconds() - 31556952000; // 1yr
+                $since = $this->milliseconds() - 7776000000; // 90 days
             }
             $request = array(
                 'coin' => $currency['code'],
@@ -1743,7 +1747,7 @@ class bitget extends Exchange {
             }
             $currency = $this->currency($code);
             if ($since === null) {
-                $since = $this->milliseconds() - 31556952000; // 1yr
+                $since = $this->milliseconds() - 7776000000; // 90 days
             }
             $request = array(
                 'coin' => $currency['code'],
@@ -3885,8 +3889,15 @@ class bitget extends Exchange {
             //
             $data = $this->safe_value($response, 'data');
             if ($data !== null) {
-                $result = $this->safe_value($data, 'orderList', $data);
-                return $this->add_pagination_cursor_to_result($data, $result);
+                if (is_array($data) && array_key_exists('orderList', $data)) {
+                    $orderList = $this->safe_value($data, 'orderList');
+                    if (!$orderList) {
+                        return array();
+                    }
+                    return $this->add_pagination_cursor_to_result($data, $orderList);
+                } else {
+                    return $this->add_pagination_cursor_to_result($response, $data);
+                }
             }
             $parsedData = json_decode($response, $as_associative_array = true);
             return $this->safe_value($parsedData, 'data', array());
@@ -4047,10 +4058,16 @@ class bitget extends Exchange {
             if ($market['spot']) {
                 $response = Async\await($this->privateSpotPostTradeFills (array_merge($request, $params)));
             } else {
+                $orderId = $this->safe_string($params, 'orderId'); // when order id is not defined, startTime and endTime are required
                 if ($since !== null) {
                     $request['startTime'] = $since;
+                } elseif ($orderId === null) {
+                    $request['startTime'] = 0;
                 }
                 list($request, $params) = $this->handle_until_option('endTime', $params, $request);
+                if (!(is_array($request) && array_key_exists('endTime', $request)) && ($orderId === null)) {
+                    $request['endTime'] = $this->milliseconds();
+                }
                 $response = Async\await($this->privateMixGetOrderFills (array_merge($request, $params)));
             }
             //
@@ -4062,7 +4079,7 @@ class bitget extends Exchange {
             //         {
             //           accountId => '6394957606',
             //           $symbol => 'LTCUSDT_SPBL',
-            //           orderId => '864752115272552448',
+            //           $orderId => '864752115272552448',
             //           fillId => '864752115685969921',
             //           orderType => 'limit',
             //           side => 'buy',
@@ -5209,6 +5226,195 @@ class bitget extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
         ), $market);
+    }
+
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $symbol, $params) {
+            /**
+             * create a loan to borrow margin
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-borrow
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-borrow
+             * @param {string} $code unified $currency $code of the $currency to borrow
+             * @param {string} $amount the $amount to borrow
+             * @param {string} [$symbol] unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @param {string} [$params->marginMode] 'isolated' or 'cross', $symbol is required for 'isolated'
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'coin' => $currency['info']['coinName'],
+                'borrowAmount' => $this->currency_to_precision($code, $amount),
+            );
+            $response = null;
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('borrowMargin', $params);
+            if (($symbol !== null) || ($marginMode === 'isolated')) {
+                $this->check_required_symbol('borrowMargin', $symbol);
+                $market = $this->market($symbol);
+                $marketId = $market['id'];
+                $parts = explode('_', $marketId);
+                $marginMarketId = $this->safe_string_upper($parts, 0);
+                $request['symbol'] = $marginMarketId;
+                $response = Async\await($this->privateMarginPostIsolatedAccountBorrow (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateMarginPostCrossAccountBorrow (array_merge($request, $params)));
+            }
+            //
+            // isolated
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1697250952516,
+            //         "data" => {
+            //             "clientOid" => null,
+            //             "symbol" => "BTCUSDT",
+            //             "coin" => "BTC",
+            //             "borrowAmount" => "0.001"
+            //         }
+            //     }
+            //
+            // cross
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1697251314271,
+            //         "data" => {
+            //             "clientOid" => null,
+            //             "coin" => "BTC",
+            //             "borrowAmount" => "0.0001"
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_margin_loan($data, $currency);
+        }) ();
+    }
+
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $symbol, $params) {
+            /**
+             * repay borrowed margin and interest
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
+             * @param {string} $code unified $currency $code of the $currency to repay
+             * @param {string} $amount the $amount to repay
+             * @param {string} [$symbol] unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @param {string} [$params->marginMode] 'isolated' or 'cross', $symbol is required for 'isolated'
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'coin' => $currency['info']['coinName'],
+                'repayAmount' => $this->currency_to_precision($code, $amount),
+            );
+            $response = null;
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('repayMargin', $params);
+            if (($symbol !== null) || ($marginMode === 'isolated')) {
+                $this->check_required_symbol('repayMargin', $symbol);
+                $market = $this->market($symbol);
+                $marketId = $market['id'];
+                $parts = explode('_', $marketId);
+                $marginMarketId = $this->safe_string_upper($parts, 0);
+                $request['symbol'] = $marginMarketId;
+                $response = Async\await($this->privateMarginPostIsolatedAccountRepay (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateMarginPostCrossAccountRepay (array_merge($request, $params)));
+            }
+            //
+            // isolated
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1697251988593,
+            //         "data" => {
+            //             "remainDebtAmount" => "0",
+            //             "clientOid" => null,
+            //             "symbol" => "BTCUSDT",
+            //             "coin" => "BTC",
+            //             "repayAmount" => "0.00100001"
+            //         }
+            //     }
+            //
+            // cross
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1697252151042,
+            //         "data" => {
+            //             "remainDebtAmount" => "0",
+            //             "clientOid" => null,
+            //             "coin" => "BTC",
+            //             "repayAmount" => "0.00010001"
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_margin_loan($data, $currency);
+        }) ();
+    }
+
+    public function parse_margin_loan($info, $currency = null) {
+        //
+        // isolated => borrowMargin
+        //
+        //     {
+        //         "clientOid" => null,
+        //         "symbol" => "BTCUSDT",
+        //         "coin" => "BTC",
+        //         "borrowAmount" => "0.001"
+        //     }
+        //
+        // cross => borrowMargin
+        //
+        //     {
+        //         "clientOid" => null,
+        //         "coin" => "BTC",
+        //         "borrowAmount" => "0.0001"
+        //     }
+        //
+        // isolated => repayMargin
+        //
+        //     {
+        //         "remainDebtAmount" => "0",
+        //         "clientOid" => null,
+        //         "symbol" => "BTCUSDT",
+        //         "coin" => "BTC",
+        //         "repayAmount" => "0.00100001"
+        //     }
+        //
+        // cross => repayMargin
+        //
+        //     {
+        //         "remainDebtAmount" => "0",
+        //         "clientOid" => null,
+        //         "coin" => "BTC",
+        //         "repayAmount" => "0.00010001"
+        //     }
+        //
+        $currencyId = $this->safe_string($info, 'coin');
+        $marketId = $this->safe_string($info, 'symbol');
+        $symbol = null;
+        if ($marketId !== null) {
+            $symbol = $this->safe_symbol($marketId);
+        }
+        return array(
+            'id' => $this->safe_string($info, 'clientOid'),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number_2($info, 'borrowAmount', 'repayAmount'),
+            'symbol' => $symbol,
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $info,
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

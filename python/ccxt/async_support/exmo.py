@@ -796,6 +796,7 @@ class exmo(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'max_amount'),
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result

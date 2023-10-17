@@ -1000,6 +1000,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'quoteMaxSize'),
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -1199,6 +1200,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'id': accountId,
                 'type': type,
                 'currency': code,
+                'code': code,
                 'info': account,
             })
         return result

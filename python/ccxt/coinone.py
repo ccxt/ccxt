@@ -235,6 +235,7 @@ class coinone(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': ticker,
             })
         return result
@@ -842,7 +843,7 @@ class coinone(Exchange, ImplicitAPI):
             payload = self.string_to_base64(json)
             body = payload
             secret = self.secret.upper()
-            signature = self.hmac(payload, self.encode(secret), hashlib.sha512)
+            signature = self.hmac(self.encode(payload), self.encode(secret), hashlib.sha512)
             headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,

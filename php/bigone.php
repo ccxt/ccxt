@@ -562,6 +562,7 @@ class bigone extends Exchange {
                         'max' => $this->safe_number($market, 'max_quote_value'),
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
             $result[] = $entry;

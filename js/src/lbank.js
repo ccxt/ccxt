@@ -232,6 +232,7 @@ export default class lbank extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': id,
             });
         }

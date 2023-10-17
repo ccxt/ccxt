@@ -308,6 +308,7 @@ class hollaex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => $this->parse8601($this->safe_string($market, 'created_at')),
                 'info' => $market,
             );
         }

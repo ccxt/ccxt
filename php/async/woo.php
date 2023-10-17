@@ -402,6 +402,7 @@ class woo extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->safe_integer_product($market, 'created_time', 1000),
                     'info' => $market,
                 );
             }

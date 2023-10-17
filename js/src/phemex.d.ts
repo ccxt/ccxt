@@ -58,6 +58,7 @@ export default class phemex extends Exchange {
                 max: number;
             };
         };
+        created: any;
         info: any;
     };
     parseSpotMarket(market: any): {
@@ -111,6 +112,7 @@ export default class phemex extends Exchange {
                 max: any;
             };
         };
+        created: any;
         info: any;
     };
     fetchMarkets(params?: {}): Promise<any[]>;

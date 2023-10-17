@@ -1011,7 +1011,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         symbol = self.safe_string(position, 'symbol')
         market = self.safe_market(symbol, market)
-        timestamp = self.safe_number(position, 'currentTimestamp')
+        timestamp = self.safe_integer(position, 'currentTimestamp')
         size = self.safe_string(position, 'currentQty')
         side = None
         if Precise.string_gt(size, '0'):

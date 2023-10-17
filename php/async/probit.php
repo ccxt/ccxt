@@ -340,6 +340,7 @@ class probit extends Exchange {
                             'max' => $this->safe_number($market, 'max_cost'),
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }

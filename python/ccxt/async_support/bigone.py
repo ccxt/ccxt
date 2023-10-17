@@ -571,6 +571,7 @@ class bigone(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'max_quote_value'),
                     },
                 },
+                'created': None,
                 'info': market,
             }
             result.append(entry)

@@ -544,6 +544,7 @@ class coinex extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -643,6 +644,7 @@ class coinex extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $entry,
                 );
             }

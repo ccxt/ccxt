@@ -72,9 +72,11 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': True,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMyLiquidations': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -2494,6 +2496,69 @@ class bitmex(Exchange, ImplicitAPI):
             else:
                 return 20
         return cost
+
+    async def fetch_liquidations(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        retrieves the public liquidations of a trading pair
+        see https://www.bitmex.com/api/explorer/#not /Liquidation/Liquidation_get
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the bitmex api endpoint
+        :param int [params.until]: timestamp in ms of the latest liquidation
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchLiquidations', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchLiquidations', symbol, since, limit, params)
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['count'] = limit
+        request, params = self.handle_until_option('endTime', request, params)
+        response = await self.publicGetLiquidation(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "orderID": "string",
+        #             "symbol": "string",
+        #             "side": "string",
+        #             "price": 0,
+        #             "leavesQty": 0
+        #         }
+        #     ]
+        #
+        return self.parse_liquidations(response, market, since, limit)
+
+    def parse_liquidation(self, liquidation, market=None):
+        #
+        #     {
+        #         "orderID": "string",
+        #         "symbol": "string",
+        #         "side": "string",
+        #         "price": 0,
+        #         "leavesQty": 0
+        #     }
+        #
+        marketId = self.safe_string(liquidation, 'symbol')
+        return {
+            'info': liquidation,
+            'symbol': self.safe_symbol(marketId, market),
+            'contracts': None,
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'price': self.safe_number(liquidation, 'price'),
+            'baseValue': None,
+            'quoteValue': None,
+            'timestamp': None,
+            'datetime': None,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

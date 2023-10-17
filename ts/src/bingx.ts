@@ -619,6 +619,7 @@ export default class bingx extends Exchange {
                     'max': this.safeNumber (market, 'maxNotional'),
                 },
             },
+            'created': undefined,
             'info': market,
         };
         return entry;
@@ -2716,8 +2717,10 @@ export default class bingx extends Exchange {
         const network = this.safeString (transaction, 'network');
         const currencyId = this.safeString (transaction, 'coin');
         let code = this.safeCurrencyCode (currencyId, currency);
-        if (code !== undefined && code.indexOf (network) >= 0) {
-            code = code.replace (network, '');
+        if ((code !== undefined) && (code !== network) && code.indexOf (network) >= 0) {
+            if (network !== undefined) {
+                code = code.replace (network, '');
+            }
         }
         const rawType = this.safeString (transaction, 'transferType');
         const type = (rawType === '0') ? 'deposit' : 'withdrawal';

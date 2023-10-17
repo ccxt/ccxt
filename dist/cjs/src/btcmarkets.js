@@ -431,6 +431,7 @@ class btcmarkets extends btcmarkets$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

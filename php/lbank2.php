@@ -414,6 +414,7 @@ class lbank2 extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -511,6 +512,7 @@ class lbank2 extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }

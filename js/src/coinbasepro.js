@@ -413,6 +413,7 @@ export default class coinbasepro extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             }));
         }

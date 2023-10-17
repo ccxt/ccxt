@@ -656,6 +656,7 @@ export default class digifinex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

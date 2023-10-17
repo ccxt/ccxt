@@ -385,6 +385,7 @@ class krakenfutures extends krakenfutures$1 {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'openingDate')),
                 'info': market,
             });
         }

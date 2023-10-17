@@ -275,6 +275,7 @@ class bitbns extends bitbns$1 {
                         'max': this.safeNumber(costLimits, 'max'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

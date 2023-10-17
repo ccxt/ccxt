@@ -261,6 +261,7 @@ export default class wazirx extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

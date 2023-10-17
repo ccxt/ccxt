@@ -433,6 +433,7 @@ export default class bitpanda extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

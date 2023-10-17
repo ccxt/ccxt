@@ -426,6 +426,7 @@ class bitpanda extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }

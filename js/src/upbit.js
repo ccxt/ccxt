@@ -473,6 +473,7 @@ export default class upbit extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

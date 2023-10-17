@@ -3270,6 +3270,12 @@ export default class Exchange {
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchMyTrades() is not supported yet');
     }
+    async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchMyLiquidations() is not supported yet');
+    }
+    async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchLiquidations() is not supported yet');
+    }
     async fetchMyTradesWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchMyTradesWs() is not supported yet');
     }
@@ -4393,6 +4399,30 @@ export default class Exchange {
             'datetime': this.safeString(interest, 'datetime'),
             'info': this.safeValue(interest, 'info'),
         });
+    }
+    parseLiquidation(liquidation, market = undefined) {
+        throw new NotSupported(this.id + ' parseLiquidation () is not supported yet');
+    }
+    parseLiquidations(liquidations, market = undefined, since = undefined, limit = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description parses liquidation info from the exchange response
+         * @param {object[]} liquidations each item describes an instance of a liquidation event
+         * @param {object} market ccxt market
+         * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
+         * @param {int} [limit] limits the number of items in the response
+         * @returns {object[]} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        const result = [];
+        for (let i = 0; i < liquidations.length; i++) {
+            const entry = liquidations[i];
+            const parsed = this.parseLiquidation(entry, market);
+            result.push(parsed);
+        }
+        const sorted = this.sortBy(result, 'timestamp');
+        const symbol = this.safeString(market, 'symbol');
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 }
 export { Exchange, };

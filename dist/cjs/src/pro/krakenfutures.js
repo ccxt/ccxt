@@ -99,6 +99,9 @@ class krakenfutures extends krakenfutures$1 {
         };
         const marketIds = [];
         let messageHash = name;
+        if (symbols === undefined) {
+            symbols = [];
+        }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             marketIds.push(this.marketId(symbol));
@@ -164,6 +167,7 @@ class krakenfutures extends krakenfutures$1 {
         const method = this.safeString(this.options, 'watchTickerMethod', 'ticker'); // or ticker_lite
         const name = this.safeString2(params, 'method', 'watchTickerMethod', method);
         params = this.omit(params, ['watchTickerMethod', 'method']);
+        symbols = this.marketSymbols(symbols, undefined, false);
         return await this.subscribePublic(name, symbols, params);
     }
     async watchTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -315,7 +319,7 @@ class krakenfutures extends krakenfutures$1 {
         //    }
         //
         const channel = this.safeString(message, 'feed');
-        const marketId = this.safeStringLower(message, 'product_id');
+        const marketId = this.safeString(message, 'product_id');
         if (marketId !== undefined) {
             const market = this.market(marketId);
             const symbol = market['symbol'];
@@ -356,7 +360,7 @@ class krakenfutures extends krakenfutures$1 {
         //        "price": 34893
         //    }
         //
-        const marketId = this.safeStringLower(trade, 'product_id');
+        const marketId = this.safeString(trade, 'product_id');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(trade, 'time');
         return this.safeTrade({
@@ -409,7 +413,7 @@ class krakenfutures extends krakenfutures$1 {
         //    }
         //
         const timestamp = this.safeInteger(trade, 'tradeTime');
-        const marketId = this.safeStringLower(trade, 'symbol');
+        const marketId = this.safeString(trade, 'symbol');
         return this.safeTrade({
             'info': trade,
             'id': this.safeString(trade, 'tradeId'),
@@ -488,7 +492,7 @@ class krakenfutures extends krakenfutures$1 {
         }
         const order = this.safeValue(message, 'order');
         if (order !== undefined) {
-            const marketId = this.safeStringLower(order, 'instrument');
+            const marketId = this.safeString(order, 'instrument');
             const messageHash = 'orders';
             const symbol = this.safeSymbol(marketId);
             const orderId = this.safeString(order, 'order_id');
@@ -681,7 +685,7 @@ class krakenfutures extends krakenfutures$1 {
                 status = 'cancelled';
             }
         }
-        const marketId = this.safeStringLower(unparsedOrder, 'instrument');
+        const marketId = this.safeString(unparsedOrder, 'instrument');
         const timestamp = this.safeString(unparsedOrder, 'time');
         const direction = this.safeInteger(unparsedOrder, 'direction');
         return this.safeOrder({
@@ -762,7 +766,7 @@ class krakenfutures extends krakenfutures$1 {
         //        "volumeQuote": 6899673.0
         //    }
         //
-        const marketId = this.safeStringLower(message, 'product_id');
+        const marketId = this.safeString(message, 'product_id');
         const feed = this.safeString(message, 'feed');
         if (marketId !== undefined) {
             const ticker = this.parseWsTicker(message);
@@ -823,7 +827,7 @@ class krakenfutures extends krakenfutures$1 {
         //        "volumeQuote": 6899673.0
         //    }
         //
-        const marketId = this.safeStringLower(ticker, 'product_id');
+        const marketId = this.safeString(ticker, 'product_id');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.parse8601(this.safeString(ticker, 'lastTime'));
@@ -881,7 +885,7 @@ class krakenfutures extends krakenfutures$1 {
         //        ]
         //    }
         //
-        const marketId = this.safeStringLower(message, 'product_id');
+        const marketId = this.safeString(message, 'product_id');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'book:' + symbol;
@@ -921,7 +925,7 @@ class krakenfutures extends krakenfutures$1 {
         //        "timestamp": 1612269953629
         //    }
         //
-        const marketId = this.safeStringLower(message, 'product_id');
+        const marketId = this.safeString(message, 'product_id');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'book:' + symbol;
@@ -1225,7 +1229,7 @@ class krakenfutures extends krakenfutures$1 {
         //    }
         //
         const timestamp = this.safeInteger(trade, 'time');
-        const marketId = this.safeStringLower(trade, 'instrument');
+        const marketId = this.safeString(trade, 'instrument');
         market = this.safeMarket(marketId, market);
         const isBuy = this.safeValue(trade, 'buy');
         const feeCurrencyId = this.safeString(trade, 'fee_currency');

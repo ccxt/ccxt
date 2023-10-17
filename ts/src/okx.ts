@@ -1246,6 +1246,7 @@ export default class okx extends Exchange {
                 'type': type,
                 'currency': undefined,
                 'info': account,
+                'code': undefined,
             });
         }
         return result;
@@ -2127,6 +2128,7 @@ export default class okx extends Exchange {
                 response = await this.publicGetMarketMarkPriceCandles (this.extend (request, params));
             }
         } else if (price === 'index') {
+            request['instId'] = market['info']['instFamily']; // okx index candles require instFamily instead of instId
             if (isHistoryCandles) {
                 response = await this.publicGetMarketHistoryIndexCandles (this.extend (request, params));
             } else {

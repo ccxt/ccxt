@@ -232,6 +232,7 @@ export default class coinone extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': ticker,
             });
         }
@@ -889,7 +890,7 @@ export default class coinone extends Exchange {
             const payload = this.stringToBase64(json);
             body = payload;
             const secret = this.secret.toUpperCase();
-            const signature = this.hmac(payload, this.encode(secret), sha512);
+            const signature = this.hmac(this.encode(payload), this.encode(secret), sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,

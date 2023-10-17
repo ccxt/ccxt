@@ -54,6 +54,7 @@ class whitebit extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
@@ -378,6 +379,7 @@ class whitebit extends Exchange {
                         'max' => $this->safe_number($market, 'maxTotal'),
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
             $result[] = $entry;

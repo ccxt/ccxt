@@ -99,9 +99,11 @@ class binance(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
+                'fetchLiquidations': False,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMyLiquidations': True,
                 'fetchMySettlementHistory': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -270,7 +272,8 @@ class binance(Exchange, ImplicitAPI):
                         'margin/exchange-small-liability-history': 0.6667,
                         'margin/next-hourly-interest-rate': 0.6667,
                         'margin/capital-flow': 10,  # Weight(IP): 100 => cost = 0.1 * 100 = 10
-                        'margin/delist-schedule': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'margin/delist-schedule': 10,  # Weight(IP): 100 => cost = 0.1 * 100 = 10
+                        'margin/available-inventory': 0.3334,  # Weight(UID): 50 => cost = 0.006667 * 50 = 0.3334
                         'loan/vip/loanable/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/collateral/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/request/data': 2.6668,  # Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
@@ -661,7 +664,8 @@ class binance(Exchange, ImplicitAPI):
                         'premiumIndexKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'ticker/24hr': {'cost': 1, 'noSymbol': 40},
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
-                        'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
+                        'ticker/bookTicker': {'cost': 2, 'noSymbol': 5},
+                        'constituents': 2,
                         'openInterest': 1,
                     },
                 },
@@ -746,6 +750,8 @@ class binance(Exchange, ImplicitAPI):
                         'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
                         'openInterest': 1,
                         'indexInfo': 1,
+                        'assetIndex': {'cost': 1, 'noSymbol': 10},
+                        'constituents': 2,
                         'apiTradingStatus': {'cost': 1, 'noSymbol': 10},
                         'lvtKlines': 1,
                     },
@@ -1806,12 +1812,13 @@ class binance(Exchange, ImplicitAPI):
         query = self.omit(params, 'type')
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchTime', None, params)
-        method = 'publicGetTime'
+        response = None
         if self.is_linear(type, subType):
-            method = 'fapiPublicGetTime'
+            response = self.fapiPublicGetTime(query)
         elif self.is_inverse(type, subType):
-            method = 'dapiPublicGetTime'
-        response = getattr(self, method)(query)
+            response = self.dapiPublicGetTime(query)
+        else:
+            response = self.publicGetTime(query)
         return self.safe_integer(response, 'serverTime')
 
     def fetch_currencies(self, params={}):
@@ -2730,14 +2737,15 @@ class binance(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
-        method = 'publicGetDepth'
+        response = None
         if market['option']:
-            method = 'eapiPublicGetDepth'
+            response = self.eapiPublicGetDepth(self.extend(request, params))
         elif market['linear']:
-            method = 'fapiPublicGetDepth'
+            response = self.fapiPublicGetDepth(self.extend(request, params))
         elif market['inverse']:
-            method = 'dapiPublicGetDepth'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.dapiPublicGetDepth(self.extend(request, params))
+        else:
+            response = self.publicGetDepth(self.extend(request, params))
         #
         # future
         #
@@ -2963,14 +2971,15 @@ class binance(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        method = 'publicGetTicker24hr'
+        response = None
         if market['option']:
-            method = 'eapiPublicGetTicker'
+            response = self.eapiPublicGetTicker(self.extend(request, params))
         elif market['linear']:
-            method = 'fapiPublicGetTicker24hr'
+            response = self.fapiPublicGetTicker24hr(self.extend(request, params))
         elif market['inverse']:
-            method = 'dapiPublicGetTicker24hr'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.dapiPublicGetTicker24hr(self.extend(request, params))
+        else:
+            response = self.publicGetTicker24hr(self.extend(request, params))
         if isinstance(response, list):
             firstTicker = self.safe_value(response, 0, {})
             return self.parse_ticker(firstTicker, market)
@@ -2996,14 +3005,13 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchBidsAsks', market, params)
         type, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
-        method = None
+        response = None
         if self.is_linear(type, subType):
-            method = 'fapiPublicGetTickerBookTicker'
+            response = self.fapiPublicGetTickerBookTicker(params)
         elif self.is_inverse(type, subType):
-            method = 'dapiPublicGetTickerBookTicker'
+            response = self.dapiPublicGetTickerBookTicker(params)
         else:
-            method = 'publicGetTickerBookTicker'
-        response = getattr(self, method)(params)
+            response = self.publicGetTickerBookTicker(params)
         return self.parse_tickers(response, symbols)
 
     def fetch_last_prices(self, symbols: Optional[List[str]] = None, params={}):
@@ -3023,9 +3031,9 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchLastPrices', market, params)
         type, params = self.handle_market_type_and_params('fetchLastPrices', market, params)
-        method = None
+        response = None
         if self.is_linear(type, subType):
-            method = 'fapiPublicGetTickerPrice'
+            response = self.fapiPublicGetTickerPrice(params)
             #
             #     [
             #         {
@@ -3037,7 +3045,7 @@ class binance(Exchange, ImplicitAPI):
             #     ]
             #
         elif self.is_inverse(type, subType):
-            method = 'dapiPublicGetTickerPrice'
+            response = self.dapiPublicGetTickerPrice(params)
             #
             #     [
             #         {
@@ -3049,7 +3057,7 @@ class binance(Exchange, ImplicitAPI):
             #     ]
             #
         elif type == 'spot':
-            method = 'publicGetTickerPrice'
+            response = self.publicGetTickerPrice(params)
             #
             #     [
             #         {
@@ -3061,7 +3069,6 @@ class binance(Exchange, ImplicitAPI):
             #
         else:
             raise NotSupported(self.id + ' fetchLastPrices() does not support ' + type + ' markets yet')
-        response = getattr(self, method)(params)
         return self.parse_last_prices(response, symbols)
 
     def parse_last_price(self, info, market=None):
@@ -6038,36 +6045,7 @@ class binance(Exchange, ImplicitAPI):
 
     def parse_trading_fee(self, fee, market=None):
         #
-        #     {
-        #         "symbol": "ADABNB",
-        #         "makerCommission": 0.001,
-        #         "takerCommission": 0.001
-        #     }
-        #
-        marketId = self.safe_string(fee, 'symbol')
-        symbol = self.safe_symbol(marketId, market, None, 'spot')
-        return {
-            'info': fee,
-            'symbol': symbol,
-            'maker': self.safe_number(fee, 'makerCommission'),
-            'taker': self.safe_number(fee, 'takerCommission'),
-        }
-
-    def fetch_trading_fee(self, symbol: str, params={}):
-        """
-        fetch the trading fees for a market
-        see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
-        :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the binance api endpoint
-        :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
-        """
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
-        response = self.sapiGetAssetTradeFee(self.extend(request, params))
-        #
+        # spot
         #     [
         #       {
         #         "symbol": "BTCUSDT",
@@ -6076,8 +6054,73 @@ class binance(Exchange, ImplicitAPI):
         #       }
         #     ]
         #
-        first = self.safe_value(response, 0, {})
-        return self.parse_trading_fee(first)
+        # swap
+        #     {
+        #         "symbol": "BTCUSD_PERP",
+        #         "makerCommissionRate": "0.00015",  # 0.015%
+        #         "takerCommissionRate": "0.00040"   # 0.040%
+        #     }
+        #
+        marketId = self.safe_string(fee, 'symbol')
+        symbol = self.safe_symbol(marketId, market, None, 'spot')
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.safe_number_2(fee, 'makerCommission', 'makerCommissionRate'),
+            'taker': self.safe_number_2(fee, 'takerCommission', 'takerCommissionRate'),
+        }
+
+    def fetch_trading_fee(self, symbol: str, params={}):
+        """
+        fetch the trading fees for a market
+        see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
+        see https://binance-docs.github.io/apidocs/futures/en/#user-commission-rate-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#user-commission-rate-user_data
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the binance api endpoint
+        :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        defaultType = self.safe_string_2(self.options, 'fetchTradingFee', 'defaultType', 'linear')
+        type = self.safe_string(params, 'type', defaultType)
+        params = self.omit(params, 'type')
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchTradingFee', market, params)
+        isSpotOrMargin = (type == 'spot') or (type == 'margin')
+        isLinear = self.is_linear(type, subType)
+        isInverse = self.is_inverse(type, subType)
+        request = {
+            'symbol': market['id'],
+        }
+        response = None
+        if isSpotOrMargin:
+            response = self.sapiGetAssetTradeFee(self.extend(request, params))
+        elif isLinear:
+            response = self.fapiPrivateGetCommissionRate(self.extend(request, params))
+        elif isInverse:
+            response = self.dapiPrivateGetCommissionRate(self.extend(request, params))
+        #
+        # spot
+        #     [
+        #       {
+        #         "symbol": "BTCUSDT",
+        #         "makerCommission": "0.001",
+        #         "takerCommission": "0.001"
+        #       }
+        #     ]
+        #
+        # swap
+        #     {
+        #         "symbol": "BTCUSD_PERP",
+        #         "makerCommissionRate": "0.00015",  # 0.015%
+        #         "takerCommissionRate": "0.00040"   # 0.040%
+        #     }
+        #
+        data = response
+        if isinstance(data, list):
+            data = self.safe_value(data, 0, {})
+        return self.parse_trading_fee(data)
 
     def fetch_trading_fees(self, params={}):
         """
@@ -6090,11 +6133,10 @@ class binance(Exchange, ImplicitAPI):
         """
         self.load_markets()
         method = None
-        defaultType = self.safe_string_2(self.options, 'fetchTradingFees', 'defaultType', 'linear')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTradingFees', None, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchTradingFees', None, params)
+        subType, params = self.handle_sub_type_and_params('fetchTradingFees', None, params, 'linear')
         isSpotOrMargin = (type == 'spot') or (type == 'margin')
         isLinear = self.is_linear(type, subType)
         isInverse = self.is_inverse(type, subType)
@@ -7601,13 +7643,14 @@ class binance(Exchange, ImplicitAPI):
         type = None
         subType = None
         currency = None
+        if code is not None:
+            currency = self.currency(code)
         method = None
         request = {}
         type, params = self.handle_market_type_and_params('fetchLedger', None, params)
         subType, params = self.handle_sub_type_and_params('fetchLedger', None, params)
         if type == 'option':
             self.check_required_argument('fetchLedger', code, 'code')
-            currency = self.currency(code)
             request['currency'] = currency['id']
             method = 'eapiPrivateGetBill'
         elif self.is_linear(type, subType):
@@ -8443,3 +8486,215 @@ class binance(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'info': interest,
         }, market)
+
+    def fetch_my_liquidations(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        retrieves the users liquidated positions
+        see https://binance-docs.github.io/apidocs/spot/en/#get-force-liquidation-record-user_data
+        see https://binance-docs.github.io/apidocs/futures/en/#user-39-s-force-orders-user_data
+        see https://binance-docs.github.io/apidocs/delivery/en/#user-39-s-force-orders-user_data
+        :param str [symbol]: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the binance api endpoint
+        :param int [params.until]: timestamp in ms of the latest liquidation
+        :param boolean [params.paginate]: *spot only* default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyLiquidations', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_incremental('fetchMyLiquidations', symbol, since, limit, params, 'current', 100)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchMyLiquidations', market, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchMyLiquidations', market, params, 'linear')
+        request = {}
+        if type != 'spot':
+            request['autoCloseType'] = 'LIQUIDATION'
+        if market is not None:
+            symbolKey = 'isolatedSymbol' if market['spot'] else 'symbol'
+            request[symbolKey] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            if type == 'spot':
+                request['size'] = limit
+            else:
+                request['limit'] = limit
+        request, params = self.handle_until_option('endTime', request, params)
+        response = None
+        if type == 'spot':
+            response = self.sapiGetMarginForceLiquidationRec(self.extend(request, params))
+        elif subType == 'linear':
+            response = self.fapiPrivateGetForceOrders(self.extend(request, params))
+        elif subType == 'inverse':
+            response = self.dapiPrivateGetForceOrders(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets')
+        #
+        # margin
+        #
+        #     {
+        #         "rows": [
+        #             {
+        #                 "avgPrice": "0.00388359",
+        #                 "executedQty": "31.39000000",
+        #                 "orderId": 180015097,
+        #                 "price": "0.00388110",
+        #                 "qty": "31.39000000",
+        #                 "side": "SELL",
+        #                 "symbol": "BNBBTC",
+        #                 "timeInForce": "GTC",
+        #                 "isIsolated": True,
+        #                 "updatedTime": 1558941374745
+        #             }
+        #         ],
+        #         "total": 1
+        #     }
+        #
+        # linear
+        #
+        #     [
+        #         {
+        #             "orderId": 6071832819,
+        #             "symbol": "BTCUSDT",
+        #             "status": "FILLED",
+        #             "clientOrderId": "autoclose-1596107620040000020",
+        #             "price": "10871.09",
+        #             "avgPrice": "10913.21000",
+        #             "origQty": "0.001",
+        #             "executedQty": "0.001",
+        #             "cumQuote": "10.91321",
+        #             "timeInForce": "IOC",
+        #             "type": "LIMIT",
+        #             "reduceOnly": False,
+        #             "closePosition": False,
+        #             "side": "SELL",
+        #             "positionSide": "BOTH",
+        #             "stopPrice": "0",
+        #             "workingType": "CONTRACT_PRICE",
+        #             "origType": "LIMIT",
+        #             "time": 1596107620044,
+        #             "updateTime": 1596107620087
+        #         },
+        #     ]
+        #
+        # inverse
+        #
+        #     [
+        #         {
+        #             "orderId": 165123080,
+        #             "symbol": "BTCUSD_200925",
+        #             "pair": "BTCUSD",
+        #             "status": "FILLED",
+        #             "clientOrderId": "autoclose-1596542005017000006",
+        #             "price": "11326.9",
+        #             "avgPrice": "11326.9",
+        #             "origQty": "1",
+        #             "executedQty": "1",
+        #             "cumBase": "0.00882854",
+        #             "timeInForce": "IOC",
+        #             "type": "LIMIT",
+        #             "reduceOnly": False,
+        #             "closePosition": False,
+        #             "side": "SELL",
+        #             "positionSide": "BOTH",
+        #             "stopPrice": "0",
+        #             "workingType": "CONTRACT_PRICE",
+        #             "priceProtect": False,
+        #             "origType": "LIMIT",
+        #             "time": 1596542005019,
+        #             "updateTime": 1596542005050
+        #         },
+        #     ]
+        #
+        liquidations = self.safe_value(response, 'rows', response)
+        return self.parse_liquidations(liquidations, market, since, limit)
+
+    def parse_liquidation(self, liquidation, market=None):
+        #
+        # margin
+        #
+        #     {
+        #         "avgPrice": "0.00388359",
+        #         "executedQty": "31.39000000",
+        #         "orderId": 180015097,
+        #         "price": "0.00388110",
+        #         "qty": "31.39000000",
+        #         "side": "SELL",
+        #         "symbol": "BNBBTC",
+        #         "timeInForce": "GTC",
+        #         "isIsolated": True,
+        #         "updatedTime": 1558941374745
+        #     }
+        #
+        # linear
+        #
+        #     {
+        #         "orderId": 6071832819,
+        #         "symbol": "BTCUSDT",
+        #         "status": "FILLED",
+        #         "clientOrderId": "autoclose-1596107620040000020",
+        #         "price": "10871.09",
+        #         "avgPrice": "10913.21000",
+        #         "origQty": "0.001",
+        #         "executedQty": "0.001",
+        #         "cumQuote": "10.91321",
+        #         "timeInForce": "IOC",
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "closePosition": False,
+        #         "side": "SELL",
+        #         "positionSide": "BOTH",
+        #         "stopPrice": "0",
+        #         "workingType": "CONTRACT_PRICE",
+        #         "origType": "LIMIT",
+        #         "time": 1596107620044,
+        #         "updateTime": 1596107620087
+        #     }
+        #
+        # inverse
+        #
+        #     {
+        #         "orderId": 165123080,
+        #         "symbol": "BTCUSD_200925",
+        #         "pair": "BTCUSD",
+        #         "status": "FILLED",
+        #         "clientOrderId": "autoclose-1596542005017000006",
+        #         "price": "11326.9",
+        #         "avgPrice": "11326.9",
+        #         "origQty": "1",
+        #         "executedQty": "1",
+        #         "cumBase": "0.00882854",
+        #         "timeInForce": "IOC",
+        #         "type": "LIMIT",
+        #         "reduceOnly": False,
+        #         "closePosition": False,
+        #         "side": "SELL",
+        #         "positionSide": "BOTH",
+        #         "stopPrice": "0",
+        #         "workingType": "CONTRACT_PRICE",
+        #         "priceProtect": False,
+        #         "origType": "LIMIT",
+        #         "time": 1596542005019,
+        #         "updateTime": 1596542005050
+        #     }
+        #
+        marketId = self.safe_string(liquidation, 'symbol')
+        timestamp = self.safe_integer_2(liquidation, 'updatedTime', 'updateTime')
+        return {
+            'info': liquidation,
+            'symbol': self.safe_symbol(marketId, market),
+            'contracts': self.safe_number(liquidation, 'executedQty'),
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'price': self.safe_number(liquidation, 'avgPrice'),
+            'baseValue': self.safe_number(liquidation, 'cumBase'),
+            'quoteValue': self.safe_number(liquidation, 'cumQuote'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }

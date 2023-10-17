@@ -178,7 +178,7 @@ def assert_greater_or_equal(exchange, skipped_properties, method, entry, key, co
         return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
-    if value is not None:
+    if value is not None and compare_to is not None:
         assert Precise.string_ge(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be >= ' + string_value(compare_to) + log_text
 
 
@@ -187,7 +187,7 @@ def assert_less(exchange, skipped_properties, method, entry, key, compare_to):
         return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
-    if value is not None:
+    if value is not None and compare_to is not None:
         assert Precise.string_lt(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be < ' + string_value(compare_to) + log_text
 
 
@@ -196,7 +196,7 @@ def assert_less_or_equal(exchange, skipped_properties, method, entry, key, compa
         return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
-    if value is not None:
+    if value is not None and compare_to is not None:
         assert Precise.string_le(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be <= ' + string_value(compare_to) + log_text
 
 
@@ -205,7 +205,7 @@ def assert_equal(exchange, skipped_properties, method, entry, key, compare_to):
         return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
-    if value is not None:
+    if value is not None and compare_to is not None:
         assert Precise.string_eq(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be equal to ' + string_value(compare_to) + log_text
 
 

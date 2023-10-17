@@ -269,7 +269,7 @@ export default class huobi extends Exchange {
     };
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
-    fetchPosition(symbol: string, params?: {}): Promise<any>;
+    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: any): {
         id: string;
@@ -314,6 +314,18 @@ export default class huobi extends Exchange {
         info: any;
         symbol: any;
         price: number;
+        timestamp: number;
+        datetime: string;
+    };
+    fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
+    parseLiquidation(liquidation: any, market?: any): {
+        info: any;
+        symbol: any;
+        contracts: number;
+        contractSize: number;
+        price: number;
+        baseValue: number;
+        quoteValue: number;
         timestamp: number;
         datetime: string;
     };

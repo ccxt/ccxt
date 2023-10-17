@@ -822,6 +822,7 @@ export default class delta extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'launch_time')),
                 'info': market,
             });
         }
@@ -1675,7 +1676,7 @@ export default class delta extends Exchange {
                 side = 'sell';
             }
         }
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -1701,7 +1702,7 @@ export default class delta extends Exchange {
             'marginRatio': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
-        };
+        });
     }
     parseOrderStatus(status) {
         const statuses = {

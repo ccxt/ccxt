@@ -538,6 +538,7 @@ export default class coinex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -635,6 +636,7 @@ export default class coinex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }

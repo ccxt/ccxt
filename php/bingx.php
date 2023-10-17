@@ -614,6 +614,7 @@ class bingx extends Exchange {
                     'max' => $this->safe_number($market, 'maxNotional'),
                 ),
             ),
+            'created' => null,
             'info' => $market,
         );
         return $entry;
@@ -2665,8 +2666,10 @@ class bingx extends Exchange {
         $network = $this->safe_string($transaction, 'network');
         $currencyId = $this->safe_string($transaction, 'coin');
         $code = $this->safe_currency_code($currencyId, $currency);
-        if ($code !== null && mb_strpos($code, $network) !== false) {
-            $code = str_replace($network, '', $code);
+        if (($code !== null) && ($code !== $network) && mb_strpos($code, $network) !== false) {
+            if ($network !== null) {
+                $code = str_replace($network, '', $code);
+            }
         }
         $rawType = $this->safe_string($transaction, 'transferType');
         $type = ($rawType === '0') ? 'deposit' : 'withdrawal';

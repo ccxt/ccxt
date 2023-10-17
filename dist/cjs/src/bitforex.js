@@ -230,6 +230,7 @@ class bitforex extends bitforex$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

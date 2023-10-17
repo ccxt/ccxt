@@ -616,6 +616,7 @@ class bingx(Exchange, ImplicitAPI):
                     'max': self.safe_number(market, 'maxNotional'),
                 },
             },
+            'created': None,
             'info': market,
         }
         return entry
@@ -2573,8 +2574,9 @@ class bingx(Exchange, ImplicitAPI):
         network = self.safe_string(transaction, 'network')
         currencyId = self.safe_string(transaction, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        if code is not None and code.find(network) >= 0:
-            code = code.replace(network, '')
+        if (code is not None) and (code != network) and code.find(network) >= 0:
+            if network is not None:
+                code = code.replace(network, '')
         rawType = self.safe_string(transaction, 'transferType')
         type = 'deposit' if (rawType == '0') else 'withdrawal'
         return {

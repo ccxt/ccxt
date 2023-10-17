@@ -94,6 +94,7 @@ export default class btcturk extends Exchange {
                         'orderbook': 1,
                         'ticker': 0.1,
                         'trades': 1,   // ?last=COUNT (max 50)
+                        'ohlc': 1,
                         'server/exchangeinfo': 1,
                     },
                 },
@@ -105,6 +106,8 @@ export default class btcturk extends Exchange {
                         'users/transactions/trade': 1,
                     },
                     'post': {
+                        'users/transactions/crypto': 1,
+                        'users/transactions/fiat': 1,
                         'order': 1,
                         'cancelOrder': 1,
                     },
@@ -262,6 +265,7 @@ export default class btcturk extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }

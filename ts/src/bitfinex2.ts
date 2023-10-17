@@ -580,6 +580,7 @@ export default class bitfinex2 extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined, // todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for this
                 'info': market,
             });
         }

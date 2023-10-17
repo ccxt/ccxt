@@ -600,6 +600,7 @@ class phemex extends phemex$1 {
                     'max': this.parseNumber(this.safeString(market, 'maxOrderQty')),
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }
@@ -698,6 +699,7 @@ class phemex extends phemex$1 {
                     'max': this.parseSafeNumber(this.safeString(market, 'maxOrderValue')),
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }

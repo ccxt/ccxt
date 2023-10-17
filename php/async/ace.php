@@ -244,6 +244,7 @@ class ace extends Exchange {
                         'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
                     ),
                     'active' => null,
+                    'created' => null,
                     'info' => $market,
                 );
             }

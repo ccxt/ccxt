@@ -601,6 +601,7 @@ export default class phemex extends Exchange {
                     'max': this.parseNumber (this.safeString (market, 'maxOrderQty')),
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }
@@ -700,6 +701,7 @@ export default class phemex extends Exchange {
                     'max': this.parseSafeNumber (this.safeString (market, 'maxOrderValue')),
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }

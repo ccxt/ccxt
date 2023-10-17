@@ -59,6 +59,7 @@ export default class whitebit extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -385,6 +386,7 @@ export default class whitebit extends Exchange {
                         'max': this.safeNumber (market, 'maxTotal'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push (entry);

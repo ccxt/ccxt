@@ -229,6 +229,7 @@ class lbank(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': id,
             })
         return result

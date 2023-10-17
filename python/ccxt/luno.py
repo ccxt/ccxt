@@ -243,6 +243,7 @@ class luno(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result

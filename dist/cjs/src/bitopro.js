@@ -358,6 +358,7 @@ class bitopro extends bitopro$1 {
                     'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
                 },
                 'active': active,
+                'created': undefined,
                 'info': market,
             });
         }

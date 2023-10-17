@@ -570,6 +570,7 @@ export default class bigone extends Exchange {
                         'max': this.safeNumber(market, 'max_quote_value'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push(entry);

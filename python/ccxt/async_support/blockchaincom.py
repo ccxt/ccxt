@@ -348,6 +348,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
             })
         return result
 

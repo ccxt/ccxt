@@ -242,6 +242,7 @@ class ace extends ace$1 {
                     'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
                 },
                 'active': undefined,
+                'created': undefined,
                 'info': market,
             });
         }

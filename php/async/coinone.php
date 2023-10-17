@@ -230,6 +230,7 @@ class coinone extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $ticker,
                 );
             }
@@ -900,7 +901,7 @@ class coinone extends Exchange {
             $payload = base64_encode($json);
             $body = $payload;
             $secret = strtoupper($this->secret);
-            $signature = $this->hmac($payload, $this->encode($secret), 'sha512');
+            $signature = $this->hmac($this->encode($payload), $this->encode($secret), 'sha512');
             $headers = array(
                 'Content-Type' => 'application/json',
                 'X-COINONE-PAYLOAD' => $payload,

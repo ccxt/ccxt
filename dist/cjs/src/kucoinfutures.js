@@ -1033,7 +1033,7 @@ class kucoinfutures extends kucoinfutures$1 {
         //
         const symbol = this.safeString(position, 'symbol');
         market = this.safeMarket(symbol, market);
-        const timestamp = this.safeNumber(position, 'currentTimestamp');
+        const timestamp = this.safeInteger(position, 'currentTimestamp');
         const size = this.safeString(position, 'currentQty');
         let side = undefined;
         if (Precise["default"].stringGt(size, '0')) {

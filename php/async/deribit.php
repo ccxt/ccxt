@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 
@@ -60,9 +61,11 @@ class deribit extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMyLiquidations' => true,
                 'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -814,6 +817,7 @@ class deribit extends Exchange {
                                 'max' => null,
                             ),
                         ),
+                        'created' => $this->safe_integer($market, 'creation_timestamp'),
                         'info' => $market,
                     );
                 }
@@ -2944,6 +2948,171 @@ class deribit extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+        );
+    }
+
+    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * retrieves the public liquidations of a trading pair
+             * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the deribit api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLiquidations', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchLiquidations', $symbol, $since, $limit, $params, 'continuation', 'continuation', null));
+            }
+            $market = $this->market($symbol);
+            if ($market['spot']) {
+                throw new NotSupported($this->id . ' fetchLiquidations() does not support ' . $market['type'] . ' markets');
+            }
+            $request = array(
+                'instrument_name' => $market['id'],
+                'type' => 'bankruptcy',
+            );
+            if ($since !== null) {
+                $request['search_start_timestamp'] = $since;
+            }
+            if ($limit !== null) {
+                $request['count'] = $limit;
+            }
+            $response = Async\await($this->publicGetGetLastSettlementsByInstrument (array_merge($request, $params)));
+            //
+            //     {
+            //         "jsonrpc" => "2.0",
+            //         "result" => array(
+            //             "settlements" => array(
+            //                 array(
+            //                     "type" => "bankruptcy",
+            //                     "timestamp" => 1696579200041,
+            //                     "funded" => 10000.0,
+            //                     "session_bankrupcy" => 10000.0
+            //                     "session_profit_loss" => 112951.68715857354,
+            //                     "session_tax" => 0.15,
+            //                     "session_tax_rate" => 0.0015,
+            //                     "socialized" => 0.001,
+            //                 ),
+            //             ),
+            //             "continuation" => "5dHzoGyD8Hs8KURoUhfgXgHpJTA5oyapoudSmNeAfEftqRbjNE6jNNUpo2oCu1khnZL9ao"
+            //         ),
+            //         "usIn" => 1696652052254890,
+            //         "usOut" => 1696652052255733,
+            //         "usDiff" => 843,
+            //         "testnet" => false
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $cursor = $this->safe_string($result, 'continuation');
+            $settlements = $this->safe_value($result, 'settlements', array());
+            $settlementsWithCursor = $this->add_pagination_cursor_to_result($cursor, $settlements);
+            return $this->parse_liquidations($settlementsWithCursor, $market, $since, $limit);
+        }) ();
+    }
+
+    public function add_pagination_cursor_to_result($cursor, $data) {
+        if ($cursor !== null) {
+            $dataLength = count($data);
+            if ($dataLength > 0) {
+                $first = $data[0];
+                $last = $data[$dataLength - 1];
+                $first['continuation'] = $cursor;
+                $last['continuation'] = $cursor;
+                $data[0] = $first;
+                $data[$dataLength - 1] = $last;
+            }
+        }
+        return $data;
+    }
+
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * retrieves the users liquidated positions
+             * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the deribit api endpoint
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            $this->check_required_symbol('fetchMyLiquidations', $symbol);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($market['spot']) {
+                throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' markets');
+            }
+            $request = array(
+                'instrument_name' => $market['id'],
+                'type' => 'bankruptcy',
+            );
+            if ($since !== null) {
+                $request['search_start_timestamp'] = $since;
+            }
+            if ($limit !== null) {
+                $request['count'] = $limit;
+            }
+            $response = Async\await($this->privateGetGetSettlementHistoryByInstrument (array_merge($request, $params)));
+            //
+            //     {
+            //         "jsonrpc" => "2.0",
+            //         "result" => array(
+            //             "settlements" => array(
+            //                 array(
+            //                     "type" => "bankruptcy",
+            //                     "timestamp" => 1696579200041,
+            //                     "funded" => 10000.0,
+            //                     "session_bankrupcy" => 10000.0
+            //                     "session_profit_loss" => 112951.68715857354,
+            //                     "session_tax" => 0.15,
+            //                     "session_tax_rate" => 0.0015,
+            //                     "socialized" => 0.001,
+            //                 ),
+            //             ),
+            //             "continuation" => "5dHzoGyD8Hs8KURoUhfgXgHpJTA5oyapoudSmNeAfEftqRbjNE6jNNUpo2oCu1khnZL9ao"
+            //         ),
+            //         "usIn" => 1696652052254890,
+            //         "usOut" => 1696652052255733,
+            //         "usDiff" => 843,
+            //         "testnet" => false
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $settlements = $this->safe_value($result, 'settlements', array());
+            return $this->parse_liquidations($settlements, $market, $since, $limit);
+        }) ();
+    }
+
+    public function parse_liquidation($liquidation, $market = null) {
+        //
+        //     {
+        //         "type" => "bankruptcy",
+        //         "timestamp" => 1696579200041,
+        //         "funded" => 1,
+        //         "session_bankrupcy" => 0.001,
+        //         "session_profit_loss" => 0.001,
+        //         "session_tax" => 0.0015,
+        //         "session_tax_rate" => 0.0015,
+        //         "socialized" => 0.001,
+        //     }
+        //
+        $timestamp = $this->safe_integer($liquidation, 'timestamp');
+        return array(
+            'info' => $liquidation,
+            'symbol' => $this->safe_symbol(null, $market),
+            'contracts' => null,
+            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'price' => null,
+            'baseValue' => $this->safe_number($liquidation, 'session_bankrupcy'),
+            'quoteValue' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 

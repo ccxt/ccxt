@@ -669,6 +669,7 @@ class ascendex(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'maxNotional'),
                     },
                 },
+                'created': self.safe_integer(market, 'tradingStartTime'),
                 'info': market,
             })
         return result
