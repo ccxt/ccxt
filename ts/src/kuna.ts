@@ -10,13 +10,6 @@ import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 import { Precise } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
-// TODO
-// Public endpoints:
-//     60 calls per minute.
-// Private endpoints:
-//     60 calls per minute for unauthenticated users;
-//     300 calls per minute for authenticated users;
-//     1200 calls per minute for authenticated PRO and VIP users.
 
 /**
  * @class kuna
@@ -29,7 +22,7 @@ export default class kuna extends Exchange {
             'id': 'kuna',
             'name': 'Kuna',
             'countries': [ 'UA' ],
-            'rateLimit': 1000,
+            'rateLimit': 1000,  // on private endpoints rateLimit = 200 for authenticated users, 50 for pro/vip users
             'version': 'v4',
             'has': {
                 'CORS': undefined,
@@ -133,7 +126,7 @@ export default class kuna extends Exchange {
                         'get': {
                             'private/me': 1,
                             'private/getBalance': 1,
-                            'private/active': 1,
+                            'order/private/active': 1,
                             'order/private/history': 1,
                             'order/private/{id}/trades': 1,
                             'order/private/details/{id}': 1,
@@ -1028,7 +1021,6 @@ export default class kuna extends Exchange {
 
     async cancelOrders (ids: string[], symbol: string = undefined, params = {}) {
         /**
-         * TODO
          * @method
          * @name kuna#cancelOrder
          * @description cancels an open order
@@ -1076,15 +1068,15 @@ export default class kuna extends Exchange {
         //        "type": "Limit",                                  // Type of an order
         //        "quantity": "5",                                  // Original order quantity
         //        "executedQuantity": "0",                          // Traded quantity in stock (>0 if traded)
-        //        "cumulativeQuoteQty": "0",                        // Traded quantity in money (>0 if traded) *absent on createOrder*
+        //        "cumulativeQuoteQty": "0",                        // *absent on createOrder* Traded quantity in money (>0 if traded)
         //        "cost": "0.05",                                   // Total amount
-        //        "side": "Bid",                                    // Bid for buying base asset, Ask for selling base asset. FYI: For BTC_USDT trading pair, BTC is the base asset *absent on createOrder*
+        //        "side": "Bid",                                    // *absent on createOrder* Bid for buying base asset, Ask for selling base asset. FYI: For BTC_USDT trading pair, BTC is the base asset
         //        "pair": "TRX_USDT",                               // Traded pair
         //        "price": "0.01",                                  // Price of the trade
         //        "status": "Open",                                 // The status of the order
         //        "createdAt": "2023-07-11T07:04:20.131Z",          // Date-time of order creation, UTC
         //        "updatedAt": "2023-07-11T07:04:20.131Z"           // Date-time of the last update of the order, UTC
-        //        "closedAt": "2023-05-08T08:53:58.333Z"            // Date-time of order finish time, UTC *absent on fetchOpenOrders/createOrder*
+        //        "closedAt": "2023-05-08T08:53:58.333Z"            // *absent on fetchOpenOrders/createOrder* Date-time of order finish time, UTC
         //        "trades": [                                       // * fetchOrder only *
         //            {
         //                "id": "15ff497c-8d25-4155-8184-bb1f905cce1e",              // Unique identifier of a trade
@@ -1118,7 +1110,7 @@ export default class kuna extends Exchange {
         } else if (side === 'Ask') {
             side = 'sell';
         }
-        const trades = this.safeValue (order, 'trades');
+        const trades = this.safeValue (order, 'trades', []);
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'id'),
@@ -1222,12 +1214,12 @@ export default class kuna extends Exchange {
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'until' ]);
         let market = undefined;
+        const request = {
+        };
         if (symbol !== undefined) {
             market = this.market (symbol);
+            request['pairs'] = market['id'];
         }
-        const request = {
-            'pairs': market['id'],
-        };
         if (since !== undefined) {
             request['start'] = this.iso8601 (since);
         }
@@ -1237,7 +1229,7 @@ export default class kuna extends Exchange {
         if (until !== undefined) {
             request['end'] = this.iso8601 (until);
         }
-        const response = await this.v4PrivateGetPrivateActive (this.extend (request, params));
+        const response = await this.v4PrivateGetOrderPrivateActive (this.extend (request, params));
         //
         //    {
         //        "data": [
