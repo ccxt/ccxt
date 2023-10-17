@@ -1833,8 +1833,8 @@ export default class Exchange {
         }, currency);
     }
 
-    marketStructure (market: object = undefined) {
-        const plainStructure = {
+    safeMarketStructure (market: object = undefined) {
+        const cleanStructure = {
             'id': undefined,
             'lowercaseId': undefined,
             'symbol': undefined,
@@ -1890,9 +1890,22 @@ export default class Exchange {
             'info': undefined,
         };
         if (market !== undefined) {
-            return this.extend (plainStructure, market);
+            const result = this.extend (cleanStructure, market);
+            // set undefined swap/future/etc
+            if (result['spot']) {
+                if (result['swap'] === undefined) {
+                    result['swap'] = false;
+                }
+                if (result['future'] === undefined) {
+                    result['future'] = false;
+                }
+                if (result['option'] === undefined) {
+                    result['option'] = false;
+                }
+            }
+            return result;
         }
-        return plainStructure;
+        return cleanStructure;
     }
 
     setMarkets (markets, currencies = undefined) {
