@@ -407,7 +407,7 @@ export default class hollaex extends hollaexRest {
         const messageHash = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
         const keys = Object.keys (data);
-        const timestamp = this.safeIntegerProduct (message, 'time', 1000);
+        const timestamp = this.safeTimestamp (message, 'time');
         this.balance['info'] = data;
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);
