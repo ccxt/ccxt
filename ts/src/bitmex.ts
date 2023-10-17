@@ -1055,6 +1055,7 @@ export default class bitmex extends Exchange {
             'Deposit': 'transaction',
             'Transfer': 'transfer',
             'AffiliatePayout': 'referral',
+            'SpotTrade': 'trade',
         };
         return this.safeString (types, type, type);
     }
@@ -1600,9 +1601,9 @@ export default class bitmex extends Exchange {
             const feeCurrencyCode = this.safeCurrencyCode (currencyId);
             const feeRateString = this.safeString (trade, 'commission');
             fee = {
-                'cost': feeCostString,
+                'cost': Precise.stringAbs (feeCostString),
                 'currency': feeCurrencyCode,
-                'rate': feeRateString,
+                'rate': Precise.stringAbs (feeRateString),
             };
         }
         // Trade or Funding
@@ -2132,7 +2133,8 @@ export default class bitmex extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePositions (response, symbols);
+        const results = this.parsePositions (response, symbols);
+        return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
 
     parsePosition (position, market = undefined) {

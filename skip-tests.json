@@ -259,7 +259,45 @@
         "skipMethods": {
             "loadMarkets": "some market types are out of expected market-types",
             "fetchOHLCV": "open might be greater than high",
-            "fetchTickers": "negative values"
+            "fetchTickers": "negative values",
+            "fetchPositions": {
+                "stopLossPrice": "undefined",
+                "takeProfitPrice": "undefined",
+                "marginRatio": "undefined",
+                "lastPrice": "undefined",
+                "collateral": "undefined",
+                "hedged": "undefined",
+                "lastUpdateTimestamp": "undefined",
+                "entryPrice": "undefined",
+                "markPrice": "undefined",
+                "leverage": "undefined",
+                "initialMargin": "undefined",
+                "maintenanceMargin": "can be zero for default position",
+                "notional": "can be zero for default position",
+                "contracts": "contracts",
+                "unrealizedPnl": "undefined",
+                "realizedPnl": "undefined",
+                "liquidationPrice": "can be 0",
+                "percentage": "might be 0"
+            },
+            "fetchMyTrades": {
+                "side": "sometimes side is not available"
+            },
+            "fetchLedger": {
+                "referenceId": "undefined",
+                "amount": "undefined",
+                "before":"not provided",
+                "tag": "undefined",
+                "tagFrom": "undefined",
+                "tagTo": "undefined",
+                "type": "unmapped types",
+                "timestamp": "default value might be invalid"
+            },
+            "fetchDepositsWithdrawals": {
+                "currency": "undefined",
+                "currencyIdAndCode": "messes codes"
+            },
+            "fetchTransactions": "skip"
         }
     },
     "bitopro": {
