@@ -3002,10 +3002,8 @@ export default class huobi extends Exchange {
         const isUnifiedAccount = this.safeValue2 (params, 'isUnifiedAccount', 'unified', false);
         params = this.omit (params, [ 'isUnifiedAccount', 'unified' ]);
         const request = {};
-        let method = undefined;
         const spot = (type === 'spot');
         const future = (type === 'future');
-        const swap = (type === 'swap');
         const defaultSubType = this.safeString2 (this.options, 'defaultSubType', 'subType', 'linear');
         let subType = this.safeString2 (options, 'defaultSubType', 'subType', defaultSubType);
         subType = this.safeString2 (params, 'defaultSubType', 'subType', subType);
@@ -3017,35 +3015,29 @@ export default class huobi extends Exchange {
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
         const margin = (type === 'margin') || (spot && (cross || isolated));
+        let response = undefined;
         if (spot || margin) {
             if (margin) {
                 if (isolated) {
-                    method = 'spotPrivateGetV1MarginAccountsBalance';
+                    response = await this.spotPrivateGetV1MarginAccountsBalance (this.extend (request, params));
                 } else {
-                    method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+                    response = await this.spotPrivateGetV1CrossMarginAccountsBalance (this.extend (request, params));
                 }
             } else {
                 await this.loadAccounts ();
                 const accountId = await this.fetchAccountIdByType (type, undefined, undefined, params);
                 request['account-id'] = accountId;
-                method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
+                response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance (this.extend (request, params));
             }
-        } else if (isUnifiedAccount) {
-            method = 'contractPrivateGetLinearSwapApiV3UnifiedAccountInfo';
-        } else if (linear) {
-            if (isolated) {
-                method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
-            } else {
-                method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
-            }
+        } else if (isUnifiedAccount || linear) {
+            response = await this.contractPrivateGetLinearSwapApiV3UnifiedAccountInfo (this.extend (request, params));
         } else if (inverse) {
             if (future) {
-                method = 'contractPrivatePostApiV1ContractAccountInfo';
-            } else if (swap) {
-                method = 'contractPrivatePostSwapApiV1SwapAccountInfo';
+                response = await this.contractPrivatePostApiV1ContractAccountInfo (this.extend (request, params));
+            } else {
+                response = await this.contractPrivatePostSwapApiV1SwapAccountInfo (this.extend (request, params));
             }
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -3230,7 +3222,7 @@ export default class huobi extends Exchange {
                 }
                 result = this.safeBalance (result);
             }
-        } else if (isUnifiedAccount) {
+        } else if (isUnifiedAccount || linear) {
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
                 const marginAsset = this.safeString (entry, 'margin_asset');
@@ -3255,38 +3247,6 @@ export default class huobi extends Exchange {
                     result[currencyCode] = account;
                     result = this.safeBalance (result);
                 }
-            }
-        } else if (linear) {
-            const first = this.safeValue (data, 0, {});
-            if (isolated) {
-                for (let i = 0; i < data.length; i++) {
-                    const balance = data[i];
-                    const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
-                    const market = this.safeMarket (marketId);
-                    const currencyId = this.safeString (balance, 'margin_asset');
-                    const currency = this.safeCurrency (currencyId);
-                    const code = this.safeString (market, 'settle', currency['code']);
-                    // the exchange outputs positions for delisted markets
-                    // https://www.huobi.com/support/en-us/detail/74882968522337
-                    // we skip it if the market was delisted
-                    if (code !== undefined) {
-                        const account = this.account ();
-                        account['free'] = this.safeString (balance, 'margin_balance');
-                        account['used'] = this.safeString (balance, 'margin_frozen');
-                        const accountsByCode = {};
-                        accountsByCode[code] = account;
-                        const symbol = market['symbol'];
-                        result[symbol] = this.safeBalance (accountsByCode);
-                    }
-                }
-            } else {
-                const account = this.account ();
-                account['free'] = this.safeString (first, 'margin_balance', 'margin_available');
-                account['used'] = this.safeString (first, 'margin_frozen');
-                const currencyId = this.safeString2 (first, 'margin_asset', 'symbol');
-                const code = this.safeCurrencyCode (currencyId);
-                result[code] = account;
-                result = this.safeBalance (result);
             }
         } else if (inverse) {
             for (let i = 0; i < data.length; i++) {
