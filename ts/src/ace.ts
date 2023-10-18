@@ -344,7 +344,7 @@ export default class ace extends Exchange {
             const ticker = this.parseTicker (rawTicker, market);
             tickers.push (ticker);
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {

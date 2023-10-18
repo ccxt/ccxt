@@ -1366,10 +1366,9 @@ export default class coinbase extends Exchange {
         //
         const data = this.safeValue (response, 'trades', []);
         const ticker = this.parseTicker (data[0], market);
-        return this.extend (ticker, {
-            'bid': this.safeNumber (response, 'best_bid'),
-            'ask': this.safeNumber (response, 'best_ask'),
-        });
+        ticker['bid'] = this.safeNumber (response, 'best_bid');
+        ticker['ask'] = this.safeNumber (response, 'best_ask');
+        return ticker;
     }
 
     parseTicker (ticker, market = undefined) {

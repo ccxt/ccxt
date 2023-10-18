@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, Ticker } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -606,7 +606,7 @@ export default class yobit extends Exchange {
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return tickers[symbol];
+        return tickers[symbol] as Ticker;
     }
 
     parseTrade (trade, market = undefined) {

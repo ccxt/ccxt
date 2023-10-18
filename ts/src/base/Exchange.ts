@@ -4624,6 +4624,15 @@ export default class Exchange {
         return this.filterByArray (objects, key, values, indexed) as Position[];
     }
 
+    filterByArrayTickers (objects, key: IndexType, values = undefined, indexed = true): Dictionary<Ticker> {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a dictionary of tickers
+         */
+        return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
+    }
+
     resolvePromiseIfMessagehashMatches (client, prefix: string, symbol: string, data) {
         const messageHashes = this.findMessageHashes (client, prefix);
         for (let i = 0; i < messageHashes.length; i++) {

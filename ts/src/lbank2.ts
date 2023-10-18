@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -605,7 +605,7 @@ export default class lbank2 extends Exchange {
         const market = this.market (symbol);
         if (market['swap']) {
             const responseForSwap = await this.fetchTickers ([ market['symbol'] ], params);
-            return this.safeValue (responseForSwap, market['symbol']);
+            return this.safeValue (responseForSwap, market['symbol']) as Ticker;
         }
         const request = {
             'symbol': market['id'],
