@@ -3976,6 +3976,18 @@ export default class Exchange {
         return this.parseNumber (value, defaultNumber);
     }
 
+    safeIntegerMultiplied (container, key, multiplier: number, defaultValue = undefined) {
+        let value = this.safeValue (container, key);
+        if (value !== undefined) {
+            if (typeof value === 'string') {
+                value = parseFloat (value);
+            }
+            // @ts-ignore
+            return parseInt (value * multiplier);
+        }
+        return defaultValue;
+    }
+
     parsePrecision (precision?: string) {
         /**
          * @ignore
