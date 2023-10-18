@@ -883,14 +883,19 @@ export default class bingx extends Exchange {
         if (time === 0) {
             time = undefined;
         }
-        const isBuyerMaker = this.safeValue2(trade, 'buyerMaker', 'isBuyerMaker');
-        const side = this.safeStringLower2(trade, 'side', 'S');
         const cost = this.safeString(trade, 'quoteQty');
         const type = (cost === undefined) ? 'spot' : 'swap';
         const currencyId = this.safeString2(trade, 'currency', 'N');
         const currencyCode = this.safeCurrencyCode(currencyId);
         const m = this.safeValue(trade, 'm', false);
         const marketId = this.safeString(trade, 's');
+        const isBuyerMaker = this.safeValue2(trade, 'buyerMaker', 'isBuyerMaker');
+        let takeOrMaker = (isBuyerMaker || m) ? 'maker' : 'taker';
+        let side = this.safeStringLower2(trade, 'side', 'S');
+        if (side === undefined) {
+            side = (isBuyerMaker || m) ? 'sell' : 'buy';
+            takeOrMaker = 'taker';
+        }
         return this.safeTrade({
             'id': this.safeStringN(trade, ['id', 't']),
             'info': trade,
@@ -900,7 +905,7 @@ export default class bingx extends Exchange {
             'order': this.safeString2(trade, 'orderId', 'i'),
             'type': this.safeStringLower(trade, 'o'),
             'side': this.parseOrderSide(side),
-            'takerOrMaker': (isBuyerMaker || m) ? 'maker' : 'taker',
+            'takerOrMaker': takeOrMaker,
             'price': this.safeString2(trade, 'price', 'p'),
             'amount': this.safeStringN(trade, ['qty', 'amount', 'q']),
             'cost': cost,

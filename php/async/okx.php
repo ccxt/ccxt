@@ -3921,7 +3921,7 @@ class okx extends Exchange {
                 $market = $this->market($symbol);
                 $request['instId'] = $market['id'];
             }
-            list($request, $params) = $this->handle_until_option('end', $params, $request);
+            list($request, $params) = $this->handle_until_option('end', $request, $params);
             list($type, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
             $request['instType'] = $this->convert_to_instrument_type($type);
             if ($limit !== null) {
@@ -4042,7 +4042,7 @@ class okx extends Exchange {
                 $currency = $this->currency($code);
                 $request['ccy'] = $currency['id'];
             }
-            list($request, $params) = $this->handle_until_option('end', $params, $request);
+            list($request, $params) = $this->handle_until_option('end', $request, $params);
             $response = Async\await($this->$method (array_merge($request, $query)));
             //
             // privateGetAccountBills, privateGetAccountBillsArchive
@@ -4490,7 +4490,7 @@ class okx extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100, max 100
             }
-            list($request, $params) = $this->handle_until_option('after', $params, $request);
+            list($request, $params) = $this->handle_until_option('after', $request, $params);
             $response = Async\await($this->privateGetAssetDepositHistory (array_merge($request, $params)));
             //
             //     {

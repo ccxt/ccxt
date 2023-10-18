@@ -1740,7 +1740,7 @@ class bitget extends bitget$1 {
             'startTime': since,
             'endTime': this.milliseconds(),
         };
-        [request, params] = this.handleUntilOption('endTime', params, request);
+        [request, params] = this.handleUntilOption('endTime', request, params);
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
@@ -3007,6 +3007,8 @@ class bitget extends bitget$1 {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-stop-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-position-tpsl
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-plan-order
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-place-order
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
@@ -3021,13 +3023,23 @@ class bitget extends bitget$1 {
          * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+         * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
+         * @param {string} [params.loanType] *spot margin only* 'normal', 'autoLoan', 'autoRepay', or 'autoLoanAndRepay' default is 'normal'
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const [marketType, query] = this.handleMarketTypeAndParams('createOrder', market, params);
+        let marketType = undefined;
+        let marginMode = undefined;
+        let response = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
+        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        const marketId = market['id'];
+        const parts = marketId.split('_');
+        const marginMarketId = this.safeStringUpper(parts, 0);
+        const symbolRequest = (marginMode !== undefined) ? marginMarketId : marketId;
         const request = {
-            'symbol': market['id'],
+            'symbol': symbolRequest,
             'orderType': type,
         };
         const isMarketOrder = type === 'market';
@@ -3049,12 +3061,10 @@ class bitget extends bitget$1 {
         if ((type === 'limit') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
+        // default triggerType to market price for unification
+        const triggerType = this.safeString(params, 'triggerType', 'market_price');
+        const reduceOnly = this.safeValue(params, 'reduceOnly', false);
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotPostTradeOrders',
-            'swap': 'privateMixPostOrderPlaceOrder',
-            'future': 'privateMixPostOrderPlaceOrder',
-        });
         const exchangeSpecificTifParam = this.safeStringN(params, ['force', 'timeInForceValue', 'timeInForce']);
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
@@ -3062,55 +3072,33 @@ class bitget extends bitget$1 {
         const timeInForce = this.safeStringLower(params, 'timeInForce', defaultTimeInForce);
         let timeInForceKey = 'timeInForceValue';
         if (marketType === 'spot') {
-            if (isStopLossOrTakeProfitTrigger || isStopLossOrTakeProfit) {
-                throw new errors.InvalidOrder(this.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
+            if (marginMode !== undefined) {
+                timeInForceKey = 'timeInForce';
             }
-            timeInForceKey = 'force';
-            let quantityKey = 'quantity';
-            let quantity = undefined;
-            const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
-            if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
-                if (price === undefined) {
-                    throw new errors.InvalidOrder(this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
-                }
-                else {
-                    const amountString = this.numberToString(amount);
-                    const priceString = this.numberToString(price);
-                    const cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
-                    quantity = this.priceToPrecision(symbol, cost);
-                }
-            }
-            else {
-                quantity = this.amountToPrecision(symbol, amount);
-            }
-            if (clientOrderId !== undefined) {
-                request['clientOrderId'] = clientOrderId;
-            }
-            request['side'] = side;
-            if (triggerPrice !== undefined) {
-                quantityKey = 'size';
-                timeInForceKey = 'timeInForceValue';
-                // default triggerType to market price for unification
-                const triggerType = this.safeString(params, 'triggerType', 'market_price');
-                request['triggerType'] = triggerType;
-                request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
-                if (price !== undefined) {
-                    request['executePrice'] = this.priceToPrecision(symbol, price);
-                }
-                method = 'privateSpotPostPlanPlacePlan';
-            }
-            if (quantity !== undefined) {
-                request[quantityKey] = quantity;
+            else if (triggerPrice === undefined) {
+                timeInForceKey = 'force';
             }
         }
-        else {
+        if (postOnly) {
+            request[timeInForceKey] = 'post_only';
+        }
+        else if (timeInForce === 'gtc') {
+            const gtcRequest = (marginMode !== undefined) ? 'gtc' : 'normal';
+            request[timeInForceKey] = gtcRequest;
+        }
+        else if (timeInForce === 'fok') {
+            request[timeInForceKey] = 'fok';
+        }
+        else if (timeInForce === 'ioc') {
+            request[timeInForceKey] = 'ioc';
+        }
+        params = this.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly']);
+        if ((marketType === 'swap') || (marketType === 'future')) {
             request['marginCoin'] = market['settleId'];
             if (clientOrderId !== undefined) {
                 request['clientOid'] = clientOrderId;
             }
             if (isTriggerOrder || isStopLossOrTakeProfitTrigger) {
-                // default triggerType to market price for unification
-                const triggerType = this.safeString(params, 'triggerType', 'market_price');
                 request['triggerType'] = triggerType;
             }
             if (isStopLossOrTakeProfitTrigger) {
@@ -3120,7 +3108,6 @@ class bitget extends bitget$1 {
                 request['holdSide'] = (side === 'buy') ? 'long' : 'short';
             }
             else {
-                const reduceOnly = this.safeValue(params, 'reduceOnly', false);
                 request['size'] = this.amountToPrecision(symbol, amount);
                 if (reduceOnly) {
                     request['side'] = (side === 'buy') ? 'close_short' : 'close_long';
@@ -3142,7 +3129,7 @@ class bitget extends bitget$1 {
                 if (price !== undefined) {
                     request['executePrice'] = this.priceToPrecision(symbol, price);
                 }
-                method = 'privateMixPostPlanPlacePlan';
+                response = await this.privateMixPostPlanPlacePlan(this.extend(request, params));
             }
             else if (isStopLossOrTakeProfitTrigger) {
                 if (isStopLossTriggerOrder) {
@@ -3153,9 +3140,9 @@ class bitget extends bitget$1 {
                     request['triggerPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                     request['planType'] = 'pos_profit';
                 }
-                method = 'privateMixPostPlanPlacePositionsTPSL';
+                response = await this.privateMixPostPlanPlacePositionsTPSL(this.extend(request, params));
             }
-            else if (isStopLossOrTakeProfit) {
+            else {
                 if (isStopLoss) {
                     const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice');
                     request['presetStopLossPrice'] = this.priceToPrecision(symbol, slTriggerPrice);
@@ -3164,22 +3151,75 @@ class bitget extends bitget$1 {
                     const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
                     request['presetTakeProfitPrice'] = this.priceToPrecision(symbol, tpTriggerPrice);
                 }
+                response = await this.privateMixPostOrderPlaceOrder(this.extend(request, params));
             }
         }
-        if (postOnly) {
-            request[timeInForceKey] = 'post_only';
+        else if (marketType === 'spot') {
+            if (isStopLossOrTakeProfitTrigger || isStopLossOrTakeProfit) {
+                throw new errors.InvalidOrder(this.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
+            }
+            let quantity = undefined;
+            const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
+            if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
+                if (price === undefined) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                }
+                else {
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    const cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
+                    quantity = this.priceToPrecision(symbol, cost);
+                }
+            }
+            else {
+                quantity = this.amountToPrecision(symbol, amount);
+            }
+            request['side'] = side;
+            if (triggerPrice !== undefined) {
+                if (quantity !== undefined) {
+                    request['size'] = quantity;
+                }
+                request['triggerType'] = triggerType;
+                request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision(symbol, price);
+                }
+                if (clientOrderId !== undefined) {
+                    request['clientOrderId'] = clientOrderId;
+                }
+                response = await this.privateSpotPostPlanPlacePlan(this.extend(request, params));
+            }
+            else if (marginMode !== undefined) {
+                request['loanType'] = 'normal';
+                if (clientOrderId !== undefined) {
+                    request['clientOid'] = clientOrderId;
+                }
+                if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
+                    request['quoteAmount'] = quantity;
+                }
+                else {
+                    request['baseQuantity'] = quantity;
+                }
+                if (marginMode === 'isolated') {
+                    response = await this.privateMarginPostIsolatedOrderPlaceOrder(this.extend(request, params));
+                }
+                else if (marginMode === 'cross') {
+                    response = await this.privateMarginPostCrossOrderPlaceOrder(this.extend(request, params));
+                }
+            }
+            else {
+                if (clientOrderId !== undefined) {
+                    request['clientOrderId'] = clientOrderId;
+                }
+                if (quantity !== undefined) {
+                    request['quantity'] = quantity;
+                }
+                response = await this.privateSpotPostTradeOrders(this.extend(request, params));
+            }
         }
-        else if (timeInForce === 'gtc') {
-            request[timeInForceKey] = 'normal';
+        else {
+            throw new errors.NotSupported(this.id + ' createOrder() does not support ' + marketType + ' orders');
         }
-        else if (timeInForce === 'fok') {
-            request[timeInForceKey] = 'fok';
-        }
-        else if (timeInForce === 'ioc') {
-            request[timeInForceKey] = 'ioc';
-        }
-        const omitted = this.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly']);
-        const response = await this[method](this.extend(request, omitted));
         //
         //     {
         //         "code": "00000",
@@ -3191,7 +3231,7 @@ class bitget extends bitget$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeValue(response, 'data', {});
         return this.parseOrder(data, market);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -4046,7 +4086,7 @@ class bitget extends bitget$1 {
         if (since !== undefined) {
             request['before'] = since;
         }
-        [request, params] = this.handleUntilOption('after', params, request);
+        [request, params] = this.handleUntilOption('after', request, params);
         const response = await this.privateSpotPostAccountBills(this.extend(request, params));
         //
         //     {
@@ -4163,7 +4203,7 @@ class bitget extends bitget$1 {
             else if (orderId === undefined) {
                 request['startTime'] = 0;
             }
-            [request, params] = this.handleUntilOption('endTime', params, request);
+            [request, params] = this.handleUntilOption('endTime', request, params);
             if (!('endTime' in request) && (orderId === undefined)) {
                 request['endTime'] = this.milliseconds();
             }
@@ -5077,7 +5117,7 @@ class bitget extends bitget$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [request, params] = this.handleUntilOption('after', params, request);
+        [request, params] = this.handleUntilOption('after', request, params);
         const response = await this.privateSpotGetAccountTransferRecords(this.extend(request, params));
         //
         //     {

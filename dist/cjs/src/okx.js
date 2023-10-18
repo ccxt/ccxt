@@ -3921,7 +3921,7 @@ class okx extends okx$1 {
             market = this.market(symbol);
             request['instId'] = market['id'];
         }
-        [request, params] = this.handleUntilOption('end', params, request);
+        [request, params] = this.handleUntilOption('end', request, params);
         const [type, query] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         request['instType'] = this.convertToInstrumentType(type);
         if (limit !== undefined) {
@@ -4040,7 +4040,7 @@ class okx extends okx$1 {
             currency = this.currency(code);
             request['ccy'] = currency['id'];
         }
-        [request, params] = this.handleUntilOption('end', params, request);
+        [request, params] = this.handleUntilOption('end', request, params);
         const response = await this[method](this.extend(request, query));
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
@@ -4483,7 +4483,7 @@ class okx extends okx$1 {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        [request, params] = this.handleUntilOption('after', params, request);
+        [request, params] = this.handleUntilOption('after', request, params);
         const response = await this.privateGetAssetDepositHistory(this.extend(request, params));
         //
         //     {

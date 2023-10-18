@@ -867,14 +867,18 @@ class bingx(Exchange, ImplicitAPI):
             time = self.parse8601(datetimeId)
         if time == 0:
             time = None
-        isBuyerMaker = self.safe_value_2(trade, 'buyerMaker', 'isBuyerMaker')
-        side = self.safe_string_lower_2(trade, 'side', 'S')
         cost = self.safe_string(trade, 'quoteQty')
         type = 'spot' if (cost is None) else 'swap'
         currencyId = self.safe_string_2(trade, 'currency', 'N')
         currencyCode = self.safe_currency_code(currencyId)
         m = self.safe_value(trade, 'm', False)
         marketId = self.safe_string(trade, 's')
+        isBuyerMaker = self.safe_value_2(trade, 'buyerMaker', 'isBuyerMaker')
+        takeOrMaker = 'maker' if (isBuyerMaker or m) else 'taker'
+        side = self.safe_string_lower_2(trade, 'side', 'S')
+        if side is None:
+            side = 'sell' if (isBuyerMaker or m) else 'buy'
+            takeOrMaker = 'taker'
         return self.safe_trade({
             'id': self.safe_string_n(trade, ['id', 't']),
             'info': trade,
@@ -884,7 +888,7 @@ class bingx(Exchange, ImplicitAPI):
             'order': self.safe_string_2(trade, 'orderId', 'i'),
             'type': self.safe_string_lower(trade, 'o'),
             'side': self.parse_order_side(side),
-            'takerOrMaker': 'maker' if (isBuyerMaker or m) else 'taker',
+            'takerOrMaker': takeOrMaker,
             'price': self.safe_string_2(trade, 'price', 'p'),
             'amount': self.safe_string_n(trade, ['qty', 'amount', 'q']),
             'cost': cost,

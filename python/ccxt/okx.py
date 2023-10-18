@@ -3704,7 +3704,7 @@ class okx(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
-        request, params = self.handle_until_option('end', params, request)
+        request, params = self.handle_until_option('end', request, params)
         type, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request['instType'] = self.convert_to_instrument_type(type)
         if limit is not None:
@@ -3811,7 +3811,7 @@ class okx(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['ccy'] = currency['id']
-        request, params = self.handle_until_option('end', params, request)
+        request, params = self.handle_until_option('end', request, params)
         response = getattr(self, method)(self.extend(request, query))
         #
         # privateGetAccountBills, privateGetAccountBillsArchive
@@ -4224,7 +4224,7 @@ class okx(Exchange, ImplicitAPI):
             request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
-        request, params = self.handle_until_option('after', params, request)
+        request, params = self.handle_until_option('after', request, params)
         response = self.privateGetAssetDepositHistory(self.extend(request, params))
         #
         #     {

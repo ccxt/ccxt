@@ -2775,7 +2775,7 @@ class ascendex extends Exchange {
              * @param {array} [$params] extra parameters specific to the ascendex api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure margin structure}
              */
-            return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
+            return Async\await($this->modify_margin_helper($symbol, -$amount, 'reduce', $params));
         }) ();
     }
 

@@ -1754,7 +1754,7 @@ class bitget extends Exchange {
                 'startTime' => $since,
                 'endTime' => $this->milliseconds(),
             );
-            list($request, $params) = $this->handle_until_option('endTime', $params, $request);
+            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
             }
@@ -3021,6 +3021,8 @@ class bitget extends Exchange {
              * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-stop-order
              * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-position-tpsl
              * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-plan-order
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-place-order
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-place-order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
@@ -3035,13 +3037,23 @@ class bitget extends Exchange {
              * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
              * @param {float} [$params->stopLoss.triggerPrice] *swap only* stop loss trigger $price
              * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
+             * @param {string} [$params->marginMode] 'isolated' or 'cross' for spot margin trading
+             * @param {string} [$params->loanType] *spot margin only* 'normal', 'autoLoan', 'autoRepay', or 'autoLoanAndRepay' default is 'normal'
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
+            $marketType = null;
+            $marginMode = null;
+            $response = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+            $marketId = $market['id'];
+            $parts = explode('_', $marketId);
+            $marginMarketId = $this->safe_string_upper($parts, 0);
+            $symbolRequest = ($marginMode !== null) ? $marginMarketId : $marketId;
             $request = array(
-                'symbol' => $market['id'],
+                'symbol' => $symbolRequest,
                 'orderType' => $type,
             );
             $isMarketOrder = $type === 'market';
@@ -3063,12 +3075,10 @@ class bitget extends Exchange {
             if (($type === 'limit') && ($triggerPrice === null)) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
+            // default $triggerType to $market $price for unification
+            $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
+            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
             $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privateSpotPostTradeOrders',
-                'swap' => 'privateMixPostOrderPlaceOrder',
-                'future' => 'privateMixPostOrderPlaceOrder',
-            ));
             $exchangeSpecificTifParam = $this->safe_string_n($params, array( 'force', 'timeInForceValue', 'timeInForce' ));
             $postOnly = null;
             list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $exchangeSpecificTifParam === 'post_only', $params);
@@ -3076,52 +3086,29 @@ class bitget extends Exchange {
             $timeInForce = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
             $timeInForceKey = 'timeInForceValue';
             if ($marketType === 'spot') {
-                if ($isStopLossOrTakeProfitTrigger || $isStopLossOrTakeProfit) {
-                    throw new InvalidOrder($this->id . ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
+                if ($marginMode !== null) {
+                    $timeInForceKey = 'timeInForce';
+                } elseif ($triggerPrice === null) {
+                    $timeInForceKey = 'force';
                 }
-                $timeInForceKey = 'force';
-                $quantityKey = 'quantity';
-                $quantity = null;
-                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
-                    } else {
-                        $amountString = $this->number_to_string($amount);
-                        $priceString = $this->number_to_string($price);
-                        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                        $quantity = $this->price_to_precision($symbol, $cost);
-                    }
-                } else {
-                    $quantity = $this->amount_to_precision($symbol, $amount);
-                }
-                if ($clientOrderId !== null) {
-                    $request['clientOrderId'] = $clientOrderId;
-                }
-                $request['side'] = $side;
-                if ($triggerPrice !== null) {
-                    $quantityKey = 'size';
-                    $timeInForceKey = 'timeInForceValue';
-                    // default $triggerType to $market $price for unification
-                    $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
-                    $request['triggerType'] = $triggerType;
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                    if ($price !== null) {
-                        $request['executePrice'] = $this->price_to_precision($symbol, $price);
-                    }
-                    $method = 'privateSpotPostPlanPlacePlan';
-                }
-                if ($quantity !== null) {
-                    $request[$quantityKey] = $quantity;
-                }
-            } else {
+            }
+            if ($postOnly) {
+                $request[$timeInForceKey] = 'post_only';
+            } elseif ($timeInForce === 'gtc') {
+                $gtcRequest = ($marginMode !== null) ? 'gtc' : 'normal';
+                $request[$timeInForceKey] = $gtcRequest;
+            } elseif ($timeInForce === 'fok') {
+                $request[$timeInForceKey] = 'fok';
+            } elseif ($timeInForce === 'ioc') {
+                $request[$timeInForceKey] = 'ioc';
+            }
+            $params = $this->omit($params, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly' ));
+            if (($marketType === 'swap') || ($marketType === 'future')) {
                 $request['marginCoin'] = $market['settleId'];
                 if ($clientOrderId !== null) {
                     $request['clientOid'] = $clientOrderId;
                 }
                 if ($isTriggerOrder || $isStopLossOrTakeProfitTrigger) {
-                    // default $triggerType to $market $price for unification
-                    $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
                     $request['triggerType'] = $triggerType;
                 }
                 if ($isStopLossOrTakeProfitTrigger) {
@@ -3130,7 +3117,6 @@ class bitget extends Exchange {
                     }
                     $request['holdSide'] = ($side === 'buy') ? 'long' : 'short';
                 } else {
-                    $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
                     $request['size'] = $this->amount_to_precision($symbol, $amount);
                     if ($reduceOnly) {
                         $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
@@ -3149,7 +3135,7 @@ class bitget extends Exchange {
                     if ($price !== null) {
                         $request['executePrice'] = $this->price_to_precision($symbol, $price);
                     }
-                    $method = 'privateMixPostPlanPlacePlan';
+                    $response = Async\await($this->privateMixPostPlanPlacePlan (array_merge($request, $params)));
                 } elseif ($isStopLossOrTakeProfitTrigger) {
                     if ($isStopLossTriggerOrder) {
                         $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
@@ -3158,8 +3144,8 @@ class bitget extends Exchange {
                         $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                         $request['planType'] = 'pos_profit';
                     }
-                    $method = 'privateMixPostPlanPlacePositionsTPSL';
-                } elseif ($isStopLossOrTakeProfit) {
+                    $response = Async\await($this->privateMixPostPlanPlacePositionsTPSL (array_merge($request, $params)));
+                } else {
                     if ($isStopLoss) {
                         $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
                         $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
@@ -3168,19 +3154,67 @@ class bitget extends Exchange {
                         $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
                         $request['presetTakeProfitPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                     }
+                    $response = Async\await($this->privateMixPostOrderPlaceOrder (array_merge($request, $params)));
                 }
+            } elseif ($marketType === 'spot') {
+                if ($isStopLossOrTakeProfitTrigger || $isStopLossOrTakeProfit) {
+                    throw new InvalidOrder($this->id . ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
+                }
+                $quantity = null;
+                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+                if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                        $quantity = $this->price_to_precision($symbol, $cost);
+                    }
+                } else {
+                    $quantity = $this->amount_to_precision($symbol, $amount);
+                }
+                $request['side'] = $side;
+                if ($triggerPrice !== null) {
+                    if ($quantity !== null) {
+                        $request['size'] = $quantity;
+                    }
+                    $request['triggerType'] = $triggerType;
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+                    if ($price !== null) {
+                        $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                    }
+                    if ($clientOrderId !== null) {
+                        $request['clientOrderId'] = $clientOrderId;
+                    }
+                    $response = Async\await($this->privateSpotPostPlanPlacePlan (array_merge($request, $params)));
+                } elseif ($marginMode !== null) {
+                    $request['loanType'] = 'normal';
+                    if ($clientOrderId !== null) {
+                        $request['clientOid'] = $clientOrderId;
+                    }
+                    if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
+                        $request['quoteAmount'] = $quantity;
+                    } else {
+                        $request['baseQuantity'] = $quantity;
+                    }
+                    if ($marginMode === 'isolated') {
+                        $response = Async\await($this->privateMarginPostIsolatedOrderPlaceOrder (array_merge($request, $params)));
+                    } elseif ($marginMode === 'cross') {
+                        $response = Async\await($this->privateMarginPostCrossOrderPlaceOrder (array_merge($request, $params)));
+                    }
+                } else {
+                    if ($clientOrderId !== null) {
+                        $request['clientOrderId'] = $clientOrderId;
+                    }
+                    if ($quantity !== null) {
+                        $request['quantity'] = $quantity;
+                    }
+                    $response = Async\await($this->privateSpotPostTradeOrders (array_merge($request, $params)));
+                }
+            } else {
+                throw new NotSupported($this->id . ' createOrder() does not support ' . $marketType . ' orders');
             }
-            if ($postOnly) {
-                $request[$timeInForceKey] = 'post_only';
-            } elseif ($timeInForce === 'gtc') {
-                $request[$timeInForceKey] = 'normal';
-            } elseif ($timeInForce === 'fok') {
-                $request[$timeInForceKey] = 'fok';
-            } elseif ($timeInForce === 'ioc') {
-                $request[$timeInForceKey] = 'ioc';
-            }
-            $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly' ));
-            $response = Async\await($this->$method (array_merge($request, $omitted)));
             //
             //     {
             //         "code" => "00000",
@@ -3192,7 +3226,7 @@ class bitget extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_value($response, 'data', array());
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -4045,7 +4079,7 @@ class bitget extends Exchange {
             if ($since !== null) {
                 $request['before'] = $since;
             }
-            list($request, $params) = $this->handle_until_option('after', $params, $request);
+            list($request, $params) = $this->handle_until_option('after', $request, $params);
             $response = Async\await($this->privateSpotPostAccountBills (array_merge($request, $params)));
             //
             //     {
@@ -4161,7 +4195,7 @@ class bitget extends Exchange {
                 } elseif ($orderId === null) {
                     $request['startTime'] = 0;
                 }
-                list($request, $params) = $this->handle_until_option('endTime', $params, $request);
+                list($request, $params) = $this->handle_until_option('endTime', $request, $params);
                 if (!(is_array($request) && array_key_exists('endTime', $request)) && ($orderId === null)) {
                     $request['endTime'] = $this->milliseconds();
                 }
@@ -5092,7 +5126,7 @@ class bitget extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            list($request, $params) = $this->handle_until_option('after', $params, $request);
+            list($request, $params) = $this->handle_until_option('after', $request, $params);
             $response = Async\await($this->privateSpotGetAccountTransferRecords (array_merge($request, $params)));
             //
             //     {
