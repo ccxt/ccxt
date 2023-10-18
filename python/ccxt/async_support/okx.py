@@ -1246,6 +1246,7 @@ class okx(Exchange, ImplicitAPI):
                 'type': type,
                 'currency': None,
                 'info': account,
+                'code': None,
             })
         return result
 
@@ -1261,7 +1262,6 @@ class okx(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(types)):
             promises.append(self.fetch_markets_by_type(types[i], params))
-        # why not both ¯\_(ツ)_/¯
         promises = await asyncio.gather(*promises)
         for i in range(0, len(promises)):
             result = self.array_concat(result, promises[i])
@@ -1388,6 +1388,7 @@ class okx(Exchange, ImplicitAPI):
             'expiryDatetime': self.iso8601(expiry),
             'strike': strikePrice,
             'optionType': optionType,
+            'created': self.safe_integer(market, 'listTime'),
             'precision': {
                 'amount': self.safe_number(market, 'lotSz'),
                 'price': self.parse_number(tickSize),
@@ -2013,7 +2014,7 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -2065,6 +2066,7 @@ class okx(Exchange, ImplicitAPI):
             else:
                 response = await self.publicGetMarketMarkPriceCandles(self.extend(request, params))
         elif price == 'index':
+            request['instId'] = market['info']['instFamily']  # okx index candles require instFamily instead of instId
             if isHistoryCandles:
                 response = await self.publicGetMarketHistoryIndexCandles(self.extend(request, params))
             else:
@@ -2096,7 +2098,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the okx api endpoint
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         if symbol is None:
@@ -3211,7 +3213,7 @@ class okx(Exchange, ImplicitAPI):
         :param bool [params.stop]: True if fetching trigger or conditional orders
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :param str [params.algoId]: Algo ID "'433845797218942976'"
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
@@ -3524,7 +3526,7 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.ordType]: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :param str [params.algoId]: Algo ID "'433845797218942976'"
         :param int [params.until]: timestamp in ms to fetch orders for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
@@ -3682,7 +3684,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param int [params.until]: Timestamp in ms of the latest time to retrieve trades for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         await self.load_markets()
@@ -3703,7 +3705,7 @@ class okx(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
-        request, params = self.handle_until_option('end', params, request)
+        request, params = self.handle_until_option('end', request, params)
         type, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request['instType'] = self.convert_to_instrument_type(type)
         if limit is not None:
@@ -3769,7 +3771,7 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.marginMode]: 'cross' or 'isolated'
         :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure>`
         """
         await self.load_markets()
@@ -3810,7 +3812,7 @@ class okx(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['ccy'] = currency['id']
-        request, params = self.handle_until_option('end', params, request)
+        request, params = self.handle_until_option('end', request, params)
         response = await getattr(self, method)(self.extend(request, query))
         #
         # privateGetAccountBills, privateGetAccountBillsArchive
@@ -4200,7 +4202,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
@@ -4223,7 +4225,7 @@ class okx(Exchange, ImplicitAPI):
             request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
-        request, params = self.handle_until_option('after', params, request)
+        request, params = self.handle_until_option('after', request, params)
         response = await self.privateGetAssetDepositHistory(self.extend(request, params))
         #
         #     {
@@ -4297,7 +4299,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
@@ -6163,7 +6165,7 @@ class okx(Exchange, ImplicitAPI):
             baseVolume = self.safe_number(interest, 'oiCcy')
             openInterestAmount = self.safe_number(interest, 'oi')
             openInterestValue = self.safe_number(interest, 'oiCcy')
-        return {
+        return self.safe_open_interest({
             'symbol': self.safe_symbol(id),
             'baseVolume': baseVolume,  # deprecated
             'quoteVolume': quoteVolume,  # deprecated
@@ -6172,7 +6174,7 @@ class okx(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     def set_sandbox_mode(self, enable):
         super(okx, self).set_sandbox_mode(enable)

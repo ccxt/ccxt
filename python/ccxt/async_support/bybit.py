@@ -1729,6 +1729,7 @@ class bybit(Exchange, ImplicitAPI):
                         'max': self.safe_number(lotSizeFilter, 'maxOrderAmt'),
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -1891,6 +1892,7 @@ class bybit(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.safe_integer(market, 'launchTime'),
                 'info': market,
             })
         return result
@@ -2018,6 +2020,7 @@ class bybit(Exchange, ImplicitAPI):
                             'max': None,
                         },
                     },
+                    'created': self.safe_integer(market, 'launchTime'),
                     'info': market,
                 })
         return result
@@ -2328,7 +2331,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.check_required_symbol('fetchOHLCV', symbol)
@@ -2550,7 +2553,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)
@@ -2679,7 +2682,7 @@ class bybit(Exchange, ImplicitAPI):
             feeToken = self.safe_string(trade, 'feeTokenId')
             feeCurrency = self.safe_currency_code(feeToken)
             fee = {
-                'cost': feeCost,
+                'cost': Precise.string_abs(feeCost),
                 'currency': feeCurrency,
             }
         return self.safe_trade({
@@ -2830,7 +2833,7 @@ class bybit(Exchange, ImplicitAPI):
             else:
                 feeCurrencyCode = market['base'] if market['inverse'] else market['settle']
             fee = {
-                'cost': feeCostString,
+                'cost': Precise.string_abs(feeCostString),
                 'currency': feeCurrencyCode,
             }
         return self.safe_trade({
@@ -3376,9 +3379,12 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        marketType = 'contract'
+        isContract = ('tpslMode' in order)
+        marketType = None
         if market is not None:
             marketType = market['type']
+        else:
+            marketType = 'contract' if isContract else 'spot'
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer_2(order, 'createdTime', 'createdAt')
@@ -3396,9 +3402,14 @@ class bybit(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.safe_string(order, 'cumExecFee')
         if feeCostString is not None:
+            feeCurrency = None
+            if market['spot']:
+                feeCurrency = market['quote'] if (side == 'buy') else market['base']
+            else:
+                feeCurrency = market['settle']
             fee = {
                 'cost': feeCostString,
-                'currency': market['settle'],
+                'currency': feeCurrency,
             }
         clientOrderId = self.safe_string(order, 'orderLinkId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
@@ -3474,7 +3485,7 @@ class bybit(Exchange, ImplicitAPI):
         result = await self.fetch_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            raise OrderNotFound('Order ' + id + ' does not exist.')
+            raise OrderNotFound('Order ' + str(id) + ' does not exist.')
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
         return self.safe_value(result, 0)
@@ -4213,7 +4224,7 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
         :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
@@ -4559,7 +4570,7 @@ class bybit(Exchange, ImplicitAPI):
         :param boolean [params.stop]: True if stop order
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         await self.load_markets()
@@ -4763,7 +4774,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch deposits for, default = 30 days after since
          *
          * EXCHANGE SPECIFIC PARAMETERS
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.cursor]: used for pagination
         :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
        """
@@ -4826,7 +4837,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
@@ -5208,7 +5219,7 @@ class bybit(Exchange, ImplicitAPI):
             'referenceAccount': None,
             'referenceId': referenceId,
             'status': None,
-            'amount': self.parse_number(amount),
+            'amount': self.parse_number(Precise.string_abs(amount)),
             'before': self.parse_number(before),
             'after': self.parse_number(after),
             'fee': self.parse_number(self.safe_string(item, 'fee')),
@@ -5357,10 +5368,9 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'time')
         first = self.safe_value(positions, 0, {})
         position = self.parse_position(first, market)
-        return self.extend(position, {
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        })
+        position['timestamp'] = timestamp
+        position['datetime'] = self.iso8601(timestamp)
+        return position
 
     async def fetch_usdc_positions(self, symbols: Optional[List[str]] = None, params={}):
         await self.load_markets()
@@ -5430,7 +5440,7 @@ class bybit(Exchange, ImplicitAPI):
                 # futures only
                 rawPosition = self.safe_value(rawPosition, 'data')
             results.append(self.parse_position(rawPosition, market))
-        return self.filter_by_array(results, 'symbol', symbols, False)
+        return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
@@ -6036,14 +6046,14 @@ class bybit(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(interest, 'timestamp')
         value = self.safe_number_2(interest, 'open_interest', 'openInterest')
-        return {
+        return self.safe_open_interest({
             'symbol': market['symbol'],
             'openInterestAmount': None,
             'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     async def fetch_borrow_rate(self, code: str, params={}):
         """
@@ -6223,7 +6233,7 @@ class bybit(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of  transfers structures to retrieve
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transfer structures <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
         await self.load_markets()

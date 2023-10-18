@@ -1073,6 +1073,7 @@ class coinbase extends coinbase$1 {
                         'max': this.safeNumber(market, 'quote_max_size'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -2401,7 +2402,7 @@ class coinbase extends coinbase$1 {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @param {int} [params.until] the latest time in ms to fetch trades for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -2567,7 +2568,7 @@ class coinbase extends coinbase$1 {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
@@ -2589,7 +2590,7 @@ class coinbase extends coinbase$1 {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] the maximum number of closed order structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
@@ -2627,7 +2628,7 @@ class coinbase extends coinbase$1 {
          * @param {int} [limit] the maximum amount of candles to fetch, not used by coinbase
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @param {int} [params.until] the latest time in ms to fetch trades for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -2751,7 +2752,7 @@ class coinbase extends coinbase$1 {
          * @param {int} [limit] the maximum number of trade structures to fetch
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @param {int} [params.until] the latest time in ms to fetch trades for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();

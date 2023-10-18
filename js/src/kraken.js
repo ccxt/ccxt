@@ -156,6 +156,7 @@ export default class kraken extends Exchange {
                         'Depth': 1,
                         'OHLC': 1,
                         'Spread': 1,
+                        'SystemStatus': 1,
                         'Ticker': 1,
                         'Time': 1,
                         'Trades': 1,
@@ -168,6 +169,7 @@ export default class kraken extends Exchange {
                         'AddExport': 3,
                         'Balance': 3,
                         'CancelAll': 3,
+                        'CancelAllOrdersAfter': 3,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
                         'ClosedOrders': 6,
@@ -203,6 +205,13 @@ export default class kraken extends Exchange {
                         // sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
+                        // earn
+                        'Earn/Allocate': 3,
+                        'Earn/Deallocate': 3,
+                        'Earn/AllocateStatus': 3,
+                        'Earn/DeallocateStatus': 3,
+                        'Earn/Strategies': 3,
+                        'Earn/Allocations': 3,
                     },
                 },
             },
@@ -490,6 +499,7 @@ export default class kraken extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -863,7 +873,7 @@ export default class kraken extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -945,7 +955,7 @@ export default class kraken extends Exchange {
         else {
             direction = 'in';
         }
-        const timestamp = this.safeIntegerProduct(item, 'time', 1000);
+        const timestamp = this.safeTimestamp(item, 'time');
         return {
             'info': item,
             'id': id,

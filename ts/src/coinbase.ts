@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, Trade, OHLCV } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1089,6 +1089,7 @@ export default class coinbase extends Exchange {
                         'max': this.safeNumber (market, 'quote_max_size'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -2431,14 +2432,14 @@ export default class coinbase extends Exchange {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @param {int} [params.until] the latest time in ms to fetch trades for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Order[];
         }
         let market = undefined;
         if (symbol !== undefined) {
@@ -2599,7 +2600,7 @@ export default class coinbase extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
@@ -2607,7 +2608,7 @@ export default class coinbase extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Order[];
         }
         return await this.fetchOrdersByStatus ('OPEN', symbol, since, limit, params);
     }
@@ -2622,7 +2623,7 @@ export default class coinbase extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] the maximum number of closed order structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
@@ -2630,7 +2631,7 @@ export default class coinbase extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor ('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Order[];
         }
         return await this.fetchOrdersByStatus ('FILLED', symbol, since, limit, params);
     }
@@ -2662,14 +2663,14 @@ export default class coinbase extends Exchange {
          * @param {int} [limit] the maximum amount of candles to fetch, not used by coinbase
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @param {int} [params.until] the latest time in ms to fetch trades for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 299);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 299) as OHLCV[];
         }
         const market = this.market (symbol);
         const request = {
@@ -2788,14 +2789,14 @@ export default class coinbase extends Exchange {
          * @param {int} [limit] the maximum number of trade structures to fetch
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @param {int} [params.until] the latest time in ms to fetch trades for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Trade[];
         }
         let market = undefined;
         if (symbol !== undefined) {

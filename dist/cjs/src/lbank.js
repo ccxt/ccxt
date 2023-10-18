@@ -229,6 +229,7 @@ class lbank extends lbank$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': id,
             });
         }

@@ -300,6 +300,7 @@ class novadax extends novadax$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

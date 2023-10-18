@@ -347,6 +347,7 @@ class blockchaincom extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                 );
             }
             return $result;

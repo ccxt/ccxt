@@ -113,10 +113,12 @@ class gate extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
+                'fetchLiquidations' => true,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMyLiquidations' => true,
                 'fetchMySettlementHistory' => true,
                 'fetchMyTrades' => true,
                 'fetchNetworkDepositAddress' => true,
@@ -1106,6 +1108,7 @@ class gate extends Exchange {
                             'max' => $margin ? $this->safe_number($market, 'max_quote_amount') : null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -1307,6 +1310,7 @@ class gate extends Exchange {
                     'max' => null,
                 ),
             ),
+            'created' => null,
             'info' => $market,
         );
     }
@@ -1429,6 +1433,7 @@ class gate extends Exchange {
                                 'max' => null,
                             ),
                         ),
+                        'created' => $this->safe_timestamp($market, 'create_time'),
                         'info' => $market,
                     );
                 }
@@ -2861,7 +2866,7 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific $to the gateio api endpoint
              * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
              * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
              */
             Async\await($this->load_markets());
@@ -3039,7 +3044,7 @@ class gate extends Exchange {
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @param {int} [$params->until] timestamp in ms of the latest trade to fetch
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
             Async\await($this->load_markets());
@@ -3192,7 +3197,7 @@ class gate extends Exchange {
              * @param {int} [$params->offset] *$contract only* list offset, starting from 0
              * @param {string} [$params->last_id] *$contract only* specify list staring point using the id of last record in previous list-query results
              * @param {int} [$params->count_total] *$contract only* whether to return total number matched, default to 0(no return)
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
@@ -3462,7 +3467,7 @@ class gate extends Exchange {
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
              * @param {int} [$params->until] end time in ms
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
@@ -3500,7 +3505,7 @@ class gate extends Exchange {
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @param {int} [$params->until] end time in ms
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
@@ -3620,6 +3625,13 @@ class gate extends Exchange {
         //        "memo" => null
         //    }
         //
+        //     {
+        //         "currency":"usdt",
+        //         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        //         "amount":"1880",
+        //         "chain":"eth"
+        //     }
+        //
         $id = $this->safe_string($transaction, 'id');
         $type = null;
         $amountString = $this->safe_string($transaction, 'amount');
@@ -3636,6 +3648,7 @@ class gate extends Exchange {
         if ($type === 'withdrawal') {
             $amountString = Precise::string_sub($amountString, $feeCostString);
         }
+        $networkId = $this->safe_string_upper($transaction, 'chain');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $txid = $this->safe_string($transaction, 'txid');
@@ -3650,7 +3663,7 @@ class gate extends Exchange {
             'txid' => $txid,
             'currency' => $code,
             'amount' => $this->parse_number($amountString),
-            'network' => null,
+            'network' => $this->network_id_to_code($networkId),
             'address' => $address,
             'addressTo' => null,
             'addressFrom' => null,
@@ -5887,7 +5900,7 @@ class gate extends Exchange {
         //        lsr_taker => '9.3765153315902'
         //    }
         //
-        $timestamp = $this->safe_integer_product($interest, 'time', 1000);
+        $timestamp = $this->safe_timestamp($interest, 'time');
         return array(
             'symbol' => $this->safe_string($market, 'symbol'),
             'openInterestAmount' => $this->safe_number($interest, 'open_interest'),
@@ -6092,7 +6105,7 @@ class gate extends Exchange {
              * @param {int} [$limit] max number of ledger entries to return
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @param {int} [$params->until] end time in ms
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
              */
             Async\await($this->load_markets());
@@ -6375,6 +6388,192 @@ class gate extends Exchange {
             }
             return $underlyings;
         }) ();
+    }
+
+    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * retrieves the public liquidations of a trading pair
+             * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-liquidation-history
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the gate api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest liquidation
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new NotSupported($this->id . ' fetchLiquidations() supports swap markets only');
+            }
+            $request = array(
+                'settle' => $market['settleId'],
+                'contract' => $market['id'],
+            );
+            if ($since !== null) {
+                $request['from'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            list($request, $params) = $this->handle_until_option('to', $request, $params);
+            $response = Async\await($this->publicFuturesGetSettleLiqOrders (array_merge($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "contract" => "BTC_USDT",
+            //             "left" => 0,
+            //             "size" => -165,
+            //             "fill_price" => "28070",
+            //             "order_price" => "28225",
+            //             "time" => 1696736132
+            //         ),
+            //     )
+            //
+            return $this->parse_liquidations($response, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * retrieves the users liquidated positions
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history-2
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the gate api endpoint
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            $this->check_required_symbol('fetchMyLiquidations', $symbol);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'contract' => $market['id'],
+            );
+            $response = null;
+            if (($market['swap']) || ($market['future'])) {
+                if ($limit !== null) {
+                    $request['limit'] = $limit;
+                }
+                $request['settle'] = $market['settleId'];
+            } elseif ($market['option']) {
+                $marketId = $market['id'];
+                $optionParts = explode('-', $marketId);
+                $request['underlying'] = $this->safe_string($optionParts, 0);
+            }
+            if ($market['swap']) {
+                $response = Async\await($this->privateFuturesGetSettleLiquidates (array_merge($request, $params)));
+            } elseif ($market['future']) {
+                $response = Async\await($this->privateDeliveryGetSettleLiquidates (array_merge($request, $params)));
+            } elseif ($market['option']) {
+                $response = Async\await($this->privateOptionsGetPositionClose (array_merge($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' orders');
+            }
+            //
+            // swap and future
+            //
+            //     array(
+            //         {
+            //             "time" => 1548654951,
+            //             "contract" => "BTC_USDT",
+            //             "size" => 600,
+            //             "leverage" => "25",
+            //             "margin" => "0.006705256878",
+            //             "entry_price" => "3536.123",
+            //             "liq_price" => "3421.54",
+            //             "mark_price" => "3420.27",
+            //             "order_id" => 317393847,
+            //             "order_price" => "3405",
+            //             "fill_price" => "3424",
+            //             "left" => 0
+            //         }
+            //     )
+            //
+            // option
+            //
+            //     array(
+            //         {
+            //             "time" => 1631764800,
+            //             "pnl" => "-42914.291",
+            //             "settle_size" => "-10001",
+            //             "side" => "short",
+            //             "contract" => "BTC_USDT-20210916-5000-C",
+            //             "text" => "settled"
+            //         }
+            //     )
+            //
+            return $this->parse_liquidations($response, $market, $since, $limit);
+        }) ();
+    }
+
+    public function parse_liquidation($liquidation, $market = null) {
+        //
+        // fetchLiquidations
+        //
+        //     {
+        //         "contract" => "BTC_USDT",
+        //         "left" => 0,
+        //         "size" => -165,
+        //         "fill_price" => "28070",
+        //         "order_price" => "28225",
+        //         "time" => 1696736132
+        //     }
+        //
+        // swap and future => fetchMyLiquidations
+        //
+        //     {
+        //         "time" => 1548654951,
+        //         "contract" => "BTC_USDT",
+        //         "size" => 600,
+        //         "leverage" => "25",
+        //         "margin" => "0.006705256878",
+        //         "entry_price" => "3536.123",
+        //         "liq_price" => "3421.54",
+        //         "mark_price" => "3420.27",
+        //         "order_id" => 317393847,
+        //         "order_price" => "3405",
+        //         "fill_price" => "3424",
+        //         "left" => 0
+        //     }
+        //
+        // option => fetchMyLiquidations
+        //
+        //     {
+        //         "time" => 1631764800,
+        //         "pnl" => "-42914.291",
+        //         "settle_size" => "-10001",
+        //         "side" => "short",
+        //         "contract" => "BTC_USDT-20210916-5000-C",
+        //         "text" => "settled"
+        //     }
+        //
+        $marketId = $this->safe_string($liquidation, 'contract');
+        $timestamp = $this->safe_timestamp($liquidation, 'time');
+        $contractsStringRaw = $this->safe_string_2($liquidation, 'size', 'settle_size');
+        $contractsString = Precise::string_abs($contractsStringRaw);
+        $contractSizeString = $this->safe_string($market, 'contractSize');
+        $priceString = $this->safe_string_2($liquidation, 'liq_price', 'fill_price');
+        $baseValueString = Precise::string_mul($contractsString, $contractSizeString);
+        $quoteValueString = $this->safe_string($liquidation, 'pnl');
+        if ($quoteValueString === null) {
+            $quoteValueString = Precise::string_mul($baseValueString, $priceString);
+        }
+        return array(
+            'info' => $liquidation,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'contracts' => $this->parse_number($contractsString),
+            'contractSize' => $this->parse_number($contractSizeString),
+            'price' => $this->parse_number($priceString),
+            'baseValue' => $this->parse_number($baseValueString),
+            'quoteValue' => $this->parse_number(Precise::string_abs($quoteValueString)),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

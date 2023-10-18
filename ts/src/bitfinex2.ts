@@ -4,7 +4,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -580,6 +580,7 @@ export default class bitfinex2 extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined, // todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for this
                 'info': market,
             });
         }
@@ -1286,7 +1287,7 @@ export default class bitfinex2 extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
@@ -1294,7 +1295,7 @@ export default class bitfinex2 extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, 10000);
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, 10000) as Trade[];
         }
         const market = this.market (symbol);
         let sort = '-1';
@@ -1338,13 +1339,13 @@ export default class bitfinex2 extends Exchange {
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          */
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 10000);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 10000) as OHLCV[];
         }
         const market = this.market (symbol);
         if (limit === undefined) {
@@ -1840,7 +1841,7 @@ export default class bitfinex2 extends Exchange {
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         // returns the most recent closed or canceled orders up to circa two weeks ago
@@ -1848,7 +1849,7 @@ export default class bitfinex2 extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params) as Order[];
         }
         let request = {};
         if (since !== undefined) {
@@ -2731,7 +2732,7 @@ export default class bitfinex2 extends Exchange {
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets ();
@@ -2850,7 +2851,7 @@ export default class bitfinex2 extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {int} [params.until] timestamp in ms of the latest funding rate
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
          */
         await this.loadMarkets ();
@@ -2858,7 +2859,7 @@ export default class bitfinex2 extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 5000);
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 5000) as FundingRateHistory[];
         }
         const market = this.market (symbol);
         let request = {
@@ -2905,7 +2906,7 @@ export default class bitfinex2 extends Exchange {
             const rate = this.parseFundingRateHistory (fr, market);
             rates.push (rate);
         }
-        return this.filterBySymbolSinceLimit (rates, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (rates, symbol, since, limit) as FundingRateHistory[];
     }
 
     parseFundingRate (contract, market = undefined) {

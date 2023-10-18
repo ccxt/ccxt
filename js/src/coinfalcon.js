@@ -216,6 +216,7 @@ export default class coinfalcon extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -936,9 +937,9 @@ export default class coinfalcon extends Exchange {
         const amountString = this.safeString(transaction, 'amount');
         const amount = this.parseNumber(amountString);
         const feeCostString = this.safeString(transaction, 'fee');
-        let feeCost = 0;
+        let feeCost = '0';
         if (feeCostString !== undefined) {
-            feeCost = this.parseNumber(feeCostString);
+            feeCost = feeCostString;
         }
         return {
             'info': transaction,
@@ -960,7 +961,7 @@ export default class coinfalcon extends Exchange {
             'updated': undefined,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber(feeCost),
             },
         };
     }

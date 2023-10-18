@@ -382,6 +382,7 @@ class bittrex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.parse8601(self.safe_string(market, 'createdAt')),
                 'info': market,
             })
         return result
@@ -884,8 +885,13 @@ class bittrex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the bittrex api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440)
         self.load_markets()
         market = self.market(symbol)
         reverseId = market['baseId'] + '-' + market['quoteId']

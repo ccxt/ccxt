@@ -1235,6 +1235,7 @@ class okx extends Exchange {
                 'type' => $type,
                 'currency' => null,
                 'info' => $account,
+                'code' => null,
             );
         }
         return $result;
@@ -1253,7 +1254,6 @@ class okx extends Exchange {
         for ($i = 0; $i < count($types); $i++) {
             $promises[] = $this->fetch_markets_by_type($types[$i], $params);
         }
-        // why not both ¯\_(ツ)_/¯
         $promises = $promises;
         for ($i = 0; $i < count($promises); $i++) {
             $result = $this->array_concat($result, $promises[$i]);
@@ -1388,6 +1388,7 @@ class okx extends Exchange {
             'expiryDatetime' => $this->iso8601($expiry),
             'strike' => $strikePrice,
             'optionType' => $optionType,
+            'created' => $this->safe_integer($market, 'listTime'),
             'precision' => array(
                 'amount' => $this->safe_number($market, 'lotSz'),
                 'price' => $this->parse_number($tickSize),
@@ -2043,7 +2044,7 @@ class okx extends Exchange {
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -2102,6 +2103,7 @@ class okx extends Exchange {
                 $response = $this->publicGetMarketMarkPriceCandles (array_merge($request, $params));
             }
         } elseif ($price === 'index') {
+            $request['instId'] = $market['info']['instFamily']; // okx index candles require instFamily instead of instId
             if ($isHistoryCandles) {
                 $response = $this->publicGetMarketHistoryIndexCandles (array_merge($request, $params));
             } else {
@@ -2137,7 +2139,7 @@ class okx extends Exchange {
          * @param {int} [$since] $timestamp in ms of the earliest funding $rate to fetch
          * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-$rate-history-structure funding $rate structures} to fetch
          * @param {array} [$params] extra parameters specific to the okx api endpoint
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-$rate-history-structure funding $rate structures}
          */
         if ($symbol === null) {
@@ -3343,7 +3345,7 @@ class okx extends Exchange {
          * @param {bool} [$params->stop] True if fetching trigger or conditional orders
          * @param {string} [$params->ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [$params->algoId] Algo ID "'433845797218942976'"
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
@@ -3672,7 +3674,7 @@ class okx extends Exchange {
          * @param {string} [$params->ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [$params->algoId] Algo ID "'433845797218942976'"
          * @param {int} [$params->until] timestamp in ms to fetch orders for
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
@@ -3839,7 +3841,7 @@ class okx extends Exchange {
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @param {int} [$params->until] Timestamp in ms of the latest time to retrieve trades for
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->load_markets();
@@ -3862,7 +3864,7 @@ class okx extends Exchange {
             $market = $this->market($symbol);
             $request['instId'] = $market['id'];
         }
-        list($request, $params) = $this->handle_until_option('end', $params, $request);
+        list($request, $params) = $this->handle_until_option('end', $request, $params);
         list($type, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $request['instType'] = $this->convert_to_instrument_type($type);
         if ($limit !== null) {
@@ -3931,7 +3933,7 @@ class okx extends Exchange {
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated'
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
          */
         $this->load_markets();
@@ -3979,7 +3981,7 @@ class okx extends Exchange {
             $currency = $this->currency($code);
             $request['ccy'] = $currency['id'];
         }
-        list($request, $params) = $this->handle_until_option('end', $params, $request);
+        list($request, $params) = $this->handle_until_option('end', $request, $params);
         $response = $this->$method (array_merge($request, $query));
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
@@ -4392,7 +4394,7 @@ class okx extends Exchange {
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         $this->load_markets();
@@ -4419,7 +4421,7 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        list($request, $params) = $this->handle_until_option('after', $params, $request);
+        list($request, $params) = $this->handle_until_option('after', $request, $params);
         $response = $this->privateGetAssetDepositHistory (array_merge($request, $params));
         //
         //     {
@@ -4496,7 +4498,7 @@ class okx extends Exchange {
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         $this->load_markets();
@@ -6489,7 +6491,7 @@ class okx extends Exchange {
             $openInterestAmount = $this->safe_number($interest, 'oi');
             $openInterestValue = $this->safe_number($interest, 'oiCcy');
         }
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($id),
             'baseVolume' => $baseVolume,  // deprecated
             'quoteVolume' => $quoteVolume,  // deprecated
@@ -6498,7 +6500,7 @@ class okx extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function set_sandbox_mode($enable) {

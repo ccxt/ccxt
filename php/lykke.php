@@ -308,7 +308,6 @@ class lykke extends Exchange {
                 'option' => false,
                 'contract' => false,
                 'active' => true,
-                'info' => $market,
                 'linear' => null,
                 'inverse' => null,
                 'contractSize' => null,
@@ -338,6 +337,8 @@ class lykke extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
+                'info' => $market,
             );
         }
         return $result;

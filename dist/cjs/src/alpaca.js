@@ -306,6 +306,7 @@ class alpaca extends alpaca$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': asset,
             });
         }

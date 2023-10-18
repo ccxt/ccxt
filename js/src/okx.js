@@ -1241,6 +1241,7 @@ export default class okx extends Exchange {
                 'type': type,
                 'currency': undefined,
                 'info': account,
+                'code': undefined,
             });
         }
         return result;
@@ -1260,7 +1261,6 @@ export default class okx extends Exchange {
         for (let i = 0; i < types.length; i++) {
             promises.push(this.fetchMarketsByType(types[i], params));
         }
-        // why not both ¯\_(ツ)_/¯
         promises = await Promise.all(promises);
         for (let i = 0; i < promises.length; i++) {
             result = this.arrayConcat(result, promises[i]);
@@ -1394,6 +1394,7 @@ export default class okx extends Exchange {
             'expiryDatetime': this.iso8601(expiry),
             'strike': strikePrice,
             'optionType': optionType,
+            'created': this.safeInteger(market, 'listTime'),
             'precision': {
                 'amount': this.safeNumber(market, 'lotSz'),
                 'price': this.parseNumber(tickSize),
@@ -2054,7 +2055,7 @@ export default class okx extends Exchange {
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.price] "mark" or "index" for mark price and index price candles
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -2115,6 +2116,7 @@ export default class okx extends Exchange {
             }
         }
         else if (price === 'index') {
+            request['instId'] = market['info']['instFamily']; // okx index candles require instFamily instead of instId
             if (isHistoryCandles) {
                 response = await this.publicGetMarketHistoryIndexCandles(this.extend(request, params));
             }
@@ -2154,7 +2156,7 @@ export default class okx extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         if (symbol === undefined) {
@@ -3398,7 +3400,7 @@ export default class okx extends Exchange {
          * @param {bool} [params.stop] True if fetching trigger or conditional orders
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -3730,7 +3732,7 @@ export default class okx extends Exchange {
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {int} [params.until] timestamp in ms to fetch orders for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -3899,7 +3901,7 @@ export default class okx extends Exchange {
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {int} [params.until] Timestamp in ms of the latest time to retrieve trades for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
@@ -3922,7 +3924,7 @@ export default class okx extends Exchange {
             market = this.market(symbol);
             request['instId'] = market['id'];
         }
-        [request, params] = this.handleUntilOption('end', params, request);
+        [request, params] = this.handleUntilOption('end', request, params);
         const [type, query] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         request['instType'] = this.convertToInstrumentType(type);
         if (limit !== undefined) {
@@ -3993,7 +3995,7 @@ export default class okx extends Exchange {
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets();
@@ -4041,7 +4043,7 @@ export default class okx extends Exchange {
             currency = this.currency(code);
             request['ccy'] = currency['id'];
         }
-        [request, params] = this.handleUntilOption('end', params, request);
+        [request, params] = this.handleUntilOption('end', request, params);
         const response = await this[method](this.extend(request, query));
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
@@ -4457,7 +4459,7 @@ export default class okx extends Exchange {
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
@@ -4484,7 +4486,7 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        [request, params] = this.handleUntilOption('after', params, request);
+        [request, params] = this.handleUntilOption('after', request, params);
         const response = await this.privateGetAssetDepositHistory(this.extend(request, params));
         //
         //     {
@@ -4563,7 +4565,7 @@ export default class okx extends Exchange {
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
@@ -6580,7 +6582,7 @@ export default class okx extends Exchange {
             openInterestAmount = this.safeNumber(interest, 'oi');
             openInterestValue = this.safeNumber(interest, 'oiCcy');
         }
-        return {
+        return this.safeOpenInterest({
             'symbol': this.safeSymbol(id),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -6589,7 +6591,7 @@ export default class okx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
     setSandboxMode(enable) {
         super.setSandboxMode(enable);

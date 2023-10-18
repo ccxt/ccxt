@@ -26,6 +26,7 @@ use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\BadSymbol;
 use ccxt\ArgumentsRequired;
+use ccxt\RateLimitExceeded;
 use ccxt\NullResponse;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
@@ -40,11 +41,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.1.6';
+$version = '4.1.17';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.6';
+    const VERSION = '4.1.17';
 
     public $browser;
     public $marketsLoading = null;
@@ -814,6 +815,88 @@ class Exchange extends \ccxt\Exchange {
         ), $currency);
     }
 
+    public function safe_market_structure(?array $market = null) {
+        $cleanStructure = array(
+            'id' => null,
+            'lowercaseId' => null,
+            'symbol' => null,
+            'base' => null,
+            'quote' => null,
+            'settle' => null,
+            'baseId' => null,
+            'quoteId' => null,
+            'settleId' => null,
+            'type' => null,
+            'spot' => null,
+            'margin' => null,
+            'swap' => null,
+            'future' => null,
+            'option' => null,
+            'index' => null,
+            'active' => null,
+            'contract' => null,
+            'linear' => null,
+            'inverse' => null,
+            'taker' => null,
+            'maker' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => null,
+                'price' => null,
+                'cost' => null,
+                'base' => null,
+                'quote' => null,
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => null,
+        );
+        if ($market !== null) {
+            $result = array_merge($cleanStructure, $market);
+            // set null swap/future/etc
+            if ($result['spot']) {
+                if ($result['contract'] === null) {
+                    $result['contract'] = false;
+                }
+                if ($result['swap'] === null) {
+                    $result['swap'] = false;
+                }
+                if ($result['future'] === null) {
+                    $result['future'] = false;
+                }
+                if ($result['option'] === null) {
+                    $result['option'] = false;
+                }
+                if ($result['index'] === null) {
+                    $result['index'] = false;
+                }
+            }
+            return $result;
+        }
+        return $cleanStructure;
+    }
+
     public function set_markets($markets, $currencies = null) {
         $values = array();
         $this->markets_by_id = array();
@@ -1386,7 +1469,7 @@ class Exchange extends \ccxt\Exchange {
         //     string = true
         //
         //     array(
-        //         array( 'currency' => 'BTC', 'cost' => '0.3'  ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.4'  ),
         //         array( 'currency' => 'BTC', 'cost' => '0.6', 'rate' => '0.00123' ),
         //         array( 'currency' => 'BTC', 'cost' => '0.5', 'rate' => '0.00456' ),
         //         array( 'currency' => 'USDT', 'cost' => '12.3456' ),
@@ -1613,7 +1696,7 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function market_symbols($symbols, ?string $type = null, $allowEmpty = true) {
+    public function market_symbols($symbols, ?string $type = null, $allowEmpty = true, $sameTypeOnly = false, $sameSubTypeOnly = false) {
         if ($symbols === null) {
             if (!$allowEmpty) {
                 throw new ArgumentsRequired($this->id . ' empty list of $symbols is not supported');
@@ -1628,10 +1711,26 @@ class Exchange extends \ccxt\Exchange {
             return $symbols;
         }
         $result = array();
+        $marketType = null;
+        $isLinearSubType = null;
         for ($i = 0; $i < count($symbols); $i++) {
             $market = $this->market ($symbols[$i]);
+            if ($sameTypeOnly && ($marketType !== null)) {
+                if ($market['type'] !== $marketType) {
+                    throw new BadRequest($this->id . ' $symbols must be of the same $type, either ' . $marketType . ' or ' . $market['type'] . '.');
+                }
+            }
+            if ($sameSubTypeOnly && ($isLinearSubType !== null)) {
+                if ($market['linear'] !== $isLinearSubType) {
+                    throw new BadRequest($this->id . ' $symbols must be of the same subType, either linear or inverse.');
+                }
+            }
             if ($type !== null && $market['type'] !== $type) {
-                throw new BadRequest($this->id . ' $symbols must be of same $type ' . $type . '. If the $type is incorrect you can change it in options or the params of the request');
+                throw new BadRequest($this->id . ' $symbols must be of the same $type ' . $type . '. If the $type is incorrect you can change it in options or the params of the request');
+            }
+            $marketType = $market['type'];
+            if (!$market['spot']) {
+                $isLinearSubType = $market['linear'];
             }
             $symbol = $this->safe_string($market, 'symbol', $symbols[$i]);
             $result[] = $symbol;
@@ -1827,7 +1926,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->parse_number($value, $d);
     }
 
-    public function parse_order_book(array $orderbook, string $symbol, ?float $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1) {
+    public function parse_order_book(array $orderbook, string $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 0, int|string $amountKey = 1) {
         $bids = $this->parse_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey);
         $asks = $this->parse_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey);
         return array(
@@ -2667,6 +2766,14 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchMyTrades() is not supported yet');
     }
 
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchMyLiquidations() is not supported yet');
+    }
+
+    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchLiquidations() is not supported yet');
+    }
+
     public function fetch_my_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchMyTradesWs() is not supported yet');
     }
@@ -2701,6 +2808,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_open_interest(string $symbol, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
+    }
+
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchFundingRateHistory() is not supported yet');
     }
 
     public function parse_last_price($price, $market = null) {
@@ -3665,7 +3776,9 @@ class Exchange extends \ccxt\Exchange {
                     }
                 }
             }
-            return $this->remove_repeated_elements_from_array($result);
+            $uniqueResults = $this->remove_repeated_elements_from_array($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
         }) ();
     }
 
@@ -3724,7 +3837,9 @@ class Exchange extends \ccxt\Exchange {
             for ($i = 0; $i < count($results); $i++) {
                 $result = $this->array_concat($result, $results[$i]);
             }
-            return $this->remove_repeated_elements_from_array($result);
+            $uniqueResults = $this->remove_repeated_elements_from_array($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
         }) ();
     }
 
@@ -3770,8 +3885,60 @@ class Exchange extends \ccxt\Exchange {
                 }
                 $i += 1;
             }
-            return $result;
+            $sorted = $this->sortCursorPaginatedResult ($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($sorted, $since, $limit, $key);
         }) ();
+    }
+
+    public function fetch_paginated_call_incremental(string $method, ?string $symbol = null, $since = null, $limit = null, $params = array (), $pageKey = null, $maxEntriesPerRequest = null) {
+        return Async\async(function () use ($method, $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest) {
+            $maxCalls = null;
+            list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
+            $maxRetries = null;
+            list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
+            list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
+            $i = 0;
+            $errors = 0;
+            $result = array();
+            while ($i < $maxCalls) {
+                try {
+                    $params[$pageKey] = $i + 1;
+                    $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));
+                    $errors = 0;
+                    $responseLength = count($response);
+                    if ($this->verbose) {
+                        $this->log ('Incremental pagination call', $i + 1, 'method', $method, 'response length', $responseLength);
+                    }
+                    if ($responseLength === 0) {
+                        break;
+                    }
+                    $result = $this->array_concat($result, $response);
+                } catch (Exception $e) {
+                    $errors += 1;
+                    if ($errors > $maxRetries) {
+                        throw $e;
+                    }
+                }
+                $i += 1;
+            }
+            $sorted = $this->sortCursorPaginatedResult ($result);
+            $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
+            return $this->filter_by_since_limit($sorted, $since, $limit, $key);
+        }) ();
+    }
+
+    public function sort_cursor_paginated_result($result) {
+        $first = $this->safe_value($result, 0);
+        if ($first !== null) {
+            if (is_array($first) && array_key_exists('timestamp', $first)) {
+                return $this->sort_by($result, 'timestamp');
+            }
+            if (is_array($first) && array_key_exists('id', $first)) {
+                return $this->sort_by($result, 'id');
+            }
+        }
+        return $result;
     }
 
     public function remove_repeated_elements_from_array($input) {
@@ -3807,5 +3974,43 @@ class Exchange extends \ccxt\Exchange {
             $params = $this->omit ($params, array( 'until', 'till' ));
         }
         return array( $request, $params );
+    }
+
+    public function safe_open_interest($interest, $market = null) {
+        return array_merge($interest, array(
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'baseVolume' => $this->safe_number($interest, 'baseVolume'), // deprecated
+            'quoteVolume' => $this->safe_number($interest, 'quoteVolume'), // deprecated
+            'openInterestAmount' => $this->safe_number($interest, 'openInterestAmount'),
+            'openInterestValue' => $this->safe_number($interest, 'openInterestValue'),
+            'timestamp' => $this->safe_integer($interest, 'timestamp'),
+            'datetime' => $this->safe_string($interest, 'datetime'),
+            'info' => $this->safe_value($interest, 'info'),
+        ));
+    }
+
+    public function parse_liquidation($liquidation, $market = null) {
+        throw new NotSupported($this->id . ' parseLiquidation () is not supported yet');
+    }
+
+    public function parse_liquidations($liquidations, $market = null, ?int $since = null, ?int $limit = null) {
+        /**
+         * @ignore
+         * parses liquidation info from the exchange response
+         * @param {array[]} $liquidations each item describes an instance of a liquidation event
+         * @param {array} $market ccxt $market
+         * @param {int} [$since] when defined, the response items are filtered to only include items after this timestamp
+         * @param {int} [$limit] limits the number of items in the response
+         * @return {array[]} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+         */
+        $result = array();
+        for ($i = 0; $i < count($liquidations); $i++) {
+            $entry = $liquidations[$i];
+            $parsed = $this->parseLiquidation ($entry, $market);
+            $result[] = $parsed;
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        $symbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 }

@@ -1623,6 +1623,8 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchVolatilityHistory ([code[, params]])`
 - `fetchUnderlyingAssets ()`
 - `fetchSettlementHistory ([symbol[, since[, limit[, params]]]])`
+- `fetchLiquidations ([symbol[, since[, limit[, params]]]])`
+- `fetchMyLiquidations ([symbol[, since[, limit[, params]]]])`
 - ...
 
 ```text
@@ -1975,6 +1977,7 @@ if ($exchange->has['fetchMyTrades']) {
 - [Open Interest History](#open-interest-history)
 - [Volatility History](#volatility-history)
 - [Underlying Assets](#underlying-assets)
+- [Liquidations](#liquidations)
 
 ## Order Book
 
@@ -3068,6 +3071,44 @@ Returns
     timestamp: 1694073600000,
     datetime: '2023-09-07T08:00:00.000Z',
 }
+```
+
+## Liquidations
+
+Use the `fetchLiquidations` method to get the public liquidations of a trading pair from the exchange.
+
+```javascript
+fetchLiquidations (symbol, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT-231006-25000-P"`)
+- **since** (Integer) Timestamp for the earliest liquidation (e.g. `1694073600000`)
+- **limit** (Integer) The maximum number of liquidations to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"until": 1645807945000}`)
+
+Returns
+
+- An array of [liquidation structures](#liquidation-structure)
+
+### Liquidation Structure
+
+```javascript
+[
+    {
+        'info':          { ... },                        // the original decoded JSON as is
+        'symbol':        'BTC/USDT:USDT-231006-25000-P', // unified CCXT market symbol
+        'contracts':     2,                              // the number of derivative contracts
+        'contractSize':  0.001,                          // the contract size for the trading pair
+        'price':         27038.64,                       // the average liquidation price in the quote currency
+        'baseValue':     0.002,                          // value in the base currency (contracts * contractSize)
+        'quoteValue':    54.07728,                       // value in the quote currency ((contracts * contractSize) * price)
+        'timestamp':     1696996782210,                  // Unix timestamp in milliseconds
+        'datetime':      '2023-10-11 03:59:42.000',      // ISO8601 datetime with milliseconds
+    },
+    ...
+]
 ```
 
 # Private API

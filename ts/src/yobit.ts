@@ -432,6 +432,7 @@ export default class yobit extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

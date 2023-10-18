@@ -263,6 +263,7 @@ export default class bithumb extends Exchange {
                         },
                         'cost': {}, // set via options
                     },
+                    'created': undefined,
                     'info': market,
                 }, extension);
                 result.push (entry);

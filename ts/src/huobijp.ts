@@ -522,6 +522,7 @@ export default class huobijp extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

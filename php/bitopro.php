@@ -354,6 +354,7 @@ class bitopro extends Exchange {
                     'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
                 ),
                 'active' => $active,
+                'created' => null,
                 'info' => $market,
             );
         }

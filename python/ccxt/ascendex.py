@@ -669,6 +669,7 @@ class ascendex(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'maxNotional'),
                     },
                 },
+                'created': self.safe_integer(market, 'tradingStartTime'),
                 'info': market,
             })
         return result
@@ -2622,7 +2623,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the ascendex api endpoint
         :returns dict: a `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure>`
         """
-        return self.modify_margin_helper(symbol, amount, 'reduce', params)
+        return self.modify_margin_helper(symbol, -amount, 'reduce', params)
 
     def add_margin(self, symbol: str, amount, params={}):
         """

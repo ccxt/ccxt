@@ -230,6 +230,7 @@ export default class oceanex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

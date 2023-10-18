@@ -642,6 +642,7 @@ class gemini extends gemini$1 {
                     'max': undefined,
                 },
             },
+            'created': undefined,
             'info': response,
         };
     }

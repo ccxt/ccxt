@@ -316,7 +316,6 @@ class lykke(Exchange, ImplicitAPI):
                 'option': False,
                 'contract': False,
                 'active': True,
-                'info': market,
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
@@ -346,6 +345,8 @@ class lykke(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
+                'info': market,
             })
         return result
 

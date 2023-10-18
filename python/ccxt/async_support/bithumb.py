@@ -266,6 +266,7 @@ class bithumb(Exchange, ImplicitAPI):
                         },
                         'cost': {},  # set via options
                     },
+                    'created': None,
                     'info': market,
                 }, extension)
                 result.append(entry)

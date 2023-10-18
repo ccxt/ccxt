@@ -585,6 +585,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': entry,
             })
         return result

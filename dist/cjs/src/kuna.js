@@ -451,6 +451,7 @@ class kuna extends kuna$1 {
                                 'max': undefined,
                             },
                         },
+                        'created': undefined,
                         'info': undefined,
                     });
                 }

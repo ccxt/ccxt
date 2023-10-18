@@ -270,6 +270,7 @@ class wazirx(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -577,7 +578,7 @@ class wazirx(Exchange, ImplicitAPI):
         }, market)
 
     def parse_balance(self, response):
-        result = {}
+        result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             id = self.safe_string(balance, 'asset')

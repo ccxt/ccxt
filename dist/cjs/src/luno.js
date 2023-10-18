@@ -240,6 +240,7 @@ class luno extends luno$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

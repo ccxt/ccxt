@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, DDoSProtection, Dup
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -385,6 +385,7 @@ export default class krakenfutures extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601 (this.safeString (market, 'openingDate')),
                 'info': market,
             });
         }
@@ -574,7 +575,7 @@ export default class krakenfutures extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -582,7 +583,7 @@ export default class krakenfutures extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 5000);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 5000) as OHLCV[];
         }
         const request = {
             'symbol': market['id'],
@@ -660,14 +661,14 @@ export default class krakenfutures extends Exchange {
          * @param {int} [limit] Total number of trades, cannot exceed 100
          * @param {object} [params] Exchange specific params
          * @param {int} [params.until] Timestamp in ms of latest trade
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns An array of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
         }
         const market = this.market (symbol);
         const request = {
@@ -1754,7 +1755,7 @@ export default class krakenfutures extends Exchange {
             });
         }
         const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
     async fetchPositions (symbols: string[] = undefined, params = {}) {

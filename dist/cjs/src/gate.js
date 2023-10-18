@@ -105,10 +105,12 @@ class gate extends gate$1 {
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
+                'fetchLiquidations': true,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMyLiquidations': true,
                 'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
                 'fetchNetworkDepositAddress': true,
@@ -1093,6 +1095,7 @@ class gate extends gate$1 {
                         'max': margin ? this.safeNumber(market, 'max_quote_amount') : undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1290,6 +1293,7 @@ class gate extends gate$1 {
                     'max': undefined,
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }
@@ -1410,6 +1414,7 @@ class gate extends gate$1 {
                             'max': undefined,
                         },
                     },
+                    'created': this.safeTimestamp(market, 'create_time'),
                     'info': market,
                 });
             }
@@ -2824,7 +2829,7 @@ class gate extends gate$1 {
          * @param {object} [params] extra parameters specific to the gateio api endpoint
          * @param {string} [params.price] "mark" or "index" for mark price and index price candles
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
          */
         await this.loadMarkets();
@@ -3000,7 +3005,7 @@ class gate extends gate$1 {
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @param {int} [params.until] timestamp in ms of the latest trade to fetch
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
@@ -3151,7 +3156,7 @@ class gate extends gate$1 {
          * @param {int} [params.offset] *contract only* list offset, starting from 0
          * @param {string} [params.last_id] *contract only* specify list staring point using the id of last record in previous list-query results
          * @param {int} [params.count_total] *contract only* whether to return total number matched, default to 0(no return)
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
@@ -3420,7 +3425,7 @@ class gate extends gate$1 {
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {int} [params.until] end time in ms
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
@@ -3457,7 +3462,7 @@ class gate extends gate$1 {
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @param {int} [params.until] end time in ms
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
@@ -3573,6 +3578,13 @@ class gate extends gate$1 {
         //        "memo": null
         //    }
         //
+        //     {
+        //         "currency":"usdt",
+        //         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        //         "amount":"1880",
+        //         "chain":"eth"
+        //     }
+        //
         const id = this.safeString(transaction, 'id');
         let type = undefined;
         let amountString = this.safeString(transaction, 'amount');
@@ -3590,6 +3602,7 @@ class gate extends gate$1 {
         if (type === 'withdrawal') {
             amountString = Precise["default"].stringSub(amountString, feeCostString);
         }
+        const networkId = this.safeStringUpper(transaction, 'chain');
         const currencyId = this.safeString(transaction, 'currency');
         const code = this.safeCurrencyCode(currencyId);
         const txid = this.safeString(transaction, 'txid');
@@ -3604,7 +3617,7 @@ class gate extends gate$1 {
             'txid': txid,
             'currency': code,
             'amount': this.parseNumber(amountString),
-            'network': undefined,
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -5832,7 +5845,7 @@ class gate extends gate$1 {
         //        lsr_taker: '9.3765153315902'
         //    }
         //
-        const timestamp = this.safeIntegerProduct(interest, 'time', 1000);
+        const timestamp = this.safeTimestamp(interest, 'time');
         return {
             'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': this.safeNumber(interest, 'open_interest'),
@@ -6033,7 +6046,7 @@ class gate extends gate$1 {
          * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @param {int} [params.until] end time in ms
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets();
@@ -6317,6 +6330,193 @@ class gate extends gate$1 {
             }
         }
         return underlyings;
+    }
+    async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchLiquidations
+         * @description retrieves the public liquidations of a trading pair
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-liquidation-history
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the gate api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.NotSupported(this.id + ' fetchLiquidations() supports swap markets only');
+        }
+        let request = {
+            'settle': market['settleId'],
+            'contract': market['id'],
+        };
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [request, params] = this.handleUntilOption('to', request, params);
+        const response = await this.publicFuturesGetSettleLiqOrders(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "contract": "BTC_USDT",
+        //             "left": 0,
+        //             "size": -165,
+        //             "fill_price": "28070",
+        //             "order_price": "28225",
+        //             "time": 1696736132
+        //         },
+        //     ]
+        //
+        return this.parseLiquidations(response, market, since, limit);
+    }
+    async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchMyLiquidations
+         * @description retrieves the users liquidated positions
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the gate api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        this.checkRequiredSymbol('fetchMyLiquidations', symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'contract': market['id'],
+        };
+        let response = undefined;
+        if ((market['swap']) || (market['future'])) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            request['settle'] = market['settleId'];
+        }
+        else if (market['option']) {
+            const marketId = market['id'];
+            const optionParts = marketId.split('-');
+            request['underlying'] = this.safeString(optionParts, 0);
+        }
+        if (market['swap']) {
+            response = await this.privateFuturesGetSettleLiquidates(this.extend(request, params));
+        }
+        else if (market['future']) {
+            response = await this.privateDeliveryGetSettleLiquidates(this.extend(request, params));
+        }
+        else if (market['option']) {
+            response = await this.privateOptionsGetPositionClose(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' orders');
+        }
+        //
+        // swap and future
+        //
+        //     [
+        //         {
+        //             "time": 1548654951,
+        //             "contract": "BTC_USDT",
+        //             "size": 600,
+        //             "leverage": "25",
+        //             "margin": "0.006705256878",
+        //             "entry_price": "3536.123",
+        //             "liq_price": "3421.54",
+        //             "mark_price": "3420.27",
+        //             "order_id": 317393847,
+        //             "order_price": "3405",
+        //             "fill_price": "3424",
+        //             "left": 0
+        //         }
+        //     ]
+        //
+        // option
+        //
+        //     [
+        //         {
+        //             "time": 1631764800,
+        //             "pnl": "-42914.291",
+        //             "settle_size": "-10001",
+        //             "side": "short",
+        //             "contract": "BTC_USDT-20210916-5000-C",
+        //             "text": "settled"
+        //         }
+        //     ]
+        //
+        return this.parseLiquidations(response, market, since, limit);
+    }
+    parseLiquidation(liquidation, market = undefined) {
+        //
+        // fetchLiquidations
+        //
+        //     {
+        //         "contract": "BTC_USDT",
+        //         "left": 0,
+        //         "size": -165,
+        //         "fill_price": "28070",
+        //         "order_price": "28225",
+        //         "time": 1696736132
+        //     }
+        //
+        // swap and future: fetchMyLiquidations
+        //
+        //     {
+        //         "time": 1548654951,
+        //         "contract": "BTC_USDT",
+        //         "size": 600,
+        //         "leverage": "25",
+        //         "margin": "0.006705256878",
+        //         "entry_price": "3536.123",
+        //         "liq_price": "3421.54",
+        //         "mark_price": "3420.27",
+        //         "order_id": 317393847,
+        //         "order_price": "3405",
+        //         "fill_price": "3424",
+        //         "left": 0
+        //     }
+        //
+        // option: fetchMyLiquidations
+        //
+        //     {
+        //         "time": 1631764800,
+        //         "pnl": "-42914.291",
+        //         "settle_size": "-10001",
+        //         "side": "short",
+        //         "contract": "BTC_USDT-20210916-5000-C",
+        //         "text": "settled"
+        //     }
+        //
+        const marketId = this.safeString(liquidation, 'contract');
+        const timestamp = this.safeTimestamp(liquidation, 'time');
+        const contractsStringRaw = this.safeString2(liquidation, 'size', 'settle_size');
+        const contractsString = Precise["default"].stringAbs(contractsStringRaw);
+        const contractSizeString = this.safeString(market, 'contractSize');
+        const priceString = this.safeString2(liquidation, 'liq_price', 'fill_price');
+        const baseValueString = Precise["default"].stringMul(contractsString, contractSizeString);
+        let quoteValueString = this.safeString(liquidation, 'pnl');
+        if (quoteValueString === undefined) {
+            quoteValueString = Precise["default"].stringMul(baseValueString, priceString);
+        }
+        return {
+            'info': liquidation,
+            'symbol': this.safeSymbol(marketId, market),
+            'contracts': this.parseNumber(contractsString),
+            'contractSize': this.parseNumber(contractSizeString),
+            'price': this.parseNumber(priceString),
+            'baseValue': this.parseNumber(baseValueString),
+            'quoteValue': this.parseNumber(Precise["default"].stringAbs(quoteValueString)),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

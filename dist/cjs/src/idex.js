@@ -309,6 +309,7 @@ class idex extends idex$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }

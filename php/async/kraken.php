@@ -163,6 +163,7 @@ class kraken extends Exchange {
                         'Depth' => 1,
                         'OHLC' => 1,
                         'Spread' => 1,
+                        'SystemStatus' => 1,
                         'Ticker' => 1,
                         'Time' => 1,
                         'Trades' => 1,
@@ -175,6 +176,7 @@ class kraken extends Exchange {
                         'AddExport' => 3,
                         'Balance' => 3,
                         'CancelAll' => 3,
+                        'CancelAllOrdersAfter' => 3,
                         'CancelOrder' => 0,
                         'CancelOrderBatch' => 0,
                         'ClosedOrders' => 6,
@@ -210,6 +212,13 @@ class kraken extends Exchange {
                         // sub accounts
                         'CreateSubaccount' => 3,
                         'AccountTransfer' => 3,
+                        // earn
+                        'Earn/Allocate' => 3,
+                        'Earn/Deallocate' => 3,
+                        'Earn/AllocateStatus' => 3,
+                        'Earn/DeallocateStatus' => 3,
+                        'Earn/Strategies' => 3,
+                        'Earn/Allocations' => 3,
                     ),
                 ),
             ),
@@ -498,6 +507,7 @@ class kraken extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -882,7 +892,7 @@ class kraken extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -965,7 +975,7 @@ class kraken extends Exchange {
         } else {
             $direction = 'in';
         }
-        $timestamp = $this->safe_integer_product($item, 'time', 1000);
+        $timestamp = $this->safe_timestamp($item, 'time');
         return array(
             'info' => $item,
             'id' => $id,

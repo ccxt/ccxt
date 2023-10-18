@@ -291,6 +291,7 @@ export default class coinmate extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
