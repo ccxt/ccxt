@@ -630,7 +630,8 @@ export default class indodax extends Exchange {
         const response = await this.privatePostGetOrder (this.extend (request, params));
         const orders = response['return'];
         const order = this.parseOrder (this.extend ({ 'id': id }, orders['order']), market);
-        return this.extend ({ 'info': response }, order);
+        order['info'] = response;
+        return order;
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

@@ -1725,7 +1725,8 @@ export default class kraken extends Exchange {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
         }
         const order = this.parseOrder (this.extend ({ 'id': id }, result[id]));
-        return this.extend ({ 'info': response }, order);
+        order['info'] = order;
+        return order;
     }
 
     async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

@@ -1520,9 +1520,9 @@ export default class poloniex extends Exchange {
         //         "updateTime": 1646196019020
         //     }
         //
-        return this.extend (this.parseOrder (response), {
-            'id': id,
-        });
+        const order = this.parseOrder (response);
+        order['id'] = id;
+        return order;
     }
 
     async fetchOrderStatus (id: string, symbol: string = undefined, params = {}) {

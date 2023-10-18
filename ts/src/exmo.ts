@@ -1591,9 +1591,8 @@ export default class exmo extends Exchange {
         //     }
         //
         const order = this.parseOrder (response);
-        return this.extend (order, {
-            'id': id.toString (),
-        });
+        order['id'] = id.toString ();
+        return order;
     }
 
     async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
