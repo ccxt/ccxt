@@ -901,8 +901,8 @@ export default class bingx extends Exchange {
         const isBuyerMaker = this.safeValue2 (trade, 'buyerMaker', 'isBuyerMaker');
         let takeOrMaker = (isBuyerMaker || m) ? 'maker' : 'taker';
         let side = this.safeStringLower2 (trade, 'side', 'S');
-        if (side === undefined && isBuyerMaker !== undefined) {
-            side = isBuyerMaker ? 'sell' : 'buy';
+        if (side === undefined) {
+            side = (isBuyerMaker || m) ? 'sell' : 'buy';
             takeOrMaker = 'taker';
         }
         return this.safeTrade ({
