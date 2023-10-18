@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -768,7 +768,7 @@ export default class oceanex extends Exchange {
             const parsedOrders = this.parseOrders (orders, market, since, limit, { 'status': status });
             result = this.arrayConcat (result, parsedOrders);
         }
-        return result;
+        return result as Order[];
     }
 
     parseOHLCV (ohlcv, market = undefined) {

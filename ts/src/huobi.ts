@@ -3859,13 +3859,11 @@ export default class huobi extends Exchange {
         if (contract && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument for ' + marketType + ' orders');
         }
-        let response = undefined;
         if (contract) {
-            response = await this.fetchContractOrders (symbol, since, limit, params);
+            return await this.fetchContractOrders (symbol, since, limit, params);
         } else {
-            response = await this.fetchSpotOrders (symbol, since, limit, params);
+            return await this.fetchSpotOrders (symbol, since, limit, params);
         }
-        return response;
     }
 
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
