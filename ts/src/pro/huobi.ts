@@ -1222,27 +1222,9 @@ export default class huobi extends huobiRest {
             messageHash = prefix;
             if (subType === 'linear') {
                 // usdt contracts account
-                prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+                prefix = 'accounts_unify';
                 messageHash = prefix;
-                if (marginMode === 'isolated') {
-                    // isolated margin only allows filtering by symbol3
-                    if (symbol !== undefined) {
-                        messageHash += '.' + market['id'];
-                        channel = messageHash;
-                    } else {
-                        // subscribe to all
-                        channel = prefix + '.' + '*';
-                    }
-                } else {
-                    // cross margin
-                    if (currencyCode !== undefined) {
-                        channel = prefix + '.' + currencyCode['id'];
-                        messageHash = channel;
-                    } else {
-                        // subscribe to all
-                        channel = prefix + '.' + '*';
-                    }
-                }
+                channel = prefix + '.' + 'USDT';
             } else if (type === 'future') {
                 // inverse futures account
                 if (currencyCode !== undefined) {
