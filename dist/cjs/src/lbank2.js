@@ -421,6 +421,7 @@ class lbank2 extends lbank2$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -517,6 +518,7 @@ class lbank2 extends lbank2$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

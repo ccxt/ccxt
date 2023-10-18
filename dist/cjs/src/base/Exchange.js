@@ -1056,6 +1056,9 @@ class Exchange {
     convertToBigInt(value) {
         return BigInt(value); // used on XT
     }
+    stringToCharsArray(value) {
+        return value.split('');
+    }
     valueIsDefined(value) {
         return value !== undefined && value !== null;
     }

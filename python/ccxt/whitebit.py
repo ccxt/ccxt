@@ -395,6 +395,7 @@ class whitebit(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'maxTotal'),
                     },
                 },
+                'created': None,
                 'info': market,
             }
             result.append(entry)
@@ -845,7 +846,7 @@ class whitebit(Exchange, ImplicitAPI):
         #          ]
         #      }
         #
-        timestamp = self.safe_integer_product(response, 'timestamp', 1000)
+        timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, symbol, timestamp)
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):

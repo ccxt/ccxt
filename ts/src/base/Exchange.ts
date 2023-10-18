@@ -1316,6 +1316,10 @@ export default class Exchange {
         return BigInt(value); // used on XT
     }
 
+    stringToCharsArray (value) {
+        return value.split ('');
+    }
+
     valueIsDefined(value){
         return value !== undefined && value !== null;
     }

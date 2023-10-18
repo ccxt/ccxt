@@ -302,7 +302,8 @@ class btcalpha extends Exchange {
         //        sell => '22521.11'
         //    }
         //
-        $timestamp = $this->safe_integer_product($ticker, 'timestamp', 1000000);
+        $timestampStr = $this->safe_string($ticker, 'timestamp');
+        $timestamp = intval(Precise::string_mul($timestampStr, '1000000'));
         $marketId = $this->safe_string($ticker, 'pair');
         $market = $this->safe_market($marketId, $market, '_');
         $last = $this->safe_string($ticker, 'last');

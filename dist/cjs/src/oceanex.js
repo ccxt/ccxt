@@ -227,6 +227,7 @@ class oceanex extends oceanex$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

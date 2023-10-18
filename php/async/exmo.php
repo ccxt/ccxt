@@ -841,6 +841,7 @@ class exmo extends Exchange {
                             'max' => $this->safe_number($market, 'max_amount'),
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }

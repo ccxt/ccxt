@@ -308,7 +308,8 @@ class btcalpha(Exchange, ImplicitAPI):
         #        sell: '22521.11'
         #    }
         #
-        timestamp = self.safe_integer_product(ticker, 'timestamp', 1000000)
+        timestampStr = self.safe_string(ticker, 'timestamp')
+        timestamp = int(Precise.string_mul(timestampStr, '1000000'))
         marketId = self.safe_string(ticker, 'pair')
         market = self.safe_market(marketId, market, '_')
         last = self.safe_string(ticker, 'last')

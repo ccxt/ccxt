@@ -661,6 +661,7 @@ class ascendex extends Exchange {
                         'max' => $this->safe_number($market, 'maxNotional'),
                     ),
                 ),
+                'created' => $this->safe_integer($market, 'tradingStartTime'),
                 'info' => $market,
             );
         }

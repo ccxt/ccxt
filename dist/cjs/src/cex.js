@@ -436,6 +436,7 @@ class cex extends cex$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

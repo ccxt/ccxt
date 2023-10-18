@@ -665,6 +665,7 @@ class ascendex extends ascendex$1 {
                         'max': this.safeNumber(market, 'maxNotional'),
                     },
                 },
+                'created': this.safeInteger(market, 'tradingStartTime'),
                 'info': market,
             });
         }

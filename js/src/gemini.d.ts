@@ -59,6 +59,7 @@ export default class gemini extends Exchange {
                 max: any;
             };
         };
+        created: any;
         info: any;
     };
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;

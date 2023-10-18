@@ -583,6 +583,7 @@ export default class wavesexchange extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }

@@ -3402,9 +3402,14 @@ class bybit(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.safe_string(order, 'cumExecFee')
         if feeCostString is not None:
+            feeCurrency = None
+            if market['spot']:
+                feeCurrency = market['quote'] if (side == 'buy') else market['base']
+            else:
+                feeCurrency = market['settle']
             fee = {
                 'cost': feeCostString,
-                'currency': market['settle'],
+                'currency': feeCurrency,
             }
         clientOrderId = self.safe_string(order, 'orderLinkId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
@@ -3480,7 +3485,7 @@ class bybit(Exchange, ImplicitAPI):
         result = await self.fetch_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            raise OrderNotFound('Order ' + id + ' does not exist.')
+            raise OrderNotFound('Order ' + str(id) + ' does not exist.')
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
         return self.safe_value(result, 0)

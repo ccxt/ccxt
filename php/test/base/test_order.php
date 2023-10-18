@@ -37,7 +37,7 @@ function test_order($exchange, $skipped_properties, $method, $entry, $symbol, $n
     );
     $empty_allowed_for = ['clientOrderId', 'stopPrice', 'trades', 'timestamp', 'datetime', 'lastTradeTimestamp', 'average', 'type', 'timeInForce', 'postOnly', 'side', 'price', 'amount', 'cost', 'filled', 'remaining', 'status', 'fee']; // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
-    assert_timestamp($exchange, $skipped_properties, $method, $entry, $now);
+    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now);
     //
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK', 'PO']);
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'status', ['open', 'closed', 'canceled']);

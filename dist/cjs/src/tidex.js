@@ -334,6 +334,7 @@ class tidex extends tidex$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

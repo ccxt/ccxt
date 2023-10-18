@@ -989,6 +989,7 @@ export default class kucoin extends Exchange {
                         'max': this.safeNumber(market, 'quoteMaxSize'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

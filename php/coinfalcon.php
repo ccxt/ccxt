@@ -209,6 +209,7 @@ class coinfalcon extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }

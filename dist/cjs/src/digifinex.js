@@ -653,6 +653,7 @@ class digifinex extends digifinex$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -2807,14 +2808,16 @@ class digifinex extends digifinex$1 {
         //         "leverage_ratio": 3
         //     }
         //
-        const symbol = this.safeString(info, 'symbol');
+        const marketId = this.safeString(info, 'symbol');
         const amountString = this.safeString(info, 'amount');
         const leverageString = this.safeString(info, 'leverage_ratio');
         const amountInvested = Precise["default"].stringDiv(amountString, leverageString);
         const amountBorrowed = Precise["default"].stringSub(amountString, amountInvested);
         const currency = (market === undefined) ? undefined : market['base'];
+        const symbol = this.safeSymbol(marketId, market);
         return {
-            'account': this.safeSymbol(symbol, market),
+            'account': symbol,
+            'symbol': symbol,
             'currency': currency,
             'interest': undefined,
             'interestRate': 0.001,
@@ -3294,10 +3297,9 @@ class digifinex extends digifinex$1 {
             return position;
         }
         else {
-            return this.extend(position, {
-                'collateral': this.safeNumber(response, 'margin'),
-                'marginRatio': this.safeNumber(response, 'margin_rate'),
-            });
+            position['collateral'] = this.safeNumber(response, 'margin');
+            position['marginRatio'] = this.safeNumber(response, 'margin_rate');
+            return position;
         }
     }
     parsePosition(position, market = undefined) {
@@ -3357,7 +3359,7 @@ class digifinex extends digifinex$1 {
         else if (side === 'go_short') {
             side = 'short';
         }
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3383,7 +3385,7 @@ class digifinex extends digifinex$1 {
             'percentage': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
-        };
+        });
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
         /**

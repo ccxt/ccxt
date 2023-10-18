@@ -279,6 +279,7 @@ class indodax extends indodax$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
