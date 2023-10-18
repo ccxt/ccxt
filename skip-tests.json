@@ -128,6 +128,8 @@
             "loadMarkets": {
                 "precision": "not provided",
                 "active": "not provided",
+                "taker": "not provided",
+                "maker": "not provided",
                 "info":"null"
             }
         }
@@ -538,6 +540,8 @@
             "loadMarkets": {
                 "precision":"is undefined",
                 "active":"is undefined",
+                "taker":"is undefined",
+                "maker":"is undefined",
                 "info":"null"
             },
             "fetchOrderBook": "bid should be greater than next bid",
@@ -593,7 +597,9 @@
             "loadMarkets":{
                 "info":"not provided",
                 "precision":"not provided",
-                "active":"is undefined"
+                "active":"is undefined",
+                "taker":"is undefined",
+                "maker":"is undefined"
             }
         }
     },
@@ -1238,7 +1244,9 @@
             "loadMarkets": {
                 "precision": "not provided",
                 "active": "not provided",
-                "info": "null"
+                "info": "null",
+                "taker":"is undefined",
+                "maker":"is undefined"
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
