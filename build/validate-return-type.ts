@@ -64,6 +64,8 @@ function main() {
 
     const sourceOfTruth = extractMethodsAndReturnTypes(basePath + 'base/Exchange.d.ts');
     let foundIssues = false;
+    let differences = 0;
+    let methodsWithDifferences = new Set<string>();
     for (const exchange of exchanges) {
         if (skipExchanges.includes(exchange)) {
             continue;
@@ -81,6 +83,8 @@ function main() {
                     if (!isUknownReturnType(targetReturnType)) { // ignore any/untyped methods
                         if (sourceOfTruth[method] !== returnType) {
                             foundIssues = true;
+                            differences++;
+                            methodsWithDifferences.add(method);
                             log.magenta('Difference found', exchange, method, returnType, targetReturnType);
                         }
                     }
@@ -91,7 +95,8 @@ function main() {
     if (!foundIssues) {
         log.bright.green('No type differences found');
     } else {
-        log.bright.red('Type differences found');
+        log.bright.red(differences, 'type differences found!');
+        log.bright.red('Methods with differences:', methodsWithDifferences)
         process.exit(1);
     }
 }
