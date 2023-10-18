@@ -1237,7 +1237,7 @@ export default class coinbase extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (rates[baseId], market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTickersV3 (symbols: string[] = undefined, params = {}) {
@@ -1290,7 +1290,7 @@ export default class coinbase extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (entry, market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {

@@ -2094,7 +2094,7 @@ export default class huobi extends Exchange {
             ticker['datetime'] = this.iso8601 (timestamp);
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {

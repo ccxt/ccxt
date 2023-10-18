@@ -1159,7 +1159,7 @@ export default class deribit extends Exchange {
             const symbol = ticker['symbol'];
             tickers[symbol] = ticker;
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {

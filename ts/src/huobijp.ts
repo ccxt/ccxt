@@ -732,7 +732,7 @@ export default class huobijp extends Exchange {
             ticker['datetime'] = this.iso8601 (timestamp);
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     parseTrade (trade, market = undefined) {

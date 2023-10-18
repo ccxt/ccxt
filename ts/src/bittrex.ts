@@ -619,7 +619,7 @@ export default class bittrex extends Exchange {
             const ticker = this.parseTicker (response[i]);
             tickers.push (ticker);
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {

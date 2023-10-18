@@ -1497,7 +1497,7 @@ export default class kucoin extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {
