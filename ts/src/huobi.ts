@@ -3897,13 +3897,11 @@ export default class huobi extends Exchange {
         }
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
-        let response = undefined;
         if (marketType === 'spot') {
-            response = await this.fetchClosedSpotOrders (symbol, since, limit, params);
+            return await this.fetchClosedSpotOrders (symbol, since, limit, params);
         } else {
-            response = await this.fetchClosedContractOrders (symbol, since, limit, params);
+            return await this.fetchClosedContractOrders (symbol, since, limit, params);
         }
-        return response;
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

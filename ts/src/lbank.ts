@@ -730,7 +730,7 @@ export default class lbank extends Exchange {
         const closed = this.filterBy (orders, 'status', 'closed');
         const canceled = this.filterBy (orders, 'status', 'cancelled'); // cancelled orders may be partially filled
         const allOrders = this.arrayConcat (closed, canceled);
-        return this.filterBySymbolSinceLimit (allOrders, symbol, since, limit) as any;
+        return this.filterBySymbolSinceLimit (allOrders, symbol, since, limit) as Order[];
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {

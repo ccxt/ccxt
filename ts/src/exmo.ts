@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, Trade } from './base/types.js';
+import { Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1762,7 +1762,7 @@ export default class exmo extends Exchange {
                 orders = this.arrayConcat (orders, parsedOrders);
             }
         }
-        return orders as any;
+        return orders as Order[];
     }
 
     parseStatus (status) {

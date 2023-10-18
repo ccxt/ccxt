@@ -930,7 +930,7 @@ export default class idex extends Exchange {
         const request = {
             'closed': false,
         };
-        return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
+        return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params)) as Order[];
     }
 
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -947,7 +947,7 @@ export default class idex extends Exchange {
         const request = {
             'closed': true,
         };
-        return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
+        return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params)) as Order[];
     }
 
     async fetchOrdersHelper (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
