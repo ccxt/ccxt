@@ -388,6 +388,7 @@ export default class krakenfutures extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'openingDate')),
                 'info': market,
             });
         }

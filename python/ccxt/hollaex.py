@@ -320,6 +320,7 @@ class hollaex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.parse8601(self.safe_string(market, 'created_at')),
                 'info': market,
             })
         return result

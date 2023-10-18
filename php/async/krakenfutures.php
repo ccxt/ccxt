@@ -385,6 +385,7 @@ class krakenfutures extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->parse8601($this->safe_string($market, 'openingDate')),
                     'info' => $market,
                 );
             }

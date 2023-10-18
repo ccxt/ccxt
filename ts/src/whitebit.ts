@@ -386,6 +386,7 @@ export default class whitebit extends Exchange {
                         'max': this.safeNumber (market, 'maxTotal'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push (entry);
@@ -870,7 +871,7 @@ export default class whitebit extends Exchange {
         //          ]
         //      }
         //
-        const timestamp = this.safeIntegerProduct (response, 'timestamp', 1000);
+        const timestamp = this.safeTimestamp (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp);
     }
 

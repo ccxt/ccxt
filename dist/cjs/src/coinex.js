@@ -533,6 +533,7 @@ class coinex extends coinex$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -629,6 +630,7 @@ class coinex extends coinex$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }

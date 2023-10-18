@@ -406,6 +406,7 @@ class woo(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.safe_timestamp(market, 'created_time'),
                 'info': market,
             })
         return result

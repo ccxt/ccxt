@@ -113,7 +113,6 @@ export default class cryptocom extends Exchange {
         datetime: any;
         info: any;
     };
-    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         symbol: any;
         marginMode: any;
@@ -125,7 +124,6 @@ export default class cryptocom extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowRates(params?: {}): Promise<any[]>;
     parseBorrowRates(info: any, codeKey: any): any[];
     customHandleMarginModeAndParams(methodName: any, params?: {}): any[];
     parseDepositWithdrawFee(fee: any, currency?: any): {

@@ -567,6 +567,7 @@ class currencycom extends currencycom$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

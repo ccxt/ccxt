@@ -379,6 +379,7 @@ class whitebit extends Exchange {
                         'max' => $this->safe_number($market, 'maxTotal'),
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
             $result[] = $entry;
@@ -849,7 +850,7 @@ class whitebit extends Exchange {
         //          )
         //      }
         //
-        $timestamp = $this->safe_integer_product($response, 'timestamp', 1000);
+        $timestamp = $this->safe_timestamp($response, 'timestamp');
         return $this->parse_order_book($response, $symbol, $timestamp);
     }
 

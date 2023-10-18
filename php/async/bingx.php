@@ -1582,7 +1582,7 @@ class bingx extends Exchange {
             'info' => $position,
             'id' => $this->safe_string($position, 'positionId'),
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
-            'notional' => $this->safe_string($position, 'positionAmt'),
+            'notional' => $this->safe_number($position, 'positionAmt'),
             'marginMode' => $marginMode,
             'liquidationPrice' => null,
             'entryPrice' => $this->safe_number_2($position, 'avgPrice', 'entryPrice'),
@@ -2728,8 +2728,10 @@ class bingx extends Exchange {
         $network = $this->safe_string($transaction, 'network');
         $currencyId = $this->safe_string($transaction, 'coin');
         $code = $this->safe_currency_code($currencyId, $currency);
-        if ($code !== null && mb_strpos($code, $network) !== false) {
-            $code = str_replace($network, '', $code);
+        if (($code !== null) && ($code !== $network) && mb_strpos($code, $network) !== false) {
+            if ($network !== null) {
+                $code = str_replace($network, '', $code);
+            }
         }
         $rawType = $this->safe_string($transaction, 'transferType');
         $type = ($rawType === '0') ? 'deposit' : 'withdrawal';

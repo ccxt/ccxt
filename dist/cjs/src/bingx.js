@@ -1553,7 +1553,7 @@ class bingx extends bingx$1 {
             'info': position,
             'id': this.safeString(position, 'positionId'),
             'symbol': this.safeSymbol(marketId, market, '-', 'swap'),
-            'notional': this.safeString(position, 'positionAmt'),
+            'notional': this.safeNumber(position, 'positionAmt'),
             'marginMode': marginMode,
             'liquidationPrice': undefined,
             'entryPrice': this.safeNumber2(position, 'avgPrice', 'entryPrice'),
@@ -2697,8 +2697,10 @@ class bingx extends bingx$1 {
         const network = this.safeString(transaction, 'network');
         const currencyId = this.safeString(transaction, 'coin');
         let code = this.safeCurrencyCode(currencyId, currency);
-        if (code !== undefined && code.indexOf(network) >= 0) {
-            code = code.replace(network, '');
+        if ((code !== undefined) && (code !== network) && code.indexOf(network) >= 0) {
+            if (network !== undefined) {
+                code = code.replace(network, '');
+            }
         }
         const rawType = this.safeString(transaction, 'transferType');
         const type = (rawType === '0') ? 'deposit' : 'withdrawal';

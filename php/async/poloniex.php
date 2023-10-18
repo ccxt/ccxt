@@ -560,6 +560,7 @@ class poloniex extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->safe_integer($market, 'tradableStartTime'),
                     'info' => $market,
                 );
             }

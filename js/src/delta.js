@@ -822,6 +822,7 @@ export default class delta extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'launch_time')),
                 'info': market,
             });
         }

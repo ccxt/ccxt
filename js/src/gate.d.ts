@@ -105,6 +105,7 @@ export default class gate extends Exchange {
                 max: any;
             };
         };
+        created: any;
         info: any;
     };
     fetchOptionMarkets(params?: {}): Promise<any[]>;

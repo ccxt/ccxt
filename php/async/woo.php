@@ -402,6 +402,7 @@ class woo extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->safe_timestamp($market, 'created_time'),
                     'info' => $market,
                 );
             }

@@ -807,6 +807,7 @@ class deribit(Exchange, ImplicitAPI):
                             'max': None,
                         },
                     },
+                    'created': self.safe_integer(market, 'creation_timestamp'),
                     'info': market,
                 })
         return result

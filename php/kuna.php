@@ -445,6 +445,7 @@ class kuna extends Exchange {
                                 'max' => null,
                             ),
                         ),
+                        'created' => null,
                         'info' => null,
                     );
                 }

@@ -118,9 +118,20 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
         assert($ts < $max_ts, 'timestamp more than ' . ((string) $max_ts) . ' (19.01.2038)' . $log_text); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         if ($now_to_check !== null) {
             $max_ms_offset = 60000; // 1 min
-            assert($ts < $now_to_check + $max_ms_offset, 'returned trade timestamp (' . $exchange->iso8601($ts) . ') is ahead of the current time (' . $exchange->iso8601($now_to_check) . ')' . $log_text);
+            assert($ts < $now_to_check + $max_ms_offset, 'returned item timestamp (' . $exchange->iso8601($ts) . ') is ahead of the current time (' . $exchange->iso8601($now_to_check) . ')' . $log_text);
         }
     }
+}
+
+
+function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now_to_check = null, $key_name_or_index = 'timestamp') {
+    $log_text = log_template($exchange, $method, $entry);
+    $skip_value = $exchange->safe_value($skipped_properties, $key_name_or_index);
+    if ($skip_value !== null) {
+        return;
+    }
+    assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_to_check, $key_name_or_index);
+    $is_date_time_object = is_string($key_name_or_index);
     // only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
     if ($is_date_time_object) {
         // we also test 'datetime' here because it's certain sibling of 'timestamp'
@@ -139,6 +150,9 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
 
 
 function assert_currency_code($exchange, $skipped_properties, $method, $entry, $actual_code, $expected_code = null) {
+    if (is_array($skipped_properties) && array_key_exists('currency', $skipped_properties)) {
+        return;
+    }
     $log_text = log_template($exchange, $method, $entry);
     if ($actual_code !== null) {
         assert(is_string($actual_code), 'currency code should be either undefined or a string' . $log_text);
@@ -299,7 +313,11 @@ function assert_timestamp_order($exchange, $method, $code_or_symbol, $items, $as
             $ascending_or_descending = $ascending ? 'ascending' : 'descending';
             $first_index = $ascending ? $i - 1 : $i;
             $second_index = $ascending ? $i : $i - 1;
-            assert($items[$first_index]['timestamp'] >= $items[$second_index]['timestamp'], $exchange->id . ' ' . $method . ' ' . string_value($code_or_symbol) . ' must return a ' . $ascending_or_descending . ' sorted array of items by timestamp. ' . $exchange->json($items));
+            $first_ts = $items[$first_index]['timestamp'];
+            $second_ts = $items[$second_index]['timestamp'];
+            if ($first_ts !== null && $second_ts !== null) {
+                assert($items[$first_index]['timestamp'] >= $items[$second_index]['timestamp'], $exchange->id . ' ' . $method . ' ' . string_value($code_or_symbol) . ' must return a ' . $ascending_or_descending . ' sorted array of items by timestamp. ' . $exchange->json($items));
+            }
         }
     }
 }

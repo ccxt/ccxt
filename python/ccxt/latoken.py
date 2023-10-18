@@ -373,6 +373,7 @@ class latoken(Exchange, ImplicitAPI):
                             'max': self.safe_number(market, 'maxOrderCost' + capitalizedQuote),
                         },
                     },
+                    'created': self.safe_integer(market, 'created'),
                     'info': market,
                 })
         return result

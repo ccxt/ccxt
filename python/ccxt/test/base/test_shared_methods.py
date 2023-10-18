@@ -111,7 +111,16 @@ def assert_timestamp(exchange, skipped_properties, method, entry, now_to_check=N
         assert ts < max_ts, 'timestamp more than ' + str(max_ts) + ' (19.01.2038)' + log_text  # 19 Jan 2038 - int32 overflows # 7258118400000  -> Jan 1 2200
         if now_to_check is not None:
             max_ms_offset = 60000  # 1 min
-            assert ts < now_to_check + max_ms_offset, 'returned trade timestamp (' + exchange.iso8601(ts) + ') is ahead of the current time (' + exchange.iso8601(now_to_check) + ')' + log_text
+            assert ts < now_to_check + max_ms_offset, 'returned item timestamp (' + exchange.iso8601(ts) + ') is ahead of the current time (' + exchange.iso8601(now_to_check) + ')' + log_text
+
+
+def assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, now_to_check=None, key_name_or_index='timestamp'):
+    log_text = log_template(exchange, method, entry)
+    skip_value = exchange.safe_value(skipped_properties, key_name_or_index)
+    if skip_value is not None:
+        return
+    assert_timestamp(exchange, skipped_properties, method, entry, now_to_check, key_name_or_index)
+    is_date_time_object = isinstance(key_name_or_index, str)
     # only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
     if is_date_time_object:
         # we also test 'datetime' here because it's certain sibling of 'timestamp'
@@ -127,6 +136,8 @@ def assert_timestamp(exchange, skipped_properties, method, entry, now_to_check=N
 
 
 def assert_currency_code(exchange, skipped_properties, method, entry, actual_code, expected_code=None):
+    if 'currency' in skipped_properties:
+        return
     log_text = log_template(exchange, method, entry)
     if actual_code is not None:
         assert isinstance(actual_code, str), 'currency code should be either undefined or a string' + log_text
@@ -253,7 +264,10 @@ def assert_timestamp_order(exchange, method, code_or_symbol, items, ascending=Fa
             ascending_or_descending = 'ascending' if ascending else 'descending'
             first_index = i - 1 if ascending else i
             second_index = i if ascending else i - 1
-            assert items[first_index]['timestamp'] >= items[second_index]['timestamp'], exchange.id + ' ' + method + ' ' + string_value(code_or_symbol) + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp. ' + exchange.json(items)
+            first_ts = items[first_index]['timestamp']
+            second_ts = items[second_index]['timestamp']
+            if first_ts is not None and second_ts is not None:
+                assert items[first_index]['timestamp'] >= items[second_index]['timestamp'], exchange.id + ' ' + method + ' ' + string_value(code_or_symbol) + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp. ' + exchange.json(items)
 
 
 def assert_integer(exchange, skipped_properties, method, entry, key):

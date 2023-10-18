@@ -134,6 +134,7 @@ export default class digifinex extends Exchange {
     fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         account: any;
+        symbol: any;
         currency: any;
         interest: any;
         interestRate: number;
@@ -212,34 +213,8 @@ export default class digifinex extends Exchange {
         taker: number;
     };
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
-    fetchPosition(symbol: string, params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): {
-        info: any;
-        id: any;
-        symbol: any;
-        notional: number;
-        marginMode: string;
-        liquidationPrice: number;
-        entryPrice: number;
-        unrealizedPnl: number;
-        contracts: number;
-        contractSize: number;
-        markPrice: number;
-        side: string;
-        hedged: any;
-        timestamp: number;
-        datetime: string;
-        maintenanceMargin: number;
-        maintenanceMarginPercentage: number;
-        collateral: any;
-        initialMargin: any;
-        initialMarginPercentage: any;
-        leverage: number;
-        marginRatio: number;
-        percentage: any;
-        stopLossPrice: any;
-        takeProfitPrice: any;
-    };
+    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;

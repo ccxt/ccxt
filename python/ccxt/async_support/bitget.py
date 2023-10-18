@@ -49,11 +49,12 @@ class bitget(Exchange, ImplicitAPI):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': False,
+                'margin': None,
                 'swap': True,
                 'future': True,
                 'option': False,
                 'addMargin': True,
+                'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -112,6 +113,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'repayMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': True,
@@ -1297,6 +1299,7 @@ class bitget(Exchange, ImplicitAPI):
                     'max': None,
                 },
             },
+            'created': None,
             'info': market,
         }
 
@@ -2547,62 +2550,121 @@ class bitget(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
         see https://bitgetlimited.github.io/apidoc/en/spot/#get-account-assets
         see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-list
+        see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
+        see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         await self.load_markets()
-        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotGetAccountAssets',
-            'swap': 'privateMixGetAccountAccounts',
-        })
         request = {}
-        if marketType == 'swap':
+        marketType = None
+        marginMode = None
+        response = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
+        if (marketType == 'swap') or (marketType == 'future'):
             subType = None
             subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
             productType = 'UMCBL' if (subType == 'linear') else 'DMCBL'
             if sandboxMode:
                 productType = 'S' + productType
             request['productType'] = productType
-        response = await getattr(self, method)(self.extend(request, query))
+            response = await self.privateMixGetAccountAccounts(self.extend(request, params))
+        elif marginMode == 'isolated':
+            response = await self.privateMarginGetIsolatedAccountAssets(self.extend(request, params))
+        elif marginMode == 'cross':
+            response = await self.privateMarginGetCrossAccountAssets(self.extend(request, params))
+        elif marketType == 'spot':
+            response = await self.privateSpotGetAccountAssets(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchBalance() does not support ' + marketType + ' accounts')
         # spot
+        #
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645928868827,
-        #       data: [
-        #         {
-        #           coinId: 1,
-        #           coinName: 'BTC',
-        #           available: '0.00070000',
-        #           frozen: '0.00000000',
-        #           lock: '0.00000000',
-        #           uTime: '1645921706000'
-        #         }
-        #       ]
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697507299139,
+        #         "data": [
+        #             {
+        #                 "coinId": 1,
+        #                 "coinName": "BTC",
+        #                 "available": "0.00000000",
+        #                 "frozen": "0.00000000",
+        #                 "lock": "0.00000000",
+        #                 "uTime": "1697248128000"
+        #             },
+        #         ]
         #     }
         #
         # swap
+        #
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645928929251,
-        #       data: [
-        #         {
-        #           marginCoin: 'USDT',
-        #           locked: '0',
-        #           available: '8.078525',
-        #           crossMaxAvailable: '8.078525',
-        #           fixedMaxAvailable: '8.078525',
-        #           maxTransferOut: '8.078525',
-        #           equity: '10.02508',
-        #           usdtEquity: '10.02508',
-        #           btcEquity: '0.00026057027'
-        #         }
-        #       ]
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697507505367,
+        #         "data": [
+        #             {
+        #                 "marginCoin": "STETH",
+        #                 "locked": "0",
+        #                 "available": "0",
+        #                 "crossMaxAvailable": "0",
+        #                 "fixedMaxAvailable": "0",
+        #                 "maxTransferOut": "0",
+        #                 "equity": "0",
+        #                 "usdtEquity": "0",
+        #                 "btcEquity": "0",
+        #                 "crossRiskRate": "0",
+        #                 "unrealizedPL": "0",
+        #                 "bonus": "0"
+        #             },
+        #         ]
         #     }
-        data = self.safe_value(response, 'data')
+        #
+        # isolated margin
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697501436571,
+        #         "data": [
+        #             {
+        #                 "symbol": "BTCUSDT",
+        #                 "coin": "BTC",
+        #                 "totalAmount": "0.00021654",
+        #                 "available": "0.00021654",
+        #                 "transferable": "0.00021654",
+        #                 "frozen": "0",
+        #                 "borrow": "0",
+        #                 "interest": "0",
+        #                 "net": "0.00021654",
+        #                 "ctime": "1697248128071"
+        #             },
+        #         ]
+        #     }
+        #
+        # cross margin
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697515463804,
+        #         "data": [
+        #             {
+        #                 "coin": "BTC",
+        #                 "totalAmount": "0.00024996",
+        #                 "available": "0.00024996",
+        #                 "transferable": "0.00004994",
+        #                 "frozen": "0",
+        #                 "borrow": "0.0001",
+        #                 "interest": "0.00000001",
+        #                 "net": "0.00014995",
+        #                 "ctime": "1697251265504"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
         return self.parse_balance(data)
 
     def parse_balance(self, balance):
@@ -2611,42 +2673,79 @@ class bitget(Exchange, ImplicitAPI):
         # spot
         #
         #     {
-        #         coinId: '1',
-        #         coinName: 'BTC',
-        #         available: '0.00099900',
-        #         frozen: '0.00000000',
-        #         lock: '0.00000000',
-        #         uTime: '1661595535000'
+        #         "coinId": 1,
+        #         "coinName": "BTC",
+        #         "available": "0.00000000",
+        #         "frozen": "0.00000000",
+        #         "lock": "0.00000000",
+        #         "uTime": "1697248128000"
         #     }
         #
         # swap
         #
         #     {
-        #         marginCoin: 'BTC',
-        #         locked: '0.00001948',
-        #         available: '0.00006622',
-        #         crossMaxAvailable: '0.00004674',
-        #         fixedMaxAvailable: '0.00004674',
-        #         maxTransferOut: '0.00004674',
-        #         equity: '0.00006622',
-        #         usdtEquity: '1.734307497491',
-        #         btcEquity: '0.000066229058',
-        #         crossRiskRate: '0.066308887072',
-        #         unrealizedPL: '0',
-        #         bonus: '0'
+        #         "marginCoin": "STETH",
+        #         "locked": "0",
+        #         "available": "0",
+        #         "crossMaxAvailable": "0",
+        #         "fixedMaxAvailable": "0",
+        #         "maxTransferOut": "0",
+        #         "equity": "0",
+        #         "usdtEquity": "0",
+        #         "btcEquity": "0",
+        #         "crossRiskRate": "0",
+        #         "unrealizedPL": "0",
+        #         "bonus": "0"
+        #     }
+        #
+        # isolated margin
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "coin": "BTC",
+        #         "totalAmount": "0.00021654",
+        #         "available": "0.00021654",
+        #         "transferable": "0.00021654",
+        #         "frozen": "0",
+        #         "borrow": "0",
+        #         "interest": "0",
+        #         "net": "0.00021654",
+        #         "ctime": "1697248128071"
+        #     }
+        #
+        # cross margin
+        #
+        #     {
+        #         "coin": "BTC",
+        #         "totalAmount": "0.00024995",
+        #         "available": "0.00024995",
+        #         "transferable": "0.00004993",
+        #         "frozen": "0",
+        #         "borrow": "0.0001",
+        #         "interest": "0.00000001",
+        #         "net": "0.00014994",
+        #         "ctime": "1697251265504"
         #     }
         #
         for i in range(0, len(balance)):
             entry = balance[i]
-            currencyId = self.safe_string_2(entry, 'coinName', 'marginCoin')
-            code = self.safe_currency_code(currencyId)
             account = self.account()
-            spotAccountFree = self.safe_string(entry, 'available')
-            contractAccountFree = self.safe_string(entry, 'maxTransferOut')
-            account['free'] = contractAccountFree if (contractAccountFree is not None) else spotAccountFree
-            frozen = self.safe_string(entry, 'frozen')
-            locked = self.safe_string_2(entry, 'lock', 'locked')
-            account['used'] = Precise.string_add(frozen, locked)
+            currencyId = self.safe_string_n(entry, ['coinName', 'marginCoin', 'coin'])
+            code = self.safe_currency_code(currencyId)
+            borrow = self.safe_string(entry, 'borrow')
+            if borrow is not None:
+                interest = self.safe_string(entry, 'interest')
+                account['free'] = self.safe_string(entry, 'transferable')
+                account['total'] = self.safe_string(entry, 'totalAmount')
+                account['debt'] = Precise.string_add(borrow, interest)
+            else:
+                # Use transferable instead of available for swap and margin https://github.com/ccxt/ccxt/pull/19127
+                spotAccountFree = self.safe_string(entry, 'available')
+                contractAccountFree = self.safe_string(entry, 'maxTransferOut')
+                account['free'] = contractAccountFree if (contractAccountFree is not None) else spotAccountFree
+                frozen = self.safe_string(entry, 'frozen')
+                locked = self.safe_string_2(entry, 'lock', 'locked')
+                account['used'] = Precise.string_add(frozen, locked)
             result[code] = account
         return self.safe_balance(result)
 
@@ -4884,6 +4983,185 @@ class bitget(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'info': interest,
         }, market)
+
+    async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+        """
+        create a loan to borrow margin
+        see https://bitgetlimited.github.io/apidoc/en/margin/#cross-borrow
+        see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-borrow
+        :param str code: unified currency code of the currency to borrow
+        :param str amount: the amount to borrow
+        :param str [symbol]: unified market symbol
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :param str [params.marginMode]: 'isolated' or 'cross', symbol is required for 'isolated'
+        :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['info']['coinName'],
+            'borrowAmount': self.currency_to_precision(code, amount),
+        }
+        response = None
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('borrowMargin', params)
+        if (symbol is not None) or (marginMode == 'isolated'):
+            self.check_required_symbol('borrowMargin', symbol)
+            market = self.market(symbol)
+            marketId = market['id']
+            parts = marketId.split('_')
+            marginMarketId = self.safe_string_upper(parts, 0)
+            request['symbol'] = marginMarketId
+            response = await self.privateMarginPostIsolatedAccountBorrow(self.extend(request, params))
+        else:
+            response = await self.privateMarginPostCrossAccountBorrow(self.extend(request, params))
+        #
+        # isolated
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697250952516,
+        #         "data": {
+        #             "clientOid": null,
+        #             "symbol": "BTCUSDT",
+        #             "coin": "BTC",
+        #             "borrowAmount": "0.001"
+        #         }
+        #     }
+        #
+        # cross
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697251314271,
+        #         "data": {
+        #             "clientOid": null,
+        #             "coin": "BTC",
+        #             "borrowAmount": "0.0001"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_margin_loan(data, currency)
+
+    async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
+        see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
+        :param str code: unified currency code of the currency to repay
+        :param str amount: the amount to repay
+        :param str [symbol]: unified market symbol
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :param str [params.marginMode]: 'isolated' or 'cross', symbol is required for 'isolated'
+        :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['info']['coinName'],
+            'repayAmount': self.currency_to_precision(code, amount),
+        }
+        response = None
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('repayMargin', params)
+        if (symbol is not None) or (marginMode == 'isolated'):
+            self.check_required_symbol('repayMargin', symbol)
+            market = self.market(symbol)
+            marketId = market['id']
+            parts = marketId.split('_')
+            marginMarketId = self.safe_string_upper(parts, 0)
+            request['symbol'] = marginMarketId
+            response = await self.privateMarginPostIsolatedAccountRepay(self.extend(request, params))
+        else:
+            response = await self.privateMarginPostCrossAccountRepay(self.extend(request, params))
+        #
+        # isolated
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697251988593,
+        #         "data": {
+        #             "remainDebtAmount": "0",
+        #             "clientOid": null,
+        #             "symbol": "BTCUSDT",
+        #             "coin": "BTC",
+        #             "repayAmount": "0.00100001"
+        #         }
+        #     }
+        #
+        # cross
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697252151042,
+        #         "data": {
+        #             "remainDebtAmount": "0",
+        #             "clientOid": null,
+        #             "coin": "BTC",
+        #             "repayAmount": "0.00010001"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_margin_loan(data, currency)
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        # isolated: borrowMargin
+        #
+        #     {
+        #         "clientOid": null,
+        #         "symbol": "BTCUSDT",
+        #         "coin": "BTC",
+        #         "borrowAmount": "0.001"
+        #     }
+        #
+        # cross: borrowMargin
+        #
+        #     {
+        #         "clientOid": null,
+        #         "coin": "BTC",
+        #         "borrowAmount": "0.0001"
+        #     }
+        #
+        # isolated: repayMargin
+        #
+        #     {
+        #         "remainDebtAmount": "0",
+        #         "clientOid": null,
+        #         "symbol": "BTCUSDT",
+        #         "coin": "BTC",
+        #         "repayAmount": "0.00100001"
+        #     }
+        #
+        # cross: repayMargin
+        #
+        #     {
+        #         "remainDebtAmount": "0",
+        #         "clientOid": null,
+        #         "coin": "BTC",
+        #         "repayAmount": "0.00010001"
+        #     }
+        #
+        currencyId = self.safe_string(info, 'coin')
+        marketId = self.safe_string(info, 'symbol')
+        symbol = None
+        if marketId is not None:
+            symbol = self.safe_symbol(marketId)
+        return {
+            'id': self.safe_string(info, 'clientOid'),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number_2(info, 'borrowAmount', 'repayAmount'),
+            'symbol': symbol,
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

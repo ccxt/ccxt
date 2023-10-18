@@ -817,6 +817,7 @@ export default class deribit extends Exchange {
                             'max': undefined,
                         },
                     },
+                    'created': this.safeInteger (market, 'creation_timestamp'),
                     'info': market,
                 });
             }

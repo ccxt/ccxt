@@ -826,6 +826,7 @@ class exmo extends exmo$1 {
                         'max': this.safeNumber(market, 'max_amount'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

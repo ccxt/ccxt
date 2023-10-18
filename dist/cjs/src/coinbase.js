@@ -1073,6 +1073,7 @@ class coinbase extends coinbase$1 {
                         'max': this.safeNumber(market, 'quote_max_size'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

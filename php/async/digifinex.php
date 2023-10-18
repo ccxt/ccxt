@@ -661,6 +661,7 @@ class digifinex extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -2822,14 +2823,16 @@ class digifinex extends Exchange {
         //         "leverage_ratio" => 3
         //     }
         //
-        $symbol = $this->safe_string($info, 'symbol');
+        $marketId = $this->safe_string($info, 'symbol');
         $amountString = $this->safe_string($info, 'amount');
         $leverageString = $this->safe_string($info, 'leverage_ratio');
         $amountInvested = Precise::string_div($amountString, $leverageString);
         $amountBorrowed = Precise::string_sub($amountString, $amountInvested);
         $currency = ($market === null) ? null : $market['base'];
+        $symbol = $this->safe_symbol($marketId, $market);
         return array(
-            'account' => $this->safe_symbol($symbol, $market),
+            'account' => $symbol,
+            'symbol' => $symbol,
             'currency' => $currency,
             'interest' => null,
             'interestRate' => 0.001, // all interest rates on digifinex are 0.1%
@@ -3319,10 +3322,9 @@ class digifinex extends Exchange {
             if ($marketType === 'swap') {
                 return $position;
             } else {
-                return array_merge($position, array(
-                    'collateral' => $this->safe_number($response, 'margin'),
-                    'marginRatio' => $this->safe_number($response, 'margin_rate'),
-                ));
+                $position['collateral'] = $this->safe_number($response, 'margin');
+                $position['marginRatio'] = $this->safe_number($response, 'margin_rate');
+                return $position;
             }
         }) ();
     }
@@ -3382,7 +3384,7 @@ class digifinex extends Exchange {
         } elseif ($side === 'go_short') {
             $side = 'short';
         }
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -3408,7 +3410,7 @@ class digifinex extends Exchange {
             'percentage' => null,
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
-        );
+        ));
     }
 
     public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {

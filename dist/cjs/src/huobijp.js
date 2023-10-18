@@ -514,6 +514,7 @@ class huobijp extends huobijp$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

@@ -312,6 +312,7 @@ class hollaex extends hollaex$1 {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'created_at')),
                 'info': market,
             });
         }

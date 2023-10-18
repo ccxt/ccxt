@@ -427,6 +427,7 @@ class yobit extends yobit$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

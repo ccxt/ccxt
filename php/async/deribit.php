@@ -817,6 +817,7 @@ class deribit extends Exchange {
                                 'max' => null,
                             ),
                         ),
+                        'created' => $this->safe_integer($market, 'creation_timestamp'),
                         'info' => $market,
                     );
                 }

@@ -825,6 +825,7 @@ class delta extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->parse8601($this->safe_string($market, 'launch_time')),
                     'info' => $market,
                 );
             }

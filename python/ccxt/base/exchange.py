@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.13'
+__version__ = '4.1.16'
 
 # -----------------------------------------------------------------------------
 
@@ -1648,6 +1648,9 @@ class Exchange(object):
 
     def convert_to_big_int(self, value):
         return int(value) if isinstance(value, str) else value
+
+    def string_to_chars_array(self, value):
+        return list(value)
 
     def valueIsDefined(self, value):
         return value is not None

@@ -514,6 +514,7 @@ export default class ndax extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

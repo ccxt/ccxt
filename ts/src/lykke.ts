@@ -316,7 +316,6 @@ export default class lykke extends Exchange {
                 'option': false,
                 'contract': false,
                 'active': true,
-                'info': market,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
@@ -346,6 +345,8 @@ export default class lykke extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
+                'info': market,
             });
         }
         return result;

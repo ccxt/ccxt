@@ -452,6 +452,7 @@ class kuna(Exchange, ImplicitAPI):
                                 'max': None,
                             },
                         },
+                        'created': None,
                         'info': None,
                     })
         return markets
