@@ -603,6 +603,7 @@ export default class Exchange {
         info: object;
     };
     safeCurrencyStructure(currency: object): any;
+    safeMarketStructure(market?: object): any;
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
     safeBalance(balance: object): Balances;
     safeOrder(order: object, market?: object): Order;
