@@ -895,10 +895,7 @@ export default class ace extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'attachment');
-        const trades = this.safeValue (data, 'trades');
-        if (trades === undefined) {
-            return trades;
-        }
+        const trades = this.safeValue (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
