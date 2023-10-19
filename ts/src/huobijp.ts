@@ -1447,7 +1447,7 @@ export default class huobijp extends Exchange {
         const response = await this[method] (this.extend (request, params));
         const timestamp = this.milliseconds ();
         const id = this.safeString (response, 'data');
-        return {
+        return this.safeOrder ({
             'info': response,
             'id': id,
             'timestamp': timestamp,
@@ -1466,7 +1466,7 @@ export default class huobijp extends Exchange {
             'fee': undefined,
             'clientOrderId': undefined,
             'average': undefined,
-        };
+        }, market);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {

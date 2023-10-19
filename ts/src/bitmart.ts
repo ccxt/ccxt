@@ -2217,12 +2217,11 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const order = this.parseOrder (data, market);
-        return this.extend (order, {
-            'type': type,
-            'side': side,
-            'amount': amount,
-            'price': price,
-        });
+        order['type'] = type;
+        order['side'] = side;
+        order['amount'] = amount;
+        order['price'] = price;
+        return order;
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
