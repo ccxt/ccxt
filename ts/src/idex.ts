@@ -9,7 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { Int, Order, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -707,7 +707,7 @@ export default class idex extends Exchange {
             'nonce': nonce,
             'bids': this.parseSide (response, 'bids'),
             'asks': this.parseSide (response, 'asks'),
-        } as any;
+        } as OrderBook;
     }
 
     parseSide (book, side) {

@@ -3,7 +3,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order } from './base/types.js';
+import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary } from './base/types.js';
 
 /**
  * @class hitbtc
@@ -1489,7 +1489,7 @@ export default class hitbtc extends Exchange {
             const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
             result[symbol] = this.parseOrderBook (response[marketId], symbol, timestamp, 'bid', 'ask');
         }
-        return result;
+        return result as Dictionary<OrderBook>;
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -1503,7 +1503,7 @@ export default class hitbtc extends Exchange {
          * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         const result = await this.fetchOrderBooks ([ symbol ], limit, params);
-        return result[symbol];
+        return result[symbol] as OrderBook;
     }
 
     parseTradingFee (fee, market = undefined) {

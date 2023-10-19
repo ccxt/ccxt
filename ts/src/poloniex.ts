@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, R
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1718,7 +1718,7 @@ export default class poloniex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        } as any;
+        } as OrderBook;
     }
 
     async createDepositAddress (code: string, params = {}) {

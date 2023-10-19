@@ -3664,6 +3664,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
     }
 
+    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<OrderBook>> {
+        throw new NotSupported (this.id + ' fetchOrderBooks() is not supported yet');
+    }
+
     async watchTickers (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
         throw new NotSupported (this.id + ' watchTickers() is not supported yet');
     }
