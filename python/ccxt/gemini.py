@@ -496,6 +496,7 @@ class gemini(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': row,
             })
         return result

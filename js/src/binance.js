@@ -969,7 +969,7 @@ export default class binance extends Exchange {
                         'margin/marginInterestHistory': 1,
                         'portfolio/interest-history': 50,
                         'um/income': 30,
-                        'cm/income ': 30,
+                        'cm/income': 30,
                         'um/account': 5,
                         'cm/account': 5,
                         'portfolio/repay-futures-switch': 3,
