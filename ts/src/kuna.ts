@@ -1825,11 +1825,14 @@ export default class kuna extends Exchange {
                 const urlPath = '/' + version + '/' + this.implodeParams (path, params);
                 url = this.urls['api'][version] + urlPath;
                 if (access === 'private') {
-                    if (method !== 'GET') {
-                        body = params;
-                    }
                     const nonce = this.nonce ().toString ();
-                    const auth = urlPath + nonce + this.json (params);
+                    let auth = urlPath + nonce;
+                    if (method !== 'GET') {
+                        auth = auth + this.json (params);
+                        body = params;
+                    } else {
+                        auth = auth + this.json ({});
+                    }
                     headers = {
                         'Content-Type': 'application/json',
                         'accept': 'application/json',
