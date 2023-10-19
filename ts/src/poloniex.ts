@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, R
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1036,8 +1036,8 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        const result = this.parseTrades (response, market);
-        return this.filterBySinceLimit (result, since, limit) as any;
+        const result = this.parseTrades (response, market, since, limit);
+        return result;
     }
 
     parseOrderStatus (status) {
@@ -1520,9 +1520,9 @@ export default class poloniex extends Exchange {
         //         "updateTime": 1646196019020
         //     }
         //
-        return this.extend (this.parseOrder (response), {
-            'id': id,
-        });
+        const order = this.parseOrder (response);
+        order['id'] = id;
+        return order;
     }
 
     async fetchOrderStatus (id: string, symbol: string = undefined, params = {}) {
@@ -1718,7 +1718,7 @@ export default class poloniex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        } as any;
+        } as OrderBook;
     }
 
     async createDepositAddress (code: string, params = {}) {

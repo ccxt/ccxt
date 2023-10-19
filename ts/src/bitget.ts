@@ -3886,7 +3886,7 @@ export default class bitget extends Exchange {
         const data = this.safeValue (response, 'data', []);
         if (!Array.isArray (data)) {
             const result = this.safeValue (data, 'orderList', []);
-            return this.addPaginationCursorToResult (data, result);
+            return this.addPaginationCursorToResult (data, result) as Order[];
         }
         return this.parseOrders (data, market, since, limit);
     }

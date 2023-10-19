@@ -5,7 +5,7 @@ import Exchange from './abstract/poloniexfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderBook, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -537,7 +537,7 @@ export default class poloniexfutures extends Exchange {
             orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
         }
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
-        return orderbook;
+        return orderbook as OrderBook;
     }
 
     async fetchL3OrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -895,7 +895,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data', {});
-        return {
+        return this.safeOrder ({
             'id': this.safeString (data, 'orderId'),
             'clientOrderId': undefined,
             'timestamp': undefined,
@@ -917,7 +917,7 @@ export default class poloniexfutures extends Exchange {
             'postOnly': undefined,
             'stopPrice': undefined,
             'info': response,
-        };
+        }, market);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
