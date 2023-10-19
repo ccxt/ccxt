@@ -632,7 +632,7 @@ class ImplicitAPI:
     papi_get_margin_margininteresthistory = papiGetMarginMarginInterestHistory = Entry('margin/marginInterestHistory', 'papi', 'GET', {'cost': 1})
     papi_get_portfolio_interest_history = papiGetPortfolioInterestHistory = Entry('portfolio/interest-history', 'papi', 'GET', {'cost': 50})
     papi_get_um_income = papiGetUmIncome = Entry('um/income', 'papi', 'GET', {'cost': 30})
-    papi_get_cm_income = papiGetCmIncome = Entry('cm/income ', 'papi', 'GET', {'cost': 30})
+    papi_get_cm_income = papiGetCmIncome = Entry('cm/income', 'papi', 'GET', {'cost': 30})
     papi_get_um_account = papiGetUmAccount = Entry('um/account', 'papi', 'GET', {'cost': 5})
     papi_get_cm_account = papiGetCmAccount = Entry('cm/account', 'papi', 'GET', {'cost': 5})
     papi_get_portfolio_repay_futures_switch = papiGetPortfolioRepayFuturesSwitch = Entry('portfolio/repay-futures-switch', 'papi', 'GET', {'cost': 3})
