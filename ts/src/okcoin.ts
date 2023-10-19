@@ -2040,10 +2040,9 @@ export default class okcoin extends Exchange {
         //     }
         //
         const order = this.parseOrder (response, market);
-        return this.extend (order, {
-            'type': type,
-            'side': side,
-        });
+        order['type'] = type;
+        order['side'] = side;
+        return order;
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {

@@ -1202,7 +1202,7 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data', {});
-        return {
+        return this.safeOrder ({
             'id': this.safeString (data, 'orderId'),
             'clientOrderId': undefined,
             'timestamp': undefined,
@@ -1225,7 +1225,7 @@ export default class kucoinfutures extends kucoin {
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'info': response,
-        };
+        }, market);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
