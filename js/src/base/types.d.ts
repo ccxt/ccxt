@@ -154,6 +154,8 @@ export interface PartialBalances extends Dictionary<number> {
 }
 export interface Balances extends Dictionary<Balance> {
     info: any;
+    timestamp?: any;
+    datetime?: any;
 }
 export interface DepositAddress {
     currency: string;

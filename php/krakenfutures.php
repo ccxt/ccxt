@@ -924,7 +924,8 @@ class krakenfutures extends Exchange {
         $status = $this->safe_string($response['editStatus'], 'status');
         $this->verify_order_action_success($status, 'editOrder', array( 'filled' ));
         $order = $this->parse_order($response['editStatus']);
-        return array_merge(array( 'info' => $response ), $order);
+        $order['info'] = $response;
+        return $order;
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1506,11 +1507,10 @@ class krakenfutures extends Exchange {
             throw new BadRequest($this->id . ' fetchBalance has no $account for ' . $type);
         }
         $balance = $this->parse_balance($account);
-        return array_merge(array(
-            'info' => $response,
-            'timestamp' => $this->parse8601($datetime),
-            'datetime' => $datetime,
-        ), $balance);
+        $balance['info'] = $response;
+        $balance['timestamp'] = $this->parse8601($datetime);
+        $balance['datetime'] = $datetime;
+        return $balance;
     }
 
     public function parse_balance($response) {

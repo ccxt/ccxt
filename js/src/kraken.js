@@ -815,7 +815,7 @@ export default class kraken extends Exchange {
             const ticker = tickers[id];
             result[symbol] = this.parseTicker(ticker, market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -1714,7 +1714,8 @@ export default class kraken extends Exchange {
             throw new OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }
         const order = this.parseOrder(this.extend({ 'id': id }, result[id]));
-        return this.extend({ 'info': response }, order);
+        order['info'] = order;
+        return order;
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

@@ -1335,9 +1335,8 @@ class bitstamp extends Exchange {
         }
         $response = $this->$method (array_merge($request, $params));
         $order = $this->parse_order($response, $market);
-        return array_merge($order, array(
-            'type' => $type,
-        ));
+        $order['type'] = $type;
+        return $order;
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {

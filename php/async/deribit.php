@@ -1159,7 +1159,7 @@ class deribit extends Exchange {
                 $symbol = $ticker['symbol'];
                 $tickers[$symbol] = $ticker;
             }
-            return $this->filter_by_array($tickers, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
         }) ();
     }
 

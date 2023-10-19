@@ -825,7 +825,7 @@ class lykke extends Exchange {
             if ($type === 'market') {
                 $price = $this->safe_number($payload, 'price');
             }
-            return array(
+            return $this->safe_order(array(
                 'id' => $id,
                 'info' => $result,
                 'clientOrderId' => null,
@@ -844,7 +844,7 @@ class lykke extends Exchange {
                 'status' => null,
                 'fee' => null,
                 'trades' => null,
-            );
+            ), $market);
         }) ();
     }
 

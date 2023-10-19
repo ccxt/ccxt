@@ -2828,10 +2828,26 @@ class bitget(Exchange, ImplicitAPI):
         #         "cTime": "1652745674488"
         #     }
         #
+        # swap, isolated and cross margin: cancelOrder
+        #
+        #     {
+        #         "orderId": "1098749943604719616",
+        #         "clientOid": "0ec8d262b3d2436aa651095a745b9b8d"
+        #     }
+        #
+        # spot: cancelOrder
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697689270716,
+        #         "data": "1098753830701928448"
+        #     }
+        #
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        id = self.safe_string(order, 'orderId')
+        id = self.safe_string_2(order, 'orderId', 'data')
         price = self.safe_string_2(order, 'price', 'executePrice')
         amount = self.safe_string_2(order, 'quantity', 'size')
         filled = self.safe_string_2(order, 'fillQuantity', 'filledQty')
@@ -3178,67 +3194,154 @@ class bitget(Exchange, ImplicitAPI):
         see https://bitgetlimited.github.io/apidoc/en/spot/#cancel-plan-order
         see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-order
         see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-plan-order-tpsl
+        see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-cancel-order
+        see https://bitgetlimited.github.io/apidoc/en/margin/#cross-cancel-order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitget api endpoint
+        :param str [params.marginMode]: 'isolated' or 'cross' for spot margin trading
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_symbol('cancelOrder', symbol)
         await self.load_markets()
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotPostTradeCancelOrder',
-            'swap': 'privateMixPostOrderCancelOrder',
-            'future': 'privateMixPostOrderCancelOrder',
-        })
+        marketType = None
+        marginMode = None
+        response = None
+        marketType, params = self.handle_market_type_and_params('cancelOrder', market, params)
+        marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
+        symbolRequest = (market['info']['symbolName']) if (marginMode is not None) else (market['id'])
         request = {
-            'symbol': market['id'],
+            'symbol': symbolRequest,
             'orderId': id,
         }
-        stop = self.safe_value(query, 'stop')
-        if stop:
-            if marketType == 'spot':
-                method = 'privateSpotPostPlanCancelPlan'
-            else:
-                planType = self.safe_string(params, 'planType')
+        stop = self.safe_value(params, 'stop')
+        planType = self.safe_string(params, 'planType')
+        params = self.omit(params, ['stop', 'planType'])
+        if (marketType == 'swap') or (marketType == 'future'):
+            request['marginCoin'] = market['settleId']
+            if stop:
                 if planType is None:
                     raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan')
                 request['planType'] = planType
-                method = 'privateMixPostPlanCancelPlan'
-        if marketType == 'swap':
-            request['marginCoin'] = market['settleId']
-        ommitted = self.omit(query, ['stop', 'planType'])
-        response = await getattr(self, method)(self.extend(request, ommitted))
-        return self.parse_order(response, market)
+                response = await self.privateMixPostPlanCancelPlan(self.extend(request, params))
+            else:
+                response = await self.privateMixPostOrderCancelOrder(self.extend(request, params))
+        elif marketType == 'spot':
+            if marginMode is not None:
+                if marginMode == 'isolated':
+                    response = await self.privateMarginPostIsolatedOrderCancelOrder(self.extend(request, params))
+                elif marginMode == 'cross':
+                    response = await self.privateMarginPostCrossOrderCancelOrder(self.extend(request, params))
+            else:
+                if stop:
+                    response = await self.privateSpotPostPlanCancelPlan(self.extend(request, params))
+                else:
+                    response = await self.privateSpotPostTradeCancelOrder(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' cancelOrder() does not support ' + marketType + ' orders')
+        #
+        # spot
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697689270716,
+        #         "data": "1098753830701928448"
+        #     }
+        #
+        # isolated margin
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697688367859,
+        #         "data": {
+        #             "resultList": [
+        #                 {
+        #                     "orderId": "1098749943604719616",
+        #                     "clientOid": "0ec8d262b3d2436aa651095a745b9b8d"
+        #                 }
+        #             ],
+        #             "failure": []
+        #         }
+        #     }
+        #
+        # cross margin
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": :1697689028972,
+        #         "data": {
+        #             "resultList": [
+        #                 {
+        #                     "orderId": "1098751730051067906",
+        #                     "clientOid": "ecb50ca373374c5bb814bc724e36b0eb"
+        #                 }
+        #             ],
+        #             "failure": []
+        #         }
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697690413177,
+        #         "data": {
+        #             "orderId": "1098758604547850241",
+        #             "clientOid": "1098758604585598977"
+        #         }
+        #     }
+        #
+        order = response
+        if (marketType == 'swap') or (marketType == 'future'):
+            order = self.safe_value(response, 'data', {})
+        elif marginMode is not None:
+            data = self.safe_value(response, 'data', {})
+            resultList = self.safe_value(data, 'resultList', [])
+            order = resultList[0]
+        return self.parse_order(order, market)
 
     async def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
         see https://bitgetlimited.github.io/apidoc/en/spot/#cancel-order-in-batch-v2-single-instruments
         see https://bitgetlimited.github.io/apidoc/en/mix/#batch-cancel-order
+        see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
+        see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the bitget api endpoint
+        :param str [params.marginMode]: 'isolated' or 'cross' for spot margin trading
         :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_symbol('cancelOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
         type = None
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('cancelOrders', params)
         type, params = self.handle_market_type_and_params('cancelOrders', market, params)
         request = {}
-        method = None
+        response = None
         if type == 'spot':
-            method = 'privateSpotPostTradeCancelBatchOrdersV2'
-            request['symbol'] = market['id']
+            request['symbol'] = market['info']['symbolName']  # regular id like LTCUSDT_SPBL does not work here
             request['orderIds'] = ids
+            if marginMode is not None:
+                if marginMode == 'cross':
+                    response = await self.privateMarginPostCrossOrderBatchCancelOrder(self.extend(request, params))
+                else:
+                    response = await self.privateMarginPostIsolatedOrderBatchCancelOrder(self.extend(request, params))
+            else:
+                response = await self.privateSpotPostTradeCancelBatchOrdersV2(self.extend(request, params))
         else:
-            method = 'privateMixPostOrderCancelBatchOrders'
             request['symbol'] = market['id']
             request['marginCoin'] = market['quote']
             request['orderIds'] = ids
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateMixPostOrderCancelBatchOrders(self.extend(request, params))
         #
         #     spot
         #
@@ -3282,8 +3385,11 @@ class bitget(Exchange, ImplicitAPI):
         cancel all open orders
         see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
         see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
+        see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
+        see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
+        :param str [params.marginMode]: 'isolated' or 'cross' for spot margin trading
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
@@ -3298,8 +3404,19 @@ class bitget(Exchange, ImplicitAPI):
             productType = 'S' + productType
         marketType = None
         marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
         if marketType == 'spot':
-            raise NotSupported(self.id + ' cancelAllOrders() does not support spot markets')
+            if marginMode is None:
+                raise NotSupported(self.id + ' cancelAllOrders() does not support spot markets, only spot-margin')
+            self.check_required_symbol('cancelAllOrders', symbol)
+            spotMarginRequest = {
+                'symbol': market['info']['symbolName'],  # regular id like LTCUSDT_SPBL does not work here
+            }
+            if marginMode == 'cross':
+                return await self.privateMarginPostCrossOrderBatchCancelOrder(self.extend(spotMarginRequest, params))
+            else:
+                return await self.privateMarginPostIsolatedOrderBatchCancelOrder(self.extend(spotMarginRequest, params))
         request = {
             'productType': productType,
             'marginCoin': market['settleId'],

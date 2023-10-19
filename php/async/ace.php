@@ -342,7 +342,7 @@ class ace extends Exchange {
                 $ticker = $this->parse_ticker($rawTicker, $market);
                 $tickers[] = $ticker;
             }
-            return $this->filter_by_array($tickers, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -893,10 +893,7 @@ class ace extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'attachment');
-            $trades = $this->safe_value($data, 'trades');
-            if ($trades === null) {
-                return $trades;
-            }
+            $trades = $this->safe_value($data, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
     }

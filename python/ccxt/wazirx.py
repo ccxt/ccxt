@@ -420,7 +420,7 @@ class wazirx(Exchange, ImplicitAPI):
             parsedTicker = self.parse_ticker(ticker)
             symbol = parsedTicker['symbol']
             result[symbol] = parsedTicker
-        return result
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

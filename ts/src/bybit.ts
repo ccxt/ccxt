@@ -2352,7 +2352,7 @@ export default class bybit extends Exchange {
                 tickers[symbol] = ticker;
             }
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -3633,7 +3633,7 @@ export default class bybit extends Exchange {
         if (length > 1) {
             throw new InvalidOrder (this.id + ' returned more than one order');
         }
-        return this.safeValue (result, 0);
+        return this.safeValue (result, 0) as Order;
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {

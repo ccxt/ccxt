@@ -725,7 +725,11 @@ class gemini(Exchange, ImplicitAPI):
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         method = self.safe_value(self.options, 'fetchTickerMethod', 'fetchTickerV1')
-        return getattr(self, method)(symbol, params)
+        if method == 'fetchTickerV1':
+            return self.fetch_ticker_v1(symbol, params)
+        if method == 'fetchTickerV2':
+            return self.fetch_ticker_v2(symbol, params)
+        return self.fetch_ticker_v1_and_v2(symbol, params)
 
     def parse_ticker(self, ticker, market=None):
         #

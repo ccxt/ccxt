@@ -1356,7 +1356,7 @@ export default class bitmex extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     parseTicker(ticker, market = undefined) {
         // see response sample under "fetchMarkets" because same endpoint is being used here

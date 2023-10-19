@@ -1295,7 +1295,7 @@ class okcoin extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
@@ -2015,10 +2015,9 @@ class okcoin extends Exchange {
         //     }
         //
         $order = $this->parse_order($response, $market);
-        return array_merge($order, array(
-            'type' => $type,
-            'side' => $side,
-        ));
+        $order['type'] = $type;
+        $order['side'] = $side;
+        return $order;
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {

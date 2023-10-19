@@ -871,7 +871,7 @@ class poloniexfutures extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data', array());
-        return array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($data, 'orderId'),
             'clientOrderId' => null,
             'timestamp' => null,
@@ -893,7 +893,7 @@ class poloniexfutures extends Exchange {
             'postOnly' => null,
             'stopPrice' => null,
             'info' => $response,
-        );
+        ), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {

@@ -1,5 +1,5 @@
 import Exchange from './abstract/phemex.js';
-import { FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
+import { FundingRateHistory, Int, OrderBook, OrderSide, OrderType } from './base/types.js';
 /**
  * @class phemex
  * @extends Exchange
@@ -118,13 +118,8 @@ export default class phemex extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     customParseBidAsk(bidask: any, priceKey?: number, amountKey?: number, market?: any): number[];
-    customParseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number, market?: any): {
-        symbol: any;
-        timestamp: any;
-        datetime: string;
-        nonce: any;
-    };
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    customParseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number, market?: any): any;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     toEn(n: any, scale: any): number;
     toEv(amount: any, market?: any): any;
     toEp(price: any, market?: any): any;

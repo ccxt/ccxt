@@ -2091,10 +2091,9 @@ class mexc extends Exchange {
             list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
             if ($market['spot']) {
                 return Async\await($this->create_spot_order($market, $type, $side, $amount, $price, $marginMode, $query));
-            } elseif ($market['swap']) {
+            } else {
                 return Async\await($this->create_swap_order($market, $type, $side, $amount, $price, $marginMode, $query));
             }
-            return null;
         }) ();
     }
 
@@ -2113,7 +2112,7 @@ class mexc extends Exchange {
                     $amount = $quoteOrderQty;
                 } elseif ($this->options['createMarketBuyOrderRequiresPrice']) {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -2165,12 +2164,12 @@ class mexc extends Exchange {
             //         "transactTime" => 1661992652132
             //     }
             //
-            return array_merge($this->parse_order($response, $market), array(
-                'side' => $side,
-                'type' => $type,
-                'price' => $price,
-                'amount' => $amount,
-            ));
+            $order = $this->parse_order($response, $market);
+            $order['side'] = $side;
+            $order['type'] = $type;
+            $order['price'] = $price;
+            $order['amount'] = $amount;
+            return $order;
         }) ();
     }
 

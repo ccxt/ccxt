@@ -2336,7 +2336,7 @@ class bybit extends Exchange {
                 $tickers[$symbol] = $ticker;
             }
         }
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

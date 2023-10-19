@@ -762,7 +762,13 @@ class gemini extends Exchange {
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             $method = $this->safe_value($this->options, 'fetchTickerMethod', 'fetchTickerV1');
-            return Async\await($this->$method ($symbol, $params));
+            if ($method === 'fetchTickerV1') {
+                return Async\await($this->fetch_ticker_v1($symbol, $params));
+            }
+            if ($method === 'fetchTickerV2') {
+                return Async\await($this->fetch_ticker_v2($symbol, $params));
+            }
+            return Async\await($this->fetch_ticker_v1_and_v2($symbol, $params));
         }) ();
     }
 

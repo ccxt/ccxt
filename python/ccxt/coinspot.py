@@ -310,7 +310,7 @@ class coinspot(Exchange, ImplicitAPI):
                 symbol = market['symbol']
                 ticker = prices[id]
                 result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

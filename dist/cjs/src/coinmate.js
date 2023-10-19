@@ -361,7 +361,7 @@ class coinmate extends coinmate$1 {
         const ticker = this.safeValue(response, 'data');
         const timestamp = this.safeTimestamp(ticker, 'timestamp');
         const last = this.safeNumber(ticker, 'last');
-        return {
+        return this.safeTicker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -382,7 +382,7 @@ class coinmate extends coinmate$1 {
             'baseVolume': this.safeNumber(ticker, 'amount'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**

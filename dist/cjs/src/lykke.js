@@ -811,7 +811,7 @@ class lykke extends lykke$1 {
         if (type === 'market') {
             price = this.safeNumber(payload, 'price');
         }
-        return {
+        return this.safeOrder({
             'id': id,
             'info': result,
             'clientOrderId': undefined,
@@ -830,7 +830,7 @@ class lykke extends lykke$1 {
             'status': undefined,
             'fee': undefined,
             'trades': undefined,
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

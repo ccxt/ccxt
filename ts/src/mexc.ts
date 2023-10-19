@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position } from './base/types.js';
+import { IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1353,7 +1353,7 @@ export default class mexc extends Exchange {
             orderbook = this.parseOrderBook (data, symbol, timestamp);
             orderbook['nonce'] = this.safeInteger (data, 'version');
         }
-        return orderbook;
+        return orderbook as OrderBook;
     }
 
     parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2) {
@@ -2085,10 +2085,9 @@ export default class mexc extends Exchange {
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (market['spot']) {
             return await this.createSpotOrder (market, type, side, amount, price, marginMode, query);
-        } else if (market['swap']) {
+        } else {
             return await this.createSwapOrder (market, type, side, amount, price, marginMode, query);
         }
-        return undefined;
     }
 
     async createSpotOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
@@ -2157,12 +2156,12 @@ export default class mexc extends Exchange {
         //         "transactTime": 1661992652132
         //     }
         //
-        return this.extend (this.parseOrder (response, market), {
-            'side': side,
-            'type': type,
-            'price': price,
-            'amount': amount,
-        });
+        const order = this.parseOrder (response, market);
+        order['side'] = side;
+        order['type'] = type;
+        order['price'] = price;
+        order['amount'] = amount;
+        return order;
     }
 
     async createSwapOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
