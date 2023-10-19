@@ -3359,6 +3359,7 @@ export default class bitget extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol ('cancelOrder', symbol);
@@ -3482,29 +3483,41 @@ export default class bitget extends Exchange {
          * @description cancel multiple orders
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#cancel-order-in-batch-v2-single-instruments
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#batch-cancel-order
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
          * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredSymbol ('cancelOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         let type = undefined;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrders', params);
         [ type, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
         const request = {};
-        let method = undefined;
+        let response = undefined;
         if (type === 'spot') {
-            method = 'privateSpotPostTradeCancelBatchOrdersV2';
             request['symbol'] = market['id'];
             request['orderIds'] = ids;
+            if (marginMode !== undefined) {
+                if (marginMode === 'cross') {
+                    response = await this.privateMarginPostCrossOrderBatchCancelOrder (this.extend (request, params));
+                } else {
+                    response = await this.privateMarginPostIsolatedOrderBatchCancelOrder (this.extend (request, params));
+                }
+            } else {
+                response = await this.privateSpotPostTradeCancelBatchOrdersV2 (this.extend (request, params));
+            }
         } else {
-            method = 'privateMixPostOrderCancelBatchOrders';
             request['symbol'] = market['id'];
             request['marginCoin'] = market['quote'];
             request['orderIds'] = ids;
+            response = await this.privateMixPostOrderCancelBatchOrders (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     spot
         //
@@ -3551,8 +3564,11 @@ export default class bitget extends Exchange {
          * @description cancel all open orders
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
@@ -3569,8 +3585,21 @@ export default class bitget extends Exchange {
         }
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         if (marketType === 'spot') {
-            throw new NotSupported (this.id + ' cancelAllOrders () does not support spot markets');
+            if (marginMode === undefined) {
+                throw new NotSupported (this.id + ' cancelAllOrders () does not support spot markets, only spot-margin');
+            }
+            this.checkRequiredSymbol ('cancelAllOrders', symbol);
+            const spotMarginRequest = {
+                'symbol': market['id'],
+            };
+            if (marginMode === 'cross') {
+                return await this.privateMarginPostCrossOrderBatchCancelOrder (this.extend (spotMarginRequest, params));
+            } else {
+                return await this.privateMarginPostIsolatedOrderBatchCancelOrder (this.extend (spotMarginRequest, params));
+            }
         }
         const request = {
             'productType': productType,
