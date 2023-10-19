@@ -1113,7 +1113,7 @@ export default class kuna extends Exchange {
         const trades = this.safeValue (order, 'trades', []);
         return this.safeOrder ({
             'info': order,
-            'id': this.safeString (order, 'id'),
+            'id': this.safeString2 (order, 'id', 'orderId'),
             'clientOrderId': undefined,
             'symbol': this.safeSymbol (marketId, market),
             'timestamp': this.parse8601 (datetime),
