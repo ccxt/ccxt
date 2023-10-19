@@ -900,7 +900,9 @@ class woo extends woo$1 {
             const rows = this.safeValue(data, 'rows', []);
             return this.parseOrder(rows[0], market);
         }
-        return this.extend(this.parseOrder(response, market), { 'type': type });
+        const order = this.parseOrder(response, market);
+        order['type'] = type;
+        return order;
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**

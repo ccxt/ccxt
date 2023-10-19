@@ -2727,10 +2727,9 @@ class okx extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0);
         $order = $this->parse_order($first, $market);
-        return array_merge($order, array(
-            'type' => $type,
-            'side' => $side,
-        ));
+        $order['type'] = $type;
+        $order['side'] = $side;
+        return $order;
     }
 
     public function edit_order_request(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
@@ -2840,10 +2839,9 @@ class okx extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0);
         $order = $this->parse_order($first, $market);
-        return array_merge($order, array(
-            'type' => $type,
-            'side' => $side,
-        ));
+        $order['type'] = $type;
+        $order['side'] = $side;
+        return $order;
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {

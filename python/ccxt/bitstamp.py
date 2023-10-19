@@ -1284,9 +1284,8 @@ class bitstamp(Exchange, ImplicitAPI):
             params = self.omit(params, ['client_order_id', 'clientOrderId'])
         response = getattr(self, method)(self.extend(request, params))
         order = self.parse_order(response, market)
-        return self.extend(order, {
-            'type': type,
-        })
+        order['type'] = type
+        return order
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """

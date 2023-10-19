@@ -610,7 +610,7 @@ class bittrex(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             ticker = self.parse_ticker(response[i])
             tickers.append(ticker)
-        return self.filter_by_array(tickers, 'symbol', symbols)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params={}):
         """
@@ -1764,8 +1764,8 @@ class bittrex(Exchange, ImplicitAPI):
             symbol = market['symbol']
             request['marketSymbol'] = market['id']
         response = self.privateGetExecutions(self.extend(request, params))
-        trades = self.parse_trades(response, market)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        trades = self.parse_trades(response, market, since, limit)
+        return trades
 
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

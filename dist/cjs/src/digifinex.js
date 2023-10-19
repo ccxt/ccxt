@@ -1004,7 +1004,7 @@ class digifinex extends digifinex$1 {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -1642,14 +1642,13 @@ class digifinex extends digifinex$1 {
         //         "data": "1590873693003714560"
         //     }
         //
-        const result = this.parseOrder(response, market);
-        return this.extend(result, {
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'amount': amount,
-            'price': price,
-        });
+        const order = this.parseOrder(response, market);
+        order['symbol'] = symbol;
+        order['type'] = type;
+        order['side'] = side;
+        order['amount'] = amount;
+        order['price'] = price;
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

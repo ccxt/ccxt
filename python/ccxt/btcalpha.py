@@ -721,9 +721,8 @@ class btcalpha(Exchange, ImplicitAPI):
         order = self.parse_order(response, market)
         orderAmount = str(order['amount'])
         amount = order['amount'] if Precise.string_gt(orderAmount, '0') else amount
-        return self.extend(order, {
-            'amount': self.parse_number(amount),
-        })
+        order['amount'] = self.parse_number(amount)
+        return order
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """

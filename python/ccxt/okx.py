@@ -2631,10 +2631,9 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0)
         order = self.parse_order(first, market)
-        return self.extend(order, {
-            'type': type,
-            'side': side,
-        })
+        order['type'] = type
+        order['side'] = side
+        return order
 
     def edit_order_request(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         market = self.market(symbol)
@@ -2735,10 +2734,9 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0)
         order = self.parse_order(first, market)
-        return self.extend(order, {
-            'type': type,
-            'side': side,
-        })
+        order['type'] = type
+        order['side'] = side
+        return order
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """

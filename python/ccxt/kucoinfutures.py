@@ -1153,7 +1153,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data', {})
-        return {
+        return self.safe_order({
             'id': self.safe_string(data, 'orderId'),
             'clientOrderId': None,
             'timestamp': None,
@@ -1176,7 +1176,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'stopPrice': None,
             'triggerPrice': None,
             'info': response,
-        }
+        }, market)
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """

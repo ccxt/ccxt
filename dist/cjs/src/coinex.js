@@ -871,7 +871,7 @@ class coinex extends coinex$1 {
             ticker['symbol'] = symbol;
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTime(params = {}) {
         /**

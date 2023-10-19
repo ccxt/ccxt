@@ -716,7 +716,7 @@ class huobijp(Exchange, ImplicitAPI):
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def parse_trade(self, trade, market=None):
         #
@@ -1356,7 +1356,7 @@ class huobijp(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, params))
         timestamp = self.milliseconds()
         id = self.safe_string(response, 'data')
-        return {
+        return self.safe_order({
             'info': response,
             'id': id,
             'timestamp': timestamp,
@@ -1375,7 +1375,7 @@ class huobijp(Exchange, ImplicitAPI):
             'fee': None,
             'clientOrderId': None,
             'average': None,
-        }
+        }, market)
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """

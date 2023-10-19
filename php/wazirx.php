@@ -420,7 +420,7 @@ class wazirx extends Exchange {
             $symbol = $parsedTicker['symbol'];
             $result[$symbol] = $parsedTicker;
         }
-        return $result;
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {

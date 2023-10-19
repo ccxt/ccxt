@@ -600,7 +600,8 @@ class indodax(Exchange, ImplicitAPI):
         response = await self.privatePostGetOrder(self.extend(request, params))
         orders = response['return']
         order = self.parse_order(self.extend({'id': id}, orders['order']), market)
-        return self.extend({'info': response}, order)
+        order['info'] = response
+        return order
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

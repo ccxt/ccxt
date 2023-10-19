@@ -1376,7 +1376,7 @@ class bitmex extends Exchange {
                     $result[$symbol] = $ticker;
                 }
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 

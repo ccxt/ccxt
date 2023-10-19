@@ -2351,7 +2351,7 @@ class bybit extends bybit$1 {
                 tickers[symbol] = ticker;
             }
         }
-        return this.filterByArray(tickers, 'symbol', symbols);
+        return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //

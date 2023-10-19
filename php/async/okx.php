@@ -2768,10 +2768,9 @@ class okx extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             $first = $this->safe_value($data, 0);
             $order = $this->parse_order($first, $market);
-            return array_merge($order, array(
-                'type' => $type,
-                'side' => $side,
-            ));
+            $order['type'] = $type;
+            $order['side'] = $side;
+            return $order;
         }) ();
     }
 
@@ -2883,10 +2882,9 @@ class okx extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             $first = $this->safe_value($data, 0);
             $order = $this->parse_order($first, $market);
-            return array_merge($order, array(
-                'type' => $type,
-                'side' => $side,
-            ));
+            $order['type'] = $type;
+            $order['side'] = $side;
+            return $order;
         }) ();
     }
 

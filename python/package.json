@@ -31,7 +31,7 @@
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
     "force-build": "npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
     "force-build-slow": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
-    "pre-transpile": "npm run export-exchanges && npm run vss && npm run tsBuild && npm run emitAPI && npm run tsBuildExamples && npm run copy-python-files && npm run check-js-syntax && npm run bundle",
+    "pre-transpile": "npm run export-exchanges && npm run vss && npm run tsBuild && npm run emitAPI && npm run validate-types && npm run tsBuildExamples && npm run copy-python-files && npm run check-js-syntax && npm run bundle",
     "pre-transpile-pr": "npm run export-exchanges && npm run tsBuild && npm run emitAPI && npm run check-js-syntax",
     "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
     "test-ws": "npm run build && node run-tests-ws",
@@ -97,7 +97,8 @@
     "copy-python-license": "node build/copy LICENSE.txt python/LICENSE.txt",
     "copy-python-keys": "node build/copy keys.json python/keys.json",
     "copy-python-readme": "node build/copy README.md python/README.md",
-    "postinstall": "node postinstall.js"
+    "postinstall": "node postinstall.js",
+    "validate-types": "node --loader ts-node/esm build/validate-return-type.ts"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {

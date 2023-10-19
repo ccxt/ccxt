@@ -889,7 +889,7 @@ export default class poloniexfutures extends Exchange {
         //    }
         //
         const data = this.safeValue(response, 'data', {});
-        return {
+        return this.safeOrder({
             'id': this.safeString(data, 'orderId'),
             'clientOrderId': undefined,
             'timestamp': undefined,
@@ -911,7 +911,7 @@ export default class poloniexfutures extends Exchange {
             'postOnly': undefined,
             'stopPrice': undefined,
             'info': response,
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

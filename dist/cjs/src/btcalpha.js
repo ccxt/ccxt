@@ -748,9 +748,8 @@ class btcalpha extends btcalpha$1 {
         const order = this.parseOrder(response, market);
         const orderAmount = order['amount'].toString();
         amount = Precise["default"].stringGt(orderAmount, '0') ? order['amount'] : amount;
-        return this.extend(order, {
-            'amount': this.parseNumber(amount),
-        });
+        order['amount'] = this.parseNumber(amount);
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
