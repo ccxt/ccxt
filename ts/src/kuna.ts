@@ -1571,7 +1571,7 @@ export default class kuna extends Exchange {
         const request = {
             'source': currency['id'],
         };
-        const response = this.v4PrivateGetDepositPrivateCryptoAddress (this.extend (request, params));
+        const response = await this.v4PrivateGetDepositPrivateCryptoAddress (this.extend (request, params));
         //
         //    {
         //        "data": {
@@ -1657,7 +1657,7 @@ export default class kuna extends Exchange {
         if (until !== undefined) {
             request['dateTo'] = this.iso8601 (until);
         }
-        const response = this.v4PrivateGetDepositPrivateHistory (this.extend (request, params));
+        const response = await this.v4PrivateGetDepositPrivateHistory (this.extend (request, params));
         //
         //    {
         //        "data": [
