@@ -869,8 +869,8 @@ export default class kuna extends Exchange {
             'side': side,
             'order': undefined,
             'takerOrMaker': isTaker ? 'taker' : 'maker',
-            'price': this.safeString (trade, 'matchPrice'),
-            'amount': this.safeString (trade, 'matchQuantity'),
+            'price': this.safeString2 (trade, 'matchPrice', 'price'),
+            'amount': this.safeString2 (trade, 'matchQuantity', 'quantity'),
             'cost': this.safeString (trade, 'quoteQuantity'),
             'fee': {
                 'cost': this.safeString (trade, 'fee'),
@@ -1365,7 +1365,8 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        return this.parseTrades (response, market, since, limit);
+        const data = this.safeValue (response, 'data');
+        return this.parseTrades (data, market, since, limit);
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
