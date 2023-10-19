@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\lbank as Exchange;
+use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
 
@@ -225,6 +226,7 @@ class lbank extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $id,
                 );
             }
@@ -329,7 +331,7 @@ class lbank extends Exchange {
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -673,7 +675,7 @@ class lbank extends Exchange {
             if ($numOrders === 1) {
                 return $orders[0];
             } else {
-                return $orders;
+                throw new BadRequest($this->id . ' fetchOrder() can only return one order at a time. Found ' . $numOrders . ' $orders->');
             }
         }) ();
     }

@@ -381,6 +381,7 @@ export default class whitebit extends Exchange {
                         'max': this.safeNumber(market, 'maxTotal'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push(entry);
@@ -816,7 +817,7 @@ export default class whitebit extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -857,7 +858,7 @@ export default class whitebit extends Exchange {
         //          ]
         //      }
         //
-        const timestamp = this.safeIntegerProduct(response, 'timestamp', 1000);
+        const timestamp = this.safeTimestamp(response, 'timestamp');
         return this.parseOrderBook(response, symbol, timestamp);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {

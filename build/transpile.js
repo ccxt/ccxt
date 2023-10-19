@@ -294,6 +294,7 @@ class Transpiler {
             [ /\.fetchPaginatedCallDeterministic\s/g, '.fetch_paginated_call_deterministic'],
             [ /\.fetchPaginatedCallCursor\s/g, '.fetch_paginated_call_cursor'],
             [ /\.removeRepeatedElementsFromArray\s/g, '.remove_repeated_elements_from_array'],
+            [ /\.stringToCharsArray\s/g, '.string_to_chars_array'],
             [ /\.handleUntilOption\s/g, '.handle_until_option'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
@@ -695,7 +696,7 @@ class Transpiler {
     getTypescriptRemovalRegexes() {
         return [
             [ /\((\w+)\sas\s\w+\)/g, '$1'], // remove (this as any) or (x as number) paren included
-            [ /\sas \w+(\[])?/g, ''], // remove any "as any" or "as number" or "as trade[]"
+            [ /\sas (Dictionary<)?\w+(\[])?(>)?/g, ''], // remove any "as any" or "as number" or "as trade[]"
             [ /([let|const][^:]+):([^=]+)(\s+=.*$)/g, '$1$3'], // remove variable type
         ]
     }

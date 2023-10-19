@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Dictionary, Int, OrderBook, OrderSide, OrderType, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -473,6 +473,7 @@ export default class upbit extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -594,7 +595,7 @@ export default class upbit extends Exchange {
                 'nonce': undefined,
             };
         }
-        return result;
+        return result as Dictionary<OrderBook>;
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -609,7 +610,7 @@ export default class upbit extends Exchange {
          * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         const orderbooks = await this.fetchOrderBooks ([ symbol ], limit, params);
-        return this.safeValue (orderbooks, symbol);
+        return this.safeValue (orderbooks, symbol) as OrderBook;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -731,7 +732,7 @@ export default class upbit extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -745,7 +746,7 @@ export default class upbit extends Exchange {
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol);
+        return this.safeValue (tickers, symbol) as Ticker;
     }
 
     parseTrade (trade, market = undefined) {

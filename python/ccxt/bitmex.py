@@ -656,6 +656,7 @@ class bitmex(Exchange, ImplicitAPI):
                         'max': maxOrderQty if positionIsQuote else None,
                     },
                 },
+                'created': self.parse8601(self.safe_string(market, 'listing')),
                 'info': market,
             })
         return result
@@ -1004,6 +1005,7 @@ class bitmex(Exchange, ImplicitAPI):
             'Deposit': 'transaction',
             'Transfer': 'transfer',
             'AffiliatePayout': 'referral',
+            'SpotTrade': 'trade',
         }
         return self.safe_string(types, type, type)
 
@@ -1292,7 +1294,7 @@ class bitmex(Exchange, ImplicitAPI):
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker, market=None):
         # see response sample under "fetchMarkets" because same endpoint is being used here
@@ -1508,9 +1510,9 @@ class bitmex(Exchange, ImplicitAPI):
             feeCurrencyCode = self.safe_currency_code(currencyId)
             feeRateString = self.safe_string(trade, 'commission')
             fee = {
-                'cost': feeCostString,
+                'cost': Precise.string_abs(feeCostString),
                 'currency': feeCurrencyCode,
-                'rate': feeRateString,
+                'rate': Precise.string_abs(feeRateString),
             }
         # Trade or Funding
         execType = self.safe_string(trade, 'execType')
@@ -1993,7 +1995,8 @@ class bitmex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_positions(response, symbols)
+        results = self.parse_positions(response, symbols)
+        return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #

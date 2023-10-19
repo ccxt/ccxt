@@ -1105,6 +1105,7 @@ class gate(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'max_quote_amount') if margin else None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -1295,6 +1296,7 @@ class gate(Exchange, ImplicitAPI):
                     'max': None,
                 },
             },
+            'created': None,
             'info': market,
         }
 
@@ -1415,6 +1417,7 @@ class gate(Exchange, ImplicitAPI):
                             'max': None,
                         },
                     },
+                    'created': self.safe_timestamp(market, 'create_time'),
                     'info': market,
                 })
         return result
@@ -2717,7 +2720,8 @@ class gate(Exchange, ImplicitAPI):
             else:
                 code = self.safe_currency_code(self.safe_string(entry, 'currency'))
                 result[code] = self.parse_balance_helper(entry)
-        return result if isolated else self.safe_balance(result)
+        returnResult = result if isolated else self.safe_balance(result)
+        return returnResult
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -5534,7 +5538,7 @@ class gate(Exchange, ImplicitAPI):
         #        lsr_taker: '9.3765153315902'
         #    }
         #
-        timestamp = self.safe_integer_product(interest, 'time', 1000)
+        timestamp = self.safe_timestamp(interest, 'time')
         return {
             'symbol': self.safe_string(market, 'symbol'),
             'openInterestAmount': self.safe_number(interest, 'open_interest'),

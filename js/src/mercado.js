@@ -233,6 +233,7 @@ export default class mercado extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': coin,
             });
         }

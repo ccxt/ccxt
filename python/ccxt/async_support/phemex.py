@@ -614,6 +614,7 @@ class phemex(Exchange, ImplicitAPI):
                     'max': self.parse_number(self.safe_string(market, 'maxOrderQty')),
                 },
             },
+            'created': None,
             'info': market,
         }
 
@@ -712,6 +713,7 @@ class phemex(Exchange, ImplicitAPI):
                     'max': self.parse_safe_number(self.safe_string(market, 'maxOrderValue')),
                 },
             },
+            'created': None,
             'info': market,
         }
 

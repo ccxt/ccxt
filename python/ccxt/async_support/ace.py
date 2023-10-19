@@ -338,7 +338,7 @@ class ace(Exchange, ImplicitAPI):
             rawTicker = self.safe_value(response, marketId)
             ticker = self.parse_ticker(rawTicker, market)
             tickers.append(ticker)
-        return self.filter_by_array(tickers, 'symbol', symbols)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -847,9 +847,7 @@ class ace(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'attachment')
-        trades = self.safe_value(data, 'trades')
-        if trades is None:
-            return trades
+        trades = self.safe_value(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):

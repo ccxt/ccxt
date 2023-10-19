@@ -2348,7 +2348,7 @@ export default class bybit extends Exchange {
                 tickers[symbol] = ticker;
             }
         }
-        return this.filterByArray(tickers, 'symbol', symbols);
+        return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -3535,9 +3535,16 @@ export default class bybit extends Exchange {
         let fee = undefined;
         const feeCostString = this.safeString(order, 'cumExecFee');
         if (feeCostString !== undefined) {
+            let feeCurrency = undefined;
+            if (market['spot']) {
+                feeCurrency = (side === 'buy') ? market['quote'] : market['base'];
+            }
+            else {
+                feeCurrency = market['settle'];
+            }
             fee = {
                 'cost': feeCostString,
-                'currency': market['settle'],
+                'currency': feeCurrency,
             };
         }
         let clientOrderId = this.safeString(order, 'orderLinkId');
@@ -3623,7 +3630,7 @@ export default class bybit extends Exchange {
         const result = await this.fetchOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            throw new OrderNotFound('Order ' + id + ' does not exist.');
+            throw new OrderNotFound('Order ' + id.toString() + ' does not exist.');
         }
         if (length > 1) {
             throw new InvalidOrder(this.id + ' returned more than one order');

@@ -747,6 +747,7 @@ class hitbtc(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -1023,7 +1024,7 @@ class hitbtc(Exchange, ImplicitAPI):
             symbol = market['symbol']
             entry = response[marketId]
             result[symbol] = self.parse_ticker(entry, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker, market=None):
         #

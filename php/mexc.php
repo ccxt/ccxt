@@ -1157,6 +1157,7 @@ class mexc extends Exchange {
                         'max' => $maxQuoteAmount,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -1269,6 +1270,7 @@ class mexc extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -2056,10 +2058,9 @@ class mexc extends Exchange {
         list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         if ($market['spot']) {
             return $this->create_spot_order($market, $type, $side, $amount, $price, $marginMode, $query);
-        } elseif ($market['swap']) {
+        } else {
             return $this->create_swap_order($market, $type, $side, $amount, $price, $marginMode, $query);
         }
-        return null;
     }
 
     public function create_spot_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
@@ -2076,7 +2077,7 @@ class mexc extends Exchange {
                 $amount = $quoteOrderQty;
             } elseif ($this->options['createMarketBuyOrderRequiresPrice']) {
                 if ($price === null) {
-                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
@@ -2128,12 +2129,12 @@ class mexc extends Exchange {
         //         "transactTime" => 1661992652132
         //     }
         //
-        return array_merge($this->parse_order($response, $market), array(
-            'side' => $side,
-            'type' => $type,
-            'price' => $price,
-            'amount' => $amount,
-        ));
+        $order = $this->parse_order($response, $market);
+        $order['side'] = $side;
+        $order['type'] = $type;
+        $order['price'] = $price;
+        $order['amount'] = $amount;
+        return $order;
     }
 
     public function create_swap_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
@@ -2703,7 +2704,7 @@ class mexc extends Exchange {
         }
         list($marketType) = $this->handle_market_type_and_params('fetchOrdersByState', $market, $params);
         if ($marketType === 'spot') {
-            throw new BadRequest($this->id . ' fetchOrdersByState() is not supported for ' . $marketType);
+            throw new NotSupported($this->id . ' fetchOrdersByState() is not supported for ' . $marketType);
         } else {
             $request['states'] = $state;
             return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
@@ -3987,6 +3988,7 @@ class mexc extends Exchange {
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols, 'swap', true, true);
         $response = $this->contractPublicGetDetail ($params);
         //
         //     {

@@ -115,22 +115,27 @@ class poloniexfutures(Exchange, ImplicitAPI):
                     'get': {
                         'account-overview': 1,
                         'transaction-history': 1,
+                        'maxActiveOrders': 1,
+                        'maxRiskLimit': 1,
+                        'userFeeRate': 1,
+                        'marginType/query': 1,
                         'orders': 1,
                         'stopOrders': 1,
                         'recentDoneOrders': 1,
                         'orders/{order-id}': 1,
+                        'clientOrderId/{clientOid}': 1,
                         'fills': 1,
                         'openOrderStatistics': 1,
                         'position': 1.5,
                         'positions': 1.5,
                         'funding-history': 1,
-                        'marginType/query': 1,
                     },
                     'post': {
                         'orders': 1.5,
                         'batchOrders': 1.5,
                         'position/margin/auto-deposit-status': 1.5,
                         'position/margin/deposit-margin': 1.5,
+                        'position/margin/withdraw-margin': 1.5,
                         'bullet-private': 1,
                         'marginType/change': 1,
                     },
@@ -346,6 +351,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.safe_integer(market, 'firstOpenDate'),
                 'info': market,
             })
         return result
@@ -847,7 +853,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data', {})
-        return {
+        return self.safe_order({
             'id': self.safe_string(data, 'orderId'),
             'clientOrderId': None,
             'timestamp': None,
@@ -869,7 +875,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'postOnly': None,
             'stopPrice': None,
             'info': response,
-        }
+        }, market)
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -1205,7 +1211,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             status = 'done'
         request = {}
         if not stop:
-            request['status'] = status == 'active' if 'open' else 'done'
+            request['status'] = 'active' if (status == 'open') else 'done'
         elif status != 'open':
             raise BadRequest(self.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders')
         market = None

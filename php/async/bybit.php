@@ -2365,7 +2365,7 @@ class bybit extends Exchange {
                     $tickers[$symbol] = $ticker;
                 }
             }
-            return $this->filter_by_array($tickers, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -3547,9 +3547,15 @@ class bybit extends Exchange {
         $fee = null;
         $feeCostString = $this->safe_string($order, 'cumExecFee');
         if ($feeCostString !== null) {
+            $feeCurrency = null;
+            if ($market['spot']) {
+                $feeCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
+            } else {
+                $feeCurrency = $market['settle'];
+            }
             $fee = array(
                 'cost' => $feeCostString,
-                'currency' => $market['settle'],
+                'currency' => $feeCurrency,
             );
         }
         $clientOrderId = $this->safe_string($order, 'orderLinkId');
@@ -3635,7 +3641,7 @@ class bybit extends Exchange {
             $result = Async\await($this->fetch_orders($symbol, null, null, array_merge($request, $params)));
             $length = count($result);
             if ($length === 0) {
-                throw new OrderNotFound('Order ' . $id . ' does not exist.');
+                throw new OrderNotFound('Order ' . (string) $id . ' does not exist.');
             }
             if ($length > 1) {
                 throw new InvalidOrder($this->id . ' returned more than one order');

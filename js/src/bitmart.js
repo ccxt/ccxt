@@ -754,6 +754,7 @@ export default class bitmart extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -860,6 +861,7 @@ export default class bitmart extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.safeInteger(market, 'open_timestamp'),
                 'info': market,
             });
         }
@@ -1222,7 +1224,7 @@ export default class bitmart extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -2203,12 +2205,11 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue(response, 'data', {});
         const order = this.parseOrder(data, market);
-        return this.extend(order, {
-            'type': type,
-            'side': side,
-            'amount': amount,
-            'price': price,
-        });
+        order['type'] = type;
+        order['side'] = side;
+        order['amount'] = amount;
+        order['price'] = price;
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

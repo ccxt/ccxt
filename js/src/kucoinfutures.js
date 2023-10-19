@@ -502,6 +502,7 @@ export default class kucoinfutures extends kucoin {
                         'max': this.safeNumber(market, 'quoteMaxSize'),
                     },
                 },
+                'created': this.safeInteger(market, 'firstOpenDate'),
                 'info': market,
             });
         }
@@ -1188,7 +1189,7 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue(response, 'data', {});
-        return {
+        return this.safeOrder({
             'id': this.safeString(data, 'orderId'),
             'clientOrderId': undefined,
             'timestamp': undefined,
@@ -1211,7 +1212,7 @@ export default class kucoinfutures extends kucoin {
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'info': response,
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

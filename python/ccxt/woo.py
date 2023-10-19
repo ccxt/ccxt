@@ -406,6 +406,7 @@ class woo(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.safe_timestamp(market, 'created_time'),
                 'info': market,
             })
         return result
@@ -863,10 +864,9 @@ class woo(Exchange, ImplicitAPI):
         if data is not None:
             rows = self.safe_value(data, 'rows', [])
             return self.parse_order(rows[0], market)
-        return self.extend(
-            self.parse_order(response, market),
-            {'type': type}
-        )
+        order = self.parse_order(response, market)
+        order['type'] = type
+        return order
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """

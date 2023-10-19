@@ -331,6 +331,7 @@ export default class tidex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -538,7 +539,7 @@ export default class tidex extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker(response[id], market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**

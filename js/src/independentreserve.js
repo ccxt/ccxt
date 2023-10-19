@@ -208,6 +208,7 @@ export default class independentreserve extends Exchange {
                             'max': undefined,
                         },
                     },
+                    'created': undefined,
                     'info': id,
                 });
             }

@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1063,7 +1063,7 @@ export default class exmo extends Exchange {
             const symbol = this.safeSymbol (marketId);
             result[symbol] = this.parseOrderBook (response[marketId], symbol, undefined, 'bid', 'ask');
         }
-        return result;
+        return result as Dictionary<OrderBook>;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1143,7 +1143,7 @@ export default class exmo extends Exchange {
             const ticker = this.safeValue (response, marketId);
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -1392,7 +1392,7 @@ export default class exmo extends Exchange {
             const trades = this.parseTrades (items, resultMarket, since, limit);
             result = this.arrayConcat (result, trades);
         }
-        return this.filterBySinceLimit (result, since, limit) as any;
+        return this.filterBySinceLimit (result, since, limit) as Trade[];
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
@@ -1591,9 +1591,8 @@ export default class exmo extends Exchange {
         //     }
         //
         const order = this.parseOrder (response);
-        return this.extend (order, {
-            'id': id.toString (),
-        });
+        order['id'] = id.toString ();
+        return order;
     }
 
     async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1763,7 +1762,7 @@ export default class exmo extends Exchange {
                 orders = this.arrayConcat (orders, parsedOrders);
             }
         }
-        return orders as any;
+        return orders as Order[];
     }
 
     parseStatus (status) {

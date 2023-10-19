@@ -968,7 +968,7 @@ export default class binance extends Exchange {
                         'margin/marginInterestHistory': 1,
                         'portfolio/interest-history': 50, // 50
                         'um/income': 30,
-                        'cm/income ': 30,
+                        'cm/income': 30,
                         'um/account': 5,
                         'cm/account': 5,
                         'portfolio/repay-futures-switch': 3, // Weight(IP): 30 => cost = 0.1 * 30 = 3
@@ -4872,7 +4872,7 @@ export default class binance extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
+        return this.filterBy (orders, 'status', 'closed') as Order[];
     }
 
     async fetchCanceledOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

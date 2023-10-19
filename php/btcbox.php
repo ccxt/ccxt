@@ -97,10 +97,10 @@ class btcbox extends Exchange {
                 ),
             ),
             'markets' => array(
-                'BTC/JPY' => array( 'id' => 'btc', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0005'), 'maker' => $this->parse_number('0.0005'), 'type' => 'spot', 'spot' => true ),
-                'ETH/JPY' => array( 'id' => 'eth', 'symbol' => 'ETH/JPY', 'base' => 'ETH', 'quote' => 'JPY', 'baseId' => 'eth', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0010'), 'maker' => $this->parse_number('0.0010'), 'type' => 'spot', 'spot' => true ),
-                'LTC/JPY' => array( 'id' => 'ltc', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0010'), 'maker' => $this->parse_number('0.0010'), 'type' => 'spot', 'spot' => true ),
-                'BCH/JPY' => array( 'id' => 'bch', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bch', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0010'), 'maker' => $this->parse_number('0.0010'), 'type' => 'spot', 'spot' => true ),
+                'BTC/JPY' => $this->safe_market_structure(array( 'id' => 'btc', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0005'), 'maker' => $this->parse_number('0.0005'), 'type' => 'spot', 'spot' => true )),
+                'ETH/JPY' => $this->safe_market_structure(array( 'id' => 'eth', 'symbol' => 'ETH/JPY', 'base' => 'ETH', 'quote' => 'JPY', 'baseId' => 'eth', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0010'), 'maker' => $this->parse_number('0.0010'), 'type' => 'spot', 'spot' => true )),
+                'LTC/JPY' => $this->safe_market_structure(array( 'id' => 'ltc', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0010'), 'maker' => $this->parse_number('0.0010'), 'type' => 'spot', 'spot' => true )),
+                'BCH/JPY' => $this->safe_market_structure(array( 'id' => 'bch', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bch', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0010'), 'maker' => $this->parse_number('0.0010'), 'type' => 'spot', 'spot' => true )),
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(

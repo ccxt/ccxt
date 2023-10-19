@@ -342,6 +342,7 @@ class tidex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -528,7 +529,7 @@ class tidex(Exchange, ImplicitAPI):
             market = self.safe_market(id)
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(response[id], market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol: str, params={}):
         """

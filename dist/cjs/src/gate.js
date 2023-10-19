@@ -1095,6 +1095,7 @@ class gate extends gate$1 {
                         'max': margin ? this.safeNumber(market, 'max_quote_amount') : undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1292,6 +1293,7 @@ class gate extends gate$1 {
                     'max': undefined,
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }
@@ -1412,6 +1414,7 @@ class gate extends gate$1 {
                             'max': undefined,
                         },
                     },
+                    'created': this.safeTimestamp(market, 'create_time'),
                     'info': market,
                 });
             }
@@ -2808,7 +2811,8 @@ class gate extends gate$1 {
                 result[code] = this.parseBalanceHelper(entry);
             }
         }
-        return isolated ? result : this.safeBalance(result);
+        const returnResult = isolated ? result : this.safeBalance(result);
+        return returnResult;
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
@@ -5842,7 +5846,7 @@ class gate extends gate$1 {
         //        lsr_taker: '9.3765153315902'
         //    }
         //
-        const timestamp = this.safeIntegerProduct(interest, 'time', 1000);
+        const timestamp = this.safeTimestamp(interest, 'time');
         return {
             'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': this.safeNumber(interest, 'open_interest'),

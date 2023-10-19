@@ -1,6 +1,6 @@
 import Exchange from './abstract/wavesexchange.js';
 import { Precise } from './base/Precise.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderBook, OrderSide, OrderType } from './base/types.js';
 /**
  * @class wavesexchange
  * @extends Exchange
@@ -17,7 +17,7 @@ export default class wavesexchange extends Exchange {
     }>;
     getQuotes(): Promise<any>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseOrderBookSide(bookSide: any, market?: any, limit?: Int): any[];
     checkRequiredKeys(): void;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

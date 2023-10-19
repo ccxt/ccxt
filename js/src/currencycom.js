@@ -564,6 +564,7 @@ export default class currencycom extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

@@ -309,6 +309,7 @@ export default class hollaex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'created_at')),
                 'info': market,
             });
         }
@@ -531,7 +532,7 @@ export default class hollaex extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.extend(this.parseTicker(ticker, market), params);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     parseTicker(ticker, market = undefined) {
         //

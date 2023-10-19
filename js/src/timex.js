@@ -1231,6 +1231,7 @@ export default class timex extends Exchange {
                     'max': undefined,
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }

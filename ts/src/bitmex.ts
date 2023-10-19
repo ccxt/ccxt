@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -666,6 +666,7 @@ export default class bitmex extends Exchange {
                         'max': positionIsQuote ? maxOrderQty : undefined,
                     },
                 },
+                'created': this.parse8601 (this.safeString (market, 'listing')),
                 'info': market,
             });
         }
@@ -839,7 +840,7 @@ export default class bitmex extends Exchange {
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
-        return result as any;
+        return result as OrderBook;
     }
 
     async fetchOrder (id: string, symbol: string = undefined, params = {}) {
@@ -944,7 +945,7 @@ export default class bitmex extends Exchange {
          */
         // Bitmex barfs if you set 'open': false in the filter...
         const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
+        return this.filterBy (orders, 'status', 'closed') as Order[];
     }
 
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1055,6 +1056,7 @@ export default class bitmex extends Exchange {
             'Deposit': 'transaction',
             'Transfer': 'transfer',
             'AffiliatePayout': 'referral',
+            'SpotTrade': 'trade',
         };
         return this.safeString (types, type, type);
     }
@@ -1371,7 +1373,7 @@ export default class bitmex extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1600,9 +1602,9 @@ export default class bitmex extends Exchange {
             const feeCurrencyCode = this.safeCurrencyCode (currencyId);
             const feeRateString = this.safeString (trade, 'commission');
             fee = {
-                'cost': feeCostString,
+                'cost': Precise.stringAbs (feeCostString),
                 'currency': feeCurrencyCode,
-                'rate': feeRateString,
+                'rate': Precise.stringAbs (feeRateString),
             };
         }
         // Trade or Funding
@@ -2132,7 +2134,8 @@ export default class bitmex extends Exchange {
         //         }
         //     ]
         //
-        return this.parsePositions (response, symbols);
+        const results = this.parsePositions (response, symbols);
+        return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
 
     parsePosition (position, market = undefined) {

@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances } from './base/types.js';
 
 /**
  * @class gate
@@ -1099,6 +1099,7 @@ export default class gate extends Exchange {
                         'max': margin ? this.safeNumber (market, 'max_quote_amount') : undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1297,6 +1298,7 @@ export default class gate extends Exchange {
                     'max': undefined,
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }
@@ -1418,6 +1420,7 @@ export default class gate extends Exchange {
                             'max': undefined,
                         },
                     },
+                    'created': this.safeTimestamp (market, 'create_time'),
                     'info': market,
                 });
             }
@@ -2835,7 +2838,8 @@ export default class gate extends Exchange {
                 result[code] = this.parseBalanceHelper (entry);
             }
         }
-        return isolated ? result : this.safeBalance (result);
+        const returnResult = isolated ? result : this.safeBalance (result);
+        return returnResult as Balances;
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -4388,7 +4392,7 @@ export default class gate extends Exchange {
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params) as any;
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params) as Order[];
     }
 
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -4405,7 +4409,7 @@ export default class gate extends Exchange {
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params) as any;
+        return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params) as Order[];
     }
 
     async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -5882,7 +5886,7 @@ export default class gate extends Exchange {
         //        lsr_taker: '9.3765153315902'
         //    }
         //
-        const timestamp = this.safeIntegerProduct (interest, 'time', 1000);
+        const timestamp = this.safeTimestamp (interest, 'time');
         return {
             'symbol': this.safeString (market, 'symbol'),
             'openInterestAmount': this.safeNumber (interest, 'open_interest'),

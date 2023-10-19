@@ -331,6 +331,7 @@ export default class probit extends Exchange {
                         'max': this.safeNumber(market, 'max_cost'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

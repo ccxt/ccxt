@@ -734,6 +734,7 @@ class hitbtc extends hitbtc$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1042,7 +1043,7 @@ class hitbtc extends hitbtc$1 {
             const entry = response[marketId];
             result[symbol] = this.parseTicker(entry, market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     parseTicker(ticker, market = undefined) {
         //

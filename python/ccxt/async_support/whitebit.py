@@ -395,6 +395,7 @@ class whitebit(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'maxTotal'),
                     },
                 },
+                'created': None,
                 'info': market,
             }
             result.append(entry)
@@ -807,7 +808,7 @@ class whitebit(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(response[marketId], market)
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -845,7 +846,7 @@ class whitebit(Exchange, ImplicitAPI):
         #          ]
         #      }
         #
-        timestamp = self.safe_integer_product(response, 'timestamp', 1000)
+        timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, symbol, timestamp)
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):

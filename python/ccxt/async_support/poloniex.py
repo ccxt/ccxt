@@ -562,6 +562,7 @@ class poloniex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.safe_integer(market, 'tradableStartTime'),
                 'info': market,
             })
         return result
@@ -1007,8 +1008,8 @@ class poloniex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = self.parse_trades(response, market)
-        return self.filter_by_since_limit(result, since, limit)
+        result = self.parse_trades(response, market, since, limit)
+        return result
 
     def parse_order_status(self, status):
         statuses = {
@@ -1449,9 +1450,9 @@ class poloniex(Exchange, ImplicitAPI):
         #         "updateTime": 1646196019020
         #     }
         #
-        return self.extend(self.parse_order(response), {
-            'id': id,
-        })
+        order = self.parse_order(response)
+        order['id'] = id
+        return order
 
     async def fetch_order_status(self, id: str, symbol: Optional[str] = None, params={}):
         await self.load_markets()

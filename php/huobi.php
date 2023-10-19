@@ -1690,6 +1690,13 @@ class huobi extends Exchange {
             // 7 Settlement Completed
             // 8 Delivered
             // 9 Suspending of Trade
+            $created = null;
+            $createdDate = $this->safe_string($market, 'create_date'); // $i->e 20230101
+            if ($createdDate !== null) {
+                $createdArray = $this->string_to_chars_array($createdDate);
+                $createdDate = $createdArray[0] . $createdArray[1] . $createdArray[2] . $createdArray[3] . '-' . $createdArray[4] . $createdArray[5] . '-' . $createdArray[6] . $createdArray[7] . ' 00:00:00';
+                $created = $this->parse8601($createdDate);
+            }
             $result[] = array(
                 'id' => $id,
                 'lowercaseId' => $lowercaseId,
@@ -1742,6 +1749,7 @@ class huobi extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => $created,
                 'info' => $market,
             );
         }
@@ -2071,7 +2079,7 @@ class huobi extends Exchange {
             $ticker['datetime'] = $this->iso8601($timestamp);
             $result[$symbol] = $ticker;
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
@@ -3816,13 +3824,11 @@ class huobi extends Exchange {
         if ($contract && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument for ' . $marketType . ' orders');
         }
-        $response = null;
         if ($contract) {
-            $response = $this->fetch_contract_orders($symbol, $since, $limit, $params);
+            return $this->fetch_contract_orders($symbol, $since, $limit, $params);
         } else {
-            $response = $this->fetch_spot_orders($symbol, $since, $limit, $params);
+            return $this->fetch_spot_orders($symbol, $since, $limit, $params);
         }
-        return $response;
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3854,13 +3860,11 @@ class huobi extends Exchange {
         }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
-        $response = null;
         if ($marketType === 'spot') {
-            $response = $this->fetch_closed_spot_orders($symbol, $since, $limit, $params);
+            return $this->fetch_closed_spot_orders($symbol, $since, $limit, $params);
         } else {
-            $response = $this->fetch_closed_contract_orders($symbol, $since, $limit, $params);
+            return $this->fetch_closed_contract_orders($symbol, $since, $limit, $params);
         }
-        return $response;
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -4546,13 +4550,11 @@ class huobi extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
-        $response = null;
         if ($marketType === 'spot') {
-            $response = $this->create_spot_order($symbol, $type, $side, $amount, $price, $query);
+            return $this->create_spot_order($symbol, $type, $side, $amount, $price, $query);
         } else {
-            $response = $this->create_contract_order($symbol, $type, $side, $amount, $price, $query);
+            return $this->create_contract_order($symbol, $type, $side, $amount, $price, $query);
         }
-        return $response;
     }
 
     public function create_spot_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -4660,7 +4662,7 @@ class huobi extends Exchange {
         //     array("status":"ok","data":"438398393065481")
         //
         $id = $this->safe_string($response, 'data');
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $id,
             'timestamp' => null,
@@ -4668,10 +4670,10 @@ class huobi extends Exchange {
             'lastTradeTimestamp' => null,
             'status' => null,
             'symbol' => null,
-            'type' => null,
-            'side' => null,
-            'price' => null,
-            'amount' => null,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
             'filled' => null,
             'remaining' => null,
             'cost' => null,
@@ -4679,7 +4681,7 @@ class huobi extends Exchange {
             'fee' => null,
             'clientOrderId' => null,
             'average' => null,
-        );
+        ), $market);
     }
 
     public function create_contract_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {

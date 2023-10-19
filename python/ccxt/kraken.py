@@ -174,6 +174,7 @@ class kraken(Exchange, ImplicitAPI):
                         'Depth': 1,
                         'OHLC': 1,
                         'Spread': 1,
+                        'SystemStatus': 1,
                         'Ticker': 1,
                         'Time': 1,
                         'Trades': 1,
@@ -186,6 +187,7 @@ class kraken(Exchange, ImplicitAPI):
                         'AddExport': 3,
                         'Balance': 3,
                         'CancelAll': 3,
+                        'CancelAllOrdersAfter': 3,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
                         'ClosedOrders': 6,
@@ -221,6 +223,13 @@ class kraken(Exchange, ImplicitAPI):
                         # sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
+                        # earn
+                        'Earn/Allocate': 3,
+                        'Earn/Deallocate': 3,
+                        'Earn/AllocateStatus': 3,
+                        'Earn/DeallocateStatus': 3,
+                        'Earn/Strategies': 3,
+                        'Earn/Allocations': 3,
                     },
                 },
             },
@@ -504,6 +513,7 @@ class kraken(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         result = self.append_inactive_markets(result)
@@ -796,7 +806,7 @@ class kraken(Exchange, ImplicitAPI):
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params={}):
         """
@@ -925,7 +935,7 @@ class kraken(Exchange, ImplicitAPI):
             amount = Precise.string_abs(amount)
         else:
             direction = 'in'
-        timestamp = self.safe_integer_product(item, 'time', 1000)
+        timestamp = self.safe_timestamp(item, 'time')
         return {
             'info': item,
             'id': id,
@@ -1611,7 +1621,8 @@ class kraken(Exchange, ImplicitAPI):
         if not (id in result):
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
         order = self.parse_order(self.extend({'id': id}, result[id]))
-        return self.extend({'info': response}, order)
+        order['info'] = order
+        return order
 
     def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

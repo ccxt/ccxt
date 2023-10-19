@@ -808,6 +808,7 @@ export default class deribit extends Exchange {
                             'max': undefined,
                         },
                     },
+                    'created': this.safeInteger(market, 'creation_timestamp'),
                     'info': market,
                 });
             }
@@ -1142,7 +1143,7 @@ export default class deribit extends Exchange {
             const symbol = ticker['symbol'];
             tickers[symbol] = ticker;
         }
-        return this.filterByArray(tickers, 'symbol', symbols);
+        return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**

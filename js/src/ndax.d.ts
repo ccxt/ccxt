@@ -1,5 +1,5 @@
 import Exchange from './abstract/ndax.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderBook, OrderSide, OrderType } from './base/types.js';
 /**
  * @class ndax
  * @extends Exchange
@@ -9,8 +9,8 @@ export default class ndax extends Exchange {
     signIn(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    parseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number): any;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    parseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number): OrderBook;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseOHLCV(ohlcv: any, market?: any): number[];

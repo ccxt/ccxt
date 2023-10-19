@@ -364,6 +364,7 @@ class latoken extends latoken$1 {
                             'max': this.safeNumber(market, 'maxOrderCost' + capitalizedQuote),
                         },
                     },
+                    'created': this.safeInteger(market, 'created'),
                     'info': market,
                 });
             }

@@ -768,6 +768,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -872,6 +873,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.safe_integer(market, 'open_timestamp'),
                 'info': market,
             })
         return result
@@ -1211,7 +1213,7 @@ class bitmart(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -2120,12 +2122,11 @@ class bitmart(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         order = self.parse_order(data, market)
-        return self.extend(order, {
-            'type': type,
-            'side': side,
-            'amount': amount,
-            'price': price,
-        })
+        order['type'] = type
+        order['side'] = side
+        order['amount'] = amount
+        order['price'] = price
+        return order
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """

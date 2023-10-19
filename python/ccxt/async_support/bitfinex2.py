@@ -1139,7 +1139,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             market = self.safe_market(marketId)
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol: str, params={}):
         """
