@@ -403,7 +403,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         return this.safeInteger (data, 'timestamp_miliseconds');
     }
 
@@ -441,7 +441,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         return this.parseCurrencies (data);
     }
 
@@ -533,7 +533,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const markets = [];
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
@@ -644,7 +644,7 @@ export default class kuna extends Exchange {
         //          }
         //      }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 0, 1);
     }
 
@@ -727,7 +727,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         return this.parseTickers (data, symbols, params);
     }
 
@@ -767,7 +767,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const ticker = this.safeValue (data, 0);
         return this.parseTicker (ticker, market);
     }
@@ -817,7 +817,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -923,7 +923,7 @@ export default class kuna extends Exchange {
         //        }]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         return this.parseBalance (data);
     }
 
@@ -985,7 +985,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -1011,7 +1011,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1045,7 +1045,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data);
     }
 
@@ -1190,7 +1190,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data);
     }
 
@@ -1251,7 +1251,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1318,7 +1318,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1413,7 +1413,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 
@@ -1522,7 +1522,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         return this.parseTransaction (data);
     }
 
@@ -1551,7 +1551,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         return this.parseDepositAddress (data, currency);
     }
 
@@ -1580,7 +1580,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         return this.parseDepositAddress (data, currency);
     }
 
@@ -1681,7 +1681,7 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         return this.parseTransactions (data, currency);
     }
 
@@ -1726,7 +1726,7 @@ export default class kuna extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 
