@@ -881,7 +881,7 @@ export default class Exchange {
     socksProxyAgentModuleChecked:boolean = false;
     proxyDictionaries:any = {};
 
-    async initializeProxies () {
+    async loadProxyModules () {
         // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
         if (this.httpProxyAgentModule === undefined) {
             this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
@@ -902,7 +902,7 @@ export default class Exchange {
         let proxyAgentSet = false;
         if (httpProxy) {
             if (this.httpProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' you need to initialize proxies with `.initializeProxies()` method at first to use proxies');
+                throw new NotSupported (this.id + ' you need to initialize proxies with `.loadProxyModules()` method at first to use proxies');
             }
             if (!(httpProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
@@ -911,7 +911,7 @@ export default class Exchange {
             proxyAgentSet = true;
         } else if (httpsProxy) {
             if (this.httpsProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' you need to initialize proxies with `.initializeProxies()` method at first to use proxies');
+                throw new NotSupported (this.id + ' you need to initialize proxies with `.loadProxyModules()` method at first to use proxies');
             }
             if (!(httpsProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy);
@@ -921,7 +921,7 @@ export default class Exchange {
             proxyAgentSet = true;
         } else if (socksProxy) {
             if (this.socksProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `.initializeProxies()` method');
+                throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `.loadProxyModules()` method');
             }
             if (!(socksProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[socksProxy] = new this.socksProxyAgentModule.SocksProxyAgent(socksProxy);
@@ -958,7 +958,7 @@ export default class Exchange {
             url = proxyUrl + url;
         }
         // proxy agents
-        await this.initializeProxies ();
+        await this.loadProxyModules ();
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
         const proxyAgentSet = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
         this.checkConflictingProxies (proxyAgentSet, proxyUrl);
