@@ -565,6 +565,11 @@ public partial class Exchange
         return (parsedArray.ToArray()[firstInt..secondInt]).ToList();
     }
 
+    public object stringToCharsArray(object str)
+    {
+        return str.ToString().ToCharArray();
+    }
+
     public Task sleep(object ms)
     {
         return Task.Delay(Convert.ToInt32(ms));
