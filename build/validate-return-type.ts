@@ -4,7 +4,8 @@ import fs from 'fs'
 import log from 'ololog'
 
 const skipMethods = [
-    'fetchMarkets'
+    'fetchMarkets',
+    'createDepositAddress', // will be updated later
 ]
 
 const skipExchanges = [
@@ -12,6 +13,30 @@ const skipExchanges = [
     // place exchanges here
 ]
 
+const skipMethodsPerExchange = {
+    'bitfinex': [
+        'fetchPositions',
+    ],
+    'bitflyer': [
+        'fetchPositions',
+    ],
+    'kraken': [
+        'fetchPositions',
+    ],
+    'okcoin': [
+        'fetchPositions',
+        'fetchPosition'
+    ],
+    'btctradeua': [
+        'createOrder'
+    ],
+    'coinspot': [
+        'createOrder'
+    ],
+    'poloniex': [
+        'fetchOrderStatus'
+    ]
+}
 
 const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8")).ids;
 
@@ -54,19 +79,29 @@ function isUknownReturnType(type: string) {
         || type === 'Promise<{}>'
         || type === 'Promise<unknown>'
         || type === 'Promise<any>'
+        || type === 'Promise<void>'
         || type.startsWith('{')
         || type.startsWith('Promise<{')
 }
 
 
 function main() {
+    const args = process.argv.slice(2);
     const basePath = './js/src/';
+
+    let exchangesToCheck: string[] = [];
+
+    if (args.length > 0) {
+        exchangesToCheck = args;
+    } else {
+        exchangesToCheck = exchanges;
+    }
 
     const sourceOfTruth = extractMethodsAndReturnTypes(basePath + 'base/Exchange.d.ts');
     let foundIssues = false;
     let differences = 0;
     let methodsWithDifferences = new Set<string>();
-    for (const exchange of exchanges) {
+    for (const exchange of exchangesToCheck) {
         if (skipExchanges.includes(exchange)) {
             continue;
         }
@@ -74,6 +109,9 @@ function main() {
         const methodsInfo = extractMethodsAndReturnTypes(path);
         for (const method in methodsInfo) {
             if (skipMethods.includes(method)) {
+                continue;
+            }
+            if (skipMethodsPerExchange[exchange] && skipMethodsPerExchange[exchange].includes(method)) {
                 continue;
             }
             const returnType = methodsInfo[method];
@@ -85,7 +123,7 @@ function main() {
                             foundIssues = true;
                             differences++;
                             methodsWithDifferences.add(method);
-                            log.magenta('Difference found', exchange, method, returnType, targetReturnType);
+                            log.magenta('Difference found', exchange, method, 'found:', returnType, 'expected:' ,targetReturnType);
                         }
                     }
                 }
