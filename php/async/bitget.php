@@ -2943,10 +2943,26 @@ class bitget extends Exchange {
         //         "cTime" => "1652745674488"
         //     }
         //
+        // swap, isolated and cross margin => cancelOrder
+        //
+        //     {
+        //         "orderId" => "1098749943604719616",
+        //         "clientOid" => "0ec8d262b3d2436aa651095a745b9b8d"
+        //     }
+        //
+        // spot => cancelOrder
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1697689270716,
+        //         "data" => "1098753830701928448"
+        //     }
+        //
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $id = $this->safe_string($order, 'orderId');
+        $id = $this->safe_string_2($order, 'orderId', 'data');
         $price = $this->safe_string_2($order, 'price', 'executePrice');
         $amount = $this->safe_string_2($order, 'quantity', 'size');
         $filled = $this->safe_string_2($order, 'fillQuantity', 'filledQty');
@@ -3338,48 +3354,128 @@ class bitget extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
-             * cancels an open order
-             * @see https://bitgetlimited.github.io/apidoc/en/spot/#cancel-order
-             * @see https://bitgetlimited.github.io/apidoc/en/spot/#cancel-plan-order
-             * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-order
-             * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-plan-order-tpsl
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * cancels an open $order
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#cancel-$order
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#cancel-plan-$order
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-$order
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-plan-$order-tpsl
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-cancel-$order
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-cancel-$order
+             * @param {string} $id $order $id
+             * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {string} [$params->marginMode] 'isolated' or 'cross' for spot margin trading
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
             $this->check_required_symbol('cancelOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privateSpotPostTradeCancelOrder',
-                'swap' => 'privateMixPostOrderCancelOrder',
-                'future' => 'privateMixPostOrderCancelOrder',
-            ));
+            $marketType = null;
+            $marginMode = null;
+            $response = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
+            $symbolRequest = ($marginMode !== null) ? ($market['info']['symbolName']) : ($market['id']);
             $request = array(
-                'symbol' => $market['id'],
+                'symbol' => $symbolRequest,
                 'orderId' => $id,
             );
-            $stop = $this->safe_value($query, 'stop');
-            if ($stop) {
-                if ($marketType === 'spot') {
-                    $method = 'privateSpotPostPlanCancelPlan';
-                } else {
-                    $planType = $this->safe_string($params, 'planType');
+            $stop = $this->safe_value($params, 'stop');
+            $planType = $this->safe_string($params, 'planType');
+            $params = $this->omit($params, array( 'stop', 'planType' ));
+            if (($marketType === 'swap') || ($marketType === 'future')) {
+                $request['marginCoin'] = $market['settleId'];
+                if ($stop) {
                     if ($planType === null) {
                         throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $planType parameter for $stop orders, either normal_plan, profit_plan or loss_plan');
                     }
                     $request['planType'] = $planType;
-                    $method = 'privateMixPostPlanCancelPlan';
+                    $response = Async\await($this->privateMixPostPlanCancelPlan (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->privateMixPostOrderCancelOrder (array_merge($request, $params)));
                 }
+            } elseif ($marketType === 'spot') {
+                if ($marginMode !== null) {
+                    if ($marginMode === 'isolated') {
+                        $response = Async\await($this->privateMarginPostIsolatedOrderCancelOrder (array_merge($request, $params)));
+                    } elseif ($marginMode === 'cross') {
+                        $response = Async\await($this->privateMarginPostCrossOrderCancelOrder (array_merge($request, $params)));
+                    }
+                } else {
+                    if ($stop) {
+                        $response = Async\await($this->privateSpotPostPlanCancelPlan (array_merge($request, $params)));
+                    } else {
+                        $response = Async\await($this->privateSpotPostTradeCancelOrder (array_merge($request, $params)));
+                    }
+                }
+            } else {
+                throw new NotSupported($this->id . ' cancelOrder() does not support ' . $marketType . ' orders');
             }
-            if ($marketType === 'swap') {
-                $request['marginCoin'] = $market['settleId'];
+            //
+            // spot
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1697689270716,
+            //         "data" => "1098753830701928448"
+            //     }
+            //
+            // isolated margin
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1697688367859,
+            //         "data" => {
+            //             "resultList" => array(
+            //                 {
+            //                     "orderId" => "1098749943604719616",
+            //                     "clientOid" => "0ec8d262b3d2436aa651095a745b9b8d"
+            //                 }
+            //             ),
+            //             "failure" => array()
+            //         }
+            //     }
+            //
+            // cross margin
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => :1697689028972,
+            //         "data" => {
+            //             "resultList" => array(
+            //                 {
+            //                     "orderId" => "1098751730051067906",
+            //                     "clientOid" => "ecb50ca373374c5bb814bc724e36b0eb"
+            //                 }
+            //             ),
+            //             "failure" => array()
+            //         }
+            //     }
+            //
+            // swap
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1697690413177,
+            //         "data" => {
+            //             "orderId" => "1098758604547850241",
+            //             "clientOid" => "1098758604585598977"
+            //         }
+            //     }
+            //
+            $order = $response;
+            if (($marketType === 'swap') || ($marketType === 'future')) {
+                $order = $this->safe_value($response, 'data', array());
+            } elseif ($marginMode !== null) {
+                $data = $this->safe_value($response, 'data', array());
+                $resultList = $this->safe_value($data, 'resultList', array());
+                $order = $resultList[0];
             }
-            $ommitted = $this->omit($query, array( 'stop', 'planType' ));
-            $response = Async\await($this->$method (array_merge($request, $ommitted)));
-            return $this->parse_order($response, $market);
+            return $this->parse_order($order, $market);
         }) ();
     }
 
@@ -3389,29 +3485,41 @@ class bitget extends Exchange {
              * cancel multiple orders
              * @see https://bitgetlimited.github.io/apidoc/en/spot/#cancel-order-in-batch-v2-single-instruments
              * @see https://bitgetlimited.github.io/apidoc/en/mix/#batch-cancel-order
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
              * @param {string[]} $ids order $ids
              * @param {string} $symbol unified $market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @param {string} [$params->marginMode] 'isolated' or 'cross' for spot margin trading
              * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $this->check_required_symbol('cancelOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $type = null;
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrders', $params);
             list($type, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
             $request = array();
-            $method = null;
+            $response = null;
             if ($type === 'spot') {
-                $method = 'privateSpotPostTradeCancelBatchOrdersV2';
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $market['info']['symbolName']; // regular id like LTCUSDT_SPBL does not work here
                 $request['orderIds'] = $ids;
+                if ($marginMode !== null) {
+                    if ($marginMode === 'cross') {
+                        $response = Async\await($this->privateMarginPostCrossOrderBatchCancelOrder (array_merge($request, $params)));
+                    } else {
+                        $response = Async\await($this->privateMarginPostIsolatedOrderBatchCancelOrder (array_merge($request, $params)));
+                    }
+                } else {
+                    $response = Async\await($this->privateSpotPostTradeCancelBatchOrdersV2 (array_merge($request, $params)));
+                }
             } else {
-                $method = 'privateMixPostOrderCancelBatchOrders';
                 $request['symbol'] = $market['id'];
                 $request['marginCoin'] = $market['quote'];
                 $request['orderIds'] = $ids;
+                $response = Async\await($this->privateMixPostOrderCancelBatchOrders (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     spot
             //
@@ -3458,8 +3566,11 @@ class bitget extends Exchange {
              * cancel all open orders
              * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
              * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @param {string} [$params->marginMode] 'isolated' or 'cross' for spot margin trading
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
@@ -3476,8 +3587,21 @@ class bitget extends Exchange {
             }
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
             if ($marketType === 'spot') {
-                throw new NotSupported($this->id . ' cancelAllOrders () does not support spot markets');
+                if ($marginMode === null) {
+                    throw new NotSupported($this->id . ' cancelAllOrders () does not support spot markets, only spot-margin');
+                }
+                $this->check_required_symbol('cancelAllOrders', $symbol);
+                $spotMarginRequest = array(
+                    'symbol' => $market['info']['symbolName'], // regular id like LTCUSDT_SPBL does not work here
+                );
+                if ($marginMode === 'cross') {
+                    return Async\await($this->privateMarginPostCrossOrderBatchCancelOrder (array_merge($spotMarginRequest, $params)));
+                } else {
+                    return Async\await($this->privateMarginPostIsolatedOrderBatchCancelOrder (array_merge($spotMarginRequest, $params)));
+                }
             }
             $request = array(
                 'productType' => $productType,
