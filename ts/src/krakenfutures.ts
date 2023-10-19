@@ -1530,11 +1530,10 @@ export default class krakenfutures extends Exchange {
             throw new BadRequest (this.id + ' fetchBalance has no account for ' + type);
         }
         const balance = this.parseBalance (account);
-        return this.extend ({
-            'info': response,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
-        }, balance);
+        balance['info'] = response;
+        balance['timestamp'] = this.parse8601 (datetime);
+        balance['datetime'] = datetime;
+        return balance;
     }
 
     parseBalance (response) {

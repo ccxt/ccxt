@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3300,7 +3300,7 @@ export default class huobi extends Exchange {
             }
             result = this.safeBalance (result);
         }
-        return result;
+        return result as Balances;
     }
 
     async fetchOrder (id: string, symbol: string = undefined, params = {}) {

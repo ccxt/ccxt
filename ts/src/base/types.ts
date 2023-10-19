@@ -168,6 +168,8 @@ export interface PartialBalances extends Dictionary<number> {
 
 export interface Balances extends Dictionary<Balance> {
     info: any;
+    timestamp?: any; // we need to fix this later
+    datetime?: any;
 }
 
 export interface DepositAddress {
