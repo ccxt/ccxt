@@ -3501,7 +3501,7 @@ export default class bitget extends Exchange {
         const request = {};
         let response = undefined;
         if (type === 'spot') {
-            request['symbol'] = market['id'];
+            request['symbol'] = market['info']['symbolName']; // regular id like LTCUSDT_SPBL does not work here
             request['orderIds'] = ids;
             if (marginMode !== undefined) {
                 if (marginMode === 'cross') {
@@ -3593,7 +3593,7 @@ export default class bitget extends Exchange {
             }
             this.checkRequiredSymbol ('cancelAllOrders', symbol);
             const spotMarginRequest = {
-                'symbol': market['id'],
+                'symbol': market['info']['symbolName'], // regular id like LTCUSDT_SPBL does not work here
             };
             if (marginMode === 'cross') {
                 return await this.privateMarginPostCrossOrderBatchCancelOrder (this.extend (spotMarginRequest, params));
