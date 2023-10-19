@@ -3370,10 +3370,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
-        const marketId = market['id'];
-        const parts = marketId.split ('_');
-        const marginMarketId = this.safeStringUpper (parts, 0);
-        const symbolRequest = (marginMode !== undefined) ? marginMarketId : marketId;
+        const symbolRequest = (marginMode !== undefined) ? (market['info']['symbolName']) : (market['id']);
         const request = {
             'symbol': symbolRequest,
             'orderId': id,
