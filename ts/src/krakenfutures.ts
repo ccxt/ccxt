@@ -941,7 +941,8 @@ export default class krakenfutures extends Exchange {
         const status = this.safeString (response['editStatus'], 'status');
         this.verifyOrderActionSuccess (status, 'editOrder', [ 'filled' ]);
         const order = this.parseOrder (response['editStatus']);
-        return this.extend ({ 'info': response }, order);
+        order['info'] = response;
+        return order;
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
