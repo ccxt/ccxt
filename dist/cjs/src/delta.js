@@ -819,6 +819,7 @@ class delta extends delta$1 {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'launch_time')),
                 'info': market,
             });
         }
@@ -1261,7 +1262,7 @@ class delta extends delta$1 {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -1672,7 +1673,7 @@ class delta extends delta$1 {
                 side = 'sell';
             }
         }
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -1698,7 +1699,7 @@ class delta extends delta$1 {
             'marginRatio': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
-        };
+        });
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -2789,7 +2790,7 @@ class delta extends delta$1 {
         //
         const timestamp = this.safeIntegerProduct(interest, 'timestamp', 0.001);
         const marketId = this.safeString(interest, 'symbol');
-        return {
+        return this.safeOpenInterest({
             'symbol': this.safeSymbol(marketId, market),
             'baseVolume': this.safeNumber(interest, 'oi_value'),
             'quoteVolume': this.safeNumber(interest, 'oi_value_usd'),
@@ -2798,7 +2799,7 @@ class delta extends delta$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
     async fetchLeverage(symbol, params = {}) {
         /**

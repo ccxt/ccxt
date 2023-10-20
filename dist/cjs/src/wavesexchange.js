@@ -578,6 +578,7 @@ class wavesexchange extends wavesexchange$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }

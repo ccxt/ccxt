@@ -989,6 +989,7 @@ export default class kucoin extends Exchange {
                         'max': this.safeNumber(market, 'quoteMaxSize'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1200,6 +1201,7 @@ export default class kucoin extends Exchange {
                 'id': accountId,
                 'type': type,
                 'currency': code,
+                'code': code,
                 'info': account,
             });
         }
@@ -1486,7 +1488,7 @@ export default class kucoin extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -3368,7 +3370,8 @@ export default class kucoin extends Exchange {
                 }
             }
         }
-        return isolated ? result : this.safeBalance(result);
+        const returnType = isolated ? result : this.safeBalance(result);
+        return returnType;
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         /**

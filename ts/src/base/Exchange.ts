@@ -148,8 +148,8 @@ import { CountedOrderBook, IndexedOrderBook, OrderBook as WsOrderBook } from './
 //
 
 // import types
-import { Balance, Balances, Currency, DepositAddressResponse, Dictionary, Fee, FundingRateHistory, IndexType, Int, Market, MinMax, OHLCV, OHLCVC, Order, OrderBook, OrderSide, OrderType, Position, Ticker, Trade, Transaction } from './types.js';
-export { Fee, Market, Position, Ticker, Trade } from './types.js'
+import { Balance, Balances, Currency, DepositAddressResponse, Dictionary, Fee, FundingRateHistory, IndexType, Int, Liquidation, Market, MinMax, OHLCV, OHLCVC, Order, OrderBook, OrderSide, OpenInterest, OrderType, Position, Ticker, Trade, Transaction } from './types.js';
+export {Balance, Balances, Currency, DepositAddressResponse, Dictionary, Fee, FundingRateHistory, IndexType, Int, Liquidation, Market, MinMax, OHLCV, OHLCVC, Order, OrderBook, OrderSide, OrderType, Position, Ticker, Trade, Transaction} from './types.js'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
@@ -168,25 +168,25 @@ export default class Exchange {
     api = undefined
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
-    proxy: any; // maintained for backwards compatibility, no-one should use it from now on
-    proxyUrl: string;
-    proxy_url: string;
-    proxyUrlCallback: any;
-    proxy_url_callback: any;
-    httpProxy: string;
     http_proxy: string;
-    httpProxyCallback: any;
     http_proxy_callback: any;
-    httpsProxy: string;
+    httpProxy: string;
+    httpProxyCallback: any;
     https_proxy: string;
-    httpsProxyCallback: any;
     https_proxy_callback: any;
-    socksProxy: string;
+    httpsProxy: string;
+    httpsProxyCallback: any;
+    proxy: any; // maintained for backwards compatibility, no-one should use it from now on
+    proxy_url: string;
+    proxy_url_callback: any;
+    proxyUrl: string;
+    proxyUrlCallback: any;
     socks_proxy: string;
-    socksProxyCallback: any;
     socks_proxy_callback: any;
-    userAgent: { 'User-Agent': string } | false = undefined;
+    socksProxy: string;
+    socksProxyCallback: any;
     user_agent: { 'User-Agent': string } | false = undefined;
+    userAgent: { 'User-Agent': string } | false = undefined;
     //
     userAgents: any = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -198,35 +198,35 @@ export default class Exchange {
     //
     agent = undefined; // maintained for backwards compatibility
 
-    minFundingAddressLength = 1 // used in checkAddress
-    substituteCommonCurrencyCodes = true  // reserved
-    quoteJsonNumbers = true // treat numbers in json as quoted precise strings
-    number = Number // or String (a pointer to a function)
     handleContentTypeApplicationZip = false
+    minFundingAddressLength = 1 // used in checkAddress
+    number = Number // or String (a pointer to a function)
+    quoteJsonNumbers = true // treat numbers in json as quoted precise strings
+    substituteCommonCurrencyCodes = true  // reserved
 
     // whether fees should be summed by currency code
     reduceFees = true
 
     // do not delete this line, it is needed for users to be able to define their own fetchImplementation
-    fetchImplementation: any
     AbortError: any
     FetchError: any
+    fetchImplementation: any
 
-    validateServerSsl = true
     validateClientSsl = false
+    validateServerSsl = true
 
     timeout       = 10000 // milliseconds
     twofa         = undefined // two-factor authentication (2FA)
     verbose       = false
 
     apiKey: string;
-    secret: string;
-    uid: string;
     login: string;
     password: string;
     privateKey: string;// a "0x"-prefixed hexstring private key for a wallet
-    walletAddress: string; // a wallet address "0x"-prefixed hexstring
+    secret: string;
     token: string; // reserved for HTTP auth in some cases
+    uid: string;
+    walletAddress: string; // a wallet address "0x"-prefixed hexstring
 
     balance = {}
     myTrades: any
@@ -237,6 +237,7 @@ export default class Exchange {
     tickers = {}
     trades: any
     transactions = {}
+    triggerOrders = undefined
     urls: {
         api?: string | Dictionary<string>;
         api_management?: string;
@@ -463,14 +464,14 @@ export default class Exchange {
                 },
             },
             'has': {
-                'CORS': undefined,
                 'addMargin': undefined,
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
                 'cancelOrder': true,
-                'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
                 'cancelOrdersWs': undefined,
+                'cancelOrderWs': undefined,
+                'CORS': undefined,
                 'createDepositAddress': undefined,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
@@ -512,9 +513,9 @@ export default class Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': undefined,
-                'fetchMarkOHLCV': undefined,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': undefined,
                 'fetchOpenInterest': undefined,
@@ -525,9 +526,9 @@ export default class Exchange {
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
+                'fetchOrders': undefined,
                 'fetchOrderTrades': undefined,
                 'fetchOrderWs': undefined,
-                'fetchOrders': undefined,
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
@@ -1241,10 +1242,16 @@ export default class Exchange {
                             //               V
                             client.throttle (cost).then (() => {
                                 client.send (message);
-                            }).catch ((e) => { throw e });
+                            }).catch ((e) => {
+                                delete client.subscriptions[subscribeHash];
+                                future.reject (e);
+                            });
                         } else {
                             client.send (message)
-                            .catch ((e) => { throw e });
+                            .catch ((e) => {
+                                delete client.subscriptions[subscribeHash];
+                                future.reject (e);
+                            });
                         }
                     }
                 }).catch ((e)=> {
@@ -1320,6 +1327,10 @@ export default class Exchange {
 
     convertToBigInt(value: string) {
         return BigInt(value); // used on XT
+    }
+
+    stringToCharsArray (value) {
+        return value.split ('');
     }
 
     valueIsDefined (value) {
@@ -1837,6 +1848,88 @@ export default class Exchange {
             'type': undefined,
             'withdraw': undefined,
         }, currency);
+    }
+
+    safeMarketStructure (market: object = undefined) {
+        const cleanStructure = {
+            'active': undefined,
+            'base': undefined,
+            'baseId': undefined,
+            'contract': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'future': undefined,
+            'id': undefined,
+            'index': undefined,
+            'inverse': undefined,
+            'limits': {
+                'leverage': {
+                    'max': undefined,
+                    'min': undefined,
+                },
+                'amount': {
+                    'max': undefined,
+                    'min': undefined,
+                },
+                'price': {
+                    'max': undefined,
+                    'min': undefined,
+                },
+                'cost': {
+                    'max': undefined,
+                    'min': undefined,
+                },
+            },
+            'linear': undefined,
+            'lowercaseId': undefined,
+            'maker': undefined,
+            'margin': undefined,
+            'option': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'base': undefined,
+                'cost': undefined,
+                'price': undefined,
+                'quote': undefined,
+            },
+            'quote': undefined,
+            'quoteId': undefined,
+            'settle': undefined,
+            'settleId': undefined,
+            'spot': undefined,
+            'strike': undefined,
+            'swap': undefined,
+            'symbol': undefined,
+            'taker': undefined,
+            'type': undefined,
+            'created': undefined,
+            'info': undefined,
+        };
+        if (market !== undefined) {
+            const result = this.extend (cleanStructure, market);
+            // set undefined swap/future/etc
+            if (result['spot']) {
+                if (result['contract'] === undefined) {
+                    result['contract'] = false;
+                }
+                if (result['swap'] === undefined) {
+                    result['swap'] = false;
+                }
+                if (result['future'] === undefined) {
+                    result['future'] = false;
+                }
+                if (result['option'] === undefined) {
+                    result['option'] = false;
+                }
+                if (result['index'] === undefined) {
+                    result['index'] = false;
+                }
+            }
+            return result;
+        }
+        return cleanStructure;
     }
 
     setMarkets (markets, currencies = undefined) {
@@ -2411,7 +2504,7 @@ export default class Exchange {
         //     string = true
         //
         //     [
-        //         { 'currency': 'BTC', 'cost': '0.3'  },
+        //         { 'currency': 'BTC', 'cost': '0.4'  },
         //         { 'currency': 'BTC', 'cost': '0.6', 'rate': '0.00123' },
         //         { 'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456' },
         //         { 'currency': 'USDT', 'cost': '12.3456' },
@@ -2636,7 +2729,7 @@ export default class Exchange {
         return result;
     }
 
-    marketSymbols (symbols, type: string = undefined, allowEmpty = true) {
+    marketSymbols (symbols, type: string = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
         if (symbols === undefined) {
             if (!allowEmpty) {
                 throw new ArgumentsRequired (this.id + ' empty list of symbols is not supported');
@@ -2651,10 +2744,26 @@ export default class Exchange {
             return symbols;
         }
         const result = [];
+        let marketType = undefined;
+        let isLinearSubType = undefined;
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
+            if (sameTypeOnly && (marketType !== undefined)) {
+                if (market['type'] !== marketType) {
+                    throw new BadRequest (this.id + ' symbols must be of the same type, either ' + marketType + ' or ' + market['type'] + '.');
+                }
+            }
+            if (sameSubTypeOnly && (isLinearSubType !== undefined)) {
+                if (market['linear'] !== isLinearSubType) {
+                    throw new BadRequest (this.id + ' symbols must be of the same subType, either linear or inverse.');
+                }
+            }
             if (type !== undefined && market['type'] !== type) {
-                throw new BadRequest (this.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+                throw new BadRequest (this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+            }
+            marketType = market['type'];
+            if (!market['spot']) {
+                isLinearSubType = market['linear'];
             }
             const symbol = this.safeString (market, 'symbol', symbols[i]);
             result.push (symbol);
@@ -2852,7 +2961,7 @@ export default class Exchange {
         return this.parseNumber (value, d);
     }
 
-    parseOrderBook (orderbook: object, symbol: string, timestamp: number = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1): OrderBook {
+    parseOrderBook (orderbook: object, symbol: string, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1): OrderBook {
         const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey);
         const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey);
         return {
@@ -3568,6 +3677,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
     }
 
+    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<OrderBook>> {
+        throw new NotSupported (this.id + ' fetchOrderBooks() is not supported yet');
+    }
+
     async watchTickers (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
         throw new NotSupported (this.id + ' watchTickers() is not supported yet');
     }
@@ -3651,6 +3764,14 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
     }
 
+    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        throw new NotSupported (this.id + ' fetchMyLiquidations() is not supported yet');
+    }
+
+    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        throw new NotSupported (this.id + ' fetchLiquidations() is not supported yet');
+    }
+
     async fetchMyTradesWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' fetchMyTradesWs() is not supported yet');
     }
@@ -3685,7 +3806,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
-    async fetchOpenInterest (symbol: string, params = {}): Promise<any> {
+    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
         throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
     }
 
@@ -4189,11 +4310,11 @@ export default class Exchange {
         return await this.fetchTradingFees (params);
     }
 
-    parseOpenInterest (interest, market = undefined): any {
+    parseOpenInterest (interest, market = undefined): OpenInterest {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
 
-    parseOpenInterests (response, market = undefined, since: Int = undefined, limit: Int = undefined) {
+    parseOpenInterests (response, market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -4520,6 +4641,15 @@ export default class Exchange {
         return this.filterByArray (objects, key, values, indexed) as Position[];
     }
 
+    filterByArrayTickers (objects, key: IndexType, values = undefined, indexed = true): Dictionary<Ticker> {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a dictionary of tickers
+         */
+        return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
+    }
+
     resolvePromiseIfMessagehashMatches (client, prefix: string, symbol: string, data) {
         const messageHashes = this.findMessageHashes (client, prefix);
         for (let i = 0; i < messageHashes.length; i++) {
@@ -4823,6 +4953,45 @@ export default class Exchange {
             params = this.omit (params, [ 'until', 'till' ]);
         }
         return [ request, params ];
+    }
+
+    safeOpenInterest (interest, market = undefined): OpenInterest {
+        return this.extend (interest, {
+            'baseVolume': this.safeNumber (interest, 'baseVolume'), // deprecated
+            'datetime': this.safeString (interest, 'datetime'),
+            'info': this.safeValue (interest, 'info'),
+            'openInterestAmount': this.safeNumber (interest, 'openInterestAmount'),
+            'openInterestValue': this.safeNumber (interest, 'openInterestValue'),
+            'quoteVolume': this.safeNumber (interest, 'quoteVolume'), // deprecated
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': this.safeInteger (interest, 'timestamp'),
+        });
+    }
+
+    parseLiquidation (liquidation, market = undefined): Liquidation {
+        throw new NotSupported (this.id + ' parseLiquidation () is not supported yet');
+    }
+
+    parseLiquidations (liquidations, market = undefined, since: Int = undefined, limit: Int = undefined): Liquidation[] {
+        /**
+         * @ignore
+         * @method
+         * @description parses liquidation info from the exchange response
+         * @param {object[]} liquidations each item describes an instance of a liquidation event
+         * @param {object} market ccxt market
+         * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
+         * @param {int} [limit] limits the number of items in the response
+         * @returns {object[]} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        const result = [];
+        for (let i = 0; i < liquidations.length; i++) {
+            const entry = liquidations[i];
+            const parsed = this.parseLiquidation (entry, market);
+            result.push (parsed);
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 }
 

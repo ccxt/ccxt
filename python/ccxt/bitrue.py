@@ -707,6 +707,7 @@ class bitrue(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             }
             result.append(entry)

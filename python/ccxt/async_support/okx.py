@@ -275,6 +275,7 @@ class okx(Exchange, ImplicitAPI):
                         'trade/orders-history-archive': 1,
                         'trade/fills': 1 / 3,
                         'trade/fills-history': 2.2,
+                        'trade/fills-archive': 2,
                         'trade/order-algo': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
@@ -341,6 +342,12 @@ class okx(Exchange, ImplicitAPI):
                         'tradingBot/grid/orders-algo-details': 1,
                         'tradingBot/grid/sub-orders': 1,
                         'tradingBot/grid/positions': 1,
+                        'tradingBot/grid/ai-param': 1,
+                        'tradingBot/public/rsi-back-testing': 1,
+                        'tradingBot/signal/orders-algo-details': 1,
+                        'tradingBot/signal/positions': 1,
+                        'tradingBot/signal/sub-orders': 1,
+                        'tradingBot/signal/event-history': 1,
                         'tradingBot/recurring/orders-algo-pending': 1,
                         'tradingBot/recurring/orders-algo-history': 1,
                         'tradingBot/recurring/orders-algo-details': 1,
@@ -397,6 +404,7 @@ class okx(Exchange, ImplicitAPI):
                         'trade/amend-order': 1 / 3,
                         'trade/amend-batch-orders': 1 / 150,
                         'trade/close-position': 1,
+                        'trade/fills-archive': 172800,  # 5 req per day = 5/24/60/60 => 10/5*24*60*60=172800
                         'trade/order-algo': 1,
                         'trade/cancel-algos': 1,
                         'trade/amend-algos': 1,
@@ -471,6 +479,7 @@ class okx(Exchange, ImplicitAPI):
                         'broker/nd/rebate-per-orders': 36000,
                         'finance/sfp/dcd/quote': 10,
                         'finance/sfp/dcd/order': 10,
+                        'broker/nd/report-subaccount-ip': 0.25,
                         'broker/fd/rebate-per-orders': 36000,
                     },
                 },
@@ -1246,6 +1255,7 @@ class okx(Exchange, ImplicitAPI):
                 'type': type,
                 'currency': None,
                 'info': account,
+                'code': None,
             })
         return result
 
@@ -1261,7 +1271,6 @@ class okx(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(types)):
             promises.append(self.fetch_markets_by_type(types[i], params))
-        # why not both ¯\_(ツ)_/¯
         promises = await asyncio.gather(*promises)
         for i in range(0, len(promises)):
             result = self.array_concat(result, promises[i])
@@ -1388,6 +1397,7 @@ class okx(Exchange, ImplicitAPI):
             'expiryDatetime': self.iso8601(expiry),
             'strike': strikePrice,
             'optionType': optionType,
+            'created': self.safe_integer(market, 'listTime'),
             'precision': {
                 'amount': self.safe_number(market, 'lotSz'),
                 'price': self.parse_number(tickSize),
@@ -2065,6 +2075,7 @@ class okx(Exchange, ImplicitAPI):
             else:
                 response = await self.publicGetMarketMarkPriceCandles(self.extend(request, params))
         elif price == 'index':
+            request['instId'] = market['info']['instFamily']  # okx index candles require instFamily instead of instId
             if isHistoryCandles:
                 response = await self.publicGetMarketHistoryIndexCandles(self.extend(request, params))
             else:
@@ -2621,10 +2632,9 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0)
         order = self.parse_order(first, market)
-        return self.extend(order, {
-            'type': type,
-            'side': side,
-        })
+        order['type'] = type
+        order['side'] = side
+        return order
 
     def edit_order_request(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         market = self.market(symbol)
@@ -2725,10 +2735,9 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0)
         order = self.parse_order(first, market)
-        return self.extend(order, {
-            'type': type,
-            'side': side,
-        })
+        order['type'] = type
+        order['side'] = side
+        return order
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -3703,7 +3712,7 @@ class okx(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
-        request, params = self.handle_until_option('end', params, request)
+        request, params = self.handle_until_option('end', request, params)
         type, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request['instType'] = self.convert_to_instrument_type(type)
         if limit is not None:
@@ -3810,7 +3819,7 @@ class okx(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['ccy'] = currency['id']
-        request, params = self.handle_until_option('end', params, request)
+        request, params = self.handle_until_option('end', request, params)
         response = await getattr(self, method)(self.extend(request, query))
         #
         # privateGetAccountBills, privateGetAccountBillsArchive
@@ -4223,7 +4232,7 @@ class okx(Exchange, ImplicitAPI):
             request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
-        request, params = self.handle_until_option('after', params, request)
+        request, params = self.handle_until_option('after', request, params)
         response = await self.privateGetAssetDepositHistory(self.extend(request, params))
         #
         #     {
@@ -5443,6 +5452,7 @@ class okx(Exchange, ImplicitAPI):
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the okx api endpoint
+        :param int [params.leverage]: leverage
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -5454,10 +5464,10 @@ class okx(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' setMarginMode() marginMode must be either cross or isolated')
         await self.load_markets()
         market = self.market(symbol)
-        lever = self.safe_integer(params, 'lever')
+        lever = self.safe_integer_2(params, 'lever', 'leverage')
         if (lever is None) or (lever < 1) or (lever > 125):
             raise BadRequest(self.id + ' setMarginMode() params["lever"] should be between 1 and 125')
-        params = self.omit(params, ['lever'])
+        params = self.omit(params, ['leverage'])
         request = {
             'lever': lever,
             'mgnMode': marginMode,
@@ -6163,7 +6173,7 @@ class okx(Exchange, ImplicitAPI):
             baseVolume = self.safe_number(interest, 'oiCcy')
             openInterestAmount = self.safe_number(interest, 'oi')
             openInterestValue = self.safe_number(interest, 'oiCcy')
-        return {
+        return self.safe_open_interest({
             'symbol': self.safe_symbol(id),
             'baseVolume': baseVolume,  # deprecated
             'quoteVolume': quoteVolume,  # deprecated
@@ -6172,7 +6182,7 @@ class okx(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     def set_sandbox_mode(self, enable):
         super(okx, self).set_sandbox_mode(enable)

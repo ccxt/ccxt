@@ -1053,6 +1053,7 @@ class coinbase(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'quote_max_size'),
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -1187,7 +1188,7 @@ class coinbase(Exchange, ImplicitAPI):
             market = self.safe_market(marketId, None, delimiter)
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(rates[baseId], market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_tickers_v3(self, symbols: Optional[List[str]] = None, params={}):
         await self.load_markets()
@@ -1238,7 +1239,7 @@ class coinbase(Exchange, ImplicitAPI):
             market = self.safe_market(marketId, None, '-')
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(entry, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol: str, params={}):
         """
@@ -1308,10 +1309,9 @@ class coinbase(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'trades', [])
         ticker = self.parse_ticker(data[0], market)
-        return self.extend(ticker, {
-            'bid': self.safe_number(response, 'best_bid'),
-            'ask': self.safe_number(response, 'best_ask'),
-        })
+        ticker['bid'] = self.safe_number(response, 'best_bid')
+        ticker['ask'] = self.safe_number(response, 'best_ask')
+        return ticker
 
     def parse_ticker(self, ticker, market=None):
         #

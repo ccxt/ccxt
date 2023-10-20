@@ -388,6 +388,7 @@ export default class krakenfutures extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'openingDate')),
                 'info': market,
             });
         }
@@ -944,7 +945,8 @@ export default class krakenfutures extends Exchange {
         const status = this.safeString(response['editStatus'], 'status');
         this.verifyOrderActionSuccess(status, 'editOrder', ['filled']);
         const order = this.parseOrder(response['editStatus']);
-        return this.extend({ 'info': response }, order);
+        order['info'] = response;
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1362,6 +1364,7 @@ export default class krakenfutures extends Exchange {
             'type': this.parseOrderType(type),
             'timeInForce': timeInForce,
             'postOnly': type === 'post',
+            'reduceOnly': this.safeValue(details, 'reduceOnly'),
             'side': this.safeString(details, 'side'),
             'price': price,
             'stopPrice': this.safeString(details, 'triggerPrice'),
@@ -1527,11 +1530,10 @@ export default class krakenfutures extends Exchange {
             throw new BadRequest(this.id + ' fetchBalance has no account for ' + type);
         }
         const balance = this.parseBalance(account);
-        return this.extend({
-            'info': response,
-            'timestamp': this.parse8601(datetime),
-            'datetime': datetime,
-        }, balance);
+        balance['info'] = response;
+        balance['timestamp'] = this.parse8601(datetime);
+        balance['datetime'] = datetime;
+        return balance;
     }
     parseBalance(response) {
         //

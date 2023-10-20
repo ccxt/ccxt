@@ -97,9 +97,9 @@ export default class okx extends Exchange {
     }>;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): any;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<any>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseIds(ids: any): any;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<Order[]>;
@@ -399,27 +399,9 @@ export default class okx extends Exchange {
         datetime: any;
         info: any;
     };
-    fetchOpenInterest(symbol: string, params?: {}): Promise<{
-        symbol: any;
-        baseVolume: any;
-        quoteVolume: any;
-        openInterestAmount: any;
-        openInterestValue: any;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
-    fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseOpenInterest(interest: any, market?: any): {
-        symbol: any;
-        baseVolume: any;
-        quoteVolume: any;
-        openInterestAmount: any;
-        openInterestValue: any;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    };
+    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
+    fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OpenInterest[]>;
+    parseOpenInterest(interest: any, market?: any): import("./base/types.js").OpenInterest;
     setSandboxMode(enable: any): void;
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};

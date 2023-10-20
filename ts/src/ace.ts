@@ -246,6 +246,7 @@ export default class ace extends Exchange {
                     'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
                 },
                 'active': undefined,
+                'created': undefined,
                 'info': market,
             });
         }
@@ -343,7 +344,7 @@ export default class ace extends Exchange {
             const ticker = this.parseTicker (rawTicker, market);
             tickers.push (ticker);
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -894,10 +895,7 @@ export default class ace extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'attachment');
-        const trades = this.safeValue (data, 'trades');
-        if (trades === undefined) {
-            return trades;
-        }
+        const trades = this.safeValue (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 

@@ -993,6 +993,7 @@ class kucoin extends Exchange {
                             'max' => $this->safe_number($market, 'quoteMaxSize'),
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -1204,6 +1205,7 @@ class kucoin extends Exchange {
                     'id' => $accountId,
                     'type' => $type,
                     'currency' => $code,
+                    'code' => $code,
                     'info' => $account,
                 );
             }
@@ -1496,7 +1498,7 @@ class kucoin extends Exchange {
                     $result[$symbol] = $ticker;
                 }
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -3371,7 +3373,8 @@ class kucoin extends Exchange {
                     }
                 }
             }
-            return $isolated ? $result : $this->safe_balance($result);
+            $returnType = $isolated ? $result : $this->safe_balance($result);
+            return $returnType;
         }) ();
     }
 

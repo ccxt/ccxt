@@ -40,7 +40,7 @@ Welcome to the ccxt wiki!
     - [Price Tickers](https://github.com/ccxt/ccxt/wiki/Manual#price-tickers)
     - [OHLCV Candlestick Charts](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts)
     - [Public Trades](https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions)
-  - [Trading](https://github.com/ccxt/ccxt/wiki/Manual#trading)
+  - [Private API](https://github.com/ccxt/ccxt/wiki/Manual#private-api)
     - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
     - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
     - [Querying Account Balance](https://github.com/ccxt/ccxt/wiki/Manual#account-balance)

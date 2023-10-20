@@ -1762,6 +1762,7 @@ class bybit extends Exchange {
                             'max' => $this->safe_number($lotSizeFilter, 'maxOrderAmt'),
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -1937,6 +1938,7 @@ class bybit extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->safe_integer($market, 'launchTime'),
                     'info' => $market,
                 );
             }
@@ -2072,6 +2074,7 @@ class bybit extends Exchange {
                                 'max' => null,
                             ),
                         ),
+                        'created' => $this->safe_integer($market, 'launchTime'),
                         'info' => $market,
                     );
                 }
@@ -2362,7 +2365,7 @@ class bybit extends Exchange {
                     $tickers[$symbol] = $ticker;
                 }
             }
-            return $this->filter_by_array($tickers, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -2783,7 +2786,7 @@ class bybit extends Exchange {
             $feeToken = $this->safe_string($trade, 'feeTokenId');
             $feeCurrency = $this->safe_currency_code($feeToken);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => Precise::string_abs($feeCost),
                 'currency' => $feeCurrency,
             );
         }
@@ -2947,7 +2950,7 @@ class bybit extends Exchange {
                 $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['settle'];
             }
             $fee = array(
-                'cost' => $feeCostString,
+                'cost' => Precise::string_abs($feeCostString),
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -3520,9 +3523,12 @@ class bybit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $marketType = 'contract';
+        $isContract = (is_array($order) && array_key_exists('tpslMode', $order));
+        $marketType = null;
         if ($market !== null) {
             $marketType = $market['type'];
+        } else {
+            $marketType = $isContract ? 'contract' : 'spot';
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
@@ -3541,9 +3547,15 @@ class bybit extends Exchange {
         $fee = null;
         $feeCostString = $this->safe_string($order, 'cumExecFee');
         if ($feeCostString !== null) {
+            $feeCurrency = null;
+            if ($market['spot']) {
+                $feeCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
+            } else {
+                $feeCurrency = $market['settle'];
+            }
             $fee = array(
                 'cost' => $feeCostString,
-                'currency' => $market['settle'],
+                'currency' => $feeCurrency,
             );
         }
         $clientOrderId = $this->safe_string($order, 'orderLinkId');
@@ -3629,7 +3641,7 @@ class bybit extends Exchange {
             $result = Async\await($this->fetch_orders($symbol, null, null, array_merge($request, $params)));
             $length = count($result);
             if ($length === 0) {
-                throw new OrderNotFound('Order ' . $id . ' does not exist.');
+                throw new OrderNotFound('Order ' . (string) $id . ' does not exist.');
             }
             if ($length > 1) {
                 throw new InvalidOrder($this->id . ' returned more than one order');
@@ -5545,7 +5557,7 @@ class bybit extends Exchange {
             'referenceAccount' => null,
             'referenceId' => $referenceId,
             'status' => null,
-            'amount' => $this->parse_number($amount),
+            'amount' => $this->parse_number(Precise::string_abs($amount)),
             'before' => $this->parse_number($before),
             'after' => $this->parse_number($after),
             'fee' => $this->parse_number($this->safe_string($item, 'fee')),
@@ -5703,10 +5715,9 @@ class bybit extends Exchange {
             $timestamp = $this->safe_integer($response, 'time');
             $first = $this->safe_value($positions, 0, array());
             $position = $this->parse_position($first, $market);
-            return array_merge($position, array(
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-            ));
+            $position['timestamp'] = $timestamp;
+            $position['datetime'] = $this->iso8601($timestamp);
+            return $position;
         }) ();
     }
 
@@ -5783,7 +5794,7 @@ class bybit extends Exchange {
                 }
                 $results[] = $this->parse_position($rawPosition, $market);
             }
-            return $this->filter_by_array($results, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
         }) ();
     }
 
@@ -6456,14 +6467,14 @@ class bybit extends Exchange {
         //
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $value = $this->safe_number_2($interest, 'open_interest', 'openInterest');
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $market['symbol'],
             'openInterestAmount' => null,
             'openInterestValue' => $value,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function fetch_borrow_rate(string $code, $params = array ()) {

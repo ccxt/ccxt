@@ -796,6 +796,7 @@ class exmo(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'max_amount'),
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -1065,7 +1066,7 @@ class exmo(Exchange, ImplicitAPI):
             symbol = market['symbol']
             ticker = self.safe_value(response, marketId)
             result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params={}):
         """
@@ -1469,9 +1470,8 @@ class exmo(Exchange, ImplicitAPI):
         #     }
         #
         order = self.parse_order(response)
-        return self.extend(order, {
-            'id': str(id),
-        })
+        order['id'] = str(id)
+        return order
 
     def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

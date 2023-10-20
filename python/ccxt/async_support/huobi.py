@@ -93,9 +93,11 @@ class huobi(Exchange, ImplicitAPI):
                 'fetchLedgerEntry': None,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
+                'fetchLiquidations': True,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMyLiquidations': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
@@ -1673,6 +1675,12 @@ class huobi(Exchange, ImplicitAPI):
             # 7 Settlement Completed
             # 8 Delivered
             # 9 Suspending of Trade
+            created = None
+            createdDate = self.safe_string(market, 'create_date')  # i.e 20230101
+            if createdDate is not None:
+                createdArray = self.string_to_chars_array(createdDate)
+                createdDate = createdArray[0] + createdArray[1] + createdArray[2] + createdArray[3] + '-' + createdArray[4] + createdArray[5] + '-' + createdArray[6] + createdArray[7] + ' 00:00:00'
+                created = self.parse8601(createdDate)
             result.append({
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1725,6 +1733,7 @@ class huobi(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': created,
                 'info': market,
             })
         return result
@@ -2035,7 +2044,7 @@ class huobi(Exchange, ImplicitAPI):
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -3653,12 +3662,10 @@ class huobi(Exchange, ImplicitAPI):
         contract = (marketType == 'swap') or (marketType == 'future')
         if contract and (symbol is None):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument for ' + marketType + ' orders')
-        response = None
         if contract:
-            response = await self.fetch_contract_orders(symbol, since, limit, params)
+            return await self.fetch_contract_orders(symbol, since, limit, params)
         else:
-            response = await self.fetch_spot_orders(symbol, since, limit, params)
-        return response
+            return await self.fetch_spot_orders(symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -3687,12 +3694,10 @@ class huobi(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
-        response = None
         if marketType == 'spot':
-            response = await self.fetch_closed_spot_orders(symbol, since, limit, params)
+            return await self.fetch_closed_spot_orders(symbol, since, limit, params)
         else:
-            response = await self.fetch_closed_contract_orders(symbol, since, limit, params)
-        return response
+            return await self.fetch_closed_contract_orders(symbol, since, limit, params)
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -4352,12 +4357,10 @@ class huobi(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
-        response = None
         if marketType == 'spot':
-            response = await self.create_spot_order(symbol, type, side, amount, price, query)
+            return await self.create_spot_order(symbol, type, side, amount, price, query)
         else:
-            response = await self.create_contract_order(symbol, type, side, amount, price, query)
-        return response
+            return await self.create_contract_order(symbol, type, side, amount, price, query)
 
     async def create_spot_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
@@ -4454,7 +4457,7 @@ class huobi(Exchange, ImplicitAPI):
         #     {"status":"ok","data":"438398393065481"}
         #
         id = self.safe_string(response, 'data')
-        return {
+        return self.safe_order({
             'info': response,
             'id': id,
             'timestamp': None,
@@ -4462,10 +4465,10 @@ class huobi(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'status': None,
             'symbol': None,
-            'type': None,
-            'side': None,
-            'price': None,
-            'amount': None,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
             'filled': None,
             'remaining': None,
             'cost': None,
@@ -4473,7 +4476,7 @@ class huobi(Exchange, ImplicitAPI):
             'fee': None,
             'clientOrderId': None,
             'average': None,
-        }
+        }, market)
 
     async def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
@@ -6635,10 +6638,9 @@ class huobi(Exchange, ImplicitAPI):
             position = self.safe_value(positions, 0)
         timestamp = self.safe_integer(response, 'ts')
         parsed = self.parse_position(self.extend(position, omitted))
-        return self.extend(parsed, {
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        })
+        parsed['timestamp'] = timestamp
+        parsed['datetime'] = self.iso8601(timestamp)
+        return parsed
 
     def parse_ledger_entry_type(self, type):
         types = {
@@ -7096,10 +7098,9 @@ class huobi(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         openInterest = self.parse_open_interest(data[0], market)
         timestamp = self.safe_integer(response, 'ts')
-        return self.extend(openInterest, {
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        })
+        openInterest['timestamp'] = timestamp
+        openInterest['datetime'] = self.iso8601(timestamp)
+        return openInterest
 
     def parse_open_interest(self, interest, market=None):
         #
@@ -7157,7 +7158,7 @@ class huobi(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(interest, 'ts')
         amount = self.safe_number(interest, 'volume')
         value = self.safe_number(interest, 'value')
-        return {
+        return self.safe_open_interest({
             'symbol': self.safe_string(market, 'symbol'),
             'baseVolume': amount,  # deprecated
             'quoteVolume': value,  # deprecated
@@ -7166,7 +7167,7 @@ class huobi(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
@@ -7587,6 +7588,98 @@ class huobi(Exchange, ImplicitAPI):
             'info': settlement,
             'symbol': self.safe_symbol(marketId, market),
             'price': self.safe_number(settlement, 'settlement_price'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
+    async def fetch_liquidations(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        retrieves the public liquidations of a trading pair
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
+        see https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the huobi api endpoint
+        :param int [params.until]: timestamp in ms of the latest liquidation
+        :param int [params.tradeType]: default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        tradeType = self.safe_integer(params, 'trade_type', 0)
+        request = {
+            'trade_type': tradeType,
+        }
+        if since is not None:
+            request['start_time'] = since
+        request, params = self.handle_until_option('end_time', request, params)
+        response = None
+        if market['swap']:
+            request['contract'] = market['id']
+            if market['linear']:
+                response = await self.contractPublicGetLinearSwapApiV3SwapLiquidationOrders(self.extend(request, params))
+            else:
+                response = await self.contractPublicGetSwapApiV3SwapLiquidationOrders(self.extend(request, params))
+        elif market['future']:
+            request['symbol'] = market['id']
+            response = await self.contractPublicGetApiV3ContractLiquidationOrders(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchLiquidations() does not support ' + market['type'] + ' orders')
+        #
+        #     {
+        #         "code": 200,
+        #         "msg": "",
+        #         "data": [
+        #             {
+        #                 "query_id": 452057,
+        #                 "contract_code": "BTC-USDT-211210",
+        #                 "symbol": "USDT",
+        #                 "direction": "sell",
+        #                 "offset": "close",
+        #                 "volume": 479.000000000000000000,
+        #                 "price": 51441.700000000000000000,
+        #                 "created_at": 1638593647864,
+        #                 "amount": 0.479000000000000000,
+        #                 "trade_turnover": 24640.574300000000000000,
+        #                 "business_type": "futures",
+        #                 "pair": "BTC-USDT"
+        #             }
+        #         ],
+        #         "ts": 1604312615051
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_liquidations(data, market, since, limit)
+
+    def parse_liquidation(self, liquidation, market=None):
+        #
+        #     {
+        #         "query_id": 452057,
+        #         "contract_code": "BTC-USDT-211210",
+        #         "symbol": "USDT",
+        #         "direction": "sell",
+        #         "offset": "close",
+        #         "volume": 479.000000000000000000,
+        #         "price": 51441.700000000000000000,
+        #         "created_at": 1638593647864,
+        #         "amount": 0.479000000000000000,
+        #         "trade_turnover": 24640.574300000000000000,
+        #         "business_type": "futures",
+        #         "pair": "BTC-USDT"
+        #     }
+        #
+        marketId = self.safe_string(liquidation, 'contract_code')
+        timestamp = self.safe_integer(liquidation, 'created_at')
+        return {
+            'info': liquidation,
+            'symbol': self.safe_symbol(marketId, market),
+            'contracts': self.safe_number(liquidation, 'volume'),
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'price': self.safe_number(liquidation, 'price'),
+            'baseValue': self.safe_number(liquidation, 'amount'),
+            'quoteValue': self.safe_number(liquidation, 'trade_turnover'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }

@@ -55,9 +55,11 @@ class bitmex extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => true,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMyLiquidations' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -655,6 +657,7 @@ class bitmex extends Exchange {
                         'max' => $positionIsQuote ? $maxOrderQty : null,
                     ),
                 ),
+                'created' => $this->parse8601($this->safe_string($market, 'listing')),
                 'info' => $market,
             );
         }
@@ -1030,6 +1033,7 @@ class bitmex extends Exchange {
             'Deposit' => 'transaction',
             'Transfer' => 'transfer',
             'AffiliatePayout' => 'referral',
+            'SpotTrade' => 'trade',
         );
         return $this->safe_string($types, $type, $type);
     }
@@ -1338,7 +1342,7 @@ class bitmex extends Exchange {
                 $result[$symbol] = $ticker;
             }
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -1565,9 +1569,9 @@ class bitmex extends Exchange {
             $feeCurrencyCode = $this->safe_currency_code($currencyId);
             $feeRateString = $this->safe_string($trade, 'commission');
             $fee = array(
-                'cost' => $feeCostString,
+                'cost' => Precise::string_abs($feeCostString),
                 'currency' => $feeCurrencyCode,
-                'rate' => $feeRateString,
+                'rate' => Precise::string_abs($feeRateString),
             );
         }
         // Trade or Funding
@@ -2085,7 +2089,8 @@ class bitmex extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_positions($response, $symbols);
+        $results = $this->parse_positions($response, $symbols);
+        return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
     public function parse_position($position, $market = null) {
@@ -2621,6 +2626,74 @@ class bitmex extends Exchange {
             }
         }
         return $cost;
+    }
+
+    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * retrieves the public liquidations of a trading pair
+         * @see https://www.bitmex.com/api/explorer/#!/Liquidation/Liquidation_get
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch liquidations for
+         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+         * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest liquidation
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+         */
+        $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLiquidations', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchLiquidations', $symbol, $since, $limit, $params);
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $response = $this->publicGetLiquidation (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "orderID" => "string",
+        //             "symbol" => "string",
+        //             "side" => "string",
+        //             "price" => 0,
+        //             "leavesQty" => 0
+        //         }
+        //     )
+        //
+        return $this->parse_liquidations($response, $market, $since, $limit);
+    }
+
+    public function parse_liquidation($liquidation, $market = null) {
+        //
+        //     {
+        //         "orderID" => "string",
+        //         "symbol" => "string",
+        //         "side" => "string",
+        //         "price" => 0,
+        //         "leavesQty" => 0
+        //     }
+        //
+        $marketId = $this->safe_string($liquidation, 'symbol');
+        return array(
+            'info' => $liquidation,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'contracts' => null,
+            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'price' => $this->safe_number($liquidation, 'price'),
+            'baseValue' => null,
+            'quoteValue' => null,
+            'timestamp' => null,
+            'datetime' => null,
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

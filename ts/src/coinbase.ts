@@ -1089,6 +1089,7 @@ export default class coinbase extends Exchange {
                         'max': this.safeNumber (market, 'quote_max_size'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1236,7 +1237,7 @@ export default class coinbase extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (rates[baseId], market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTickersV3 (symbols: string[] = undefined, params = {}) {
@@ -1289,7 +1290,7 @@ export default class coinbase extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (entry, market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -1365,10 +1366,9 @@ export default class coinbase extends Exchange {
         //
         const data = this.safeValue (response, 'trades', []);
         const ticker = this.parseTicker (data[0], market);
-        return this.extend (ticker, {
-            'bid': this.safeNumber (response, 'best_bid'),
-            'ask': this.safeNumber (response, 'best_ask'),
-        });
+        ticker['bid'] = this.safeNumber (response, 'best_bid');
+        ticker['ask'] = this.safeNumber (response, 'best_ask');
+        return ticker;
     }
 
     parseTicker (ticker, market = undefined) {

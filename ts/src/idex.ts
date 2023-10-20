@@ -9,7 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -313,6 +313,7 @@ export default class idex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }
@@ -706,7 +707,7 @@ export default class idex extends Exchange {
             'nonce': nonce,
             'bids': this.parseSide (response, 'bids'),
             'asks': this.parseSide (response, 'asks'),
-        } as any;
+        } as OrderBook;
     }
 
     parseSide (book, side) {
@@ -912,7 +913,7 @@ export default class idex extends Exchange {
         const request = {
             'orderId': id,
         };
-        return await this.fetchOrdersHelper (symbol, undefined, undefined, this.extend (request, params));
+        return await this.fetchOrdersHelper (symbol, undefined, undefined, this.extend (request, params)) as Order;
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -929,7 +930,7 @@ export default class idex extends Exchange {
         const request = {
             'closed': false,
         };
-        return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
+        return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params)) as Order[];
     }
 
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -946,7 +947,7 @@ export default class idex extends Exchange {
         const request = {
             'closed': true,
         };
-        return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params));
+        return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params)) as Order[];
     }
 
     async fetchOrdersHelper (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

@@ -61,6 +61,7 @@ interface Exchange {
     swapV2PrivateDeleteTradeOrder (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateDeleteTradeBatchOrders (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateDeleteTradeAllOpenOrders (params?: {}): Promise<implicitReturnType>;
+    swapV3PublicGetQuoteKlines (params?: {}): Promise<implicitReturnType>;
     contractV1PrivateGetAllPosition (params?: {}): Promise<implicitReturnType>;
     contractV1PrivateGetAllOrders (params?: {}): Promise<implicitReturnType>;
     contractV1PrivateGetBalance (params?: {}): Promise<implicitReturnType>;
@@ -84,6 +85,7 @@ interface Exchange {
     subAccountV1PrivatePostUpdateStatus (params?: {}): Promise<implicitReturnType>;
     accountV1PrivateGetUid (params?: {}): Promise<implicitReturnType>;
     accountV1PrivatePostInnerTransferAuthorizeSubAccount (params?: {}): Promise<implicitReturnType>;
+    userAuthPrivatePostUserDataStream (params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivateGetSwapTraceCurrentTrack (params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSwapTraceCloseTrackOrder (params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSwapTraceSetTPSL (params?: {}): Promise<implicitReturnType>;

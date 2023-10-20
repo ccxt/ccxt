@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1753,6 +1753,7 @@ export default class bybit extends Exchange {
                         'max': this.safeNumber (lotSizeFilter, 'maxOrderAmt'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1926,6 +1927,7 @@ export default class bybit extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.safeInteger (market, 'launchTime'),
                 'info': market,
             });
         }
@@ -2059,6 +2061,7 @@ export default class bybit extends Exchange {
                             'max': undefined,
                         },
                     },
+                    'created': this.safeInteger (market, 'launchTime'),
                     'info': market,
                 });
             }
@@ -2349,7 +2352,7 @@ export default class bybit extends Exchange {
                 tickers[symbol] = ticker;
             }
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -3506,9 +3509,12 @@ export default class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        let marketType = 'contract';
+        const isContract = ('tpslMode' in order);
+        let marketType = undefined;
         if (market !== undefined) {
             marketType = market['type'];
+        } else {
+            marketType = isContract ? 'contract' : 'spot';
         }
         market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = market['symbol'];
@@ -3527,9 +3533,15 @@ export default class bybit extends Exchange {
         let fee = undefined;
         const feeCostString = this.safeString (order, 'cumExecFee');
         if (feeCostString !== undefined) {
+            let feeCurrency = undefined;
+            if (market['spot']) {
+                feeCurrency = (side === 'buy') ? market['quote'] : market['base'];
+            } else {
+                feeCurrency = market['settle'];
+            }
             fee = {
                 'cost': feeCostString,
-                'currency': market['settle'],
+                'currency': feeCurrency,
             };
         }
         let clientOrderId = this.safeString (order, 'orderLinkId');
@@ -3616,12 +3628,12 @@ export default class bybit extends Exchange {
         const result = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
         const length = result.length;
         if (length === 0) {
-            throw new OrderNotFound ('Order ' + id + ' does not exist.');
+            throw new OrderNotFound ('Order ' + id.toString () + ' does not exist.');
         }
         if (length > 1) {
             throw new InvalidOrder (this.id + ' returned more than one order');
         }
-        return this.safeValue (result, 0);
+        return this.safeValue (result, 0) as Order;
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
@@ -5517,7 +5529,7 @@ export default class bybit extends Exchange {
             'referenceAccount': undefined,
             'referenceId': referenceId,
             'status': undefined,
-            'amount': this.parseNumber (amount),
+            'amount': this.parseNumber (Precise.stringAbs (amount)),
             'before': this.parseNumber (before),
             'after': this.parseNumber (after),
             'fee': this.parseNumber (this.safeString (item, 'fee')),
@@ -5676,10 +5688,9 @@ export default class bybit extends Exchange {
         const timestamp = this.safeInteger (response, 'time');
         const first = this.safeValue (positions, 0, {});
         const position = this.parsePosition (first, market);
-        return this.extend (position, {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        });
+        position['timestamp'] = timestamp;
+        position['datetime'] = this.iso8601 (timestamp);
+        return position;
     }
 
     async fetchUsdcPositions (symbols: string[] = undefined, params = {}) {
@@ -5754,7 +5765,7 @@ export default class bybit extends Exchange {
             }
             results.push (this.parsePosition (rawPosition, market));
         }
-        return this.filterByArray (results, 'symbol', symbols, false);
+        return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
 
     async fetchPositions (symbols: string[] = undefined, params = {}) {
@@ -6400,7 +6411,7 @@ export default class bybit extends Exchange {
         const paginate = this.safeValue (params, 'paginate');
         if (paginate) {
             params = this.omit (params, 'paginate');
-            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500);
+            return await this.fetchPaginatedCallDeterministic ('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500) as OpenInterest[];
         }
         const market = this.market (symbol);
         if (market['spot'] || market['option']) {
@@ -6424,14 +6435,14 @@ export default class bybit extends Exchange {
         //
         const timestamp = this.safeInteger (interest, 'timestamp');
         const value = this.safeNumber2 (interest, 'open_interest', 'openInterest');
-        return {
+        return this.safeOpenInterest ({
             'symbol': market['symbol'],
             'openInterestAmount': undefined,
             'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        };
+        }, market);
     }
 
     async fetchBorrowRate (code: string, params = {}) {

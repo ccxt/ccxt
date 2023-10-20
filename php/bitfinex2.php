@@ -573,6 +573,7 @@ class bitfinex2 extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null, // todo => the api needs revision for extra $params & endpoints for possibility of returning a timestamp for this
                 'info' => $market,
             );
         }
@@ -1154,7 +1155,7 @@ class bitfinex2 extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker(string $symbol, $params = array ()) {

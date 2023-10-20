@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -992,6 +992,7 @@ export default class kucoin extends Exchange {
                         'max': this.safeNumber (market, 'quoteMaxSize'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1203,6 +1204,7 @@ export default class kucoin extends Exchange {
                 'id': accountId,
                 'type': type,
                 'currency': code,
+                'code': code,
                 'info': account,
             });
         }
@@ -1495,7 +1497,7 @@ export default class kucoin extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -3370,7 +3372,8 @@ export default class kucoin extends Exchange {
                 }
             }
         }
-        return isolated ? result : this.safeBalance (result);
+        const returnType = isolated ? result : this.safeBalance (result);
+        return returnType as Balances;
     }
 
     async transfer (code: string, amount, fromAccount, toAccount, params = {}) {

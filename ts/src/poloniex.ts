@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, R
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -106,39 +106,51 @@ export default class poloniex extends Exchange {
                         'markets/{symbol}': 1,
                         'currencies': 20,
                         'currencies/{currency}': 20,
+                        'v2/currencies': 20,
+                        'v2/currencies/{currency}': 20,
                         'timestamp': 1,
                         'markets/price': 1,
                         'markets/{symbol}/price': 1,
+                        'markets/markPrice': 1,
+                        'markets/{symbol}/markPrice': 1,
+                        'markets/{symbol}/markPriceComponents': 1,
                         'markets/{symbol}/orderBook': 1,
                         'markets/{symbol}/candles': 1,
                         'markets/{symbol}/trades': 20,
                         'markets/ticker24h': 20,
                         'markets/{symbol}/ticker24h': 20,
+                        'markets/collateralInfo': 1,
+                        'markets/{currency}/collateralInfo': 1,
+                        'markets/borrowRatesInfo': 1,
                     },
                 },
                 'private': {
                     'get': {
                         'accounts': 4,
-                        'accounts/activity': 4,
                         'accounts/balances': 4,
                         'accounts/{id}/balances': 4,
+                        'accounts/activity': 20,
                         'accounts/transfer': 20,
                         'accounts/transfer/{id}': 4,
+                        'feeinfo': 20,
+                        'accounts/interest/history': 1,
                         'subaccounts': 4,
                         'subaccounts/balances': 20,
                         'subaccounts/{id}/balances': 4,
                         'subaccounts/transfer': 20,
                         'subaccounts/transfer/{id}': 4,
-                        'feeinfo': 20,
                         'wallets/addresses': 20,
-                        'wallets/activity': 20,
                         'wallets/addresses/{currency}': 20,
+                        'wallets/activity': 20,
+                        'margin/accountMargin': 4,
+                        'margin/borrowStatus': 4,
+                        'margin/maxSize': 4,
                         'orders': 20,
                         'orders/{id}': 4,
-                        'orders/history': 20,
                         'orders/killSwitchStatus': 4,
                         'smartorders': 20,
                         'smartorders/{id}': 4,
+                        'orders/history': 20,
                         'smartorders/history': 20,
                         'trades': 20,
                         'orders/{id}/trades': 4,
@@ -148,9 +160,10 @@ export default class poloniex extends Exchange {
                         'subaccounts/transfer': 20,
                         'wallets/address': 20,
                         'wallets/withdraw': 20,
+                        'v2/wallets/withdraw': 20,
                         'orders': 4,
-                        'orders/killSwitch': 4,
                         'orders/batch': 20,
+                        'orders/killSwitch': 4,
                         'smartorders': 4,
                     },
                     'delete': {
@@ -162,8 +175,8 @@ export default class poloniex extends Exchange {
                         'smartorders': 20,
                     },
                     'put': {
-                        'orders/{id}': 4,
-                        'smartorders/{id}': 4,
+                        'orders/{id}': 20,
+                        'smartorders/{id}': 20,
                     },
                 },
             },
@@ -290,6 +303,7 @@ export default class poloniex extends Exchange {
                     '21352': BadSymbol, // Trading for this currency is frozen
                     '21353': PermissionDenied, // Trading for US customers is not supported
                     '21354': PermissionDenied, // Account needs to be verified via email before trading is enabled. Contact support
+                    '21359': OrderNotFound, // { "code" : 21359, "message" : "Order was already canceled or filled." }
                     '21360': InvalidOrder, // { "code" : 21360, "message" : "Order size exceeds the limit.Please enter a smaller amount and try again." }
                     '24106': BadRequest, // Invalid market depth
                     '24201': ExchangeNotAvailable, // Service busy. Try again later
@@ -545,6 +559,7 @@ export default class poloniex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.safeInteger (market, 'tradableStartTime'),
                 'info': market,
             });
         }
@@ -1021,8 +1036,8 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        const result = this.parseTrades (response, market);
-        return this.filterBySinceLimit (result, since, limit) as any;
+        const result = this.parseTrades (response, market, since, limit);
+        return result;
     }
 
     parseOrderStatus (status) {
@@ -1505,9 +1520,9 @@ export default class poloniex extends Exchange {
         //         "updateTime": 1646196019020
         //     }
         //
-        return this.extend (this.parseOrder (response), {
-            'id': id,
-        });
+        const order = this.parseOrder (response);
+        order['id'] = id;
+        return order;
     }
 
     async fetchOrderStatus (id: string, symbol: string = undefined, params = {}) {
@@ -1703,7 +1718,7 @@ export default class poloniex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        } as any;
+        } as OrderBook;
     }
 
     async createDepositAddress (code: string, params = {}) {

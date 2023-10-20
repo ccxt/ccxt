@@ -238,6 +238,7 @@ class mercado extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $coin,
                 );
             }

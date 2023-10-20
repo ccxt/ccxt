@@ -58,6 +58,7 @@ export default class bitget extends Exchange {
                 max: any;
             };
         };
+        created: any;
         info: any;
     };
     fetchMarketsByType(type: any, params?: {}): Promise<any[]>;
@@ -154,7 +155,7 @@ export default class bitget extends Exchange {
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchCanceledAndClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -247,14 +248,7 @@ export default class bitget extends Exchange {
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
     setPositionMode(hedged: any, symbol?: string, params?: {}): Promise<any>;
-    fetchOpenInterest(symbol: string, params?: {}): Promise<{
-        symbol: any;
-        openInterestAmount: number;
-        openInterestValue: any;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
@@ -292,12 +286,32 @@ export default class bitget extends Exchange {
     };
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseTransferStatus(status: any): string;
-    parseOpenInterest(interest: any, market?: any): {
+    parseOpenInterest(interest: any, market?: any): import("./base/types.js").OpenInterest;
+    borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<{
+        id: string;
+        currency: any;
+        amount: number;
         symbol: any;
-        openInterestAmount: number;
-        openInterestValue: any;
-        timestamp: number;
-        datetime: string;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    }>;
+    repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<{
+        id: string;
+        currency: any;
+        amount: number;
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    }>;
+    parseMarginLoan(info: any, currency?: any): {
+        id: string;
+        currency: any;
+        amount: number;
+        symbol: any;
+        timestamp: any;
+        datetime: any;
         info: any;
     };
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;

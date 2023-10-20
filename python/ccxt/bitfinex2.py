@@ -585,6 +585,7 @@ class bitfinex2(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,  # todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for self
                 'info': market,
             })
         return result
@@ -1138,7 +1139,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             market = self.safe_market(marketId)
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params={}):
         """

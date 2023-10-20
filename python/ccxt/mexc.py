@@ -1158,6 +1158,7 @@ class mexc(Exchange, ImplicitAPI):
                         'max': maxQuoteAmount,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -1268,6 +1269,7 @@ class mexc(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -2001,9 +2003,8 @@ class mexc(Exchange, ImplicitAPI):
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if market['spot']:
             return self.create_spot_order(market, type, side, amount, price, marginMode, query)
-        elif market['swap']:
+        else:
             return self.create_swap_order(market, type, side, amount, price, marginMode, query)
-        return None
 
     def create_spot_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
         symbol = market['symbol']
@@ -2063,12 +2064,12 @@ class mexc(Exchange, ImplicitAPI):
         #         "transactTime": 1661992652132
         #     }
         #
-        return self.extend(self.parse_order(response, market), {
-            'side': side,
-            'type': type,
-            'price': price,
-            'amount': amount,
-        })
+        order = self.parse_order(response, market)
+        order['side'] = side
+        order['type'] = type
+        order['price'] = price
+        order['amount'] = amount
+        return order
 
     def create_swap_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
         self.load_markets()
@@ -2595,7 +2596,7 @@ class mexc(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         marketType = self.handle_market_type_and_params('fetchOrdersByState', market, params)
         if marketType == 'spot':
-            raise BadRequest(self.id + ' fetchOrdersByState() is not supported for ' + marketType)
+            raise NotSupported(self.id + ' fetchOrdersByState() is not supported for ' + marketType)
         else:
             request['states'] = state
             return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -3808,6 +3809,7 @@ class mexc(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `leverage tiers structures <https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure>`, indexed by market symbols
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols, 'swap', True, True)
         response = self.contractPublicGetDetail(params)
         #
         #     {

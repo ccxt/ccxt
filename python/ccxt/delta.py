@@ -802,6 +802,7 @@ class delta(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.parse8601(self.safe_string(market, 'launch_time')),
                 'info': market,
             })
         return result
@@ -1238,7 +1239,7 @@ class delta(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -1622,7 +1623,7 @@ class delta(Exchange, ImplicitAPI):
                 side = 'buy'
             elif Precise.string_lt(sizeString, '0'):
                 side = 'sell'
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -1648,7 +1649,7 @@ class delta(Exchange, ImplicitAPI):
             'marginRatio': None,
             'stopLossPrice': None,
             'takeProfitPrice': None,
-        }
+        })
 
     def parse_order_status(self, status):
         statuses = {
@@ -2690,7 +2691,7 @@ class delta(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer_product(interest, 'timestamp', 0.001)
         marketId = self.safe_string(interest, 'symbol')
-        return {
+        return self.safe_open_interest({
             'symbol': self.safe_symbol(marketId, market),
             'baseVolume': self.safe_number(interest, 'oi_value'),
             'quoteVolume': self.safe_number(interest, 'oi_value_usd'),
@@ -2699,7 +2700,7 @@ class delta(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     def fetch_leverage(self, symbol: str, params={}):
         """

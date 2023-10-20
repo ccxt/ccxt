@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -74,9 +74,11 @@ export default class huobi extends Exchange {
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
+                'fetchLiquidations': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -1699,6 +1701,13 @@ export default class huobi extends Exchange {
             // 7 Settlement Completed
             // 8 Delivered
             // 9 Suspending of Trade
+            let created = undefined;
+            let createdDate = this.safeString (market, 'create_date'); // i.e 20230101
+            if (createdDate !== undefined) {
+                const createdArray = this.stringToCharsArray (createdDate);
+                createdDate = createdArray[0] + createdArray[1] + createdArray[2] + createdArray[3] + '-' + createdArray[4] + createdArray[5] + '-' + createdArray[6] + createdArray[7] + ' 00:00:00';
+                created = this.parse8601 (createdDate);
+            }
             result.push ({
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1751,6 +1760,7 @@ export default class huobi extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': created,
                 'info': market,
             });
         }
@@ -2084,7 +2094,7 @@ export default class huobi extends Exchange {
             ticker['datetime'] = this.iso8601 (timestamp);
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -2590,7 +2600,7 @@ export default class huobi extends Exchange {
             }
         }
         result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as any;
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -3290,7 +3300,7 @@ export default class huobi extends Exchange {
             }
             result = this.safeBalance (result);
         }
-        return result;
+        return result as Balances;
     }
 
     async fetchOrder (id: string, symbol: string = undefined, params = {}) {
@@ -3849,13 +3859,11 @@ export default class huobi extends Exchange {
         if (contract && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument for ' + marketType + ' orders');
         }
-        let response = undefined;
         if (contract) {
-            response = await this.fetchContractOrders (symbol, since, limit, params);
+            return await this.fetchContractOrders (symbol, since, limit, params);
         } else {
-            response = await this.fetchSpotOrders (symbol, since, limit, params);
+            return await this.fetchSpotOrders (symbol, since, limit, params);
         }
-        return response;
     }
 
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3889,13 +3897,11 @@ export default class huobi extends Exchange {
         }
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
-        let response = undefined;
         if (marketType === 'spot') {
-            response = await this.fetchClosedSpotOrders (symbol, since, limit, params);
+            return await this.fetchClosedSpotOrders (symbol, since, limit, params);
         } else {
-            response = await this.fetchClosedContractOrders (symbol, since, limit, params);
+            return await this.fetchClosedContractOrders (symbol, since, limit, params);
         }
-        return response;
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -4585,13 +4591,11 @@ export default class huobi extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        let response = undefined;
         if (marketType === 'spot') {
-            response = await this.createSpotOrder (symbol, type, side, amount, price, query);
+            return await this.createSpotOrder (symbol, type, side, amount, price, query);
         } else {
-            response = await this.createContractOrder (symbol, type, side, amount, price, query);
+            return await this.createContractOrder (symbol, type, side, amount, price, query);
         }
-        return response;
     }
 
     async createSpotOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
@@ -4701,7 +4705,7 @@ export default class huobi extends Exchange {
         //     {"status":"ok","data":"438398393065481"}
         //
         const id = this.safeString (response, 'data');
-        return {
+        return this.safeOrder ({
             'info': response,
             'id': id,
             'timestamp': undefined,
@@ -4709,10 +4713,10 @@ export default class huobi extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': undefined,
             'symbol': undefined,
-            'type': undefined,
-            'side': undefined,
-            'price': undefined,
-            'amount': undefined,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
             'filled': undefined,
             'remaining': undefined,
             'cost': undefined,
@@ -4720,7 +4724,7 @@ export default class huobi extends Exchange {
             'fee': undefined,
             'clientOrderId': undefined,
             'average': undefined,
-        };
+        }, market);
     }
 
     async createContractOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
@@ -7083,10 +7087,9 @@ export default class huobi extends Exchange {
         }
         const timestamp = this.safeInteger (response, 'ts');
         const parsed = this.parsePosition (this.extend (position, omitted));
-        return this.extend (parsed, {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        });
+        parsed['timestamp'] = timestamp;
+        parsed['datetime'] = this.iso8601 (timestamp);
+        return parsed;
     }
 
     parseLedgerEntryType (type) {
@@ -7578,10 +7581,9 @@ export default class huobi extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const openInterest = this.parseOpenInterest (data[0], market);
         const timestamp = this.safeInteger (response, 'ts');
-        return this.extend (openInterest, {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        });
+        openInterest['timestamp'] = timestamp;
+        openInterest['datetime'] = this.iso8601 (timestamp);
+        return openInterest;
     }
 
     parseOpenInterest (interest, market = undefined) {
@@ -7640,7 +7642,7 @@ export default class huobi extends Exchange {
         const timestamp = this.safeInteger (interest, 'ts');
         const amount = this.safeNumber (interest, 'volume');
         const value = this.safeNumber (interest, 'value');
-        return {
+        return this.safeOpenInterest ({
             'symbol': this.safeString (market, 'symbol'),
             'baseVolume': amount,  // deprecated
             'quoteVolume': value,  // deprecated
@@ -7649,7 +7651,7 @@ export default class huobi extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
-        };
+        }, market);
     }
 
     async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {
@@ -8100,6 +8102,105 @@ export default class huobi extends Exchange {
             'info': settlement,
             'symbol': this.safeSymbol (marketId, market),
             'price': this.safeNumber (settlement, 'settlement_price'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchLiquidations
+         * @description retrieves the public liquidations of a trading pair
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the huobi api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @param {int} [params.tradeType] default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tradeType = this.safeInteger (params, 'trade_type', 0);
+        let request = {
+            'trade_type': tradeType,
+        };
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
+        let response = undefined;
+        if (market['swap']) {
+            request['contract'] = market['id'];
+            if (market['linear']) {
+                response = await this.contractPublicGetLinearSwapApiV3SwapLiquidationOrders (this.extend (request, params));
+            } else {
+                response = await this.contractPublicGetSwapApiV3SwapLiquidationOrders (this.extend (request, params));
+            }
+        } else if (market['future']) {
+            request['symbol'] = market['id'];
+            response = await this.contractPublicGetApiV3ContractLiquidationOrders (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchLiquidations() does not support ' + market['type'] + ' orders');
+        }
+        //
+        //     {
+        //         "code": 200,
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "query_id": 452057,
+        //                 "contract_code": "BTC-USDT-211210",
+        //                 "symbol": "USDT",
+        //                 "direction": "sell",
+        //                 "offset": "close",
+        //                 "volume": 479.000000000000000000,
+        //                 "price": 51441.700000000000000000,
+        //                 "created_at": 1638593647864,
+        //                 "amount": 0.479000000000000000,
+        //                 "trade_turnover": 24640.574300000000000000,
+        //                 "business_type": "futures",
+        //                 "pair": "BTC-USDT"
+        //             }
+        //         ],
+        //         "ts": 1604312615051
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseLiquidations (data, market, since, limit);
+    }
+
+    parseLiquidation (liquidation, market = undefined) {
+        //
+        //     {
+        //         "query_id": 452057,
+        //         "contract_code": "BTC-USDT-211210",
+        //         "symbol": "USDT",
+        //         "direction": "sell",
+        //         "offset": "close",
+        //         "volume": 479.000000000000000000,
+        //         "price": 51441.700000000000000000,
+        //         "created_at": 1638593647864,
+        //         "amount": 0.479000000000000000,
+        //         "trade_turnover": 24640.574300000000000000,
+        //         "business_type": "futures",
+        //         "pair": "BTC-USDT"
+        //     }
+        //
+        const marketId = this.safeString (liquidation, 'contract_code');
+        const timestamp = this.safeInteger (liquidation, 'created_at');
+        return {
+            'info': liquidation,
+            'symbol': this.safeSymbol (marketId, market),
+            'contracts': this.safeNumber (liquidation, 'volume'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'price': this.safeNumber (liquidation, 'price'),
+            'baseValue': this.safeNumber (liquidation, 'amount'),
+            'quoteValue': this.safeNumber (liquidation, 'trade_turnover'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };

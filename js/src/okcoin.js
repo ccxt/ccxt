@@ -1305,7 +1305,7 @@ export default class okcoin extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
@@ -2038,10 +2038,9 @@ export default class okcoin extends Exchange {
         //     }
         //
         const order = this.parseOrder(response, market);
-        return this.extend(order, {
-            'type': type,
-            'side': side,
-        });
+        order['type'] = type;
+        order['side'] = side;
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

@@ -656,6 +656,7 @@ export default class digifinex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1006,7 +1007,7 @@ export default class digifinex extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -1644,14 +1645,13 @@ export default class digifinex extends Exchange {
         //         "data": "1590873693003714560"
         //     }
         //
-        const result = this.parseOrder(response, market);
-        return this.extend(result, {
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'amount': amount,
-            'price': price,
-        });
+        const order = this.parseOrder(response, market);
+        order['symbol'] = symbol;
+        order['type'] = type;
+        order['side'] = side;
+        order['amount'] = amount;
+        order['price'] = price;
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -2810,14 +2810,16 @@ export default class digifinex extends Exchange {
         //         "leverage_ratio": 3
         //     }
         //
-        const symbol = this.safeString(info, 'symbol');
+        const marketId = this.safeString(info, 'symbol');
         const amountString = this.safeString(info, 'amount');
         const leverageString = this.safeString(info, 'leverage_ratio');
         const amountInvested = Precise.stringDiv(amountString, leverageString);
         const amountBorrowed = Precise.stringSub(amountString, amountInvested);
         const currency = (market === undefined) ? undefined : market['base'];
+        const symbol = this.safeSymbol(marketId, market);
         return {
-            'account': this.safeSymbol(symbol, market),
+            'account': symbol,
+            'symbol': symbol,
             'currency': currency,
             'interest': undefined,
             'interestRate': 0.001,
@@ -3297,10 +3299,9 @@ export default class digifinex extends Exchange {
             return position;
         }
         else {
-            return this.extend(position, {
-                'collateral': this.safeNumber(response, 'margin'),
-                'marginRatio': this.safeNumber(response, 'margin_rate'),
-            });
+            position['collateral'] = this.safeNumber(response, 'margin');
+            position['marginRatio'] = this.safeNumber(response, 'margin_rate');
+            return position;
         }
     }
     parsePosition(position, market = undefined) {
@@ -3360,7 +3361,7 @@ export default class digifinex extends Exchange {
         else if (side === 'go_short') {
             side = 'short';
         }
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3386,7 +3387,7 @@ export default class digifinex extends Exchange {
             'percentage': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
-        };
+        });
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
         /**

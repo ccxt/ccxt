@@ -1000,6 +1000,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'quoteMaxSize'),
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -1199,6 +1200,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'id': accountId,
                 'type': type,
                 'currency': code,
+                'code': code,
                 'info': account,
             })
         return result
@@ -1470,7 +1472,7 @@ class kucoin(Exchange, ImplicitAPI):
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol: str, params={}):
         """
@@ -3169,7 +3171,8 @@ class kucoin(Exchange, ImplicitAPI):
                     account['free'] = self.safe_string(balance, 'available')
                     account['used'] = self.safe_string(balance, 'holds')
                     result[codeInner2] = account
-        return result if isolated else self.safe_balance(result)
+        returnType = result if isolated else self.safe_balance(result)
+        return returnType
 
     async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """

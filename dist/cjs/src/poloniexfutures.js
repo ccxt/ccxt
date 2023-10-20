@@ -102,22 +102,27 @@ class poloniexfutures extends poloniexfutures$1 {
                     'get': {
                         'account-overview': 1,
                         'transaction-history': 1,
+                        'maxActiveOrders': 1,
+                        'maxRiskLimit': 1,
+                        'userFeeRate': 1,
+                        'marginType/query': 1,
                         'orders': 1,
                         'stopOrders': 1,
                         'recentDoneOrders': 1,
                         'orders/{order-id}': 1,
+                        'clientOrderId/{clientOid}': 1,
                         'fills': 1,
                         'openOrderStatistics': 1,
                         'position': 1.5,
                         'positions': 1.5,
                         'funding-history': 1,
-                        'marginType/query': 1,
                     },
                     'post': {
                         'orders': 1.5,
                         'batchOrders': 1.5,
                         'position/margin/auto-deposit-status': 1.5,
                         'position/margin/deposit-margin': 1.5,
+                        'position/margin/withdraw-margin': 1.5,
                         'bullet-private': 1,
                         'marginType/change': 1,
                     },
@@ -334,6 +339,7 @@ class poloniexfutures extends poloniexfutures$1 {
                         'max': undefined,
                     },
                 },
+                'created': this.safeInteger(market, 'firstOpenDate'),
                 'info': market,
             });
         }
@@ -880,7 +886,7 @@ class poloniexfutures extends poloniexfutures$1 {
         //    }
         //
         const data = this.safeValue(response, 'data', {});
-        return {
+        return this.safeOrder({
             'id': this.safeString(data, 'orderId'),
             'clientOrderId': undefined,
             'timestamp': undefined,
@@ -902,7 +908,7 @@ class poloniexfutures extends poloniexfutures$1 {
             'postOnly': undefined,
             'stopPrice': undefined,
             'info': response,
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1258,7 +1264,7 @@ class poloniexfutures extends poloniexfutures$1 {
         }
         const request = {};
         if (!stop) {
-            request['status'] = status === 'open' ? 'active' : 'done';
+            request['status'] = (status === 'open') ? 'active' : 'done';
         }
         else if (status !== 'open') {
             throw new errors.BadRequest(this.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders');
