@@ -4058,7 +4058,7 @@ export default class bitget extends Exchange {
         const request = {
             'symbol': symbolRequest,
         };
-        const now = this.milliseconds ().toString ();
+        const now = this.milliseconds ();
         const endTime = this.safeIntegerN (params, [ 'endTime', 'until', 'till' ]);
         const stop = this.safeValue (params, 'stop');
         params = this.omit (params, [ 'until', 'till', 'stop' ]);
@@ -4069,9 +4069,7 @@ export default class bitget extends Exchange {
             request['pageSize'] = limit;
             if (since === undefined) {
                 if (marketType === 'spot') {
-                    const ninetyDaysMilliseconds = '7776000000';
-                    const sinceString = Precise.stringSub (now, ninetyDaysMilliseconds);
-                    since = this.parseNumber (sinceString);
+                    since = now - 7776000000;
                 } else {
                     since = 0;
                 }
@@ -4095,9 +4093,7 @@ export default class bitget extends Exchange {
             } else {
                 if (marginMode !== undefined) {
                     if (since === undefined) {
-                        const ninetyDaysMilliseconds = '7776000000';
-                        const sinceString = Precise.stringSub (now, ninetyDaysMilliseconds);
-                        since = this.parseNumber (sinceString);
+                        since = now - 7776000000;
                     }
                     request['startTime'] = since;
                     if (endTime !== undefined) {
