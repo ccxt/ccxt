@@ -2588,58 +2588,58 @@ class Exchange {
 
     public function safe_market_structure(?array $market = null) {
         $cleanStructure = array(
-            'id' => null,
-            'lowercaseId' => null,
-            'symbol' => null,
-            'base' => null,
-            'quote' => null,
-            'settle' => null,
-            'baseId' => null,
-            'quoteId' => null,
-            'settleId' => null,
-            'type' => null,
-            'spot' => null,
-            'margin' => null,
-            'swap' => null,
-            'future' => null,
-            'option' => null,
-            'index' => null,
             'active' => null,
+            'base' => null,
+            'baseId' => null,
             'contract' => null,
-            'linear' => null,
-            'inverse' => null,
-            'taker' => null,
-            'maker' => null,
             'contractSize' => null,
             'expiry' => null,
             'expiryDatetime' => null,
-            'strike' => null,
+            'future' => null,
+            'id' => null,
+            'index' => null,
+            'inverse' => null,
+            'limits' => array(
+                'leverage' => array(
+                    'max' => null,
+                    'min' => null,
+                ),
+                'amount' => array(
+                    'max' => null,
+                    'min' => null,
+                ),
+                'price' => array(
+                    'max' => null,
+                    'min' => null,
+                ),
+                'cost' => array(
+                    'max' => null,
+                    'min' => null,
+                ),
+            ),
+            'linear' => null,
+            'lowercaseId' => null,
+            'maker' => null,
+            'margin' => null,
+            'option' => null,
             'optionType' => null,
             'precision' => array(
                 'amount' => null,
-                'price' => null,
-                'cost' => null,
                 'base' => null,
+                'cost' => null,
+                'price' => null,
                 'quote' => null,
             ),
-            'limits' => array(
-                'leverage' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'amount' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            ),
+            'quote' => null,
+            'quoteId' => null,
+            'settle' => null,
+            'settleId' => null,
+            'spot' => null,
+            'strike' => null,
+            'swap' => null,
+            'symbol' => null,
+            'taker' => null,
+            'type' => null,
             'created' => null,
             'info' => null,
         );
@@ -5663,14 +5663,14 @@ class Exchange {
 
     public function safe_open_interest($interest, $market = null) {
         return array_merge($interest, array(
-            'symbol' => $this->safe_string($market, 'symbol'),
             'baseVolume' => $this->safe_number($interest, 'baseVolume'), // deprecated
-            'quoteVolume' => $this->safe_number($interest, 'quoteVolume'), // deprecated
-            'openInterestAmount' => $this->safe_number($interest, 'openInterestAmount'),
-            'openInterestValue' => $this->safe_number($interest, 'openInterestValue'),
-            'timestamp' => $this->safe_integer($interest, 'timestamp'),
             'datetime' => $this->safe_string($interest, 'datetime'),
             'info' => $this->safe_value($interest, 'info'),
+            'openInterestAmount' => $this->safe_number($interest, 'openInterestAmount'),
+            'openInterestValue' => $this->safe_number($interest, 'openInterestValue'),
+            'quoteVolume' => $this->safe_number($interest, 'quoteVolume'), // deprecated
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'timestamp' => $this->safe_integer($interest, 'timestamp'),
         ));
     }
 

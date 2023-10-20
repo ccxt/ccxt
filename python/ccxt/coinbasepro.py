@@ -498,7 +498,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -657,7 +657,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_ticker(self, symbol: str, params={}):
         """
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
@@ -766,7 +766,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -799,7 +799,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -880,7 +880,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1033,7 +1033,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
         fetches information on an order made by the user
         :param str symbol: not used by coinbasepro fetchOrder
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
@@ -1075,7 +1075,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1091,7 +1091,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -1124,7 +1124,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1140,7 +1140,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1223,7 +1223,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1251,7 +1251,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
@@ -1418,7 +1418,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
@@ -1462,8 +1462,8 @@ class coinbasepro(Exchange, ImplicitAPI):
     def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None

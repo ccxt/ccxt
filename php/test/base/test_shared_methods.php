@@ -111,7 +111,7 @@ function assert_timestamp($exchange, $skipped_properties, $method, $entry, $now_
     $ts = $entry[$key_name_or_index];
     if ($ts !== null) {
         assert((is_int($ts) || is_float($ts)), 'timestamp is not numeric' . $log_text);
-        assert(is_int($ts), 'timestamp should be an integer' . $log_text);
+        assert(Number->is_integer($ts), 'timestamp should be an integer' . $log_text);
         $min_ts = 1230940800000; // 03 Jan 2009 - first block
         $max_ts = 2147483648000; // 03 Jan 2009 - first block
         assert($ts > $min_ts, 'timestamp is impossible to be before ' . ((string) $min_ts) . ' (03.01.2009)' . $log_text); // 03 Jan 2009 - first block
@@ -289,7 +289,7 @@ function assert_in_array($exchange, $skipped_properties, $method, $entry, $key, 
 function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $key) {
     $log_text = log_template($exchange, $method, $entry);
     $key_string = string_value($key);
-    if (is_int($key)) {
+    if (Number->is_integer($key)) {
         assert(gettype($entry) === 'array' && array_keys($entry) === array_keys(array_keys($entry)), 'fee container is expected to be an array' . $log_text);
         assert($key < count($entry), 'fee key ' . $key_string . ' was expected to be present in entry' . $log_text);
     } else {
@@ -300,7 +300,7 @@ function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $
     // todo: remove undefined check to make stricter
     if ($fee_object !== null) {
         assert(is_array($fee_object) && array_key_exists('cost', $fee_object), $key_string . ' fee object should contain \"cost\" key' . $log_text);
-        assert_greater_or_equal($exchange, $skipped_properties, $method, $fee_object, 'cost', '0');
+        // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
         assert(is_array($fee_object) && array_key_exists('currency', $fee_object), '\"' . $key_string . '\" fee object should contain \"currency\" key' . $log_text);
         assert_currency_code($exchange, $skipped_properties, $method, $entry, $fee_object['currency']);
     }
@@ -331,7 +331,7 @@ function assert_integer($exchange, $skipped_properties, $method, $entry, $key) {
     if ($entry !== null) {
         $value = $exchange->safe_value($entry, $key);
         if ($value !== null) {
-            $is_integer = is_int($value);
+            $is_integer = Number->is_integer($value);
             assert($is_integer, '\"' . string_value($key) . '\" key (value \"' . string_value($value) . '\") is not an integer' . $log_text);
         }
     }

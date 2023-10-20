@@ -869,58 +869,58 @@ class Exchange(BaseExchange):
 
     def safe_market_structure(self, market: Optional[object] = None):
         cleanStructure = {
-            'id': None,
-            'lowercaseId': None,
-            'symbol': None,
-            'base': None,
-            'quote': None,
-            'settle': None,
-            'baseId': None,
-            'quoteId': None,
-            'settleId': None,
-            'type': None,
-            'spot': None,
-            'margin': None,
-            'swap': None,
-            'future': None,
-            'option': None,
-            'index': None,
             'active': None,
+            'base': None,
+            'baseId': None,
             'contract': None,
-            'linear': None,
-            'inverse': None,
-            'taker': None,
-            'maker': None,
             'contractSize': None,
             'expiry': None,
             'expiryDatetime': None,
-            'strike': None,
+            'future': None,
+            'id': None,
+            'index': None,
+            'inverse': None,
+            'limits': {
+                'leverage': {
+                    'max': None,
+                    'min': None,
+                },
+                'amount': {
+                    'max': None,
+                    'min': None,
+                },
+                'price': {
+                    'max': None,
+                    'min': None,
+                },
+                'cost': {
+                    'max': None,
+                    'min': None,
+                },
+            },
+            'linear': None,
+            'lowercaseId': None,
+            'maker': None,
+            'margin': None,
+            'option': None,
             'optionType': None,
             'precision': {
                 'amount': None,
-                'price': None,
-                'cost': None,
                 'base': None,
+                'cost': None,
+                'price': None,
                 'quote': None,
             },
-            'limits': {
-                'leverage': {
-                    'min': None,
-                    'max': None,
-                },
-                'amount': {
-                    'min': None,
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            },
+            'quote': None,
+            'quoteId': None,
+            'settle': None,
+            'settleId': None,
+            'spot': None,
+            'strike': None,
+            'swap': None,
+            'symbol': None,
+            'taker': None,
+            'type': None,
             'created': None,
             'info': None,
         }
@@ -3386,14 +3386,14 @@ class Exchange(BaseExchange):
 
     def safe_open_interest(self, interest, market=None):
         return self.extend(interest, {
-            'symbol': self.safe_string(market, 'symbol'),
             'baseVolume': self.safe_number(interest, 'baseVolume'),  # deprecated
-            'quoteVolume': self.safe_number(interest, 'quoteVolume'),  # deprecated
-            'openInterestAmount': self.safe_number(interest, 'openInterestAmount'),
-            'openInterestValue': self.safe_number(interest, 'openInterestValue'),
-            'timestamp': self.safe_integer(interest, 'timestamp'),
             'datetime': self.safe_string(interest, 'datetime'),
             'info': self.safe_value(interest, 'info'),
+            'openInterestAmount': self.safe_number(interest, 'openInterestAmount'),
+            'openInterestValue': self.safe_number(interest, 'openInterestValue'),
+            'quoteVolume': self.safe_number(interest, 'quoteVolume'),  # deprecated
+            'symbol': self.safe_string(market, 'symbol'),
+            'timestamp': self.safe_integer(interest, 'timestamp'),
         })
 
     def parse_liquidation(self, liquidation, market=None):

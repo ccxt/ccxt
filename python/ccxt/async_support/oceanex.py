@@ -157,7 +157,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}):
         """
         retrieves data on all markets for oceanex
-        see https://api.oceanex.pro/doc/v1/#markets-post
+        :see: https://api.oceanex.pro/doc/v1/#markets-post
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -242,7 +242,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://api.oceanex.pro/doc/v1/#ticker-post
+        :see: https://api.oceanex.pro/doc/v1/#ticker-post
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the oceanex api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -276,7 +276,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://api.oceanex.pro/doc/v1/#multiple-tickers-post
+        :see: https://api.oceanex.pro/doc/v1/#multiple-tickers-post
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the oceanex api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -358,7 +358,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://api.oceanex.pro/doc/v1/#order-book-post
+        :see: https://api.oceanex.pro/doc/v1/#order-book-post
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the oceanex api endpoint
@@ -398,7 +398,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
-        see https://api.oceanex.pro/doc/v1/#multiple-order-books-post
+        :see: https://api.oceanex.pro/doc/v1/#multiple-order-books-post
         :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
         :param int [limit]: max number of entries per orderbook to return, default is None
         :param dict [params]: extra parameters specific to the oceanex api endpoint
@@ -450,7 +450,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://api.oceanex.pro/doc/v1/#trades-post
+        :see: https://api.oceanex.pro/doc/v1/#trades-post
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -532,7 +532,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        see https://api.oceanex.pro/doc/v1/#api-server-time-post
+        :see: https://api.oceanex.pro/doc/v1/#api-server-time-post
         :param dict [params]: extra parameters specific to the oceanex api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -545,7 +545,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        see https://api.oceanex.pro/doc/v1/#trading-fees-post
+        :see: https://api.oceanex.pro/doc/v1/#trading-fees-post
         :param dict [params]: extra parameters specific to the oceanex api endpoint
         :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
         """
@@ -588,7 +588,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://api.oceanex.pro/doc/v1/#account-info-post
+        :see: https://api.oceanex.pro/doc/v1/#account-info-post
         :param dict [params]: extra parameters specific to the oceanex api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -599,7 +599,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://api.oceanex.pro/doc/v1/#new-order-post
+        :see: https://api.oceanex.pro/doc/v1/#new-order-post
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -625,7 +625,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        see https://api.oceanex.pro/doc/v1/#order-status-get
+        :see: https://api.oceanex.pro/doc/v1/#order-status-get
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the oceanex api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
@@ -651,7 +651,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
-        see https://api.oceanex.pro/doc/v1/#order-status-get
+        :see: https://api.oceanex.pro/doc/v1/#order-status-get
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -666,7 +666,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
-        see https://api.oceanex.pro/doc/v1/#order-status-get
+        :see: https://api.oceanex.pro/doc/v1/#order-status-get
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -681,7 +681,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
-        see https://api.oceanex.pro/doc/v1/#order-status-with-filters-post
+        :see: https://api.oceanex.pro/doc/v1/#order-status-with-filters-post
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -732,7 +732,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://api.oceanex.pro/doc/v1/#k-line-post
+        :see: https://api.oceanex.pro/doc/v1/#k-line-post
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -831,7 +831,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
-        see https://api.oceanex.pro/doc/v1/#cancel-order-post
+        :see: https://api.oceanex.pro/doc/v1/#cancel-order-post
         :param str id: order id
         :param str symbol: not used by oceanex cancelOrder()
         :param dict [params]: extra parameters specific to the oceanex api endpoint
@@ -845,7 +845,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
-        see https://api.oceanex.pro/doc/v1/#cancel-multiple-orders-post
+        :see: https://api.oceanex.pro/doc/v1/#cancel-multiple-orders-post
         :param str[] ids: order ids
         :param str symbol: not used by oceanex cancelOrders()
         :param dict [params]: extra parameters specific to the oceanex api endpoint
@@ -859,7 +859,7 @@ class oceanex(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
-        see https://api.oceanex.pro/doc/v1/#cancel-all-orders-post
+        :see: https://api.oceanex.pro/doc/v1/#cancel-all-orders-post
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the oceanex api endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`

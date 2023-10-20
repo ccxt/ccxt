@@ -247,7 +247,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}):
         """
         Fetches the available trading markets from the exchange, Multi-collateral markets are returned markets, but can be settled in multiple currencies
-        see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
+        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
         :param dict [params]: exchange specific params
         :returns: An array of market structures
         """
@@ -564,7 +564,7 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.futures.kraken.com/#http-api-charts-candles
+        :see: https://docs.futures.kraken.com/#http-api-charts-candles
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1548,7 +1548,7 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
-        see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
         fetch the current funding rates
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
@@ -1966,7 +1966,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
-        see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market
+        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the delta api endpoint
@@ -1986,7 +1986,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_leverage(self, symbol: Optional[str] = None, params={}):
         """
         fetch the set leverage for a market
-        see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
         :returns dict: a `leverage structure <https://github.com/ccxt/ccxt/wiki/Manual#leverage-structure>`

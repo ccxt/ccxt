@@ -328,7 +328,7 @@ class hollaex(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        see https://apidocs.hollaex.com/#constants
+        :see: https://apidocs.hollaex.com/#constants
         :param dict [params]: extra parameters specific to the hollaex api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -1689,7 +1689,7 @@ class hollaex(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://apidocs.hollaex.com/#constants
+        :see: https://apidocs.hollaex.com/#constants
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the hollaex api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`

@@ -239,7 +239,7 @@ class btcalpha(Exchange, ImplicitAPI):
 
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
-        see https://btc-alpha.github.io/api-docs/#tickers
+        :see: https://btc-alpha.github.io/api-docs/#tickers
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the btcalpha api endpoint
@@ -267,7 +267,7 @@ class btcalpha(Exchange, ImplicitAPI):
 
     def fetch_ticker(self, symbol: str, params={}):
         """
-        see https://btc-alpha.github.io/api-docs/#tickers
+        :see: https://btc-alpha.github.io/api-docs/#tickers
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the btcalpha api endpoint
@@ -338,7 +338,7 @@ class btcalpha(Exchange, ImplicitAPI):
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
-        see https://btc-alpha.github.io/api-docs/#get-orderbook
+        :see: https://btc-alpha.github.io/api-docs/#get-orderbook
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -695,7 +695,7 @@ class btcalpha(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        see https://btc-alpha.github.io/api-docs/#create-order
+        :see: https://btc-alpha.github.io/api-docs/#create-order
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'limit'
@@ -726,7 +726,7 @@ class btcalpha(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://btc-alpha.github.io/api-docs/#cancel-order
+        :see: https://btc-alpha.github.io/api-docs/#cancel-order
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -741,7 +741,7 @@ class btcalpha(Exchange, ImplicitAPI):
 
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://btc-alpha.github.io/api-docs/#retrieve-single-order
+        :see: https://btc-alpha.github.io/api-docs/#retrieve-single-order
         fetches information on an order made by the user
         :param str symbol: not used by btcalpha fetchOrder
         :param dict [params]: extra parameters specific to the btcalpha api endpoint
@@ -756,7 +756,7 @@ class btcalpha(Exchange, ImplicitAPI):
 
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://btc-alpha.github.io/api-docs/#list-own-orders
+        :see: https://btc-alpha.github.io/api-docs/#list-own-orders
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for

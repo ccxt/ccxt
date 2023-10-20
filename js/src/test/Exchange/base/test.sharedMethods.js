@@ -270,7 +270,7 @@ function assertFeeStructure(exchange, skippedProperties, method, entry, key) {
     // todo: remove undefined check to make stricter
     if (feeObject !== undefined) {
         assert('cost' in feeObject, keyString + ' fee object should contain "cost" key' + logText);
-        assertGreaterOrEqual(exchange, skippedProperties, method, feeObject, 'cost', '0');
+        // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
         assert('currency' in feeObject, '"' + keyString + '" fee object should contain "currency" key' + logText);
         assertCurrencyCode(exchange, skippedProperties, method, entry, feeObject['currency']);
     }
