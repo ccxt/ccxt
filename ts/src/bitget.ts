@@ -3753,15 +3753,15 @@ export default class bitget extends Exchange {
         let marketType = undefined;
         let marginMode = undefined;
         let response = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         if (symbol !== undefined) {
             market = this.market (symbol);
             const symbolRequest = (marginMode !== undefined) ? (market['info']['symbolName']) : (market['id']);
             request['symbol'] = symbolRequest;
         }
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         if (stop) {
             this.checkRequiredSymbol ('fetchOpenOrders', symbol);
             if (marketType === 'spot') {
