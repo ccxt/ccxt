@@ -18,10 +18,6 @@ Current feature list:
 - an out of the box unified API that is extremely easy to integrate
 - works in Node 10.4+, Python 3, PHP 8.1+, netstandard2.0/2.1 and web browsers
 
-## Sponsored Promotion
-
-[![CCXT x Gate.io Upgrading Trading Campaign](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/261965226-7278c686-4ed1-4c6e-81aa-81f90a284cbe.jpg)](https://github.com/ccxt/ccxt/issues/18963)
-
 
 ## See Also
 
