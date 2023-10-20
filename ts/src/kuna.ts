@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/kuna.js';
-import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported, BadRequest } from './base/errors.js';
+import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported, BadRequest, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
@@ -1882,15 +1882,31 @@ export default class kuna extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (response === undefined) {
+        //
+        //    {
+        //        "errors": [
+        //            {
+        //                "extensions": {
+        //                    "code": "IP_NOT_IN_WHITE_LIST"
+        //                },
+        //                "code": "IP_NOT_IN_WHITE_LIST"
+        //            }
+        //        ]
+        //    }
+        //
+        const errors = this.safeValue (response, 'errors');
+        if ((response === undefined) && (errors === undefined)) {
             return undefined;
         }
-        if (code === 400) {
-            const error = this.safeValue (response, 'error');
+        if ((errors !== undefined) || (code === 400)) {
+            let error = this.safeValue (errors, 0);
+            if (error === undefined) {
+                error = this.safeValue (response, 'error');
+            }
             const errorCode = this.safeString (error, 'code');
             const feedback = this.id + ' ' + this.json (response);
             this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
-            // fallback to default error handler
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }
