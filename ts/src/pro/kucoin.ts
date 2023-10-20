@@ -655,8 +655,8 @@ export default class kucoin extends kucoinRest {
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, [ 'stop' ]);
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         const url = await this.negotiate (true);
         const topic = stop ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
         const request = {
