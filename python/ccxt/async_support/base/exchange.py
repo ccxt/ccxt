@@ -122,9 +122,6 @@ class Exchange(BaseExchange):
                 await self.session.close()
             self.session = None
 
-    async def initialize_proxies(self):
-        return
-
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
 

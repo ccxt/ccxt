@@ -537,9 +537,6 @@ class Exchange(object):
         else:
             return json.loads(response_body)
 
-    def initialize_proxies(self):
-        return
-
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
 
