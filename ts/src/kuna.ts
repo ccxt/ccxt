@@ -1753,22 +1753,24 @@ export default class kuna extends Exchange {
         //
         const datetime = this.safeString (transaction, 'createdAt');
         const currencyId = this.safeString (transaction, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
         const networkId = this.safeString (transaction, 'paymentCode');
         const type = this.safeStringLower (transaction, 'type');
-        const code = this.safeCurrencyCode (currencyId, currency);
+        const address = this.safeString (transaction, 'address');
+        const isDeposit = (type === 'deposit');
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction, 'txId'),
+            'currency': code,
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'network': this.networkIdToCode (networkId),
-            'addressFrom': undefined,
-            'address': undefined,
-            'addressTo': undefined,
+            'addressFrom': isDeposit ? undefined : address,
+            'address': address,
+            'addressTo': isDeposit ? address : undefined,
             'amount': this.safeNumber (transaction, 'amount'),
-            'type': (type === 'withdraw') ? 'withdrawal' : type,
-            'currency': code,
+            'type': !isDeposit ? 'withdrawal' : type,
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'updated': this.parse8601 (this.safeString (transaction, 'updatedAt')),
             'tagFrom': undefined,
