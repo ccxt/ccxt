@@ -85,12 +85,11 @@ trait ClientTrait {
 
     private function checkProxyClient($client, $url) {
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url);
-        $connections_options = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
-        if ($connections_options) {
-            $connector = $this->create_connector($connections_options);
-            $client->set_connector ($connector);
+        $connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
+        if ($connector) {
+            $client->set_ws_connector($connector);
         } else {
-            $client->set_connector (null);
+            $client->set_ws_connector($client->default_connector);
         }
     }
 

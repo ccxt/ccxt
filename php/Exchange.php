@@ -1317,24 +1317,19 @@ class Exchange {
     }
 
     public function setProxyAgents($httpProxy, $httpsProxy, $socksProxy) {
-        $proxyAgentSet = false;
         if ($httpProxy) {
             curl_setopt($this->curl, CURLOPT_PROXY, $httpProxy);
             curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
-            $proxyAgentSet = true;
         }  else if ($httpsProxy) {
             curl_setopt($this->curl, CURLOPT_PROXY, $httpsProxy);
             curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTPS);
-            $proxyAgentSet = true;
             // atm we don't make as tunnel
             // curl_setopt($this->curl, CURLOPT_TUNNEL, 1);
             // curl_setopt($this->curl, CURLOPT_SUPPRESS_CONNECT_HEADERS, 1);
         } else if ($socksProxy) {
             curl_setopt($this->curl, CURLOPT_PROXY, $socksProxy);
             curl_setopt($this->curl, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
-            $proxyAgentSet = true;
         }
-        return $proxyAgentSet;
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
@@ -1360,10 +1355,10 @@ class Exchange {
             $url = $proxyUrl . $url;
         }
         // proxy agents
-        // $this->initializeProxies(); // not needed in PHP
+        // $this->load_proxy_modules(); // not needed in sync PHP
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
-        $proxyAgentSet = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
-        $this->checkConflictingProxies ($proxyAgentSet, $proxyUrl);
+        $this->checkConflictingProxies ($httpProxy || $httpsProxy || $socksProxy, $proxyUrl);
+        $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
         // user-agent
         $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
         if ($userAgent) {
@@ -2103,11 +2098,6 @@ class Exchange {
 
     function un_camel_case($str){
         return self::underscore($str);
-    }
-
-    // placeholder method in php
-    function initialize_proxies(){
-        return ;
     }
 
     // ########################################################################

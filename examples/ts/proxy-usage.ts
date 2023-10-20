@@ -1,7 +1,7 @@
 
 import ccxt from '../../js/ccxt.js';
 
-// // AUTO-TRANSPILE //
+// AUTO-TRANSPILE //
 
 async function example_proxyUrl () {
     const myEx = new ccxt.kucoin ();
@@ -11,7 +11,7 @@ async function example_proxyUrl () {
 
 async function example_httpProxy () {
     const myEx = new ccxt.kucoin ();
-    myEx.httpProxy = 'http://5.75.153.75:8888'; // "httpProxy" or "httpsProxy" (depending on your proxy protocol)
+    myEx.httpProxy = 'http://5.75.153.75:8002'; // "httpProxy" or "httpsProxy" (depending on your proxy protocol)
     console.log (await myEx.fetch ('https://api.ipify.org/'));
 }
 

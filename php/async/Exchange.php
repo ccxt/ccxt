@@ -52,6 +52,7 @@ class Exchange extends \ccxt\Exchange {
     public $reloadingMarkets = null;
     public $tokenBucket;
     public $throttler;
+    public $default_connector = null;
 
     public $streaming = array(
         'keepAlive' => 30000,
@@ -66,12 +67,12 @@ class Exchange extends \ccxt\Exchange {
 
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->set_request_browser();
+        $this->default_connector = $this->create_connector();
+        $this->set_request_browser($this->default_connector);
         $this->throttler = new Throttler($this->tokenBucket);
     }
 
-    public function set_request_browser($connector_options = array()) {
-        $connector = $this->create_connector($connector_options);
+    public function set_request_browser($connector) {
         $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
     }
 
@@ -116,7 +117,11 @@ class Exchange extends \ccxt\Exchange {
             }
             $connection_options_for_proxy = $this->proxyDictionaries[$socksProxy];
         }
-        return $connection_options_for_proxy;
+        if ($connection_options_for_proxy) {
+            $connector = $this->create_connector($connection_options_for_proxy);
+            return $connector;
+        }
+        return null;
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
@@ -132,14 +137,15 @@ class Exchange extends \ccxt\Exchange {
                 $url = $proxyUrl . $url;
             }
             // proxy agents
-            // $this->initializeProxies(); // not needed in PHP
+            // $this->load_proxy_modules(); // not needed in PHP
             [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
-            $proxyAgentSet = $httpProxy || $httpsProxy || $socksProxy;
-            $connection_options_for_proxy = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
-            if ($connection_options_for_proxy) {
-                $this->set_request_browser($connection_options_for_proxy);
+            $this->checkConflictingProxies($httpProxy || $httpsProxy || $socksProxy, $proxyUrl);
+            $connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
+            if ($connector) {
+                $this->set_request_browser($connector);
+            } else {
+                $this->set_request_browser($this->default_connector);
             }
-            $this->checkConflictingProxies($proxyAgentSet, $proxyUrl);
             // user-agent
             $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
             if ($userAgent) {
@@ -295,10 +301,8 @@ class Exchange extends \ccxt\Exchange {
     }
 
     // placeholder method in php
-    function initialize_proxies(){
-        return Async\async(function (){
-            return ;
-        }) ();
+    function load_proxy_modules(){
+        return;
     }
 
     // ########################################################################

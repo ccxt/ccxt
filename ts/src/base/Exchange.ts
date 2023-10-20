@@ -899,7 +899,6 @@ export default class Exchange {
     }
 
     setProxyAgents (httpProxy, httpsProxy, socksProxy) {
-        let proxyAgentSet = false;
         if (httpProxy) {
             if (this.httpProxyAgentModule === undefined) {
                 throw new NotSupported (this.id + ' you need to initialize proxies with `.loadProxyModules()` method at first to use proxies');
@@ -908,7 +907,6 @@ export default class Exchange {
                 this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
             }
             this.agent = this.proxyDictionaries[httpProxy];
-            proxyAgentSet = true;
         } else if (httpsProxy) {
             if (this.httpsProxyAgentModule === undefined) {
                 throw new NotSupported (this.id + ' you need to initialize proxies with `.loadProxyModules()` method at first to use proxies');
@@ -918,7 +916,6 @@ export default class Exchange {
             }
             this.agent = this.proxyDictionaries[httpsProxy];
             this.agent.keepAlive = true;
-            proxyAgentSet = true;
         } else if (socksProxy) {
             if (this.socksProxyAgentModule === undefined) {
                 throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `.loadProxyModules()` method');
@@ -927,9 +924,7 @@ export default class Exchange {
                 this.proxyDictionaries[socksProxy] = new this.socksProxyAgentModule.SocksProxyAgent(socksProxy);
             }
             this.agent = this.proxyDictionaries[socksProxy];
-            proxyAgentSet = true;
         }
-        return proxyAgentSet;
     }
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
@@ -958,10 +953,10 @@ export default class Exchange {
             url = proxyUrl + url;
         }
         // proxy agents
-        await this.loadProxyModules ();
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
-        const proxyAgentSet = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
-        this.checkConflictingProxies (proxyAgentSet, proxyUrl);
+        this.checkConflictingProxies (httpProxy || httpsProxy || socksProxy, proxyUrl);
+        await this.loadProxyModules (); // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method
+        this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
         // user-agent
         const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
         if (userAgent && isNode) {
