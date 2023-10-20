@@ -940,7 +940,10 @@ export default class okcoin extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetMarketTickers (params);
+        const request = {
+            'instType': 'SPOT',
+        };
+        const response = await this.publicGetMarketTickers (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         return this.parseTickers (data, symbols, params);
     }
