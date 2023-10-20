@@ -67,6 +67,7 @@ class Exchange {
         this.orderbooks = {};
         this.tickers = {};
         this.orders = undefined;
+        this.triggerOrders = undefined;
         this.transactions = {};
         this.positions = {};
         this.requiresWeb3 = false;
