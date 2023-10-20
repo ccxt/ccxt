@@ -2953,7 +2953,7 @@ export default class bitget extends Exchange {
         //         "data": "1098753830701928448"
         //     }
         //
-        // isolated and cross margin: fetchOpenOrders
+        // isolated and cross margin: fetchOpenOrders, fetchCanceledOrders, fetchClosedOrders
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -3970,9 +3970,11 @@ export default class bitget extends Exchange {
          * @name bitget#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-plan-orders
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-plan-orders-tpsl
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-plan-orders
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-order-history
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-order-history
          * @param {string} symbol unified market symbol of the closed orders
          * @param {int} [since] timestamp in ms of the earliest order
          * @param {int} [limit] the max number of closed orders to return
@@ -4009,9 +4011,11 @@ export default class bitget extends Exchange {
          * @name bitget#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-plan-orders
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-plan-orders-tpsl
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-plan-orders
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-order-history
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-order-history
          * @param {string} symbol unified market symbol of the canceled orders
          * @param {int} [since] timestamp in ms of the earliest order
          * @param {int} [limit] the max number of canceled orders to return
@@ -4046,36 +4050,31 @@ export default class bitget extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marketType = undefined;
+        let marginMode = undefined;
+        let response = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
-        const endTime = this.safeIntegerN (params, [ 'endTime', 'until', 'till' ]);
-        params = this.omit (params, [ 'until', 'till' ]);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchCanceledAndClosedOrders', params);
+        const symbolRequest = (marginMode !== undefined) ? (market['info']['symbolName']) : (market['id']);
         const request = {
-            'symbol': market['id'],
+            'symbol': symbolRequest,
         };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotPostTradeHistory',
-            'swap': 'privateMixGetOrderHistory',
-            'future': 'privateMixGetOrderHistory',
-        });
+        const now = this.milliseconds ().toString ();
+        const endTime = this.safeIntegerN (params, [ 'endTime', 'until', 'till' ]);
         const stop = this.safeValue (params, 'stop');
-        if (stop) {
-            if (marketType === 'spot') {
-                method = 'privateSpotPostPlanHistoryPlan';
-            } else {
-                method = 'privateMixGetPlanHistoryPlan';
-            }
-            params = this.omit (params, 'stop');
-        }
-        if (marketType === 'swap' || stop) {
+        params = this.omit (params, [ 'until', 'till', 'stop' ]);
+        if (stop || (marketType === 'swap') || (marketType === 'future')) {
             if (limit === undefined) {
                 limit = 100;
             }
             request['pageSize'] = limit;
             if (since === undefined) {
-                since = 0;
+                if (marketType === 'spot') {
+                    const ninetyDaysMilliseconds = '7776000000';
+                    const sinceString = Precise.stringSub (now, ninetyDaysMilliseconds);
+                    since = this.parseNumber (sinceString);
+                } else {
+                    since = 0;
+                }
             }
             request['startTime'] = since;
             if (endTime === undefined) {
@@ -4083,15 +4082,50 @@ export default class bitget extends Exchange {
             } else {
                 request['endTime'] = endTime;
             }
-        } else {
-            if (limit !== undefined) {
-                request['pageSize'] = limit;
+        }
+        if (stop) {
+            if (marketType === 'spot') {
+                response = await this.privateSpotPostPlanHistoryPlan (this.extend (request, params));
+            } else {
+                response = await this.privateMixGetPlanHistoryPlan (this.extend (request, params));
             }
-            if (endTime !== undefined) {
-                request['endTime'] = endTime;
+        } else {
+            if ((marketType === 'swap') || (marketType === 'future')) {
+                response = await this.privateMixGetOrderHistory (this.extend (request, params));
+            } else {
+                if (marginMode !== undefined) {
+                    if (since === undefined) {
+                        const ninetyDaysMilliseconds = '7776000000';
+                        const sinceString = Precise.stringSub (now, ninetyDaysMilliseconds);
+                        since = this.parseNumber (sinceString);
+                    }
+                    request['startTime'] = since;
+                    if (endTime !== undefined) {
+                        request['endTime'] = endTime;
+                    }
+                    if (limit !== undefined) {
+                        request['pageSize'] = limit;
+                    }
+                    if (marginMode === 'isolated') {
+                        response = await this.privateMarginGetIsolatedOrderHistory (this.extend (request, params));
+                    } else if (marginMode === 'cross') {
+                        response = await this.privateMarginGetCrossOrderHistory (this.extend (request, params));
+                    }
+                } else {
+                    if (limit !== undefined) {
+                        request['limit'] = limit;
+                    }
+                    if (since !== undefined) {
+                        request['after'] = since;
+                    }
+                    if (endTime !== undefined) {
+                        params = this.omit (params, 'endTime');
+                        request['before'] = endTime;
+                    }
+                    response = await this.privateSpotPostTradeHistory (this.extend (request, params));
+                }
             }
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -4206,6 +4240,37 @@ export default class bitget extends Exchange {
         //         ],
         //         "msg":"success",
         //         "requestTime":1627354109502
+        //     }
+        //
+        // isolated and cross margin
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1697779608818,
+        //         "data": {
+        //             "orderList": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "orderType": "limit",
+        //                     "source": "API",
+        //                     "orderId": "1098761451063619584",
+        //                     "clientOid": "8d8ac3454ed345fca914c9cd55682121",
+        //                     "loanType": "normal",
+        //                     "price": "25000",
+        //                     "side": "buy",
+        //                     "status": "cancelled",
+        //                     "baseQuantity": "0.0002",
+        //                     "quoteAmount": "0",
+        //                     "fillPrice": "0",
+        //                     "fillQuantity": "0",
+        //                     "fillTotalAmount": "0",
+        //                     "ctime": "1697691064614"
+        //                 },
+        //             ],
+        //             "maxId": "1098761451063619584",
+        //             "minId": "1098394690472521728"
+        //         }
         //     }
         //
         const data = this.safeValue (response, 'data');
