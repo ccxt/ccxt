@@ -349,6 +349,7 @@ class probit(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'max_cost'),
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -1412,6 +1413,8 @@ class probit(Exchange, ImplicitAPI):
             request['start_time'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit
+        else:
+            request['limit'] = 100
         response = self.privateGetTransferPayment(self.extend(request, params))
         #
         #     {

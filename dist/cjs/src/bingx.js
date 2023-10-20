@@ -33,6 +33,7 @@ class bingx extends bingx$1 {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -65,6 +66,7 @@ class bingx extends bingx$1 {
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
                     'wallets': 'https://open-api.{hostname}/openApi',
+                    'user': 'https://open-api.{hostname}/openApi',
                     'subAccount': 'https://open-api.{hostname}/openApi',
                     'account': 'https://open-api.{hostname}/openApi',
                 },
@@ -171,6 +173,13 @@ class bingx extends bingx$1 {
                             },
                         },
                     },
+                    'v3': {
+                        'public': {
+                            'get': {
+                                'quote/klines': 1,
+                            },
+                        },
+                    },
                 },
                 'contract': {
                     'v1': {
@@ -229,6 +238,15 @@ class bingx extends bingx$1 {
                             },
                             'post': {
                                 'innerTransfer/authorizeSubAccount': 3,
+                            },
+                        },
+                    },
+                },
+                'user': {
+                    'auth': {
+                        'private': {
+                            'post': {
+                                'userDataStream': 1,
                             },
                         },
                     },
@@ -294,6 +312,7 @@ class bingx extends bingx$1 {
                     '100001': errors.AuthenticationError,
                     '100412': errors.AuthenticationError,
                     '100202': errors.InsufficientFunds,
+                    '100204': errors.BadRequest,
                     '100400': errors.BadRequest,
                     '100440': errors.ExchangeError,
                     '100500': errors.ExchangeError,
@@ -309,6 +328,7 @@ class bingx extends bingx$1 {
             },
             'commonCurrencies': {},
             'options': {
+                'defaultType': 'spot',
                 'accountsByType': {
                     'spot': 'FUND',
                     'swap': 'PFUTURES',
@@ -319,6 +339,7 @@ class bingx extends bingx$1 {
                     'PFUTURES': 'swap',
                     'SFUTURES': 'future',
                 },
+                'recvWindow': 5 * 1000, // 5 sec
             },
         });
     }
@@ -589,6 +610,7 @@ class bingx extends bingx$1 {
                     'max': this.safeNumber(market, 'maxNotional'),
                 },
             },
+            'created': undefined,
             'info': market,
         };
         return entry;
@@ -616,16 +638,22 @@ class bingx extends bingx$1 {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
+         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @param {string} [params.price] "mark" or "index" for mark price and index price candles
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440);
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -637,15 +665,17 @@ class bingx extends bingx$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        else {
-            request['limit'] = 50;
+        const until = this.safeInteger2(params, 'until', 'endTime');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['endTime'] = until;
         }
         let response = undefined;
         if (market['spot']) {
             response = await this.spotV1PublicGetMarketKline(this.extend(request, params));
         }
         else {
-            response = await this.swapV2PublicGetQuoteKlines(this.extend(request, params));
+            response = await this.swapV3PublicGetQuoteKlines(this.extend(request, params));
         }
         //
         //    {
@@ -816,37 +846,68 @@ class bingx extends bingx$1 {
         //        filledTime: '2023-07-04T20:56:01.000+0800'
         //    }
         //
-        let time = this.safeInteger2(trade, 'time', 'filledTm');
+        //
+        // ws
+        //
+        // spot
+        //
+        //    {
+        //        E: 1690214529432,
+        //        T: 1690214529386,
+        //        e: 'trade',
+        //        m: true,
+        //        p: '29110.19',
+        //        q: '0.1868',
+        //        s: 'BTC-USDT',
+        //        t: '57903921'
+        //    }
+        //
+        // swap
+        //
+        //    {
+        //        q: '0.0421',
+        //        p: '29023.5',
+        //        T: 1690221401344,
+        //        m: false,
+        //        s: 'BTC-USDT'
+        //    }
+        //
+        let time = this.safeIntegerN(trade, ['time', 'filledTm', 'T']);
         const datetimeId = this.safeString(trade, 'filledTm');
         if (datetimeId !== undefined) {
             time = this.parse8601(datetimeId);
         }
-        const isBuyerMaker = this.safeValue2(trade, 'buyerMaker', 'isBuyerMaker');
-        let takeOrMaker = undefined;
-        let side = undefined;
-        if (isBuyerMaker !== undefined) {
-            side = isBuyerMaker ? 'sell' : 'buy';
-            takeOrMaker = 'taker';
+        if (time === 0) {
+            time = undefined;
         }
         const cost = this.safeString(trade, 'quoteQty');
         const type = (cost === undefined) ? 'spot' : 'swap';
-        const currencyId = this.safeString(trade, 'currency');
+        const currencyId = this.safeString2(trade, 'currency', 'N');
         const currencyCode = this.safeCurrencyCode(currencyId);
+        const m = this.safeValue(trade, 'm', false);
+        const marketId = this.safeString(trade, 's');
+        const isBuyerMaker = this.safeValue2(trade, 'buyerMaker', 'isBuyerMaker');
+        let takeOrMaker = (isBuyerMaker || m) ? 'maker' : 'taker';
+        let side = this.safeStringLower2(trade, 'side', 'S');
+        if (side === undefined) {
+            side = (isBuyerMaker || m) ? 'sell' : 'buy';
+            takeOrMaker = 'taker';
+        }
         return this.safeTrade({
-            'id': this.safeString2(trade, 'id', 'orderId'),
+            'id': this.safeStringN(trade, ['id', 't']),
             'info': trade,
             'timestamp': time,
             'datetime': this.iso8601(time),
-            'symbol': this.safeSymbol(undefined, market, '-', type),
-            'order': undefined,
-            'type': undefined,
-            'side': side,
+            'symbol': this.safeSymbol(marketId, market, '-', type),
+            'order': this.safeString2(trade, 'orderId', 'i'),
+            'type': this.safeStringLower(trade, 'o'),
+            'side': this.parseOrderSide(side),
             'takerOrMaker': takeOrMaker,
-            'price': this.safeString(trade, 'price'),
-            'amount': this.safeString2(trade, 'qty', 'amount'),
+            'price': this.safeString2(trade, 'price', 'p'),
+            'amount': this.safeStringN(trade, ['qty', 'amount', 'q']),
             'cost': cost,
             'fee': {
-                'cost': this.parseNumber(Precise["default"].stringAbs(this.safeString(trade, 'commission'))),
+                'cost': this.parseNumber(Precise["default"].stringAbs(this.safeString2(trade, 'commission', 'n'))),
                 'currency': currencyCode,
                 'rate': undefined,
             },
@@ -1019,10 +1080,17 @@ class bingx extends bingx$1 {
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {[object]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params);
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1032,6 +1100,11 @@ class bingx extends bingx$1 {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        const until = this.safeInteger2(params, 'until', 'startTime');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['startTime'] = until;
         }
         const response = await this.swapV2PublicGetQuoteFundingRate(this.extend(request, params));
         //
@@ -1108,14 +1181,16 @@ class bingx extends bingx$1 {
         const id = this.safeString(interest, 'symbol');
         const symbol = this.safeSymbol(id, market, '-', 'swap');
         const openInterest = this.safeNumber(interest, 'openInterest');
-        return {
+        return this.safeOpenInterest({
             'symbol': symbol,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
             'openInterestAmount': undefined,
             'openInterestValue': openInterest,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -1483,13 +1558,14 @@ class bingx extends bingx$1 {
             'info': position,
             'id': this.safeString(position, 'positionId'),
             'symbol': this.safeSymbol(marketId, market, '-', 'swap'),
-            'notional': this.safeString(position, 'positionAmt'),
+            'notional': this.safeNumber(position, 'positionAmt'),
             'marginMode': marginMode,
             'liquidationPrice': undefined,
             'entryPrice': this.safeNumber2(position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': this.safeNumber(position, 'unrealizedProfit'),
+            'realizedPnl': this.safeNumber(position, 'realisedProfit'),
             'percentage': undefined,
-            'contracts': undefined,
+            'contracts': this.safeNumber(position, 'positionAmt'),
             'contractSize': undefined,
             'markPrice': undefined,
             'lastPrice': undefined,
@@ -1500,7 +1576,7 @@ class bingx extends bingx$1 {
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'collateral': this.safeString(position, 'positionAmt'),
+            'collateral': this.safeNumber(position, 'positionAmt'),
             'initialMargin': this.safeNumber(position, 'initialMargin'),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber(position, 'leverage'),
@@ -1523,6 +1599,8 @@ class bingx extends bingx$1 {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {bool} [params.postOnly] true to place a post only order
+         * @param {string} [params.timeInForce] spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+         * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
          * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
          * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
          * @param {float} [params.takeProfitPrice] *swap only* take profit trigger price
@@ -1530,8 +1608,10 @@ class bingx extends bingx$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        let postOnly = undefined;
         let response = undefined;
-        const [marketType, query] = this.handleMarketTypeAndParams('createOrder', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
         type = type.toUpperCase();
         const request = {
             'symbol': market['id'],
@@ -1539,95 +1619,107 @@ class bingx extends bingx$1 {
             'side': side.toUpperCase(),
         };
         const isMarketOrder = type === 'MARKET';
-        const isSpotMarket = marketType === 'spot';
-        let stopPriceRaw = undefined;
-        let stopPrice = undefined;
-        let stopLossPrice = undefined;
-        let takeProfitPrice = undefined;
-        if (!isSpotMarket) {
-            stopPriceRaw = this.safeValue2(params, 'stopPrice', 'triggerPrice');
-            if (stopPriceRaw !== undefined) {
-                stopPrice = this.priceToPrecision(symbol, stopPriceRaw);
-            }
-            stopLossPrice = this.safeValue(params, 'stopLossPrice');
-            takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
+        const isSpot = marketType === 'spot';
+        const timeInForce = this.safeStringUpper(params, 'timeInForce');
+        if (timeInForce === 'IOC') {
+            request['timeInForce'] = 'IOC';
         }
-        if ((stopLossPrice !== undefined) && (takeProfitPrice !== undefined)) {
-            throw new errors.InvalidOrder('Order is either a takeProfit order or a stopLoss order');
-        }
-        if ((type === 'LIMIT') || (type === 'TRIGGER_LIMIT')) {
-            request['price'] = this.priceToPrecision(symbol, price);
-            if ((stopPrice !== undefined)) {
-                request['type'] = 'TRIGGER_LIMIT';
-                request['stopPrice'] = stopPrice;
+        if (isSpot) {
+            [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'POC', params);
+            if (postOnly || (timeInForce === 'POC')) {
+                request['timeInForce'] = 'POC';
             }
-            if (type === 'TRIGGER_LIMIT') {
-                if (stopPrice === undefined) {
-                    throw new errors.InvalidOrder('TRIGGER_LIMIT requires a triggerPrice / stopPrice');
-                }
-                request['stopPrice'] = stopPrice;
-            }
-        }
-        if (isMarketOrder || (type === 'TRIGGER_MARKET')) {
-            if ((stopPrice !== undefined)) {
-                request['type'] = 'TRIGGER_MARKET';
-                request['stopPrice'] = stopPrice;
-            }
-            if (type === 'TRIGGER_MARKET') {
-                if (stopPrice === undefined) {
-                    throw new errors.InvalidOrder('TRIGGER_MARKET requires a triggerPrice / stopPrice');
-                }
-                request['stopPrice'] = stopPrice;
-            }
-        }
-        const exchangeSpecificTifParam = this.safeStringUpperN(params, ['force', 'timeInForce']);
-        let postOnly = undefined;
-        [postOnly, params] = this.handlePostOnly(isMarketOrder, exchangeSpecificTifParam === 'POC', params);
-        if (isSpotMarket) {
             const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
-            if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
-                if (price === undefined) {
-                    throw new errors.InvalidOrder(this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+            if (isMarketOrder && (side === 'buy')) {
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new errors.InvalidOrder(this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                    }
+                    else {
+                        const amountString = this.numberToString(amount);
+                        const priceString = this.numberToString(price);
+                        const cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
+                        request['quoteOrderQty'] = this.priceToPrecision(symbol, cost);
+                    }
                 }
                 else {
-                    const amountString = this.numberToString(amount);
-                    const priceString = this.numberToString(price);
-                    const cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
-                    request['quoteOrderQty'] = this.priceToPrecision(symbol, cost);
+                    request['quoteOrderQty'] = this.priceToPrecision(symbol, amount);
                 }
             }
             else {
                 request['quantity'] = this.amountToPrecision(symbol, amount);
             }
+            if (!isMarketOrder) {
+                request['price'] = this.priceToPrecision(symbol, price);
+            }
+            response = await this.spotV1PrivatePostTradeOrder(this.extend(request, params));
         }
         else {
+            [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'PostOnly', params);
+            if (postOnly || (timeInForce === 'PostOnly')) {
+                request['timeInForce'] = 'PostOnly';
+            }
+            else if (timeInForce === 'GTC') {
+                request['timeInForce'] = 'GTC';
+            }
+            else if (timeInForce === 'FOK') {
+                request['timeInForce'] = 'FOK';
+            }
+            if ((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) {
+                request['price'] = this.priceToPrecision(symbol, price);
+            }
+            const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
+            const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
+            const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');
+            const isTriggerOrder = triggerPrice !== undefined;
+            const isStopLossPriceOrder = stopLossPrice !== undefined;
+            const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
+            if (isTriggerOrder) {
+                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
+                if (isMarketOrder || (type === 'TRIGGER_MARKET')) {
+                    request['type'] = 'TRIGGER_MARKET';
+                }
+                else if ((type === 'LIMIT') || (type === 'TRIGGER_LIMIT')) {
+                    request['type'] = 'TRIGGER_LIMIT';
+                }
+            }
+            else if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
+                // This can be used to set the stop loss and take profit, but the position needs to be opened first
+                if (isStopLossPriceOrder) {
+                    request['stopPrice'] = this.priceToPrecision(symbol, stopLossPrice);
+                    if (isMarketOrder || (type === 'STOP_MARKET')) {
+                        request['type'] = 'STOP_MARKET';
+                    }
+                    else if ((type === 'LIMIT') || (type === 'STOP')) {
+                        request['type'] = 'STOP';
+                    }
+                }
+                else if (isTakeProfitPriceOrder) {
+                    request['stopPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
+                    if (isMarketOrder || (type === 'TAKE_PROFIT_MARKET')) {
+                        request['type'] = 'TAKE_PROFIT_MARKET';
+                    }
+                    else if ((type === 'LIMIT') || (type === 'TAKE_PROFIT')) {
+                        request['type'] = 'TAKE_PROFIT';
+                    }
+                }
+            }
+            const reduceOnly = this.safeValue(params, 'reduceOnly', false);
+            let positionSide = undefined;
+            if (reduceOnly) {
+                positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
+            }
+            else {
+                positionSide = (side === 'buy') ? 'LONG' : 'SHORT';
+            }
+            request['positionSide'] = positionSide;
             request['quantity'] = this.amountToPrecision(symbol, amount);
-        }
-        if ((stopLossPrice !== undefined)) {
-            request['type'] = 'STOP_MARKET';
-            request['stopPrice'] = this.priceToPrecision(symbol, stopLossPrice);
-        }
-        if ((takeProfitPrice !== undefined)) {
-            request['type'] = 'TAKE_PROFIT_MARKET';
-            request['stopPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
-        }
-        if (postOnly) {
-            request['timeInForce'] = 'POC';
-        }
-        else if (exchangeSpecificTifParam === 'POC') {
-            request['timeInForce'] = 'POC';
-        }
-        else if (!isSpotMarket) {
-            request['timeInForce'] = 'GTC';
-        }
-        if (isSpotMarket) {
-            response = await this.spotV1PrivatePostTradeOrder(this.extend(request, query));
-        }
-        else {
-            response = await this.swapV2PrivatePostTradeOrder(this.extend(request, query));
+            params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+            response = await this.swapV2PrivatePostTradeOrder(this.extend(request, params));
         }
         //
         // spot
+        //
         //    {
         //        "code": 0,
         //        "msg": "",
@@ -1647,23 +1739,34 @@ class bingx extends bingx$1 {
         //
         // swap
         //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //          "order": {
-        //            "symbol": "BTC-USDT",
-        //            "orderId": 1590973236294713344,
-        //            "side": "BUY",
-        //            "positionSide": "LONG",
-        //            "type": "LIMIT"
-        //          }
-        //        }
-        //    }
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "order": {
+        //                 "symbol": "BTC-USDT",
+        //                 "orderId": 1709036527545438208,
+        //                 "side": "BUY",
+        //                 "positionSide": "LONG",
+        //                 "type": "TRIGGER_LIMIT",
+        //                 "clientOrderID": "",
+        //                 "workingType": ""
+        //             }
+        //         }
+        //     }
         //
-        const data = this.safeValue(response, 'data');
-        const first = this.safeValue(data, 'order', data);
-        return this.parseOrder(first, market);
+        const data = this.safeValue(response, 'data', {});
+        const order = this.safeValue(data, 'order', data);
+        return this.parseOrder(order, market);
+    }
+    parseOrderSide(side) {
+        const sides = {
+            'BUY': 'buy',
+            'SELL': 'sell',
+            'SHORT': 'sell',
+            'LONG': 'buy',
+        };
+        return this.safeString(sides, side, side);
     }
     parseOrder(order, market = undefined) {
         //
@@ -1733,44 +1836,54 @@ class bingx extends bingx$1 {
         //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
-        //    {
-        //        "symbol": "LINK-USDT",
-        //        "orderId": 1585839271162413056,
-        //        "side": "BUY",
-        //        "positionSide": "LONG",
-        //        "type": "TRIGGER_MARKET",
-        //        "origQty": "5.0",
-        //        "price": "9",
-        //        "executedQty": "0.0",
-        //        "avgPrice": "0",
-        //        "cumQuote": "0",
-        //        "stopPrice": "5",
-        //        "profit": "0.0000",
-        //        "commission": "0.000000",
-        //        "status": "CANCELLED",
-        //        "time": 1667631605000,
-        //        "updateTime": 1667631605000
-        //    }
+        //     {
+        //         "symbol": "BTC-USDT",
+        //         "orderId": 1709036527545438208,
+        //         "side": "BUY",
+        //         "positionSide": "LONG",
+        //         "type": "TRIGGER_LIMIT",
+        //         "origQty": "0.0010",
+        //         "price": "22000.0",
+        //         "executedQty": "0.0000",
+        //         "avgPrice": "0.0",
+        //         "cumQuote": "",
+        //         "stopPrice": "23000.0",
+        //         "profit": "",
+        //         "commission": "",
+        //         "status": "NEW",
+        //         "time": 1696301035187,
+        //         "updateTime": 1696301035187,
+        //         "clientOrderId": "",
+        //         "leverage": "",
+        //         "takeProfit": "",
+        //         "stopLoss": "",
+        //         "advanceAttr": 0,
+        //         "positionID": 0,
+        //         "takeProfitEntrustPrice": 0,
+        //         "stopLossEntrustPrice": 0,
+        //         "orderType": "",
+        //         "workingType": "MARK_PRICE"
+        //     }
         //
-        const positionSide = this.safeString(order, 'positionSide');
+        const positionSide = this.safeString2(order, 'positionSide', 'ps');
         const marketType = (positionSide === undefined) ? 'spot' : 'swap';
-        const marketId = this.safeString(order, 'symbol');
+        const marketId = this.safeString2(order, 'symbol', 's');
         const symbol = this.safeSymbol(marketId, market, '-', marketType);
-        const orderId = this.safeString(order, 'orderId');
-        const side = this.safeStringLower(order, 'side');
-        const type = this.safeStringLower(order, 'type');
-        const timestamp = this.safeInteger2(order, 'time', 'transactTime');
-        const lastTradeTimestamp = this.safeInteger(order, 'updateTime');
-        const price = this.safeString(order, 'price');
-        const average = this.safeString(order, 'avgPrice');
-        const amount = this.safeString(order, 'origQty');
-        const filled = this.safeString(order, 'executedQty');
-        const statusId = this.safeString(order, 'status');
+        const orderId = this.safeString2(order, 'orderId', 'i');
+        const side = this.safeStringLower2(order, 'side', 'S');
+        const type = this.safeStringLower2(order, 'type', 'o');
+        const timestamp = this.safeIntegerN(order, ['time', 'transactTime', 'E']);
+        const lastTradeTimestamp = this.safeInteger2(order, 'updateTime', 'T');
+        const price = this.safeString2(order, 'price', 'p');
+        const average = this.safeString2(order, 'avgPrice', 'ap');
+        const amount = this.safeString2(order, 'origQty', 'q');
+        const filled = this.safeString2(order, 'executedQty', 'z');
+        const statusId = this.safeString2(order, 'status', 'X');
         const fee = {
-            'currency': this.safeString(order, 'feeAsset'),
-            'rate': this.safeString2(order, 'fee', 'commission'),
+            'currency': this.safeString2(order, 'feeAsset', 'N'),
+            'rate': this.safeStringN(order, ['fee', 'commission', 'n']),
         };
-        const clientOrderId = this.safeString(order, 'clientOrderId');
+        const clientOrderId = this.safeString2(order, 'clientOrderId', 'c');
         return this.safeOrder({
             'info': order,
             'id': orderId,
@@ -1778,14 +1891,17 @@ class bingx extends bingx$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': this.safeInteger(order, 'updateTime'),
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': side,
+            'side': this.parseOrderSide(side),
             'price': price,
-            'stopPrice': this.safeNumber(order, 'triggerPrice'),
-            'triggerPrice': this.safeNumber(order, 'triggerPrice'),
+            'stopPrice': this.safeNumber(order, 'stopPrice'),
+            'triggerPrice': this.safeNumber(order, 'stopPrice'),
+            'stopLossPrice': this.safeNumber(order, 'stopLoss'),
+            'takeProfitPrice': this.safeNumber(order, 'takeProfit'),
             'average': average,
             'cost': undefined,
             'amount': amount,
@@ -2379,6 +2495,74 @@ class bingx extends bingx$1 {
             'status': status,
         };
     }
+    async fetchDepositAddress(code, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
+        const recvWindow = this.safeInteger(this.parseParams, 'recvWindow', defaultRecvWindow);
+        const request = {
+            'coin': currency['id'],
+            'offset': 0,
+            'limit': 1000,
+            'recvWindow': recvWindow,
+        };
+        const response = await this.walletsV1PrivateGetCapitalDepositAddress(this.extend(request, params));
+        //
+        //     {
+        //         code: '0',
+        //         timestamp: '1695200226859',
+        //         data: {
+        //           data: [
+        //             {
+        //               coinId: '799',
+        //               coin: 'USDT',
+        //               network: 'BEP20',
+        //               address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
+        //               tag: ''
+        //             }
+        //           ],
+        //           total: '1'
+        //         }
+        //     }
+        //
+        const data = this.safeValue(this.safeValue(response, 'data'), 'data');
+        const parsed = this.parseDepositAddresses(data, [currency['code']], false);
+        return this.indexBy(parsed, 'network');
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //     {
+        //         coinId: '799',
+        //         coin: 'USDT',
+        //         network: 'BEP20',
+        //         address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
+        //         tag: ''
+        //     }
+        //
+        const address = this.safeString(depositAddress, 'address');
+        const tag = this.safeString(depositAddress, 'tag');
+        const currencyId = this.safeString(depositAddress, 'coin');
+        currency = this.safeCurrency(currencyId, currency);
+        const code = currency['code'];
+        const network = this.safeString(depositAddress, 'network');
+        this.checkAddress(address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': network,
+            'info': depositAddress,
+        };
+    }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -2518,8 +2702,10 @@ class bingx extends bingx$1 {
         const network = this.safeString(transaction, 'network');
         const currencyId = this.safeString(transaction, 'coin');
         let code = this.safeCurrencyCode(currencyId, currency);
-        if (code !== undefined && code.indexOf(network) >= 0) {
-            code = code.replace(network, '');
+        if ((code !== undefined) && (code !== network) && code.indexOf(network) >= 0) {
+            if (network !== undefined) {
+                code = code.replace(network, '');
+            }
         }
         const rawType = this.safeString(transaction, 'transferType');
         const type = (rawType === '0') ? 'deposit' : 'withdrawal';

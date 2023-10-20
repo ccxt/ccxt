@@ -303,6 +303,7 @@ class idex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $entry,
             );
         }
@@ -1489,7 +1490,7 @@ class idex extends Exchange {
         //
         //    array( serverTime => '1655258263236' )
         //
-        return $this->safe_number($response, 'serverTime');
+        return $this->safe_integer($response, 'serverTime');
     }
 
     public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {

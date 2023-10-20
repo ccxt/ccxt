@@ -570,6 +570,7 @@ class bigone extends Exchange {
                             'max' => $this->safe_number($market, 'max_quote_value'),
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
                 $result[] = $entry;
@@ -727,7 +728,7 @@ class bigone extends Exchange {
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 

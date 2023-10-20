@@ -4,8 +4,8 @@ ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotA
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position } from './types.js';
-export { Market, Trade, Fee, Position, Ticker } from './types.js';
+import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation } from './types.js';
+export { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation } from './types.js';
 /**
  * @class Exchange
  */
@@ -67,6 +67,7 @@ export default class Exchange {
     orderbooks: {};
     tickers: {};
     orders: any;
+    triggerOrders: any;
     trades: any;
     transactions: {};
     ohlcvs: any;
@@ -255,7 +256,7 @@ export default class Exchange {
     urlencodeNested: (object: any) => string;
     parseDate: (x: any) => number;
     ymd: (timestamp: any, infix: any, fullYear?: boolean) => string;
-    isArray: (arg: any) => arg is any[];
+    isArray: (needle: any, haystack: any) => any;
     base64ToString: (string: any) => string;
     crc32: typeof functions.crc32;
     describe(): {
@@ -516,6 +517,7 @@ export default class Exchange {
     close(): Promise<any[]>;
     loadOrderBook(client: any, messageHash: any, symbol: any, limit?: any, params?: {}): Promise<void>;
     convertToBigInt(value: string): bigint;
+    stringToCharsArray(value: any): any;
     valueIsDefined(value: any): boolean;
     arraySlice(array: any, first: any, second?: any): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
@@ -535,6 +537,8 @@ export default class Exchange {
     fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<Dictionary<Dictionary<OHLCV[]>>>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     fetchDepositAddresses(codes?: string[], params?: {}): Promise<any>;
@@ -555,7 +559,7 @@ export default class Exchange {
     parseMarketLeverageTiers(info: any, market?: any): void;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<any>;
     parsePosition(position: any, market?: any): void;
-    parseFundingRateHistory(info: any, market?: any): void;
+    parseFundingRateHistory(info: any, market?: any): FundingRateHistory;
     parseBorrowInterest(info: any, market?: any): void;
     parseWsTrade(trade: any, market?: any): Trade;
     parseWsOrder(order: any, market?: any): Order;
@@ -600,6 +604,7 @@ export default class Exchange {
         info: object;
     };
     safeCurrencyStructure(currency: object): any;
+    safeMarketStructure(market?: object): any;
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
     safeBalance(balance: object): Balances;
     safeOrder(order: object, market?: object): Order;
@@ -620,7 +625,7 @@ export default class Exchange {
     convertOHLCVToTradingView(ohlcvs: any, timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): {};
     fetchWebEndpoint(method: any, endpointMethod: any, returnAsJson: any, startRegex?: any, endRegex?: any): Promise<any>;
     marketIds(symbols: any): any;
-    marketSymbols(symbols: any, type?: string): any;
+    marketSymbols(symbols: any, type?: string, allowEmpty?: boolean, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): any;
     marketCodes(codes: any): any;
     parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType): any[];
     fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
@@ -634,7 +639,7 @@ export default class Exchange {
     selectNetworkIdFromRawNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any): any;
     selectNetworkKeyFromNetworks(currencyCode: any, networkCode: any, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode?: boolean): any;
     safeNumber2(dictionary: any, key1: any, key2: any, d?: any): number;
-    parseOrderBook(orderbook: object, symbol: string, timestamp?: number, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType): OrderBook;
+    parseOrderBook(orderbook: object, symbol: string, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType): OrderBook;
     parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     loadTradingLimits(symbols?: string[], reload?: boolean, params?: {}): Promise<Dictionary<any>>;
@@ -702,6 +707,7 @@ export default class Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
+    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
     watchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOrderWs(id: string, symbol?: string, params?: {}): Promise<Order>;
@@ -722,13 +728,16 @@ export default class Exchange {
     fetchOpenOrdersWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     fetchMyTradesWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchDeposits(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchOpenInterest(symbol: string, params?: {}): Promise<any>;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseLastPrice(price: any, market?: any): any;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     account(): Balance;
@@ -769,7 +778,7 @@ export default class Exchange {
     parseTickers(tickers: any, symbols?: string[], params?: {}): Dictionary<Ticker>;
     parseDepositAddresses(addresses: any, codes?: string[], indexed?: boolean, params?: {}): {};
     parseBorrowInterests(response: any, market?: any): any[];
-    parseFundingRateHistories(response: any, market?: any, since?: Int, limit?: Int): any;
+    parseFundingRateHistories(response: any, market?: any, since?: Int, limit?: Int): FundingRateHistory[];
     safeSymbol(marketId: any, market?: any, delimiter?: any, marketType?: any): any;
     parseFundingRate(contract: string, market?: any): void;
     parseFundingRates(response: any, market?: any): {};
@@ -779,8 +788,8 @@ export default class Exchange {
     fetchLastPrices(symbols?: string[], params?: {}): Promise<void>;
     fetchTradingFees(params?: {}): Promise<any>;
     fetchTradingFee(symbol: string, params?: {}): Promise<any>;
-    parseOpenInterest(interest: any, market?: any): any;
-    parseOpenInterests(response: any, market?: any, since?: Int, limit?: Int): any;
+    parseOpenInterest(interest: any, market?: any): OpenInterest;
+    parseOpenInterests(response: any, market?: any, since?: Int, limit?: Int): OpenInterest[];
     fetchFundingRate(symbol: string, params?: {}): Promise<any>;
     fetchMarkOHLCV(symbol: any, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchIndexOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -800,8 +809,21 @@ export default class Exchange {
     parseWsOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): any[];
     fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     filterByArrayPositions(objects: any, key: IndexType, values?: any, indexed?: boolean): Position[];
+    filterByArrayTickers(objects: any, key: IndexType, values?: any, indexed?: boolean): Dictionary<Ticker>;
     resolvePromiseIfMessagehashMatches(client: any, prefix: string, symbol: string, data: any): void;
     resolveMultipleOHLCV(client: any, prefix: string, symbol: string, timeframe: string, data: any): void;
     createOHLCVObject(symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>>;
+    handleMaxEntriesPerRequestAndParams(method: string, maxEntriesPerRequest?: Int, params?: {}): [Int, any];
+    fetchPaginatedCallDynamic(method: string, symbol?: string, since?: Int, limit?: Int, params?: {}, maxEntriesPerRequest?: Int): Promise<any>;
+    safeDeterministicCall(method: string, symbol?: string, since?: Int, limit?: Int, timeframe?: string, params?: {}): Promise<any>;
+    fetchPaginatedCallDeterministic(method: string, symbol?: string, since?: Int, limit?: Int, timeframe?: string, params?: {}, maxEntriesPerRequest?: any): Promise<any>;
+    fetchPaginatedCallCursor(method: string, symbol?: string, since?: any, limit?: any, params?: {}, cursorReceived?: any, cursorSent?: any, cursorIncrement?: any, maxEntriesPerRequest?: any): Promise<any>;
+    fetchPaginatedCallIncremental(method: string, symbol?: string, since?: any, limit?: any, params?: {}, pageKey?: any, maxEntriesPerRequest?: any): Promise<any>;
+    sortCursorPaginatedResult(result: any): any;
+    removeRepeatedElementsFromArray(input: any): any;
+    handleUntilOption(key: any, request: any, params: any, multiplier?: number): any[];
+    safeOpenInterest(interest: any, market?: any): OpenInterest;
+    parseLiquidation(liquidation: any, market?: any): Liquidation;
+    parseLiquidations(liquidations: any, market?: any, since?: Int, limit?: Int): Liquidation[];
 }
 export { Exchange, };

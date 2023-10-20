@@ -18,6 +18,7 @@ function test_watch_trades($exchange, $symbol) {
         'woo',
         'luno', // requires authentication for watch_trades,
         'independentreserve', // trades are rare
+        'bingx', // side is undefined
     );
 
     if (in_array($exchange->id, $skipped_exchanges)) {

@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Dictionary, Int, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -230,6 +230,7 @@ export default class oceanex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -317,7 +318,7 @@ export default class oceanex extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     parseTicker (data, market = undefined) {
@@ -460,7 +461,7 @@ export default class oceanex extends Exchange {
             const timestamp = this.safeTimestamp (orderbook, 'timestamp');
             result[symbol] = this.parseOrderBook (orderbook, symbol, timestamp);
         }
-        return result;
+        return result as Dictionary<OrderBook>;
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -767,7 +768,7 @@ export default class oceanex extends Exchange {
             const parsedOrders = this.parseOrders (orders, market, since, limit, { 'status': status });
             result = this.arrayConcat (result, parsedOrders);
         }
-        return result;
+        return result as Order[];
     }
 
     parseOHLCV (ohlcv, market = undefined) {

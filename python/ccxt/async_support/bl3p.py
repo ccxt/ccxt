@@ -110,7 +110,7 @@ class bl3p(Exchange, ImplicitAPI):
                 },
             },
             'markets': {
-                'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': True},
+                'BTC/EUR': self.safe_market_structure({'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': True}),
             },
             'precisionMode': TICK_SIZE,
         })

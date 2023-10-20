@@ -647,6 +647,7 @@ class digifinex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -994,7 +995,7 @@ class digifinex extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker(string $symbol, $params = array ()) {
@@ -1505,19 +1506,19 @@ class digifinex extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
-         * create a trade order
-         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
+         * create a trade $order
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-$order
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderplace
-         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the digifinex api endpoint
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [$params->postOnly] true or false
          * @param {bool} [$params->reduceOnly] true or false
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1609,14 +1610,13 @@ class digifinex extends Exchange {
         //         "data" => "1590873693003714560"
         //     }
         //
-        $result = $this->parse_order($response, $market);
-        return array_merge($result, array(
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'amount' => $amount,
-            'price' => $price,
-        ));
+        $order = $this->parse_order($response, $market);
+        $order['symbol'] = $symbol;
+        $order['type'] = $type;
+        $order['side'] = $side;
+        $order['amount'] = $amount;
+        $order['price'] = $price;
+        return $order;
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -2759,14 +2759,16 @@ class digifinex extends Exchange {
         //         "leverage_ratio" => 3
         //     }
         //
-        $symbol = $this->safe_string($info, 'symbol');
+        $marketId = $this->safe_string($info, 'symbol');
         $amountString = $this->safe_string($info, 'amount');
         $leverageString = $this->safe_string($info, 'leverage_ratio');
         $amountInvested = Precise::string_div($amountString, $leverageString);
         $amountBorrowed = Precise::string_sub($amountString, $amountInvested);
         $currency = ($market === null) ? null : $market['base'];
+        $symbol = $this->safe_symbol($marketId, $market);
         return array(
-            'account' => $this->safe_symbol($symbol, $market),
+            'account' => $symbol,
+            'symbol' => $symbol,
             'currency' => $currency,
             'interest' => null,
             'interestRate' => 0.001, // all interest rates on digifinex are 0.1%
@@ -3243,10 +3245,9 @@ class digifinex extends Exchange {
         if ($marketType === 'swap') {
             return $position;
         } else {
-            return array_merge($position, array(
-                'collateral' => $this->safe_number($response, 'margin'),
-                'marginRatio' => $this->safe_number($response, 'margin_rate'),
-            ));
+            $position['collateral'] = $this->safe_number($response, 'margin');
+            $position['marginRatio'] = $this->safe_number($response, 'margin_rate');
+            return $position;
         }
     }
 
@@ -3305,7 +3306,7 @@ class digifinex extends Exchange {
         } elseif ($side === 'go_short') {
             $side = 'short';
         }
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -3331,7 +3332,7 @@ class digifinex extends Exchange {
             'percentage' => null,
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
-        );
+        ));
     }
 
     public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {

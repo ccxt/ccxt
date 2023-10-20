@@ -385,6 +385,7 @@ class krakenfutures extends krakenfutures$1 {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'openingDate')),
                 'info': market,
             });
         }
@@ -561,8 +562,26 @@ class krakenfutures extends krakenfutures$1 {
         });
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#fetchOHLCV
+         * @see https://docs.futures.kraken.com/#http-api-charts-candles
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the kraken api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets();
         const market = this.market(symbol);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 5000);
+        }
         const request = {
             'symbol': market['id'],
             'price_type': this.safeString(params, 'price', 'trade'),
@@ -639,9 +658,15 @@ class krakenfutures extends krakenfutures$1 {
          * @param {int} [limit] Total number of trades, cannot exceed 100
          * @param {object} [params] Exchange specific params
          * @param {int} [params.until] Timestamp in ms of latest trade
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns An array of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchTrades', symbol, since, limit, params);
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -917,7 +942,8 @@ class krakenfutures extends krakenfutures$1 {
         const status = this.safeString(response['editStatus'], 'status');
         this.verifyOrderActionSuccess(status, 'editOrder', ['filled']);
         const order = this.parseOrder(response['editStatus']);
-        return this.extend({ 'info': response }, order);
+        order['info'] = response;
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1217,7 +1243,8 @@ class krakenfutures extends krakenfutures$1 {
         let statusId = undefined;
         let price = undefined;
         let trades = [];
-        if (orderEvents.length) {
+        const orderEventsLength = orderEvents.length;
+        if (orderEventsLength) {
             const executions = [];
             for (let i = 0; i < orderEvents.length; i++) {
                 const item = orderEvents[i];
@@ -1325,7 +1352,7 @@ class krakenfutures extends krakenfutures$1 {
         return this.safeOrder({
             'info': order,
             'id': id,
-            'clientOrderId': this.safeString2(details, 'clientOrderId', 'clientId'),
+            'clientOrderId': this.safeStringN(details, ['clientOrderId', 'clientId', 'cliOrdId']),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
@@ -1334,6 +1361,7 @@ class krakenfutures extends krakenfutures$1 {
             'type': this.parseOrderType(type),
             'timeInForce': timeInForce,
             'postOnly': type === 'post',
+            'reduceOnly': this.safeValue(details, 'reduceOnly'),
             'side': this.safeString(details, 'side'),
             'price': price,
             'stopPrice': this.safeString(details, 'triggerPrice'),
@@ -1499,11 +1527,10 @@ class krakenfutures extends krakenfutures$1 {
             throw new errors.BadRequest(this.id + ' fetchBalance has no account for ' + type);
         }
         const balance = this.parseBalance(account);
-        return this.extend({
-            'info': response,
-            'timestamp': this.parse8601(datetime),
-            'datetime': datetime,
-        }, balance);
+        balance['info'] = response;
+        balance['timestamp'] = this.parse8601(datetime);
+        balance['datetime'] = datetime;
+        return balance;
     }
     parseBalance(response) {
         //

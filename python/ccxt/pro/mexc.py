@@ -323,7 +323,7 @@ class mexc(ccxt.async_support.mexc):
         #     }
         #
         return [
-            self.safe_integer_product(ohlcv, 't', 1000),
+            self.safe_timestamp(ohlcv, 't'),
             self.safe_number(ohlcv, 'o'),
             self.safe_number(ohlcv, 'h'),
             self.safe_number(ohlcv, 'l'),

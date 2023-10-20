@@ -17,7 +17,7 @@ class gate extends gate$1 {
             'id': 'gate',
             'name': 'Gate.io',
             'countries': ['KR'],
-            'rateLimit': 10 / 3,
+            'rateLimit': 50,
             'version': 'v4',
             'certified': true,
             'pro': true,
@@ -105,10 +105,12 @@ class gate extends gate$1 {
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
+                'fetchLiquidations': true,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMyLiquidations': true,
                 'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
                 'fetchNetworkDepositAddress': true,
@@ -144,9 +146,10 @@ class gate extends gate$1 {
             },
             'api': {
                 'public': {
+                    // All public endpoints 200r/10s per endpoint
                     'wallet': {
                         'get': {
-                            'currency_chains': 1.5,
+                            'currency_chains': 1,
                         },
                     },
                     'spot': {
@@ -180,131 +183,133 @@ class gate extends gate$1 {
                     },
                     'futures': {
                         'get': {
-                            '{settle}/contracts': 1.5,
-                            '{settle}/contracts/{contract}': 1.5,
-                            '{settle}/order_book': 1.5,
-                            '{settle}/trades': 1.5,
-                            '{settle}/candlesticks': 1.5,
-                            '{settle}/premium_index': 1.5,
-                            '{settle}/tickers': 1.5,
-                            '{settle}/funding_rate': 1.5,
-                            '{settle}/insurance': 1.5,
-                            '{settle}/contract_stats': 1.5,
-                            '{settle}/index_constituents/{index}': 1.5,
-                            '{settle}/liq_orders': 1.5,
+                            '{settle}/contracts': 1,
+                            '{settle}/contracts/{contract}': 1,
+                            '{settle}/order_book': 1,
+                            '{settle}/trades': 1,
+                            '{settle}/candlesticks': 1,
+                            '{settle}/premium_index': 1,
+                            '{settle}/tickers': 1,
+                            '{settle}/funding_rate': 1,
+                            '{settle}/insurance': 1,
+                            '{settle}/contract_stats': 1,
+                            '{settle}/index_constituents/{index}': 1,
+                            '{settle}/liq_orders': 1,
                         },
                     },
                     'delivery': {
                         'get': {
-                            '{settle}/contracts': 1.5,
-                            '{settle}/contracts/{contract}': 1.5,
-                            '{settle}/order_book': 1.5,
-                            '{settle}/trades': 1.5,
-                            '{settle}/candlesticks': 1.5,
-                            '{settle}/tickers': 1.5,
-                            '{settle}/insurance': 1.5,
+                            '{settle}/contracts': 1,
+                            '{settle}/contracts/{contract}': 1,
+                            '{settle}/order_book': 1,
+                            '{settle}/trades': 1,
+                            '{settle}/candlesticks': 1,
+                            '{settle}/tickers': 1,
+                            '{settle}/insurance': 1,
                         },
                     },
                     'options': {
                         'get': {
-                            'underlyings': 1.5,
-                            'expirations': 1.5,
-                            'contracts': 1.5,
-                            'contracts/{contract}': 1.5,
-                            'settlements': 1.5,
-                            'settlements/{contract}': 1.5,
-                            'order_book': 1.5,
-                            'tickers': 1.5,
-                            'underlying/tickers/{underlying}': 1.5,
-                            'candlesticks': 1.5,
-                            'underlying/candlesticks': 1.5,
-                            'trades': 1.5,
+                            'underlyings': 1,
+                            'expirations': 1,
+                            'contracts': 1,
+                            'contracts/{contract}': 1,
+                            'settlements': 1,
+                            'settlements/{contract}': 1,
+                            'order_book': 1,
+                            'tickers': 1,
+                            'underlying/tickers/{underlying}': 1,
+                            'candlesticks': 1,
+                            'underlying/candlesticks': 1,
+                            'trades': 1,
                         },
                     },
                     'earn': {
                         'get': {
-                            'uni/currencies': 1.5,
-                            'uni/currencies/{currency}': 1.5,
+                            'uni/currencies': 1,
+                            'uni/currencies/{currency}': 1,
                         },
                     },
                 },
                 'private': {
+                    // private endpoints default is 150r/10s per endpoint
                     'withdrawals': {
                         'post': {
-                            'withdrawals': 3000, // 3000 = 10 seconds
+                            'withdrawals': 20, // 1r/s cost = 20 / 1 = 20
                         },
                         'delete': {
-                            'withdrawals/{withdrawal_id}': 300,
+                            'withdrawals/{withdrawal_id}': 1,
                         },
                     },
                     'wallet': {
                         'get': {
-                            'deposit_address': 300,
-                            'withdrawals': 300,
-                            'deposits': 300,
-                            'sub_account_transfers': 300,
-                            'withdraw_status': 300,
-                            'sub_account_balances': 300,
-                            'sub_account_margin_balances': 300,
-                            'sub_account_futures_balances': 300,
-                            'sub_account_cross_margin_balances': 300,
-                            'saved_address': 300,
-                            'fee': 300,
-                            'total_balance': 300,
+                            'deposit_address': 1,
+                            'withdrawals': 1,
+                            'deposits': 1,
+                            'sub_account_transfers': 1,
+                            'withdraw_status': 1,
+                            'sub_account_balances': 2.5,
+                            'sub_account_margin_balances': 2.5,
+                            'sub_account_futures_balances': 2.5,
+                            'sub_account_cross_margin_balances': 2.5,
+                            'saved_address': 1,
+                            'fee': 1,
+                            'total_balance': 2.5,
                         },
                         'post': {
-                            'transfers': 300,
-                            'sub_account_transfers': 300,
-                            'sub_account_to_sub_account': 300,
+                            'transfers': 2.5,
+                            'sub_account_transfers': 2.5,
+                            'sub_account_to_sub_account': 2.5,
                         },
                     },
                     'subAccounts': {
                         'get': {
-                            'sub_accounts': 1,
-                            'sub_accounts/{user_id}': 1,
-                            'sub_accounts/{user_id}/keys': 1,
-                            'sub_accounts/{user_id}/keys/{key}': 1,
+                            'sub_accounts': 2.5,
+                            'sub_accounts/{user_id}': 2.5,
+                            'sub_accounts/{user_id}/keys': 2.5,
+                            'sub_accounts/{user_id}/keys/{key}': 2.5,
                         },
                         'post': {
-                            'sub_accounts': 1,
-                            'sub_accounts/{user_id}/keys': 1,
-                            'sub_accounts/{user_id}/lock': 1,
-                            'sub_accounts/{user_id}/unlock': 1,
+                            'sub_accounts': 2.5,
+                            'sub_accounts/{user_id}/keys': 2.5,
+                            'sub_accounts/{user_id}/lock': 2.5,
+                            'sub_accounts/{user_id}/unlock': 2.5,
                         },
                         'put': {
-                            'sub_accounts/{user_id}/keys/{key}': 1,
+                            'sub_accounts/{user_id}/keys/{key}': 2.5,
                         },
                         'delete': {
-                            'sub_accounts/{user_id}/keys/{key}': 1,
+                            'sub_accounts/{user_id}/keys/{key}': 2.5,
                         },
                     },
                     'portfolio': {
                         'get': {
-                            'spot/currency_pairs': 1.5,
-                            'spot/currency_pairs/{currency_pair}': 1.5,
-                            'accounts': 1.5,
-                            'account_mode': 1.5,
-                            'borrowable': 1.5,
-                            'transferable': 1.5,
-                            'loans': 1.5,
-                            'loan_records': 1.5,
-                            'interest_records': 1.5,
-                            'spot/orders': 1.5,
-                            'spot/orders/{order_id}': 1.5,
+                            'spot/currency_pairs': 20 / 15,
+                            'spot/currency_pairs/{currency_pair}': 20 / 15,
+                            'accounts': 20 / 15,
+                            'account_mode': 20 / 15,
+                            'borrowable': 20 / 15,
+                            'transferable': 20 / 15,
+                            'loans': 20 / 15,
+                            'loan_records': 20 / 15,
+                            'interest_records': 20 / 15,
+                            'spot/orders': 20 / 15,
+                            'spot/orders/{order_id}': 20 / 15,
                         },
                         'post': {
-                            'account_mode': 1.5,
-                            'loans': 1.5,
-                            'spot/orders': 1.5,
+                            'account_mode': 20 / 15,
+                            'loans': 200 / 15,
+                            'spot/orders': 20 / 15,
                         },
                         'delete': {
-                            'spot/orders/{order_id}': 1.5,
+                            'spot/orders/{order_id}': 20 / 15,
                         },
                         'patch': {
-                            'spot/orders/{order_id}': 1.5,
+                            'spot/orders/{order_id}': 20 / 15,
                         },
                     },
                     'spot': {
+                        // default is 200r/10s
                         'get': {
                             'fee': 1,
                             'batch_fee': 1,
@@ -318,219 +323,219 @@ class gate extends gate$1 {
                             'price_orders/{order_id}': 1,
                         },
                         'post': {
-                            'batch_orders': 1,
+                            'batch_orders': 0.4,
                             'cross_liquidate_orders': 1,
-                            'orders': 1,
-                            'cancel_batch_orders': 1,
-                            'countdown_cancel_all': 1,
-                            'price_orders': 1,
+                            'orders': 0.4,
+                            'cancel_batch_orders': 20 / 75,
+                            'countdown_cancel_all': 20 / 75,
+                            'price_orders': 0.4,
                         },
                         'delete': {
-                            'orders': 1,
-                            'orders/{order_id}': 1,
-                            'price_orders': 1,
-                            'price_orders/{order_id}': 1,
+                            'orders': 20 / 75,
+                            'orders/{order_id}': 20 / 75,
+                            'price_orders': 20 / 75,
+                            'price_orders/{order_id}': 20 / 75,
                         },
                         'patch': {
-                            'orders/{order_id}': 1,
+                            'orders/{order_id}': 0.4,
                         },
                     },
                     'margin': {
                         'get': {
-                            'accounts': 1.5,
-                            'account_book': 1.5,
-                            'funding_accounts': 1.5,
-                            'auto_repay': 1.5,
-                            'transferable': 1.5,
-                            'loans': 1.5,
-                            'loans/{loan_id}': 1.5,
-                            'loans/{loan_id}/repayment': 1.5,
-                            'loan_records': 1.5,
-                            'loan_records/{loan_record_id}': 1.5,
-                            'borrowable': 1.5,
-                            'cross/accounts': 1.5,
-                            'cross/account_book': 1.5,
-                            'cross/loans': 1.5,
-                            'cross/loans/{loan_id}': 1.5,
-                            'cross/repayments': 1.5,
-                            'cross/interest_records': 1.5,
-                            'cross/transferable': 1.5,
-                            'cross/estimate_rate': 1.5,
-                            'cross/borrowable': 1.5,
-                            'uni/estimate_rate': 1.5,
-                            'uni/loans': 1.5,
-                            'uni/loan_records': 1.5,
-                            'uni/interest_records': 1.5,
-                            'uni/borrowable': 1.5,
+                            'accounts': 20 / 15,
+                            'account_book': 20 / 15,
+                            'funding_accounts': 20 / 15,
+                            'auto_repay': 20 / 15,
+                            'transferable': 20 / 15,
+                            'loans': 20 / 15,
+                            'loans/{loan_id}': 20 / 15,
+                            'loans/{loan_id}/repayment': 20 / 15,
+                            'loan_records': 20 / 15,
+                            'loan_records/{loan_record_id}': 20 / 15,
+                            'borrowable': 20 / 15,
+                            'cross/accounts': 20 / 15,
+                            'cross/account_book': 20 / 15,
+                            'cross/loans': 20 / 15,
+                            'cross/loans/{loan_id}': 20 / 15,
+                            'cross/repayments': 20 / 15,
+                            'cross/interest_records': 20 / 15,
+                            'cross/transferable': 20 / 15,
+                            'cross/estimate_rate': 20 / 15,
+                            'cross/borrowable': 20 / 15,
+                            'uni/estimate_rate': 20 / 15,
+                            'uni/loans': 20 / 15,
+                            'uni/loan_records': 20 / 15,
+                            'uni/interest_records': 20 / 15,
+                            'uni/borrowable': 20 / 15,
                         },
                         'post': {
-                            'auto_repay': 1.5,
-                            'loans': 1.5,
-                            'merged_loans': 1.5,
-                            'loans/{loan_id}/repayment': 1.5,
-                            'cross/loans': 1.5,
-                            'cross/repayments': 1.5,
-                            'uni/loans': 1.5,
+                            'auto_repay': 20 / 15,
+                            'loans': 20 / 15,
+                            'merged_loans': 20 / 15,
+                            'loans/{loan_id}/repayment': 20 / 15,
+                            'cross/loans': 20 / 15,
+                            'cross/repayments': 20 / 15,
+                            'uni/loans': 20 / 15,
                         },
                         'patch': {
-                            'loans/{loan_id}': 1.5,
-                            'loan_records/{loan_record_id}': 1.5,
+                            'loans/{loan_id}': 20 / 15,
+                            'loan_records/{loan_record_id}': 20 / 15,
                         },
                         'delete': {
-                            'loans/{loan_id}': 1.5,
+                            'loans/{loan_id}': 20 / 15,
                         },
                     },
                     'flash_swap': {
                         'get': {
-                            'currencies': 1.5,
-                            'currency_pairs': 1.5,
-                            'orders': 1.5,
-                            'orders/{order_id}': 1.5,
+                            'currencies': 1,
+                            'currency_pairs': 1,
+                            'orders': 1,
+                            'orders/{order_id}': 1,
                         },
                         'post': {
-                            'orders': 1.5,
-                            'orders/preview': 1.5,
+                            'orders': 1,
+                            'orders/preview': 1,
                         },
                     },
                     'futures': {
                         'get': {
-                            '{settle}/accounts': 1.5,
-                            '{settle}/account_book': 1.5,
-                            '{settle}/positions': 1.5,
-                            '{settle}/positions/{contract}': 1.5,
-                            '{settle}/dual_comp/positions/{contract}': 1.5,
-                            '{settle}/orders': 1.5,
-                            '{settle}/orders_timerange': 1.5,
-                            '{settle}/orders/{order_id}': 1.5,
-                            '{settle}/my_trades': 1.5,
-                            '{settle}/my_trades_timerange': 1.5,
-                            '{settle}/position_close': 1.5,
-                            '{settle}/liquidates': 1.5,
-                            '{settle}/auto_deleverages': 1.5,
-                            '{settle}/fee': 1.5,
-                            '{settle}/price_orders': 1.5,
-                            '{settle}/price_orders/{order_id}': 1.5,
+                            '{settle}/accounts': 1,
+                            '{settle}/account_book': 1,
+                            '{settle}/positions': 1,
+                            '{settle}/positions/{contract}': 1,
+                            '{settle}/dual_comp/positions/{contract}': 1,
+                            '{settle}/orders': 1,
+                            '{settle}/orders_timerange': 1,
+                            '{settle}/orders/{order_id}': 1,
+                            '{settle}/my_trades': 1,
+                            '{settle}/my_trades_timerange': 1,
+                            '{settle}/position_close': 1,
+                            '{settle}/liquidates': 1,
+                            '{settle}/auto_deleverages': 1,
+                            '{settle}/fee': 1,
+                            '{settle}/price_orders': 1,
+                            '{settle}/price_orders/{order_id}': 1,
                         },
                         'post': {
-                            '{settle}/positions/{contract}/margin': 1.5,
-                            '{settle}/positions/{contract}/leverage': 1.5,
-                            '{settle}/positions/{contract}/risk_limit': 1.5,
-                            '{settle}/dual_mode': 1.5,
-                            '{settle}/dual_comp/positions/{contract}/margin': 1.5,
-                            '{settle}/dual_comp/positions/{contract}/leverage': 1.5,
-                            '{settle}/dual_comp/positions/{contract}/risk_limit': 1.5,
-                            '{settle}/orders': 1.5,
-                            '{settle}/batch_orders': 1.5,
-                            '{settle}/countdown_cancel_all': 1.5,
-                            '{settle}/price_orders': 1.5,
+                            '{settle}/positions/{contract}/margin': 1,
+                            '{settle}/positions/{contract}/leverage': 1,
+                            '{settle}/positions/{contract}/risk_limit': 1,
+                            '{settle}/dual_mode': 1,
+                            '{settle}/dual_comp/positions/{contract}/margin': 1,
+                            '{settle}/dual_comp/positions/{contract}/leverage': 1,
+                            '{settle}/dual_comp/positions/{contract}/risk_limit': 1,
+                            '{settle}/orders': 0.4,
+                            '{settle}/batch_orders': 0.4,
+                            '{settle}/countdown_cancel_all': 0.4,
+                            '{settle}/price_orders': 0.4,
                         },
                         'put': {
-                            '{settle}/orders/{order_id}': 1.5,
+                            '{settle}/orders/{order_id}': 1,
                         },
                         'delete': {
-                            '{settle}/orders': 1.5,
-                            '{settle}/orders/{order_id}': 1.5,
-                            '{settle}/price_orders': 1.5,
-                            '{settle}/price_orders/{order_id}': 1.5,
+                            '{settle}/orders': 20 / 75,
+                            '{settle}/orders/{order_id}': 20 / 75,
+                            '{settle}/price_orders': 20 / 75,
+                            '{settle}/price_orders/{order_id}': 20 / 75,
                         },
                     },
                     'delivery': {
                         'get': {
-                            '{settle}/accounts': 1.5,
-                            '{settle}/account_book': 1.5,
-                            '{settle}/positions': 1.5,
-                            '{settle}/positions/{contract}': 1.5,
-                            '{settle}/orders': 1.5,
-                            '{settle}/orders/{order_id}': 1.5,
-                            '{settle}/my_trades': 1.5,
-                            '{settle}/position_close': 1.5,
-                            '{settle}/liquidates': 1.5,
-                            '{settle}/settlements': 1.5,
-                            '{settle}/price_orders': 1.5,
-                            '{settle}/price_orders/{order_id}': 1.5,
+                            '{settle}/accounts': 20 / 15,
+                            '{settle}/account_book': 20 / 15,
+                            '{settle}/positions': 20 / 15,
+                            '{settle}/positions/{contract}': 20 / 15,
+                            '{settle}/orders': 20 / 15,
+                            '{settle}/orders/{order_id}': 20 / 15,
+                            '{settle}/my_trades': 20 / 15,
+                            '{settle}/position_close': 20 / 15,
+                            '{settle}/liquidates': 20 / 15,
+                            '{settle}/settlements': 20 / 15,
+                            '{settle}/price_orders': 20 / 15,
+                            '{settle}/price_orders/{order_id}': 20 / 15,
                         },
                         'post': {
-                            '{settle}/positions/{contract}/margin': 1.5,
-                            '{settle}/positions/{contract}/leverage': 1.5,
-                            '{settle}/positions/{contract}/risk_limit': 1.5,
-                            '{settle}/orders': 1.5,
-                            '{settle}/price_orders': 1.5,
+                            '{settle}/positions/{contract}/margin': 20 / 15,
+                            '{settle}/positions/{contract}/leverage': 20 / 15,
+                            '{settle}/positions/{contract}/risk_limit': 20 / 15,
+                            '{settle}/orders': 20 / 15,
+                            '{settle}/price_orders': 20 / 15,
                         },
                         'delete': {
-                            '{settle}/orders': 1.5,
-                            '{settle}/orders/{order_id}': 1.5,
-                            '{settle}/price_orders': 1.5,
-                            '{settle}/price_orders/{order_id}': 1.5,
+                            '{settle}/orders': 20 / 15,
+                            '{settle}/orders/{order_id}': 20 / 15,
+                            '{settle}/price_orders': 20 / 15,
+                            '{settle}/price_orders/{order_id}': 20 / 15,
                         },
                     },
                     'options': {
                         'get': {
-                            'my_settlements': 1.5,
-                            'accounts': 1.5,
-                            'account_book': 1.5,
-                            'positions': 1.5,
-                            'positions/{contract}': 1.5,
-                            'position_close': 1.5,
-                            'orders': 1.5,
-                            'orders/{order_id}': 1.5,
-                            'my_trades': 1.5,
+                            'my_settlements': 20 / 15,
+                            'accounts': 20 / 15,
+                            'account_book': 20 / 15,
+                            'positions': 20 / 15,
+                            'positions/{contract}': 20 / 15,
+                            'position_close': 20 / 15,
+                            'orders': 20 / 15,
+                            'orders/{order_id}': 20 / 15,
+                            'my_trades': 20 / 15,
                         },
                         'post': {
-                            'orders': 1.5,
+                            'orders': 20 / 15,
                         },
                         'delete': {
-                            'orders': 1.5,
-                            'orders/{order_id}': 1.5,
+                            'orders': 20 / 15,
+                            'orders/{order_id}': 20 / 15,
                         },
                     },
                     'earn': {
                         'get': {
-                            'uni/lends': 1.5,
-                            'uni/lend_records': 1.5,
-                            'uni/interests/{currency}': 1.5,
-                            'uni/interest_records': 1.5,
+                            'uni/lends': 20 / 15,
+                            'uni/lend_records': 20 / 15,
+                            'uni/interests/{currency}': 20 / 15,
+                            'uni/interest_records': 20 / 15,
                         },
                         'post': {
-                            'uni/lends': 1.5,
+                            'uni/lends': 20 / 15,
                         },
                         'patch': {
-                            'uni/lends': 1.5,
+                            'uni/lends': 20 / 15,
                         },
                     },
                     'loan': {
                         'get': {
-                            'collateral/orders': 1.5,
-                            'collateral/orders/{order_id}': 1.5,
-                            'collateral/repay_records': 1.5,
-                            'collateral/collaterals': 1.5,
-                            'collateral/total_amount': 1.5,
-                            'collateral/ltv': 1.5,
-                            'collateral/currencies': 1.5,
+                            'collateral/orders': 20 / 15,
+                            'collateral/orders/{order_id}': 20 / 15,
+                            'collateral/repay_records': 20 / 15,
+                            'collateral/collaterals': 20 / 15,
+                            'collateral/total_amount': 20 / 15,
+                            'collateral/ltv': 20 / 15,
+                            'collateral/currencies': 20 / 15,
                         },
                         'post': {
-                            'collateral/orders': 1.5,
-                            'collateral/repay': 1.5,
-                            'collateral/collaterals': 1.5,
+                            'collateral/orders': 20 / 15,
+                            'collateral/repay': 20 / 15,
+                            'collateral/collaterals': 20 / 15,
                         },
                     },
                     'account': {
                         'get': {
-                            'detail': 1.5,
-                            'stp_groups': 1.5,
-                            'stp_groups/{stp_id}/users': 1.5,
+                            'detail': 20 / 15,
+                            'stp_groups': 20 / 15,
+                            'stp_groups/{stp_id}/users': 20 / 15,
                         },
                         'post': {
-                            'stp_groups': 1.5,
-                            'stp_groups/{stp_id}/users': 1.5,
+                            'stp_groups': 20 / 15,
+                            'stp_groups/{stp_id}/users': 20 / 15,
                         },
                         'delete': {
-                            'stp_groups/{stp_id}/users': 1.5,
+                            'stp_groups/{stp_id}/users': 20 / 15,
                         },
                     },
                     'rebate': {
                         'get': {
-                            'agency/transaction_history': 1.5,
-                            'agency/commission_history': 1.5,
+                            'agency/transaction_history': 20 / 15,
+                            'agency/commission_history': 20 / 15,
                         },
                     },
                 },
@@ -1090,6 +1095,7 @@ class gate extends gate$1 {
                         'max': margin ? this.safeNumber(market, 'max_quote_amount') : undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1287,6 +1293,7 @@ class gate extends gate$1 {
                     'max': undefined,
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }
@@ -1407,6 +1414,7 @@ class gate extends gate$1 {
                             'max': undefined,
                         },
                     },
+                    'created': this.safeTimestamp(market, 'create_time'),
                     'info': market,
                 });
             }
@@ -2803,7 +2811,8 @@ class gate extends gate$1 {
                 result[code] = this.parseBalanceHelper(entry);
             }
         }
-        return isolated ? result : this.safeBalance(result);
+        const returnResult = isolated ? result : this.safeBalance(result);
+        return returnResult;
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
@@ -2821,10 +2830,16 @@ class gate extends gate$1 {
          * @param {object} [params] extra parameters specific to the gateio api endpoint
          * @param {string} [params.price] "mark" or "index" for mark price and index price candles
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
+        }
         if (market['option']) {
             return await this.fetchOptionOHLCV(symbol, timeframe, since, limit, params);
         }
@@ -2990,9 +3005,16 @@ class gate extends gate$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest trade to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchTrades', symbol, since, limit, params);
+        }
         const market = this.market(symbol);
         //
         // spot
@@ -3023,6 +3045,11 @@ class gate extends gate$1 {
             'future': 'publicDeliveryGetSettleTrades',
             'option': 'publicOptionsGetTrades',
         });
+        const until = this.safeInteger2(params, 'to', 'until');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['to'] = this.parseToInt(until / 1000);
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
@@ -3130,9 +3157,15 @@ class gate extends gate$1 {
          * @param {int} [params.offset] *contract only* list offset, starting from 0
          * @param {string} [params.last_id] *contract only* specify list staring point using the id of last record in previous list-query results
          * @param {int} [params.count_total] *contract only* whether to return total number matched, default to 0(no return)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
+        }
         let type = undefined;
         let marginMode = undefined;
         let request = {};
@@ -3391,11 +3424,18 @@ class gate extends gate$1 {
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {int} [params.until] end time in ms
          * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
-        const request = {};
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchDeposits', code, since, limit, params);
+        }
+        let request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -3409,6 +3449,7 @@ class gate extends gate$1 {
             request['from'] = start;
             request['to'] = this.sum(start, 30 * 24 * 60 * 60);
         }
+        [request, params] = this.handleUntilOption('to', request, params);
         const response = await this.privateWalletGetDeposits(this.extend(request, params));
         return this.parseTransactions(response, currency);
     }
@@ -3421,10 +3462,17 @@ class gate extends gate$1 {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @param {int} [params.until] end time in ms
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
-        const request = {};
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchWithdrawals', code, since, limit, params);
+        }
+        let request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -3438,6 +3486,7 @@ class gate extends gate$1 {
             request['from'] = start;
             request['to'] = this.sum(start, 30 * 24 * 60 * 60);
         }
+        [request, params] = this.handleUntilOption('to', request, params);
         const response = await this.privateWalletGetWithdrawals(this.extend(request, params));
         return this.parseTransactions(response, currency);
     }
@@ -3530,6 +3579,13 @@ class gate extends gate$1 {
         //        "memo": null
         //    }
         //
+        //     {
+        //         "currency":"usdt",
+        //         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        //         "amount":"1880",
+        //         "chain":"eth"
+        //     }
+        //
         const id = this.safeString(transaction, 'id');
         let type = undefined;
         let amountString = this.safeString(transaction, 'amount');
@@ -3547,6 +3603,7 @@ class gate extends gate$1 {
         if (type === 'withdrawal') {
             amountString = Precise["default"].stringSub(amountString, feeCostString);
         }
+        const networkId = this.safeStringUpper(transaction, 'chain');
         const currencyId = this.safeString(transaction, 'currency');
         const code = this.safeCurrencyCode(currencyId);
         const txid = this.safeString(transaction, 'txid');
@@ -3561,7 +3618,7 @@ class gate extends gate$1 {
             'txid': txid,
             'currency': code,
             'amount': this.parseNumber(amountString),
-            'network': undefined,
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -5726,6 +5783,11 @@ class gate extends gate$1 {
          * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenInterestHistory', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 100);
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports swap markets only');
@@ -5784,7 +5846,7 @@ class gate extends gate$1 {
         //        lsr_taker: '9.3765153315902'
         //    }
         //
-        const timestamp = this.safeIntegerProduct(interest, 'time', 1000);
+        const timestamp = this.safeTimestamp(interest, 'time');
         return {
             'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': this.safeNumber(interest, 'open_interest'),
@@ -5984,13 +6046,20 @@ class gate extends gate$1 {
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @param {int} [params.until] end time in ms
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params);
+        }
         let type = undefined;
         let currency = undefined;
         let response = undefined;
-        const request = {};
+        let request = {};
         [type, params] = this.handleMarketTypeAndParams('fetchLedger', undefined, params);
         if ((type === 'spot') || (type === 'margin')) {
             if (code !== undefined) {
@@ -6010,6 +6079,7 @@ class gate extends gate$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        [request, params] = this.handleUntilOption('to', request, params);
         if (type === 'spot') {
             response = await this.privateSpotGetAccountBook(this.extend(request, params));
         }
@@ -6261,6 +6331,193 @@ class gate extends gate$1 {
             }
         }
         return underlyings;
+    }
+    async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchLiquidations
+         * @description retrieves the public liquidations of a trading pair
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-liquidation-history
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the gate api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.NotSupported(this.id + ' fetchLiquidations() supports swap markets only');
+        }
+        let request = {
+            'settle': market['settleId'],
+            'contract': market['id'],
+        };
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [request, params] = this.handleUntilOption('to', request, params);
+        const response = await this.publicFuturesGetSettleLiqOrders(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "contract": "BTC_USDT",
+        //             "left": 0,
+        //             "size": -165,
+        //             "fill_price": "28070",
+        //             "order_price": "28225",
+        //             "time": 1696736132
+        //         },
+        //     ]
+        //
+        return this.parseLiquidations(response, market, since, limit);
+    }
+    async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchMyLiquidations
+         * @description retrieves the users liquidated positions
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the gate api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        this.checkRequiredSymbol('fetchMyLiquidations', symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'contract': market['id'],
+        };
+        let response = undefined;
+        if ((market['swap']) || (market['future'])) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            request['settle'] = market['settleId'];
+        }
+        else if (market['option']) {
+            const marketId = market['id'];
+            const optionParts = marketId.split('-');
+            request['underlying'] = this.safeString(optionParts, 0);
+        }
+        if (market['swap']) {
+            response = await this.privateFuturesGetSettleLiquidates(this.extend(request, params));
+        }
+        else if (market['future']) {
+            response = await this.privateDeliveryGetSettleLiquidates(this.extend(request, params));
+        }
+        else if (market['option']) {
+            response = await this.privateOptionsGetPositionClose(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' orders');
+        }
+        //
+        // swap and future
+        //
+        //     [
+        //         {
+        //             "time": 1548654951,
+        //             "contract": "BTC_USDT",
+        //             "size": 600,
+        //             "leverage": "25",
+        //             "margin": "0.006705256878",
+        //             "entry_price": "3536.123",
+        //             "liq_price": "3421.54",
+        //             "mark_price": "3420.27",
+        //             "order_id": 317393847,
+        //             "order_price": "3405",
+        //             "fill_price": "3424",
+        //             "left": 0
+        //         }
+        //     ]
+        //
+        // option
+        //
+        //     [
+        //         {
+        //             "time": 1631764800,
+        //             "pnl": "-42914.291",
+        //             "settle_size": "-10001",
+        //             "side": "short",
+        //             "contract": "BTC_USDT-20210916-5000-C",
+        //             "text": "settled"
+        //         }
+        //     ]
+        //
+        return this.parseLiquidations(response, market, since, limit);
+    }
+    parseLiquidation(liquidation, market = undefined) {
+        //
+        // fetchLiquidations
+        //
+        //     {
+        //         "contract": "BTC_USDT",
+        //         "left": 0,
+        //         "size": -165,
+        //         "fill_price": "28070",
+        //         "order_price": "28225",
+        //         "time": 1696736132
+        //     }
+        //
+        // swap and future: fetchMyLiquidations
+        //
+        //     {
+        //         "time": 1548654951,
+        //         "contract": "BTC_USDT",
+        //         "size": 600,
+        //         "leverage": "25",
+        //         "margin": "0.006705256878",
+        //         "entry_price": "3536.123",
+        //         "liq_price": "3421.54",
+        //         "mark_price": "3420.27",
+        //         "order_id": 317393847,
+        //         "order_price": "3405",
+        //         "fill_price": "3424",
+        //         "left": 0
+        //     }
+        //
+        // option: fetchMyLiquidations
+        //
+        //     {
+        //         "time": 1631764800,
+        //         "pnl": "-42914.291",
+        //         "settle_size": "-10001",
+        //         "side": "short",
+        //         "contract": "BTC_USDT-20210916-5000-C",
+        //         "text": "settled"
+        //     }
+        //
+        const marketId = this.safeString(liquidation, 'contract');
+        const timestamp = this.safeTimestamp(liquidation, 'time');
+        const contractsStringRaw = this.safeString2(liquidation, 'size', 'settle_size');
+        const contractsString = Precise["default"].stringAbs(contractsStringRaw);
+        const contractSizeString = this.safeString(market, 'contractSize');
+        const priceString = this.safeString2(liquidation, 'liq_price', 'fill_price');
+        const baseValueString = Precise["default"].stringMul(contractsString, contractSizeString);
+        let quoteValueString = this.safeString(liquidation, 'pnl');
+        if (quoteValueString === undefined) {
+            quoteValueString = Precise["default"].stringMul(baseValueString, priceString);
+        }
+        return {
+            'info': liquidation,
+            'symbol': this.safeSymbol(marketId, market),
+            'contracts': this.parseNumber(contractsString),
+            'contractSize': this.parseNumber(contractSizeString),
+            'price': this.parseNumber(priceString),
+            'baseValue': this.parseNumber(baseValueString),
+            'quoteValue': this.parseNumber(Precise["default"].stringAbs(quoteValueString)),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

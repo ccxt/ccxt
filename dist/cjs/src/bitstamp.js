@@ -505,6 +505,7 @@ class bitstamp extends bitstamp$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1347,9 +1348,8 @@ class bitstamp extends bitstamp$1 {
         }
         const response = await this[method](this.extend(request, params));
         const order = this.parseOrder(response, market);
-        return this.extend(order, {
-            'type': type,
-        });
+        order['type'] = type;
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

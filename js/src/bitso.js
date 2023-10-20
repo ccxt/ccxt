@@ -471,6 +471,7 @@ export default class bitso extends Exchange {
                         'max': this.safeNumber(market, 'maximum_value'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             }, fee));
         }

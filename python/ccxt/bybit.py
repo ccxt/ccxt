@@ -15,6 +15,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import MarginModeAlreadySet
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -23,6 +24,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NoChange
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -260,6 +262,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/market/insurance': 2.5,
                         'v5/market/risk-limit': 2.5,
                         'v5/market/delivery-price': 2.5,
+                        'v5/market/account-ratio': 2.5,
                         # spot leverage token
                         'v5/spot-lever-token/info': 2.5,
                         'v5/spot-lever-token/reference': 2.5,
@@ -661,6 +664,7 @@ class bybit(Exchange, ImplicitAPI):
                         # c2c lending
                         'v5/lending/purchase': 2.5,
                         'v5/lending/redeem': 2.5,
+                        'v5/lending/redeem-cancel': 2.5,
                     },
                     'delete': {
                         # spot
@@ -714,10 +718,11 @@ class bybit(Exchange, ImplicitAPI):
                     '10027': PermissionDenied,  # Trading Banned
                     '10028': PermissionDenied,  # The API can only be accessed by unified account users.
                     '10029': PermissionDenied,  # The requested symbol is invalid, please check symbol whitelist
+                    '12137': InvalidOrder,  # {"retCode":12137,"retMsg":"Order quantity has too many decimals.","result":{},"retExtInfo":{},"time":1695900943033}
                     '12201': BadRequest,  # {"retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":{},"retExtInfo":null,"time":1666699391220}
                     '12141': BadRequest,  # "retCode":12141,"retMsg":"Duplicate clientOrderId.","result":{},"retExtInfo":{},"time":1686134298989}
                     '100028': PermissionDenied,  # The API cannot be accessed by unified account users.
-                    '110001': InvalidOrder,  # Order does not exist
+                    '110001': OrderNotFound,  # Order does not exist
                     '110003': InvalidOrder,  # Order price is out of permissible range
                     '110004': InsufficientFunds,  # Insufficient wallet balance
                     '110005': InvalidOrder,  # position status
@@ -739,12 +744,12 @@ class bybit(Exchange, ImplicitAPI):
                     '110021': InvalidOrder,  # Open Interest exceeded
                     '110022': InvalidOrder,  # qty has been limited, cannot modify the order to add qty
                     '110023': InvalidOrder,  # This contract only supports position reduction operation, please contact customer service for details
-                    '110024': InvalidOrder,  # You have an existing position, so position mode cannot be switched
-                    '110025': InvalidOrder,  # Position mode is not modified
-                    '110026': BadRequest,  # Cross/isolated margin mode is not modified
-                    '110027': InvalidOrder,  # Margin is not modified
-                    '110028': InvalidOrder,  # Open orders exist, so you cannot change position mode
-                    '110029': InvalidOrder,  # Hedge mode is not available for self symbol
+                    '110024': BadRequest,  # You have an existing position, so position mode cannot be switched
+                    '110025': NoChange,  # Position mode is not modified
+                    '110026': MarginModeAlreadySet,  # Cross/isolated margin mode is not modified
+                    '110027': NoChange,  # Margin is not modified
+                    '110028': BadRequest,  # Open orders exist, so you cannot change position mode
+                    '110029': BadRequest,  # Hedge mode is not available for self symbol
                     '110030': InvalidOrder,  # Duplicate orderId
                     '110031': InvalidOrder,  # risk limit info does not exists
                     '110032': InvalidOrder,  # Illegal order
@@ -1723,6 +1728,7 @@ class bybit(Exchange, ImplicitAPI):
                         'max': self.safe_number(lotSizeFilter, 'maxOrderAmt'),
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -1885,6 +1891,7 @@ class bybit(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.safe_integer(market, 'launchTime'),
                 'info': market,
             })
         return result
@@ -2012,6 +2019,7 @@ class bybit(Exchange, ImplicitAPI):
                             'max': None,
                         },
                     },
+                    'created': self.safe_integer(market, 'launchTime'),
                     'info': market,
                 })
         return result
@@ -2286,7 +2294,7 @@ class bybit(Exchange, ImplicitAPI):
             marketInner = self.market(symbol)
             if marketInner['type'] == type:
                 tickers[symbol] = ticker
-        return self.filter_by_array(tickers, 'symbol', symbols)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -2322,10 +2330,15 @@ class bybit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.check_required_symbol('fetchOHLCV', symbol)
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2539,12 +2552,17 @@ class bybit(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()
         if limit is None:
             limit = 200
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 200)
         request = {
             # 'category': '',  # Product type. linear,inverse
             # 'symbol': '',  # Symbol name
@@ -2663,7 +2681,7 @@ class bybit(Exchange, ImplicitAPI):
             feeToken = self.safe_string(trade, 'feeTokenId')
             feeCurrency = self.safe_currency_code(feeToken)
             fee = {
-                'cost': feeCost,
+                'cost': Precise.string_abs(feeCost),
                 'currency': feeCurrency,
             }
         return self.safe_trade({
@@ -2814,7 +2832,7 @@ class bybit(Exchange, ImplicitAPI):
             else:
                 feeCurrencyCode = market['base'] if market['inverse'] else market['settle']
             fee = {
-                'cost': feeCostString,
+                'cost': Precise.string_abs(feeCostString),
                 'currency': feeCurrencyCode,
             }
         return self.safe_trade({
@@ -3360,9 +3378,12 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        marketType = 'contract'
+        isContract = ('tpslMode' in order)
+        marketType = None
         if market is not None:
             marketType = market['type']
+        else:
+            marketType = 'contract' if isContract else 'spot'
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer_2(order, 'createdTime', 'createdAt')
@@ -3380,18 +3401,44 @@ class bybit(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.safe_string(order, 'cumExecFee')
         if feeCostString is not None:
+            feeCurrency = None
+            if market['spot']:
+                feeCurrency = market['quote'] if (side == 'buy') else market['base']
+            else:
+                feeCurrency = market['settle']
             fee = {
                 'cost': feeCostString,
-                'currency': market['settle'],
+                'currency': feeCurrency,
             }
         clientOrderId = self.safe_string(order, 'orderLinkId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
+        avgPrice = self.omit_zero(self.safe_string(order, 'avgPrice'))
         rawTimeInForce = self.safe_string(order, 'timeInForce')
         timeInForce = self.parse_time_in_force(rawTimeInForce)
         stopPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
+        reduceOnly = self.safe_value(order, 'reduceOnly')
         takeProfitPrice = self.omit_zero(self.safe_string(order, 'takeProfit'))
         stopLossPrice = self.omit_zero(self.safe_string(order, 'stopLoss'))
+        triggerDirection = self.safe_string(order, 'triggerDirection')
+        isAscending = (triggerDirection == '1')
+        isStopOrderType2 = (stopPrice is not None) and reduceOnly
+        if (stopLossPrice is None) and isStopOrderType2:
+            # check if order is stop order type 2 - stopLossPrice
+            if isAscending and (side == 'buy'):
+                # stopLoss order against short position
+                stopLossPrice = stopPrice
+            if not isAscending and (side == 'sell'):
+                # stopLoss order against a long position
+                stopLossPrice = stopPrice
+        if (takeProfitPrice is None) and isStopOrderType2:
+            # check if order is stop order type 2 - takeProfitPrice
+            if isAscending and (side == 'sell'):
+                # takeprofit order against a long position
+                takeProfitPrice = stopPrice
+            if not isAscending and (side == 'buy'):
+                # takeprofit order against a short position
+                takeProfitPrice = stopPrice
         return self.safe_order({
             'info': order,
             'id': id,
@@ -3413,7 +3460,7 @@ class bybit(Exchange, ImplicitAPI):
             'stopLossPrice': stopLossPrice,
             'amount': amount,
             'cost': cost,
-            'average': None,
+            'average': avgPrice,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -3437,7 +3484,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.fetch_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            raise OrderNotFound('Order ' + id + ' does not exist.')
+            raise OrderNotFound('Order ' + str(id) + ' does not exist.')
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
         return self.safe_value(result, 0)
@@ -3459,7 +3506,14 @@ class bybit(Exchange, ImplicitAPI):
         :param boolean [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
         :param str [params.tpslMode]: *contract only* 'full' or 'partial'
         :param str [params.mmp]: *option only* market maker protection
-        :param int [params.triggerDirection]: *contract only* conditional orders, 1: triggered when market price rises to triggerPrice, 2: triggered when market price falls to triggerPrice
+        :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'up' or 'down'
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param float [params.stopLossPrice]: The price at which a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: The price at which a take profit order is triggered at
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
@@ -3548,11 +3602,19 @@ class bybit(Exchange, ImplicitAPI):
         isStopLoss = stopLoss is not None
         isTakeProfit = takeProfit is not None
         isBuy = side == 'buy'
-        ascending = not isBuy if stopLossTriggerPrice else isBuy
+        setTriggerDirection = not isBuy if (stopLossTriggerPrice or triggerPrice) else isBuy
+        defaultTriggerDirection = 2 if setTriggerDirection else 1
+        triggerDirection = self.safe_string(params, 'triggerDirection')
+        params = self.omit(params, 'triggerDirection')
+        selectedDirection = defaultTriggerDirection
+        if triggerDirection is not None:
+            isAsending = ((triggerDirection == 'up') or (triggerDirection == '1'))
+            selectedDirection = 1 if isAsending else 2
         if triggerPrice is not None:
+            request['triggerDirection'] = selectedDirection
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
-            request['triggerDirection'] = 2 if ascending else 1
+            request['triggerDirection'] = selectedDirection
             triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['reduceOnly'] = True
@@ -3764,6 +3826,16 @@ class bybit(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param float [params.triggerPrice]: The price that a trigger order is triggered at
+        :param float [params.stopLossPrice]: The price that a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: The price that a take profit order is triggered at
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered
+        :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered
+        :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param str [params.triggerBy]: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
+        :param str [params.slTriggerBy]: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
+        :param str [params.tpTriggerby]: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_symbol('editOrder', symbol)
@@ -3799,9 +3871,9 @@ class bybit(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         if amount is not None:
             request['qty'] = self.amount_to_precision(symbol, amount)
-        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
-        takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        stopLossTriggerPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_string(params, 'takeProfitPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
@@ -3811,14 +3883,23 @@ class bybit(Exchange, ImplicitAPI):
         if isStopLossTriggerOrder or isTakeProfitTriggerOrder:
             triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
         if triggerPrice is not None:
-            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+            triggerPriceRequest = triggerPrice if (triggerPrice == '0') else self.price_to_precision(symbol, triggerPrice)
+            request['triggerPrice'] = triggerPriceRequest
+            triggerBy = self.safe_string(params, 'triggerBy', 'LastPrice')
+            request['triggerBy'] = triggerBy
         if isStopLoss or isTakeProfit:
             if isStopLoss:
-                slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
-                request['stopLoss'] = self.price_to_precision(symbol, slTriggerPrice)
+                slTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
+                stopLossRequest = slTriggerPrice if (slTriggerPrice == '0') else self.price_to_precision(symbol, slTriggerPrice)
+                request['stopLoss'] = stopLossRequest
+                slTriggerBy = self.safe_string(params, 'slTriggerBy', 'LastPrice')
+                request['slTriggerBy'] = slTriggerBy
             if isTakeProfit:
-                tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
-                request['takeProfit'] = self.price_to_precision(symbol, tpTriggerPrice)
+                tpTriggerPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
+                takeProfitRequest = tpTriggerPrice if (tpTriggerPrice == '0') else self.price_to_precision(symbol, tpTriggerPrice)
+                request['takeProfit'] = takeProfitRequest
+                tpTriggerBy = self.safe_string(params, 'tpTriggerBy', 'LastPrice')
+                request['tpTriggerBy'] = tpTriggerBy
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -4141,9 +4222,15 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'nextPageCursor', 'nextPageCursor', None, 50)
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         request = {}
@@ -4482,9 +4569,14 @@ class bybit(Exchange, ImplicitAPI):
         :param boolean [params.stop]: True if stop order
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'nextPageCursor', 'nextPageCursor', None, 100)
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         request = {}
@@ -4681,10 +4773,15 @@ class bybit(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch deposits for, default = 30 days after since
          *
          * EXCHANGE SPECIFIC PARAMETERS
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.cursor]: used for pagination
         :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
        """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, params, 'nextPageCursor', 'nextPageCursor', None, 50)
         request = {
             # 'coin': currency['id'],
             # 'limit': 20,  # max 50
@@ -4698,6 +4795,7 @@ class bybit(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
+        request, params = self.handle_until_option('endTime', request, params)
         response = self.privateGetV5AssetDepositQueryRecord(self.extend(request, params))
         #
         #     {
@@ -4737,9 +4835,15 @@ class bybit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'nextPageCursor', 'nextPageCursor', None, 50)
         request = {
             # 'coin': currency['id'],
             # 'limit': 20,  # max 50
@@ -4753,6 +4857,7 @@ class bybit(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
+        request, params = self.handle_until_option('endTime', request, params)
         response = self.privateGetV5AssetWithdrawQueryRecord(self.extend(request, params))
         #
         #     {
@@ -5113,7 +5218,7 @@ class bybit(Exchange, ImplicitAPI):
             'referenceAccount': None,
             'referenceId': referenceId,
             'status': None,
-            'amount': self.parse_number(amount),
+            'amount': self.parse_number(Precise.string_abs(amount)),
             'before': self.parse_number(before),
             'after': self.parse_number(after),
             'fee': self.parse_number(self.safe_string(item, 'fee')),
@@ -5262,10 +5367,9 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'time')
         first = self.safe_value(positions, 0, {})
         position = self.parse_position(first, market)
-        return self.extend(position, {
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        })
+        position['timestamp'] = timestamp
+        position['datetime'] = self.iso8601(timestamp)
+        return position
 
     def fetch_usdc_positions(self, symbols: Optional[List[str]] = None, params={}):
         self.load_markets()
@@ -5335,7 +5439,7 @@ class bybit(Exchange, ImplicitAPI):
                 # futures only
                 rawPosition = self.safe_value(rawPosition, 'data')
             results.append(self.parse_position(rawPosition, market))
-        return self.filter_by_array(results, 'symbol', symbols, False)
+        return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
@@ -5918,6 +6022,10 @@ class bybit(Exchange, ImplicitAPI):
         if timeframe == '1m':
             raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
         self.load_markets()
+        paginate = self.safe_value(params, 'paginate')
+        if paginate:
+            params = self.omit(params, 'paginate')
+            return self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500)
         market = self.market(symbol)
         if market['spot'] or market['option']:
             raise BadRequest(self.id + ' fetchOpenInterestHistory() symbol does not support market ' + symbol)
@@ -5937,14 +6045,14 @@ class bybit(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(interest, 'timestamp')
         value = self.safe_number_2(interest, 'open_interest', 'openInterest')
-        return {
+        return self.safe_open_interest({
             'symbol': market['symbol'],
             'openInterestAmount': None,
             'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     def fetch_borrow_rate(self, code: str, params={}):
         """
@@ -6123,9 +6231,15 @@ class bybit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve
         :param dict [params]: extra parameters specific to the bybit api endpoint
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transfer structures <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, params, 'nextPageCursor', 'nextPageCursor', None, 50)
         currency = None
         request = {}
         if code is not None:
@@ -6135,6 +6249,7 @@ class bybit(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
+        request, params = self.handle_until_option('endTime', request, params)
         response = self.privateGetV5AssetTransferQueryInterTransferList(self.extend(request, params))
         #
         #     {
@@ -6158,9 +6273,8 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1670988271677
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        transfers = self.safe_value(data, 'list', [])
-        return self.parse_transfers(transfers, currency, since, limit)
+        data = self.add_pagination_cursor_to_result(response)
+        return self.parse_transfers(data, currency, since, limit)
 
     def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """

@@ -250,6 +250,7 @@ class okx extends okx$1 {
                         'trade/orders-history-archive': 1,
                         'trade/fills': 1 / 3,
                         'trade/fills-history': 2.2,
+                        'trade/fills-archive': 2,
                         'trade/order-algo': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
@@ -316,6 +317,12 @@ class okx extends okx$1 {
                         'tradingBot/grid/orders-algo-details': 1,
                         'tradingBot/grid/sub-orders': 1,
                         'tradingBot/grid/positions': 1,
+                        'tradingBot/grid/ai-param': 1,
+                        'tradingBot/public/rsi-back-testing': 1,
+                        'tradingBot/signal/orders-algo-details': 1,
+                        'tradingBot/signal/positions': 1,
+                        'tradingBot/signal/sub-orders': 1,
+                        'tradingBot/signal/event-history': 1,
                         'tradingBot/recurring/orders-algo-pending': 1,
                         'tradingBot/recurring/orders-algo-history': 1,
                         'tradingBot/recurring/orders-algo-details': 1,
@@ -372,6 +379,7 @@ class okx extends okx$1 {
                         'trade/amend-order': 1 / 3,
                         'trade/amend-batch-orders': 1 / 150,
                         'trade/close-position': 1,
+                        'trade/fills-archive': 172800,
                         'trade/order-algo': 1,
                         'trade/cancel-algos': 1,
                         'trade/amend-algos': 1,
@@ -446,6 +454,7 @@ class okx extends okx$1 {
                         'broker/nd/rebate-per-orders': 36000,
                         'finance/sfp/dcd/quote': 10,
                         'finance/sfp/dcd/order': 10,
+                        'broker/nd/report-subaccount-ip': 0.25,
                         'broker/fd/rebate-per-orders': 36000,
                     },
                 },
@@ -1131,6 +1140,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchStatus
          * @description the latest known information on the availability of the exchange API
+         * @see https://www.okx.com/docs-v5/en/#status-get-status
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} a [status structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure}
          */
@@ -1179,6 +1189,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-system-time
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -1201,6 +1212,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
          */
@@ -1235,6 +1247,7 @@ class okx extends okx$1 {
                 'type': type,
                 'currency': undefined,
                 'info': account,
+                'code': undefined,
             });
         }
         return result;
@@ -1254,7 +1267,6 @@ class okx extends okx$1 {
         for (let i = 0; i < types.length; i++) {
             promises.push(this.fetchMarketsByType(types[i], params));
         }
-        // why not both ¯\_(ツ)_/¯
         promises = await Promise.all(promises);
         for (let i = 0; i < promises.length; i++) {
             result = this.arrayConcat(result, promises[i]);
@@ -1388,6 +1400,7 @@ class okx extends okx$1 {
             'expiryDatetime': this.iso8601(expiry),
             'strike': strikePrice,
             'optionType': optionType,
+            'created': this.safeInteger(market, 'listTime'),
             'precision': {
                 'amount': this.safeNumber(market, 'lotSz'),
                 'price': this.parseNumber(tickSize),
@@ -1625,6 +1638,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the okx api endpoint
@@ -1726,6 +1740,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
@@ -1816,6 +1831,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
@@ -1934,9 +1950,15 @@ class okx extends okx$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchTrades', symbol, since, limit, params, 'tradeId', 'after', undefined, 100);
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -2039,10 +2061,16 @@ class okx extends okx$1 {
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.price] "mark" or "index" for mark price and index price candles
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 200);
+        }
         const price = this.safeString(params, 'price');
         params = this.omit(params, 'price');
         const options = this.safeValue(this.options, 'fetchOHLCV', {});
@@ -2083,15 +2111,33 @@ class okx extends okx$1 {
         defaultType = this.safeString(options, 'type', defaultType); // Candles or HistoryCandles
         const type = this.safeString(params, 'type', defaultType);
         params = this.omit(params, 'type');
-        let method = 'publicGetMarket' + type;
         const isHistoryCandles = (type === 'HistoryCandles');
+        let response = undefined;
         if (price === 'mark') {
-            method = (isHistoryCandles) ? 'publicGetMarketHistoryMarkPriceCandles' : 'publicGetMarketMarkPriceCandles';
+            if (isHistoryCandles) {
+                response = await this.publicGetMarketHistoryMarkPriceCandles(this.extend(request, params));
+            }
+            else {
+                response = await this.publicGetMarketMarkPriceCandles(this.extend(request, params));
+            }
         }
         else if (price === 'index') {
-            method = (isHistoryCandles) ? 'publicGetMarketHistoryIndexCandles' : 'publicGetMarketIndexCandles';
+            request['instId'] = market['info']['instFamily']; // okx index candles require instFamily instead of instId
+            if (isHistoryCandles) {
+                response = await this.publicGetMarketHistoryIndexCandles(this.extend(request, params));
+            }
+            else {
+                response = await this.publicGetMarketIndexCandles(this.extend(request, params));
+            }
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            if (isHistoryCandles) {
+                response = await this.publicGetMarketHistoryCandles(this.extend(request, params));
+            }
+            else {
+                response = await this.publicGetMarketCandles(this.extend(request, params));
+            }
+        }
         //
         //     {
         //         "code": "0",
@@ -2111,16 +2157,23 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchFundingRateHistory
          * @description fetches historical funding rate prices
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate-history
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params);
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -2249,6 +2302,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-fee-rates
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
@@ -2298,22 +2352,23 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-balance
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         const [marketType, query] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        let method = undefined;
-        if (marketType === 'funding') {
-            method = 'privateGetAssetBalances';
-        }
-        else {
-            method = 'privateGetAccountBalance';
-        }
         const request = {
         // 'ccy': 'BTC,ETH', // comma-separated list of currency ids
         };
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (marketType === 'funding') {
+            response = await this.privateGetAssetBalances(this.extend(request, query));
+        }
+        else {
+            response = await this.privateGetAccountBalance(this.extend(request, query));
+        }
         //
         //     {
         //         "code": "0",
@@ -2710,10 +2765,9 @@ class okx extends okx$1 {
         const data = this.safeValue(response, 'data', []);
         const first = this.safeValue(data, 0);
         const order = this.parseOrder(first, market);
-        return this.extend(order, {
-            'type': type,
-            'side': side,
-        });
+        order['type'] = type;
+        order['side'] = side;
+        return order;
     }
     editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market(symbol);
@@ -2824,16 +2878,16 @@ class okx extends okx$1 {
         const data = this.safeValue(response, 'data', []);
         const first = this.safeValue(data, 0);
         const order = this.parseOrder(first, market);
-        return this.extend(order, {
-            'type': type,
-            'side': side,
-        });
+        order['type'] = type;
+        order['side'] = side;
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name okx#cancelOrder
          * @description cancels an open order
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the okx api endpoint
@@ -2888,6 +2942,8 @@ class okx extends okx$1 {
          * @method
          * @name okx#cancelOrders
          * @description cancel multiple orders
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the okx api endpoint
@@ -3190,6 +3246,8 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchOrder
          * @description fetch an order by the id
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-details
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-details
          * @param {string} id the order id
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra and exchange specific parameters
@@ -3336,6 +3394,8 @@ class okx extends okx$1 {
          * @name okx#fetchOpenOrders
          * @description Fetch orders that are still open
          * @description fetch all unfilled currently open orders
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-list
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-list
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -3344,9 +3404,15 @@ class okx extends okx$1 {
          * @param {bool} [params.stop] True if fetching trigger or conditional orders
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchOpenOrders', symbol, since, limit, params);
+        }
         const request = {
         // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
         // 'uly': currency['id'],
@@ -3484,6 +3550,8 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] max number of orders to return, default is undefined
@@ -3658,6 +3726,8 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-get-algo-order-history
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -3666,9 +3736,15 @@ class okx extends okx$1 {
          * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string} [params.algoId] Algo ID "'433845797218942976'"
          * @param {int} [params.until] timestamp in ms to fetch orders for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchClosedOrders', symbol, since, limit, params);
+        }
         const request = {
         // 'instType': type.toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
         // 'uly': currency['id'],
@@ -3823,14 +3899,22 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {int} [params.until] Timestamp in ms of the latest time to retrieve trades for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
-        const request = {
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
+        }
+        let request = {
         // 'instType': 'SPOT', // SPOT, MARGIN, SWAP, FUTURES, OPTION
         // 'uly': currency['id'],
         // 'instId': market['id'],
@@ -3844,6 +3928,7 @@ class okx extends okx$1 {
             market = this.market(symbol);
             request['instId'] = market['id'];
         }
+        [request, params] = this.handleUntilOption('end', request, params);
         const [type, query] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         request['instType'] = this.convertToInstrumentType(type);
         if (limit !== undefined) {
@@ -3883,6 +3968,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3912,14 +3998,21 @@ class okx extends okx$1 {
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params);
+        }
         const options = this.safeValue(this.options, 'fetchLedger', {});
         let method = this.safeString(options, 'method');
         method = this.safeString(params, 'method', method);
         params = this.omit(params, 'method');
-        const request = {
+        let request = {
         // 'instType': undefined, // 'SPOT', 'MARGIN', 'SWAP', 'FUTURES", 'OPTION'
         // 'ccy': undefined, // currency['id'],
         // 'mgnMode': undefined, // 'isolated', 'cross'
@@ -3954,6 +4047,7 @@ class okx extends okx$1 {
             currency = this.currency(code);
             request['ccy'] = currency['id'];
         }
+        [request, params] = this.handleUntilOption('end', request, params);
         const response = await this[method](this.extend(request, query));
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
@@ -4201,6 +4295,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchDepositAddressesByNetwork
          * @description fetch a dictionary of addresses for a currency, indexed by network
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} a dictionary of [address structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure} indexed by the network
@@ -4242,6 +4337,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
@@ -4282,6 +4378,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#withdraw
          * @description make a withdrawal
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -4365,10 +4462,17 @@ class okx extends okx$1 {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
-        const request = {
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchDeposits', code, since, limit, params);
+        }
+        let request = {
         // 'ccy': currency['id'],
         // 'state': 2, // 0 waiting for confirmation, 1 deposit credited, 2 deposit successful
         // 'after': since,
@@ -4386,6 +4490,7 @@ class okx extends okx$1 {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
+        [request, params] = this.handleUntilOption('after', request, params);
         const response = await this.privateGetAssetDepositHistory(this.extend(request, params));
         //
         //     {
@@ -4463,10 +4568,17 @@ class okx extends okx$1 {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
-        const request = {
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchWithdrawals', code, since, limit, params);
+        }
+        let request = {
         // 'ccy': currency['id'],
         // 'state': 2, // -3: pending cancel, -2 canceled, -1 failed, 0, pending, 1 sending, 2 sent, 3 awaiting email verification, 4 awaiting manual verification, 5 awaiting identity verification
         // 'after': since,
@@ -4484,6 +4596,7 @@ class okx extends okx$1 {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
+        [request, params] = this.handleUntilOption('after', request, params);
         const response = await this.privateGetAssetWithdrawalHistory(this.extend(request, params));
         //
         //     {
@@ -5226,6 +5339,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchTransfers
          * @description fetch a history of internal transfers made on an account
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of transfers structures to retrieve
@@ -5392,6 +5506,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchFundingRate
          * @description fetch the current funding rate
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
@@ -5430,6 +5545,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -5650,6 +5766,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#setPositionMode
          * @description set hedged to true or false for a market
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-position-mode
          * @param {bool} hedged set to true to use long_short_mode, false for net_mode
          * @param {string} symbol not used by okx setPositionMode
          * @param {object} [params] extra parameters specific to the okx api endpoint
@@ -5684,9 +5801,11 @@ class okx extends okx$1 {
          * @method
          * @name okx#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-leverage
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {int} [params.leverage] leverage
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -5700,11 +5819,11 @@ class okx extends okx$1 {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const lever = this.safeInteger(params, 'lever');
+        const lever = this.safeInteger2(params, 'lever', 'leverage');
         if ((lever === undefined) || (lever < 1) || (lever > 125)) {
             throw new errors.BadRequest(this.id + ' setMarginMode() params["lever"] should be between 1 and 125');
         }
-        params = this.omit(params, ['lever']);
+        params = this.omit(params, ['leverage']);
         const request = {
             'lever': lever,
             'mgnMode': marginMode,
@@ -5732,6 +5851,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchBorrowRates
          * @description fetch the borrow interest rates of all currencies
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} a list of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
          */
@@ -5771,6 +5891,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
@@ -5864,6 +5985,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchBorrowRateHistories
          * @description retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
+         * @see https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
          * @param {string[]|undefined} codes list of unified currency codes, default is undefined
          * @param {int} [since] timestamp in ms of the earliest borrowRate, default is undefined
          * @param {int} [limit] max number of borrow rate prices to return, default is undefined
@@ -5906,6 +6028,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#fetchBorrowRateHistory
          * @description retrieves a history of a currencies borrow interest rate at specific time slots
+         * @see https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
          * @param {string} code unified currency code
          * @param {int} [since] timestamp for the earliest borrow rate
          * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure} to retrieve
@@ -5997,6 +6120,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#reduceMargin
          * @description remove margin from a position
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the okx api endpoint
@@ -6009,6 +6133,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#addMargin
          * @description add margin
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the okx api endpoint
@@ -6462,7 +6587,7 @@ class okx extends okx$1 {
             openInterestAmount = this.safeNumber(interest, 'oi');
             openInterestValue = this.safeNumber(interest, 'oiCcy');
         }
-        return {
+        return this.safeOpenInterest({
             'symbol': this.safeSymbol(id),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -6471,7 +6596,7 @@ class okx extends okx$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
     setSandboxMode(enable) {
         super.setSandboxMode(enable);

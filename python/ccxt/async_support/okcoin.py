@@ -1295,7 +1295,7 @@ class okcoin(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
@@ -1974,10 +1974,9 @@ class okcoin(Exchange, ImplicitAPI):
         #     }
         #
         order = self.parse_order(response, market)
-        return self.extend(order, {
-            'type': type,
-            'side': side,
-        })
+        order['type'] = type
+        order['side'] = side
+        return order
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """

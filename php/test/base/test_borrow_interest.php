@@ -23,7 +23,7 @@ function test_borrow_interest($exchange, $skipped_properties, $method, $entry, $
     );
     $empty_allowed_for = ['account'];
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
-    assert_timestamp($exchange, $skipped_properties, $method, $entry);
+    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry);
     assert_currency_code($exchange, $skipped_properties, $method, $entry, $entry['currency'], $requested_code);
     assert_symbol($exchange, $skipped_properties, $method, $entry, $entry['account'], $requested_symbol);
     assert_greater($exchange, $skipped_properties, $method, $entry, 'interest', '0');

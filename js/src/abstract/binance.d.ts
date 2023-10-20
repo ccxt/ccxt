@@ -15,6 +15,8 @@ interface Exchange {
     sapiGetAssetTradeFee(params?: {}): Promise<implicitReturnType>;
     sapiGetAssetLedgerTransferCloudMiningQueryByPage(params?: {}): Promise<implicitReturnType>;
     sapiGetAssetConvertTransferQueryByPage(params?: {}): Promise<implicitReturnType>;
+    sapiGetAssetWalletBalance(params?: {}): Promise<implicitReturnType>;
+    sapiGetAssetCustodyTransferHistory(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginLoan(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginRepay(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAccount(params?: {}): Promise<implicitReturnType>;
@@ -49,9 +51,11 @@ interface Exchange {
     sapiGetMarginNextHourlyInterestRate(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginCapitalFlow(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginDelistSchedule(params?: {}): Promise<implicitReturnType>;
+    sapiGetMarginAvailableInventory(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipLoanableData(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipCollateralData(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipRequestData(params?: {}): Promise<implicitReturnType>;
+    sapiGetLoanVipRequestInterestRate(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanIncome(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanOngoingOrders(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanLtvAdjustmentHistory(params?: {}): Promise<implicitReturnType>;
@@ -72,11 +76,7 @@ interface Exchange {
     sapiGetFiatOrders(params?: {}): Promise<implicitReturnType>;
     sapiGetFiatPayments(params?: {}): Promise<implicitReturnType>;
     sapiGetFuturesTransfer(params?: {}): Promise<implicitReturnType>;
-    sapiGetFuturesLoanBorrowHistory(params?: {}): Promise<implicitReturnType>;
-    sapiGetFuturesLoanRepayHistory(params?: {}): Promise<implicitReturnType>;
-    sapiGetFuturesLoanWallet(params?: {}): Promise<implicitReturnType>;
-    sapiGetFuturesLoanAdjustCollateralHistory(params?: {}): Promise<implicitReturnType>;
-    sapiGetFuturesLoanLiquidationHistory(params?: {}): Promise<implicitReturnType>;
+    sapiGetFuturesHistDataLink(params?: {}): Promise<implicitReturnType>;
     sapiGetRebateTaxQuery(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalConfigGetall(params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositAddress(params?: {}): Promise<implicitReturnType>;
@@ -385,7 +385,9 @@ interface Exchange {
     dapiPublicGetTicker24hr(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetTickerPrice(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetTickerBookTicker(params?: {}): Promise<implicitReturnType>;
+    dapiPublicGetConstituents(params?: {}): Promise<implicitReturnType>;
     dapiPublicGetOpenInterest(params?: {}): Promise<implicitReturnType>;
+    dapiDataGetDeliveryPrice(params?: {}): Promise<implicitReturnType>;
     dapiDataGetOpenInterestHist(params?: {}): Promise<implicitReturnType>;
     dapiDataGetTopLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;
     dapiDataGetTopLongShortPositionRatio(params?: {}): Promise<implicitReturnType>;
@@ -440,12 +442,15 @@ interface Exchange {
     fapiPublicGetMarkPriceKlines(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetIndexPriceKlines(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetFundingRate(params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetFundingInfo(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetPremiumIndex(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetTicker24hr(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetTickerPrice(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetTickerBookTicker(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetOpenInterest(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetIndexInfo(params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetAssetIndex(params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetConstituents(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetApiTradingStatus(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetLvtKlines(params?: {}): Promise<implicitReturnType>;
     fapiDataGetOpenInterestHist(params?: {}): Promise<implicitReturnType>;
@@ -480,6 +485,8 @@ interface Exchange {
     fapiPrivateGetAdlQuantile(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetPmAccountInfo(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetOrderAmendment(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetIncomeAsyn(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetIncomeAsynId(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetOrderAsyn(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetOrderAsynId(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetTradeAsyn(params?: {}): Promise<implicitReturnType>;

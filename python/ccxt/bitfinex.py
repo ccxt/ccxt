@@ -654,6 +654,7 @@ class bitfinex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -840,7 +841,7 @@ class bitfinex(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params={}):
         """

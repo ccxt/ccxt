@@ -739,6 +739,7 @@ export default class tokocrypto extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             if ('PRICE_FILTER' in filtersByType) {

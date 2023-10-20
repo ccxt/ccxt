@@ -657,6 +657,7 @@ class digifinex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -989,7 +990,7 @@ class digifinex(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(rawTicker)
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params={}):
         """
@@ -1567,14 +1568,13 @@ class digifinex(Exchange, ImplicitAPI):
         #         "data": "1590873693003714560"
         #     }
         #
-        result = self.parse_order(response, market)
-        return self.extend(result, {
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'amount': amount,
-            'price': price,
-        })
+        order = self.parse_order(response, market)
+        order['symbol'] = symbol
+        order['type'] = type
+        order['side'] = side
+        order['amount'] = amount
+        order['price'] = price
+        return order
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -2641,14 +2641,16 @@ class digifinex(Exchange, ImplicitAPI):
         #         "leverage_ratio": 3
         #     }
         #
-        symbol = self.safe_string(info, 'symbol')
+        marketId = self.safe_string(info, 'symbol')
         amountString = self.safe_string(info, 'amount')
         leverageString = self.safe_string(info, 'leverage_ratio')
         amountInvested = Precise.string_div(amountString, leverageString)
         amountBorrowed = Precise.string_sub(amountString, amountInvested)
         currency = None if (market is None) else market['base']
+        symbol = self.safe_symbol(marketId, market)
         return {
-            'account': self.safe_symbol(symbol, market),
+            'account': symbol,
+            'symbol': symbol,
             'currency': currency,
             'interest': None,
             'interestRate': 0.001,  # all interest rates on digifinex are 0.1%
@@ -3098,10 +3100,9 @@ class digifinex(Exchange, ImplicitAPI):
         if marketType == 'swap':
             return position
         else:
-            return self.extend(position, {
-                'collateral': self.safe_number(response, 'margin'),
-                'marginRatio': self.safe_number(response, 'margin_rate'),
-            })
+            position['collateral'] = self.safe_number(response, 'margin')
+            position['marginRatio'] = self.safe_number(response, 'margin_rate')
+            return position
 
     def parse_position(self, position, market=None):
         #
@@ -3156,7 +3157,7 @@ class digifinex(Exchange, ImplicitAPI):
             side = 'long'
         elif side == 'go_short':
             side = 'short'
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -3182,7 +3183,7 @@ class digifinex(Exchange, ImplicitAPI):
             'percentage': None,
             'stopLossPrice': None,
             'takeProfitPrice': None,
-        }
+        })
 
     def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """

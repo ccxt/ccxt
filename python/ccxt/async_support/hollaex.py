@@ -320,6 +320,7 @@ class hollaex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.parse8601(self.safe_string(market, 'created_at')),
                 'info': market,
             })
         return result
@@ -528,7 +529,7 @@ class hollaex(Exchange, ImplicitAPI):
             market = self.safe_market(marketId, None, '-')
             symbol = market['symbol']
             result[symbol] = self.extend(self.parse_ticker(ticker, market), params)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker, market=None):
         #

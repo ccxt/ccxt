@@ -385,6 +385,7 @@ class krakenfutures extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->parse8601($this->safe_string($market, 'openingDate')),
                     'info' => $market,
                 );
             }
@@ -568,8 +569,24 @@ class krakenfutures extends Exchange {
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * @see https://docs.futures.kraken.com/#http-api-charts-$candles
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of $candles to fetch
+             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 5000));
+            }
             $request = array(
                 'symbol' => $market['id'],
                 'price_type' => $this->safe_string($params, 'price', 'trade'),
@@ -646,9 +663,15 @@ class krakenfutures extends Exchange {
              * @param {int} [$limit] Total number of trades, cannot exceed 100
              * @param {array} [$params] Exchange specific $params
              * @param {int} [$params->until] Timestamp in ms of latest trade
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return An array of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -920,7 +943,8 @@ class krakenfutures extends Exchange {
             $status = $this->safe_string($response['editStatus'], 'status');
             $this->verify_order_action_success($status, 'editOrder', array( 'filled' ));
             $order = $this->parse_order($response['editStatus']);
-            return array_merge(array( 'info' => $response ), $order);
+            $order['info'] = $response;
+            return $order;
         }) ();
     }
 
@@ -1230,7 +1254,8 @@ class krakenfutures extends Exchange {
         $statusId = null;
         $price = null;
         $trades = array();
-        if (strlen($orderEvents)) {
+        $orderEventsLength = count($orderEvents);
+        if ($orderEventsLength) {
             $executions = array();
             for ($i = 0; $i < count($orderEvents); $i++) {
                 $item = $orderEvents[$i];
@@ -1334,7 +1359,7 @@ class krakenfutures extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => $this->safe_string_2($details, 'clientOrderId', 'clientId'),
+            'clientOrderId' => $this->safe_string_n($details, array( 'clientOrderId', 'clientId', 'cliOrdId' )),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -1343,6 +1368,7 @@ class krakenfutures extends Exchange {
             'type' => $this->parse_order_type($type),
             'timeInForce' => $timeInForce,
             'postOnly' => $type === 'post',
+            'reduceOnly' => $this->safe_value($details, 'reduceOnly'),
             'side' => $this->safe_string($details, 'side'),
             'price' => $price,
             'stopPrice' => $this->safe_string($details, 'triggerPrice'),
@@ -1511,11 +1537,10 @@ class krakenfutures extends Exchange {
                 throw new BadRequest($this->id . ' fetchBalance has no $account for ' . $type);
             }
             $balance = $this->parse_balance($account);
-            return array_merge(array(
-                'info' => $response,
-                'timestamp' => $this->parse8601($datetime),
-                'datetime' => $datetime,
-            ), $balance);
+            $balance['info'] = $response;
+            $balance['timestamp'] = $this->parse8601($datetime);
+            $balance['datetime'] = $datetime;
+            return $balance;
         }) ();
     }
 

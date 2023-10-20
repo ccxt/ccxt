@@ -414,6 +414,7 @@ class lbank2 extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -511,6 +512,7 @@ class lbank2 extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -1486,8 +1488,10 @@ class lbank2 extends Exchange {
             $options = $this->safe_value($this->options, 'fetchOrder', array());
             $method = $this->safe_string($options, 'method', 'fetchOrderSupplement');
         }
-        $result = $this->$method ($id, $symbol, $params);
-        return $result;
+        if ($method === 'fetchOrderSupplement') {
+            return $this->fetch_order_supplement($id, $symbol, $params);
+        }
+        return $this->fetch_order_default($id, $symbol, $params);
     }
 
     public function fetch_order_supplement(string $id, ?string $symbol = null, $params = array ()) {
@@ -1559,12 +1563,13 @@ class lbank2 extends Exchange {
         if ($numOrders === 1) {
             return $this->parse_order($result[0]);
         } else {
-            $parsedOrders = array();
-            for ($i = 0; $i < $numOrders; $i++) {
-                $parsedOrder = $this->parse_order($result[$i]);
-                $parsedOrders[] = $parsedOrder;
-            }
-            return $parsedOrders;
+            // $parsedOrders = array();
+            // for ($i = 0; $i < $numOrders; $i++) {
+            //     $parsedOrder = $this->parse_order($result[$i]);
+            //     $parsedOrders[] = $parsedOrder;
+            // }
+            // return $parsedOrders;
+            throw new BadRequest($this->id . ' fetchOrder() can only fetch one order at a time');
         }
     }
 
