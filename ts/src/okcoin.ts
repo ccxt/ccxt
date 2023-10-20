@@ -60,22 +60,20 @@ export default class okcoin extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': '60',
-                '3m': '180',
-                '5m': '300',
-                '15m': '900',
-                '30m': '1800',
-                '1h': '3600',
-                '2h': '7200',
-                '4h': '14400',
-                '6h': '21600',
-                '12h': '43200',
-                '1d': '86400',
-                '1w': '604800',
-                '1M': '2678400',
-                '3M': '8035200',
-                '6M': '16070400',
-                '1y': '31536000',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1H',
+                '2h': '2H',
+                '4h': '4H',
+                '6h': '6H',
+                '12h': '12H',
+                '1d': '1D',
+                '1w': '1W',
+                '1M': '1M',
+                '3M': '3M',
             },
             'hostname': 'okcoin.com',
             'urls': {
@@ -109,79 +107,77 @@ export default class okcoin extends Exchange {
                     },
                 },
                 'private': {
-                    'private': {
-                        'get': {
-                            // trade
-                            'trade/order': 1 / 3,
-                            'trade/orders-pending': 1 / 3,
-                            'trade/orders-history': 1 / 2,
-                            'trade/fills': 1 / 3,
-                            'trade/fills-history': 2.2,
-                            'trade/fills-archive': 2,
-                            'trade/order-algo': 1,
-                            'trade/orders-algo-pending': 1,
-                            'trade/orders-algo-history': 1,
-                            // rfq
-                            'otc/rfq/trade': 4,
-                            'otc/rfq/history': 4,
-                            // account
-                            'account/balance': 2,
-                            'account/bills': 5 / 3,
-                            'account/bills-archive': 5 / 3,
-                            'account/config': 4,
-                            'account/max-size': 4,
-                            'account/max-avail-size': 4,
-                            'account/trade-fee': 4,
-                            'account/max-withdrawal': 4,
-                            // funding or assets
-                            'asset/currencies': 5 / 3,
-                            'asset/balances': 5 / 3,
-                            'asset/asset-valuation': 10,
-                            'asset/transfer-state': 10,
-                            'asset/bills': 5 / 3,
-                            'asset/deposit-lightning': 5,
-                            'asset/deposit-address': 5 / 3,
-                            'asset/deposit-history': 5 / 3,
-                            'asset/withdrawal-history': 5 / 3,
-                            'asset/deposit-withdraw-status': 20,
-                            // fiat
-                            'fiat/deposit-history': 5 / 3,
-                            'fiat-withdraw-history': 5 / 3,
-                            'fiat-channel': 5 / 3,
-                            // sub-account
-                            'users/subaccount/list': 10,
-                            'users/subaccount/apiKey': 10,
-                            'account/subaccount/balances': 10,
-                            'asset/subaccount/balances': 10,
-                            'asset/subaccount/bills': 10,
-                        },
-                        'post': {
-                            // trade
-                            'trade/order': 1 / 3,
-                            'trade/batch-orders': 1 / 15,
-                            'trade/cancel-order': 1 / 3,
-                            'trade/cancel-batch-orders': 1 / 15,
-                            'trade/amend-order': 1 / 3,
-                            'trade/amend-batch-orders': 1 / 150,
-                            'trade/order-algo': 1,
-                            'trade/cancel-algos': 1,
-                            'trade/cancel-advance-algos': 1,
-                            // rfq
-                            'otc/rfq/quote': 4,
-                            'otc/rfq/trade': 4,
-                            // funding
-                            'asset/transfer': 4,
-                            'asset/withdrawal': 4,
-                            'asset/withdrawal-lightning': 4,
-                            'asset/withdrawal-cancel': 4,
-                            // fiat
-                            'fiat/deposit': 5 / 3,
-                            'fiat/cancel-deposit': 5 / 3,
-                            'fiat/withdrawal': 5 / 3,
-                            'fiat/cancel-withdrawal': 5 / 3,
-                            // sub-account
-                            'asset/subaccount/transfer': 10,
-                        },
+                    'get': {
+                        // trade
+                        'trade/order': 1 / 3,
+                        'trade/orders-pending': 1 / 3,
+                        'trade/orders-history': 1 / 2,
+                        'trade/fills': 1 / 3,
+                        'trade/fills-history': 2.2,
+                        'trade/fills-archive': 2,
+                        'trade/order-algo': 1,
+                        'trade/orders-algo-pending': 1,
+                        'trade/orders-algo-history': 1,
+                        // rfq
+                        'otc/rfq/trade': 4,
+                        'otc/rfq/history': 4,
+                        // account
+                        'account/balance': 2,
+                        'account/bills': 5 / 3,
+                        'account/bills-archive': 5 / 3,
+                        'account/config': 4,
+                        'account/max-size': 4,
+                        'account/max-avail-size': 4,
+                        'account/trade-fee': 4,
+                        'account/max-withdrawal': 4,
+                        // funding or assets
+                        'asset/currencies': 5 / 3,
+                        'asset/balances': 5 / 3,
+                        'asset/asset-valuation': 10,
+                        'asset/transfer-state': 10,
+                        'asset/bills': 5 / 3,
+                        'asset/deposit-lightning': 5,
+                        'asset/deposit-address': 5 / 3,
+                        'asset/deposit-history': 5 / 3,
+                        'asset/withdrawal-history': 5 / 3,
+                        'asset/deposit-withdraw-status': 20,
+                        // fiat
+                        'fiat/deposit-history': 5 / 3,
+                        'fiat-withdraw-history': 5 / 3,
+                        'fiat-channel': 5 / 3,
+                        // sub-account
+                        'users/subaccount/list': 10,
+                        'users/subaccount/apiKey': 10,
+                        'account/subaccount/balances': 10,
+                        'asset/subaccount/balances': 10,
+                        'asset/subaccount/bills': 10,
+                    },
+                    'post': {
+                        // trade
+                        'trade/order': 1 / 3,
+                        'trade/batch-orders': 1 / 15,
+                        'trade/cancel-order': 1 / 3,
+                        'trade/cancel-batch-orders': 1 / 15,
+                        'trade/amend-order': 1 / 3,
+                        'trade/amend-batch-orders': 1 / 150,
+                        'trade/order-algo': 1,
+                        'trade/cancel-algos': 1,
+                        'trade/cancel-advance-algos': 1,
+                        // rfq
+                        'otc/rfq/quote': 4,
+                        'otc/rfq/trade': 4,
+                        // funding
+                        'asset/transfer': 4,
+                        'asset/withdrawal': 4,
+                        'asset/withdrawal-lightning': 4,
+                        'asset/withdrawal-cancel': 4,
+                        // fiat
+                        'fiat/deposit': 5 / 3,
+                        'fiat/cancel-deposit': 5 / 3,
+                        'fiat/withdrawal': 5 / 3,
+                        'fiat/cancel-withdrawal': 5 / 3,
+                        // sub-account
+                        'asset/subaccount/transfer': 10,
                     },
                 },
             },
@@ -728,19 +724,13 @@ export default class okcoin extends Exchange {
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        // despite that their docs say these endpoints are public:
-        //     https://www.okex.com/api/account/v3/withdrawal/fee
-        //     https://www.okex.com/api/account/v3/currencies
-        // it will still reply with { "code":30001, "message": "OK-ACCESS-KEY header is required" }
-        // if you attempt to access it without authentication
-        return undefined;
         if (!this.checkRequiredCredentials (false)) {
             if (this.options['warnOnFetchCurrenciesWithoutAuthorization']) {
                 throw new ExchangeError (this.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
             }
             return undefined;
         } else {
-            const response = await this.privatePrivateGetAssetCurrencies (params);
+            const response = await this.privateGetAssetCurrencies (params);
             const data = this.safeValue (response, 'data', []);
             const result = {};
             const dataByCurrencyId = this.groupBy (data, 'ccy');
@@ -1153,7 +1143,8 @@ export default class okcoin extends Exchange {
         } else {
             response = await this.publicGetMarketHistoryCandles (this.extend (request, params));
         }
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseAccountBalance (response) {
@@ -2287,6 +2278,8 @@ export default class okcoin extends Exchange {
         /**
          * @method
          * @name okcoin#fetchMyTrades
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-days
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-months
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2294,101 +2287,26 @@ export default class okcoin extends Exchange {
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        // okex actually returns ledger entries instead of fills here, so each fill in the order
-        // is represented by two trades with opposite buy/sell sides, not one :\
-        // this aspect renders the 'fills' endpoint unusable for fetchOrderTrades
-        // until either OKEX fixes the API or we workaround this on our side somehow
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const request = {};
         if ((limit !== undefined) && (limit > 100)) {
             limit = 100;
         }
-        const request = {
-            'instrument_id': market['id'],
-            // 'order_id': id, // string
-            // 'after': '1', // pagination of data to return records earlier than the requested ledger_id
-            // 'before': '1', // P=pagination of data to return records newer than the requested ledger_id
-            // 'limit': limit, // optional, number of results per request, default = maximum = 100
-        };
-        const defaultType = this.safeString2 (this.options, 'fetchMyTrades', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        const method = type + 'GetFills';
-        const response = await this[method] (this.extend (request, query));
-        //
-        //     [
-        //         // sell
-        //         {
-        //             "created_at":"2020-03-29T11:55:25.000Z",
-        //             "currency":"USDT",
-        //             "exec_type":"T",
-        //             "fee":"-0.04647925",
-        //             "instrument_id":"ETH-USDT",
-        //             "ledger_id":"10562924353",
-        //             "liquidity":"T",
-        //             "order_id":"4636470489136128",
-        //             "price":"129.13",
-        //             "product_id":"ETH-USDT",
-        //             "side":"buy",
-        //             "size":"30.98616393",
-        //             "timestamp":"2020-03-29T11:55:25.000Z",
-        //             "trade_id":"18551601"
-        //         },
-        //         {
-        //             "created_at":"2020-03-29T11:55:25.000Z",
-        //             "currency":"ETH",
-        //             "exec_type":"T",
-        //             "fee":"0",
-        //             "instrument_id":"ETH-USDT",
-        //             "ledger_id":"10562924352",
-        //             "liquidity":"T",
-        //             "order_id":"4636470489136128",
-        //             "price":"129.13",
-        //             "product_id":"ETH-USDT",
-        //             "side":"sell",
-        //             "size":"0.23996099",
-        //             "timestamp":"2020-03-29T11:55:25.000Z",
-        //             "trade_id":"18551601"
-        //         },
-        //         // buy
-        //         {
-        //             "created_at":"2020-03-29T11:55:16.000Z",
-        //             "currency":"ETH",
-        //             "exec_type":"T",
-        //             "fee":"-0.00036049",
-        //             "instrument_id":"ETH-USDT",
-        //             "ledger_id":"10562922669",
-        //             "liquidity":"T",
-        //             "order_id": "4636469894136832",
-        //             "price":"129.16",
-        //             "product_id":"ETH-USDT",
-        //             "side":"buy",
-        //             "size":"0.240322",
-        //             "timestamp":"2020-03-29T11:55:16.000Z",
-        //             "trade_id":"18551600"
-        //         },
-        //         {
-        //             "created_at":"2020-03-29T11:55:16.000Z",
-        //             "currency":"USDT",
-        //             "exec_type":"T",
-        //             "fee":"0",
-        //             "instrument_id":"ETH-USDT",
-        //             "ledger_id":"10562922668",
-        //             "liquidity":"T",
-        //             "order_id":"4636469894136832",
-        //             "price":"129.16",
-        //             "product_id":"ETH-USDT",
-        //             "side":"sell",
-        //             "size":"31.03998952",
-        //             "timestamp":"2020-03-29T11:55:16.000Z",
-        //             "trade_id":"18551600"
-        //         }
-        //     ]
-        //
-        return this.parseMyTrades (response, market, since, limit, params);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instId'] = market['id'];
+        }
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'method', 'privateGetTradeFillsHistory');
+        let response = undefined;
+        if (method === 'privateGetTradeFillsHistory') {
+            response = await this.privateGetTradeFillsHistory (this.extend (request, params));
+        } else {
+            response = await this.privateGetTradeFills (this.extend (request, params));
+        }
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
