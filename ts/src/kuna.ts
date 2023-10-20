@@ -134,7 +134,7 @@ export default class kuna extends Exchange {
                             'trade/private/history': 1,
                             'transaction/private/{hash}': 1,
                             'deposit/private/preRequest': 1,
-                            'deposit/private/crypto/address': 1,
+                            'deposit/private/crypto/address?source={source}': 1,
                             'deposit/private/crypto/getMerchantAddress': 1,
                             'deposit/private/history': 1,
                             'deposit/private/details/{depositId}': 1,
@@ -1571,7 +1571,7 @@ export default class kuna extends Exchange {
         const request = {
             'source': currency['id'],
         };
-        const response = await this.v4PrivateGetDepositPrivateCryptoAddress (this.extend (request, params));
+        const response = await this.v4PrivateGetDepositPrivateCryptoAddressSourceSource (this.extend (request, params));
         //
         //    {
         //        "data": {
