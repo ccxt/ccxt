@@ -1363,6 +1363,7 @@ export default class krakenfutures extends Exchange {
             'type': this.parseOrderType (type),
             'timeInForce': timeInForce,
             'postOnly': type === 'post',
+            'reduceOnly': this.safeValue (details, 'reduceOnly'),
             'side': this.safeString (details, 'side'),
             'price': price,
             'stopPrice': this.safeString (details, 'triggerPrice'),
