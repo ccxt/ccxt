@@ -1271,92 +1271,261 @@ export default class okcoin extends Exchange {
         /**
          * @method
          * @name okcoin#createOrder
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-algo-order
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-multiple-orders
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
+         * @param {bool} [params.reduceOnly] MARGIN orders only, or swap/future orders in net mode
+         * @param {bool} [params.postOnly] true to place a post only order
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
-            'instrument_id': market['id'],
-            // 'client_oid': 'abcdef1234567890', // [a-z0-9]{1,32}
-            // 'order_type': '0', // 0 = Normal limit order, 1 = Post only, 2 = Fill Or Kill, 3 = Immediatel Or Cancel, 4 = Market for futures only
-        };
-        const clientOrderId = this.safeString2 (params, 'client_oid', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['client_oid'] = clientOrderId;
-            params = this.omit (params, [ 'client_oid', 'clientOrderId' ]);
+        let request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        let method = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
+        const requestOrdType = this.safeString (request, 'ordType');
+        if ((requestOrdType === 'trigger') || (requestOrdType === 'conditional') || (type === 'oco') || (type === 'move_order_stop') || (type === 'iceberg') || (type === 'twap')) {
+            method = 'privatePostTradeOrderAlgo';
         }
-        let method = undefined;
-        if (market['futures'] || market['swap']) {
-            const size = market['futures'] ? this.numberToString (amount) : this.amountToPrecision (symbol, amount);
-            request = this.extend (request, {
-                'type': type, // 1:open long 2:open short 3:close long 4:close short for futures
-                'size': size,
-                // 'match_price': '0', // Order at best counter party price? (0:no 1:yes). The default is 0. If it is set as 1, the price parameter will be ignored. When posting orders at best bid price, order_type can only be 0 (regular order).
-            });
-            const orderType = this.safeString (params, 'order_type');
-            // order_type === '4' means a market order
-            const isMarketOrder = (type === 'market') || (orderType === '4');
-            if (isMarketOrder) {
-                request['order_type'] = '4';
-            } else {
-                request['price'] = this.priceToPrecision (symbol, price);
-            }
-            if (market['futures']) {
-                request['leverage'] = '10'; // or '20'
-            }
-            method = market['type'] + 'PostOrder';
+        if ((method !== 'privatePostTradeOrder') && (method !== 'privatePostTradeOrderAlgo') && (method !== 'privatePostTradeBatchOrders')) {
+            throw new ExchangeError (this.id + ' createOrder() this.options["createOrder"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo');
+        }
+        if (method === 'privatePostTradeBatchOrders') {
+            // keep the request body the same
+            // submit a single order in an array to the batch order endpoint
+            // because it has a lower ratelimit
+            request = [ request ];
+        }
+        const response = await this[method] (request);
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0);
+        const order = this.parseOrder (first, market);
+        order['type'] = type;
+        order['side'] = side;
+        return order;
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        const market = this.market (symbol);
+        const request = {
+            'instId': market['id'],
+            // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
+            // 'clOrdId': clientOrderId, // up to 32 characters, must be unique
+            // 'tag': tag, // up to 8 characters
+            'side': side,
+            // 'posSide': 'long', // long, short, // required in the long/short mode, and can only be long or short (only for future or swap)
+            'ordType': type,
+            // 'ordType': type, // privatePostTradeOrder: market, limit, post_only, fok, ioc, optimal_limit_ioc
+            // 'ordType': type, // privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
+            'sz': this.amountToPrecision (symbol, amount),
+            // 'px': this.priceToPrecision (symbol, price), // limit orders only
+            // 'reduceOnly': false,
+            //
+            // 'triggerPx': 10, // stopPrice (trigger orders)
+            // 'orderPx': 10, // Order price if -1, the order will be executed at the market price. (trigger orders)
+            // 'triggerPxType': 'last', // Conditional default is last, mark or index (trigger orders)
+            //
+            // 'tpTriggerPx': 10, // takeProfitPrice (conditional orders)
+            // 'tpTriggerPxType': 'last', // Conditional default is last, mark or index (conditional orders)
+            // 'tpOrdPx': 10, // Order price for Take-Profit orders, if -1 will be executed at market price (conditional orders)
+            //
+            // 'slTriggerPx': 10, // stopLossPrice (conditional orders)
+            // 'slTriggerPxType': 'last', // Conditional default is last, mark or index (conditional orders)
+            // 'slOrdPx': 10, // Order price for Stop-Loss orders, if -1 will be executed at market price (conditional orders)
+        };
+        const triggerPrice = this.safeValueN (params, [ 'triggerPrice', 'stopPrice', 'triggerPx' ]);
+        const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
+        const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
+        const tpOrdPx = this.safeValue (params, 'tpOrdPx', price);
+        const tpTriggerPxType = this.safeString (params, 'tpTriggerPxType', 'last');
+        const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
+        const slOrdPx = this.safeValue (params, 'slOrdPx', price);
+        const slTriggerPxType = this.safeString (params, 'slTriggerPxType', 'last');
+        const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const stopLossDefined = (stopLoss !== undefined);
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        const takeProfitDefined = (takeProfit !== undefined);
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        let marginMode = this.safeString2 (params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
+        let margin = false;
+        if ((marginMode !== undefined) && (marginMode !== 'cash')) {
+            margin = true;
         } else {
-            request = this.extend (request, {
-                'side': side,
-                'type': type, // limit/market
-            });
-            if (type === 'limit') {
-                request['price'] = this.priceToPrecision (symbol, price);
-                request['size'] = this.amountToPrecision (symbol, amount);
-            } else if (type === 'market') {
-                // for market buy it requires the amount of quote currency to spend
-                if (side === 'buy') {
-                    let notional = this.safeNumber (params, 'notional');
+            marginMode = defaultMarginMode;
+            margin = this.safeValue (params, 'margin', false);
+        }
+        if (margin) {
+            const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
+            const currency = this.safeString (params, 'ccy', defaultCurrency);
+            request['ccy'] = this.safeCurrencyCode (currency);
+        }
+        const tradeMode = margin ? marginMode : 'cash';
+        request['tdMode'] = tradeMode;
+        const isMarketOrder = type === 'market';
+        let postOnly = false;
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'post_only', params);
+        params = this.omit (params, [ 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit' ]);
+        const ioc = (timeInForce === 'IOC') || (type === 'ioc');
+        const fok = (timeInForce === 'FOK') || (type === 'fok');
+        const trigger = (triggerPrice !== undefined) || (type === 'trigger');
+        const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
+        const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
+        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
+        const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
+        if ((!margin)) {
+            request['tgtCcy'] = tgtCcy;
+        }
+        if (isMarketOrder || marketIOC) {
+            request['ordType'] = 'market';
+            if ((side === 'buy')) {
+                // spot market buy: "sz" can refer either to base currency units or to quote currency units
+                // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
+                if (tgtCcy === 'quote_ccy') {
+                    // quote_ccy: sz refers to units of quote currency
+                    let notional = this.safeNumber2 (params, 'cost', 'sz');
                     const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
                     if (createMarketBuyOrderRequiresPrice) {
                         if (price !== undefined) {
                             if (notional === undefined) {
-                                notional = amount * price;
+                                const amountString = this.numberToString (amount);
+                                const priceString = this.numberToString (price);
+                                const quoteAmount = Precise.stringMul (amountString, priceString);
+                                notional = this.parseNumber (quoteAmount);
                             }
                         } else if (notional === undefined) {
-                            throw new InvalidOrder (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total cost value in the "amount" argument or in the "notional" extra parameter (the exchange-specific behaviour)');
+                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
                         }
                     } else {
                         notional = (notional === undefined) ? amount : notional;
                     }
-                    request['notional'] = this.costToPrecision (symbol, notional);
-                } else {
-                    request['size'] = this.amountToPrecision (symbol, amount);
+                    request['sz'] = this.costToPrecision (symbol, notional);
+                    params = this.omit (params, [ 'cost', 'sz' ]);
                 }
             }
-            method = 'spotPostOrders';
+        } else {
+            if ((!trigger) && (!conditional)) {
+                request['px'] = this.priceToPrecision (symbol, price);
+            }
         }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     {
-        //         "client_oid":"oktspot79",
-        //         "error_code":"",
-        //         "error_message":"",
-        //         "order_id":"2510789768709120",
-        //         "result":true
-        //     }
-        //
-        const order = this.parseOrder (response, market);
-        order['type'] = type;
-        order['side'] = side;
-        return order;
+        if (postOnly) {
+            request['ordType'] = 'post_only';
+        } else if (ioc && !marketIOC) {
+            request['ordType'] = 'ioc';
+        } else if (fok) {
+            request['ordType'] = 'fok';
+        } else if (stopLossDefined || takeProfitDefined) {
+            if (stopLossDefined) {
+                const stopLossTriggerPrice = this.safeValueN (stopLoss, [ 'triggerPrice', 'stopPrice', 'slTriggerPx' ]);
+                if (stopLossTriggerPrice === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
+                }
+                request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
+                const stopLossLimitPrice = this.safeValueN (stopLoss, [ 'price', 'stopLossPrice', 'slOrdPx' ]);
+                const stopLossOrderType = this.safeString (stopLoss, 'type');
+                if (stopLossOrderType !== undefined) {
+                    const stopLossLimitOrderType = (stopLossOrderType === 'limit');
+                    const stopLossMarketOrderType = (stopLossOrderType === 'market');
+                    if ((!stopLossLimitOrderType) && (!stopLossMarketOrderType)) {
+                        throw new InvalidOrder (this.id + ' createOrder() params["stopLoss"]["type"] must be either "limit" or "market"');
+                    } else if (stopLossLimitOrderType) {
+                        if (stopLossLimitPrice === undefined) {
+                            throw new InvalidOrder (this.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order');
+                        } else {
+                            request['slOrdPx'] = this.priceToPrecision (symbol, stopLossLimitPrice);
+                        }
+                    } else if (stopLossOrderType === 'market') {
+                        request['slOrdPx'] = '-1';
+                    }
+                } else if (stopLossLimitPrice !== undefined) {
+                    request['slOrdPx'] = this.priceToPrecision (symbol, stopLossLimitPrice); // limit sl order
+                } else {
+                    request['slOrdPx'] = '-1'; // market sl order
+                }
+                const stopLossTriggerPriceType = this.safeString2 (stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last');
+                if (stopLossTriggerPriceType !== undefined) {
+                    if ((stopLossTriggerPriceType !== 'last') && (stopLossTriggerPriceType !== 'index') && (stopLossTriggerPriceType !== 'mark')) {
+                        throw new InvalidOrder (this.id + ' createOrder() stop loss trigger price type must be one of "last", "index" or "mark"');
+                    }
+                    request['slTriggerPxType'] = stopLossTriggerPriceType;
+                }
+            }
+            if (takeProfitDefined) {
+                const takeProfitTriggerPrice = this.safeValueN (takeProfit, [ 'triggerPrice', 'stopPrice', 'tpTriggerPx' ]);
+                if (takeProfitTriggerPrice === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order');
+                }
+                request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
+                const takeProfitLimitPrice = this.safeValueN (takeProfit, [ 'price', 'takeProfitPrice', 'tpOrdPx' ]);
+                const takeProfitOrderType = this.safeString (takeProfit, 'type');
+                if (takeProfitOrderType !== undefined) {
+                    const takeProfitLimitOrderType = (takeProfitOrderType === 'limit');
+                    const takeProfitMarketOrderType = (takeProfitOrderType === 'market');
+                    if ((!takeProfitLimitOrderType) && (!takeProfitMarketOrderType)) {
+                        throw new InvalidOrder (this.id + ' createOrder() params["takeProfit"]["type"] must be either "limit" or "market"');
+                    } else if (takeProfitLimitOrderType) {
+                        if (takeProfitLimitPrice === undefined) {
+                            throw new InvalidOrder (this.id + ' createOrder() requires a limit price in params["takeProfit"]["price"] or params["takeProfit"]["tpOrdPx"] for a take profit limit order');
+                        } else {
+                            request['tpOrdPx'] = this.priceToPrecision (symbol, takeProfitLimitPrice);
+                        }
+                    } else if (takeProfitOrderType === 'market') {
+                        request['tpOrdPx'] = '-1';
+                    }
+                } else if (takeProfitLimitPrice !== undefined) {
+                    request['tpOrdPx'] = this.priceToPrecision (symbol, takeProfitLimitPrice); // limit tp order
+                } else {
+                    request['tpOrdPx'] = '-1'; // market tp order
+                }
+                const takeProfitTriggerPriceType = this.safeString2 (takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last');
+                if (takeProfitTriggerPriceType !== undefined) {
+                    if ((takeProfitTriggerPriceType !== 'last') && (takeProfitTriggerPriceType !== 'index') && (takeProfitTriggerPriceType !== 'mark')) {
+                        throw new InvalidOrder (this.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"');
+                    }
+                    request['tpTriggerPxType'] = takeProfitTriggerPriceType;
+                }
+            }
+        } else if (trigger) {
+            request['ordType'] = 'trigger';
+            request['triggerPx'] = this.priceToPrecision (symbol, triggerPrice);
+            request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision (symbol, price);
+        } else if (conditional) {
+            request['ordType'] = 'conditional';
+            const twoWayCondition = ((takeProfitPrice !== undefined) && (stopLossPrice !== undefined));
+            // if TP and SL are sent together
+            // as ordType 'conditional' only stop-loss order will be applied
+            if (twoWayCondition) {
+                request['ordType'] = 'oco';
+            }
+            if (takeProfitPrice !== undefined) {
+                request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
+                request['tpOrdPx'] = (tpOrdPx === undefined) ? '-1' : this.priceToPrecision (symbol, tpOrdPx);
+                request['tpTriggerPxType'] = tpTriggerPxType;
+            }
+            if (stopLossPrice !== undefined) {
+                request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossPrice);
+                request['slOrdPx'] = (slOrdPx === undefined) ? '-1' : this.priceToPrecision (symbol, slOrdPx);
+                request['slTriggerPxType'] = slTriggerPxType;
+            }
+        }
+        if (clientOrderId === undefined) {
+            const brokerId = this.safeString (this.options, 'brokerId');
+            if (brokerId !== undefined) {
+                request['clOrdId'] = brokerId + this.uuid16 ();
+                request['tag'] = brokerId;
+            }
+        } else {
+            request['clOrdId'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
+        }
+        return this.extend (request, params);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
