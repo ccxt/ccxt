@@ -1355,7 +1355,6 @@ class Exchange {
             $url = $proxyUrl . $url;
         }
         // proxy agents
-        // $this->load_proxy_modules(); // not needed in sync PHP
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
         $this->checkConflictingProxies ($httpProxy || $httpsProxy || $socksProxy, $proxyUrl);
         $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);

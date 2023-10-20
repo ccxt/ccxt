@@ -137,7 +137,6 @@ class Exchange extends \ccxt\Exchange {
                 $url = $proxyUrl . $url;
             }
             // proxy agents
-            // $this->load_proxy_modules(); // not needed in PHP
             [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
             $this->checkConflictingProxies($httpProxy || $httpsProxy || $socksProxy, $proxyUrl);
             $connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
@@ -298,11 +297,6 @@ class Exchange extends \ccxt\Exchange {
         Loop::addTimer($timeout / 1000, function () use ($method, $args) {
             $this->spawn($method, ...$args);
         });
-    }
-
-    // placeholder method in php
-    function load_proxy_modules(){
-        return;
     }
 
     // ########################################################################
