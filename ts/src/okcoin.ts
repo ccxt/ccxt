@@ -110,7 +110,7 @@ export default class okcoin extends Exchange {
                 'private': {
                     'private': {
                         'get': {
-                            //trade
+                            // trade
                             'trade/order': 1 / 3,
                             'trade/orders-pending': 1 / 3,
                             'trade/orders-history': 1 / 2,
@@ -132,7 +132,7 @@ export default class okcoin extends Exchange {
                             'account/max-avail-size': 4,
                             'account/trade-fee': 4,
                             'account/max-withdrawal': 4,
-                            //funding or assets
+                            // funding or assets
                             'asset/currencies': 5 / 3,
                             'asset/balances': 5 / 3,
                             'asset/asset-valuation': 10,
@@ -181,8 +181,9 @@ export default class okcoin extends Exchange {
                             'fiat/cancel-withdrawal': 5 / 3,
                             // sub-account
                             'asset/subaccount/transfer': 10,
-                    }
-                }
+                        },
+                    },
+                },
             },
             'fees': {
                 'trading': {
