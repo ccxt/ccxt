@@ -5451,6 +5451,7 @@ class okx(Exchange, ImplicitAPI):
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the okx api endpoint
+        :param int [params.leverage]: leverage
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -5462,10 +5463,10 @@ class okx(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' setMarginMode() marginMode must be either cross or isolated')
         self.load_markets()
         market = self.market(symbol)
-        lever = self.safe_integer(params, 'lever')
+        lever = self.safe_integer_2(params, 'lever', 'leverage')
         if (lever is None) or (lever < 1) or (lever > 125):
             raise BadRequest(self.id + ' setMarginMode() params["lever"] should be between 1 and 125')
-        params = self.omit(params, ['lever'])
+        params = self.omit(params, ['leverage'])
         request = {
             'lever': lever,
             'mgnMode': marginMode,

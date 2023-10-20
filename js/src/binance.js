@@ -649,6 +649,7 @@ export default class binance extends Exchange {
                 },
                 'dapiData': {
                     'get': {
+                        'delivery-price': 1,
                         'openInterestHist': 1,
                         'topLongShortAccountRatio': 1,
                         'topLongShortPositionRatio': 1,
@@ -871,8 +872,8 @@ export default class binance extends Exchange {
                     'get': {
                         'ping': 0.2,
                         'time': 0.2,
-                        'depth': { 'cost': 0.4, 'byLimit': [[100, 0.4], [500, 2], [1000, 4], [5000, 20]] },
-                        'trades': 0.4,
+                        'depth': { 'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10], [5000, 50]] },
+                        'trades': 2,
                         'aggTrades': 0.4,
                         'historicalTrades': 2,
                         'klines': 0.4,

@@ -672,6 +672,7 @@ class binance(Exchange, ImplicitAPI):
                 },
                 'dapiData': {
                     'get': {
+                        'delivery-price': 1,
                         'openInterestHist': 1,
                         'topLongShortAccountRatio': 1,
                         'topLongShortPositionRatio': 1,
@@ -894,8 +895,8 @@ class binance(Exchange, ImplicitAPI):
                     'get': {
                         'ping': 0.2,  # Weight(IP): 1 => cost = 0.2 * 1 = 0.2
                         'time': 0.2,
-                        'depth': {'cost': 0.4, 'byLimit': [[100, 0.4], [500, 2], [1000, 4], [5000, 20]]},
-                        'trades': 0.4,  # Weight(IP): 2 => cost = 0.2 * 2 = 0.4
+                        'depth': {'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10], [5000, 50]]},
+                        'trades': 2,  # Weight(IP): 10 => cost = 0.2 * 10 = 2
                         'aggTrades': 0.4,
                         'historicalTrades': 2,  # Weight(IP): 10 => cost = 0.2 * 10 = 2
                         'klines': 0.4,

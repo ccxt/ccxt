@@ -5822,6 +5822,7 @@ class okx extends Exchange {
              * @param {string} $marginMode 'cross' or 'isolated'
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {int} [$params->leverage] leverage
              * @return {array} $response from the exchange
              */
             if ($symbol === null) {
@@ -5835,11 +5836,11 @@ class okx extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $lever = $this->safe_integer($params, 'lever');
+            $lever = $this->safe_integer_2($params, 'lever', 'leverage');
             if (($lever === null) || ($lever < 1) || ($lever > 125)) {
                 throw new BadRequest($this->id . ' setMarginMode() $params["lever"] should be between 1 and 125');
             }
-            $params = $this->omit($params, array( 'lever' ));
+            $params = $this->omit($params, array( 'leverage' ));
             $request = array(
                 'lever' => $lever,
                 'mgnMode' => $marginMode,
