@@ -20,7 +20,7 @@ export default class okcoin extends Exchange {
             'id': 'okcoin',
             'name': 'OKCoin',
             'countries': [ 'CN', 'US' ],
-            'version': 'v3',
+            'version': 'v5',
             // cheapest endpoint is 100 requests per 2 seconds
             // 50 requests per second => 1000 / 50 = 20ms
             'rateLimit': 20,
@@ -153,7 +153,6 @@ export default class okcoin extends Exchange {
                             'account/subaccount/balances': 10,
                             'asset/subaccount/balances': 10,
                             'asset/subaccount/bills': 10,
-
                         },
                         'post': {
                             // trade
@@ -591,7 +590,7 @@ export default class okcoin extends Exchange {
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.generalGetTime (params);
+        const response = await this.publicGetPublicTime (params);
         //
         //     {
         //         "iso": "2015-01-07T23:47:25.201Z",
@@ -605,16 +604,17 @@ export default class okcoin extends Exchange {
         /**
          * @method
          * @name okcoin#fetchMarkets
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments
          * @description retrieves data on all markets for okcoin
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const types = this.safeValue (this.options, 'fetchMarkets');
-        let result = [];
-        for (let i = 0; i < types.length; i++) {
-            const markets = await this.fetchMarketsByType (types[i], params);
-            result = this.arrayConcat (result, markets);
-        }
+        const request = {
+            'instType': 'SPOT',
+        };
+        const response = await this.publicGetPublicInstruments (this.extend (request, params));
+        const markets = this.safeValue (response, 'data', []);
+        const result = this.parseMarkets (markets);
         return result;
     }
 
@@ -639,148 +639,54 @@ export default class okcoin extends Exchange {
         //         tick_size: "0.0001"
         //     }
         //
-        // futures markets
-        //
-        //     {
-        //         instrument_id: "XRP-USD-200320",
-        //         underlying_index: "XRP",
-        //         quote_currency: "USD",
-        //         tick_size: "0.0001",
-        //         contract_val: "10",
-        //         listing: "2020-03-06",
-        //         delivery: "2020-03-20",
-        //         trade_increment: "1",
-        //         alias: "this_week",
-        //         underlying: "XRP-USD",
-        //         base_currency: "XRP",
-        //         settlement_currency: "XRP",
-        //         is_inverse: "true",
-        //         contract_val_currency: "USD",
-        //     }
-        //
-        // swap markets
-        //
-        //     {
-        //         instrument_id: "BSV-USD-SWAP",
-        //         underlying_index: "BSV",
-        //         quote_currency: "USD",
-        //         coin: "BSV",
-        //         contract_val: "10",
-        //         listing: "2018-12-21T07:53:47.000Z",
-        //         delivery: "2020-03-14T08:00:00.000Z",
-        //         size_increment: "1",
-        //         tick_size: "0.01",
-        //         base_currency: "BSV",
-        //         underlying: "BSV-USD",
-        //         settlement_currency: "BSV",
-        //         is_inverse: "true",
-        //         contract_val_currency: "USD"
-        //     }
-        //
-        // options markets
-        //
-        //     {
-        //         instrument_id: 'BTC-USD-200327-4000-C',
-        //         underlying: 'BTC-USD',
-        //         settlement_currency: 'BTC',
-        //         contract_val: '0.1000',
-        //         option_type: 'C',
-        //         strike: '4000',
-        //         tick_size: '0.0005',
-        //         lot_size: '1.0000',
-        //         listing: '2019-12-25T08:30:36.302Z',
-        //         delivery: '2020-03-27T08:00:00.000Z',
-        //         state: '2',
-        //         trading_start_time: '2019-12-25T08:30:36.302Z',
-        //         timestamp: '2020-03-13T08:05:09.456Z',
-        //     }
-        //
-        const id = this.safeString (market, 'instrument_id');
-        let optionType = this.safeValue (market, 'option_type');
-        const contractVal = this.safeNumber (market, 'contract_val');
-        const contract = contractVal !== undefined;
-        const futuresAlias = this.safeString (market, 'alias');
-        let marketType = 'spot';
-        const spot = !contract;
-        const option = (optionType !== undefined);
-        const future = !option && (futuresAlias !== undefined);
-        const swap = contract && !future && !option;
-        let baseId = this.safeString (market, 'base_currency');
-        let quoteId = this.safeString (market, 'quote_currency');
-        const settleId = this.safeString (market, 'settlement_currency');
-        if (option) {
-            const underlying = this.safeString (market, 'underlying');
-            const parts = underlying.split ('-');
-            baseId = this.safeString (parts, 0);
-            quoteId = this.safeString (parts, 1);
-            marketType = 'option';
-        } else if (future) {
-            baseId = this.safeString (market, 'underlying_index');
-            marketType = 'futures';
-        } else if (swap) {
-            marketType = 'swap';
+        const id = this.safeString (market, 'instId');
+        let type = this.safeStringLower (market, 'instType');
+        if (type === 'futures') {
+            type = 'future';
         }
+        const spot = (type === 'spot');
+        const future = (type === 'future');
+        const swap = (type === 'swap');
+        const option = (type === 'option');
+        const contract = swap || future || option;
+        const baseId = this.safeString (market, 'baseCcy');
+        const quoteId = this.safeString (market, 'quoteCcy');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const settle = this.safeCurrencyCode (settleId);
-        let symbol = base + '/' + quote;
-        let expiryDatetime = this.safeString (market, 'delivery');
-        let expiry = undefined;
-        const strike = this.safeValue (market, 'strike');
-        if (contract) {
-            symbol = symbol + ':' + settle;
-            if (future || option) {
-                if (future) {
-                    expiryDatetime += 'T00:00:00Z';
-                }
-                expiry = this.parse8601 (expiryDatetime);
-                symbol = symbol + '-' + this.yymmdd (expiry);
-                if (option) {
-                    symbol = symbol + ':' + strike + ':' + optionType;
-                    optionType = (optionType === 'C') ? 'call' : 'put';
-                }
-            }
-        }
-        const lotSize = this.safeNumber2 (market, 'lot_size', 'trade_increment');
-        const minPrice = this.safeString (market, 'tick_size');
-        const minAmountString = this.safeString2 (market, 'min_size', 'base_min_size');
-        const minAmount = this.parseNumber (minAmountString);
-        let minCost = undefined;
-        if ((minAmount !== undefined) && (minPrice !== undefined)) {
-            minCost = this.parseNumber (Precise.stringMul (minPrice, minAmountString));
-        }
-        const fees = this.safeValue2 (this.fees, marketType, 'trading', {});
-        const maxLeverageString = this.safeString (market, 'max_leverage', '1');
-        const maxLeverage = this.parseNumber (Precise.stringMax (maxLeverageString, '1'));
-        const precisionPrice = this.parseNumber (minPrice);
+        const symbol = base + '/' + quote;
+        const tickSize = this.safeString (market, 'tickSz');
+        const fees = this.safeValue2 (this.fees, type, 'trading', {});
+        let maxLeverage = this.safeString (market, 'lever', '1');
+        maxLeverage = Precise.stringMax (maxLeverage, '1');
+        const maxSpotCost = this.safeNumber (market, 'maxMktSz');
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': settle,
+            'settle': undefined,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': settleId,
-            'type': marketType,
+            'settleId': undefined,
+            'type': type,
             'spot': spot,
-            'margin': false,
-            'swap': swap,
-            'future': future,
-            'futures': future, // deprecated
-            'option': option,
+            'margin': spot && (Precise.stringGt (maxLeverage, '1')),
+            'swap': false,
+            'future': false,
+            'option': false,
             'active': true,
-            'contract': contract,
-            'linear': contract ? (quote === settle) : undefined,
-            'inverse': contract ? (base === settle) : undefined,
-            'contractSize': contractVal,
-            'expiry': expiry,
-            'expiryDatetime': this.iso8601 (expiry),
-            'strike': strike,
-            'optionType': optionType,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': contract ? this.safeNumber (market, 'ctVal') : undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'created': this.safeInteger (market, 'listTime'),
             'precision': {
-                'amount': this.safeNumber (market, 'size_increment', lotSize),
-                'price': precisionPrice,
+                'amount': this.safeNumber (market, 'lotSz'),
+                'price': this.parseNumber (tickSize),
             },
             'limits': {
                 'leverage': {
@@ -788,117 +694,29 @@ export default class okcoin extends Exchange {
                     'max': this.parseNumber (maxLeverage),
                 },
                 'amount': {
-                    'min': minAmount,
+                    'min': this.safeNumber (market, 'minSz'),
                     'max': undefined,
                 },
                 'price': {
-                    'min': precisionPrice,
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
-                    'min': minCost,
-                    'max': undefined,
+                    'min': undefined,
+                    'max': contract ? undefined : maxSpotCost,
                 },
             },
             'info': market,
         });
     }
 
-    async fetchMarketsByType (type, params = {}) {
-        if (type === 'option') {
-            const underlying = await this.optionGetUnderlying (params);
-            let result = [];
-            for (let i = 0; i < underlying.length; i++) {
-                const response = await this.optionGetInstrumentsUnderlying ({
-                    'underlying': underlying[i],
-                });
-                //
-                // options markets
-                //
-                //     [
-                //         {
-                //             instrument_id: 'BTC-USD-200327-4000-C',
-                //             underlying: 'BTC-USD',
-                //             settlement_currency: 'BTC',
-                //             contract_val: '0.1000',
-                //             option_type: 'C',
-                //             strike: '4000',
-                //             tick_size: '0.0005',
-                //             lot_size: '1.0000',
-                //             listing: '2019-12-25T08:30:36.302Z',
-                //             delivery: '2020-03-27T08:00:00.000Z',
-                //             state: '2',
-                //             trading_start_time: '2019-12-25T08:30:36.302Z',
-                //             timestamp: '2020-03-13T08:05:09.456Z',
-                //         },
-                //     ]
-                //
-                result = this.arrayConcat (result, response);
-            }
-            return this.parseMarkets (result);
-        } else if ((type === 'spot') || (type === 'futures') || (type === 'swap')) {
-            const method = type + 'GetInstruments';
-            const response = await this[method] (params);
-            //
-            // spot markets
-            //
-            //     [
-            //         {
-            //             base_currency: "EOS",
-            //             instrument_id: "EOS-OKB",
-            //             min_size: "0.01",
-            //             quote_currency: "OKB",
-            //             size_increment: "0.000001",
-            //             tick_size: "0.0001"
-            //         }
-            //     ]
-            //
-            // futures markets
-            //
-            //     [
-            //         {
-            //             instrument_id: "XRP-USD-200320",
-            //             underlying_index: "XRP",
-            //             quote_currency: "USD",
-            //             tick_size: "0.0001",
-            //             contract_val: "10",
-            //             listing: "2020-03-06",
-            //             delivery: "2020-03-20",
-            //             trade_increment: "1",
-            //             alias: "this_week",
-            //             underlying: "XRP-USD",
-            //             base_currency: "XRP",
-            //             settlement_currency: "XRP",
-            //             is_inverse: "true",
-            //             contract_val_currency: "USD",
-            //         }
-            //     ]
-            //
-            // swap markets
-            //
-            //     [
-            //         {
-            //             instrument_id: "BSV-USD-SWAP",
-            //             underlying_index: "BSV",
-            //             quote_currency: "USD",
-            //             coin: "BSV",
-            //             contract_val: "10",
-            //             listing: "2018-12-21T07:53:47.000Z",
-            //             delivery: "2020-03-14T08:00:00.000Z",
-            //             size_increment: "1",
-            //             tick_size: "0.01",
-            //             base_currency: "BSV",
-            //             underlying: "BSV-USD",
-            //             settlement_currency: "BSV",
-            //             is_inverse: "true",
-            //             contract_val_currency: "USD"
-            //         }
-            //     ]
-            //
-            return this.parseMarkets (response);
-        } else {
-            throw new NotSupported (this.id + ' fetchMarketsByType() does not support market type ' + type);
-        }
+    safeNetwork (networkId) {
+        const networksById = {
+            'Bitcoin': 'BTC',
+            'Omni': 'OMNI',
+            'TRON': 'TRC20',
+        };
+        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchCurrencies (params = {}) {
@@ -914,53 +732,84 @@ export default class okcoin extends Exchange {
         //     https://www.okex.com/api/account/v3/currencies
         // it will still reply with { "code":30001, "message": "OK-ACCESS-KEY header is required" }
         // if you attempt to access it without authentication
+        return undefined;
         if (!this.checkRequiredCredentials (false)) {
             if (this.options['warnOnFetchCurrenciesWithoutAuthorization']) {
                 throw new ExchangeError (this.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
             }
             return undefined;
         } else {
-            const response = await this.accountGetCurrencies (params);
-            //
-            //     [
-            //         {
-            //             name: '',
-            //             currency: 'BTC',
-            //             can_withdraw: '1',
-            //             can_deposit: '1',
-            //             min_withdrawal: '0.0100000000000000'
-            //         },
-            //     ]
-            //
+            const response = await this.privatePrivateGetAssetCurrencies (params);
+            const data = this.safeValue (response, 'data', []);
             const result = {};
-            for (let i = 0; i < response.length; i++) {
-                const currency = response[i];
-                const id = this.safeString (currency, 'currency');
-                const code = this.safeCurrencyCode (id);
-                const name = this.safeString (currency, 'name');
-                const canDeposit = this.safeInteger (currency, 'can_deposit');
-                const canWithdraw = this.safeInteger (currency, 'can_withdraw');
-                const depositEnabled = (canDeposit === 1);
-                const withdrawEnabled = (canWithdraw === 1);
-                const active = (canDeposit && canWithdraw) ? true : false;
+            const dataByCurrencyId = this.groupBy (data, 'ccy');
+            const currencyIds = Object.keys (dataByCurrencyId);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const currency = this.safeCurrency (currencyId);
+                const code = currency['code'];
+                const chains = dataByCurrencyId[currencyId];
+                const networks = {};
+                let currencyActive = false;
+                let depositEnabled = false;
+                let withdrawEnabled = false;
+                let maxPrecision = undefined;
+                for (let j = 0; j < chains.length; j++) {
+                    const chain = chains[j];
+                    const canDeposit = this.safeValue (chain, 'canDep');
+                    depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
+                    const canWithdraw = this.safeValue (chain, 'canWd');
+                    withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
+                    const canInternal = this.safeValue (chain, 'canInternal');
+                    const active = (canDeposit && canWithdraw && canInternal) ? true : false;
+                    currencyActive = (active) ? active : currencyActive;
+                    const networkId = this.safeString (chain, 'chain');
+                    if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
+                        const parts = networkId.split ('-');
+                        const chainPart = this.safeString (parts, 1, networkId);
+                        const networkCode = this.safeNetwork (chainPart);
+                        const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
+                        if (maxPrecision === undefined) {
+                            maxPrecision = precision;
+                        } else {
+                            maxPrecision = Precise.stringMin (maxPrecision, precision);
+                        }
+                        networks[networkCode] = {
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': active,
+                            'deposit': canDeposit,
+                            'withdraw': canWithdraw,
+                            'fee': this.safeNumber (chain, 'minFee'),
+                            'precision': this.parseNumber (precision),
+                            'limits': {
+                                'withdraw': {
+                                    'min': this.safeNumber (chain, 'minWd'),
+                                    'max': this.safeNumber (chain, 'maxWd'),
+                                },
+                            },
+                            'info': chain,
+                        };
+                    }
+                }
+                const firstChain = this.safeValue (chains, 0);
                 result[code] = {
-                    'id': id,
+                    'info': undefined,
                     'code': code,
-                    'info': currency,
-                    'type': undefined,
-                    'name': name,
-                    'active': active,
+                    'id': currencyId,
+                    'name': this.safeString (firstChain, 'name'),
+                    'active': currencyActive,
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
-                    'fee': undefined, // todo: redesign
-                    'precision': this.parseNumber ('1e-8'), // todo: fix
+                    'fee': undefined,
+                    'precision': this.parseNumber (maxPrecision),
                     'limits': {
-                        'amount': { 'min': undefined, 'max': undefined },
-                        'withdraw': {
-                            'min': this.safeNumber (currency, 'min_withdrawal'),
+                        'amount': {
+                            'min': undefined,
                             'max': undefined,
                         },
                     },
+                    'networks': networks,
                 };
             }
             return result;
@@ -971,6 +820,7 @@ export default class okcoin extends Exchange {
         /**
          * @method
          * @name okcoin#fetchOrderBook
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-order-book
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -1069,6 +919,7 @@ export default class okcoin extends Exchange {
         /**
          * @method
          * @name okcoin#fetchTicker
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-ticker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
@@ -1117,6 +968,7 @@ export default class okcoin extends Exchange {
         /**
          * @method
          * @name okcoin#fetchTickers
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-tickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
@@ -1350,6 +1202,7 @@ export default class okcoin extends Exchange {
         /**
          * @method
          * @name okcoin#fetchOHLCV
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -3578,17 +3431,17 @@ export default class okcoin extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const isArray = Array.isArray (params);
-        let request = '/api/' + api + '/' + this.version + '/';
-        request += isArray ? path : this.implodeParams (path, params);
-        const query = isArray ? params : this.omit (params, this.extractParams (path));
+        const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
         let url = this.implodeHostname (this.urls['api']['rest']) + request;
-        const type = this.getPathAuthenticationType (path);
-        if ((type === 'public') || (type === 'information')) {
+        // const type = this.getPathAuthenticationType (path);
+        if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (type === 'private') {
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
+            // inject id in implicit api call
             const timestamp = this.iso8601 (this.milliseconds ());
             headers = {
                 'OK-ACCESS-KEY': this.apiKey,
