@@ -270,6 +270,7 @@ class wazirx(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -419,7 +420,7 @@ class wazirx(Exchange, ImplicitAPI):
             parsedTicker = self.parse_ticker(ticker)
             symbol = parsedTicker['symbol']
             result[symbol] = parsedTicker
-        return result
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -437,7 +438,7 @@ class wazirx(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit  # Default 500; max 1000.
+            request['limit'] = min(limit, 1000)  # Default 500; max 1000.
         method = self.safe_string(self.options, 'fetchTradesMethod', 'publicGetTrades')
         response = getattr(self, method)(self.extend(request, params))
         # [
@@ -577,7 +578,7 @@ class wazirx(Exchange, ImplicitAPI):
         }, market)
 
     def parse_balance(self, response):
-        result = {}
+        result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             id = self.safe_string(balance, 'asset')

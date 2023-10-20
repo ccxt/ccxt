@@ -292,11 +292,17 @@ abstract class bybit extends \ccxt\Exchange {
     public function public_get_v5_market_delivery_price($params = array()) {
         return $this->request('v5/market/delivery-price', 'public', 'GET', $params, null, null, array("cost" => 2.5));
     }
+    public function public_get_v5_market_account_ratio($params = array()) {
+        return $this->request('v5/market/account-ratio', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    }
     public function public_get_v5_spot_lever_token_info($params = array()) {
         return $this->request('v5/spot-lever-token/info', 'public', 'GET', $params, null, null, array("cost" => 2.5));
     }
     public function public_get_v5_spot_lever_token_reference($params = array()) {
         return $this->request('v5/spot-lever-token/reference', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    }
+    public function public_get_v5_spot_margin_trade_data($params = array()) {
+        return $this->request('v5/spot-margin-trade/data', 'public', 'GET', $params, null, null, array("cost" => 2.5));
     }
     public function public_get_v5_spot_cross_margin_trade_data($params = array()) {
         return $this->request('v5/spot-cross-margin-trade/data', 'public', 'GET', $params, null, null, array("cost" => 2.5));
@@ -1354,6 +1360,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_post_v5_lending_redeem($params = array()) {
         return $this->request('v5/lending/redeem', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
+    public function private_post_v5_lending_redeem_cancel($params = array()) {
+        return $this->request('v5/lending/redeem-cancel', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
     public function private_delete_spot_v1_order($params = array()) {
         return $this->request('spot/v1/order', 'private', 'DELETE', $params, null, null, array("cost" => 2.5));
     }
@@ -1654,11 +1663,17 @@ abstract class bybit extends \ccxt\Exchange {
     public function publicGetV5MarketDeliveryPrice($params = array()) {
         return $this->request('v5/market/delivery-price', 'public', 'GET', $params, null, null, array("cost" => 2.5));
     }
+    public function publicGetV5MarketAccountRatio($params = array()) {
+        return $this->request('v5/market/account-ratio', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    }
     public function publicGetV5SpotLeverTokenInfo($params = array()) {
         return $this->request('v5/spot-lever-token/info', 'public', 'GET', $params, null, null, array("cost" => 2.5));
     }
     public function publicGetV5SpotLeverTokenReference($params = array()) {
         return $this->request('v5/spot-lever-token/reference', 'public', 'GET', $params, null, null, array("cost" => 2.5));
+    }
+    public function publicGetV5SpotMarginTradeData($params = array()) {
+        return $this->request('v5/spot-margin-trade/data', 'public', 'GET', $params, null, null, array("cost" => 2.5));
     }
     public function publicGetV5SpotCrossMarginTradeData($params = array()) {
         return $this->request('v5/spot-cross-margin-trade/data', 'public', 'GET', $params, null, null, array("cost" => 2.5));
@@ -2715,6 +2730,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privatePostV5LendingRedeem($params = array()) {
         return $this->request('v5/lending/redeem', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostV5LendingRedeemCancel($params = array()) {
+        return $this->request('v5/lending/redeem-cancel', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
     public function privateDeleteSpotV1Order($params = array()) {
         return $this->request('spot/v1/order', 'private', 'DELETE', $params, null, null, array("cost" => 2.5));

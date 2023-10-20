@@ -566,6 +566,7 @@ class currencycom(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -1054,7 +1055,7 @@ class currencycom(Exchange, ImplicitAPI):
             # 'limit': 500,  # default 500, max 1000
         }
         if limit is not None:
-            request['limit'] = limit  # default 500, max 1000
+            request['limit'] = min(limit, 1000)  # default 500, max 1000
         if since is not None:
             request['startTime'] = since
         response = self.publicGetV2AggTrades(self.extend(request, params))

@@ -70,6 +70,7 @@ class delta extends delta$1 {
                 'fetchTrades': true,
                 'fetchTransfer': undefined,
                 'fetchTransfers': undefined,
+                'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
@@ -704,6 +705,9 @@ class delta extends delta$1 {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             let type = this.safeString(market, 'contract_type');
+            if (type === 'options_combos') {
+                continue;
+            }
             // const settlingAsset = this.safeValue (market, 'settling_asset', {});
             const quotingAsset = this.safeValue(market, 'quoting_asset', {});
             const underlyingAsset = this.safeValue(market, 'underlying_asset', {});
@@ -815,6 +819,7 @@ class delta extends delta$1 {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'launch_time')),
                 'info': market,
             });
         }
@@ -1257,7 +1262,7 @@ class delta extends delta$1 {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -1668,7 +1673,7 @@ class delta extends delta$1 {
                 side = 'sell';
             }
         }
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -1694,7 +1699,7 @@ class delta extends delta$1 {
             'marginRatio': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
-        };
+        });
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -2785,7 +2790,7 @@ class delta extends delta$1 {
         //
         const timestamp = this.safeIntegerProduct(interest, 'timestamp', 0.001);
         const marketId = this.safeString(interest, 'symbol');
-        return {
+        return this.safeOpenInterest({
             'symbol': this.safeSymbol(marketId, market),
             'baseVolume': this.safeNumber(interest, 'oi_value'),
             'quoteVolume': this.safeNumber(interest, 'oi_value_usd'),
@@ -2794,7 +2799,7 @@ class delta extends delta$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
     async fetchLeverage(symbol, params = {}) {
         /**
@@ -2867,7 +2872,7 @@ class delta extends delta$1 {
          * @param {int} [since] timestamp in ms
          * @param {int} [limit] number of records
          * @param {object} [params] exchange specific params
-         * @returns {object[]} a list of [settlement history objects]
+         * @returns {object[]} a list of [settlement history objects]{@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure}
          */
         await this.loadMarkets();
         let market = undefined;

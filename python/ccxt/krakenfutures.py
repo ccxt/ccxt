@@ -393,6 +393,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.parse8601(self.safe_string(market, 'openingDate')),
                 'info': market,
             })
         settlementCurrencies = self.options['settlementCurrencies']['flex']
@@ -562,8 +563,23 @@ class krakenfutures(Exchange, ImplicitAPI):
         })
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        see https://docs.futures.kraken.com/#http-api-charts-candles
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 5000)
         request = {
             'symbol': market['id'],
             'price_type': self.safe_string(params, 'price', 'trade'),
@@ -633,9 +649,14 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param int [limit]: Total number of trades, cannot exceed 100
         :param dict [params]: Exchange specific params
         :param int [params.until]: Timestamp in ms of latest trade
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns: An array of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -884,7 +905,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         status = self.safe_string(response['editStatus'], 'status')
         self.verify_order_action_success(status, 'editOrder', ['filled'])
         order = self.parse_order(response['editStatus'])
-        return self.extend({'info': response}, order)
+        order['info'] = response
+        return order
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -1176,7 +1198,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         statusId = None
         price = None
         trades = []
-        if len(orderEvents):
+        orderEventsLength = len(orderEvents)
+        if orderEventsLength:
             executions = []
             for i in range(0, len(orderEvents)):
                 item = orderEvents[i]
@@ -1259,7 +1282,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': self.safe_string_2(details, 'clientOrderId', 'clientId'),
+            'clientOrderId': self.safe_string_n(details, ['clientOrderId', 'clientId', 'cliOrdId']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -1426,11 +1449,10 @@ class krakenfutures(Exchange, ImplicitAPI):
             symbol = '' if (symbol is None) else symbol
             raise BadRequest(self.id + ' fetchBalance has no account for ' + type)
         balance = self.parse_balance(account)
-        return self.extend({
-            'info': response,
-            'timestamp': self.parse8601(datetime),
-            'datetime': datetime,
-        }, balance)
+        balance['info'] = response
+        balance['timestamp'] = self.parse8601(datetime)
+        balance['datetime'] = datetime
+        return balance
 
     def parse_balance(self, response):
         #

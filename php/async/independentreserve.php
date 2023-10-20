@@ -211,6 +211,7 @@ class independentreserve extends Exchange {
                                 'max' => null,
                             ),
                         ),
+                        'created' => null,
                         'info' => $id,
                     );
                 }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/gemini.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, Ticker } from './base/types.js';
 /**
  * @class gemini
  * @extends Exchange
@@ -59,15 +59,16 @@ export default class gemini extends Exchange {
                 max: any;
             };
         };
+        created: any;
         info: any;
     };
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchTickerV1(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickerV2(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickerV1AndV2(symbol: string, params?: {}): Promise<any>;
-    fetchTicker(symbol: string, params?: {}): Promise<any>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    fetchTickerV1(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickerV2(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickerV1AndV2(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseBalance(response: any): import("./base/types.js").Balances;

@@ -238,6 +238,7 @@ class gemini(Exchange, ImplicitAPI):
                     'InsufficientFunds': InsufficientFunds,  # The order was rejected because of insufficient funds
                     'InvalidJson': BadRequest,  # The JSON provided is invalid
                     'InvalidNonce': InvalidNonce,  # The nonce was not greater than the previously used nonce, or was not present
+                    'InvalidApiKey': AuthenticationError,  # Invalid API key
                     'InvalidOrderType': InvalidOrder,  # An unknown order type was provided
                     'InvalidPrice': InvalidOrder,  # For new orders, the price was invalid
                     'InvalidQuantity': InvalidOrder,  # A negative or otherwise invalid quantity was specified
@@ -496,6 +497,7 @@ class gemini(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': row,
             })
         return result
@@ -637,6 +639,7 @@ class gemini(Exchange, ImplicitAPI):
                     'max': None,
                 },
             },
+            'created': None,
             'info': response,
         }
 
@@ -724,7 +727,11 @@ class gemini(Exchange, ImplicitAPI):
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         method = self.safe_value(self.options, 'fetchTickerMethod', 'fetchTickerV1')
-        return await getattr(self, method)(symbol, params)
+        if method == 'fetchTickerV1':
+            return await self.fetch_ticker_v1(symbol, params)
+        if method == 'fetchTickerV2':
+            return await self.fetch_ticker_v2(symbol, params)
+        return await self.fetch_ticker_v1_and_v2(symbol, params)
 
     def parse_ticker(self, ticker, market=None):
         #

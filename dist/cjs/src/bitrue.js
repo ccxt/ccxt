@@ -702,6 +702,7 @@ class bitrue extends bitrue$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push(entry);
@@ -829,7 +830,7 @@ class bitrue extends bitrue$1 {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString(ticker, 'percentChange'),
+            'percentage': Precise["default"].stringMul(this.safeString(ticker, 'percentChange'), '10000'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'baseVolume'),
             'quoteVolume': this.safeString(ticker, 'quoteVolume'),
@@ -1284,12 +1285,19 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#createOrder
          * @description create a trade order
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#signed-endpoint-examples-for-post-apiv1order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
+         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
+         * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {decimal} [params.icebergQty]
+         * @param {long} [params.recvWindow]
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();

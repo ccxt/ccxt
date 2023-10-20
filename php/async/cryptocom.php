@@ -41,11 +41,11 @@ class cryptocom extends Exchange {
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
-                'fetchBorrowInterest' => true,
+                'fetchBorrowInterest' => false,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => true,
+                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => 'emulated',
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
@@ -88,6 +88,7 @@ class cryptocom extends Exchange {
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
                 'fetchTransfers' => true,
+                'fetchUnderlyingAssets' => false,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -338,6 +339,7 @@ class cryptocom extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
+                    '219' => '\\ccxt\\InvalidOrder',
                     '10001' => '\\ccxt\\ExchangeError',
                     '10002' => '\\ccxt\\PermissionDenied',
                     '10003' => '\\ccxt\\PermissionDenied',
@@ -564,6 +566,7 @@ class cryptocom extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -655,9 +658,15 @@ class cryptocom extends Exchange {
              * @param {int} [$limit] the maximum number of order structures to retrieve, default 100 max 100
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchOrders', $symbol, $since, $limit, $params));
+            }
             $market = null;
             $request = array();
             if ($symbol !== null) {
@@ -731,9 +740,15 @@ class cryptocom extends Exchange {
              * @param {int} [$limit] the maximum number of $trades to fetch
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument_name' => $market['id'],
@@ -786,9 +801,15 @@ class cryptocom extends Exchange {
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 300));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument_name' => $market['id'],
@@ -1044,7 +1065,7 @@ class cryptocom extends Exchange {
         }
         $postOnly = $this->safe_value($params, 'postOnly', false);
         if (($postOnly) || ($timeInForce === 'PO')) {
-            $request['exec_inst'] = 'POST_ONLY';
+            $request['exec_inst'] = array( 'POST_ONLY' );
             $request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
         $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'ref_price' ));
@@ -1272,9 +1293,15 @@ class cryptocom extends Exchange {
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -1846,8 +1873,8 @@ class cryptocom extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_string($ticker, 'c'),
-            'percentage' => null,
+            'change' => null,
+            'percentage' => $this->safe_string($ticker, 'c'),
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'v'),
             'quoteVolume' => $this->safe_string($ticker, 'vv'),
@@ -1996,10 +2023,16 @@ class cryptocom extends Exchange {
         $created = $this->safe_integer($order, 'create_time');
         $marketId = $this->safe_string($order, 'instrument_name');
         $symbol = $this->safe_symbol($marketId, $market);
-        $execInst = $this->safe_string($order, 'exec_inst');
-        $postOnly = null;
+        $execInst = $this->safe_value($order, 'exec_inst');
+        $postOnly = false;
         if ($execInst !== null) {
-            $postOnly = ($execInst === 'POST_ONLY');
+            for ($i = 0; $i < count($execInst); $i++) {
+                $inst = $execInst[$i];
+                if ($inst === 'POST_ONLY') {
+                    $postOnly = true;
+                    break;
+                }
+            }
         }
         $feeCurrency = $this->safe_string($order, 'fee_instrument_name');
         return $this->safe_order(array(
@@ -2238,55 +2271,6 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
-            Async\await($this->load_markets());
-            $request = array();
-            $market = null;
-            $currency = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            if ($code !== null) {
-                $currency = $this->currency($code);
-                $request['currency'] = $currency['id'];
-            }
-            if ($since !== null) {
-                $request['start_ts'] = $since;
-            }
-            if ($limit !== null) {
-                $request['page_size'] = $limit;
-            }
-            $response = Async\await($this->v2PrivatePostPrivateMarginGetInterestHistory (array_merge($request, $params)));
-            //
-            //     {
-            //         "id" => 1656705829020,
-            //         "method" => "private/margin/get-$interest-history",
-            //         "code" => 0,
-            //         "result" => {
-            //             "list" => array(
-            //                 array(
-            //                     "loan_id" => "2643528867803765921",
-            //                     "currency" => "USDT",
-            //                     "interest" => 0.00000004,
-            //                     "time" => 1656702899559,
-            //                     "stake_amount" => 6,
-            //                     "interest_rate" => 0.000025
-            //                 ),
-            //             )
-            //         }
-            //     }
-            //
-            $data = $this->safe_value($response, 'result', array());
-            $rows = $this->safe_value($data, 'list', array());
-            $interest = null;
-            for ($i = 0; $i < count($rows); $i++) {
-                $interest = $this->parse_borrow_interests($rows, $market);
-            }
-            return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
-        }) ();
-    }
-
     public function parse_borrow_interest($info, $market = null) {
         //
         //     array(
@@ -2314,39 +2298,6 @@ class cryptocom extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
         );
-    }
-
-    public function fetch_borrow_rates($params = array ()) {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch the borrow interest $rates of all currencies
-             * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structures}
-             */
-            Async\await($this->load_markets());
-            $response = Async\await($this->v2PrivatePostPrivateMarginGetUserConfig ($params));
-            //
-            //     {
-            //         "id" => 1656707947456,
-            //         "method" => "private/margin/get-user-config",
-            //         "code" => 0,
-            //         "result" => {
-            //             "stake_amount" => 6,
-            //             "currency_configs" => array(
-            //                 array(
-            //                     "currency" => "AGLD",
-            //                     "hourly_rate" => 0.00003334,
-            //                     "max_borrow_limit" => 342.4032393,
-            //                     "min_borrow_limit" => 30
-            //                 ),
-            //             )
-            //         }
-            //     }
-            //
-            $data = $this->safe_value($response, 'result', array());
-            $rates = $this->safe_value($data, 'currency_configs', array());
-            return $this->parse_borrow_rates($rates, 'currency');
-        }) ();
     }
 
     public function parse_borrow_rates($info, $codeKey) {
@@ -2703,7 +2654,7 @@ class cryptocom extends Exchange {
              * @param {int} [$limit] number of records
              * @param {array} [$params] exchange specific $params
              * @param {int} [$params->type] 'future', 'option'
-             * @return {array[]} a list of [settlement history objects]
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
              */
             Async\await($this->load_markets());
             $market = null;
@@ -2793,10 +2744,16 @@ class cryptocom extends Exchange {
              * @param {int} [$limit] the maximum amount of [funding rate structures] to fetch
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
              * @param {int} [$params->until] $timestamp in ms for the ending date filter, default is the current time
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
             $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params));
+            }
             $market = $this->market($symbol);
             if (!$market['swap']) {
                 throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
@@ -2955,7 +2912,7 @@ class cryptocom extends Exchange {
                 $marketInner = $this->safe_market($marketId, null, null, 'contract');
                 $result[] = $this->parse_position($entry, $marketInner);
             }
-            return $this->filter_by_array($result, 'symbol', null, false);
+            return $this->filter_by_array_positions($result, 'symbol', null, false);
         }) ();
     }
 
@@ -3027,7 +2984,14 @@ class cryptocom extends Exchange {
             $paramsKeys = is_array($keysorted) ? array_keys($keysorted) : array();
             $strSortKey = '';
             for ($i = 0; $i < count($paramsKeys); $i++) {
-                $strSortKey = $strSortKey . (string) $paramsKeys[$i] . (string) $requestParams[$paramsKeys[$i]];
+                $key = (string) $paramsKeys[$i];
+                $value = $requestParams[$paramsKeys[$i]];
+                if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
+                    $value = implode(',', $value);
+                } else {
+                    $value = (string) $value;
+                }
+                $strSortKey = $strSortKey . $key . $value;
             }
             $payload = $path . $nonce . $this->apiKey . $strSortKey . $nonce;
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');

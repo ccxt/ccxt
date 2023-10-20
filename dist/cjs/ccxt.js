@@ -43,7 +43,6 @@ var bitstamp = require('./src/bitstamp.js');
 var bitstamp1 = require('./src/bitstamp1.js');
 var bittrex = require('./src/bittrex.js');
 var bitvavo = require('./src/bitvavo.js');
-var bkex = require('./src/bkex.js');
 var bl3p = require('./src/bl3p.js');
 var blockchaincom = require('./src/blockchaincom.js');
 var btcalpha = require('./src/btcalpha.js');
@@ -125,6 +124,7 @@ var binance$1 = require('./src/pro/binance.js');
 var binancecoinm$1 = require('./src/pro/binancecoinm.js');
 var binanceus$1 = require('./src/pro/binanceus.js');
 var binanceusdm$1 = require('./src/pro/binanceusdm.js');
+var bingx$1 = require('./src/pro/bingx.js');
 var bitcoincom$1 = require('./src/pro/bitcoincom.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitfinex2$1 = require('./src/pro/bitfinex2.js');
@@ -180,7 +180,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.0.79';
+const version = '4.1.19';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -214,7 +214,6 @@ const exchanges = {
     'bitstamp1': bitstamp1,
     'bittrex': bittrex,
     'bitvavo': bitvavo,
-    'bkex': bkex,
     'bl3p': bl3p,
     'blockchaincom': blockchaincom,
     'btcalpha': btcalpha,
@@ -298,6 +297,7 @@ const pro = {
     'binancecoinm': binancecoinm$1,
     'binanceus': binanceus$1,
     'binanceusdm': binanceusdm$1,
+    'bingx': bingx$1,
     'bitcoincom': bitcoincom$1,
     'bitfinex': bitfinex$1,
     'bitfinex2': bitfinex2$1,
@@ -380,6 +380,7 @@ exports.InvalidNonce = errors.InvalidNonce;
 exports.InvalidOrder = errors.InvalidOrder;
 exports.MarginModeAlreadySet = errors.MarginModeAlreadySet;
 exports.NetworkError = errors.NetworkError;
+exports.NoChange = errors.NoChange;
 exports.NotSupported = errors.NotSupported;
 exports.NullResponse = errors.NullResponse;
 exports.OnMaintenance = errors.OnMaintenance;
@@ -422,7 +423,6 @@ exports.bitstamp = bitstamp;
 exports.bitstamp1 = bitstamp1;
 exports.bittrex = bittrex;
 exports.bitvavo = bitvavo;
-exports.bkex = bkex;
 exports.bl3p = bl3p;
 exports.blockchaincom = blockchaincom;
 exports.btcalpha = btcalpha;

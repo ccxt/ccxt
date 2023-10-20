@@ -391,6 +391,7 @@ export default class bitvavo extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -643,7 +644,7 @@ export default class bitvavo extends Exchange {
             // 'tradeIdTo': '57b1159b-6bf5-4cde-9e2c-6bd6a5678baf',
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 1000);
         }
         if (since !== undefined) {
             request['start'] = since;

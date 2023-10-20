@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import kucoinRest from '../kucoin.js';
-import { ExchangeError } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class kucoin extends kucoinRest {
@@ -17,9 +17,11 @@ export default class kucoin extends kucoinRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
+                'watchOrderBookForSymbols': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
             },
@@ -133,6 +135,29 @@ export default class kucoin extends kucoinRest {
         const messageHash = 'ticker:' + symbol;
         return await this.subscribe(url, messageHash, topic, query);
     }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the kucoin api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        let messageHash = 'tickers';
+        if (symbols !== undefined) {
+            messageHash = 'tickers::' + symbols.join(',');
+        }
+        const url = await this.negotiate(false);
+        const topic = '/market/ticker:all';
+        const tickers = await this.subscribe(url, messageHash, topic, params);
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
     handleTicker(client, message) {
         //
         // market/snapshot
@@ -192,7 +217,14 @@ export default class kucoin extends kucoinRest {
         let market = undefined;
         if (topic !== undefined) {
             const parts = topic.split(':');
-            const marketId = this.safeString(parts, 1);
+            const first = this.safeString(parts, 1);
+            let marketId = undefined;
+            if (first === 'all') {
+                marketId = this.safeString(message, 'subject');
+            }
+            else {
+                marketId = first;
+            }
             market = this.safeMarket(marketId, market, '-');
         }
         const data = this.safeValue(message, 'data', {});
@@ -202,6 +234,21 @@ export default class kucoin extends kucoinRest {
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
         client.resolve(ticker, messageHash);
+        // watchTickers
+        client.resolve(ticker, 'tickers');
+        const messageHashes = this.findMessageHashes(client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const currentMessageHash = messageHashes[i];
+            const parts = currentMessageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const tickers = this.filterByArray(this.tickers, 'symbol', symbols);
+            const tickersSymbols = Object.keys(tickers);
+            const numTickers = tickersSymbols.length;
+            if (numTickers > 0) {
+                client.resolve(tickers, currentMessageHash);
+            }
+        }
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
@@ -294,6 +341,36 @@ export default class kucoin extends kucoinRest {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the kucoin api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const url = await this.negotiate(false);
+        symbols = this.marketSymbols(symbols);
+        const marketIds = this.marketIds(symbols);
+        const topic = '/market/match:' + marketIds.join(',');
+        const messageHash = 'multipleTrades::' + symbols.join(',');
+        const trades = await this.subscribe(url, messageHash, topic, params);
+        if (this.newUpdates) {
+            const first = this.safeValue(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+    }
     handleTrade(client, message) {
         //
         //     {
@@ -326,6 +403,8 @@ export default class kucoin extends kucoinRest {
         }
         trades.append(trade);
         client.resolve(trades, messageHash);
+        // watchMultipleTrades
+        this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, trades);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -371,6 +450,39 @@ export default class kucoin extends kucoinRest {
         const orderbook = await this.subscribe(url, messageHash, topic, params, subscription);
         return orderbook.limit();
     }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the kucoin api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        if (limit !== undefined) {
+            if ((limit !== 20) && (limit !== 100)) {
+                throw new ExchangeError(this.id + " watchOrderBook 'limit' argument must be undefined, 20 or 100");
+            }
+        }
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const marketIds = this.marketIds(symbols);
+        const url = await this.negotiate(false);
+        const topic = '/market/level2:' + marketIds.join(',');
+        const messageHash = 'multipleOrderbook::' + symbols.join(',');
+        const subscription = {
+            'method': this.handleOrderBookSubscription,
+            'symbols': symbols,
+            'limit': limit,
+        };
+        const orderbook = await this.subscribe(url, messageHash, topic, params, subscription);
+        return orderbook.limit();
+    }
     handleOrderBook(client, message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
@@ -401,7 +513,18 @@ export default class kucoin extends kucoinRest {
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
             const topic = this.safeString(message, 'topic');
-            const subscription = client.subscriptions[topic];
+            const topicParts = topic.split(':');
+            const topicSymbol = this.safeString(topicParts, 1);
+            const topicChannel = this.safeString(topicParts, 0);
+            const subscriptions = Object.keys(client.subscriptions);
+            let subscription = undefined;
+            for (let i = 0; i < subscriptions.length; i++) {
+                const key = subscriptions[i];
+                if ((key.indexOf(topicSymbol) >= 0) && (key.indexOf(topicChannel) >= 0)) {
+                    subscription = client.subscriptions[key];
+                    break;
+                }
+            }
             const limit = this.safeInteger(subscription, 'limit');
             const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 5);
             if (cacheLength === snapshotDelay) {
@@ -415,6 +538,8 @@ export default class kucoin extends kucoinRest {
         }
         this.handleDelta(storedOrderBook, data);
         client.resolve(storedOrderBook, messageHash);
+        // watchMultipleOrderBook
+        this.resolvePromiseIfMessagehashMatches(client, 'multipleOrderbook::', symbol, storedOrderBook);
     }
     getCacheIndex(orderbook, cache) {
         const firstDelta = this.safeValue(cache, 0);
@@ -453,9 +578,18 @@ export default class kucoin extends kucoinRest {
         }
     }
     handleOrderBookSubscription(client, message, subscription) {
-        const symbol = this.safeString(subscription, 'symbol');
         const limit = this.safeInteger(subscription, 'limit');
-        this.orderbooks[symbol] = this.orderBook({}, limit);
+        const symbols = this.safeValue(subscription, 'symbols');
+        if (symbols === undefined) {
+            const symbol = this.safeString(subscription, 'symbol');
+            this.orderbooks[symbol] = this.orderBook({}, limit);
+        }
+        else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                this.orderbooks[symbol] = this.orderBook({}, limit);
+            }
+        }
         // moved snapshot initialization to handleOrderBook to fix
         // https://github.com/ccxt/ccxt/issues/6820
         // the general idea is to fetch the snapshot after the first delta
@@ -794,6 +928,10 @@ export default class kucoin extends kucoinRest {
         //         }
         //     }
         //
+        const topic = this.safeString(message, 'topic');
+        if (topic === '/market/ticker:all') {
+            return this.handleTicker(client, message);
+        }
         const subject = this.safeString(message, 'subject');
         const methods = {
             'trade.l2update': this.handleOrderBook,

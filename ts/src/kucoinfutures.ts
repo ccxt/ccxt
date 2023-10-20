@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import { Dictionary, Int, OrderSide, Ticker, OrderType } from './base/types.js';
+import { Dictionary, Int, OrderSide, Ticker, OrderType, OHLCV, Order, Trade, FundingRateHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -509,6 +509,7 @@ export default class kucoinfutures extends kucoin {
                         'max': this.safeNumber (market, 'quoteMaxSize'),
                     },
                 },
+                'created': this.safeInteger (market, 'firstOpenDate'),
                 'info': market,
             });
         }
@@ -530,7 +531,7 @@ export default class kucoinfutures extends kucoin {
         //        data: 1637385119302,
         //    }
         //
-        return this.safeNumber (response, 'data');
+        return this.safeInteger (response, 'data');
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -543,9 +544,15 @@ export default class kucoinfutures extends kucoin {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 200) as OHLCV[];
+        }
         const market = this.market (symbol);
         const marketId = market['id'];
         const parsedTimeframe = this.safeInteger (this.timeframes, timeframe);
@@ -880,58 +887,53 @@ export default class kucoinfutures extends kucoin {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.futuresPrivateGetPositions (this.extend (request, params));
+        const response = await this.futuresPrivateGetPosition (this.extend (request, params));
         //
-        //     {
-        //         "code": "200000",
-        //         "data": [
-        //             {
-        //                 "id": "63b3599e6c41f50001c47d44",
-        //                 "symbol": "XBTUSDTM",
-        //                 "autoDeposit": false,
-        //                 "maintMarginReq": 0.004,
-        //                 "riskLimit": 25000,
-        //                 "realLeverage": 5.0,
-        //                 "crossMode": false,
-        //                 "delevPercentage": 0.57,
-        //                 "openingTimestamp": 1684000025528,
-        //                 "currentTimestamp": 1684000052160,
-        //                 "currentQty": 1,
-        //                 "currentCost": 26.821,
-        //                 "currentComm": 0.0160926,
-        //                 "unrealisedCost": 26.821,
-        //                 "realisedGrossCost": 0.0,
-        //                 "realisedCost": 0.0160926,
-        //                 "isOpen": true,
-        //                 "markPrice": 26821.13,
-        //                 "markValue": 26.82113,
-        //                 "posCost": 26.821,
-        //                 "posCross": 0.0,
-        //                 "posCrossMargin": 0.0,
-        //                 "posInit": 5.3642,
-        //                 "posComm": 0.01931112,
-        //                 "posCommCommon": 0.01931112,
-        //                 "posLoss": 0.0,
-        //                 "posMargin": 5.38351112,
-        //                 "posMaint": 0.12927722,
-        //                 "maintMargin": 5.38364112,
-        //                 "realisedGrossPnl": 0.0,
-        //                 "realisedPnl": -0.0160926,
-        //                 "unrealisedPnl": 1.3E-4,
-        //                 "unrealisedPnlPcnt": 0.0,
-        //                 "unrealisedRoePcnt": 0.0,
-        //                 "avgEntryPrice": 26821.0,
-        //                 "liquidationPrice": 21567.0,
-        //                 "bankruptPrice": 21456.0,
-        //                 "settleCurrency": "USDT",
-        //                 "isInverse": false,
-        //                 "maintainMargin": 0.004
-        //             }
-        //         ]
-        //     }
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "id": "6505ee6eaff4070001f651c4",
+        //            "symbol": "XBTUSDTM",
+        //            "autoDeposit": false,
+        //            "maintMarginReq": 0,
+        //            "riskLimit": 200,
+        //            "realLeverage": 0.0,
+        //            "crossMode": false,
+        //            "delevPercentage": 0.0,
+        //            "currentTimestamp": 1694887534594,
+        //            "currentQty": 0,
+        //            "currentCost": 0.0,
+        //            "currentComm": 0.0,
+        //            "unrealisedCost": 0.0,
+        //            "realisedGrossCost": 0.0,
+        //            "realisedCost": 0.0,
+        //            "isOpen": false,
+        //            "markPrice": 26611.71,
+        //            "markValue": 0.0,
+        //            "posCost": 0.0,
+        //            "posCross": 0,
+        //            "posInit": 0.0,
+        //            "posComm": 0.0,
+        //            "posLoss": 0.0,
+        //            "posMargin": 0.0,
+        //            "posMaint": 0.0,
+        //            "maintMargin": 0.0,
+        //            "realisedGrossPnl": 0.0,
+        //            "realisedPnl": 0.0,
+        //            "unrealisedPnl": 0.0,
+        //            "unrealisedPnlPcnt": 0,
+        //            "unrealisedRoePcnt": 0,
+        //            "avgEntryPrice": 0.0,
+        //            "liquidationPrice": 0.0,
+        //            "bankruptPrice": 0.0,
+        //            "settleCurrency": "USDT",
+        //            "maintainMargin": 0,
+        //            "riskLimitLevel": 1
+        //        }
+        //    }
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parsePosition (data[0], market);
+        const data = this.safeValue (response, 'data', {});
+        return this.parsePosition (data, market);
     }
 
     async fetchPositions (symbols: string[] = undefined, params = {}) {
@@ -1045,7 +1047,7 @@ export default class kucoinfutures extends kucoin {
         //
         const symbol = this.safeString (position, 'symbol');
         market = this.safeMarket (symbol, market);
-        const timestamp = this.safeNumber (position, 'currentTimestamp');
+        const timestamp = this.safeInteger (position, 'currentTimestamp');
         const size = this.safeString (position, 'currentQty');
         let side = undefined;
         if (Precise.stringGt (size, '0')) {
@@ -1078,7 +1080,7 @@ export default class kucoinfutures extends kucoin {
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeValue (market, 'contractSize'),
-            'realizedPnl': this.safeNumber (position, 'realised_pnl'),
+            'realizedPnl': this.safeNumber (position, 'realisedPnl'),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
@@ -1138,11 +1140,18 @@ export default class kucoinfutures extends kucoin {
             'leverage': 1,
         };
         const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
+        const triggerPriceTypes = {
+            'mark': 'MP',
+            'last': 'TP',
+            'index': 'IP',
+        };
+        const triggerPriceType = this.safeString (params, 'triggerPriceType', 'mark');
+        const triggerPriceTypeValue = this.safeString (triggerPriceTypes, triggerPriceType, triggerPriceType);
         params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ]);
         if (triggerPrice) {
             request['stop'] = (side === 'buy') ? 'up' : 'down';
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
-            request['stopPriceType'] = 'MP';
+            request['stopPriceType'] = triggerPriceTypeValue;
         } else if (stopLossPrice || takeProfitPrice) {
             if (stopLossPrice) {
                 request['stop'] = (side === 'buy') ? 'up' : 'down';
@@ -1152,7 +1161,7 @@ export default class kucoinfutures extends kucoin {
                 request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
             }
             request['reduceOnly'] = true;
-            request['stopPriceType'] = 'MP';
+            request['stopPriceType'] = triggerPriceTypeValue;
         }
         const uppercaseType = type.toUpperCase ();
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
@@ -1193,7 +1202,7 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data', {});
-        return {
+        return this.safeOrder ({
             'id': this.safeString (data, 'orderId'),
             'clientOrderId': undefined,
             'timestamp': undefined,
@@ -1216,7 +1225,7 @@ export default class kucoinfutures extends kucoin {
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'info': response,
-        };
+        }, market);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
@@ -1432,9 +1441,15 @@ export default class kucoinfutures extends kucoin {
          * @param {int} [params.until] End time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit or market
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns An [array of order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrdersByStatus', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchOrdersByStatus', symbol, since, limit, params) as Order[];
+        }
         const stop = this.safeValue (params, 'stop');
         const until = this.safeInteger2 (params, 'until', 'till');
         params = this.omit (params, [ 'stop', 'until', 'till' ]);
@@ -1531,8 +1546,15 @@ export default class kucoinfutures extends kucoin {
          * @param {int} [params.till] end time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit, or market
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params) as Order[];
+        }
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }
 
@@ -1898,15 +1920,23 @@ export default class kucoinfutures extends kucoin {
         /**
          * @method
          * @name kucoinfutures#fetchMyTrades
+         * @see https://docs.kucoin.com/futures/#get-fills
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
+         * @param {int} [params.until] End time in ms
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
+        }
+        let request = {
             // orderId (String) [optional] Fills for a specific order (other parameters can be ignored if specified)
             // symbol (String) [optional] Symbol of the contract
             // side (String) [optional] buy or sell
@@ -1922,6 +1952,7 @@ export default class kucoinfutures extends kucoin {
         if (since !== undefined) {
             request['startAt'] = since;
         }
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
         const response = await this.futuresPrivateGetFills (this.extend (request, params));
         //
         //    {
@@ -2322,18 +2353,24 @@ export default class kucoinfutures extends kucoin {
     async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name okx#fetchFundingRateHistory
+         * @name kucoinfutures#fetchFundingRateHistory
          * @description fetches historical funding rate prices
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] not used by kucuoinfutures
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
-         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],

@@ -53,11 +53,11 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
-                'fetchBorrowInterest': True,
+                'fetchBorrowInterest': False,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': True,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
@@ -100,6 +100,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
+                'fetchUnderlyingAssets': False,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -350,6 +351,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '219': InvalidOrder,
                     '10001': ExchangeError,
                     '10002': PermissionDenied,
                     '10003': PermissionDenied,
@@ -573,6 +575,7 @@ class cryptocom(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -651,9 +654,14 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve, default 100 max 100
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params)
         market = None
         request = {}
         if symbol is not None:
@@ -720,9 +728,14 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trades to fetch
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
@@ -769,9 +782,14 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 300)
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
@@ -1005,7 +1023,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 request['time_in_force'] = timeInForce
         postOnly = self.safe_value(params, 'postOnly', False)
         if (postOnly) or (timeInForce == 'PO'):
-            request['exec_inst'] = 'POST_ONLY'
+            request['exec_inst'] = ['POST_ONLY']
             request['time_in_force'] = 'GOOD_TILL_CANCEL'
         triggerPrice = self.safe_string_n(params, ['stopPrice', 'triggerPrice', 'ref_price'])
         stopLossPrice = self.safe_number(params, 'stopLossPrice')
@@ -1205,9 +1223,14 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         request = {}
         market = None
         if symbol is not None:
@@ -1723,8 +1746,8 @@ class cryptocom(Exchange, ImplicitAPI):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_string(ticker, 'c'),
-            'percentage': None,
+            'change': None,
+            'percentage': self.safe_string(ticker, 'c'),
             'average': None,
             'baseVolume': self.safe_string(ticker, 'v'),
             'quoteVolume': self.safe_string(ticker, 'vv'),
@@ -1868,10 +1891,14 @@ class cryptocom(Exchange, ImplicitAPI):
         created = self.safe_integer(order, 'create_time')
         marketId = self.safe_string(order, 'instrument_name')
         symbol = self.safe_symbol(marketId, market)
-        execInst = self.safe_string(order, 'exec_inst')
-        postOnly = None
+        execInst = self.safe_value(order, 'exec_inst')
+        postOnly = False
         if execInst is not None:
-            postOnly = (execInst == 'POST_ONLY')
+            for i in range(0, len(execInst)):
+                inst = execInst[i]
+                if inst == 'POST_ONLY':
+                    postOnly = True
+                    break
         feeCurrency = self.safe_string(order, 'fee_instrument_name')
         return self.safe_order({
             'info': order,
@@ -2096,47 +2123,6 @@ class cryptocom(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        self.load_markets()
-        request = {}
-        market = None
-        currency = None
-        if symbol is not None:
-            market = self.market(symbol)
-        if code is not None:
-            currency = self.currency(code)
-            request['currency'] = currency['id']
-        if since is not None:
-            request['start_ts'] = since
-        if limit is not None:
-            request['page_size'] = limit
-        response = self.v2PrivatePostPrivateMarginGetInterestHistory(self.extend(request, params))
-        #
-        #     {
-        #         "id": 1656705829020,
-        #         "method": "private/margin/get-interest-history",
-        #         "code": 0,
-        #         "result": {
-        #             "list": [
-        #                 {
-        #                     "loan_id": "2643528867803765921",
-        #                     "currency": "USDT",
-        #                     "interest": 0.00000004,
-        #                     "time": 1656702899559,
-        #                     "stake_amount": 6,
-        #                     "interest_rate": 0.000025
-        #                 },
-        #             ]
-        #         }
-        #     }
-        #
-        data = self.safe_value(response, 'result', {})
-        rows = self.safe_value(data, 'list', [])
-        interest = None
-        for i in range(0, len(rows)):
-            interest = self.parse_borrow_interests(rows, market)
-        return self.filter_by_currency_since_limit(interest, code, since, limit)
-
     def parse_borrow_interest(self, info, market=None):
         #
         #     {
@@ -2163,36 +2149,6 @@ class cryptocom(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'info': info,
         }
-
-    def fetch_borrow_rates(self, params={}):
-        """
-        fetch the borrow interest rates of all currencies
-        :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict: a list of `borrow rate structures <https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure>`
-        """
-        self.load_markets()
-        response = self.v2PrivatePostPrivateMarginGetUserConfig(params)
-        #
-        #     {
-        #         "id": 1656707947456,
-        #         "method": "private/margin/get-user-config",
-        #         "code": 0,
-        #         "result": {
-        #             "stake_amount": 6,
-        #             "currency_configs": [
-        #                 {
-        #                     "currency": "AGLD",
-        #                     "hourly_rate": 0.00003334,
-        #                     "max_borrow_limit": 342.4032393,
-        #                     "min_borrow_limit": 30
-        #                 },
-        #             ]
-        #         }
-        #     }
-        #
-        data = self.safe_value(response, 'result', {})
-        rates = self.safe_value(data, 'currency_configs', [])
-        return self.parse_borrow_rates(rates, 'currency')
 
     def parse_borrow_rates(self, info, codeKey):
         #
@@ -2520,7 +2476,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [limit]: number of records
         :param dict [params]: exchange specific params
         :param int [params.type]: 'future', 'option'
-        :returns dict[]: a list of [settlement history objects]
+        :returns dict[]: a list of `settlement history objects <https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure>`
         """
         self.load_markets()
         market = None
@@ -2602,10 +2558,15 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of [funding rate structures] to fetch
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
@@ -2749,7 +2710,7 @@ class cryptocom(Exchange, ImplicitAPI):
             marketId = self.safe_string(entry, 'instrument_name')
             marketInner = self.safe_market(marketId, None, None, 'contract')
             result.append(self.parse_position(entry, marketInner))
-        return self.filter_by_array(result, 'symbol', None, False)
+        return self.filter_by_array_positions(result, 'symbol', None, False)
 
     def parse_position(self, position, market=None):
         #
@@ -2816,7 +2777,13 @@ class cryptocom(Exchange, ImplicitAPI):
             paramsKeys = list(keysorted.keys())
             strSortKey = ''
             for i in range(0, len(paramsKeys)):
-                strSortKey = strSortKey + str(paramsKeys[i]) + str(requestParams[paramsKeys[i]])
+                key = str(paramsKeys[i])
+                value = requestParams[paramsKeys[i]]
+                if isinstance(value, list):
+                    value = ','.join(value)
+                else:
+                    value = str(value)
+                strSortKey = strSortKey + key + value
             payload = path + nonce + self.apiKey + strSortKey + nonce
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
             paramsKeysLength = len(paramsKeys)

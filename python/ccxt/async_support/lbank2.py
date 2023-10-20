@@ -428,6 +428,7 @@ class lbank2(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -523,6 +524,7 @@ class lbank2(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -598,8 +600,8 @@ class lbank2(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         if market['swap']:
-            response = await self.fetch_tickers([market['symbol']], params)
-            return self.safe_value(response, market['symbol'])
+            responseForSwap = await self.fetch_tickers([market['symbol']], params)
+            return self.safe_value(responseForSwap, market['symbol'])
         request = {
             'symbol': market['id'],
         }
@@ -895,7 +897,7 @@ class lbank2(Exchange, ImplicitAPI):
         if since is not None:
             request['time'] = since
         if limit is not None:
-            request['size'] = limit
+            request['size'] = min(limit, 600)
         else:
             request['size'] = 600  # max
         method = self.safe_string(params, 'method')
@@ -1437,8 +1439,9 @@ class lbank2(Exchange, ImplicitAPI):
         if method is None:
             options = self.safe_value(self.options, 'fetchOrder', {})
             method = self.safe_string(options, 'method', 'fetchOrderSupplement')
-        result = await getattr(self, method)(id, symbol, params)
-        return result
+        if method == 'fetchOrderSupplement':
+            return await self.fetch_order_supplement(id, symbol, params)
+        return await self.fetch_order_default(id, symbol, params)
 
     async def fetch_order_supplement(self, id: str, symbol: Optional[str] = None, params={}):
         self.check_required_symbol('fetchOrder', symbol)
@@ -1508,11 +1511,13 @@ class lbank2(Exchange, ImplicitAPI):
         if numOrders == 1:
             return self.parse_order(result[0])
         else:
-            parsedOrders = []
-            for i in range(0, numOrders):
-                parsedOrder = self.parse_order(result[i])
-                parsedOrders.append(parsedOrder)
-            return parsedOrders
+            # parsedOrders = []
+            # for i in range(0, numOrders):
+            #     parsedOrder = self.parse_order(result[i])
+            #     parsedOrders.append(parsedOrder)
+            # }
+            # return parsedOrders
+            raise BadRequest(self.id + ' fetchOrder() can only fetch one order at a time')
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder
 import { Precise } from './base/Precise.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderBook, OrderSide, OrderType } from './base/types.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
@@ -583,6 +583,7 @@ export default class wavesexchange extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }
@@ -616,7 +617,7 @@ export default class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        } as any;
+        } as OrderBook;
     }
 
     parseOrderBookSide (bookSide, market = undefined, limit: Int = undefined) {
@@ -1260,7 +1261,8 @@ export default class wavesexchange extends Exchange {
     toPrecision (amount, scale) {
         const amountString = this.numberToString (amount);
         const precise = new Precise (amountString);
-        precise.decimals = Precise.stringSub (precise.decimals, scale);
+        // precise.decimals should be integer
+        precise.decimals = this.parseToInt (Precise.stringSub (this.numberToString (precise.decimals), this.numberToString (scale)));
         precise.reduce ();
         return precise;
     }

@@ -665,6 +665,7 @@ class ascendex extends ascendex$1 {
                         'max': this.safeNumber(market, 'maxNotional'),
                     },
                 },
+                'created': this.safeInteger(market, 'tradingStartTime'),
                 'info': market,
             });
         }
@@ -2742,7 +2743,7 @@ class ascendex extends ascendex$1 {
          * @param {object} [params] extra parameters specific to the ascendex api endpoint
          * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure}
          */
-        return await this.modifyMarginHelper(symbol, amount, 'reduce', params);
+        return await this.modifyMarginHelper(symbol, -amount, 'reduce', params);
     }
     async addMargin(symbol, amount, params = {}) {
         /**

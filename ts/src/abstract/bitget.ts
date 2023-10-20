@@ -21,6 +21,7 @@ interface Exchange {
     publicSpotGetMarketCandles (params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketDepth (params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketSpotVipLevel (params?: {}): Promise<implicitReturnType>;
+    publicSpotGetMarketMergeDepth (params?: {}): Promise<implicitReturnType>;
     publicSpotGetMarketHistoryCandles (params?: {}): Promise<implicitReturnType>;
     publicSpotGetPublicLoanCoinInfos (params?: {}): Promise<implicitReturnType>;
     publicSpotGetPublicLoanHourInterest (params?: {}): Promise<implicitReturnType>;
@@ -44,6 +45,7 @@ interface Exchange {
     publicMixGetMarketHistoryCandles (params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketHistoryIndexCandles (params?: {}): Promise<implicitReturnType>;
     publicMixGetMarketHistoryMarkCandles (params?: {}): Promise<implicitReturnType>;
+    publicMixGetMarketMergeDepth (params?: {}): Promise<implicitReturnType>;
     publicMarginGetCrossPublicInterestRateAndLimit (params?: {}): Promise<implicitReturnType>;
     publicMarginGetIsolatedPublicInterestRateAndLimit (params?: {}): Promise<implicitReturnType>;
     publicMarginGetCrossPublicTierData (params?: {}): Promise<implicitReturnType>;

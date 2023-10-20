@@ -15,7 +15,7 @@ class gate extends Exchange {
             'id' => 'gate',
             'name' => 'Gate.io',
             'countries' => array( 'KR' ),
-            'rateLimit' => 10 / 3, // 300 requests per second or 3.33ms
+            'rateLimit' => 50, // 200 requests per 10 second or 50ms
             'version' => 'v4',
             'certified' => true,
             'pro' => true,
@@ -103,10 +103,12 @@ class gate extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
+                'fetchLiquidations' => true,
                 'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMyLiquidations' => true,
                 'fetchMySettlementHistory' => true,
                 'fetchMyTrades' => true,
                 'fetchNetworkDepositAddress' => true,
@@ -128,6 +130,7 @@ class gate extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
+                'fetchUnderlyingAssets' => true,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
@@ -141,9 +144,10 @@ class gate extends Exchange {
             ),
             'api' => array(
                 'public' => array(
+                    // All public endpoints 200r/10s per endpoint
                     'wallet' => array(
                         'get' => array(
-                            'currency_chains' => 1.5,
+                            'currency_chains' => 1,
                         ),
                     ),
                     'spot' => array(
@@ -177,128 +181,133 @@ class gate extends Exchange {
                     ),
                     'futures' => array(
                         'get' => array(
-                            '{settle}/contracts' => 1.5,
-                            '{settle}/contracts/{contract}' => 1.5,
-                            '{settle}/order_book' => 1.5,
-                            '{settle}/trades' => 1.5,
-                            '{settle}/candlesticks' => 1.5,
-                            '{settle}/premium_index' => 1.5,
-                            '{settle}/tickers' => 1.5,
-                            '{settle}/funding_rate' => 1.5,
-                            '{settle}/insurance' => 1.5,
-                            '{settle}/contract_stats' => 1.5,
-                            '{settle}/index_constituents/{index}' => 1.5,
-                            '{settle}/liq_orders' => 1.5,
+                            '{settle}/contracts' => 1,
+                            '{settle}/contracts/{contract}' => 1,
+                            '{settle}/order_book' => 1,
+                            '{settle}/trades' => 1,
+                            '{settle}/candlesticks' => 1,
+                            '{settle}/premium_index' => 1,
+                            '{settle}/tickers' => 1,
+                            '{settle}/funding_rate' => 1,
+                            '{settle}/insurance' => 1,
+                            '{settle}/contract_stats' => 1,
+                            '{settle}/index_constituents/{index}' => 1,
+                            '{settle}/liq_orders' => 1,
                         ),
                     ),
                     'delivery' => array(
                         'get' => array(
-                            '{settle}/contracts' => 1.5,
-                            '{settle}/contracts/{contract}' => 1.5,
-                            '{settle}/order_book' => 1.5,
-                            '{settle}/trades' => 1.5,
-                            '{settle}/candlesticks' => 1.5,
-                            '{settle}/tickers' => 1.5,
-                            '{settle}/insurance' => 1.5,
+                            '{settle}/contracts' => 1,
+                            '{settle}/contracts/{contract}' => 1,
+                            '{settle}/order_book' => 1,
+                            '{settle}/trades' => 1,
+                            '{settle}/candlesticks' => 1,
+                            '{settle}/tickers' => 1,
+                            '{settle}/insurance' => 1,
                         ),
                     ),
                     'options' => array(
                         'get' => array(
-                            'underlyings' => 1.5,
-                            'expirations' => 1.5,
-                            'contracts' => 1.5,
-                            'contracts/{contract}' => 1.5,
-                            'settlements' => 1.5,
-                            'settlements/{contract}' => 1.5,
-                            'order_book' => 1.5,
-                            'tickers' => 1.5,
-                            'underlying/tickers/{underlying}' => 1.5,
-                            'candlesticks' => 1.5,
-                            'underlying/candlesticks' => 1.5,
-                            'trades' => 1.5,
+                            'underlyings' => 1,
+                            'expirations' => 1,
+                            'contracts' => 1,
+                            'contracts/{contract}' => 1,
+                            'settlements' => 1,
+                            'settlements/{contract}' => 1,
+                            'order_book' => 1,
+                            'tickers' => 1,
+                            'underlying/tickers/{underlying}' => 1,
+                            'candlesticks' => 1,
+                            'underlying/candlesticks' => 1,
+                            'trades' => 1,
                         ),
                     ),
                     'earn' => array(
                         'get' => array(
-                            'uni/currencies' => 1.5,
-                            'uni/currencies/{currency}' => 1.5,
+                            'uni/currencies' => 1,
+                            'uni/currencies/{currency}' => 1,
                         ),
                     ),
                 ),
                 'private' => array(
+                    // private endpoints default is 150r/10s per endpoint
                     'withdrawals' => array(
                         'post' => array(
-                            'withdrawals' => 3000, // 3000 = 10 seconds
+                            'withdrawals' => 20, // 1r/s cost = 20 / 1 = 20
                         ),
                         'delete' => array(
-                            'withdrawals/{withdrawal_id}' => 300,
+                            'withdrawals/{withdrawal_id}' => 1,
                         ),
                     ),
                     'wallet' => array(
                         'get' => array(
-                            'deposit_address' => 300,
-                            'withdrawals' => 300,
-                            'deposits' => 300,
-                            'sub_account_transfers' => 300,
-                            'withdraw_status' => 300,
-                            'sub_account_balances' => 300,
-                            'sub_account_margin_balances' => 300,
-                            'sub_account_futures_balances' => 300,
-                            'sub_account_cross_margin_balances' => 300,
-                            'saved_address' => 300,
-                            'fee' => 300,
-                            'total_balance' => 300,
+                            'deposit_address' => 1,
+                            'withdrawals' => 1,
+                            'deposits' => 1,
+                            'sub_account_transfers' => 1,
+                            'withdraw_status' => 1,
+                            'sub_account_balances' => 2.5,
+                            'sub_account_margin_balances' => 2.5,
+                            'sub_account_futures_balances' => 2.5,
+                            'sub_account_cross_margin_balances' => 2.5,
+                            'saved_address' => 1,
+                            'fee' => 1,
+                            'total_balance' => 2.5,
                         ),
                         'post' => array(
-                            'transfers' => 300,
-                            'sub_account_transfers' => 300,
-                            'sub_account_to_sub_account' => 300,
+                            'transfers' => 2.5, // 8r/s cost = 20 / 8 = 2.5
+                            'sub_account_transfers' => 2.5,
+                            'sub_account_to_sub_account' => 2.5,
                         ),
                     ),
                     'subAccounts' => array(
                         'get' => array(
-                            'sub_accounts' => 1,
-                            'sub_accounts/{user_id}' => 1,
-                            'sub_accounts/{user_id}/keys' => 1,
-                            'sub_accounts/{user_id}/keys/{key}' => 1,
+                            'sub_accounts' => 2.5,
+                            'sub_accounts/{user_id}' => 2.5,
+                            'sub_accounts/{user_id}/keys' => 2.5,
+                            'sub_accounts/{user_id}/keys/{key}' => 2.5,
                         ),
                         'post' => array(
-                            'sub_accounts' => 1,
-                            'sub_accounts/{user_id}/keys' => 1,
-                            'sub_accounts/{user_id}/lock' => 1,
-                            'sub_accounts/{user_id}/unlock' => 1,
+                            'sub_accounts' => 2.5,
+                            'sub_accounts/{user_id}/keys' => 2.5,
+                            'sub_accounts/{user_id}/lock' => 2.5,
+                            'sub_accounts/{user_id}/unlock' => 2.5,
                         ),
                         'put' => array(
-                            'sub_accounts/{user_id}/keys/{key}' => 1,
+                            'sub_accounts/{user_id}/keys/{key}' => 2.5,
                         ),
                         'delete' => array(
-                            'sub_accounts/{user_id}/keys/{key}' => 1,
+                            'sub_accounts/{user_id}/keys/{key}' => 2.5,
                         ),
                     ),
                     'portfolio' => array(
                         'get' => array(
-                            'accounts' => 1.5,
-                            'account_mode' => 1.5,
-                            'borrowable' => 1.5,
-                            'transferable' => 1.5,
-                            'loans' => 1.5,
-                            'loan_records' => 1.5,
-                            'interest_records' => 1.5,
-                            'spot/orders' => 1.5,
-                            'spot/orders/{order_id}' => 1.5,
+                            'spot/currency_pairs' => 20 / 15,
+                            'spot/currency_pairs/{currency_pair}' => 20 / 15,
+                            'accounts' => 20 / 15,
+                            'account_mode' => 20 / 15,
+                            'borrowable' => 20 / 15,
+                            'transferable' => 20 / 15,
+                            'loans' => 20 / 15,
+                            'loan_records' => 20 / 15,
+                            'interest_records' => 20 / 15,
+                            'spot/orders' => 20 / 15,
+                            'spot/orders/{order_id}' => 20 / 15,
                         ),
                         'post' => array(
-                            'loans' => 1.5,
-                            'spot/orders' => 1.5,
+                            'account_mode' => 20 / 15,
+                            'loans' => 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
+                            'spot/orders' => 20 / 15,
                         ),
                         'delete' => array(
-                            'spot/orders/{order_id}' => 1.5,
+                            'spot/orders/{order_id}' => 20 / 15,
                         ),
                         'patch' => array(
-                            'spot/orders/{order_id}' => 1.5,
+                            'spot/orders/{order_id}' => 20 / 15,
                         ),
                     ),
                     'spot' => array(
+                        // default is 200r/10s
                         'get' => array(
                             'fee' => 1,
                             'batch_fee' => 1,
@@ -312,219 +321,219 @@ class gate extends Exchange {
                             'price_orders/{order_id}' => 1,
                         ),
                         'post' => array(
-                            'batch_orders' => 1,
+                            'batch_orders' => 0.4,
                             'cross_liquidate_orders' => 1,
-                            'orders' => 1,
-                            'cancel_batch_orders' => 1,
-                            'countdown_cancel_all' => 1,
-                            'price_orders' => 1,
+                            'orders' => 0.4,
+                            'cancel_batch_orders' => 20 / 75,
+                            'countdown_cancel_all' => 20 / 75,
+                            'price_orders' => 0.4,
                         ),
                         'delete' => array(
-                            'orders' => 1,
-                            'orders/{order_id}' => 1,
-                            'price_orders' => 1,
-                            'price_orders/{order_id}' => 1,
+                            'orders' => 20 / 75,
+                            'orders/{order_id}' => 20 / 75,
+                            'price_orders' => 20 / 75,
+                            'price_orders/{order_id}' => 20 / 75,
                         ),
                         'patch' => array(
-                            'orders/{order_id}' => 1,
+                            'orders/{order_id}' => 0.4,
                         ),
                     ),
                     'margin' => array(
                         'get' => array(
-                            'accounts' => 1.5,
-                            'account_book' => 1.5,
-                            'funding_accounts' => 1.5,
-                            'auto_repay' => 1.5,
-                            'transferable' => 1.5,
-                            'loans' => 1.5,
-                            'loans/{loan_id}' => 1.5,
-                            'loans/{loan_id}/repayment' => 1.5,
-                            'loan_records' => 1.5,
-                            'loan_records/{loan_record_id}' => 1.5,
-                            'borrowable' => 1.5,
-                            'cross/accounts' => 1.5,
-                            'cross/account_book' => 1.5,
-                            'cross/loans' => 1.5,
-                            'cross/loans/{loan_id}' => 1.5,
-                            'cross/repayments' => 1.5,
-                            'cross/interest_records' => 1.5,
-                            'cross/transferable' => 1.5,
-                            'cross/estimate_rate' => 1.5,
-                            'cross/borrowable' => 1.5,
-                            'uni/estimate_rate' => 1.5,
-                            'uni/loans' => 1.5,
-                            'uni/loan_records' => 1.5,
-                            'uni/interest_records' => 1.5,
-                            'uni/borrowable' => 1.5,
+                            'accounts' => 20 / 15,
+                            'account_book' => 20 / 15,
+                            'funding_accounts' => 20 / 15,
+                            'auto_repay' => 20 / 15,
+                            'transferable' => 20 / 15,
+                            'loans' => 20 / 15,
+                            'loans/{loan_id}' => 20 / 15,
+                            'loans/{loan_id}/repayment' => 20 / 15,
+                            'loan_records' => 20 / 15,
+                            'loan_records/{loan_record_id}' => 20 / 15,
+                            'borrowable' => 20 / 15,
+                            'cross/accounts' => 20 / 15,
+                            'cross/account_book' => 20 / 15,
+                            'cross/loans' => 20 / 15,
+                            'cross/loans/{loan_id}' => 20 / 15,
+                            'cross/repayments' => 20 / 15,
+                            'cross/interest_records' => 20 / 15,
+                            'cross/transferable' => 20 / 15,
+                            'cross/estimate_rate' => 20 / 15,
+                            'cross/borrowable' => 20 / 15,
+                            'uni/estimate_rate' => 20 / 15,
+                            'uni/loans' => 20 / 15,
+                            'uni/loan_records' => 20 / 15,
+                            'uni/interest_records' => 20 / 15,
+                            'uni/borrowable' => 20 / 15,
                         ),
                         'post' => array(
-                            'auto_repay' => 1.5,
-                            'loans' => 1.5,
-                            'merged_loans' => 1.5,
-                            'loans/{loan_id}/repayment' => 1.5,
-                            'cross/loans' => 1.5,
-                            'cross/repayments' => 1.5,
-                            'uni/loans' => 1.5,
+                            'auto_repay' => 20 / 15,
+                            'loans' => 20 / 15,
+                            'merged_loans' => 20 / 15,
+                            'loans/{loan_id}/repayment' => 20 / 15,
+                            'cross/loans' => 20 / 15,
+                            'cross/repayments' => 20 / 15,
+                            'uni/loans' => 20 / 15,
                         ),
                         'patch' => array(
-                            'loans/{loan_id}' => 1.5,
-                            'loan_records/{loan_record_id}' => 1.5,
+                            'loans/{loan_id}' => 20 / 15,
+                            'loan_records/{loan_record_id}' => 20 / 15,
                         ),
                         'delete' => array(
-                            'loans/{loan_id}' => 1.5,
+                            'loans/{loan_id}' => 20 / 15,
                         ),
                     ),
                     'flash_swap' => array(
                         'get' => array(
-                            'currencies' => 1.5,
-                            'currency_pairs' => 1.5,
-                            'orders' => 1.5,
-                            'orders/{order_id}' => 1.5,
+                            'currencies' => 1,
+                            'currency_pairs' => 1,
+                            'orders' => 1,
+                            'orders/{order_id}' => 1,
                         ),
                         'post' => array(
-                            'orders' => 1.5,
-                            'orders/preview' => 1.5,
+                            'orders' => 1,
+                            'orders/preview' => 1,
                         ),
                     ),
                     'futures' => array(
                         'get' => array(
-                            '{settle}/accounts' => 1.5,
-                            '{settle}/account_book' => 1.5,
-                            '{settle}/positions' => 1.5,
-                            '{settle}/positions/{contract}' => 1.5,
-                            '{settle}/dual_comp/positions/{contract}' => 1.5,
-                            '{settle}/orders' => 1.5,
-                            '{settle}/orders_timerange' => 1.5,
-                            '{settle}/orders/{order_id}' => 1.5,
-                            '{settle}/my_trades' => 1.5,
-                            '{settle}/my_trades_timerange' => 1.5,
-                            '{settle}/position_close' => 1.5,
-                            '{settle}/liquidates' => 1.5,
-                            '{settle}/auto_deleverages' => 1.5,
-                            '{settle}/fee' => 1.5,
-                            '{settle}/price_orders' => 1.5,
-                            '{settle}/price_orders/{order_id}' => 1.5,
+                            '{settle}/accounts' => 1,
+                            '{settle}/account_book' => 1,
+                            '{settle}/positions' => 1,
+                            '{settle}/positions/{contract}' => 1,
+                            '{settle}/dual_comp/positions/{contract}' => 1,
+                            '{settle}/orders' => 1,
+                            '{settle}/orders_timerange' => 1,
+                            '{settle}/orders/{order_id}' => 1,
+                            '{settle}/my_trades' => 1,
+                            '{settle}/my_trades_timerange' => 1,
+                            '{settle}/position_close' => 1,
+                            '{settle}/liquidates' => 1,
+                            '{settle}/auto_deleverages' => 1,
+                            '{settle}/fee' => 1,
+                            '{settle}/price_orders' => 1,
+                            '{settle}/price_orders/{order_id}' => 1,
                         ),
                         'post' => array(
-                            '{settle}/positions/{contract}/margin' => 1.5,
-                            '{settle}/positions/{contract}/leverage' => 1.5,
-                            '{settle}/positions/{contract}/risk_limit' => 1.5,
-                            '{settle}/dual_mode' => 1.5,
-                            '{settle}/dual_comp/positions/{contract}/margin' => 1.5,
-                            '{settle}/dual_comp/positions/{contract}/leverage' => 1.5,
-                            '{settle}/dual_comp/positions/{contract}/risk_limit' => 1.5,
-                            '{settle}/orders' => 1.5,
-                            '{settle}/batch_orders' => 1.5,
-                            '{settle}/countdown_cancel_all' => 1.5,
-                            '{settle}/price_orders' => 1.5,
+                            '{settle}/positions/{contract}/margin' => 1,
+                            '{settle}/positions/{contract}/leverage' => 1,
+                            '{settle}/positions/{contract}/risk_limit' => 1,
+                            '{settle}/dual_mode' => 1,
+                            '{settle}/dual_comp/positions/{contract}/margin' => 1,
+                            '{settle}/dual_comp/positions/{contract}/leverage' => 1,
+                            '{settle}/dual_comp/positions/{contract}/risk_limit' => 1,
+                            '{settle}/orders' => 0.4,
+                            '{settle}/batch_orders' => 0.4,
+                            '{settle}/countdown_cancel_all' => 0.4,
+                            '{settle}/price_orders' => 0.4,
                         ),
                         'put' => array(
-                            '{settle}/orders/{order_id}' => 1.5,
+                            '{settle}/orders/{order_id}' => 1,
                         ),
                         'delete' => array(
-                            '{settle}/orders' => 1.5,
-                            '{settle}/orders/{order_id}' => 1.5,
-                            '{settle}/price_orders' => 1.5,
-                            '{settle}/price_orders/{order_id}' => 1.5,
+                            '{settle}/orders' => 20 / 75,
+                            '{settle}/orders/{order_id}' => 20 / 75,
+                            '{settle}/price_orders' => 20 / 75,
+                            '{settle}/price_orders/{order_id}' => 20 / 75,
                         ),
                     ),
                     'delivery' => array(
                         'get' => array(
-                            '{settle}/accounts' => 1.5,
-                            '{settle}/account_book' => 1.5,
-                            '{settle}/positions' => 1.5,
-                            '{settle}/positions/{contract}' => 1.5,
-                            '{settle}/orders' => 1.5,
-                            '{settle}/orders/{order_id}' => 1.5,
-                            '{settle}/my_trades' => 1.5,
-                            '{settle}/position_close' => 1.5,
-                            '{settle}/liquidates' => 1.5,
-                            '{settle}/settlements' => 1.5,
-                            '{settle}/price_orders' => 1.5,
-                            '{settle}/price_orders/{order_id}' => 1.5,
+                            '{settle}/accounts' => 20 / 15,
+                            '{settle}/account_book' => 20 / 15,
+                            '{settle}/positions' => 20 / 15,
+                            '{settle}/positions/{contract}' => 20 / 15,
+                            '{settle}/orders' => 20 / 15,
+                            '{settle}/orders/{order_id}' => 20 / 15,
+                            '{settle}/my_trades' => 20 / 15,
+                            '{settle}/position_close' => 20 / 15,
+                            '{settle}/liquidates' => 20 / 15,
+                            '{settle}/settlements' => 20 / 15,
+                            '{settle}/price_orders' => 20 / 15,
+                            '{settle}/price_orders/{order_id}' => 20 / 15,
                         ),
                         'post' => array(
-                            '{settle}/positions/{contract}/margin' => 1.5,
-                            '{settle}/positions/{contract}/leverage' => 1.5,
-                            '{settle}/positions/{contract}/risk_limit' => 1.5,
-                            '{settle}/orders' => 1.5,
-                            '{settle}/price_orders' => 1.5,
+                            '{settle}/positions/{contract}/margin' => 20 / 15,
+                            '{settle}/positions/{contract}/leverage' => 20 / 15,
+                            '{settle}/positions/{contract}/risk_limit' => 20 / 15,
+                            '{settle}/orders' => 20 / 15,
+                            '{settle}/price_orders' => 20 / 15,
                         ),
                         'delete' => array(
-                            '{settle}/orders' => 1.5,
-                            '{settle}/orders/{order_id}' => 1.5,
-                            '{settle}/price_orders' => 1.5,
-                            '{settle}/price_orders/{order_id}' => 1.5,
+                            '{settle}/orders' => 20 / 15,
+                            '{settle}/orders/{order_id}' => 20 / 15,
+                            '{settle}/price_orders' => 20 / 15,
+                            '{settle}/price_orders/{order_id}' => 20 / 15,
                         ),
                     ),
                     'options' => array(
                         'get' => array(
-                            'my_settlements' => 1.5,
-                            'accounts' => 1.5,
-                            'account_book' => 1.5,
-                            'positions' => 1.5,
-                            'positions/{contract}' => 1.5,
-                            'position_close' => 1.5,
-                            'orders' => 1.5,
-                            'orders/{order_id}' => 1.5,
-                            'my_trades' => 1.5,
+                            'my_settlements' => 20 / 15,
+                            'accounts' => 20 / 15,
+                            'account_book' => 20 / 15,
+                            'positions' => 20 / 15,
+                            'positions/{contract}' => 20 / 15,
+                            'position_close' => 20 / 15,
+                            'orders' => 20 / 15,
+                            'orders/{order_id}' => 20 / 15,
+                            'my_trades' => 20 / 15,
                         ),
                         'post' => array(
-                            'orders' => 1.5,
+                            'orders' => 20 / 15,
                         ),
                         'delete' => array(
-                            'orders' => 1.5,
-                            'orders/{order_id}' => 1.5,
+                            'orders' => 20 / 15,
+                            'orders/{order_id}' => 20 / 15,
                         ),
                     ),
                     'earn' => array(
                         'get' => array(
-                            'uni/lends' => 1.5,
-                            'uni/lend_records' => 1.5,
-                            'uni/interests/{currency}' => 1.5,
-                            'uni/interest_records' => 1.5,
+                            'uni/lends' => 20 / 15,
+                            'uni/lend_records' => 20 / 15,
+                            'uni/interests/{currency}' => 20 / 15,
+                            'uni/interest_records' => 20 / 15,
                         ),
                         'post' => array(
-                            'uni/lends' => 1.5,
+                            'uni/lends' => 20 / 15,
                         ),
                         'patch' => array(
-                            'uni/lends' => 1.5,
+                            'uni/lends' => 20 / 15,
                         ),
                     ),
                     'loan' => array(
                         'get' => array(
-                            'collateral/orders' => 1.5,
-                            'collateral/orders/{order_id}' => 1.5,
-                            'collateral/repay_records' => 1.5,
-                            'collateral/collaterals' => 1.5,
-                            'collateral/total_amount' => 1.5,
-                            'collateral/ltv' => 1.5,
-                            'collateral/currencies' => 1.5,
+                            'collateral/orders' => 20 / 15,
+                            'collateral/orders/{order_id}' => 20 / 15,
+                            'collateral/repay_records' => 20 / 15,
+                            'collateral/collaterals' => 20 / 15,
+                            'collateral/total_amount' => 20 / 15,
+                            'collateral/ltv' => 20 / 15,
+                            'collateral/currencies' => 20 / 15,
                         ),
                         'post' => array(
-                            'collateral/orders' => 1.5,
-                            'collateral/repay' => 1.5,
-                            'collateral/collaterals' => 1.5,
+                            'collateral/orders' => 20 / 15,
+                            'collateral/repay' => 20 / 15,
+                            'collateral/collaterals' => 20 / 15,
                         ),
                     ),
                     'account' => array(
                         'get' => array(
-                            'detail' => 1.5,
-                            'stp_groups' => 1.5,
-                            'stp_groups/{stp_id}/users' => 1.5,
+                            'detail' => 20 / 15,
+                            'stp_groups' => 20 / 15,
+                            'stp_groups/{stp_id}/users' => 20 / 15,
                         ),
                         'post' => array(
-                            'stp_groups' => 1.5,
-                            'stp_groups/{stp_id}/users' => 1.5,
+                            'stp_groups' => 20 / 15,
+                            'stp_groups/{stp_id}/users' => 20 / 15,
                         ),
                         'delete' => array(
-                            'stp_groups/{stp_id}/users' => 1.5,
+                            'stp_groups/{stp_id}/users' => 20 / 15,
                         ),
                     ),
                     'rebate' => array(
                         'get' => array(
-                            'agency/transaction_history' => 1.5,
-                            'agency/commission_history' => 1.5,
+                            'agency/transaction_history' => 20 / 15,
+                            'agency/commission_history' => 20 / 15,
                         ),
                     ),
                 ),
@@ -1086,6 +1095,7 @@ class gate extends Exchange {
                         'max' => $margin ? $this->safe_number($market, 'max_quote_amount') : null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -1284,6 +1294,7 @@ class gate extends Exchange {
                     'max' => null,
                 ),
             ),
+            'created' => null,
             'info' => $market,
         );
     }
@@ -1405,6 +1416,7 @@ class gate extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->safe_timestamp($market, 'create_time'),
                     'info' => $market,
                 );
             }
@@ -2788,7 +2800,8 @@ class gate extends Exchange {
                 $result[$code] = $this->parse_balance_helper($entry);
             }
         }
-        return $isolated ? $result : $this->safe_balance($result);
+        $returnResult = $isolated ? $result : $this->safe_balance($result);
+        return $returnResult;
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -2805,10 +2818,16 @@ class gate extends Exchange {
          * @param {array} [$params] extra parameters specific $to the gateio api endpoint
          * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
          * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000);
+        }
         if ($market['option']) {
             return $this->fetch_option_ohlcv($symbol, $timeframe, $since, $limit, $params);
         }
@@ -2970,9 +2989,16 @@ class gate extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the gate api endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest trade to fetch
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params);
+        }
         $market = $this->market($symbol);
         //
         // spot
@@ -3003,6 +3029,11 @@ class gate extends Exchange {
             'future' => 'publicDeliveryGetSettleTrades',
             'option' => 'publicOptionsGetTrades',
         ));
+        $until = $this->safe_integer_2($params, 'to', 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until' ));
+            $request['to'] = $this->parse_to_int($until / 1000);
+        }
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000
         }
@@ -3108,9 +3139,15 @@ class gate extends Exchange {
          * @param {int} [$params->offset] *$contract only* list offset, starting from 0
          * @param {string} [$params->last_id] *$contract only* specify list staring point using the id of last record in previous list-query results
          * @param {int} [$params->count_total] *$contract only* whether to return total number matched, default to 0(no return)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params);
+        }
         $type = null;
         $marginMode = null;
         $request = array();
@@ -3368,10 +3405,17 @@ class gate extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {int} [$params->until] end time in ms
          * @param {array} [$params] extra parameters specific to the gate api endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchDeposits', $code, $since, $limit, $params);
+        }
         $request = array();
         $currency = null;
         if ($code !== null) {
@@ -3386,6 +3430,7 @@ class gate extends Exchange {
             $request['from'] = $start;
             $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
         }
+        list($request, $params) = $this->handle_until_option('to', $request, $params);
         $response = $this->privateWalletGetDeposits (array_merge($request, $params));
         return $this->parse_transactions($response, $currency);
     }
@@ -3397,9 +3442,16 @@ class gate extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the gate api endpoint
+         * @param {int} [$params->until] end time in ms
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchWithdrawals', $code, $since, $limit, $params);
+        }
         $request = array();
         $currency = null;
         if ($code !== null) {
@@ -3414,6 +3466,7 @@ class gate extends Exchange {
             $request['from'] = $start;
             $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
         }
+        list($request, $params) = $this->handle_until_option('to', $request, $params);
         $response = $this->privateWalletGetWithdrawals (array_merge($request, $params));
         return $this->parse_transactions($response, $currency);
     }
@@ -3507,6 +3560,13 @@ class gate extends Exchange {
         //        "memo" => null
         //    }
         //
+        //     {
+        //         "currency":"usdt",
+        //         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        //         "amount":"1880",
+        //         "chain":"eth"
+        //     }
+        //
         $id = $this->safe_string($transaction, 'id');
         $type = null;
         $amountString = $this->safe_string($transaction, 'amount');
@@ -3523,6 +3583,7 @@ class gate extends Exchange {
         if ($type === 'withdrawal') {
             $amountString = Precise::string_sub($amountString, $feeCostString);
         }
+        $networkId = $this->safe_string_upper($transaction, 'chain');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $txid = $this->safe_string($transaction, 'txid');
@@ -3537,7 +3598,7 @@ class gate extends Exchange {
             'txid' => $txid,
             'currency' => $code,
             'amount' => $this->parse_number($amountString),
-            'network' => null,
+            'network' => $this->network_id_to_code($networkId),
             'address' => $address,
             'addressTo' => null,
             'addressFrom' => null,
@@ -4123,7 +4184,6 @@ class gate extends Exchange {
         $remainingString = $this->safe_string($order, 'left');
         $cost = $this->safe_string($order, 'filled_total');
         $triggerPrice = $this->safe_number($trigger, 'price');
-        $rawStatus = null;
         $average = $this->safe_number_2($order, 'avg_deal_price', 'fill_price');
         if ($triggerPrice) {
             $remainingString = $amount;
@@ -4133,10 +4193,8 @@ class gate extends Exchange {
             $isMarketOrder = Precise::string_equals($price, '0') && ($timeInForce === 'IOC');
             $type = $isMarketOrder ? 'market' : 'limit';
             $side = Precise::string_gt($amount, '0') ? 'buy' : 'sell';
-            $rawStatus = $this->safe_string($order, 'finish_as', 'open');
-        } else {
-            $rawStatus = $this->safe_string($order, 'status');
         }
+        $rawStatus = $this->safe_string_n($order, array( 'finish_as', 'status', 'open' ));
         $timestamp = $this->safe_integer($order, 'create_time_ms');
         if ($timestamp === null) {
             $timestamp = $this->safe_timestamp_2($order, 'create_time', 'ctime');
@@ -5675,6 +5733,11 @@ class gate extends Exchange {
          * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure)
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenInterestHistory', 'paginate', false);
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchOpenInterestHistory', $symbol, $since, $limit, $timeframe, $params, 100);
+        }
         $market = $this->market($symbol);
         if (!$market['swap']) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports swap markets only');
@@ -5734,7 +5797,7 @@ class gate extends Exchange {
         //        lsr_taker => '9.3765153315902'
         //    }
         //
-        $timestamp = $this->safe_integer_product($interest, 'time', 1000);
+        $timestamp = $this->safe_timestamp($interest, 'time');
         return array(
             'symbol' => $this->safe_string($market, 'symbol'),
             'openInterestAmount' => $this->safe_number($interest, 'open_interest'),
@@ -5753,7 +5816,7 @@ class gate extends Exchange {
          * @param {int} [$since] timestamp in ms
          * @param {int} [$limit] number of records
          * @param {array} [$params] exchange specific $params
-         * @return {array[]} a list of [settlement history objects]
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
          */
         $this->check_required_symbol('fetchSettlementHistory', $symbol);
         $this->load_markets();
@@ -5933,9 +5996,16 @@ class gate extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest ledger entry
          * @param {int} [$limit] max number of ledger entries to return
          * @param {array} [$params] extra parameters specific to the gate api endpoint
+         * @param {int} [$params->until] end time in ms
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params);
+        }
         $type = null;
         $currency = null;
         $response = null;
@@ -5959,6 +6029,7 @@ class gate extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
+        list($request, $params) = $this->handle_until_option('to', $request, $params);
         if ($type === 'spot') {
             $response = $this->privateSpotGetAccountBook (array_merge($request, $params));
         } elseif ($type === 'margin') {
@@ -6167,6 +6238,225 @@ class gate extends Exchange {
         list($request, $query) = $this->prepare_request($market, 'swap', $params);
         $request['dual_mode'] = $hedged;
         return $this->privateFuturesPostSettleDualMode (array_merge($request, $query));
+    }
+
+    public function fetch_underlying_assets($params = array ()) {
+        /**
+         * fetches the market ids of $underlying assets for a specific contract market type
+         * @param {array} [$params] exchange specific $params
+         * @param {string} [$params->type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$underlying-assets-structure $underlying assets}
+         */
+        $this->load_markets();
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchUnderlyingAssets', null, $params);
+        if (($marketType === null) || ($marketType === 'spot')) {
+            $marketType = 'option';
+        }
+        if ($marketType !== 'option') {
+            throw new NotSupported($this->id . ' fetchUnderlyingAssets() supports option markets only');
+        }
+        $response = $this->publicOptionsGetUnderlyings ($params);
+        //
+        //    array(
+        //        {
+        //            "index_time" => "1646915796",
+        //            "name" => "BTC_USDT",
+        //            "index_price" => "39142.73"
+        //        }
+        //    )
+        //
+        $underlyings = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $underlying = $response[$i];
+            $name = $this->safe_string($underlying, 'name');
+            if ($name !== null) {
+                $underlyings[] = $name;
+            }
+        }
+        return $underlyings;
+    }
+
+    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * retrieves the public liquidations of a trading pair
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-liquidation-history
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch liquidations for
+         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+         * @param {array} [$params] exchange specific parameters for the gate api endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest liquidation
+         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new NotSupported($this->id . ' fetchLiquidations() supports swap markets only');
+        }
+        $request = array(
+            'settle' => $market['settleId'],
+            'contract' => $market['id'],
+        );
+        if ($since !== null) {
+            $request['from'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        list($request, $params) = $this->handle_until_option('to', $request, $params);
+        $response = $this->publicFuturesGetSettleLiqOrders (array_merge($request, $params));
+        //
+        //     array(
+        //         array(
+        //             "contract" => "BTC_USDT",
+        //             "left" => 0,
+        //             "size" => -165,
+        //             "fill_price" => "28070",
+        //             "order_price" => "28225",
+        //             "time" => 1696736132
+        //         ),
+        //     )
+        //
+        return $this->parse_liquidations($response, $market, $since, $limit);
+    }
+
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * retrieves the users liquidated positions
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch liquidations for
+         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+         * @param {array} [$params] exchange specific parameters for the gate api endpoint
+         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+         */
+        $this->check_required_symbol('fetchMyLiquidations', $symbol);
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'contract' => $market['id'],
+        );
+        $response = null;
+        if (($market['swap']) || ($market['future'])) {
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $request['settle'] = $market['settleId'];
+        } elseif ($market['option']) {
+            $marketId = $market['id'];
+            $optionParts = explode('-', $marketId);
+            $request['underlying'] = $this->safe_string($optionParts, 0);
+        }
+        if ($market['swap']) {
+            $response = $this->privateFuturesGetSettleLiquidates (array_merge($request, $params));
+        } elseif ($market['future']) {
+            $response = $this->privateDeliveryGetSettleLiquidates (array_merge($request, $params));
+        } elseif ($market['option']) {
+            $response = $this->privateOptionsGetPositionClose (array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' orders');
+        }
+        //
+        // swap and future
+        //
+        //     array(
+        //         {
+        //             "time" => 1548654951,
+        //             "contract" => "BTC_USDT",
+        //             "size" => 600,
+        //             "leverage" => "25",
+        //             "margin" => "0.006705256878",
+        //             "entry_price" => "3536.123",
+        //             "liq_price" => "3421.54",
+        //             "mark_price" => "3420.27",
+        //             "order_id" => 317393847,
+        //             "order_price" => "3405",
+        //             "fill_price" => "3424",
+        //             "left" => 0
+        //         }
+        //     )
+        //
+        // option
+        //
+        //     array(
+        //         {
+        //             "time" => 1631764800,
+        //             "pnl" => "-42914.291",
+        //             "settle_size" => "-10001",
+        //             "side" => "short",
+        //             "contract" => "BTC_USDT-20210916-5000-C",
+        //             "text" => "settled"
+        //         }
+        //     )
+        //
+        return $this->parse_liquidations($response, $market, $since, $limit);
+    }
+
+    public function parse_liquidation($liquidation, $market = null) {
+        //
+        // fetchLiquidations
+        //
+        //     {
+        //         "contract" => "BTC_USDT",
+        //         "left" => 0,
+        //         "size" => -165,
+        //         "fill_price" => "28070",
+        //         "order_price" => "28225",
+        //         "time" => 1696736132
+        //     }
+        //
+        // swap and future => fetchMyLiquidations
+        //
+        //     {
+        //         "time" => 1548654951,
+        //         "contract" => "BTC_USDT",
+        //         "size" => 600,
+        //         "leverage" => "25",
+        //         "margin" => "0.006705256878",
+        //         "entry_price" => "3536.123",
+        //         "liq_price" => "3421.54",
+        //         "mark_price" => "3420.27",
+        //         "order_id" => 317393847,
+        //         "order_price" => "3405",
+        //         "fill_price" => "3424",
+        //         "left" => 0
+        //     }
+        //
+        // option => fetchMyLiquidations
+        //
+        //     {
+        //         "time" => 1631764800,
+        //         "pnl" => "-42914.291",
+        //         "settle_size" => "-10001",
+        //         "side" => "short",
+        //         "contract" => "BTC_USDT-20210916-5000-C",
+        //         "text" => "settled"
+        //     }
+        //
+        $marketId = $this->safe_string($liquidation, 'contract');
+        $timestamp = $this->safe_timestamp($liquidation, 'time');
+        $contractsStringRaw = $this->safe_string_2($liquidation, 'size', 'settle_size');
+        $contractsString = Precise::string_abs($contractsStringRaw);
+        $contractSizeString = $this->safe_string($market, 'contractSize');
+        $priceString = $this->safe_string_2($liquidation, 'liq_price', 'fill_price');
+        $baseValueString = Precise::string_mul($contractsString, $contractSizeString);
+        $quoteValueString = $this->safe_string($liquidation, 'pnl');
+        if ($quoteValueString === null) {
+            $quoteValueString = Precise::string_mul($baseValueString, $priceString);
+        }
+        return array(
+            'info' => $liquidation,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'contracts' => $this->parse_number($contractsString),
+            'contractSize' => $this->parse_number($contractSizeString),
+            'price' => $this->parse_number($priceString),
+            'baseValue' => $this->parse_number($baseValueString),
+            'quoteValue' => $this->parse_number(Precise::string_abs($quoteValueString)),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

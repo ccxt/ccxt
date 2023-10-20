@@ -236,6 +236,7 @@ class mercado extends mercado$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': coin,
             });
         }

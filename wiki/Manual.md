@@ -61,7 +61,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 98 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 97 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                                            | id                 | name                                                                                                    | ver                                                                                                                                                | certified                                                                                                                   | pro                                                                          |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|---------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -94,7 +94,6 @@ The CCXT library currently supports the following 98 cryptocurrency exchange mar
 | [![bitstamp1](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)](https://www.bitstamp.net)                                                                   | bitstamp1          | [Bitstamp](https://www.bitstamp.net)                                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.bitstamp.net/api)                                                         |                                                                                                                             |                                                                              |
 | [![bittrex](https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg)](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)                               | bittrex            | [Bittrex](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)                                | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://bittrex.github.io/api/v3)                                                     |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitvavo](https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg)](https://bitvavo.com/?a=24F34952F7)                                                           | bitvavo            | [Bitvavo](https://bitvavo.com/?a=24F34952F7)                                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitvavo.com/)                                                            | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![bkex](https://user-images.githubusercontent.com/1294454/158043180-bb079a65-69e8-45a2-b393-f094d334e610.jpg)](https://www.bkex.com/)                                                                          | bkex               | [BKEX](https://www.bkex.com/)                                                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bkexapi.github.io/docs/api_en.htm)                                            |                                                                                                                             |                                                                              |
 | [![bl3p](https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg)](https://bl3p.eu)                                                                                 | bl3p               | [BL3P](https://bl3p.eu)                                                                                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/BitonicNL/bl3p-api/tree/master/docs)                               |                                                                                                                             |                                                                              |
 | [![blockchaincom](https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg)](https://blockchain.com)                                                               | blockchaincom      | [Blockchain.com](https://blockchain.com)                                                                | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.blockchain.com/v3)                                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![btcalpha](https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg)](https://btc-alpha.com/?r=123788)                                                             | btcalpha           | [BTC-Alpha](https://btc-alpha.com/?r=123788)                                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://btc-alpha.github.io/api-docs)                                                 |                                                                                                                             |                                                                              |
@@ -213,9 +212,9 @@ const exchangeId = 'binance'
 ```python
 # Python
 import ccxt
-exchange = ccxt.okcoinusd () # default id
-okcoin1 = ccxt.okcoinusd ({ 'id': 'okcoin1' })
-okcoin2 = ccxt.okcoinusd ({ 'id': 'okcoin2' })
+exchange = ccxt.okcoin () # default id
+okcoin1 = ccxt.okcoin ({ 'id': 'okcoin1' })
+okcoin2 = ccxt.okcoin ({ 'id': 'okcoin2' })
 id = 'btcchina'
 btcchina = eval ('ccxt.%s ()' % id)
 coinbasepro = getattr (ccxt, 'coinbasepro') ()
@@ -297,6 +296,38 @@ $exchange = new $exchange_class(array(
     ),
 ));
 $exchange->options['adjustForTimeDifference'] = false;
+```
+
+### Overriding Exchange Methods
+
+In all CCXT-supported languages, you can override instance methods during runtime:
+
+```javascript
+// JavaScript
+const ex = new ccxt.binance ();
+ex.fetch_ticker = function (symbol, params = {}) {
+    // your codes go here
+};
+console.log (ex.fetch_ticker('BTC/USDT'));
+```
+
+```python
+# PYTHON
+ex = ccxt.binance()
+def my_overload(symbol, params = {}):
+    # your codes go here
+
+ex.fetch_ticker = my_overload
+print(ex.fetch_ticker('BTC/USDT'))
+```
+
+```php
+// PHP
+$ex = new \ccxt\binance();
+$ex->add_method('fetch_ticker', function($symbol, $params = []) {
+    // your codes go here
+});
+var_dump($ex->call_method('fetch_ticker', ['BTC/USDT']));
 ```
 
 ### Testnets And Sandbox Environments
@@ -1063,7 +1094,7 @@ In order to load markets manually beforehand call the `loadMarkets ()` / `load_m
 
 ```python
 # Python
-okcoin = ccxt.okcoinusd()
+okcoin = ccxt.okcoin()
 markets = okcoin.load_markets()
 print(okcoin.id, markets)
 ```
@@ -1174,16 +1205,16 @@ var_dump($exchange->id, $symbols);                 // print all symbols
 
 $currencies = $exchange->currencies;               // an associative array of currencies
 
-$okcoinusd = '\\ccxt\\okcoinusd';
-$okcoinusd = new $okcoinusd();
+$okcoin = '\\ccxt\\okcoin';
+$okcoin = new $okcoin();
 
-$okcoinusd->load_markets();
+$okcoin->load_markets();
 
-$okcoinusd->markets['BTC/USD'];                    // symbol → market (get market by symbol)
-$okcoinusd->markets_by_id['btc_usd'][0];              // id → market (get market by id)
+$okcoin->markets['BTC/USD'];                    // symbol → market (get market by symbol)
+$okcoin->markets_by_id['btc_usd'][0];              // id → market (get market by id)
 
-$okcoinusd->markets['BTC/USD']['id'];              // symbol → id (get id by symbol)
-$okcoinusd->markets_by_id['btc_usd'][0]['symbol']; // id → symbol (get symbol by id)
+$okcoin->markets['BTC/USD']['id'];              // symbol → id (get id by symbol)
+$okcoin->markets_by_id['btc_usd'][0]['symbol']; // id → symbol (get symbol by id)
 ```
 
 ### Naming Consistency
@@ -1481,10 +1512,7 @@ asyncio.run(print_poloniex_ethbtc_ticker())
 
 ### PHP
 
-In the PHP 5-compatible version all API methods are synchronous, but with PHP 7.1+ the CCXT library optionally supports asynchronous concurrency mode using the 'yield' syntax (very similar to async/await in Python). The asynchronous PHP version uses the [RecoilPHP](https://github.com/recoilphp/recoil), [ReactPHP](https://reactphp.org/) and [clue/reactphp-buzz](https://github.com/clue/reactphp-buzz) libraries. In async mode you have all the same properties and methods, but any networking API method should be decorated with the `yield` keyword, your script should be in a ReactPHP/RecoilPHP wrapper, and all exchange constructors need to be passed the loop and kernel instances from the wrapper.
-
-To use the async version of the library, use the `ccxt_async` namespace, as in the following example:
-
+CCXT support PHP 8+ versions. The library has both synchronous and asynchronous versions. To use synchronous version, use `\ccxt` namespace (i.e. `new ccxt\binance()`) and to use asynchronous version, use `\ccxt\async` namespace (i.e. `new ccxt\async\binance()`). Asynchronous version uses [ReactPHP](https://reactphp.org/) library in the background. In async mode you have all the same properties and methods, but any networking API method should be decorated with the `\React\Async\await` keyword and your script should be in a ReactPHP wrapper:
 ```php
 // PHP
 <?php
@@ -1559,13 +1587,14 @@ To get a list of all available methods with an exchange instance, you can simply
 ```text
 console.log (new ccxt.kraken ())   // JavaScript
 print(dir(ccxt.hitbtc()))           # Python
-var_dump (new \ccxt\okcoinusd ()); // PHP
+var_dump (new \ccxt\okcoin ()); // PHP
 ```
 
 # Unified API
 
 - [Overriding Unified API Params](#overriding-unified-api-params)
 - [Pagination](#pagination)
+- [Automatic Pagination](#automatic-pagination)
 
 The unified ccxt API is a subset of methods common among the exchanges. It currently contains the following methods:
 
@@ -1592,6 +1621,10 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
 - `fetchOpenInterest ([symbol[, params]])`
 - `fetchVolatilityHistory ([code[, params]])`
+- `fetchUnderlyingAssets ()`
+- `fetchSettlementHistory ([symbol[, since[, limit[, params]]]])`
+- `fetchLiquidations ([symbol[, since[, limit[, params]]]])`
+- `fetchMyLiquidations ([symbol[, since[, limit[, params]]]])`
 - ...
 
 ```text
@@ -1661,6 +1694,50 @@ In most cases users are **required to use at least some type of pagination** in 
 - `fetchWithdrawals()`
 
 With methods returning lists of objects, exchanges may offer one or more types of pagination. CCXT unifies **date-based pagination** by default, with timestamps **in milliseconds** throughout the entire library.
+
+
+### Automatic Pagination
+
+*Warning: this is an experimental feature and might produce unexpected/incorrect results in some instances.*
+
+Recently, CCXT introduced a way to paginate through several results automatically by just providing the `paginate` flag inside `params,` lifting this work from the userland. Most leading exchanges support it, and more will be added in the future, but the easiest way to check it is to look in the method's documentation and search for the *pagination* parameter. As always there are exceptions, and some endpoints might not provide a way to paginate either through a timestamp or a cursor, and in those cases, there's nothing CCXT can do about it.
+
+
+Right now, we have three different ways of paginating:
+- **dynamic/time-based**: uses the `until` and `since` parameters to paginate through dynamic results like (trades, orders, transactions, etc). Since we don't know a priori how many entries are available to be fetched, it will perform one request at a time until we reach the end of the data or the maximum amount of pagination calls (configurable through an option)
+- **deterministic**: when we can pre-compute the boundaries of each page, it will perform the requests concurrently for maximum performance. This applies to OHLCV, Funding Rates, and Open Interest and also respects the `maxPaginationCalls` option.
+- **cursor-based**: when the exchange provides a cursor inside the response, we extract the cursor and perform the subsequent request until the end of the data or reach the maximum number of pagination calls.
+
+The user cannot select the pagination method used, it will depend from implementation to implementation, considering the exchange API's features.
+
+#### Pagination params
+
+We can't perform an infinite amount of requests, and some of them might throw an error for different reasons, thus, we have some options that allow the user to control these variables and other pagination specificities.
+
+*All the options below, should be provided inside `params`, you can check the examples below*
+
+- **paginate**: (**boolean**) indicates that the user wants to paginate through different pages to get more data. Default is *false*.
+- **paginationCalls**: (**integer**) allows the user to control the maximum amount of requests to paginate the data. Due to the rate limits, this value should not be too high. Default is 10.
+- **maxRetries**: (**integer**) how many times should the pagination mechanism retry upon getting an error. Default is 3
+- **paginationDirection**: (**string**) Only applies to the dynamic pagination and it can be either *forward* (start the pagination from some time in the past and paginate forward) or *backward* (start from the most recent time and paginate backward). If *forward* is selected then a *since* parameter must also be provided. Default is *backward*.
+- **maxEntriesPerRequest**: (**integer**): The max amount of entries per request so that we can maximize the data retrieved per call. It varies from endpoint to endpoint and CCXT will populate this value for you, but you can override it if needed.
+
+#### Examples
+
+```Python
+
+trades = await binance.fetch_trades("BTC/USDT", params = {"paginate": True}) # dynamic/time-based
+
+ohlcv = await binance.fetch_ohlcv("BTC/USDT", params = {"paginate": True, "paginationCalls": 5}) # deterministic-pagination will perform 5 requests
+
+trades = await binance.fetch_trades("BTC/USDT", since = 1664812416000, params = {"paginate": True, "paginationDirection": "forward"}) # dynamic/time-based pagination starting from 1664812416000
+
+ledger = await bybit.fetch_ledger(params = {"paginate": True}) # bybit returns a cursor so the pagination will be cursor-based
+
+funding_rates = await binance.fetch_funding_rate_history("BTC/USDT:USDT", params = {"paginate": True, "maxEntriesPerRequest": 50}) # customizes the number of entries per request
+
+```
+
 
 ### Working With Datetimes And Timestamps
 
@@ -1899,6 +1976,8 @@ if ($exchange->has['fetchMyTrades']) {
 - [Funding Rate History](#funding-rate-history)
 - [Open Interest History](#open-interest-history)
 - [Volatility History](#volatility-history)
+- [Underlying Assets](#underlying-assets)
+- [Liquidations](#liquidations)
 
 ## Order Book
 
@@ -2936,6 +3015,102 @@ Returns
 }
 ```
 
+## Underlying Assets
+
+*contract only*
+
+Use the `fetchUnderlyingAssets` method to get the market id's of underlying assets for a contract market type from the exchange.
+
+```javascript
+fetchUnderlyingAssets (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"instType": "OPTION"}`)
+- **params.type** (String) Unified marketType, the default is 'option' (e.g. `"option"`)
+
+Returns
+
+- An [underlying assets structure](#underlying-assets-structure)
+
+### Underlying Assets Structure
+
+```javascript
+[ 'BTC_USDT', 'ETH_USDT', 'DOGE_USDT' ]
+```
+
+## Settlement History
+
+*contract only*
+
+Use the `fetchSettlementHistory` method to get the public settlement history for a contract market from the exchange.
+
+```javascript
+fetchSettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT-230728-25500-P"`)
+- **since** (Integer) Timestamp for the earliest settlement (e.g. `1694073600000`)
+- **limit** (Integer) The maximum number of settlements to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An array of [settlement history structures](#settlement-history-structure)
+
+### Settlement History Structure
+
+```javascript
+{
+    info: { ... },
+    symbol: 'BTC/USDT:USDT-230728-25500-P',
+    price: 25761.35807869,
+    timestamp: 1694073600000,
+    datetime: '2023-09-07T08:00:00.000Z',
+}
+```
+
+## Liquidations
+
+Use the `fetchLiquidations` method to get the public liquidations of a trading pair from the exchange.
+
+```javascript
+fetchLiquidations (symbol, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT-231006-25000-P"`)
+- **since** (Integer) Timestamp for the earliest liquidation (e.g. `1694073600000`)
+- **limit** (Integer) The maximum number of liquidations to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"until": 1645807945000}`)
+
+Returns
+
+- An array of [liquidation structures](#liquidation-structure)
+
+### Liquidation Structure
+
+```javascript
+[
+    {
+        'info':          { ... },                        // the original decoded JSON as is
+        'symbol':        'BTC/USDT:USDT-231006-25000-P', // unified CCXT market symbol
+        'contracts':     2,                              // the number of derivative contracts
+        'contractSize':  0.001,                          // the contract size for the trading pair
+        'price':         27038.64,                       // the average liquidation price in the quote currency
+        'baseValue':     0.002,                          // value in the base currency (contracts * contractSize)
+        'quoteValue':    54.07728,                       // value in the quote currency ((contracts * contractSize) * price)
+        'timestamp':     1696996782210,                  // Unix timestamp in milliseconds
+        'datetime':      '2023-10-11 03:59:42.000',      // ISO8601 datetime with milliseconds
+    },
+    ...
+]
+```
+
 # Private API
 
 - [Authentication](#authentication)
@@ -3045,7 +3220,7 @@ kraken.apiKey = 'YOUR_KRAKEN_API_KEY'
 kraken.secret = 'YOUR_KRAKEN_SECRET_KEY'
 
 // upon instantiation
-let okcoinusd = new ccxt.okcoinusd ({
+let okcoin = new ccxt.okcoin ({
     apiKey: 'YOUR_OKCOIN_API_KEY',
     secret: 'YOUR_OKCOIN_SECRET_KEY',
 })
@@ -3204,7 +3379,7 @@ acx = ccxt.acx({'nonce': lambda: ccxt.Exchange.milliseconds()})
 // PHP
 
 // 1: custom nonce value
-class MyOKCoinUSD extends \ccxt\okcoinusd {
+class Myokcoin extends \ccxt\okcoin {
     public function __construct ($options = array ()) {
         parent::__construct (array_merge (array ('i' => 1), $options));
     }

@@ -81,6 +81,7 @@ class delta(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTransfer': None,
                 'fetchTransfers': None,
+                'fetchUnderlyingAssets': False,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': None,
@@ -697,6 +698,8 @@ class delta(Exchange, ImplicitAPI):
         for i in range(0, len(markets)):
             market = markets[i]
             type = self.safe_string(market, 'contract_type')
+            if type == 'options_combos':
+                continue
             # settlingAsset = self.safe_value(market, 'settling_asset', {})
             quotingAsset = self.safe_value(market, 'quoting_asset', {})
             underlyingAsset = self.safe_value(market, 'underlying_asset', {})
@@ -799,6 +802,7 @@ class delta(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.parse8601(self.safe_string(market, 'launch_time')),
                 'info': market,
             })
         return result
@@ -1235,7 +1239,7 @@ class delta(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -1619,7 +1623,7 @@ class delta(Exchange, ImplicitAPI):
                 side = 'buy'
             elif Precise.string_lt(sizeString, '0'):
                 side = 'sell'
-        return {
+        return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
@@ -1645,7 +1649,7 @@ class delta(Exchange, ImplicitAPI):
             'marginRatio': None,
             'stopLossPrice': None,
             'takeProfitPrice': None,
-        }
+        })
 
     def parse_order_status(self, status):
         statuses = {
@@ -2687,7 +2691,7 @@ class delta(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer_product(interest, 'timestamp', 0.001)
         marketId = self.safe_string(interest, 'symbol')
-        return {
+        return self.safe_open_interest({
             'symbol': self.safe_symbol(marketId, market),
             'baseVolume': self.safe_number(interest, 'oi_value'),
             'quoteVolume': self.safe_number(interest, 'oi_value_usd'),
@@ -2696,7 +2700,7 @@ class delta(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }
+        }, market)
 
     async def fetch_leverage(self, symbol: str, params={}):
         """
@@ -2763,7 +2767,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
         :param dict [params]: exchange specific params
-        :returns dict[]: a list of [settlement history objects]
+        :returns dict[]: a list of `settlement history objects <https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure>`
         """
         await self.load_markets()
         market = None

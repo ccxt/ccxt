@@ -39,11 +39,11 @@ export default class cryptocom extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
-                'fetchBorrowInterest': true,
+                'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': true,
+                'fetchBorrowRates': false,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
@@ -86,6 +86,7 @@ export default class cryptocom extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
+                'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -336,6 +337,7 @@ export default class cryptocom extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '219': InvalidOrder,
                     '10001': ExchangeError,
                     '10002': PermissionDenied,
                     '10003': PermissionDenied,
@@ -565,6 +567,7 @@ export default class cryptocom extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -654,9 +657,15 @@ export default class cryptocom extends Exchange {
          * @param {int} [limit] the maximum number of order structures to retrieve, default 100 max 100
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchOrders', symbol, since, limit, params);
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -729,9 +738,15 @@ export default class cryptocom extends Exchange {
          * @param {int} [limit] the maximum number of trades to fetch
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchTrades', symbol, since, limit, params);
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -783,9 +798,15 @@ export default class cryptocom extends Exchange {
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 300);
+        }
         const market = this.market(symbol);
         const request = {
             'instrument_name': market['id'],
@@ -1039,7 +1060,7 @@ export default class cryptocom extends Exchange {
         }
         const postOnly = this.safeValue(params, 'postOnly', false);
         if ((postOnly) || (timeInForce === 'PO')) {
-            request['exec_inst'] = 'POST_ONLY';
+            request['exec_inst'] = ['POST_ONLY'];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
         const triggerPrice = this.safeStringN(params, ['stopPrice', 'triggerPrice', 'ref_price']);
@@ -1275,9 +1296,15 @@ export default class cryptocom extends Exchange {
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1841,8 +1868,8 @@ export default class cryptocom extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString(ticker, 'c'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': this.safeString(ticker, 'c'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'v'),
             'quoteVolume': this.safeString(ticker, 'vv'),
@@ -1986,10 +2013,16 @@ export default class cryptocom extends Exchange {
         const created = this.safeInteger(order, 'create_time');
         const marketId = this.safeString(order, 'instrument_name');
         const symbol = this.safeSymbol(marketId, market);
-        const execInst = this.safeString(order, 'exec_inst');
-        let postOnly = undefined;
+        const execInst = this.safeValue(order, 'exec_inst');
+        let postOnly = false;
         if (execInst !== undefined) {
-            postOnly = (execInst === 'POST_ONLY');
+            for (let i = 0; i < execInst.length; i++) {
+                const inst = execInst[i];
+                if (inst === 'POST_ONLY') {
+                    postOnly = true;
+                    break;
+                }
+            }
         }
         const feeCurrency = this.safeString(order, 'fee_instrument_name');
         return this.safeOrder({
@@ -2222,52 +2255,6 @@ export default class cryptocom extends Exchange {
             'info': info,
         };
     }
-    async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const request = {};
-        let market = undefined;
-        let currency = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-        }
-        if (code !== undefined) {
-            currency = this.currency(code);
-            request['currency'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['start_ts'] = since;
-        }
-        if (limit !== undefined) {
-            request['page_size'] = limit;
-        }
-        const response = await this.v2PrivatePostPrivateMarginGetInterestHistory(this.extend(request, params));
-        //
-        //     {
-        //         "id": 1656705829020,
-        //         "method": "private/margin/get-interest-history",
-        //         "code": 0,
-        //         "result": {
-        //             "list": [
-        //                 {
-        //                     "loan_id": "2643528867803765921",
-        //                     "currency": "USDT",
-        //                     "interest": 0.00000004,
-        //                     "time": 1656702899559,
-        //                     "stake_amount": 6,
-        //                     "interest_rate": 0.000025
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeValue(response, 'result', {});
-        const rows = this.safeValue(data, 'list', []);
-        let interest = undefined;
-        for (let i = 0; i < rows.length; i++) {
-            interest = this.parseBorrowInterests(rows, market);
-        }
-        return this.filterByCurrencySinceLimit(interest, code, since, limit);
-    }
     parseBorrowInterest(info, market = undefined) {
         //
         //     {
@@ -2295,38 +2282,6 @@ export default class cryptocom extends Exchange {
             'datetime': this.iso8601(timestamp),
             'info': info,
         };
-    }
-    async fetchBorrowRates(params = {}) {
-        /**
-         * @method
-         * @name cryptocom#fetchBorrowRates
-         * @description fetch the borrow interest rates of all currencies
-         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} a list of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
-         */
-        await this.loadMarkets();
-        const response = await this.v2PrivatePostPrivateMarginGetUserConfig(params);
-        //
-        //     {
-        //         "id": 1656707947456,
-        //         "method": "private/margin/get-user-config",
-        //         "code": 0,
-        //         "result": {
-        //             "stake_amount": 6,
-        //             "currency_configs": [
-        //                 {
-        //                     "currency": "AGLD",
-        //                     "hourly_rate": 0.00003334,
-        //                     "max_borrow_limit": 342.4032393,
-        //                     "min_borrow_limit": 30
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeValue(response, 'result', {});
-        const rates = this.safeValue(data, 'currency_configs', []);
-        return this.parseBorrowRates(rates, 'currency');
     }
     parseBorrowRates(info, codeKey) {
         //
@@ -2677,7 +2632,7 @@ export default class cryptocom extends Exchange {
          * @param {int} [limit] number of records
          * @param {object} [params] exchange specific params
          * @param {int} [params.type] 'future', 'option'
-         * @returns {object[]} a list of [settlement history objects]
+         * @returns {object[]} a list of [settlement history objects]{@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -2764,10 +2719,16 @@ export default class cryptocom extends Exchange {
          * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
          * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params);
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new BadSymbol(this.id + ' fetchFundingRateHistory() supports swap contracts only');
@@ -2925,7 +2886,7 @@ export default class cryptocom extends Exchange {
             const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
             result.push(this.parsePosition(entry, marketInner));
         }
-        return this.filterByArray(result, 'symbol', undefined, false);
+        return this.filterByArrayPositions(result, 'symbol', undefined, false);
     }
     parsePosition(position, market = undefined) {
         //
@@ -2994,7 +2955,15 @@ export default class cryptocom extends Exchange {
             const paramsKeys = Object.keys(keysorted);
             let strSortKey = '';
             for (let i = 0; i < paramsKeys.length; i++) {
-                strSortKey = strSortKey + paramsKeys[i].toString() + requestParams[paramsKeys[i]].toString();
+                const key = paramsKeys[i].toString();
+                let value = requestParams[paramsKeys[i]];
+                if (Array.isArray(value)) {
+                    value = value.join(',');
+                }
+                else {
+                    value = value.toString();
+                }
+                strSortKey = strSortKey + key + value;
             }
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);

@@ -516,6 +516,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'max': self.safe_number(market, 'quoteMaxSize'),
                     },
                 },
+                'created': self.safe_integer(market, 'firstOpenDate'),
                 'info': market,
             })
         return result
@@ -533,7 +534,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #        data: 1637385119302,
         #    }
         #
-        return self.safe_number(response, 'data')
+        return self.safe_integer(response, 'data')
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -543,9 +544,14 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 200)
         market = self.market(symbol)
         marketId = market['id']
         parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
@@ -850,58 +856,53 @@ class kucoinfutures(kucoin, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        response = await self.futuresPrivateGetPositions(self.extend(request, params))
+        response = await self.futuresPrivateGetPosition(self.extend(request, params))
         #
-        #     {
-        #         "code": "200000",
-        #         "data": [
-        #             {
-        #                 "id": "63b3599e6c41f50001c47d44",
-        #                 "symbol": "XBTUSDTM",
-        #                 "autoDeposit": False,
-        #                 "maintMarginReq": 0.004,
-        #                 "riskLimit": 25000,
-        #                 "realLeverage": 5.0,
-        #                 "crossMode": False,
-        #                 "delevPercentage": 0.57,
-        #                 "openingTimestamp": 1684000025528,
-        #                 "currentTimestamp": 1684000052160,
-        #                 "currentQty": 1,
-        #                 "currentCost": 26.821,
-        #                 "currentComm": 0.0160926,
-        #                 "unrealisedCost": 26.821,
-        #                 "realisedGrossCost": 0.0,
-        #                 "realisedCost": 0.0160926,
-        #                 "isOpen": True,
-        #                 "markPrice": 26821.13,
-        #                 "markValue": 26.82113,
-        #                 "posCost": 26.821,
-        #                 "posCross": 0.0,
-        #                 "posCrossMargin": 0.0,
-        #                 "posInit": 5.3642,
-        #                 "posComm": 0.01931112,
-        #                 "posCommCommon": 0.01931112,
-        #                 "posLoss": 0.0,
-        #                 "posMargin": 5.38351112,
-        #                 "posMaint": 0.12927722,
-        #                 "maintMargin": 5.38364112,
-        #                 "realisedGrossPnl": 0.0,
-        #                 "realisedPnl": -0.0160926,
-        #                 "unrealisedPnl": 1.3E-4,
-        #                 "unrealisedPnlPcnt": 0.0,
-        #                 "unrealisedRoePcnt": 0.0,
-        #                 "avgEntryPrice": 26821.0,
-        #                 "liquidationPrice": 21567.0,
-        #                 "bankruptPrice": 21456.0,
-        #                 "settleCurrency": "USDT",
-        #                 "isInverse": False,
-        #                 "maintainMargin": 0.004
-        #             }
-        #         ]
-        #     }
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "id": "6505ee6eaff4070001f651c4",
+        #            "symbol": "XBTUSDTM",
+        #            "autoDeposit": False,
+        #            "maintMarginReq": 0,
+        #            "riskLimit": 200,
+        #            "realLeverage": 0.0,
+        #            "crossMode": False,
+        #            "delevPercentage": 0.0,
+        #            "currentTimestamp": 1694887534594,
+        #            "currentQty": 0,
+        #            "currentCost": 0.0,
+        #            "currentComm": 0.0,
+        #            "unrealisedCost": 0.0,
+        #            "realisedGrossCost": 0.0,
+        #            "realisedCost": 0.0,
+        #            "isOpen": False,
+        #            "markPrice": 26611.71,
+        #            "markValue": 0.0,
+        #            "posCost": 0.0,
+        #            "posCross": 0,
+        #            "posInit": 0.0,
+        #            "posComm": 0.0,
+        #            "posLoss": 0.0,
+        #            "posMargin": 0.0,
+        #            "posMaint": 0.0,
+        #            "maintMargin": 0.0,
+        #            "realisedGrossPnl": 0.0,
+        #            "realisedPnl": 0.0,
+        #            "unrealisedPnl": 0.0,
+        #            "unrealisedPnlPcnt": 0,
+        #            "unrealisedRoePcnt": 0,
+        #            "avgEntryPrice": 0.0,
+        #            "liquidationPrice": 0.0,
+        #            "bankruptPrice": 0.0,
+        #            "settleCurrency": "USDT",
+        #            "maintainMargin": 0,
+        #            "riskLimitLevel": 1
+        #        }
+        #    }
         #
-        data = self.safe_value(response, 'data', [])
-        return self.parse_position(data[0], market)
+        data = self.safe_value(response, 'data', {})
+        return self.parse_position(data, market)
 
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
@@ -1011,7 +1012,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         symbol = self.safe_string(position, 'symbol')
         market = self.safe_market(symbol, market)
-        timestamp = self.safe_number(position, 'currentTimestamp')
+        timestamp = self.safe_integer(position, 'currentTimestamp')
         size = self.safe_string(position, 'currentQty')
         side = None
         if Precise.string_gt(size, '0'):
@@ -1043,7 +1044,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'unrealizedPnl': self.parse_number(unrealisedPnl),
             'contracts': self.parse_number(Precise.string_abs(size)),
             'contractSize': self.safe_value(market, 'contractSize'),
-            'realizedPnl': self.safe_number(position, 'realised_pnl'),
+            'realizedPnl': self.safe_number(position, 'realisedPnl'),
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'markPrice': self.safe_number(position, 'markPrice'),
@@ -1099,11 +1100,18 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'leverage': 1,
         }
         triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
+        triggerPriceTypes = {
+            'mark': 'MP',
+            'last': 'TP',
+            'index': 'IP',
+        }
+        triggerPriceType = self.safe_string(params, 'triggerPriceType', 'mark')
+        triggerPriceTypeValue = self.safe_string(triggerPriceTypes, triggerPriceType, triggerPriceType)
         params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice'])
         if triggerPrice:
             request['stop'] = 'up' if (side == 'buy') else 'down'
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
-            request['stopPriceType'] = 'MP'
+            request['stopPriceType'] = triggerPriceTypeValue
         elif stopLossPrice or takeProfitPrice:
             if stopLossPrice:
                 request['stop'] = 'up' if (side == 'buy') else 'down'
@@ -1112,7 +1120,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 request['stop'] = 'down' if (side == 'buy') else 'up'
                 request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
             request['reduceOnly'] = True
-            request['stopPriceType'] = 'MP'
+            request['stopPriceType'] = triggerPriceTypeValue
         uppercaseType = type.upper()
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if uppercaseType == 'LIMIT':
@@ -1145,7 +1153,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data', {})
-        return {
+        return self.safe_order({
             'id': self.safe_string(data, 'orderId'),
             'clientOrderId': None,
             'timestamp': None,
@@ -1168,7 +1176,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'stopPrice': None,
             'triggerPrice': None,
             'info': response,
-        }
+        }, market)
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -1370,9 +1378,14 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param int [params.until]: End time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit or market
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns: An `array of order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOrdersByStatus', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchOrdersByStatus', symbol, since, limit, params)
         stop = self.safe_value(params, 'stop')
         until = self.safe_integer_2(params, 'until', 'till')
         params = self.omit(params, ['stop', 'until', 'till'])
@@ -1461,8 +1474,14 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param int [params.till]: end time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, or market
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
+        await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
         return await self.fetch_orders_by_status('done', symbol, since, limit, params)
 
     async def fetch_order(self, id=None, symbol: Optional[str] = None, params={}):
@@ -1804,14 +1823,21 @@ class kucoinfutures(kucoin, ImplicitAPI):
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        see https://docs.kucoin.com/futures/#get-fills
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param int [params.until]: End time in ms
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         request = {
             # orderId(str) [optional] Fills for a specific order(other parameters can be ignored if specified)
             # symbol(str) [optional] Symbol of the contract
@@ -1826,6 +1852,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['startAt'] = since
+        request, params = self.handle_until_option('endAt', request, params)
         response = await self.futuresPrivateGetFills(self.extend(request, params))
         #
         #    {
@@ -2199,12 +2226,17 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: not used by kucuoinfutures
         :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
-        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],

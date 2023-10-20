@@ -287,7 +287,8 @@ class probit extends \ccxt\async\probit {
         //     }
         //
         $rawTrades = $this->safe_value($message, 'data', array());
-        if (strlen($rawTrades) === 0) {
+        $length = count($rawTrades);
+        if ($length === 0) {
             return;
         }
         $reset = $this->safe_value($message, 'reset', false);
@@ -375,7 +376,8 @@ class probit extends \ccxt\async\probit {
         //     }
         //
         $rawOrders = $this->safe_value($message, 'data', array());
-        if (strlen($rawOrders) === 0) {
+        $length = count($rawOrders);
+        if ($length === 0) {
             return;
         }
         $messageHash = 'orders';
@@ -540,11 +542,11 @@ class probit extends \ccxt\async\probit {
             $this->handle_ticker($client, $message);
         }
         $trades = $this->safe_value($message, 'recent_trades', array());
-        if (strlen($trades) > 0) {
+        if (strlen($trades)) {
             $this->handle_trades($client, $message);
         }
         $orderBook = $this->safe_value_n($message, array( 'order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4' ), array());
-        if (strlen($orderBook) > 0) {
+        if (strlen($orderBook)) {
             $this->handle_order_book($client, $message, $orderBook);
         }
     }

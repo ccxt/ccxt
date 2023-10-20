@@ -87,6 +87,8 @@ interface gate {
     privateSubAccountsPostSubAccountsUserIdUnlock (params?: {}): Promise<implicitReturnType>;
     privateSubAccountsPutSubAccountsUserIdKeysKey (params?: {}): Promise<implicitReturnType>;
     privateSubAccountsDeleteSubAccountsUserIdKeysKey (params?: {}): Promise<implicitReturnType>;
+    privatePortfolioGetSpotCurrencyPairs (params?: {}): Promise<implicitReturnType>;
+    privatePortfolioGetSpotCurrencyPairsCurrencyPair (params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetAccounts (params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetAccountMode (params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetBorrowable (params?: {}): Promise<implicitReturnType>;
@@ -96,6 +98,7 @@ interface gate {
     privatePortfolioGetInterestRecords (params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetSpotOrders (params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetSpotOrdersOrderId (params?: {}): Promise<implicitReturnType>;
+    privatePortfolioPostAccountMode (params?: {}): Promise<implicitReturnType>;
     privatePortfolioPostLoans (params?: {}): Promise<implicitReturnType>;
     privatePortfolioPostSpotOrders (params?: {}): Promise<implicitReturnType>;
     privatePortfolioDeleteSpotOrdersOrderId (params?: {}): Promise<implicitReturnType>;

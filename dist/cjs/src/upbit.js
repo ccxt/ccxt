@@ -470,6 +470,7 @@ class upbit extends upbit$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -724,7 +725,7 @@ class upbit extends upbit$1 {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -1725,12 +1726,20 @@ class upbit extends upbit$1 {
         };
         let method = 'privatePostWithdraws';
         if (code !== 'KRW') {
+            // 2023-05-23 Change to required parameters for digital assets
+            const network = this.safeStringUpper2(params, 'network', 'net_type');
+            if (network === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a network argument');
+            }
+            params = this.omit(params, ['network']);
+            request['net_type'] = network;
             method += 'Coin';
             request['currency'] = currency['id'];
             request['address'] = address;
             if (tag !== undefined) {
                 request['secondary_address'] = tag;
             }
+            params = this.omit(params, 'network');
         }
         else {
             method += 'Krw';

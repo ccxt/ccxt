@@ -38,6 +38,7 @@ class hollaex extends Exchange {
                 'createMarketBuyOrder' => true,
                 'createMarketSellOrder' => true,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -312,6 +313,7 @@ class hollaex extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->parse8601($this->safe_string($market, 'created_at')),
                     'info' => $market,
                 );
             }
@@ -541,7 +543,7 @@ class hollaex extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = array_merge($this->parse_ticker($ticker, $market), $params);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -1146,6 +1148,8 @@ class hollaex extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the hollaex api endpoint
+             * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
+             * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());

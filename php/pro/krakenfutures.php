@@ -105,11 +105,15 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             );
             $marketIds = [ ];
             $messageHash = $name;
+            if ($symbols === null) {
+                $symbols = array();
+            }
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $marketIds[] = $this->market_id($symbol);
             }
-            if (strlen($symbols) === 1) {
+            $length = count($symbols);
+            if ($length === 1) {
                 $market = $this->market($marketIds[0]);
                 $messageHash = $messageHash . ':' . $market['symbol'];
             }
@@ -173,6 +177,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $method = $this->safe_string($this->options, 'watchTickerMethod', 'ticker'); // or ticker_lite
             $name = $this->safe_string_2($params, 'method', 'watchTickerMethod', $method);
             $params = $this->omit($params, array( 'watchTickerMethod', 'method' ));
+            $symbols = $this->market_symbols($symbols, null, false);
             return Async\await($this->subscribe_public($name, $symbols, $params));
         }) ();
     }
@@ -331,7 +336,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //    }
         //
         $channel = $this->safe_string($message, 'feed');
-        $marketId = $this->safe_string_lower($message, 'product_id');
+        $marketId = $this->safe_string($message, 'product_id');
         if ($marketId !== null) {
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
@@ -372,7 +377,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //        "price" => 34893
         //    }
         //
-        $marketId = $this->safe_string_lower($trade, 'product_id');
+        $marketId = $this->safe_string($trade, 'product_id');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($trade, 'time');
         return $this->safe_trade(array(
@@ -426,7 +431,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //    }
         //
         $timestamp = $this->safe_integer($trade, 'tradeTime');
-        $marketId = $this->safe_string_lower($trade, 'symbol');
+        $marketId = $this->safe_string($trade, 'symbol');
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 'tradeId'),
@@ -506,7 +511,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
         $order = $this->safe_value($message, 'order');
         if ($order !== null) {
-            $marketId = $this->safe_string_lower($order, 'instrument');
+            $marketId = $this->safe_string($order, 'instrument');
             $messageHash = 'orders';
             $symbol = $this->safe_symbol($marketId);
             $orderId = $this->safe_string($order, 'order_id');
@@ -528,9 +533,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $totalAmount = '0';
                 $trades = $previousOrder['trades'];
                 for ($i = 0; $i < count($trades); $i++) {
-                    $trade = $trades[$i];
-                    $totalCost = Precise::string_add($totalCost, $this->number_to_string($trade['cost']));
-                    $totalAmount = Precise::string_add($totalAmount, $this->number_to_string($trade['amount']));
+                    $currentTrade = $trades[$i];
+                    $totalCost = Precise::string_add($totalCost, $this->number_to_string($currentTrade['cost']));
+                    $totalAmount = Precise::string_add($totalAmount, $this->number_to_string($currentTrade['amount']));
                 }
                 if (Precise::string_gt($totalAmount, '0')) {
                     $previousOrder['average'] = Precise::string_div($totalCost, $totalAmount);
@@ -564,13 +569,13 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             if ($isCancel) {
                 // get $order without $symbol
                 for ($i = 0; $i < count($orders); $i++) {
-                    $order = $orders[$i];
-                    if ($order['id'] === $message['order_id']) {
-                        $orders[$i] = array_merge($order, array(
+                    $currentOrder = $orders[$i];
+                    if ($currentOrder['id'] === $message['order_id']) {
+                        $orders[$i] = array_merge($currentOrder, array(
                             'status' => 'canceled',
                         ));
                         $client->resolve ($orders, 'orders');
-                        $client->resolve ($orders, 'orders:' . $order['symbol']);
+                        $client->resolve ($orders, 'orders:' . $currentOrder['symbol']);
                         break;
                     }
                 }
@@ -639,7 +644,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $symbols[$symbol] = true;
             $cachedOrders->append ($parsed);
         }
-        if (strlen($this->orders) > 0) {
+        $length = count($this->orders);
+        if ($length > 0) {
             $client->resolve ($this->orders, 'orders');
             $keys = is_array($symbols) ? array_keys($symbols) : array();
             for ($i = 0; $i < count($keys); $i++) {
@@ -698,7 +704,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $status = 'cancelled';
             }
         }
-        $marketId = $this->safe_string_lower($unparsedOrder, 'instrument');
+        $marketId = $this->safe_string($unparsedOrder, 'instrument');
         $timestamp = $this->safe_string($unparsedOrder, 'time');
         $direction = $this->safe_integer($unparsedOrder, 'direction');
         return $this->safe_order(array(
@@ -780,7 +786,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //        "volumeQuote" => 6899673.0
         //    }
         //
-        $marketId = $this->safe_string_lower($message, 'product_id');
+        $marketId = $this->safe_string($message, 'product_id');
         $feed = $this->safe_string($message, 'feed');
         if ($marketId !== null) {
             $ticker = $this->parse_ws_ticker($message);
@@ -842,7 +848,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //        "volumeQuote" => 6899673.0
         //    }
         //
-        $marketId = $this->safe_string_lower($ticker, 'product_id');
+        $marketId = $this->safe_string($ticker, 'product_id');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $timestamp = $this->parse8601($this->safe_string($ticker, 'lastTime'));
@@ -901,7 +907,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //        )
         //    }
         //
-        $marketId = $this->safe_string_lower($message, 'product_id');
+        $marketId = $this->safe_string($message, 'product_id');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = 'book:' . $symbol;
@@ -942,7 +948,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //        "timestamp" => 1612269953629
         //    }
         //
-        $marketId = $this->safe_string_lower($message, 'product_id');
+        $marketId = $this->safe_string($message, 'product_id');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = 'book:' . $symbol;
@@ -1248,7 +1254,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //    }
         //
         $timestamp = $this->safe_integer($trade, 'time');
-        $marketId = $this->safe_string_lower($trade, 'instrument');
+        $marketId = $this->safe_string($trade, 'instrument');
         $market = $this->safe_market($marketId, $market);
         $isBuy = $this->safe_value($trade, 'buy');
         $feeCurrencyId = $this->safe_string($trade, 'fee_currency');

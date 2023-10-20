@@ -527,7 +527,7 @@ class exmo extends \ccxt\async\exmo {
         $symbol = $this->safe_symbol($marketId);
         $orderBook = $this->safe_value($message, 'data', array());
         $messageHash = 'orderbook:' . $symbol;
-        $timestamp = $this->safe_number($message, 'ts');
+        $timestamp = $this->safe_integer($message, 'ts');
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
         if ($storedOrderBook === null) {
             $storedOrderBook = $this->order_book(array());

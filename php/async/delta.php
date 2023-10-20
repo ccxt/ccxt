@@ -72,6 +72,7 @@ class delta extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransfer' => null,
                 'fetchTransfers' => null,
+                'fetchUnderlyingAssets' => false,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => null,
@@ -714,6 +715,9 @@ class delta extends Exchange {
             for ($i = 0; $i < count($markets); $i++) {
                 $market = $markets[$i];
                 $type = $this->safe_string($market, 'contract_type');
+                if ($type === 'options_combos') {
+                    continue;
+                }
                 // $settlingAsset = $this->safe_value($market, 'settling_asset', array());
                 $quotingAsset = $this->safe_value($market, 'quoting_asset', array());
                 $underlyingAsset = $this->safe_value($market, 'underlying_asset', array());
@@ -821,6 +825,7 @@ class delta extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->parse8601($this->safe_string($market, 'launch_time')),
                     'info' => $market,
                 );
             }
@@ -1266,7 +1271,7 @@ class delta extends Exchange {
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -1683,7 +1688,7 @@ class delta extends Exchange {
                 $side = 'sell';
             }
         }
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -1709,7 +1714,7 @@ class delta extends Exchange {
             'marginRatio' => null,
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
-        );
+        ));
     }
 
     public function parse_order_status($status) {
@@ -2827,7 +2832,7 @@ class delta extends Exchange {
         //
         $timestamp = $this->safe_integer_product($interest, 'timestamp', 0.001);
         $marketId = $this->safe_string($interest, 'symbol');
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($marketId, $market),
             'baseVolume' => $this->safe_number($interest, 'oi_value'),
             'quoteVolume' => $this->safe_number($interest, 'oi_value_usd'),
@@ -2836,7 +2841,7 @@ class delta extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function fetch_leverage(string $symbol, $params = array ()) {
@@ -2911,7 +2916,7 @@ class delta extends Exchange {
              * @param {int} [$since] timestamp in ms
              * @param {int} [$limit] number of records
              * @param {array} [$params] exchange specific $params
-             * @return {array[]} a list of [settlement history objects]
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
              */
             Async\await($this->load_markets());
             $market = null;
