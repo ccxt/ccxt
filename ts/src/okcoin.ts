@@ -98,6 +98,7 @@ export default class okcoin extends Exchange {
                         'market/ticker': 1,
                         'market/books': 1 / 2,
                         'market/candles': 1 / 2,
+                        'market/history-candles': 1 / 2,
                         'market/trades': 1 / 5,
                         'market/history-trades': 2,
                         'market/platform-24-volume': 10,
@@ -829,78 +830,83 @@ export default class okcoin extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = market['type'] + 'GetInstrumentsInstrumentId';
-        method += (market['type'] === 'swap') ? 'Depth' : 'Book';
         const request = {
-            'instrument_id': market['id'],
+            'instId': market['id'],
         };
+        limit = (limit === undefined) ? 20 : limit;
         if (limit !== undefined) {
-            request['size'] = limit; // max 200
+            request['sz'] = limit; // max 400
         }
-        const response = await this[method] (this.extend (request, params));
-        //
-        // spot
-        //
-        //     {      asks: [ ["0.02685268", "0.242571", "1"],
-        //                    ["0.02685493", "0.164085", "1"],
-        //                    ...
-        //                    ["0.02779", "1.039", "1"],
-        //                    ["0.027813", "0.0876", "1"]        ],
-        //            bids: [ ["0.02684052", "10.371849", "1"],
-        //                    ["0.02684051", "3.707", "4"],
-        //                    ...
-        //                    ["0.02634963", "0.132934", "1"],
-        //                    ["0.02634962", "0.264838", "2"]    ],
-        //       timestamp:   "2018-12-17T20:24:16.159Z"            }
-        //
-        // swap
+        const response = await this.publicGetMarketBooks (this.extend (request, params));
         //
         //     {
-        //         "asks":[
-        //             ["916.21","94","0","1"]
-        //         ],
-        //         "bids":[
-        //             ["916.1","15","0","1"]
-        //         ],
-        //         "time":"2021-04-16T02:04:48.282Z"
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "asks": [
+        //                     ["0.07228","4.211619","0","2"], // price, amount, liquidated orders, total open orders
+        //                     ["0.0723","299.880364","0","2"],
+        //                     ["0.07231","3.72832","0","1"],
+        //                 ],
+        //                 "bids": [
+        //                     ["0.07221","18.5","0","1"],
+        //                     ["0.0722","18.5","0","1"],
+        //                     ["0.07219","0.505407","0","1"],
+        //                 ],
+        //                 "ts": "1621438475342"
+        //             }
+        //         ]
         //     }
         //
-        const timestamp = this.parse8601 (this.safeString2 (response, 'timestamp', 'time'));
-        return this.parseOrderBook (response, symbol, timestamp);
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0, {});
+        const timestamp = this.safeInteger (first, 'ts');
+        return this.parseOrderBook (first, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
         //
-        //     {         best_ask: "0.02665472",
-        //               best_bid: "0.02665221",
-        //          instrument_id: "ETH-BTC",
-        //             product_id: "ETH-BTC",
-        //                   last: "0.02665472",
-        //                    ask: "0.02665472", // missing in the docs
-        //                    bid: "0.02665221", // not mentioned in the docs
-        //               open_24h: "0.02645482",
-        //               high_24h: "0.02714633",
-        //                low_24h: "0.02614109",
-        //        base_volume_24h: "572298.901923",
-        //              timestamp: "2018-12-17T21:20:07.856Z",
-        //       quote_volume_24h: "15094.86831261"            }
+        //     {
+        //         "instType": "SPOT",
+        //         "instId": "ETH-BTC",
+        //         "last": "0.07319",
+        //         "lastSz": "0.044378",
+        //         "askPx": "0.07322",
+        //         "askSz": "4.2",
+        //         "bidPx": "0.0732",
+        //         "bidSz": "6.050058",
+        //         "open24h": "0.07801",
+        //         "high24h": "0.07975",
+        //         "low24h": "0.06019",
+        //         "volCcy24h": "11788.887619",
+        //         "vol24h": "167493.829229",
+        //         "ts": "1621440583784",
+        //         "sodUtc0": "0.07872",
+        //         "sodUtc8": "0.07345"
+        //     }
         //
-        const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        const marketId = this.safeString (ticker, 'instrument_id');
+        const timestamp = this.safeInteger (ticker, 'ts');
+        const marketId = this.safeString (ticker, 'instId');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last');
-        const open = this.safeString (ticker, 'open_24h');
+        const open = this.safeString (ticker, 'open24h');
+        const spot = this.safeValue (market, 'spot', false);
+        const quoteVolume = spot ? this.safeString (ticker, 'volCcy24h') : undefined;
+        const baseVolume = this.safeString (ticker, 'vol24h');
+        const high = this.safeString (ticker, 'high24h');
+        const low = this.safeString (ticker, 'low24h');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high_24h'),
-            'low': this.safeString (ticker, 'low_24h'),
-            'bid': this.safeString (ticker, 'best_bid'),
-            'bidVolume': this.safeString (ticker, 'best_bid_size'),
-            'ask': this.safeString (ticker, 'best_ask'),
-            'askVolume': this.safeString (ticker, 'best_ask_size'),
+            'high': high,
+            'low': low,
+            'bid': this.safeString (ticker, 'bidPx'),
+            'bidVolume': this.safeString (ticker, 'bidSz'),
+            'ask': this.safeString (ticker, 'askPx'),
+            'askVolume': this.safeString (ticker, 'askSz'),
             'vwap': undefined,
             'open': open,
             'close': last,
@@ -909,8 +915,8 @@ export default class okcoin extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'base_volume_24h'),
-            'quoteVolume': this.safeString (ticker, 'quote_volume_24h'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);
     }
@@ -927,41 +933,39 @@ export default class okcoin extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = market['type'] + 'GetInstrumentsInstrumentIdTicker';
         const request = {
-            'instrument_id': market['id'],
+            'instId': market['id'],
         };
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicGetMarketTicker (this.extend (request, params));
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0, {});
         //
-        //     {         best_ask: "0.02665472",
-        //               best_bid: "0.02665221",
-        //          instrument_id: "ETH-BTC",
-        //             product_id: "ETH-BTC",
-        //                   last: "0.02665472",
-        //                    ask: "0.02665472",
-        //                    bid: "0.02665221",
-        //               open_24h: "0.02645482",
-        //               high_24h: "0.02714633",
-        //                low_24h: "0.02614109",
-        //        base_volume_24h: "572298.901923",
-        //              timestamp: "2018-12-17T21:20:07.856Z",
-        //       quote_volume_24h: "15094.86831261"            }
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "instType": "SPOT",
+        //                 "instId": "ETH-BTC",
+        //                 "last": "0.07319",
+        //                 "lastSz": "0.044378",
+        //                 "askPx": "0.07322",
+        //                 "askSz": "4.2",
+        //                 "bidPx": "0.0732",
+        //                 "bidSz": "6.050058",
+        //                 "open24h": "0.07801",
+        //                 "high24h": "0.07975",
+        //                 "low24h": "0.06019",
+        //                 "volCcy24h": "11788.887619",
+        //                 "vol24h": "167493.829229",
+        //                 "ts": "1621440583784",
+        //                 "sodUtc0": "0.07872",
+        //                 "sodUtc8": "0.07345"
+        //             }
+        //         ]
+        //     }
         //
-        return this.parseTicker (response);
-    }
-
-    async fetchTickersByType (type, symbols: string[] = undefined, params = {}) {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const method = type + 'GetInstrumentsTicker';
-        const response = await this[method] (params);
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker (response[i]);
-            const symbol = ticker['symbol'];
-            result[symbol] = ticker;
-        }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.parseTicker (first, market);
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}) {
@@ -975,116 +979,82 @@ export default class okcoin extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         symbols = this.marketSymbols (symbols);
-        const first = this.safeString (symbols, 0);
-        let market = undefined;
-        if (first !== undefined) {
-            market = this.market (first);
-        }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        return await this.fetchTickersByType (type, symbols, this.omit (params, 'type'));
+        const response = await this.publicGetMarketTickers (params);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTickers (data, symbols, params);
     }
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades (public)
+        // public fetchTrades
         //
-        //     spot trades
+        //     {
+        //         "instId": "ETH-BTC",
+        //         "side": "sell",
+        //         "sz": "0.119501",
+        //         "px": "0.07065",
+        //         "tradeId": "15826757",
+        //         "ts": "1621446178316"
+        //     }
         //
-        //         {
-        //             time: "2018-12-17T23:31:08.268Z",
-        //             timestamp: "2018-12-17T23:31:08.268Z",
-        //             trade_id: "409687906",
-        //             price: "0.02677805",
-        //             size: "0.923467",
-        //             side: "sell"
-        //         }
+        // private fetchMyTrades
         //
-        //     futures trades, swap trades
+        //     {
+        //         "side": "buy",
+        //         "fillSz": "0.007533",
+        //         "fillPx": "2654.98",
+        //         "fee": "-0.000007533",
+        //         "ordId": "317321390244397056",
+        //         "instType": "SPOT",
+        //         "instId": "ETH-USDT",
+        //         "clOrdId": "",
+        //         "posSide": "net",
+        //         "billId": "317321390265368576",
+        //         "tag": "0",
+        //         "execType": "T",
+        //         "tradeId": "107601752",
+        //         "feeCcy": "ETH",
+        //         "ts": "1621927314985"
+        //     }
         //
-        //         {
-        //             trade_id: "1989230840021013",
-        //             side: "buy",
-        //             price: "92.42",
-        //             qty: "184", // missing in swap markets
-        //             size: "5", // missing in futures markets
-        //             timestamp: "2018-12-17T23:26:04.613Z"
-        //         }
-        //
-        // fetchOrderTrades (private)
-        //
-        //     spot trades
-        //
-        //         {
-        //             "created_at":"2019-03-15T02:52:56.000Z",
-        //             "exec_type":"T", // whether the order is taker or maker
-        //             "fee":"0.00000082",
-        //             "instrument_id":"BTC-USDT",
-        //             "ledger_id":"3963052721",
-        //             "liquidity":"T", // whether the order is taker or maker
-        //             "order_id":"2482659399697408",
-        //             "price":"3888.6",
-        //             "product_id":"BTC-USDT",
-        //             "side":"buy",
-        //             "size":"0.00055306",
-        //             "timestamp":"2019-03-15T02:52:56.000Z"
-        //         },
-        //
-        //     futures trades, swap trades
-        //
-        //         {
-        //             "trade_id":"197429674631450625",
-        //             "instrument_id":"EOS-USD-SWAP",
-        //             "order_id":"6a-7-54d663a28-0",
-        //             "price":"3.633",
-        //             "order_qty":"1.0000",
-        //             "fee":"-0.000551",
-        //             "created_at":"2019-03-21T04:41:58.0Z", // missing in swap trades
-        //             "timestamp":"2019-03-25T05:56:31.287Z", // missing in futures trades
-        //             "exec_type":"M", // whether the order is taker or maker
-        //             "side":"short", // "buy" in futures trades
-        //         }
-        //
-        const marketId = this.safeString (trade, 'instrument_id');
+        const id = this.safeString (trade, 'tradeId');
+        const marketId = this.safeString (trade, 'instId');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        const timestamp = this.parse8601 (this.safeString2 (trade, 'timestamp', 'created_at'));
-        const priceString = this.safeString (trade, 'price');
-        let amountString = this.safeString2 (trade, 'size', 'qty');
-        amountString = this.safeString (trade, 'order_qty', amountString);
-        let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
-        if (takerOrMaker === 'M') {
-            takerOrMaker = 'maker';
-        } else if (takerOrMaker === 'T') {
-            takerOrMaker = 'taker';
-        }
+        const timestamp = this.safeInteger (trade, 'ts');
+        const price = this.safeString2 (trade, 'fillPx', 'px');
+        const amount = this.safeString2 (trade, 'fillSz', 'sz');
         const side = this.safeString (trade, 'side');
+        const orderId = this.safeString (trade, 'ordId');
         const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
-            const feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
+            const feeCostSigned = Precise.stringNeg (feeCostString);
+            const feeCurrencyId = this.safeString (trade, 'feeCcy');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                // fee is either a positive number (invitation rebate)
-                // or a negative number (transaction fee deduction)
-                // therefore we need to invert the fee
-                // more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost': Precise.stringNeg (feeCostString),
-                'currency': feeCurrency,
+                'cost': feeCostSigned,
+                'currency': feeCurrencyCode,
             };
         }
-        const orderId = this.safeString (trade, 'order_id');
+        let takerOrMaker = this.safeString (trade, 'execType');
+        if (takerOrMaker === 'T') {
+            takerOrMaker = 'taker';
+        } else if (takerOrMaker === 'M') {
+            takerOrMaker = 'maker';
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString2 (trade, 'trade_id', 'ledger_id'),
+            'id': id,
             'order': orderId,
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': priceString,
-            'amount': amountString,
+            'price': price,
+            'amount': amount,
             'cost': undefined,
             'fee': fee,
         }, market);
@@ -1094,6 +1064,8 @@ export default class okcoin extends Exchange {
         /**
          * @method
          * @name okcoin#fetchTrades
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades-history
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -1103,99 +1075,46 @@ export default class okcoin extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = market['type'] + 'GetInstrumentsInstrumentIdTrades';
         if ((limit === undefined) || (limit > 100)) {
             limit = 100; // maximum = default = 100
         }
         const request = {
-            'instrument_id': market['id'],
-            'limit': limit,
-            // from: 'id',
-            // to: 'id',
+            'instId': market['id'],
         };
-        const response = await this[method] (this.extend (request, params));
-        //
-        // spot markets
-        //
-        //     [
-        //         {
-        //             time: "2018-12-17T23:31:08.268Z",
-        //             timestamp: "2018-12-17T23:31:08.268Z",
-        //             trade_id: "409687906",
-        //             price: "0.02677805",
-        //             size: "0.923467",
-        //             side: "sell"
-        //         }
-        //     ]
-        //
-        // futures markets, swap markets
-        //
-        //     [
-        //         {
-        //             trade_id: "1989230840021013",
-        //             side: "buy",
-        //             price: "92.42",
-        //             qty: "184", // missing in swap markets
-        //             size: "5", // missing in futures markets
-        //             timestamp: "2018-12-17T23:26:04.613Z"
-        //         }
-        //     ]
-        //
-        return this.parseTrades (response, market, since, limit);
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'publicGetMarketTrades');
+        let response = undefined;
+        if (method === 'publicGetMarketTrades') {
+            response = await this.publicGetMarketTrades (this.extend (request, params));
+        } else {
+            response = await this.publicGetMarketHistoryTrades (this.extend (request, params));
+        }
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
         //
-        // spot markets
-        //
-        //     {
-        //         close: "0.02684545",
-        //         high: "0.02685084",
-        //         low: "0.02683312",
-        //         open: "0.02683894",
-        //         time: "2018-12-17T20:28:00.000Z",
-        //         volume: "101.457222"
-        //     }
-        //
-        // futures markets
-        //
         //     [
-        //         1545072720000,
-        //         0.3159,
-        //         0.3161,
-        //         0.3144,
-        //         0.3149,
-        //         22886,
-        //         725179.26172331,
+        //         "1678928760000", // timestamp
+        //         "24341.4", // open
+        //         "24344", // high
+        //         "24313.2", // low
+        //         "24323", // close
+        //         "628", // contract volume
+        //         "2.5819", // base volume
+        //         "62800", // quote volume
+        //         "0" // candlestick state
         //     ]
         //
-        if (Array.isArray (ohlcv)) {
-            const numElements = ohlcv.length;
-            const volumeIndex = (numElements > 6) ? 6 : 5;
-            let timestamp = this.safeValue (ohlcv, 0);
-            if (typeof timestamp === 'string') {
-                timestamp = this.parse8601 (timestamp);
-            }
-            return [
-                timestamp, // timestamp
-                this.safeNumber (ohlcv, 1),            // Open
-                this.safeNumber (ohlcv, 2),            // High
-                this.safeNumber (ohlcv, 3),            // Low
-                this.safeNumber (ohlcv, 4),            // Close
-                // this.safeNumber (ohlcv, 5),         // Quote Volume
-                // this.safeNumber (ohlcv, 6),         // Base Volume
-                this.safeNumber (ohlcv, volumeIndex),  // Volume, okex will return base volume in the 7th element for future markets
-            ];
-        } else {
-            return [
-                this.parse8601 (this.safeString (ohlcv, 'time')),
-                this.safeNumber (ohlcv, 'open'),    // Open
-                this.safeNumber (ohlcv, 'high'),    // High
-                this.safeNumber (ohlcv, 'low'),     // Low
-                this.safeNumber (ohlcv, 'close'),   // Close
-                this.safeNumber (ohlcv, 'volume'),  // Base Volume
-            ];
-        }
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1203,6 +1122,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchOHLCV
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -1214,92 +1134,25 @@ export default class okcoin extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const duration = this.parseTimeframe (timeframe);
-        const request = {
-            'instrument_id': market['id'],
-            'granularity': this.safeString (this.timeframes, timeframe, timeframe),
-        };
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
-        const defaultType = this.safeString (options, 'type', 'Candles'); // Candles or HistoryCandles
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
-        const method = market['type'] + 'GetInstrumentsInstrumentId' + type;
-        if (type === 'Candles') {
-            if (since !== undefined) {
-                if (limit !== undefined) {
-                    request['end'] = this.iso8601 (this.sum (since, limit * duration * 1000));
-                }
-                request['start'] = this.iso8601 (since);
-            } else {
-                if (limit !== undefined) {
-                    const now = this.milliseconds ();
-                    request['start'] = this.iso8601 (now - limit * duration * 1000);
-                    request['end'] = this.iso8601 (now);
-                }
-            }
-        } else if (type === 'HistoryCandles') {
-            if (market['option']) {
-                throw new NotSupported (this.id + ' fetchOHLCV() does not have ' + type + ' for ' + market['type'] + ' markets');
-            }
-            if (since !== undefined) {
-                if (limit === undefined) {
-                    limit = 300; // default
-                }
-                request['start'] = this.iso8601 (this.sum (since, limit * duration * 1000));
-                request['end'] = this.iso8601 (since);
-            } else {
-                if (limit !== undefined) {
-                    const now = this.milliseconds ();
-                    request['end'] = this.iso8601 (now - limit * duration * 1000);
-                    request['start'] = this.iso8601 (now);
-                }
-            }
+        let bar = this.safeString (this.timeframes, timeframe, timeframe);
+        const timezone = this.safeString (options, 'timezone', 'UTC');
+        if ((timezone === 'UTC') && (duration >= 21600)) { // if utc and timeframe >= 6h
+            bar += timezone.toLowerCase ();
         }
-        const response = await this[method] (this.extend (request, params));
-        //
-        // spot markets
-        //
-        //     [
-        //         {
-        //             close: "0.02683401",
-        //             high: "0.02683401",
-        //             low: "0.02683401",
-        //             open: "0.02683401",
-        //             time: "2018-12-17T23:47:00.000Z",
-        //             volume: "0"
-        //         },
-        //         {
-        //             close: "0.02684545",
-        //             high: "0.02685084",
-        //             low: "0.02683312",
-        //             open: "0.02683894",
-        //             time: "2018-12-17T20:28:00.000Z",
-        //             volume: "101.457222"
-        //         }
-        //     ]
-        //
-        // futures
-        //
-        //     [
-        //         [
-        //             1545090660000,
-        //             0.3171,
-        //             0.3174,
-        //             0.3171,
-        //             0.3173,
-        //             1648,
-        //             51930.38579450868
-        //         ],
-        //         [
-        //             1545072720000,
-        //             0.3159,
-        //             0.3161,
-        //             0.3144,
-        //             0.3149,
-        //             22886,
-        //             725179.26172331
-        //         ]
-        //     ]
-        //
+        const request = {
+            'instId': market['id'],
+            'bar': bar,
+            'limit': limit,
+        };
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'method', 'publicGetMarketCandles');
+        let response = undefined;
+        if (method === 'publicGetMarketCandles') {
+            response = await this.publicGetMarketCandles (this.extend (request, params));
+        } else {
+            response = await this.publicGetMarketHistoryCandles (this.extend (request, params));
+        }
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
