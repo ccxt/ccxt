@@ -756,7 +756,7 @@ export default class okcoin extends Exchange {
                 }
                 const firstChain = this.safeValue (chains, 0);
                 result[code] = {
-                    'info': undefined,
+                    'info': chains,
                     'code': code,
                     'id': currencyId,
                     'name': this.safeString (firstChain, 'name'),
@@ -2332,8 +2332,6 @@ export default class okcoin extends Exchange {
         }
         let fee = this.safeString (params, 'fee');
         if (fee === undefined) {
-            const currencies = await this.fetchCurrencies ();
-            this.currencies = this.deepExtend (this.currencies, currencies);
             const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (network), {});
             fee = this.safeString (targetNetwork, 'fee');
             if (fee === undefined) {
@@ -2648,7 +2646,9 @@ export default class okcoin extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request = {
+            'instType': 'SPOT',
+        };
         if ((limit !== undefined) && (limit > 100)) {
             limit = 100;
         }
@@ -2720,10 +2720,6 @@ export default class okcoin extends Exchange {
             // 'before': 'id', // return records newer than the requested bill id
             // 'limit': 100, // default 100, max 100
         };
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
-        if (type !== undefined) {
-            request['instType'] = this.convertToInstrumentType (type);
-        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -2733,7 +2729,7 @@ export default class okcoin extends Exchange {
             request['ccy'] = currency['id'];
         }
         [ request, params ] = this.handleUntilOption ('end', request, params);
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -2784,11 +2780,6 @@ export default class okcoin extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
-    }
-
-    convertToInstrumentType (type) {
-        const exchangeTypes = this.safeValue (this.options, 'exchangeType', {});
-        return this.safeString (exchangeTypes, type, type);
     }
 
     parseLedgerEntryType (type) {
