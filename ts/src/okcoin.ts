@@ -1429,6 +1429,91 @@ export default class okcoin extends Exchange {
         return this.parseOrder (order, market);
     }
 
+    parseIds (ids) {
+        /**
+         * @ignore
+         * @method
+         * @name okx#parseIds
+         * @param {string[]|string} ids order ids
+         * @returns {string[]} list of order ids
+         */
+        if (typeof ids === 'string') {
+            return ids.split (',');
+        } else {
+            return ids;
+        }
+    }
+
+    async cancelOrders (ids, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#cancelOrders
+         * @description cancel multiple orders
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-multiple-orders
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        this.checkRequiredSymbol ('cancelOrders', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = [];
+        const clientOrderIds = this.parseIds (this.safeValue2 (params, 'clOrdId', 'clientOrderId'));
+        const algoIds = this.parseIds (this.safeValue (params, 'algoId'));
+        const stop = this.safeValue (params, 'stop');
+        if (clientOrderIds === undefined) {
+            ids = this.parseIds (ids);
+            if (algoIds !== undefined) {
+                for (let i = 0; i < algoIds.length; i++) {
+                    request.push ({
+                        'algoId': algoIds[i],
+                        'instId': market['id'],
+                    });
+                }
+            }
+            for (let i = 0; i < ids.length; i++) {
+                if (stop) {
+                    request.push ({
+                        'algoId': ids[i],
+                        'instId': market['id'],
+                    });
+                } else {
+                    request.push ({
+                        'ordId': ids[i],
+                        'instId': market['id'],
+                    });
+                }
+            }
+        } else {
+            for (let i = 0; i < clientOrderIds.length; i++) {
+                request.push ({
+                    'instId': market['id'],
+                    'clOrdId': clientOrderIds[i],
+                });
+            }
+        }
+        const response = await this.privatePostTradeCancelBatchOrders (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        //                 "ordId": "405071912345641543",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             },
+        //             ...
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        //
+        const ordersData = this.safeValue (response, 'data', []);
+        return this.parseOrders (ordersData, market, undefined, undefined, params);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             'canceled': 'canceled',
