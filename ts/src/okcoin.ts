@@ -112,6 +112,7 @@ export default class okcoin extends Exchange {
                         'trade/order': 1 / 3,
                         'trade/orders-pending': 1 / 3,
                         'trade/orders-history': 1 / 2,
+                        'trade/orders-history-archive': 1 / 2,
                         'trade/fills': 1 / 3,
                         'trade/fills-history': 2.2,
                         'trade/fills-archive': 2,
@@ -1215,112 +1216,85 @@ export default class okcoin extends Exchange {
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchBalance() requires a type parameter (one of 'account', 'spot', 'futures', 'swap')");
-        }
         await this.loadMarkets ();
-        const suffix = (type === 'account') ? 'Wallet' : 'Accounts';
-        const method = type + 'Get' + suffix;
-        const query = this.omit (params, 'type');
-        const response = await this[method] (query);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const request = {
+            // 'ccy': 'BTC,ETH', // comma-separated list of currency ids
+        };
+        let response = undefined;
+        if (marketType === 'funding') {
+            response = await this.privateGetAssetBalances (this.extend (request, query));
+        } else {
+            response = await this.privateGetAccountBalance (this.extend (request, query));
+        }
         //
-        // account
-        //
-        //     [
-        //         {
-        //             balance:  0,
-        //             available:  0,
-        //             currency: "BTC",
-        //             hold:  0
-        //         },
-        //         {
-        //             balance:  0,
-        //             available:  0,
-        //             currency: "ETH",
-        //             hold:  0
-        //         }
-        //     ]
-        //
-        // spot
-        //
-        //     [
-        //         {
-        //             frozen: "0",
-        //             hold: "0",
-        //             id: "2149632",
-        //             currency: "BTC",
-        //             balance: "0.0000000497717339",
-        //             available: "0.0000000497717339",
-        //             holds: "0"
-        //         },
-        //         {
-        //             frozen: "0",
-        //             hold: "0",
-        //             id: "2149632",
-        //             currency: "ICN",
-        //             balance: "0.00000000925",
-        //             available: "0.00000000925",
-        //             holds: "0"
-        //         }
-        //     ]
-        //
-        //
-        // futures
-        //
-        //     {
-        //         "info":{
-        //             "eos":{
-        //                 "auto_margin":"0",
-        //                 "contracts": [
-        //                     {
-        //                         "available_qty":"40.37069445",
-        //                         "fixed_balance":"0",
-        //                         "instrument_id":"EOS-USD-190329",
-        //                         "margin_for_unfilled":"0",
-        //                         "margin_frozen":"0",
-        //                         "realized_pnl":"0",
-        //                         "unrealized_pnl":"0"
-        //                     },
-        //                     {
-        //                         "available_qty":"40.37069445",
-        //                         "fixed_balance":"14.54895721",
-        //                         "instrument_id":"EOS-USD-190628",
-        //                         "margin_for_unfilled":"0",
-        //                         "margin_frozen":"10.64042157",
-        //                         "realized_pnl":"-3.90853564",
-        //                         "unrealized_pnl":"-0.259"
-        //                     },
-        //                 ],
-        //                 "equity":"50.75220665",
-        //                 "margin_mode":"fixed",
-        //                 "total_avail_balance":"40.37069445"
-        //             },
-        //         }
-        //     }
-        //
-        // swap
-        //
-        //     {
-        //         "info": [
+        //  {
+        //         "code": "0",
+        //         "data": [
         //             {
-        //                 "equity":"3.0139",
-        //                 "fixed_balance":"0.0000",
-        //                 "instrument_id":"EOS-USD-SWAP",
-        //                 "margin":"0.5523",
-        //                 "margin_frozen":"0.0000",
-        //                 "margin_mode":"crossed",
-        //                 "margin_ratio":"1.0913",
-        //                 "realized_pnl":"-0.0006",
-        //                 "timestamp":"2019-03-25T03:46:10.336Z",
-        //                 "total_avail_balance":"3.0000",
-        //                 "unrealized_pnl":"0.0145"
+        //                 "category": "1",
+        //                 "delivery": "",
+        //                 "exercise": "",
+        //                 "instType": "SPOT",
+        //                 "level": "Lv1",
+        //                 "maker": "-0.0008",
+        //                 "taker": "-0.001",
+        //                 "ts": "1639043138472"
         //             }
-        //         ]
+        //         ],
+        //         "msg": ""
         //     }
         //
-        return this.parseAccountBalance (response);
+        if (marketType === 'funding') {
+            return this.parseFundingBalance (response);
+        } else {
+            return this.parseTradingBalance (response);
+        }
+    }
+
+    parseTradingBalance (response) {
+        const result = { 'info': response };
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0, {});
+        const timestamp = this.safeInteger (first, 'uTime');
+        const details = this.safeValue (first, 'details', []);
+        for (let i = 0; i < details.length; i++) {
+            const balance = details[i];
+            const currencyId = this.safeString (balance, 'ccy');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            // it may be incorrect to use total, free and used for swap accounts
+            const eq = this.safeString (balance, 'eq');
+            const availEq = this.safeString (balance, 'availEq');
+            if ((eq === undefined) || (availEq === undefined)) {
+                account['free'] = this.safeString (balance, 'availBal');
+                account['used'] = this.safeString (balance, 'frozenBal');
+            } else {
+                account['total'] = eq;
+                account['free'] = availEq;
+            }
+            result[code] = account;
+        }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        return this.safeBalance (result);
+    }
+
+    parseFundingBalance (response) {
+        const result = { 'info': response };
+        const data = this.safeValue (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'ccy');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            // it may be incorrect to use total, free and used for swap accounts
+            account['total'] = this.safeString (balance, 'bal');
+            account['free'] = this.safeString (balance, 'availBal');
+            account['used'] = this.safeString (balance, 'frozenBal');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
@@ -1419,93 +1393,51 @@ export default class okcoin extends Exchange {
         /**
          * @method
          * @name okcoin#cancelOrder
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-order
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            const orderInner = await this.cancelOrders ([ id ], symbol, params);
+            return this.safeValue (orderInner, 0);
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let type = undefined;
-        if (market['futures'] || market['swap']) {
-            type = market['type'];
-        } else {
-            const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', market['type']);
-            type = this.safeString (params, 'type', defaultType);
-        }
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " cancelOrder() requires a type parameter (one of 'spot', 'futures', 'swap').");
-        }
-        let method = type + 'PostCancelOrder';
         const request = {
-            'instrument_id': market['id'],
+            'instId': market['id'],
+            // 'ordId': id, // either ordId or clOrdId is required
+            // 'clOrdId': clientOrderId,
         };
-        if (market['futures'] || market['swap']) {
-            method += 'InstrumentId';
-        } else {
-            method += 's';
-        }
-        const clientOrderId = this.safeString2 (params, 'client_oid', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (clientOrderId !== undefined) {
-            method += 'ClientOid';
-            request['client_oid'] = clientOrderId;
+            request['clOrdId'] = clientOrderId;
         } else {
-            method += 'OrderId';
-            request['order_id'] = id;
+            request['ordId'] = id;
         }
-        const query = this.omit (params, [ 'type', 'client_oid', 'clientOrderId' ]);
-        const response = await this[method] (this.extend (request, query));
-        const result = ('result' in response) ? response : this.safeValue (response, market['id'], {});
-        //
-        // spot
-        //
-        //     {
-        //         "btc-usdt": [
-        //             {
-        //                 "result":true,
-        //                 "client_oid":"a123",
-        //                 "order_id": "2510832677225473"
-        //             }
-        //         ]
-        //     }
-        //
-        // futures, swap
-        //
-        //     {
-        //         "result": true,
-        //         "client_oid": "oktfuture10", // missing if requested by order_id
-        //         "order_id": "2517535534836736",
-        //         "instrument_id": "EOS-USD-190628"
-        //     }
-        //
-        return this.parseOrder (result, market);
+        const query = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
+        const response = await this.privatePostTradeCancelOrder (this.extend (request, query));
+        // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
+        const data = this.safeValue (response, 'data', []);
+        const order = this.safeValue (data, 0);
+        return this.parseOrder (order, market);
     }
 
     parseOrderStatus (status) {
         const statuses = {
-            '-2': 'failed',
-            '-1': 'canceled',
-            '0': 'open',
-            '1': 'open',
-            '2': 'closed',
-            '3': 'open',
-            '4': 'canceled',
+            'canceled': 'canceled',
+            'live': 'open',
+            'partially_filled': 'open',
+            'filled': 'closed',
+            'effective': 'closed',
         };
         return this.safeString (statuses, status, status);
-    }
-
-    parseOrderSide (side) {
-        const sides = {
-            '1': 'buy', // open long
-            '2': 'sell', // open short
-            '3': 'sell', // close long
-            '4': 'buy', // close short
-        };
-        return this.safeString (sides, side, side);
     }
 
     parseOrder (order, market = undefined) {
@@ -1513,140 +1445,195 @@ export default class okcoin extends Exchange {
         // createOrder
         //
         //     {
-        //         "client_oid":"oktspot79",
-        //         "error_code":"",
-        //         "error_message":"",
-        //         "order_id":"2510789768709120",
-        //         "result":true
+        //         "clOrdId": "oktswap6",
+        //         "ordId": "312269865356374016",
+        //         "tag": "",
+        //         "sCode": "0",
+        //         "sMsg": ""
         //     }
         //
-        // cancelOrder
+        // editOrder
         //
         //     {
-        //         "result": true,
-        //         "client_oid": "oktfuture10", // missing if requested by order_id
-        //         "order_id": "2517535534836736",
-        //         // instrument_id is missing for spot/margin orders
-        //         // available in futures and swap orders only
-        //         "instrument_id": "EOS-USD-190628",
+        //         "clOrdId": "e847386590ce4dBCc1a045253497a547",
+        //         "ordId": "559176536793178112",
+        //         "reqId": "",
+        //         "sCode": "0",
+        //         "sMsg": ""
         //     }
         //
-        // fetchOrder, fetchOrdersByState, fetchOpenOrders, fetchClosedOrders
-        //
-        //     // spot orders
+        // Spot and Swap fetchOrder, fetchOpenOrders
         //
         //     {
-        //         "client_oid":"oktspot76",
-        //         "created_at":"2019-03-18T07:26:49.000Z",
-        //         "filled_notional":"3.9734",
-        //         "filled_size":"0.001", // filled_qty in futures and swap orders
-        //         "funds":"", // this is most likely the same as notional
-        //         "instrument_id":"BTC-USDT",
-        //         "notional":"",
-        //         "order_id":"2500723297813504",
-        //         "order_type":"0",
-        //         "price":"4013",
-        //         "product_id":"BTC-USDT", // missing in futures and swap orders
-        //         "side":"buy",
-        //         "size":"0.001",
-        //         "status":"filled",
-        //         "state": "2",
-        //         "timestamp":"2019-03-18T07:26:49.000Z",
-        //         "type":"limit"
+        //         "accFillSz": "0",
+        //         "avgPx": "",
+        //         "cTime": "1621910749815",
+        //         "category": "normal",
+        //         "ccy": "",
+        //         "clOrdId": "",
+        //         "fee": "0",
+        //         "feeCcy": "ETH",
+        //         "fillPx": "",
+        //         "fillSz": "0",
+        //         "fillTime": "",
+        //         "instId": "ETH-USDT",
+        //         "instType": "SPOT",
+        //         "lever": "",
+        //         "ordId": "317251910906576896",
+        //         "ordType": "limit",
+        //         "pnl": "0",
+        //         "posSide": "net",
+        //         "px": "2000",
+        //         "rebate": "0",
+        //         "rebateCcy": "USDT",
+        //         "side": "buy",
+        //         "slOrdPx": "",
+        //         "slTriggerPx": "",
+        //         "state": "live",
+        //         "sz": "0.001",
+        //         "tag": "",
+        //         "tdMode": "cash",
+        //         "tpOrdPx": "",
+        //         "tpTriggerPx": "",
+        //         "tradeId": "",
+        //         "uTime": "1621910749815"
         //     }
         //
-        //     // futures and swap orders
+        // Algo Order fetchOpenOrders, fetchCanceledOrders, fetchClosedOrders
         //
         //     {
-        //         "instrument_id":"EOS-USD-190628",
-        //         "size":"10",
-        //         "timestamp":"2019-03-20T10:04:55.000Z",
-        //         "filled_qty":"10", // filled_size in spot orders
-        //         "fee":"-0.00841043",
-        //         "order_id":"2512669605501952",
-        //         "price":"3.668",
-        //         "price_avg":"3.567", // missing in spot orders
-        //         "status":"2",
-        //         "state": "2",
-        //         "type":"4",
-        //         "contract_val":"10",
-        //         "leverage":"10", // missing in swap, spot orders
-        //         "client_oid":"",
-        //         "pnl":"1.09510794", // missing in swap, spot orders
-        //         "order_type":"0"
+        //         "activePx": "",
+        //         "activePxType": "",
+        //         "actualPx": "",
+        //         "actualSide": "buy",
+        //         "actualSz": "0",
+        //         "algoId": "431375349042380800",
+        //         "cTime": "1649119897778",
+        //         "callbackRatio": "",
+        //         "callbackSpread": "",
+        //         "ccy": "",
+        //         "ctVal": "0.01",
+        //         "instId": "BTC-USDT-SWAP",
+        //         "instType": "SWAP",
+        //         "last": "46538.9",
+        //         "lever": "125",
+        //         "moveTriggerPx": "",
+        //         "notionalUsd": "467.059",
+        //         "ordId": "",
+        //         "ordPx": "50000",
+        //         "ordType": "trigger",
+        //         "posSide": "long",
+        //         "pxLimit": "",
+        //         "pxSpread": "",
+        //         "pxVar": "",
+        //         "side": "buy",
+        //         "slOrdPx": "",
+        //         "slTriggerPx": "",
+        //         "slTriggerPxType": "",
+        //         "state": "live",
+        //         "sz": "1",
+        //         "szLimit": "",
+        //         "tag": "",
+        //         "tdMode": "isolated",
+        //         "tgtCcy": "",
+        //         "timeInterval": "",
+        //         "tpOrdPx": "",
+        //         "tpTriggerPx": "",
+        //         "tpTriggerPxType": "",
+        //         "triggerPx": "50000",
+        //         "triggerPxType": "last",
+        //         "triggerTime": "",
+        //         "uly": "BTC-USDT"
         //     }
         //
-        const id = this.safeString (order, 'order_id');
-        const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
-        let side = this.safeString (order, 'side');
-        const type = this.safeString (order, 'type');
-        if ((side !== 'buy') && (side !== 'sell')) {
-            side = this.parseOrderSide (type);
+        const id = this.safeString2 (order, 'algoId', 'ordId');
+        const timestamp = this.safeInteger (order, 'cTime');
+        const lastUpdateTimestamp = this.safeInteger (order, 'uTime');
+        const lastTradeTimestamp = this.safeInteger (order, 'fillTime');
+        const side = this.safeString (order, 'side');
+        let type = this.safeString (order, 'ordType');
+        let postOnly = undefined;
+        let timeInForce = undefined;
+        if (type === 'post_only') {
+            postOnly = true;
+            type = 'limit';
+        } else if (type === 'fok') {
+            timeInForce = 'FOK';
+            type = 'limit';
+        } else if (type === 'ioc') {
+            timeInForce = 'IOC';
+            type = 'limit';
         }
-        const marketId = this.safeString (order, 'instrument_id');
+        const marketId = this.safeString (order, 'instId');
         market = this.safeMarket (marketId, market);
-        let amount = this.safeString (order, 'size');
-        const filled = this.safeString2 (order, 'filled_size', 'filled_qty');
-        let remaining = undefined;
-        if (amount !== undefined) {
-            if (filled !== undefined) {
-                amount = Precise.stringMax (amount, filled);
-                remaining = Precise.stringMax ('0', Precise.stringSub (amount, filled));
-            }
-        }
-        if (type === 'market') {
-            remaining = '0';
-        }
-        let cost = this.safeString2 (order, 'filled_notional', 'funds');
-        const price = this.safeString (order, 'price');
-        let average = this.safeString (order, 'price_avg');
-        if (cost === undefined) {
-            if (filled !== undefined && average !== undefined) {
-                cost = Precise.stringMul (average, filled);
-            }
-        } else {
-            if ((average === undefined) && (filled !== undefined) && Precise.stringGt (filled, '0')) {
-                average = Precise.stringDiv (cost, filled);
-            }
-        }
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const filled = this.safeString (order, 'accFillSz');
+        const price = this.safeString2 (order, 'px', 'ordPx');
+        const average = this.safeString (order, 'avgPx');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        const feeCost = this.safeNumber (order, 'fee');
+        const feeCostString = this.safeString (order, 'fee');
+        let amount = undefined;
+        let cost = undefined;
+        // spot market buy: "sz" can refer either to base currency units or to quote currency units
+        // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
+        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
+        const tgtCcy = this.safeString (order, 'tgtCcy', defaultTgtCcy);
+        if ((side === 'buy') && (type === 'market') && (tgtCcy === 'quote_ccy')) {
+            // "sz" refers to the cost
+            cost = this.safeString (order, 'sz');
+        } else {
+            // "sz" refers to the trade currency amount
+            amount = this.safeString (order, 'sz');
+        }
         let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCurrency = undefined;
+        if (feeCostString !== undefined) {
+            const feeCostSigned = Precise.stringNeg (feeCostString);
+            const feeCurrencyId = this.safeString (order, 'feeCcy');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
+                'cost': this.parseNumber (feeCostSigned),
+                'currency': feeCurrencyCode,
             };
         }
-        let clientOrderId = this.safeString (order, 'client_oid');
+        let clientOrderId = this.safeString (order, 'clOrdId');
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopPrice = this.safeNumber (order, 'trigger_price');
+        const stopLossPrice = this.safeNumber2 (order, 'slTriggerPx', 'slOrdPx');
+        const takeProfitPrice = this.safeNumber2 (order, 'tpTriggerPx', 'tpOrdPx');
+        const stopPrice = this.safeNumberN (order, [ 'triggerPx', 'moveTriggerPx' ]);
+        const reduceOnlyRaw = this.safeString (order, 'reduceOnly');
+        let reduceOnly = false;
+        if (reduceOnly !== undefined) {
+            reduceOnly = (reduceOnlyRaw === 'true');
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'symbol': symbol,
             'type': type,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': undefined,
+            'reduceOnly': reduceOnly,
         }, market);
     }
 
@@ -1654,229 +1641,103 @@ export default class okcoin extends Exchange {
         /**
          * @method
          * @name okcoin#fetchOrder
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-details
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', market['type']);
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchOrder() requires a type parameter (one of 'spot', 'futures', 'swap').");
-        }
-        const instrumentId = (market['futures'] || market['swap']) ? 'InstrumentId' : '';
-        let method = type + 'GetOrders' + instrumentId;
         const request = {
-            'instrument_id': market['id'],
-            // 'client_oid': 'abcdef12345', // optional, [a-z0-9]{1,32}
-            // 'order_id': id,
+            'instId': market['id'],
+            // 'clOrdId': 'abcdef12345', // optional, [a-z0-9]{1,32}
+            // 'ordId': id,
         };
-        const clientOid = this.safeString (params, 'client_oid');
-        if (clientOid !== undefined) {
-            method += 'ClientOid';
-            request['client_oid'] = clientOid;
-        } else {
-            method += 'OrderId';
-            request['order_id'] = id;
-        }
-        const query = this.omit (params, 'type');
-        const response = await this[method] (this.extend (request, query));
-        //
-        // spot
-        //
-        //     {
-        //         "client_oid":"oktspot70",
-        //         "created_at":"2019-03-15T02:52:56.000Z",
-        //         "filled_notional":"3.8886",
-        //         "filled_size":"0.001",
-        //         "funds":"",
-        //         "instrument_id":"BTC-USDT",
-        //         "notional":"",
-        //         "order_id":"2482659399697408",
-        //         "order_type":"0",
-        //         "price":"3927.3",
-        //         "product_id":"BTC-USDT",
-        //         "side":"buy",
-        //         "size":"0.001",
-        //         "status":"filled",
-        //         "state": "2",
-        //         "timestamp":"2019-03-15T02:52:56.000Z",
-        //         "type":"limit"
-        //     }
-        //
-        // futures, swap
-        //
-        //     {
-        //         "instrument_id":"EOS-USD-190628",
-        //         "size":"10",
-        //         "timestamp":"2019-03-20T02:46:38.000Z",
-        //         "filled_qty":"10",
-        //         "fee":"-0.0080819",
-        //         "order_id":"2510946213248000",
-        //         "price":"3.712",
-        //         "price_avg":"3.712",
-        //         "status":"2",
-        //         "state": "2",
-        //         "type":"2",
-        //         "contract_val":"10",
-        //         "leverage":"10",
-        //         "client_oid":"", // missing in swap orders
-        //         "pnl":"0", // missing in swap orders
-        //         "order_type":"0"
-        //     }
-        //
-        return this.parseOrder (response);
-    }
-
-    async fetchOrdersByState (state, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByState() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        let type = undefined;
-        if (market['futures'] || market['swap']) {
-            type = market['type'];
-        } else {
-            const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', market['type']);
-            type = this.safeString (params, 'type', defaultType);
-        }
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchOrdersByState() requires a type parameter (one of 'spot', 'futures', 'swap').");
-        }
-        const request = {
-            'instrument_id': market['id'],
-            // '-2': failed,
-            // '-1': cancelled,
-            //  '0': open ,
-            //  '1': partially filled,
-            //  '2': fully filled,
-            //  '3': submitting,
-            //  '4': cancelling,
-            //  '6': incomplete（open+partially filled),
-            //  '7': complete（cancelled+fully filled),
-            'state': state,
-        };
-        let method = type + 'GetOrders';
-        if (market['futures'] || market['swap']) {
-            method += 'InstrumentId';
-        }
-        const query = this.omit (params, 'type');
-        const response = await this[method] (this.extend (request, query));
-        //
-        // spot
-        //
-        //     [
-        //         // in fact, this documented API response does not correspond
-        //         // to their actual API response for spot markets
-        //         // OKEX v3 API returns a plain array of orders (see below)
-        //         [
-        //             {
-        //                 "client_oid":"oktspot76",
-        //                 "created_at":"2019-03-18T07:26:49.000Z",
-        //                 "filled_notional":"3.9734",
-        //                 "filled_size":"0.001",
-        //                 "funds":"",
-        //                 "instrument_id":"BTC-USDT",
-        //                 "notional":"",
-        //                 "order_id":"2500723297813504",
-        //                 "order_type":"0",
-        //                 "price":"4013",
-        //                 "product_id":"BTC-USDT",
-        //                 "side":"buy",
-        //                 "size":"0.001",
-        //                 "status":"filled",
-        //                 "state": "2",
-        //                 "timestamp":"2019-03-18T07:26:49.000Z",
-        //                 "type":"limit"
-        //             },
-        //         ],
-        //         {
-        //             "before":"2500723297813504",
-        //             "after":"2500650881647616"
-        //         }
-        //     ]
-        //
-        // futures, swap
-        //
-        //     {
-        //         "result":true,  // missing in swap orders
-        //         "order_info": [
-        //             {
-        //                 "instrument_id":"EOS-USD-190628",
-        //                 "size":"10",
-        //                 "timestamp":"2019-03-20T10:04:55.000Z",
-        //                 "filled_qty":"10",
-        //                 "fee":"-0.00841043",
-        //                 "order_id":"2512669605501952",
-        //                 "price":"3.668",
-        //                 "price_avg":"3.567",
-        //                 "status":"2",
-        //                 "state": "2",
-        //                 "type":"4",
-        //                 "contract_val":"10",
-        //                 "leverage":"10", // missing in swap orders
-        //                 "client_oid":"",
-        //                 "pnl":"1.09510794", // missing in swap orders
-        //                 "order_type":"0"
-        //             },
-        //         ]
-        //     }
-        //
-        let orders = undefined;
-        if (market['swap'] || market['futures']) {
-            orders = this.safeValue (response, 'order_info', []);
-        } else {
-            orders = response;
-            const responseLength = response.length;
-            if (responseLength < 1) {
-                return [];
+        const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            if (clientOrderId !== undefined) {
+                request['algoClOrdId'] = clientOrderId;
+            } else {
+                request['algoId'] = id;
             }
-            // in fact, this documented API response does not correspond
-            // to their actual API response for spot markets
-            // OKEX v3 API returns a plain array of orders
-            if (responseLength > 1) {
-                const before = this.safeValue (response[1], 'before');
-                if (before !== undefined) {
-                    orders = response[0];
-                }
+        } else {
+            this.checkRequiredSymbol ('fetchOrder', symbol);
+            if (clientOrderId !== undefined) {
+                request['clOrdId'] = clientOrderId;
+            } else {
+                request['ordId'] = id;
             }
         }
-        return this.parseOrders (orders, market, since, limit);
+        const query = this.omit (params, [ 'clientOrderId', 'stop' ]);
+        let response = undefined;
+        if (stop) {
+            response = await this.privateGetTradeOrderAlgo (this.extend (request, query));
+        } else {
+            response = await this.privateGetTradeOrder (this.extend (request, query));
+        }
+        const data = this.safeValue (response, 'data', []);
+        const order = this.safeValue (data, 0);
+        return this.parseOrder (order);
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchOpenOrders
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
+         * @param {bool} [params.stop] True if fetching trigger or conditional orders
+         * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        // '-2': failed,
-        // '-1': cancelled,
-        //  '0': open ,
-        //  '1': partially filled,
-        //  '2': fully filled,
-        //  '3': submitting,
-        //  '4': cancelling,
-        //  '6': incomplete（open+partially filled),
-        //  '7': complete（cancelled+fully filled),
-        return await this.fetchOrdersByState ('6', symbol, since, limit, params);
+        await this.loadMarkets ();
+        const request = {
+            // 'instId': market['id'],
+            // 'ordType': 'limit', // market, limit, post_only, fok, ioc, comma-separated, stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
+            // 'state': 'live', // live, partially_filled
+            // 'after': orderId,
+            // 'before': orderId,
+            // 'limit': limit, // default 100, max 100
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instId'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
+        const ordType = this.safeString (params, 'ordType');
+        const stop = this.safeValue (params, 'stop') || (this.safeString (params, 'ordType') !== undefined);
+        if (stop && (ordType === undefined)) {
+            request['ordType'] = 'conditional'; // default to conditional
+        }
+        params = this.omit (params, [ 'stop' ]);
+        let response = undefined;
+        if (stop) {
+            response = await this.privateGetTradeOrdersAlgoPending (this.extend (request, params));
+        } else {
+            response = await this.privateGetTradeOrdersPending (this.extend (request, params));
+        }
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchClosedOrders
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-7-days
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -1884,16 +1745,76 @@ export default class okcoin extends Exchange {
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        // '-2': failed,
-        // '-1': cancelled,
-        //  '0': open ,
-        //  '1': partially filled,
-        //  '2': fully filled,
-        //  '3': submitting,
-        //  '4': cancelling,
-        //  '6': incomplete（open+partially filled),
-        //  '7': complete（cancelled+fully filled),
-        return await this.fetchOrdersByState ('7', symbol, since, limit, params);
+        await this.loadMarkets ();
+        const request = {
+            'instType': 'SPOT',
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instId'] = market['id'];
+        }
+        const ordType = this.safeString (params, 'ordType');
+        const stop = this.safeValue (params, 'stop') || (this.safeString (params, 'ordType') !== undefined);
+        if (stop && (ordType === undefined)) {
+            request['ordType'] = 'conditional'; // default to conditional
+        }
+        params = this.omit (params, [ 'stop' ]);
+        let response = undefined;
+        if (stop) {
+            response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, params));
+        } else {
+            let method = undefined;
+            [ method, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
+            if (method === 'privateGetTradeOrdersHistory') {
+                response = await this.privateGetTradeOrdersHistory (this.extend (request, params));
+            } else {
+                response = await this.privateGetTradeOrdersHistoryArchive (this.extend (request, params));
+            }
+        }
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "accFillSz": "0",
+        //                 "avgPx": "",
+        //                 "cTime": "1621910749815",
+        //                 "category": "normal",
+        //                 "ccy": "",
+        //                 "clOrdId": "",
+        //                 "fee": "0",
+        //                 "feeCcy": "ETH",
+        //                 "fillPx": "",
+        //                 "fillSz": "0",
+        //                 "fillTime": "",
+        //                 "instId": "ETH-USDT",
+        //                 "instType": "SPOT",
+        //                 "lever": "",
+        //                 "ordId": "317251910906576896",
+        //                 "ordType": "limit",
+        //                 "pnl": "0",
+        //                 "posSide": "net",
+        //                 "px":"20 00",
+        //                 "rebate": "0",
+        //                 "rebateCcy": "USDT",
+        //                 "side": "buy",
+        //                 "slOrdPx": "",
+        //                 "slTriggerPx": "",
+        //                 "state": "live",
+        //                 "sz":"0. 001",
+        //                 "tag": "",
+        //                 "tdMode": "cash",
+        //                 "tpOrdPx": "",
+        //                 "tpTriggerPx": "",
+        //                 "tradeId": "",
+        //                 "uTime": "1621910749815"
+        //             }
+        //         ],
+        //         "msg":""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
