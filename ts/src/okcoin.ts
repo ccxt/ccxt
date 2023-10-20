@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/okcoin.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, NetworkError, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, AccountNotEnabled, BadSymbol, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade } from './base/types.js';
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -198,345 +198,312 @@ export default class okcoin extends Exchange {
                 'password': true,
             },
             'exceptions': {
-                // http error codes
-                // 400 Bad Request — Invalid request format
-                // 401 Unauthorized — Invalid API Key
-                // 403 Forbidden — You do not have access to the requested resource
-                // 404 Not Found
-                // 429 Client Error: Too Many Requests for url
-                // 500 Internal Server Error — We had a problem with our server
                 'exact': {
-                    '1': ExchangeError, // { "code": 1, "message": "System error" }
-                    // undocumented
-                    'failure to get a peer from the ring-balancer': ExchangeNotAvailable, // { "message": "failure to get a peer from the ring-balancer" }
-                    'Server is busy, please try again.': ExchangeNotAvailable, // { "message": "Server is busy, please try again." }
-                    'An unexpected error occurred': ExchangeError, // { "message": "An unexpected error occurred" }
-                    'System error': ExchangeError, // {"error_message":"System error","message":"System error"}
-                    '4010': PermissionDenied, // { "code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " }
-                    // common
-                    // '0': ExchangeError, // 200 successful,when the order placement / cancellation / operation is successful
-                    '4001': ExchangeError, // no data received in 30s
-                    '4002': ExchangeError, // Buffer full. cannot write data
-                    // --------------------------------------------------------
-                    '30001': AuthenticationError, // { "code": 30001, "message": 'request header "OK_ACCESS_KEY" cannot be blank'}
-                    '30002': AuthenticationError, // { "code": 30002, "message": 'request header "OK_ACCESS_SIGN" cannot be blank'}
-                    '30003': AuthenticationError, // { "code": 30003, "message": 'request header "OK_ACCESS_TIMESTAMP" cannot be blank'}
-                    '30004': AuthenticationError, // { "code": 30004, "message": 'request header "OK_ACCESS_PASSPHRASE" cannot be blank'}
-                    '30005': InvalidNonce, // { "code": 30005, "message": "invalid OK_ACCESS_TIMESTAMP" }
-                    '30006': AuthenticationError, // { "code": 30006, "message": "invalid OK_ACCESS_KEY" }
-                    '30007': BadRequest, // { "code": 30007, "message": 'invalid Content_Type, please use "application/json" format'}
-                    '30008': RequestTimeout, // { "code": 30008, "message": "timestamp request expired" }
-                    '30009': ExchangeError, // { "code": 30009, "message": "system error" }
-                    '30010': AuthenticationError, // { "code": 30010, "message": "API validation failed" }
-                    '30011': PermissionDenied, // { "code": 30011, "message": "invalid IP" }
-                    '30012': AuthenticationError, // { "code": 30012, "message": "invalid authorization" }
-                    '30013': AuthenticationError, // { "code": 30013, "message": "invalid sign" }
-                    '30014': DDoSProtection, // { "code": 30014, "message": "request too frequent" }
-                    '30015': AuthenticationError, // { "code": 30015, "message": 'request header "OK_ACCESS_PASSPHRASE" incorrect'}
-                    '30016': ExchangeError, // { "code": 30015, "message": "you are using v1 apiKey, please use v1 endpoint. If you would like to use v3 endpoint, please subscribe to v3 apiKey" }
-                    '30017': ExchangeError, // { "code": 30017, "message": "apikey's broker id does not match" }
-                    '30018': ExchangeError, // { "code": 30018, "message": "apikey's domain does not match" }
-                    '30019': ExchangeNotAvailable, // { "code": 30019, "message": "Api is offline or unavailable" }
-                    '30020': BadRequest, // { "code": 30020, "message": "body cannot be blank" }
-                    '30021': BadRequest, // { "code": 30021, "message": "Json data format error" }, { "code": 30021, "message": "json data format error" }
-                    '30022': PermissionDenied, // { "code": 30022, "message": "Api has been frozen" }
-                    '30023': BadRequest, // { "code": 30023, "message": "{0} parameter cannot be blank" }
-                    '30024': BadSymbol, // {"code":30024,"message":"\"instrument_id\" is an invalid parameter"}
-                    '30025': BadRequest, // { "code": 30025, "message": "{0} parameter category error" }
-                    '30026': DDoSProtection, // { "code": 30026, "message": "requested too frequent" }
-                    '30027': AuthenticationError, // { "code": 30027, "message": "login failure" }
-                    '30028': PermissionDenied, // { "code": 30028, "message": "unauthorized execution" }
-                    '30029': AccountSuspended, // { "code": 30029, "message": "account suspended" }
-                    '30030': ExchangeNotAvailable, // { "code": 30030, "message": "endpoint request failed. Please try again" }
-                    '30031': BadRequest, // { "code": 30031, "message": "token does not exist" }
-                    '30032': BadSymbol, // { "code": 30032, "message": "pair does not exist" }
-                    '30033': BadRequest, // { "code": 30033, "message": "exchange domain does not exist" }
-                    '30034': ExchangeError, // { "code": 30034, "message": "exchange ID does not exist" }
-                    '30035': ExchangeError, // { "code": 30035, "message": "trading is not supported in this website" }
-                    '30036': ExchangeError, // { "code": 30036, "message": "no relevant data" }
-                    '30037': ExchangeNotAvailable, // { "code": 30037, "message": "endpoint is offline or unavailable" }
-                    // '30038': AuthenticationError, // { "code": 30038, "message": "user does not exist" }
-                    '30038': OnMaintenance, // {"client_oid":"","code":"30038","error_code":"30038","error_message":"Matching engine is being upgraded. Please try in about 1 minute.","message":"Matching engine is being upgraded. Please try in about 1 minute.","order_id":"-1","result":false}
-                    '30044': RequestTimeout, // { "code":30044, "message":"Endpoint request timeout" }
-                    // futures
-                    '32001': AccountSuspended, // { "code": 32001, "message": "futures account suspended" }
-                    '32002': PermissionDenied, // { "code": 32002, "message": "futures account does not exist" }
-                    '32003': CancelPending, // { "code": 32003, "message": "canceling, please wait" }
-                    '32004': ExchangeError, // { "code": 32004, "message": "you have no unfilled orders" }
-                    '32005': InvalidOrder, // { "code": 32005, "message": "max order quantity" }
-                    '32006': InvalidOrder, // { "code": 32006, "message": "the order price or trigger price exceeds USD 1 million" }
-                    '32007': InvalidOrder, // { "code": 32007, "message": "leverage level must be the same for orders on the same side of the contract" }
-                    '32008': InvalidOrder, // { "code": 32008, "message": "Max. positions to open (cross margin)" }
-                    '32009': InvalidOrder, // { "code": 32009, "message": "Max. positions to open (fixed margin)" }
-                    '32010': ExchangeError, // { "code": 32010, "message": "leverage cannot be changed with open positions" }
-                    '32011': ExchangeError, // { "code": 32011, "message": "futures status error" }
-                    '32012': ExchangeError, // { "code": 32012, "message": "futures order update error" }
-                    '32013': ExchangeError, // { "code": 32013, "message": "token type is blank" }
-                    '32014': ExchangeError, // { "code": 32014, "message": "your number of contracts closing is larger than the number of contracts available" }
-                    '32015': ExchangeError, // { "code": 32015, "message": "margin ratio is lower than 100% before opening positions" }
-                    '32016': ExchangeError, // { "code": 32016, "message": "margin ratio is lower than 100% after opening position" }
-                    '32017': ExchangeError, // { "code": 32017, "message": "no BBO" }
-                    '32018': ExchangeError, // { "code": 32018, "message": "the order quantity is less than 1, please try again" }
-                    '32019': ExchangeError, // { "code": 32019, "message": "the order price deviates from the price of the previous minute by more than 3%" }
-                    '32020': ExchangeError, // { "code": 32020, "message": "the price is not in the range of the price limit" }
-                    '32021': ExchangeError, // { "code": 32021, "message": "leverage error" }
-                    '32022': ExchangeError, // { "code": 32022, "message": "this function is not supported in your country or region according to the regulations" }
-                    '32023': ExchangeError, // { "code": 32023, "message": "this account has outstanding loan" }
-                    '32024': ExchangeError, // { "code": 32024, "message": "order cannot be placed during delivery" }
-                    '32025': ExchangeError, // { "code": 32025, "message": "order cannot be placed during settlement" }
-                    '32026': ExchangeError, // { "code": 32026, "message": "your account is restricted from opening positions" }
-                    '32027': ExchangeError, // { "code": 32027, "message": "cancelled over 20 orders" }
-                    '32028': ExchangeError, // { "code": 32028, "message": "account is suspended and liquidated" }
-                    '32029': ExchangeError, // { "code": 32029, "message": "order info does not exist" }
-                    '32030': InvalidOrder, // The order cannot be cancelled
-                    '32031': ArgumentsRequired, // client_oid or order_id is required.
-                    '32038': AuthenticationError, // User does not exist
-                    '32040': ExchangeError, // User have open contract orders or position
-                    '32044': ExchangeError, // { "code": 32044, "message": "The margin ratio after submitting this order is lower than the minimum requirement ({0}) for your tier." }
-                    '32045': ExchangeError, // String of commission over 1 million
-                    '32046': ExchangeError, // Each user can hold up to 10 trade plans at the same time
-                    '32047': ExchangeError, // system error
-                    '32048': InvalidOrder, // Order strategy track range error
-                    '32049': ExchangeError, // Each user can hold up to 10 track plans at the same time
-                    '32050': InvalidOrder, // Order strategy rang error
-                    '32051': InvalidOrder, // Order strategy ice depth error
-                    '32052': ExchangeError, // String of commission over 100 thousand
-                    '32053': ExchangeError, // Each user can hold up to 6 ice plans at the same time
-                    '32057': ExchangeError, // The order price is zero. Market-close-all function cannot be executed
-                    '32054': ExchangeError, // Trade not allow
-                    '32055': InvalidOrder, // cancel order error
-                    '32056': ExchangeError, // iceberg per order average should between {0}-{1} contracts
-                    '32058': ExchangeError, // Each user can hold up to 6 initiative plans at the same time
-                    '32059': InvalidOrder, // Total amount should exceed per order amount
-                    '32060': InvalidOrder, // Order strategy type error
-                    '32061': InvalidOrder, // Order strategy initiative limit error
-                    '32062': InvalidOrder, // Order strategy initiative range error
-                    '32063': InvalidOrder, // Order strategy initiative rate error
-                    '32064': ExchangeError, // Time Stringerval of orders should set between 5-120s
-                    '32065': ExchangeError, // Close amount exceeds the limit of Market-close-all (999 for BTC, and 9999 for the rest tokens)
-                    '32066': ExchangeError, // You have open orders. Please cancel all open orders before changing your leverage level.
-                    '32067': ExchangeError, // Account equity < required margin in this setting. Please adjust your leverage level again.
-                    '32068': ExchangeError, // The margin for this position will fall short of the required margin in this setting. Please adjust your leverage level or increase your margin to proceed.
-                    '32069': ExchangeError, // Target leverage level too low. Your account balance is insufficient to cover the margin required. Please adjust the leverage level again.
-                    '32070': ExchangeError, // Please check open position or unfilled order
-                    '32071': ExchangeError, // Your current liquidation mode does not support this action.
-                    '32072': ExchangeError, // The highest available margin for your order’s tier is {0}. Please edit your margin and place a new order.
-                    '32073': ExchangeError, // The action does not apply to the token
-                    '32074': ExchangeError, // The number of contracts of your position, open orders, and the current order has exceeded the maximum order limit of this asset.
-                    '32075': ExchangeError, // Account risk rate breach
-                    '32076': ExchangeError, // Liquidation of the holding position(s) at market price will require cancellation of all pending close orders of the contracts.
-                    '32077': ExchangeError, // Your margin for this asset in futures account is insufficient and the position has been taken over for liquidation. (You will not be able to place orders, close positions, transfer funds, or add margin during this period of time. Your account will be restored after the liquidation is complete.)
-                    '32078': ExchangeError, // Please cancel all open orders before switching the liquidation mode(Please cancel all open orders before switching the liquidation mode)
-                    '32079': ExchangeError, // Your open positions are at high risk.(Please add margin or reduce positions before switching the mode)
-                    '32080': ExchangeError, // Funds cannot be transferred out within 30 minutes after futures settlement
-                    '32083': ExchangeError, // The number of contracts should be a positive multiple of %%. Please place your order again
-                    // token and margin trading
-                    '33001': PermissionDenied, // { "code": 33001, "message": "margin account for this pair is not enabled yet" }
-                    '33002': AccountSuspended, // { "code": 33002, "message": "margin account for this pair is suspended" }
-                    '33003': InsufficientFunds, // { "code": 33003, "message": "no loan balance" }
-                    '33004': ExchangeError, // { "code": 33004, "message": "loan amount cannot be smaller than the minimum limit" }
-                    '33005': ExchangeError, // { "code": 33005, "message": "repayment amount must exceed 0" }
-                    '33006': ExchangeError, // { "code": 33006, "message": "loan order not found" }
-                    '33007': ExchangeError, // { "code": 33007, "message": "status not found" }
-                    '33008': InsufficientFunds, // { "code": 33008, "message": "loan amount cannot exceed the maximum limit" }
-                    '33009': ExchangeError, // { "code": 33009, "message": "user ID is blank" }
-                    '33010': ExchangeError, // { "code": 33010, "message": "you cannot cancel an order during session 2 of call auction" }
-                    '33011': ExchangeError, // { "code": 33011, "message": "no new market data" }
-                    '33012': ExchangeError, // { "code": 33012, "message": "order cancellation failed" }
-                    '33013': InvalidOrder, // { "code": 33013, "message": "order placement failed" }
-                    '33014': OrderNotFound, // { "code": 33014, "message": "order does not exist" }
-                    '33015': InvalidOrder, // { "code": 33015, "message": "exceeded maximum limit" }
-                    '33016': ExchangeError, // { "code": 33016, "message": "margin trading is not open for this token" }
-                    '33017': InsufficientFunds, // { "code": 33017, "message": "insufficient balance" }
-                    '33018': ExchangeError, // { "code": 33018, "message": "this parameter must be smaller than 1" }
-                    '33020': ExchangeError, // { "code": 33020, "message": "request not supported" }
-                    '33021': BadRequest, // { "code": 33021, "message": "token and the pair do not match" }
-                    '33022': InvalidOrder, // { "code": 33022, "message": "pair and the order do not match" }
-                    '33023': ExchangeError, // { "code": 33023, "message": "you can only place market orders during call auction" }
-                    '33024': InvalidOrder, // { "code": 33024, "message": "trading amount too small" }
-                    '33025': InvalidOrder, // { "code": 33025, "message": "base token amount is blank" }
-                    '33026': ExchangeError, // { "code": 33026, "message": "transaction completed" }
-                    '33027': InvalidOrder, // { "code": 33027, "message": "cancelled order or order cancelling" }
-                    '33028': InvalidOrder, // { "code": 33028, "message": "the decimal places of the trading price exceeded the limit" }
-                    '33029': InvalidOrder, // { "code": 33029, "message": "the decimal places of the trading size exceeded the limit" }
-                    '33034': ExchangeError, // { "code": 33034, "message": "You can only place limit order after Call Auction has started" }
-                    '33035': ExchangeError, // This type of order cannot be canceled(This type of order cannot be canceled)
-                    '33036': ExchangeError, // Exceeding the limit of entrust order
-                    '33037': ExchangeError, // The buy order price should be lower than 130% of the trigger price
-                    '33038': ExchangeError, // The sell order price should be higher than 70% of the trigger price
-                    '33039': ExchangeError, // The limit of callback rate is 0 < x <= 5%
-                    '33040': ExchangeError, // The trigger price of a buy order should be lower than the latest transaction price
-                    '33041': ExchangeError, // The trigger price of a sell order should be higher than the latest transaction price
-                    '33042': ExchangeError, // The limit of price variance is 0 < x <= 1%
-                    '33043': ExchangeError, // The total amount must be larger than 0
-                    '33044': ExchangeError, // The average amount should be 1/1000 * total amount <= x <= total amount
-                    '33045': ExchangeError, // The price should not be 0, including trigger price, order price, and price limit
-                    '33046': ExchangeError, // Price variance should be 0 < x <= 1%
-                    '33047': ExchangeError, // Sweep ratio should be 0 < x <= 100%
-                    '33048': ExchangeError, // Per order limit: Total amount/1000 < x <= Total amount
-                    '33049': ExchangeError, // Total amount should be X > 0
-                    '33050': ExchangeError, // Time interval should be 5 <= x <= 120s
-                    '33051': ExchangeError, // cancel order number not higher limit: plan and track entrust no more than 10, ice and time entrust no more than 6
-                    '33059': BadRequest, // { "code": 33059, "message": "client_oid or order_id is required" }
-                    '33060': BadRequest, // { "code": 33060, "message": "Only fill in either parameter client_oid or order_id" }
-                    '33061': ExchangeError, // Value of a single market price order cannot exceed 100,000 USD
-                    '33062': ExchangeError, // The leverage ratio is too high. The borrowed position has exceeded the maximum position of this leverage ratio. Please readjust the leverage ratio
-                    '33063': ExchangeError, // Leverage multiple is too low, there is insufficient margin in the account, please readjust the leverage ratio
-                    '33064': ExchangeError, // The setting of the leverage ratio cannot be less than 2, please readjust the leverage ratio
-                    '33065': ExchangeError, // Leverage ratio exceeds maximum leverage ratio, please readjust leverage ratio
-                    '33085': InvalidOrder, // The value of the position and buying order has reached the position limit, and no further buying is allowed.
-                    // account
-                    '21009': ExchangeError, // Funds cannot be transferred out within 30 minutes after swap settlement(Funds cannot be transferred out within 30 minutes after swap settlement)
-                    '34001': PermissionDenied, // { "code": 34001, "message": "withdrawal suspended" }
-                    '34002': InvalidAddress, // { "code": 34002, "message": "please add a withdrawal address" }
-                    '34003': ExchangeError, // { "code": 34003, "message": "sorry, this token cannot be withdrawn to xx at the moment" }
-                    '34004': ExchangeError, // { "code": 34004, "message": "withdrawal fee is smaller than minimum limit" }
-                    '34005': ExchangeError, // { "code": 34005, "message": "withdrawal fee exceeds the maximum limit" }
-                    '34006': ExchangeError, // { "code": 34006, "message": "withdrawal amount is lower than the minimum limit" }
-                    '34007': ExchangeError, // { "code": 34007, "message": "withdrawal amount exceeds the maximum limit" }
-                    '34008': InsufficientFunds, // { "code": 34008, "message": "insufficient balance" }
-                    '34009': ExchangeError, // { "code": 34009, "message": "your withdrawal amount exceeds the daily limit" }
-                    '34010': ExchangeError, // { "code": 34010, "message": "transfer amount must be larger than 0" }
-                    '34011': ExchangeError, // { "code": 34011, "message": "conditions not met" }
-                    '34012': ExchangeError, // { "code": 34012, "message": "the minimum withdrawal amount for NEO is 1, and the amount must be an integer" }
-                    '34013': ExchangeError, // { "code": 34013, "message": "please transfer" }
-                    '34014': ExchangeError, // { "code": 34014, "message": "transfer limited" }
-                    '34015': ExchangeError, // { "code": 34015, "message": "subaccount does not exist" }
-                    '34016': PermissionDenied, // { "code": 34016, "message": "transfer suspended" }
-                    '34017': AccountSuspended, // { "code": 34017, "message": "account suspended" }
-                    '34018': AuthenticationError, // { "code": 34018, "message": "incorrect trades password" }
-                    '34019': PermissionDenied, // { "code": 34019, "message": "please bind your email before withdrawal" }
-                    '34020': PermissionDenied, // { "code": 34020, "message": "please bind your funds password before withdrawal" }
-                    '34021': InvalidAddress, // { "code": 34021, "message": "Not verified address" }
-                    '34022': ExchangeError, // { "code": 34022, "message": "Withdrawals are not available for sub accounts" }
-                    '34023': PermissionDenied, // { "code": 34023, "message": "Please enable futures trading before transferring your funds" }
-                    '34026': RateLimitExceeded, // transfer too frequently(transfer too frequently)
-                    '34036': ExchangeError, // Parameter is incorrect, please refer to API documentation
-                    '34037': ExchangeError, // Get the sub-account balance interface, account type is not supported
-                    '34038': ExchangeError, // Since your C2C transaction is unusual, you are restricted from fund transfer. Please contact our customer support to cancel the restriction
-                    '34039': ExchangeError, // You are now restricted from transferring out your funds due to abnormal trades on C2C Market. Please transfer your fund on our website or app instead to verify your identity
-                    // swap
-                    '35001': ExchangeError, // { "code": 35001, "message": "Contract does not exist" }
-                    '35002': ExchangeError, // { "code": 35002, "message": "Contract settling" }
-                    '35003': ExchangeError, // { "code": 35003, "message": "Contract paused" }
-                    '35004': ExchangeError, // { "code": 35004, "message": "Contract pending settlement" }
-                    '35005': AuthenticationError, // { "code": 35005, "message": "User does not exist" }
-                    '35008': InvalidOrder, // { "code": 35008, "message": "Risk ratio too high" }
-                    '35010': InvalidOrder, // { "code": 35010, "message": "Position closing too large" }
-                    '35012': InvalidOrder, // { "code": 35012, "message": "Incorrect order size" }
-                    '35014': InvalidOrder, // { "code": 35014, "message": "Order price is not within limit" }
-                    '35015': InvalidOrder, // { "code": 35015, "message": "Invalid leverage level" }
-                    '35017': ExchangeError, // { "code": 35017, "message": "Open orders exist" }
-                    '35019': InvalidOrder, // { "code": 35019, "message": "Order size too large" }
-                    '35020': InvalidOrder, // { "code": 35020, "message": "Order price too high" }
-                    '35021': InvalidOrder, // { "code": 35021, "message": "Order size exceeded current tier limit" }
-                    '35022': BadRequest, // { "code": 35022, "message": "Contract status error" }
-                    '35024': BadRequest, // { "code": 35024, "message": "Contract not initialized" }
-                    '35025': InsufficientFunds, // { "code": 35025, "message": "No account balance" }
-                    '35026': BadRequest, // { "code": 35026, "message": "Contract settings not initialized" }
-                    '35029': OrderNotFound, // { "code": 35029, "message": "Order does not exist" }
-                    '35030': InvalidOrder, // { "code": 35030, "message": "Order size too large" }
-                    '35031': InvalidOrder, // { "code": 35031, "message": "Cancel order size too large" }
-                    '35032': ExchangeError, // { "code": 35032, "message": "Invalid user status" }
-                    '35037': ExchangeError, // No last traded price in cache
-                    '35039': InsufficientFunds, // { "code": 35039, "message": "Open order quantity exceeds limit" }
-                    '35040': InvalidOrder, // {"error_message":"Invalid order type","result":"true","error_code":"35040","order_id":"-1"}
-                    '35044': ExchangeError, // { "code": 35044, "message": "Invalid order status" }
-                    '35046': InsufficientFunds, // { "code": 35046, "message": "Negative account balance" }
-                    '35047': InsufficientFunds, // { "code": 35047, "message": "Insufficient account balance" }
-                    '35048': ExchangeError, // { "code": 35048, "message": "User contract is frozen and liquidating" }
-                    '35049': InvalidOrder, // { "code": 35049, "message": "Invalid order type" }
-                    '35050': InvalidOrder, // { "code": 35050, "message": "Position settings are blank" }
-                    '35052': InsufficientFunds, // { "code": 35052, "message": "Insufficient cross margin" }
-                    '35053': ExchangeError, // { "code": 35053, "message": "Account risk too high" }
-                    '35055': InsufficientFunds, // { "code": 35055, "message": "Insufficient account balance" }
-                    '35057': ExchangeError, // { "code": 35057, "message": "No last traded price" }
-                    '35058': ExchangeError, // { "code": 35058, "message": "No limit" }
-                    '35059': BadRequest, // { "code": 35059, "message": "client_oid or order_id is required" }
-                    '35060': BadRequest, // { "code": 35060, "message": "Only fill in either parameter client_oid or order_id" }
-                    '35061': BadRequest, // { "code": 35061, "message": "Invalid instrument_id" }
-                    '35062': InvalidOrder, // { "code": 35062, "message": "Invalid match_price" }
-                    '35063': InvalidOrder, // { "code": 35063, "message": "Invalid order_size" }
-                    '35064': InvalidOrder, // { "code": 35064, "message": "Invalid client_oid" }
-                    '35066': InvalidOrder, // Order interval error
-                    '35067': InvalidOrder, // Time-weighted order ratio error
-                    '35068': InvalidOrder, // Time-weighted order range error
-                    '35069': InvalidOrder, // Time-weighted single transaction limit error
-                    '35070': InvalidOrder, // Algo order type error
-                    '35071': InvalidOrder, // Order total must be larger than single order limit
-                    '35072': InvalidOrder, // Maximum 6 unfulfilled time-weighted orders can be held at the same time
-                    '35073': InvalidOrder, // Order price is 0. Market-close-all not available
-                    '35074': InvalidOrder, // Iceberg order single transaction average error
-                    '35075': InvalidOrder, // Failed to cancel order
-                    '35076': InvalidOrder, // LTC 20x leverage. Not allowed to open position
-                    '35077': InvalidOrder, // Maximum 6 unfulfilled iceberg orders can be held at the same time
-                    '35078': InvalidOrder, // Order amount exceeded 100,000
-                    '35079': InvalidOrder, // Iceberg order price variance error
-                    '35080': InvalidOrder, // Callback rate error
-                    '35081': InvalidOrder, // Maximum 10 unfulfilled trail orders can be held at the same time
-                    '35082': InvalidOrder, // Trail order callback rate error
-                    '35083': InvalidOrder, // Each user can only hold a maximum of 10 unfulfilled stop-limit orders at the same time
-                    '35084': InvalidOrder, // Order amount exceeded 1 million
-                    '35085': InvalidOrder, // Order amount is not in the correct range
-                    '35086': InvalidOrder, // Price exceeds 100 thousand
-                    '35087': InvalidOrder, // Price exceeds 100 thousand
-                    '35088': InvalidOrder, // Average amount error
-                    '35089': InvalidOrder, // Price exceeds 100 thousand
-                    '35090': ExchangeError, // No stop-limit orders available for cancelation
-                    '35091': ExchangeError, // No trail orders available for cancellation
-                    '35092': ExchangeError, // No iceberg orders available for cancellation
-                    '35093': ExchangeError, // No trail orders available for cancellation
-                    '35094': ExchangeError, // Stop-limit order last traded price error
-                    '35095': BadRequest, // Instrument_id error
-                    '35096': ExchangeError, // Algo order status error
-                    '35097': ExchangeError, // Order status and order ID cannot exist at the same time
-                    '35098': ExchangeError, // An order status or order ID must exist
-                    '35099': ExchangeError, // Algo order ID error
-                    '35102': RateLimitExceeded, // {"error_message":"The operation that close all at market price is too frequent","result":"true","error_code":"35102","order_id":"-1"}
-                    // option
-                    '36001': BadRequest, // Invalid underlying index.
-                    '36002': BadRequest, // Instrument does not exist.
-                    '36005': ExchangeError, // Instrument status is invalid.
-                    '36101': AuthenticationError, // Account does not exist.
-                    '36102': PermissionDenied, // Account status is invalid.
-                    '36103': PermissionDenied, // Account is suspended due to ongoing liquidation.
-                    '36104': PermissionDenied, // Account is not enabled for options trading.
-                    '36105': PermissionDenied, // Please enable the account for option contract.
-                    '36106': PermissionDenied, // Funds cannot be transferred in or out, as account is suspended.
-                    '36107': PermissionDenied, // Funds cannot be transferred out within 30 minutes after option exercising or settlement.
-                    '36108': InsufficientFunds, // Funds cannot be transferred in or out, as equity of the account is less than zero.
-                    '36109': PermissionDenied, // Funds cannot be transferred in or out during option exercising or settlement.
-                    '36201': PermissionDenied, // New order function is blocked.
-                    '36202': PermissionDenied, // Account does not have permission to short option.
-                    '36203': InvalidOrder, // Invalid format for client_oid.
-                    '36204': ExchangeError, // Invalid format for request_id.
-                    '36205': BadRequest, // Instrument id does not match underlying index.
-                    '36206': BadRequest, // Order_id and client_oid can not be used at the same time.
-                    '36207': InvalidOrder, // Either order price or fartouch price must be present.
-                    '36208': InvalidOrder, // Either order price or size must be present.
-                    '36209': InvalidOrder, // Either order_id or client_oid must be present.
-                    '36210': InvalidOrder, // Either order_ids or client_oids must be present.
-                    '36211': InvalidOrder, // Exceeding max batch size for order submission.
-                    '36212': InvalidOrder, // Exceeding max batch size for oder cancellation.
-                    '36213': InvalidOrder, // Exceeding max batch size for order amendment.
-                    '36214': ExchangeError, // Instrument does not have valid bid/ask quote.
-                    '36216': OrderNotFound, // Order does not exist.
-                    '36217': InvalidOrder, // Order submission failed.
-                    '36218': InvalidOrder, // Order cancellation failed.
-                    '36219': InvalidOrder, // Order amendment failed.
-                    '36220': InvalidOrder, // Order is pending cancel.
-                    '36221': InvalidOrder, // Order qty is not valid multiple of lot size.
-                    '36222': InvalidOrder, // Order price is breaching highest buy limit.
-                    '36223': InvalidOrder, // Order price is breaching lowest sell limit.
-                    '36224': InvalidOrder, // Exceeding max order size.
-                    '36225': InvalidOrder, // Exceeding max open order count for instrument.
-                    '36226': InvalidOrder, // Exceeding max open order count for underlying.
-                    '36227': InvalidOrder, // Exceeding max open size across all orders for underlying
-                    '36228': InvalidOrder, // Exceeding max available qty for instrument.
-                    '36229': InvalidOrder, // Exceeding max available qty for underlying.
-                    '36230': InvalidOrder, // Exceeding max position limit for underlying.
+                    // Public error codes from 50000-53999
+                    // General Class
+                    '1': ExchangeError, // Operation failed
+                    '2': ExchangeError, // Bulk operation partially succeeded
+                    '50000': BadRequest, // Body can not be empty
+                    '50001': OnMaintenance, // Matching engine upgrading. Please try again later
+                    '50002': BadRequest, // Json data format error
+                    '50004': RequestTimeout, // Endpoint request timeout (does not indicate success or failure of order, please check order status)
+                    '50005': ExchangeNotAvailable, // API is offline or unavailable
+                    '50006': BadRequest, // Invalid Content_Type, please use "application/json" format
+                    '50007': AccountSuspended, // Account blocked
+                    '50008': AuthenticationError, // User does not exist
+                    '50009': AccountSuspended, // Account is suspended due to ongoing liquidation
+                    '50010': ExchangeError, // User ID can not be empty
+                    '50011': RateLimitExceeded, // Request too frequent
+                    '50012': ExchangeError, // Account status invalid
+                    '50013': ExchangeNotAvailable, // System is busy, please try again later
+                    '50014': BadRequest, // Parameter {0} can not be empty
+                    '50015': ExchangeError, // Either parameter {0} or {1} is required
+                    '50016': ExchangeError, // Parameter {0} does not match parameter {1}
+                    '50017': ExchangeError, // The position is frozen due to ADL. Operation restricted
+                    '50018': ExchangeError, // Currency {0} is frozen due to ADL. Operation restricted
+                    '50019': ExchangeError, // The account is frozen due to ADL. Operation restricted
+                    '50020': ExchangeError, // The position is frozen due to liquidation. Operation restricted
+                    '50021': ExchangeError, // Currency {0} is frozen due to liquidation. Operation restricted
+                    '50022': ExchangeError, // The account is frozen due to liquidation. Operation restricted
+                    '50023': ExchangeError, // Funding fee frozen. Operation restricted
+                    '50024': BadRequest, // Parameter {0} and {1} can not exist at the same time
+                    '50025': ExchangeError, // Parameter {0} count exceeds the limit {1}
+                    '50026': ExchangeNotAvailable, // System error, please try again later.
+                    '50027': PermissionDenied, // The account is restricted from trading
+                    '50028': ExchangeError, // Unable to take the order, please reach out to support center for details
+                    '50044': BadRequest, // Must select one broker type
+                    // API Class
+                    '50100': ExchangeError, // API frozen, please contact customer service
+                    '50101': AuthenticationError, // Broker id of APIKey does not match current environment
+                    '50102': InvalidNonce, // Timestamp request expired
+                    '50103': AuthenticationError, // Request header "OK_ACCESS_KEY" can not be empty
+                    '50104': AuthenticationError, // Request header "OK_ACCESS_PASSPHRASE" can not be empty
+                    '50105': AuthenticationError, // Request header "OK_ACCESS_PASSPHRASE" incorrect
+                    '50106': AuthenticationError, // Request header "OK_ACCESS_SIGN" can not be empty
+                    '50107': AuthenticationError, // Request header "OK_ACCESS_TIMESTAMP" can not be empty
+                    '50108': ExchangeError, // Exchange ID does not exist
+                    '50109': ExchangeError, // Exchange domain does not exist
+                    '50110': PermissionDenied, // Invalid IP
+                    '50111': AuthenticationError, // Invalid OK_ACCESS_KEY
+                    '50112': AuthenticationError, // Invalid OK_ACCESS_TIMESTAMP
+                    '50113': AuthenticationError, // Invalid signature
+                    '50114': AuthenticationError, // Invalid authorization
+                    '50115': BadRequest, // Invalid request method
+                    // Trade Class
+                    '51000': BadRequest, // Parameter {0} error
+                    '51001': BadSymbol, // Instrument ID does not exist
+                    '51002': BadSymbol, // Instrument ID does not match underlying index
+                    '51003': BadRequest, // Either client order ID or order ID is required
+                    '51004': InvalidOrder, // Order amount exceeds current tier limit
+                    '51005': InvalidOrder, // Order amount exceeds the limit
+                    '51006': InvalidOrder, // Order price out of the limit
+                    '51007': InvalidOrder, // Order placement failed. Order amount should be at least 1 contract (showing up when placing an order with less than 1 contract)
+                    '51008': InsufficientFunds, // Order placement failed due to insufficient balance
+                    '51009': AccountSuspended, // Order placement function is blocked by the platform
+                    '51010': AccountNotEnabled, // Account level too low {"code":"1","data":[{"clOrdId":"uJrfGFth9F","ordId":"","sCode":"51010","sMsg":"The current account mode does not support this API interface. ","tag":""}],"msg":"Operation failed."}
+                    '51011': InvalidOrder, // Duplicated order ID
+                    '51012': BadSymbol, // Token does not exist
+                    '51014': BadSymbol, // Index does not exist
+                    '51015': BadSymbol, // Instrument ID does not match instrument type
+                    '51016': InvalidOrder, // Duplicated client order ID
+                    '51017': ExchangeError, // Borrow amount exceeds the limit
+                    '51018': ExchangeError, // User with option account can not hold net short positions
+                    '51019': ExchangeError, // No net long positions can be held under isolated margin mode in options
+                    '51020': InvalidOrder, // Order amount should be greater than the min available amount
+                    '51023': ExchangeError, // Position does not exist
+                    '51024': AccountSuspended, // Unified accountblocked
+                    '51025': ExchangeError, // Order count exceeds the limit
+                    '51026': BadSymbol, // Instrument type does not match underlying index
+                    '51046': InvalidOrder, // The take profit trigger price must be higher than the order price
+                    '51047': InvalidOrder, // The stop loss trigger price must be lower than the order price
+                    '51031': InvalidOrder, // This order price is not within the closing price range
+                    '51100': InvalidOrder, // Trading amount does not meet the min tradable amount
+                    '51102': InvalidOrder, // Entered amount exceeds the max pending count
+                    '51103': InvalidOrder, // Entered amount exceeds the max pending order count of the underlying asset
+                    '51108': InvalidOrder, // Positions exceed the limit for closing out with the market price
+                    '51109': InvalidOrder, // No available offer
+                    '51110': InvalidOrder, // You can only place a limit order after Call Auction has started
+                    '51111': BadRequest, // Maximum {0} orders can be placed in bulk
+                    '51112': InvalidOrder, // Close order size exceeds your available size
+                    '51113': RateLimitExceeded, // Market-price liquidation requests too frequent
+                    '51115': InvalidOrder, // Cancel all pending close-orders before liquidation
+                    '51116': InvalidOrder, // Order price or trigger price exceeds {0}
+                    '51117': InvalidOrder, // Pending close-orders count exceeds limit
+                    '51118': InvalidOrder, // Total amount should exceed the min amount per order
+                    '51119': InsufficientFunds, // Order placement failed due to insufficient balance
+                    '51120': InvalidOrder, // Order quantity is less than {0}, please try again
+                    '51121': InvalidOrder, // Order count should be the integer multiples of the lot size
+                    '51122': InvalidOrder, // Order price should be higher than the min price {0}
+                    '51124': InvalidOrder, // You can only place limit orders during call auction
+                    '51125': InvalidOrder, // Currently there are reduce + reverse position pending orders in margin trading. Please cancel all reduce + reverse position pending orders and continue
+                    '51126': InvalidOrder, // Currently there are reduce only pending orders in margin trading.Please cancel all reduce only pending orders and continue
+                    '51127': InsufficientFunds, // Available balance is 0
+                    '51128': InvalidOrder, // Multi-currency margin account can not do cross-margin trading
+                    '51129': InvalidOrder, // The value of the position and buy order has reached the position limit, and no further buying is allowed
+                    '51130': BadSymbol, // Fixed margin currency error
+                    '51131': InsufficientFunds, // Insufficient balance
+                    '51132': InvalidOrder, // Your position amount is negative and less than the minimum trading amount
+                    '51133': InvalidOrder, // Reduce-only feature is unavailable for the spot transactions by multi-currency margin account
+                    '51134': InvalidOrder, // Closing failed. Please check your holdings and pending orders
+                    '51135': InvalidOrder, // Your closing price has triggered the limit price, and the max buy price is {0}
+                    '51136': InvalidOrder, // Your closing price has triggered the limit price, and the min sell price is {0}
+                    '51137': InvalidOrder, // Your opening price has triggered the limit price, and the max buy price is {0}
+                    '51138': InvalidOrder, // Your opening price has triggered the limit price, and the min sell price is {0}
+                    '51139': InvalidOrder, // Reduce-only feature is unavailable for the spot transactions by simple account
+                    '51156': BadRequest, // You're leading trades in long/short mode and can't use this API endpoint to close positions
+                    '51159': BadRequest, // You're leading trades in buy/sell mode. If you want to place orders using this API endpoint, the orders must be in the same direction as your existing positions and open orders.
+                    '51162': InvalidOrder, // You have {instrument} open orders. Cancel these orders and try again
+                    '51163': InvalidOrder, // You hold {instrument} positions. Close these positions and try again
+                    '51166': InvalidOrder, // Currently, we don't support leading trades with this instrument
+                    '51174': InvalidOrder, // The number of {param0} pending orders reached the upper limit of {param1} (orders).
+                    '51201': InvalidOrder, // Value of per market order cannot exceed 100,000 USDT
+                    '51202': InvalidOrder, // Market - order amount exceeds the max amount
+                    '51203': InvalidOrder, // Order amount exceeds the limit {0}
+                    '51204': InvalidOrder, // The price for the limit order can not be empty
+                    '51205': InvalidOrder, // Reduce-Only is not available
+                    '51250': InvalidOrder, // Algo order price is out of the available range
+                    '51251': InvalidOrder, // Algo order type error (when user place an iceberg order)
+                    '51252': InvalidOrder, // Algo order price is out of the available range
+                    '51253': InvalidOrder, // Average amount exceeds the limit of per iceberg order
+                    '51254': InvalidOrder, // Iceberg average amount error (when user place an iceberg order)
+                    '51255': InvalidOrder, // Limit of per iceberg order: Total amount/1000 < x <= Total amount
+                    '51256': InvalidOrder, // Iceberg order price variance error
+                    '51257': InvalidOrder, // Trail order callback rate error
+                    '51258': InvalidOrder, // Trail - order placement failed. The trigger price of a sell order should be higher than the last transaction price
+                    '51259': InvalidOrder, // Trail - order placement failed. The trigger price of a buy order should be lower than the last transaction price
+                    '51260': InvalidOrder, // Maximum {0} pending trail - orders can be held at the same time
+                    '51261': InvalidOrder, // Each user can hold up to {0} pending stop - orders at the same time
+                    '51262': InvalidOrder, // Maximum {0} pending iceberg orders can be held at the same time
+                    '51263': InvalidOrder, // Maximum {0} pending time-weighted orders can be held at the same time
+                    '51264': InvalidOrder, // Average amount exceeds the limit of per time-weighted order
+                    '51265': InvalidOrder, // Time-weighted order limit error
+                    '51267': InvalidOrder, // Time-weighted order strategy initiative rate error
+                    '51268': InvalidOrder, // Time-weighted order strategy initiative range error
+                    '51269': InvalidOrder, // Time-weighted order interval error, the interval should be {0}<= x<={1}
+                    '51270': InvalidOrder, // The limit of time-weighted order price variance is 0 < x <= 1%
+                    '51271': InvalidOrder, // Sweep ratio should be 0 < x <= 100%
+                    '51272': InvalidOrder, // Price variance should be 0 < x <= 1%
+                    '51273': InvalidOrder, // Total amount should be more than {0}
+                    '51274': InvalidOrder, // Total quantity of time-weighted order must be larger than single order limit
+                    '51275': InvalidOrder, // The amount of single stop-market order can not exceed the upper limit
+                    '51276': InvalidOrder, // Stop - Market orders cannot specify a price
+                    '51277': InvalidOrder, // TP trigger price can not be higher than the last price
+                    '51278': InvalidOrder, // SL trigger price can not be lower than the last price
+                    '51279': InvalidOrder, // TP trigger price can not be lower than the last price
+                    '51280': InvalidOrder, // SL trigger price can not be higher than the last price
+                    '51321': InvalidOrder, // You're leading trades. Currently, we don't support leading trades with arbitrage, iceberg, or TWAP bots
+                    '51322': InvalidOrder, // You're leading trades that have been filled at market price. We've canceled your open stop orders to close your positions
+                    '51323': BadRequest, // You're already leading trades with take profit or stop loss settings. Cancel your existing stop orders to proceed
+                    '51324': BadRequest, // As a lead trader, you hold positions in {instrument}. To close your positions, place orders in the amount that equals the available amount for closing
+                    '51325': InvalidOrder, // As a lead trader, you must use market price when placing stop orders
+                    '51327': InvalidOrder, // closeFraction is only available for futures and perpetual swaps
+                    '51328': InvalidOrder, // closeFraction is only available for reduceOnly orders
+                    '51329': InvalidOrder, // closeFraction is only available in NET mode
+                    '51330': InvalidOrder, // closeFraction is only available for stop market orders
+                    '51400': OrderNotFound, // Cancellation failed as the order does not exist
+                    '51401': OrderNotFound, // Cancellation failed as the order is already canceled
+                    '51402': OrderNotFound, // Cancellation failed as the order is already completed
+                    '51403': InvalidOrder, // Cancellation failed as the order type does not support cancellation
+                    '51404': InvalidOrder, // Order cancellation unavailable during the second phase of call auction
+                    '51405': ExchangeError, // Cancellation failed as you do not have any pending orders
+                    '51406': ExchangeError, // Canceled - order count exceeds the limit {0}
+                    '51407': BadRequest, // Either order ID or client order ID is required
+                    '51408': ExchangeError, // Pair ID or name does not match the order info
+                    '51409': ExchangeError, // Either pair ID or pair name ID is required
+                    '51410': CancelPending, // Cancellation failed as the order is already under cancelling status
+                    '51500': ExchangeError, // Either order price or amount is required
+                    '51501': ExchangeError, // Maximum {0} orders can be modified
+                    '51502': InsufficientFunds, // Order modification failed for insufficient margin
+                    '51503': ExchangeError, // Order modification failed as the order does not exist
+                    '51506': ExchangeError, // Order modification unavailable for the order type
+                    '51508': ExchangeError, // Orders are not allowed to be modified during the call auction
+                    '51509': ExchangeError, // Modification failed as the order has been canceled
+                    '51510': ExchangeError, // Modification failed as the order has been completed
+                    '51511': ExchangeError, // Modification failed as the order price did not meet the requirement for Post Only
+                    '51600': ExchangeError, // Status not found
+                    '51601': ExchangeError, // Order status and order ID cannot exist at the same time
+                    '51602': ExchangeError, // Either order status or order ID is required
+                    '51603': OrderNotFound, // Order does not exist
+                    '51732': AuthenticationError, // Required user KYC level not met
+                    '51733': AuthenticationError, // User is under risk control
+                    '51734': AuthenticationError, // User KYC Country is not supported
+                    '51735': ExchangeError, // Sub-account is not supported
+                    '51736': InsufficientFunds, // Insufficient {ccy} balance
+                    // Data class
+                    '52000': ExchangeError, // No updates
+                    // SPOT/MARGIN error codes 54000-54999
+                    '54000': ExchangeError, // Margin transactions unavailable
+                    '54001': ExchangeError, // Only Multi-currency margin account can be set to borrow coins automatically
+                    // FUNDING error codes 58000-58999
+                    '58000': ExchangeError, // Account type {0} does not supported when getting the sub-account balance
+                    '58001': AuthenticationError, // Incorrect trade password
+                    '58002': PermissionDenied, // Please activate Savings Account first
+                    '58003': ExchangeError, // Currency type is not supported by Savings Account
+                    '58004': AccountSuspended, // Account blocked (transfer & withdrawal endpoint: either end of the account does not authorize the transfer)
+                    '58005': ExchangeError, // The redeemed amount must be no greater than {0}
+                    '58006': ExchangeError, // Service unavailable for token {0}
+                    '58007': ExchangeError, // Abnormal Assets interface. Please try again later
+                    '58100': ExchangeError, // The trading product triggers risk control, and the platform has suspended the fund transfer-out function with related users. Please wait patiently
+                    '58101': AccountSuspended, // Transfer suspended (transfer endpoint: either end of the account does not authorize the transfer)
+                    '58102': RateLimitExceeded, // Too frequent transfer (transfer too frequently)
+                    '58103': ExchangeError, // Parent account user id does not match sub-account user id
+                    '58104': ExchangeError, // Since your P2P transaction is abnormal, you are restricted from making fund transfers. Please contact customer support to remove the restriction
+                    '58105': ExchangeError, // Since your P2P transaction is abnormal, you are restricted from making fund transfers. Please transfer funds on our website or app to complete identity verification
+                    '58106': ExchangeError, // Please enable the account for spot contract
+                    '58107': ExchangeError, // Please enable the account for futures contract
+                    '58108': ExchangeError, // Please enable the account for option contract
+                    '58109': ExchangeError, // Please enable the account for swap contract
+                    '58110': ExchangeError, // The contract triggers risk control, and the platform has suspended the fund transfer function of it. Please wait patiently
+                    '58111': ExchangeError, // Funds transfer unavailable as the perpetual contract is charging the funding fee. Please try again later
+                    '58112': ExchangeError, // Your fund transfer failed. Please try again later
+                    '58114': ExchangeError, // Transfer amount must be more than 0
+                    '58115': ExchangeError, // Sub-account does not exist
+                    '58116': ExchangeError, // Transfer amount exceeds the limit
+                    '58117': ExchangeError, // Account assets are abnormal, please deal with negative assets before transferring
+                    '58125': BadRequest, // Non-tradable assets can only be transferred from sub-accounts to main accounts
+                    '58126': BadRequest, // Non-tradable assets can only be transferred between funding accounts
+                    '58127': BadRequest, // Main account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
+                    '58128': BadRequest, // Sub-account API Key does not support current transfer 'type' parameter. Please refer to the API documentation.
+                    '58200': ExchangeError, // Withdrawal from {0} to {1} is unavailable for this currency
+                    '58201': ExchangeError, // Withdrawal amount exceeds the daily limit
+                    '58202': ExchangeError, // The minimum withdrawal amount for NEO is 1, and the amount must be an integer
+                    '58203': InvalidAddress, // Please add a withdrawal address
+                    '58204': AccountSuspended, // Withdrawal suspended
+                    '58205': ExchangeError, // Withdrawal amount exceeds the upper limit
+                    '58206': ExchangeError, // Withdrawal amount is lower than the lower limit
+                    '58207': InvalidAddress, // Withdrawal failed due to address error
+                    '58208': ExchangeError, // Withdrawal failed. Please link your email
+                    '58209': ExchangeError, // Withdrawal failed. Withdraw feature is not available for sub-accounts
+                    '58210': ExchangeError, // Withdrawal fee exceeds the upper limit
+                    '58211': ExchangeError, // Withdrawal fee is lower than the lower limit (withdrawal endpoint: incorrect fee)
+                    '58212': ExchangeError, // Withdrawal fee should be {0}% of the withdrawal amount
+                    '58213': AuthenticationError, // Please set trading password before withdrawal
+                    '58221': BadRequest, // Missing label of withdrawal address.
+                    '58222': BadRequest, // Illegal withdrawal address.
+                    '58224': BadRequest, // This type of crypto does not support on-chain withdrawing to OKX addresses. Please withdraw through internal transfers.
+                    '58227': BadRequest, // Withdrawal of non-tradable assets can be withdrawn all at once only
+                    '58228': BadRequest, // Withdrawal of non-tradable assets requires that the API Key must be bound to an IP
+                    '58229': InsufficientFunds, // Insufficient funding account balance to pay fees {fee} USDT
+                    '58300': ExchangeError, // Deposit-address count exceeds the limit
+                    '58350': InsufficientFunds, // Insufficient balance
+                    // Account error codes 59000-59999
+                    '59000': ExchangeError, // Your settings failed as you have positions or open orders
+                    '59001': ExchangeError, // Switching unavailable as you have borrowings
+                    '59100': ExchangeError, // You have open positions. Please cancel all open positions before changing the leverage
+                    '59101': ExchangeError, // You have pending orders with isolated positions. Please cancel all the pending orders and adjust the leverage
+                    '59102': ExchangeError, // Leverage exceeds the maximum leverage. Please adjust the leverage
+                    '59103': InsufficientFunds, // Leverage is too low and no sufficient margin in your account. Please adjust the leverage
+                    '59104': ExchangeError, // The leverage is too high. The borrowed position has exceeded the maximum position of this leverage. Please adjust the leverage
+                    '59105': ExchangeError, // Leverage can not be less than {0}. Please adjust the leverage
+                    '59106': ExchangeError, // The max available margin corresponding to your order tier is {0}. Please adjust your margin and place a new order
+                    '59107': ExchangeError, // You have pending orders under the service, please modify the leverage after canceling all pending orders
+                    '59108': InsufficientFunds, // Low leverage and insufficient margin, please adjust the leverage
+                    '59109': ExchangeError, // Account equity less than the required margin amount after adjustment. Please adjust the leverage
+                    '59128': InvalidOrder, // As a lead trader, you can't lead trades in {instrument} with leverage higher than {num}
+                    '59200': InsufficientFunds, // Insufficient account balance
+                    '59201': InsufficientFunds, // Negative account balance
+                    '59216': BadRequest, // The position doesn't exist. Please try again
+                    '59300': ExchangeError, // Margin call failed. Position does not exist
+                    '59301': ExchangeError, // Margin adjustment failed for exceeding the max limit
+                    '59313': ExchangeError, // Unable to repay. You haven't borrowed any {ccy} {ccyPair} in Quick margin mode.
+                    '59401': ExchangeError, // Holdings already reached the limit
+                    '59500': ExchangeError, // Only the APIKey of the main account has permission
+                    '59501': ExchangeError, // Only 50 APIKeys can be created per account
+                    '59502': ExchangeError, // Note name cannot be duplicate with the currently created APIKey note name
+                    '59503': ExchangeError, // Each APIKey can bind up to 20 IP addresses
+                    '59504': ExchangeError, // The sub account does not support the withdrawal function
+                    '59505': ExchangeError, // The passphrase format is incorrect
+                    '59506': ExchangeError, // APIKey does not exist
+                    '59507': ExchangeError, // The two accounts involved in a transfer must be two different sub accounts under the same parent account
+                    '59508': AccountSuspended, // The sub account of {0} is suspended
+                    // WebSocket error Codes from 60000-63999
+                    '60001': AuthenticationError, // "OK_ACCESS_KEY" can not be empty
+                    '60002': AuthenticationError, // "OK_ACCESS_SIGN" can not be empty
+                    '60003': AuthenticationError, // "OK_ACCESS_PASSPHRASE" can not be empty
+                    '60004': AuthenticationError, // Invalid OK_ACCESS_TIMESTAMP
+                    '60005': AuthenticationError, // Invalid OK_ACCESS_KEY
+                    '60006': InvalidNonce, // Timestamp request expired
+                    '60007': AuthenticationError, // Invalid sign
+                    '60008': AuthenticationError, // Login is not supported for public channels
+                    '60009': AuthenticationError, // Login failed
+                    '60010': AuthenticationError, // Already logged in
+                    '60011': AuthenticationError, // Please log in
+                    '60012': BadRequest, // Illegal request
+                    '60013': BadRequest, // Invalid args
+                    '60014': RateLimitExceeded, // Requests too frequent
+                    '60015': NetworkError, // Connection closed as there was no data transmission in the last 30 seconds
+                    '60016': ExchangeNotAvailable, // Buffer is full, cannot write data
+                    '60017': BadRequest, // Invalid url path
+                    '60018': BadRequest, // The {0} {1} {2} {3} {4} does not exist
+                    '60019': BadRequest, // Invalid op {op}
+                    '63999': ExchangeError, // Internal system error
+                    '70010': BadRequest, // Timestamp parameters need to be in Unix timestamp format in milliseconds.
+                    '70013': BadRequest, // endTs needs to be bigger than or equal to beginTs.
+                    '70016': BadRequest, // Please specify your instrument settings for at least one instType.
                 },
                 'broad': {
+                    'Internal Server Error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
+                    'server error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -548,13 +515,16 @@ export default class okcoin extends Exchange {
                 'fetchMarkets': [ 'spot' ],
                 'defaultType': 'spot', // 'account', 'spot', 'futures', 'swap', 'option'
                 'accountsByType': {
+                    'classic': '1',
                     'spot': '1',
                     'funding': '6',
                     'main': '6',
+                    'unified': '18',
                 },
                 'accountsById': {
                     '1': 'spot',
                     '6': 'funding',
+                    '18': 'unified',
                 },
                 'auth': {
                     'time': 'public',
@@ -1930,39 +1900,93 @@ export default class okcoin extends Exchange {
     async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
-         * @name okcoin#fetchDepositAddress
+         * @name okx#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
          * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the okcoin api endpoint
+         * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
-        await this.loadMarkets ();
-        const parts = code.split ('-');
-        const currency = this.currency (parts[0]);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.accountGetDepositAddress (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             address: '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
-        //             currency: 'eth'
-        //         }
-        //     ]
-        //
-        const addressesByCode = this.parseDepositAddresses (response, [ currency['code'] ]);
-        const address = this.safeValue (addressesByCode, code);
-        if (address === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
+        const rawNetwork = this.safeStringUpper (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        const network = this.safeString (networks, rawNetwork, rawNetwork);
+        params = this.omit (params, 'network');
+        const response = await this.fetchDepositAddressesByNetwork (code, params);
+        let result = undefined;
+        if (network === undefined) {
+            result = this.safeValue (response, code);
+            if (result === undefined) {
+                const alias = this.safeString (networks, code, code);
+                result = this.safeValue (response, alias);
+                if (result === undefined) {
+                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+                    result = this.safeValue (response, defaultNetwork);
+                    if (result === undefined) {
+                        const values = Object.values (response);
+                        result = this.safeValue (values, 0);
+                        if (result === undefined) {
+                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
+                        }
+                    }
+                }
+            }
+            return result;
         }
-        return address;
+        result = this.safeValue (response, network);
+        if (result === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
+        }
+        return result;
+    }
+
+    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchDepositAddressesByNetwork
+         * @description fetch a dictionary of addresses for a currency, indexed by network
+         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @returns {object} a dictionary of [address structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure} indexed by the network
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'ccy': currency['id'],
+        };
+        const response = await this.privateGetAssetDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "addr": "okbtothemoon",
+        //                 "memo": "971668", // may be missing
+        //                 "tag":"52055", // may be missing
+        //                 "pmtId": "", // may be missing
+        //                 "ccy": "BTC",
+        //                 "to": "6", // 1 SPOT, 3 FUTURES, 6 FUNDING, 9 SWAP, 12 OPTION, 18 Unified account
+        //                 "selected": true
+        //             },
+        //             // {"ccy":"usdt-erc20","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
+        //             // {"ccy":"usdt-trc20","to":"6","addr":"TRrd5SiSZrfQVRKm4e9SRSbn2LNTYqCjqx","selected":true},
+        //             // {"ccy":"usdt_okexchain","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
+        //             // {"ccy":"usdt_kip20","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const filtered = this.filterBy (data, 'selected', true);
+        const parsed = this.parseDepositAddresses (filtered, [ currency['code'] ], false);
+        return this.indexBy (parsed, 'network');
     }
 
     async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name okcoin#transfer
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
          * @description transfer currency internally between wallets on the same account
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
@@ -1977,72 +2001,138 @@ export default class okcoin extends Exchange {
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
-            'amount': this.currencyToPrecision (code, amount),
-            'currency': currency['id'],
-            'from': fromId, // 1 spot, 6 funding
-            'to': toId, // 1 spot, 6 funding
-            'type': '0', // 0 Transfer between accounts in the main account/sub_account, 1 main account to sub_account, 2 sub_account to main account
+            'ccy': currency['id'],
+            'amt': this.currencyToPrecision (code, amount),
+            'type': '0', // 0 = transfer within account by default, 1 = master account to sub-account, 2 = sub-account to master account, 3 = sub-account to master account (Only applicable to APIKey from sub-account), 4 = sub-account to sub-account
+            'from': fromId, // remitting account, 6: Funding account, 18: Trading account
+            'to': toId, // beneficiary account, 6: Funding account, 18: Trading account
+            // 'subAcct': 'sub-account-name', // optional, only required when type is 1, 2 or 4
+            // 'loanTrans': false, // Whether or not borrowed coins can be transferred out under Multi-currency margin and Portfolio margin. The default is false
+            // 'clientId': 'client-supplied id', // A combination of case-sensitive alphanumerics, all numbers, or all letters of up to 32 characters
+            // 'omitPosRisk': false, // Ignore position risk. Default is false. Applicable to Portfolio margin
         };
-        if (fromId === 'main') {
+        if (fromId === 'master') {
             request['type'] = '1';
-            request['sub_account'] = toId;
-            request['to'] = '0';
-        } else if (toId === 'main') {
+            request['subAcct'] = toId;
+            request['from'] = this.safeString (params, 'from', '6');
+            request['to'] = this.safeString (params, 'to', '6');
+        } else if (toId === 'master') {
             request['type'] = '2';
-            request['sub_account'] = fromId;
-            request['from'] = '0';
-            request['to'] = '6';
+            request['subAcct'] = fromId;
+            request['from'] = this.safeString (params, 'from', '6');
+            request['to'] = this.safeString (params, 'to', '6');
         }
-        const response = await this.accountPostTransfer (this.extend (request, params));
+        const response = await this.privatePostAssetTransfer (this.extend (request, params));
         //
-        //      {
-        //          "transfer_id": "754147",
-        //          "currency": "ETC",
-        //          "from": "6",
-        //          "amount": "0.1",
-        //          "to": "1",
-        //          "result": true
-        //      }
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "transId": "754147",
+        //                 "ccy": "USDT",
+        //                 "from": "6",
+        //                 "amt": "0.1",
+        //                 "to": "18"
+        //             }
+        //         ]
+        //     }
         //
-        return this.parseTransfer (response, currency);
+        const data = this.safeValue (response, 'data', []);
+        const rawTransfer = this.safeValue (data, 0, {});
+        return this.parseTransfer (rawTransfer, currency);
     }
 
     parseTransfer (transfer, currency = undefined) {
         //
-        //      {
-        //          "transfer_id": "754147",
-        //          "currency": "ETC",
-        //          "from": "6",
-        //          "amount": "0.1",
-        //          "to": "1",
-        //          "result": true
-        //      }
+        // transfer
         //
+        //     {
+        //         "transId": "754147",
+        //         "ccy": "USDT",
+        //         "from": "6",
+        //         "amt": "0.1",
+        //         "to": "18"
+        //     }
+        //
+        // fetchTransfer
+        //
+        //     {
+        //         "amt": "5",
+        //         "ccy": "USDT",
+        //         "from": "18",
+        //         "instId": "",
+        //         "state": "success",
+        //         "subAcct": "",
+        //         "to": "6",
+        //         "toInstId": "",
+        //         "transId": "464424732",
+        //         "type": "0"
+        //     }
+        //
+        // fetchTransfers
+        //
+        //     {
+        //         "bal": "70.6874353780312913",
+        //         "balChg": "-4.0000000000000000", // negative means "to funding", positive meand "from funding"
+        //         "billId": "588900695232225299",
+        //         "ccy": "USDT",
+        //         "execType": "",
+        //         "fee": "",
+        //         "from": "18",
+        //         "instId": "",
+        //         "instType": "",
+        //         "mgnMode": "",
+        //         "notes": "To Funding Account",
+        //         "ordId": "",
+        //         "pnl": "",
+        //         "posBal": "",
+        //         "posBalChg": "",
+        //         "price": "0",
+        //         "subType": "12",
+        //         "sz": "-4",
+        //         "to": "6",
+        //         "ts": "1686676866989",
+        //         "type": "1"
+        //     }
+        //
+        const id = this.safeString2 (transfer, 'transId', 'billId');
+        const currencyId = this.safeString (transfer, 'ccy');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        let amount = this.safeNumber (transfer, 'amt');
+        const fromAccountId = this.safeString (transfer, 'from');
+        const toAccountId = this.safeString (transfer, 'to');
         const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const timestamp = this.safeInteger (transfer, 'ts', this.milliseconds ());
+        const balanceChange = this.safeString (transfer, 'sz');
+        if (balanceChange !== undefined) {
+            amount = this.parseNumber (Precise.stringAbs (balanceChange));
+        }
         return {
             'info': transfer,
-            'id': this.safeString (transfer, 'transfer_id'),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'currency': this.safeCurrencyCode (this.safeString (transfer, 'currency'), currency),
-            'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': this.safeString (accountsById, this.safeString (transfer, 'from')),
-            'toAccount': this.safeString (accountsById, this.safeString (transfer, 'to')),
-            'status': this.parseTransferStatus (this.safeString (transfer, 'result')),
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': this.safeString (accountsById, fromAccountId),
+            'toAccount': this.safeString (accountsById, toAccountId),
+            'status': this.parseTransferStatus (this.safeString (transfer, 'state')),
         };
     }
 
     parseTransferStatus (status) {
         const statuses = {
-            'true': 'ok',
+            'success': 'ok',
         };
-        return this.safeString (statuses, status, 'failed');
+        return this.safeString (statuses, status, status);
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#withdraw
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
          * @description make a withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
@@ -2055,47 +2145,57 @@ export default class okcoin extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (tag) {
+        if ((tag !== undefined) && (tag.length > 0)) {
             address = address + ':' + tag;
         }
-        const fee = this.safeString (params, 'fee');
-        if (fee === undefined) {
-            throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
-        }
         const request = {
-            'currency': currency['id'],
-            'to_address': address,
-            'destination': '4', // 2 = OKCoin International, 3 = OKEx 4 = others
-            'amount': this.numberToString (amount),
-            'fee': fee, // String. Network transaction fee ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set as 0. Withdrawal to external digital asset address requires network transaction fee.
+            'ccy': currency['id'],
+            'toAddr': address,
+            'dest': '4',
+            'amt': this.numberToString (amount),
         };
-        if ('password' in params) {
-            request['trade_pwd'] = params['password'];
-        } else if ('trade_pwd' in params) {
-            request['trade_pwd'] = params['trade_pwd'];
-        } else if (this.password) {
-            request['trade_pwd'] = this.password;
+        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        if (network !== undefined) {
+            const networks = this.safeValue (this.options, 'networks', {});
+            network = this.safeString (networks, network.toUpperCase (), network); // handle ETH>ERC20 alias
+            request['chain'] = currency['id'] + '-' + network;
+            params = this.omit (params, 'network');
         }
-        const query = this.omit (params, [ 'fee', 'password', 'trade_pwd' ]);
-        if (!('trade_pwd' in request)) {
-            throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a password / trade_pwd parameter');
+        let fee = this.safeString (params, 'fee');
+        if (fee === undefined) {
+            const currencies = await this.fetchCurrencies ();
+            this.currencies = this.deepExtend (this.currencies, currencies);
+            const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (network), {});
+            fee = this.safeString (targetNetwork, 'fee');
+            if (fee === undefined) {
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
+            }
         }
-        const response = await this.accountPostWithdrawal (this.extend (request, query));
+        request['fee'] = this.numberToString (fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
+        const response = await this.privatePostAssetWithdrawal (this.extend (request, params));
         //
         //     {
-        //         "amount":"0.1",
-        //         "withdrawal_id":"67485",
-        //         "currency":"btc",
-        //         "result":true
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "amt": "0.1",
+        //                 "wdId": "67485",
+        //                 "ccy": "BTC"
+        //             }
+        //         ]
         //     }
         //
-        return this.parseTransaction (response, currency);
+        const data = this.safeValue (response, 'data', []);
+        const transaction = this.safeValue (data, 0);
+        return this.parseTransaction (transaction, currency);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchDeposits
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
          * @description fetch all deposits made to an account
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
@@ -2104,22 +2204,73 @@ export default class okcoin extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
-        let method = 'accountGetDepositHistory';
+        let request = {
+            // 'ccy': currency['id'],
+            // 'state': 2, // 0 waiting for confirmation, 1 deposit credited, 2 deposit successful
+            // 'after': since,
+            // 'before' this.milliseconds (),
+            // 'limit': limit, // default 100, max 100
+        };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
-            method += 'Currency';
+            request['ccy'] = currency['id'];
         }
-        const response = await this[method] (this.extend (request, params));
-        return this.parseTransactions (response, currency, since, limit, params);
+        if (since !== undefined) {
+            request['before'] = Math.max (since - 1, 0);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
+        [ request, params ] = this.handleUntilOption ('after', request, params);
+        const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "amt": "0.01044408",
+        //                 "txId": "1915737_3_0_0_asset",
+        //                 "ccy": "BTC",
+        //                 "from": "13801825426",
+        //                 "to": "",
+        //                 "ts": "1597026383085",
+        //                 "state": "2",
+        //                 "depId": "4703879"
+        //             },
+        //             {
+        //                 "amt": "491.6784211",
+        //                 "txId": "1744594_3_184_0_asset",
+        //                 "ccy": "OKB",
+        //                 "from": "",
+        //                 "to": "",
+        //                 "ts": "1597026383085",
+        //                 "state": "2",
+        //                 "depId": "4703809"
+        //             },
+        //             {
+        //                 "amt": "223.18782496",
+        //                 "txId": "6d892c669225b1092c780bf0da0c6f912fc7dc8f6b8cc53b003288624c",
+        //                 "ccy": "USDT",
+        //                 "from": "",
+        //                 "to": "39kK4XvgEuM7rX9frgyHoZkWqx4iKu1spD",
+        //                 "ts": "1597026383085",
+        //                 "state": "2",
+        //                 "depId": "4703779"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit, params);
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchWithdrawals
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
          * @description fetch all withdrawals made from an account
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
@@ -2128,16 +2279,58 @@ export default class okcoin extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
-        let method = 'accountGetWithdrawalHistory';
+        let request = {
+            // 'ccy': currency['id'],
+            // 'state': 2, // -3: pending cancel, -2 canceled, -1 failed, 0, pending, 1 sending, 2 sent, 3 awaiting email verification, 4 awaiting manual verification, 5 awaiting identity verification
+            // 'after': since,
+            // 'before': this.milliseconds (),
+            // 'limit': limit, // default 100, max 100
+        };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
-            method += 'Currency';
+            request['ccy'] = currency['id'];
         }
-        const response = await this[method] (this.extend (request, params));
-        return this.parseTransactions (response, currency, since, limit, params);
+        if (since !== undefined) {
+            request['before'] = Math.max (since - 1, 0);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
+        [ request, params ] = this.handleUntilOption ('after', request, params);
+        const response = await this.privateGetAssetWithdrawalHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "amt": "0.094",
+        //                 "wdId": "4703879",
+        //                 "fee": "0.01000000eth",
+        //                 "txId": "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
+        //                 "ccy": "ETH",
+        //                 "from": "13426335357",
+        //                 "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
+        //                 "ts": "1597026383085",
+        //                 "state": "2"
+        //             },
+        //             {
+        //                 "amt": "0.01",
+        //                 "wdId": "4703879",
+        //                 "fee": "0.00000000btc",
+        //                 "txId": "",
+        //                 "ccy": "BTC",
+        //                 "from": "13426335357",
+        //                 "to": "13426335357",
+        //                 "ts": "1597026383085",
+        //                 "state": "2"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit, params);
     }
 
     parseTransactionStatus (status) {
@@ -2183,76 +2376,68 @@ export default class okcoin extends Exchange {
         // withdraw
         //
         //     {
-        //         "amount":"0.1",
-        //         "withdrawal_id":"67485",
-        //         "currency":"btc",
-        //         "result":true
+        //         "amt": "0.1",
+        //         "wdId": "67485",
+        //         "ccy": "BTC"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         amount: "4.72100000",
-        //         withdrawal_id: "1729116",
-        //         fee: "0.01000000eth",
-        //         txid: "0xf653125bbf090bcfe4b5e8e7b8f586a9d87aa7de94598702758c0802b…",
-        //         currency: "ETH",
-        //         from: "7147338839",
-        //         to: "0x26a3CB49578F07000575405a57888681249c35Fd",
-        //         timestamp: "2018-08-17T07:03:42.000Z",
-        //         status: "2"
+        //         "amt": "0.094",
+        //         "wdId": "4703879",
+        //         "fee": "0.01000000eth",
+        //         "txId": "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
+        //         "ccy": "ETH",
+        //         "from": "13426335357",
+        //         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
+        //         'tag',
+        //         'pmtId',
+        //         'memo',
+        //         "ts": "1597026383085",
+        //         "state": "2"
         //     }
         //
         // fetchDeposits
         //
         //     {
-        //         "amount": "4.19511659",
-        //         "txid": "14c9a8c925647cdb7e5b2937ea9aefe2b29b2c273150ad3f44b3b8a4635ed437",
-        //         "currency": "XMR",
-        //         "from": "",
-        //         "to": "48PjH3ksv1fiXniKvKvyH5UtFs5WhfS2Vf7U3TwzdRJtCc7HJWvCQe56dRahyhQyTAViXZ8Nzk4gQg6o4BJBMUoxNy8y8g7",
-        //         "tag": "1234567",
-        //         "deposit_id": 11571659, <-- we can use this
-        //         "timestamp": "2019-10-01T14:54:19.000Z",
-        //         "status": "2"
+        //         "amt": "0.01044408",
+        //         "txId": "1915737_3_0_0_asset",
+        //         "ccy": "BTC",
+        //         "from": "13801825426",
+        //         "to": "",
+        //         "ts": "1597026383085",
+        //         "state": "2",
+        //         "depId": "4703879"
         //     }
         //
         let type = undefined;
         let id = undefined;
-        let address = undefined;
-        const withdrawalId = this.safeString (transaction, 'withdrawal_id');
+        const withdrawalId = this.safeString (transaction, 'wdId');
         const addressFrom = this.safeString (transaction, 'from');
         const addressTo = this.safeString (transaction, 'to');
-        const tagTo = this.safeString (transaction, 'tag');
+        const address = addressTo;
+        let tagTo = this.safeString2 (transaction, 'tag', 'memo');
+        tagTo = this.safeString2 (transaction, 'pmtId', tagTo);
         if (withdrawalId !== undefined) {
             type = 'withdrawal';
             id = withdrawalId;
-            address = addressTo;
         } else {
             // the payment_id will appear on new deposits but appears to be removed from the response after 2 months
-            id = this.safeString2 (transaction, 'payment_id', 'deposit_id');
+            id = this.safeString (transaction, 'depId');
             type = 'deposit';
-            address = addressTo;
         }
-        const currencyId = this.safeString (transaction, 'currency');
+        const currencyId = this.safeString (transaction, 'ccy');
         const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeNumber (transaction, 'amount');
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const txid = this.safeString (transaction, 'txid');
-        const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
+        const amount = this.safeNumber (transaction, 'amt');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const txid = this.safeString (transaction, 'txId');
+        const timestamp = this.safeInteger (transaction, 'ts');
         let feeCost = undefined;
         if (type === 'deposit') {
             feeCost = 0;
         } else {
-            if (currencyId !== undefined) {
-                const feeWithCurrencyId = this.safeString (transaction, 'fee');
-                if (feeWithCurrencyId !== undefined) {
-                    // https://github.com/ccxt/ccxt/pull/5748
-                    const lowercaseCurrencyId = currencyId.toLowerCase ();
-                    const feeWithoutCurrencyId = feeWithCurrencyId.replace (lowercaseCurrencyId, '');
-                    feeCost = parseFloat (feeWithoutCurrencyId);
-                }
-            }
+            feeCost = this.safeNumber (transaction, 'fee');
         }
         // todo parse tags
         return {
@@ -2341,6 +2526,9 @@ export default class okcoin extends Exchange {
         /**
          * @method
          * @name okcoin#fetchLedger
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-asset-bills-details
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
@@ -2349,286 +2537,173 @@ export default class okcoin extends Exchange {
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchLedger', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        const suffix = (type === 'account') ? '' : 'Accounts';
-        let argument = '';
-        const request = {
-            // 'from': 'id',
-            // 'to': 'id',
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'method', 'privateGetAccountBills');
+        let request = {
+            // 'instType': undefined, // 'SPOT', 'MARGIN', 'SWAP', 'FUTURES", 'OPTION'
+            // 'ccy': undefined, // currency['id'],
+            // 'ctType': undefined, // 'linear', 'inverse', only applicable to FUTURES/SWAP
+            // 'type': varies depending the 'method' endpoint :
+            //     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+            //     - https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
+            //     - https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+            // 'after': 'id', // return records earlier than the requested bill id
+            // 'before': 'id', // return records newer than the requested bill id
+            // 'limit': 100, // default 100, max 100
         };
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
+        if (type !== undefined) {
+            request['instType'] = this.convertToInstrumentType (type);
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         let currency = undefined;
-        if (type === 'spot') {
-            if (code === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchLedger() requires a currency code argument for "' + type + '" markets');
-            }
-            argument = 'Currency';
+        if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
-        } else if (type === 'futures') {
-            if (code === undefined) {
-                throw new ArgumentsRequired (this.id + " fetchLedger() requires an underlying symbol for '" + type + "' markets");
-            }
-            argument = 'Underlying';
-            const market = this.market (code); // we intentionally put a market inside here for the swap ledgers
-            const marketInfo = this.safeValue (market, 'info', {});
-            const settlementCurrencyId = this.safeString (marketInfo, 'settlement_currency');
-            const settlementCurrencyCode = this.safeCurrencyCode (settlementCurrencyId);
-            currency = this.currency (settlementCurrencyCode);
-            const underlyingId = this.safeString (marketInfo, 'underlying');
-            request['underlying'] = underlyingId;
-        } else if (type === 'swap') {
-            if (code === undefined) {
-                throw new ArgumentsRequired (this.id + " fetchLedger() requires a code argument (a market symbol) for '" + type + "' markets");
-            }
-            argument = 'InstrumentId';
-            const market = this.market (code); // we intentionally put a market inside here for the swap ledgers
-            currency = this.currency (market['base']);
-            request['instrument_id'] = market['id'];
-            //
-            //     if (type === 'margin') {
-            //         //
-            //         //      3. Borrow
-            //         //      4. Repayment
-            //         //      5. Interest
-            //         //      7. Buy
-            //         //      8. Sell
-            //         //      9. From capital account
-            //         //     10. From C2C
-            //         //     11. From Futures
-            //         //     12. From Spot
-            //         //     13. From ETT
-            //         //     14. To capital account
-            //         //     15. To C2C
-            //         //     16. To Spot
-            //         //     17. To Futures
-            //         //     18. To ETT
-            //         //     19. Mandatory Repayment
-            //         //     20. From Piggybank
-            //         //     21. To Piggybank
-            //         //     22. From Perpetual
-            //         //     23. To Perpetual
-            //         //     24. Liquidation Fee
-            //         //     54. Clawback
-            //         //     59. Airdrop Return.
-            //         //
-            //         request['type'] = 'number'; // All types will be returned if this filed is left blank
-            //     }
-            //
-        } else if (type === 'account') {
-            if (code !== undefined) {
-                currency = this.currency (code);
-                request['currency'] = currency['id'];
-            }
-            //
-            //     //
-            //     //      1. deposit
-            //     //      2. withdrawal
-            //     //     13. cancel withdrawal
-            //     //     18. into futures account
-            //     //     19. out of futures account
-            //     //     20. into sub account
-            //     //     21. out of sub account
-            //     //     28. claim
-            //     //     29. into ETT account
-            //     //     30. out of ETT account
-            //     //     31. into C2C account
-            //     //     32. out of C2C account
-            //     //     33. into margin account
-            //     //     34. out of margin account
-            //     //     37. into spot account
-            //     //     38. out of spot account
-            //     //
-            //     request['type'] = 'number';
-            //
-        } else {
-            throw new NotSupported (this.id + " fetchLedger does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
+            request['ccy'] = currency['id'];
         }
-        const method = type + 'Get' + suffix + argument + 'Ledger';
+        [ request, params ] = this.handleUntilOption ('end', request, params);
         const response = await this[method] (this.extend (request, query));
         //
-        // transfer     funds transfer in/out
-        // trade        funds moved as a result of a trade, spot accounts only
-        // rebate       fee rebate as per fee schedule, spot accounts only
-        // match        open long/open short/close long/close short (futures) or a change in the amount because of trades (swap)
-        // fee          fee, futures only
-        // settlement   settlement/clawback/settle long/settle short
-        // liquidation  force close long/force close short/deliver close long/deliver close short
-        // funding      funding fee, swap only
-        // margin       a change in the amount after adjusting margin, swap only
+        // privateGetAccountBills, privateGetAccountBillsArchive
         //
-        // account
-        //
-        //     [
-        //         {
-        //             "amount":0.00051843,
-        //             "balance":0.00100941,
-        //             "currency":"BTC",
-        //             "fee":0,
-        //             "ledger_id":8987285,
-        //             "timestamp":"2018-10-12T11:01:14.000Z",
-        //             "typename":"Get from activity"
-        //         }
-        //     ]
-        //
-        // spot
-        //
-        //     [
-        //         {
-        //             "timestamp":"2019-03-18T07:08:25.000Z",
-        //             "ledger_id":"3995334780",
-        //             "created_at":"2019-03-18T07:08:25.000Z",
-        //             "currency":"BTC",
-        //             "amount":"0.0009985",
-        //             "balance":"0.0029955",
-        //             "type":"trade",
-        //             "details":{
-        //                 "instrument_id":"BTC-USDT",
-        //                 "order_id":"2500650881647616",
-        //                 "product_id":"BTC-USDT"
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "bal": "0.0000819307998198",
+        //                 "balChg": "-664.2679586599999802",
+        //                 "billId": "310394313544966151",
+        //                 "ccy": "USDT",
+        //                 "fee": "0",
+        //                 "from": "",
+        //                 "instId": "LTC-USDT",
+        //                 "instType": "SPOT",
+        //                 "mgnMode": "cross",
+        //                 "notes": "",
+        //                 "ordId": "310394313519800320",
+        //                 "pnl": "0",
+        //                 "posBal": "0",
+        //                 "posBalChg": "0",
+        //                 "subType": "2",
+        //                 "sz": "664.26795866",
+        //                 "to": "",
+        //                 "ts": "1620275771196",
+        //                 "type": "2"
         //             }
-        //         }
-        //     ]
+        //         ]
+        //     }
         //
-        // futures
+        // privateGetAssetBills
         //
-        //     [
-        //         {
-        //             "ledger_id":"2508090544914461",
-        //             "timestamp":"2019-03-19T14:40:24.000Z",
-        //             "amount":"-0.00529521",
-        //             "balance":"0",
-        //             "currency":"EOS",
-        //             "type":"fee",
-        //             "details":{
-        //                 "order_id":"2506982456445952",
-        //                 "instrument_id":"EOS-USD-190628"
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "billId": "12344",
+        //                 "ccy": "BTC",
+        //                 "balChg": "2",
+        //                 "bal": "12",
+        //                 "type": "1",
+        //                 "ts": "1597026383085"
         //             }
-        //         }
-        //     ]
+        //         ]
+        //     }
         //
-        // swap
-        //
-        //     [
-        //         {
-        //             "amount":"0.004742",
-        //             "fee":"-0.000551",
-        //             "type":"match",
-        //             "instrument_id":"EOS-USD-SWAP",
-        //             "ledger_id":"197429674941902848",
-        //             "timestamp":"2019-03-25T05:56:31.286Z"
-        //         },
-        //     ]
-        //
-        const responseLength = response.length;
-        if (responseLength < 1) {
-            return [];
-        }
-        if (type === 'swap') {
-            const ledgerEntries = this.parseLedger (response);
-            return this.filterBySymbolSinceLimit (ledgerEntries, code, since, limit);
-        }
-        return this.parseLedger (response, currency, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseLedger (data, currency, since, limit);
+    }
+
+    convertToInstrumentType (type) {
+        const exchangeTypes = this.safeValue (this.options, 'exchangeType', {});
+        return this.safeString (exchangeTypes, type, type);
     }
 
     parseLedgerEntryType (type) {
         const types = {
-            'transfer': 'transfer', // funds transfer in/out
-            'trade': 'trade', // funds moved as a result of a trade, spot accounts only
-            'rebate': 'rebate', // fee rebate as per fee schedule, spot accounts only
-            'match': 'trade', // open long/open short/close long/close short (futures) or a change in the amount because of trades (swap)
-            'fee': 'fee', // fee, futures only
-            'settlement': 'trade', // settlement/clawback/settle long/settle short
-            'liquidation': 'trade', // force close long/force close short/deliver close long/deliver close short
-            'funding': 'fee', // funding fee, swap only
-            'margin': 'margin', // a change in the amount after adjusting margin, swap only
+            '1': 'transfer', // transfer
+            '2': 'trade', // trade
+            '3': 'trade', // delivery
+            '4': 'rebate', // auto token conversion
+            '5': 'trade', // liquidation
+            '6': 'transfer', // margin transfer
+            '7': 'trade', // interest deduction
+            '8': 'fee', // funding rate
+            '9': 'trade', // adl
+            '10': 'trade', // clawback
+            '11': 'trade', // system token conversion
         };
         return this.safeString (types, type, type);
     }
 
     parseLedgerEntry (item, currency = undefined) {
         //
-        //
-        // account
+        // privateGetAccountBills, privateGetAccountBillsArchive
         //
         //     {
-        //         "amount":0.00051843,
-        //         "balance":0.00100941,
-        //         "currency":"BTC",
-        //         "fee":0,
-        //         "ledger_id":8987285,
-        //         "timestamp":"2018-10-12T11:01:14.000Z",
-        //         "typename":"Get from activity"
+        //         "bal": "0.0000819307998198",
+        //         "balChg": "-664.2679586599999802",
+        //         "billId": "310394313544966151",
+        //         "ccy": "USDT",
+        //         "fee": "0",
+        //         "from": "",
+        //         "instId": "LTC-USDT",
+        //         "instType": "SPOT",
+        //         "mgnMode": "cross",
+        //         "notes": "",
+        //         "ordId": "310394313519800320",
+        //         "pnl": "0",
+        //         "posBal": "0",
+        //         "posBalChg": "0",
+        //         "subType": "2",
+        //         "sz": "664.26795866",
+        //         "to": "",
+        //         "ts": "1620275771196",
+        //         "type": "2"
         //     }
         //
-        // spot
+        // privateGetAssetBills
         //
         //     {
-        //         "timestamp":"2019-03-18T07:08:25.000Z",
-        //         "ledger_id":"3995334780",
-        //         "created_at":"2019-03-18T07:08:25.000Z",
-        //         "currency":"BTC",
-        //         "amount":"0.0009985",
-        //         "balance":"0.0029955",
-        //         "type":"trade",
-        //         "details":{
-        //             "instrument_id":"BTC-USDT",
-        //             "order_id":"2500650881647616",
-        //             "product_id":"BTC-USDT"
-        //         }
+        //         "billId": "12344",
+        //         "ccy": "BTC",
+        //         "balChg": "2",
+        //         "bal": "12",
+        //         "type": "1",
+        //         "ts": "1597026383085"
         //     }
         //
-        // futures
-        //
-        //     {
-        //         "ledger_id":"2508090544914461",
-        //         "timestamp":"2019-03-19T14:40:24.000Z",
-        //         "amount":"-0.00529521",
-        //         "balance":"0",
-        //         "currency":"EOS",
-        //         "type":"fee",
-        //         "details":{
-        //             "order_id":"2506982456445952",
-        //             "instrument_id":"EOS-USD-190628"
-        //         }
-        //     }
-        //
-        // swap
-        //
-        //     {
-        //         "amount":"0.004742",
-        //         "fee":"-0.000551",
-        //         "type":"match",
-        //         "instrument_id":"EOS-USD-SWAP",
-        //         "ledger_id":"197429674941902848",
-        //         "timestamp":"2019-03-25T05:56:31.286Z"
-        //     },
-        //
-        const id = this.safeString (item, 'ledger_id');
+        const id = this.safeString (item, 'billId');
         const account = undefined;
-        const details = this.safeValue (item, 'details', {});
-        const referenceId = this.safeString (details, 'order_id');
+        const referenceId = this.safeString (item, 'ordId');
         const referenceAccount = undefined;
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
-        const code = this.safeCurrencyCode (this.safeString (item, 'currency'), currency);
-        const amount = this.safeNumber (item, 'amount');
-        const timestamp = this.parse8601 (this.safeString (item, 'timestamp'));
-        const fee = {
-            'cost': this.safeNumber (item, 'fee'),
-            'currency': code,
-        };
+        const code = this.safeCurrencyCode (this.safeString (item, 'ccy'), currency);
+        const amountString = this.safeString (item, 'balChg');
+        const amount = this.parseNumber (amountString);
+        const timestamp = this.safeInteger (item, 'ts');
+        const feeCostString = this.safeString (item, 'fee');
+        let fee = undefined;
+        if (feeCostString !== undefined) {
+            fee = {
+                'cost': this.parseNumber (Precise.stringNeg (feeCostString)),
+                'currency': code,
+            };
+        }
         const before = undefined;
-        const after = this.safeNumber (item, 'balance');
+        const afterString = this.safeString (item, 'bal');
+        const after = this.parseNumber (afterString);
         const status = 'ok';
-        const marketId = this.safeString (item, 'instrument_id');
-        const symbol = this.safeSymbol (marketId);
+        const marketId = this.safeString (item, 'instId');
+        const symbol = this.safeSymbol (marketId, undefined, '-');
         return {
-            'info': item,
             'id': id,
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'account': account,
             'referenceId': referenceId,
             'referenceAccount': referenceAccount,
@@ -2639,8 +2714,6 @@ export default class okcoin extends Exchange {
             'before': before, // balance before
             'after': after, // balance after
             'status': status,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
             'fee': fee,
         };
     }
@@ -2699,30 +2772,50 @@ export default class okcoin extends Exchange {
         return this.safeString (auth, key, 'private');
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    parseBalanceByType (type, response) {
+        if (type === 'funding') {
+            return this.parseFundingBalance (response);
+        } else {
+            return this.parseTradingBalance (response);
+        }
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
         }
-        const feedback = this.id + ' ' + body;
-        if (code === 503) {
-            // {"message":"name resolution failed"}
-            throw new ExchangeNotAvailable (feedback);
-        }
         //
-        //     {"error_message":"Order does not exist","result":"true","error_code":"35029","order_id":"-1"}
+        //    {
+        //        "code": "1",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "",
+        //                "sCode": "51119",
+        //                "sMsg": "Order placement failed due to insufficient balance. ",
+        //                "tag": ""
+        //            }
+        //        ],
+        //        "msg": ""
+        //    },
+        //    {
+        //        "code": "58001",
+        //        "data": [],
+        //        "msg": "Incorrect trade password"
+        //    }
         //
-        const message = this.safeString (response, 'message');
-        const errorCode = this.safeString2 (response, 'code', 'error_code');
-        const nonEmptyMessage = ((message !== undefined) && (message !== ''));
-        const nonZeroErrorCode = (errorCode !== undefined) && (errorCode !== '0');
-        if (nonEmptyMessage) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-        }
-        if (nonZeroErrorCode) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-        }
-        if (nonZeroErrorCode || nonEmptyMessage) {
+        const code = this.safeString (response, 'code');
+        if (code !== '0') {
+            const feedback = this.id + ' ' + body;
+            const data = this.safeValue (response, 'data', []);
+            for (let i = 0; i < data.length; i++) {
+                const error = data[i];
+                const errorCode = this.safeString (error, 'sCode');
+                const message = this.safeString (error, 'sMsg');
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            }
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
         return undefined;
