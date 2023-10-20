@@ -48,8 +48,8 @@ export default class okcoin extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': true,
-                'fetchPosition': true,
-                'fetchPositions': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -2886,14 +2886,12 @@ export default class okcoin extends Exchange {
         const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let url = this.implodeHostname (this.urls['api']['rest']) + request;
-        // const type = this.getPathAuthenticationType (path);
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            // inject id in implicit api call
             const timestamp = this.iso8601 (this.milliseconds ());
             headers = {
                 'OK-ACCESS-KEY': this.apiKey,
@@ -2921,18 +2919,6 @@ export default class okcoin extends Exchange {
             headers['OK-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    getPathAuthenticationType (path) {
-        // https://github.com/ccxt/ccxt/issues/6651
-        // a special case to handle the optionGetUnderlying interefering with
-        // other endpoints containing this keyword
-        if (path === 'underlying') {
-            return 'public';
-        }
-        const auth = this.safeValue (this.options, 'auth', {});
-        const key = this.findBroadlyMatchedKey (auth, path);
-        return this.safeString (auth, key, 'private');
     }
 
     parseBalanceByType (type, response) {
