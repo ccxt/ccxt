@@ -141,6 +141,10 @@ def exception_message(exc):
     return message
 
 
+def getExactExceptionName(exc):
+    return type(exc).__name__
+
+
 def exit_script():
     exit(0)
 
