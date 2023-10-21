@@ -141,8 +141,8 @@ def exception_message(exc):
     return message
 
 
-def getExactExceptionName(exc):
-    return type(exc).__name__
+def compareExactExceptionType(exc, exceptionType):
+    return type(exc) == exceptionType
 
 
 def exit_script():

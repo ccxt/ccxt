@@ -72,9 +72,9 @@ function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice (0, LOG_CHARS_LENGTH);
 }
 
-function getExactExceptionName (exc) {
+function compareExactExceptionType (exc, exceptionType) {
     // we want to avoid "instanceof" because it also checks subclasses and we want to check only exact class
-    return exc.constructor.name;
+    return exc.constructor === exceptionType;
 }
 
 function exitScript () {
@@ -283,12 +283,12 @@ export default class testMainClass extends baseMainTestClass {
                 await this.testMethod (methodName, exchange, args, isPublic);
                 return true;
             } catch (e) {
-                const isAuthError = getExactExceptionName (e) === 'AuthenticationError';
-                const isRateLimitExceeded = getExactExceptionName (e) === 'RateLimitExceeded';
-                const isNetworkError = getExactExceptionName (e) === 'NetworkError';
-                const isDDoSProtection = getExactExceptionName (e) === 'DDoSProtection';
-                const isRequestTimeout = getExactExceptionName (e) === 'RequestTimeout';
-                const isNotSupported = getExactExceptionName (e) === 'NotSupported';
+                const isAuthError = compareExactExceptionType (e, AuthenticationError);
+                const isRateLimitExceeded = compareExactExceptionType (e, RateLimitExceeded);
+                const isNetworkError = compareExactExceptionType (e, NetworkError);
+                const isDDoSProtection = compareExactExceptionType (e, DDoSProtection);
+                const isRequestTimeout = compareExactExceptionType (e, RequestTimeout);
+                const isNotSupported = compareExactExceptionType (e, NotSupported);
                 const tempFailure = (isRateLimitExceeded || isNetworkError || isDDoSProtection || isRequestTimeout);
                 if (tempFailure) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
@@ -299,7 +299,7 @@ export default class testMainClass extends baseMainTestClass {
                         await exchange.sleep (i * 1000); // increase wait seconds on every retry
                         continue;
                     }
-                } else if (getExactExceptionName (e) === 'OnMaintenance') {
+                } else if (compareExactExceptionType (e, OnMaintenance)) {
                     // in case of maintenance, skip exchange (don't fail the test)
                     dump ('[TEST_WARNING] Exchange is on maintenance', exchange.id);
                 }

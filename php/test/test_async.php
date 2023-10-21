@@ -109,11 +109,10 @@ function exception_message($exc) {
 }
 
 
-function getExactExceptionName($exc) {
-    $classFullName = get_class($exc); // i.e. 'ccxt\AuthenticationError'
-    $classParts = explode('\\', $classFullName);
-    $className = $classParts[count($classParts) - 1]; // i.e. 'AuthenticationError'
-    return $className;
+function compareExactExceptionType($exc, $exceptionType) {
+    $classFullName = get_class($exc);
+    $exceptionClassName = get_class($exceptionType);
+    return $classFullName === $exceptionClassName;
 }
 
 
