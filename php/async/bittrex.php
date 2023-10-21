@@ -624,7 +624,7 @@ class bittrex extends Exchange {
                 $ticker = $this->parse_ticker($response[$i]);
                 $tickers[] = $ticker;
             }
-            return $this->filter_by_array($tickers, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -1917,8 +1917,8 @@ class bittrex extends Exchange {
                 $request['marketSymbol'] = $market['id'];
             }
             $response = Async\await($this->privateGetExecutions (array_merge($request, $params)));
-            $trades = $this->parse_trades($response, $market);
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            $trades = $this->parse_trades($response, $market, $since, $limit);
+            return $trades;
         }) ();
     }
 

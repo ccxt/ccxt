@@ -1216,7 +1216,7 @@ class bitmart extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
@@ -2180,12 +2180,11 @@ class bitmart extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $order = $this->parse_order($data, $market);
-        return array_merge($order, array(
-            'type' => $type,
-            'side' => $side,
-            'amount' => $amount,
-            'price' => $price,
-        ));
+        $order['type'] = $type;
+        $order['side'] = $side;
+        $order['amount'] = $amount;
+        $order['price'] = $price;
+        return $order;
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {

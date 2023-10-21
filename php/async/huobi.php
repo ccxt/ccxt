@@ -2106,7 +2106,7 @@ class huobi extends Exchange {
                 $ticker['datetime'] = $this->iso8601($timestamp);
                 $result[$symbol] = $ticker;
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -3885,13 +3885,11 @@ class huobi extends Exchange {
             if ($contract && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument for ' . $marketType . ' orders');
             }
-            $response = null;
             if ($contract) {
-                $response = Async\await($this->fetch_contract_orders($symbol, $since, $limit, $params));
+                return Async\await($this->fetch_contract_orders($symbol, $since, $limit, $params));
             } else {
-                $response = Async\await($this->fetch_spot_orders($symbol, $since, $limit, $params));
+                return Async\await($this->fetch_spot_orders($symbol, $since, $limit, $params));
             }
-            return $response;
         }) ();
     }
 
@@ -3925,13 +3923,11 @@ class huobi extends Exchange {
             }
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
-            $response = null;
             if ($marketType === 'spot') {
-                $response = Async\await($this->fetch_closed_spot_orders($symbol, $since, $limit, $params));
+                return Async\await($this->fetch_closed_spot_orders($symbol, $since, $limit, $params));
             } else {
-                $response = Async\await($this->fetch_closed_contract_orders($symbol, $since, $limit, $params));
+                return Async\await($this->fetch_closed_contract_orders($symbol, $since, $limit, $params));
             }
-            return $response;
         }) ();
     }
 
@@ -4621,13 +4617,11 @@ class huobi extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
-            $response = null;
             if ($marketType === 'spot') {
-                $response = Async\await($this->create_spot_order($symbol, $type, $side, $amount, $price, $query));
+                return Async\await($this->create_spot_order($symbol, $type, $side, $amount, $price, $query));
             } else {
-                $response = Async\await($this->create_contract_order($symbol, $type, $side, $amount, $price, $query));
+                return Async\await($this->create_contract_order($symbol, $type, $side, $amount, $price, $query));
             }
-            return $response;
         }) ();
     }
 
@@ -4737,7 +4731,7 @@ class huobi extends Exchange {
             //     array("status":"ok","data":"438398393065481")
             //
             $id = $this->safe_string($response, 'data');
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $id,
                 'timestamp' => null,
@@ -4745,10 +4739,10 @@ class huobi extends Exchange {
                 'lastTradeTimestamp' => null,
                 'status' => null,
                 'symbol' => null,
-                'type' => null,
-                'side' => null,
-                'price' => null,
-                'amount' => null,
+                'type' => $type,
+                'side' => $side,
+                'price' => $price,
+                'amount' => $amount,
                 'filled' => null,
                 'remaining' => null,
                 'cost' => null,
@@ -4756,7 +4750,7 @@ class huobi extends Exchange {
                 'fee' => null,
                 'clientOrderId' => null,
                 'average' => null,
-            );
+            ), $market);
         }) ();
     }
 

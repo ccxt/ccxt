@@ -1165,6 +1165,9 @@ abstract class binancecoinm extends \ccxt\async\binance {
     public function dapipublic_get_openinterest($params = array()) {
         return $this->request('openInterest', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function dapidata_get_delivery_price($params = array()) {
+        return $this->request('delivery-price', 'dapiData', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function dapidata_get_openinteresthist($params = array()) {
         return $this->request('openInterestHist', 'dapiData', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1658,10 +1661,10 @@ abstract class binancecoinm extends \ccxt\async\binance {
         return $this->request('time', 'public', 'GET', $params, null, null, array("cost" => 0.2));
     }
     public function public_get_depth($params = array()) {
-        return $this->request('depth', 'public', 'GET', $params, null, null, array("cost" => 0.4, "byLimit" => [[100, 0.4], [500, 2], [1000, 4], [5000, 20]]));
+        return $this->request('depth', 'public', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[100, 1], [500, 5], [1000, 10], [5000, 50]]));
     }
     public function public_get_trades($params = array()) {
-        return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 0.4));
+        return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
     public function public_get_aggtrades($params = array()) {
         return $this->request('aggTrades', 'public', 'GET', $params, null, null, array("cost" => 0.4));
@@ -1898,7 +1901,7 @@ abstract class binancecoinm extends \ccxt\async\binance {
         return $this->request('um/income', 'papi', 'GET', $params, null, null, array("cost" => 30));
     }
     public function papi_get_cm_income($params = array()) {
-        return $this->request('cm/income ', 'papi', 'GET', $params, null, null, array("cost" => 30));
+        return $this->request('cm/income', 'papi', 'GET', $params, null, null, array("cost" => 30));
     }
     public function papi_get_um_account($params = array()) {
         return $this->request('um/account', 'papi', 'GET', $params, null, null, array("cost" => 5));
@@ -3148,6 +3151,9 @@ abstract class binancecoinm extends \ccxt\async\binance {
     public function dapiPublicGetOpenInterest($params = array()) {
         return $this->request('openInterest', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function dapiDataGetDeliveryPrice($params = array()) {
+        return $this->request('delivery-price', 'dapiData', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function dapiDataGetOpenInterestHist($params = array()) {
         return $this->request('openInterestHist', 'dapiData', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -3641,10 +3647,10 @@ abstract class binancecoinm extends \ccxt\async\binance {
         return $this->request('time', 'public', 'GET', $params, null, null, array("cost" => 0.2));
     }
     public function publicGetDepth($params = array()) {
-        return $this->request('depth', 'public', 'GET', $params, null, null, array("cost" => 0.4, "byLimit" => [[100, 0.4], [500, 2], [1000, 4], [5000, 20]]));
+        return $this->request('depth', 'public', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[100, 1], [500, 5], [1000, 10], [5000, 50]]));
     }
     public function publicGetTrades($params = array()) {
-        return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 0.4));
+        return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
     public function publicGetAggTrades($params = array()) {
         return $this->request('aggTrades', 'public', 'GET', $params, null, null, array("cost" => 0.4));
@@ -3881,7 +3887,7 @@ abstract class binancecoinm extends \ccxt\async\binance {
         return $this->request('um/income', 'papi', 'GET', $params, null, null, array("cost" => 30));
     }
     public function papiGetCmIncome($params = array()) {
-        return $this->request('cm/income ', 'papi', 'GET', $params, null, null, array("cost" => 30));
+        return $this->request('cm/income', 'papi', 'GET', $params, null, null, array("cost" => 30));
     }
     public function papiGetUmAccount($params = array()) {
         return $this->request('um/account', 'papi', 'GET', $params, null, null, array("cost" => 5));

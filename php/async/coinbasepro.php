@@ -668,7 +668,7 @@ class coinbasepro extends Exchange {
                 $symbol = $market['symbol'];
                 $result[$symbol] = $this->parse_ticker($first, $market);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 

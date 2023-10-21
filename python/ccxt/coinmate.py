@@ -360,7 +360,7 @@ class coinmate(Exchange, ImplicitAPI):
         ticker = self.safe_value(response, 'data')
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         last = self.safe_number(ticker, 'last')
-        return {
+        return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -381,7 +381,7 @@ class coinmate(Exchange, ImplicitAPI):
             'baseVolume': self.safe_number(ticker, 'amount'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

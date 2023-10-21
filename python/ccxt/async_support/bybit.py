@@ -2295,7 +2295,7 @@ class bybit(Exchange, ImplicitAPI):
             marketInner = self.market(symbol)
             if marketInner['type'] == type:
                 tickers[symbol] = ticker
-        return self.filter_by_array(tickers, 'symbol', symbols)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

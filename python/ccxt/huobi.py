@@ -2043,7 +2043,7 @@ class huobi(Exchange, ImplicitAPI):
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -3661,12 +3661,10 @@ class huobi(Exchange, ImplicitAPI):
         contract = (marketType == 'swap') or (marketType == 'future')
         if contract and (symbol is None):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument for ' + marketType + ' orders')
-        response = None
         if contract:
-            response = self.fetch_contract_orders(symbol, since, limit, params)
+            return self.fetch_contract_orders(symbol, since, limit, params)
         else:
-            response = self.fetch_spot_orders(symbol, since, limit, params)
-        return response
+            return self.fetch_spot_orders(symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -3695,12 +3693,10 @@ class huobi(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
-        response = None
         if marketType == 'spot':
-            response = self.fetch_closed_spot_orders(symbol, since, limit, params)
+            return self.fetch_closed_spot_orders(symbol, since, limit, params)
         else:
-            response = self.fetch_closed_contract_orders(symbol, since, limit, params)
-        return response
+            return self.fetch_closed_contract_orders(symbol, since, limit, params)
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -4360,12 +4356,10 @@ class huobi(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
-        response = None
         if marketType == 'spot':
-            response = self.create_spot_order(symbol, type, side, amount, price, query)
+            return self.create_spot_order(symbol, type, side, amount, price, query)
         else:
-            response = self.create_contract_order(symbol, type, side, amount, price, query)
-        return response
+            return self.create_contract_order(symbol, type, side, amount, price, query)
 
     def create_spot_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
@@ -4462,7 +4456,7 @@ class huobi(Exchange, ImplicitAPI):
         #     {"status":"ok","data":"438398393065481"}
         #
         id = self.safe_string(response, 'data')
-        return {
+        return self.safe_order({
             'info': response,
             'id': id,
             'timestamp': None,
@@ -4470,10 +4464,10 @@ class huobi(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'status': None,
             'symbol': None,
-            'type': None,
-            'side': None,
-            'price': None,
-            'amount': None,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
             'filled': None,
             'remaining': None,
             'cost': None,
@@ -4481,7 +4475,7 @@ class huobi(Exchange, ImplicitAPI):
             'fee': None,
             'clientOrderId': None,
             'average': None,
-        }
+        }, market)
 
     def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
         """

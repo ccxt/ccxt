@@ -1227,7 +1227,7 @@ class bitmart extends bitmart$1 {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -2208,12 +2208,11 @@ class bitmart extends bitmart$1 {
         //
         const data = this.safeValue(response, 'data', {});
         const order = this.parseOrder(data, market);
-        return this.extend(order, {
-            'type': type,
-            'side': side,
-            'amount': amount,
-            'price': price,
-        });
+        order['type'] = type;
+        order['side'] = side;
+        order['amount'] = amount;
+        order['price'] = price;
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

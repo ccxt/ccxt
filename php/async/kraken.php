@@ -831,7 +831,7 @@ class kraken extends Exchange {
                 $ticker = $tickers[$id];
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -1736,7 +1736,8 @@ class kraken extends Exchange {
                 throw new OrderNotFound($this->id . ' fetchOrder() could not find $order $id ' . $id);
             }
             $order = $this->parse_order(array_merge(array( 'id' => $id ), $result[$id]));
-            return array_merge(array( 'info' => $response ), $order);
+            $order['info'] = $order;
+            return $order;
         }) ();
     }
 

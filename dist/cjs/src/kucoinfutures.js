@@ -1192,7 +1192,7 @@ class kucoinfutures extends kucoinfutures$1 {
         //    }
         //
         const data = this.safeValue(response, 'data', {});
-        return {
+        return this.safeOrder({
             'id': this.safeString(data, 'orderId'),
             'clientOrderId': undefined,
             'timestamp': undefined,
@@ -1215,7 +1215,7 @@ class kucoinfutures extends kucoinfutures$1 {
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'info': response,
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

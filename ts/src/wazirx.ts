@@ -430,7 +430,7 @@ export default class wazirx extends Exchange {
             const symbol = parsedTicker['symbol'];
             result[symbol] = parsedTicker;
         }
-        return result;
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {

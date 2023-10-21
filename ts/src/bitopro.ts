@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, In
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -785,7 +785,7 @@ export default class bitopro extends Exchange {
         //     }
         //
         const sparse = this.parseOHLCVs (data, market, timeframe, since, limit);
-        return this.insertMissingCandles (sparse, timeframeInSeconds, alignedSince, limit);
+        return this.insertMissingCandles (sparse, timeframeInSeconds, alignedSince, limit) as OHLCV[];
     }
 
     insertMissingCandles (candles, distance, since, limit) {

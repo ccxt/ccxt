@@ -1294,7 +1294,7 @@ class bitmex(Exchange, ImplicitAPI):
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker, market=None):
         # see response sample under "fetchMarkets" because same endpoint is being used here

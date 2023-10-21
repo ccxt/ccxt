@@ -2800,7 +2800,8 @@ class gate extends Exchange {
                 $result[$code] = $this->parse_balance_helper($entry);
             }
         }
-        return $isolated ? $result : $this->safe_balance($result);
+        $returnResult = $isolated ? $result : $this->safe_balance($result);
+        return $returnResult;
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {

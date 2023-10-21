@@ -628,7 +628,8 @@ class indodax extends Exchange {
             $response = Async\await($this->privatePostGetOrder (array_merge($request, $params)));
             $orders = $response['return'];
             $order = $this->parse_order(array_merge(array( 'id' => $id ), $orders['order']), $market);
-            return array_merge(array( 'info' => $response ), $order);
+            $order['info'] = $response;
+            return $order;
         }) ();
     }
 

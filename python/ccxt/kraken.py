@@ -806,7 +806,7 @@ class kraken(Exchange, ImplicitAPI):
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params={}):
         """
@@ -1621,7 +1621,8 @@ class kraken(Exchange, ImplicitAPI):
         if not (id in result):
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
         order = self.parse_order(self.extend({'id': id}, result[id]))
-        return self.extend({'info': response}, order)
+        order['info'] = order
+        return order
 
     def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

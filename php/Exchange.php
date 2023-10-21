@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.17';
+$version = '4.1.19';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.17';
+    const VERSION = '4.1.19';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -138,6 +138,7 @@ class Exchange {
     public $fees = array('trading' => array(), 'funding' => array());
     public $precision = array();
     public $orders = null;
+    public $triggerOrders = null;
     public $myTrades = null;
     public $trades = array();
     public $transactions = array();
@@ -4431,6 +4432,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
     }
 
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOrderBooks() is not supported yet');
+    }
+
     public function watch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchTickers() is not supported yet');
     }
@@ -5365,6 +5370,14 @@ class Exchange {
         /**
          * @ignore
          * Typed wrapper for filterByArray that returns a list of positions
+         */
+        return $this->filter_by_array($objects, $key, $values, $indexed);
+    }
+
+    public function filter_by_array_tickers($objects, int|string $key, $values = null, $indexed = true) {
+        /**
+         * @ignore
+         * Typed wrapper for filterByArray that returns a dictionary of tickers
          */
         return $this->filter_by_array($objects, $key, $values, $indexed);
     }

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.17'
+__version__ = '4.1.19'
 
 # -----------------------------------------------------------------------------
 
@@ -2398,6 +2398,9 @@ class Exchange(BaseExchange):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
 
+    async def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchOrderBooks() is not supported yet')
+
     async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' watchTickers() is not supported yet')
 
@@ -3160,6 +3163,13 @@ class Exchange(BaseExchange):
         """
          * @ignore
         Typed wrapper for filterByArray that returns a list of positions
+        """
+        return self.filter_by_array(objects, key, values, indexed)
+
+    def filter_by_array_tickers(self, objects, key: IndexType, values=None, indexed=True):
+        """
+         * @ignore
+        Typed wrapper for filterByArray that returns a dictionary of tickers
         """
         return self.filter_by_array(objects, key, values, indexed)
 

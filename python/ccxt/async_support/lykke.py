@@ -797,7 +797,7 @@ class lykke(Exchange, ImplicitAPI):
         id = self.safe_string(payload, 'orderId')
         if type == 'market':
             price = self.safe_number(payload, 'price')
-        return {
+        return self.safe_order({
             'id': id,
             'info': result,
             'clientOrderId': None,
@@ -816,7 +816,7 @@ class lykke(Exchange, ImplicitAPI):
             'status': None,
             'fee': None,
             'trades': None,
-        }
+        }, market)
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """

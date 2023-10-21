@@ -440,7 +440,7 @@ class bithumb(Exchange, ImplicitAPI):
                 market = self.safe_market(symbol)
                 ticker['date'] = timestamp
                 result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params={}):
         """

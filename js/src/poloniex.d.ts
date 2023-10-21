@@ -1,5 +1,5 @@
 import Exchange from './abstract/poloniex.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook } from './base/types.js';
 /**
  * @class poloniex
  * @extends Exchange
@@ -17,7 +17,7 @@ export default class poloniex extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): import("./base/types.js").Order;
     parseOrderType(status: any): string;
@@ -28,13 +28,13 @@ export default class poloniex extends Exchange {
     editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<"open" | "closed">;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;

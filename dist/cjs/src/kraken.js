@@ -812,7 +812,7 @@ class kraken extends kraken$1 {
             const ticker = tickers[id];
             result[symbol] = this.parseTicker(ticker, market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -1711,7 +1711,8 @@ class kraken extends kraken$1 {
             throw new errors.OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }
         const order = this.parseOrder(this.extend({ 'id': id }, result[id]));
-        return this.extend({ 'info': response }, order);
+        order['info'] = order;
+        return order;
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

@@ -817,8 +817,8 @@ class okx(ccxt.async_support.okx):
         type = None
         # By default, receive order updates from any instrument type
         type, params = self.handle_option_and_params(params, 'watchOrders', 'type', 'ANY')
-        isStop = self.safe_value(params, 'stop', False)
-        params = self.omit(params, ['stop'])
+        isStop = self.safe_value_2(params, 'stop', 'trigger', False)
+        params = self.omit(params, ['stop', 'trigger'])
         await self.load_markets()
         await self.authenticate({'access': 'business' if isStop else 'private'})
         market = None
@@ -902,7 +902,8 @@ class okx(ccxt.async_support.okx):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             if self.orders is None:
                 self.orders = ArrayCacheBySymbolById(limit)
-            stored = self.orders
+                self.triggerOrders = ArrayCacheBySymbolById(limit)
+            stored = self.triggerOrders if (channel == 'orders-algo') else self.orders
             marketIds = []
             parsed = self.parse_orders(orders)
             for i in range(0, len(parsed)):
@@ -911,10 +912,10 @@ class okx(ccxt.async_support.okx):
                 symbol = order['symbol']
                 market = self.market(symbol)
                 marketIds.append(market['id'])
-            client.resolve(self.orders, channel)
+            client.resolve(stored, channel)
             for i in range(0, len(marketIds)):
                 messageHash = channel + ':' + marketIds[i]
-                client.resolve(self.orders, messageHash)
+                client.resolve(stored, messageHash)
 
     def handle_my_trades(self, client: Client, message):
         #

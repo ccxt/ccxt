@@ -323,7 +323,7 @@ export default class coinspot extends Exchange {
                 result[symbol] = this.parseTicker(ticker, market);
             }
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**

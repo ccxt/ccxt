@@ -68,7 +68,7 @@ export default class bybit extends Exchange {
     fetchOptionMarkets(params: any): Promise<any[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseFundingRate(ticker: any, market?: any): {
@@ -102,7 +102,7 @@ export default class bybit extends Exchange {
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: any): Order;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createUsdcOrder(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editUsdcOrder(id: any, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;

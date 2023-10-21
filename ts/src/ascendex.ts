@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1865,7 +1865,7 @@ export default class ascendex extends Exchange {
             const order = this.parseOrder (data[i], market);
             orders.push (order);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as any;
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as Order[];
     }
 
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

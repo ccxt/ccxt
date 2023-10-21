@@ -2003,9 +2003,8 @@ class mexc(Exchange, ImplicitAPI):
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if market['spot']:
             return self.create_spot_order(market, type, side, amount, price, marginMode, query)
-        elif market['swap']:
+        else:
             return self.create_swap_order(market, type, side, amount, price, marginMode, query)
-        return None
 
     def create_spot_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
         symbol = market['symbol']
@@ -2065,12 +2064,12 @@ class mexc(Exchange, ImplicitAPI):
         #         "transactTime": 1661992652132
         #     }
         #
-        return self.extend(self.parse_order(response, market), {
-            'side': side,
-            'type': type,
-            'price': price,
-            'amount': amount,
-        })
+        order = self.parse_order(response, market)
+        order['side'] = side
+        order['type'] = type
+        order['price'] = price
+        order['amount'] = amount
+        return order
 
     def create_swap_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
         self.load_markets()

@@ -714,7 +714,7 @@ class bigone(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_time(self, params={}):
         """

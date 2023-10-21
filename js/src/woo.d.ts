@@ -12,7 +12,7 @@ export default class woo extends Exchange {
     parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): any;
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;

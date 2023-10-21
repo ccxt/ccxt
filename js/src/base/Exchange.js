@@ -53,6 +53,7 @@ export default class Exchange {
         this.orderbooks = {};
         this.tickers = {};
         this.orders = undefined;
+        this.triggerOrders = undefined;
         this.transactions = {};
         this.positions = {};
         this.requiresWeb3 = false;
@@ -973,11 +974,17 @@ export default class Exchange {
                         //               V
                         client.throttle(cost).then(() => {
                             client.send(message);
-                        }).catch((e) => { throw e; });
+                        }).catch((e) => {
+                            delete client.subscriptions[subscribeHash];
+                            future.reject(e);
+                        });
                     }
                     else {
                         client.send(message)
-                            .catch((e) => { throw e; });
+                            .catch((e) => {
+                            delete client.subscriptions[subscribeHash];
+                            future.reject(e);
+                        });
                     }
                 }
             }).catch((e) => {
@@ -3291,6 +3298,9 @@ export default class Exchange {
     async fetchTickers(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchTickers() is not supported yet');
     }
+    async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOrderBooks() is not supported yet');
+    }
     async watchTickers(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' watchTickers() is not supported yet');
     }
@@ -4169,6 +4179,14 @@ export default class Exchange {
          * @ignore
          * @method
          * @description Typed wrapper for filterByArray that returns a list of positions
+         */
+        return this.filterByArray(objects, key, values, indexed);
+    }
+    filterByArrayTickers(objects, key, values = undefined, indexed = true) {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a dictionary of tickers
          */
         return this.filterByArray(objects, key, values, indexed);
     }

@@ -905,7 +905,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         status = self.safe_string(response['editStatus'], 'status')
         self.verify_order_action_success(status, 'editOrder', ['filled'])
         order = self.parse_order(response['editStatus'])
-        return self.extend({'info': response}, order)
+        order['info'] = response
+        return order
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -1290,6 +1291,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'type': self.parse_order_type(type),
             'timeInForce': timeInForce,
             'postOnly': type == 'post',
+            'reduceOnly': self.safe_value(details, 'reduceOnly'),
             'side': self.safe_string(details, 'side'),
             'price': price,
             'stopPrice': self.safe_string(details, 'triggerPrice'),
@@ -1448,11 +1450,10 @@ class krakenfutures(Exchange, ImplicitAPI):
             symbol = '' if (symbol is None) else symbol
             raise BadRequest(self.id + ' fetchBalance has no account for ' + type)
         balance = self.parse_balance(account)
-        return self.extend({
-            'info': response,
-            'timestamp': self.parse8601(datetime),
-            'datetime': datetime,
-        }, balance)
+        balance['info'] = response
+        balance['timestamp'] = self.parse8601(datetime)
+        balance['datetime'] = datetime
+        return balance
 
     def parse_balance(self, response):
         #

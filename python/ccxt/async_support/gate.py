@@ -2720,7 +2720,8 @@ class gate(Exchange, ImplicitAPI):
             else:
                 code = self.safe_currency_code(self.safe_string(entry, 'currency'))
                 result[code] = self.parse_balance_helper(entry)
-        return result if isolated else self.safe_balance(result)
+        returnResult = result if isolated else self.safe_balance(result)
+        return returnResult
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

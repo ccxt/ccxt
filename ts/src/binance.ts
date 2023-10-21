@@ -648,6 +648,7 @@ export default class binance extends Exchange {
                 },
                 'dapiData': {
                     'get': {
+                        'delivery-price': 1,
                         'openInterestHist': 1,
                         'topLongShortAccountRatio': 1,
                         'topLongShortPositionRatio': 1,
@@ -870,8 +871,8 @@ export default class binance extends Exchange {
                     'get': {
                         'ping': 0.2, // Weight(IP): 1 => cost = 0.2 * 1 = 0.2
                         'time': 0.2,
-                        'depth': { 'cost': 0.4, 'byLimit': [ [ 100, 0.4 ], [ 500, 2 ], [ 1000, 4 ], [ 5000, 20 ] ] },
-                        'trades': 0.4, // Weight(IP): 2 => cost = 0.2 * 2 = 0.4
+                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] },
+                        'trades': 2, // Weight(IP): 10 => cost = 0.2 * 10 = 2
                         'aggTrades': 0.4,
                         'historicalTrades': 2, // Weight(IP): 10 => cost = 0.2 * 10 = 2
                         'klines': 0.4,
@@ -968,7 +969,7 @@ export default class binance extends Exchange {
                         'margin/marginInterestHistory': 1,
                         'portfolio/interest-history': 50, // 50
                         'um/income': 30,
-                        'cm/income ': 30,
+                        'cm/income': 30,
                         'um/account': 5,
                         'cm/account': 5,
                         'portfolio/repay-futures-switch': 3, // Weight(IP): 30 => cost = 0.1 * 30 = 3
@@ -4872,7 +4873,7 @@ export default class binance extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
+        return this.filterBy (orders, 'status', 'closed') as Order[];
     }
 
     async fetchCanceledOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

@@ -599,6 +599,7 @@ class coinsph(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         self.set_markets(result)

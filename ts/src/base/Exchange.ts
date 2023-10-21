@@ -228,6 +228,7 @@ export default class Exchange {
     orderbooks   = {}
     tickers      = {}
     orders       = undefined
+    triggerOrders = undefined
     trades: any
     transactions = {}
     ohlcvs: any
@@ -1294,10 +1295,16 @@ export default class Exchange {
                             //               V
                             client.throttle (cost).then (() => {
                                 client.send (message);
-                            }).catch ((e) => { throw e });
+                            }).catch ((e) => { 
+                                delete client.subscriptions[subscribeHash];
+                                future.reject (e);
+                            });
                         } else {
                             client.send (message)
-                            .catch ((e) => { throw e });
+                            .catch ((e) => {
+                                delete client.subscriptions[subscribeHash];
+                                future.reject (e);
+                            });
                         }
                     }
                 }).catch ((e)=> {
@@ -3741,6 +3748,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
     }
 
+    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<OrderBook>> {
+        throw new NotSupported (this.id + ' fetchOrderBooks() is not supported yet');
+    }
+
     async watchTickers (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
         throw new NotSupported (this.id + ' watchTickers() is not supported yet');
     }
@@ -4699,6 +4710,15 @@ export default class Exchange {
          * @description Typed wrapper for filterByArray that returns a list of positions
          */
         return this.filterByArray (objects, key, values, indexed) as Position[];
+    }
+
+    filterByArrayTickers (objects, key: IndexType, values = undefined, indexed = true): Dictionary<Ticker> {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a dictionary of tickers
+         */
+        return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
     }
 
     resolvePromiseIfMessagehashMatches (client, prefix: string, symbol: string, data) {

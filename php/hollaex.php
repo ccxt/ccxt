@@ -527,7 +527,7 @@ class hollaex extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = array_merge($this->parse_ticker($ticker, $market), $params);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function parse_ticker($ticker, $market = null) {
