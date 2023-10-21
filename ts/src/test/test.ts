@@ -73,6 +73,7 @@ function exceptionMessage (exc) {
 }
 
 function getExactExceptionName (exc) {
+    // we want to avoid "instanceof" because it also checks subclasses and we want to check only exact class
     return exc.constructor.name;
 }
 
