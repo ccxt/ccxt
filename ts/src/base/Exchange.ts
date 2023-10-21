@@ -191,6 +191,7 @@ export default class Exchange {
     origin = '*' // CORS origin
     //
     agent = undefined; // maintained for backwards compatibility
+    nodeHttpModuleLoaded = false;
     httpAgent = undefined;
     httpsAgent = undefined;
 
@@ -930,6 +931,15 @@ export default class Exchange {
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
 
+        // load node-http(s) modules only on first call
+        if (isNode) {
+            if (!this.nodeHttpModuleLoaded) {
+                this.nodeHttpModuleLoaded = true;
+                const httpsModule = await import (/* webpackIgnore: true */'node:https')
+                this.httpsAgent = new httpsModule.Agent ({ keepAlive: true });
+            }
+        }
+
         // ##### PROXY & HEADERS #####
         headers = this.extend (this.headers, headers);
         // proxy-url
@@ -938,16 +948,14 @@ export default class Exchange {
             // in node we need to set header to *
             if (isNode) {
                 headers = this.extend ({ 'Origin': this.origin }, headers);
-                // only needs to be checked after first call
-                if (this.httpAgent === undefined) {
-                    const httpModule = await import (/* webpackIgnore: true */'node:http')
-                    const httpsModule = await import (/* webpackIgnore: true */'node:https')
-                    this.httpAgent = new httpModule.Agent ();
-                    this.httpsAgent = new httpsModule.Agent ();
-                }
                 if (proxyUrl.substring(0, 5) === 'https') {
                     this.agent = this.httpsAgent;
                 } else {
+                    // for `http://` protocol proxy-urls, we need to load `http` module only on first call
+                    if (!this.httpAgent) {
+                        const httpModule = await import (/* webpackIgnore: true */'node:http')
+                        this.httpAgent = new httpModule.Agent ();
+                    }
                     this.agent = this.httpAgent;
                 }
             }
@@ -979,8 +987,7 @@ export default class Exchange {
             if (isNode) {
                 const module = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js')
                 if (this.agent === undefined) {
-                    const { Agent } = await import (/* webpackIgnore: true */'node:https')
-                    this.agent = new Agent ({ keepAlive: true })
+                    this.agent = this.httpsAgent;
                 }
                 this.AbortError = module.AbortError
                 this.fetchImplementation = module.default
