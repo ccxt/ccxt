@@ -108,13 +108,11 @@ function exception_message($exc) {
     return substr($message, 0, LOG_CHARS_LENGTH);
 }
 
-
 function compareExactExceptionType($exc, $exceptionType) {
-    $classFullName = get_class($exc);
-    $exceptionClassName = get_class($exceptionType);
-    return $classFullName === $exceptionClassName;
+    // as exclusion, because of transpilation nuances, `$exceptionType` is string here
+    $classFullName = '\\' . get_class($exc);
+    return $classFullName === $exceptionType;
 }
-
 
 function exit_script() {
     exit(0);
