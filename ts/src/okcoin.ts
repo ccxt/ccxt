@@ -1291,6 +1291,15 @@ export default class okcoin extends Exchange {
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
          * @param {bool} [params.reduceOnly] MARGIN orders only, or swap/future orders in net mode
          * @param {bool} [params.postOnly] true to place a post only order
+         * @param {float} [params.triggerPrice] conditional orders only, the price at which the order is to be triggered
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
+         * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
+         * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
