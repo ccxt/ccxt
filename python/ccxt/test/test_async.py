@@ -141,7 +141,7 @@ def exception_message(exc):
     return message
 
 
-def compareExactExceptionType(exc, exceptionType):
+def compare_exact_exception_type(exc, exceptionType):
     return type(exc) == exceptionType
 
 
