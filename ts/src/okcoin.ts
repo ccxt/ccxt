@@ -534,6 +534,10 @@ export default class okcoin extends Exchange {
                     '{instrument_id}/constituents': 'public',
                 },
                 'warnOnFetchCurrenciesWithoutAuthorization': false,
+                'defaultNetwork': 'ERC20',
+                'networks': {
+                    'ERC20': 'Ethereum',
+                },
             },
             'commonCurrencies': {
                 // OKEX refers to ERC20 version of Aeternity (AEToken)
@@ -2047,24 +2051,91 @@ export default class okcoin extends Exchange {
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
-        //         address: '0x696abb81974a8793352cbd33aadcf78eda3cfdfa',
-        //         currency: 'eth'
-        //         tag: 'abcde12345', // will be missing if the token does not require a deposit tag
-        //         payment_id: 'abcde12345', // will not be returned if the token does not require a payment_id
-        //         // can_deposit: 1, // 0 or 1, documented but missing
-        //         // can_withdraw: 1, // 0 or 1, documented but missing
+        //         "addr": "okbtothemoon",
+        //         "memo": "971668", // may be missing
+        //         "tag":"52055", // may be missing
+        //         "pmtId": "", // may be missing
+        //         "ccy": "BTC",
+        //         "to": "6", // 1 SPOT, 3 FUTURES, 6 FUNDING, 9 SWAP, 12 OPTION, 18 Unified account
+        //         "selected": true
         //     }
         //
-        const address = this.safeString (depositAddress, 'address');
-        let tag = this.safeString2 (depositAddress, 'tag', 'payment_id');
-        tag = this.safeString2 (depositAddress, 'memo', 'Memo', tag);
-        const currencyId = this.safeString (depositAddress, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
+        //     {
+        //         "ccy":"usdt-erc20",
+        //         "to":"6",
+        //         "addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa",
+        //         "selected":true
+        //     }
+        //
+        //     {
+        //        "chain": "ETH-OKExChain",
+        //        "addrEx": { "comment": "6040348" }, // some currencies like TON may have this field,
+        //        "ctAddr": "72315c",
+        //        "ccy": "ETH",
+        //        "to": "6",
+        //        "addr": "0x1c9f2244d1ccaa060bd536827c18925db10db102",
+        //        "selected": true
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'addr');
+        let tag = this.safeStringN (depositAddress, [ 'tag', 'pmtId', 'memo' ]);
+        if (tag === undefined) {
+            const addrEx = this.safeValue (depositAddress, 'addrEx', {});
+            tag = this.safeString (addrEx, 'comment');
+        }
+        const currencyId = this.safeString (depositAddress, 'ccy');
+        currency = this.safeCurrency (currencyId, currency);
+        const code = currency['code'];
+        const chain = this.safeString (depositAddress, 'chain');
+        const networkId = chain.replace (currencyId + '-', '');
+        const network = this.networkIdToCode (networkId);
+        // inconsistent naming responses from exchange
+        // with respect to network naming provided in currency info vs address chain-names and ids
+        //
+        // response from address endpoint:
+        //      {
+        //          "chain": "USDT-Polygon",
+        //          "ctAddr": "",
+        //          "ccy": "USDT",
+        //          "to":"6" ,
+        //          "addr": "0x1903441e386cc49d937f6302955b5feb4286dcfa",
+        //          "selected": true
+        //      }
+        // network information from currency['networks'] field:
+        // Polygon: {
+        //        info: {
+        //            canDep: false,
+        //            canInternal: false,
+        //            canWd: false,
+        //            ccy: 'USDT',
+        //            chain: 'USDT-Polygon-Bridge',
+        //            mainNet: false,
+        //            maxFee: '26.879528',
+        //            minFee: '13.439764',
+        //            minWd: '0.001',
+        //            name: ''
+        //        },
+        //        id: 'USDT-Polygon-Bridge',
+        //        network: 'Polygon',
+        //        active: false,
+        //        deposit: false,
+        //        withdraw: false,
+        //        fee: 13.439764,
+        //        precision: undefined,
+        //        limits: {
+        //            withdraw: {
+        //                min: 0.001,
+        //                max: undefined
+        //            }
+        //        }
+        //     },
+        //
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': network,
             'info': depositAddress,
         };
     }
@@ -2079,34 +2150,15 @@ export default class okcoin extends Exchange {
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
-        const rawNetwork = this.safeStringUpper (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeString (networks, rawNetwork, rawNetwork);
+        await this.loadMarkets ();
+        const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+        const networkId = this.safeString (params, 'network', defaultNetwork);
+        const networkCode = this.networkIdToCode (networkId);
         params = this.omit (params, 'network');
         const response = await this.fetchDepositAddressesByNetwork (code, params);
-        let result = undefined;
-        if (network === undefined) {
-            result = this.safeValue (response, code);
-            if (result === undefined) {
-                const alias = this.safeString (networks, code, code);
-                result = this.safeValue (response, alias);
-                if (result === undefined) {
-                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
-                    result = this.safeValue (response, defaultNetwork);
-                    if (result === undefined) {
-                        const values = Object.values (response);
-                        result = this.safeValue (values, 0);
-                        if (result === undefined) {
-                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
-                        }
-                    }
-                }
-            }
-            return result;
-        }
-        result = this.safeValue (response, network);
+        const result = this.safeValue (response, networkCode);
         if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + networkCode + ' deposit address for ' + code);
         }
         return result;
     }
