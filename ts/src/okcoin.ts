@@ -1958,7 +1958,7 @@ export default class okcoin extends Exchange {
         const ordType = this.safeString (params, 'ordType');
         const stop = this.safeValue (params, 'stop') || (this.safeString (params, 'ordType') !== undefined);
         if (stop && (ordType === undefined)) {
-            request['ordType'] = 'conditional'; // default to conditional
+            request['ordType'] = 'trigger'; // default to trigger
         }
         params = this.omit (params, [ 'stop' ]);
         let response = undefined;
@@ -1983,6 +1983,8 @@ export default class okcoin extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
+         * @param {bool} [params.stop] True if fetching trigger or conditional orders
+         * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -1997,7 +1999,7 @@ export default class okcoin extends Exchange {
         const ordType = this.safeString (params, 'ordType');
         const stop = this.safeValue (params, 'stop') || (this.safeString (params, 'ordType') !== undefined);
         if (stop && (ordType === undefined)) {
-            request['ordType'] = 'conditional'; // default to conditional
+            request['ordType'] = 'trigger'; // default to trigger
         }
         params = this.omit (params, [ 'stop' ]);
         let response = undefined;
