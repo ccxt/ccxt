@@ -1563,7 +1563,10 @@ export default class okcoin extends Exchange {
         await this.loadMarkets ();
         const stop = this.safeValue2 (params, 'stop', 'trigger');
         const advanced = this.safeValue (params, 'advanced');
-        params = this.omit (params, [ 'stop', 'trigger', 'advanced' ]);
+        if (stop || advanced) {
+            const orderInner = await this.cancelOrders ([ id ], symbol, params);
+            return this.safeValue (orderInner, 0);
+        }
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],
@@ -1574,17 +1577,10 @@ export default class okcoin extends Exchange {
         if (clientOrderId !== undefined) {
             request['clOrdId'] = clientOrderId;
         } else {
-            request['ordId'] = id;
+            request['ordId'] = id.toString ();
         }
         const query = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
-        let response = undefined;
-        if (stop) {
-            response = await this.privatePostTradeCancelAlgos (this.extend (request, query));
-        } else if (advanced) {
-            response = await this.privatePostTradeCancelAdvanceAlgos (this.extend (request, query));
-        } else {
-            response = await this.privatePostTradeCancelOrder (this.extend (request, query));
-        }
+        const response = await this.privatePostTradeCancelOrder (this.extend (request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         const data = this.safeValue (response, 'data', []);
         const order = this.safeValue (data, 0);
@@ -1612,17 +1608,18 @@ export default class okcoin extends Exchange {
          * @name okcoin#cancelOrders
          * @description cancel multiple orders
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-multiple-orders
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
-        if (stop) {
-            throw new NotSupported (this.id + ' cancelOrder() does not support cancelling ' + stop + ' orders');
-        }
         this.checkRequiredSymbol ('cancelOrders', symbol);
         await this.loadMarkets ();
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const advanced = this.safeValue (params, 'advanced');
+        params = this.omit (params, [ 'stop', 'trigger', 'advanced' ]);
         const market = this.market (symbol);
         const request = [];
         const clientOrderIds = this.parseIds (this.safeValue2 (params, 'clOrdId', 'clientOrderId'));
@@ -1638,10 +1635,17 @@ export default class okcoin extends Exchange {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                request.push ({
-                    'ordId': ids[i],
-                    'instId': market['id'],
-                });
+                if (stop || advanced) {
+                    request.push ({
+                        'algoId': ids[i],
+                        'instId': market['id'],
+                    });
+                } else {
+                    request.push ({
+                        'ordId': ids[i],
+                        'instId': market['id'],
+                    });
+                }
             }
         } else {
             for (let i = 0; i < clientOrderIds.length; i++) {
@@ -1651,7 +1655,14 @@ export default class okcoin extends Exchange {
                 });
             }
         }
-        const response = await this.privatePostTradeCancelBatchOrders (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        let response = undefined;
+        if (stop) {
+            response = await this.privatePostTradeCancelAlgos (request);
+        } else if (advanced) {
+            response = await this.privatePostTradeCancelAdvanceAlgos (request);
+        } else {
+            response = await this.privatePostTradeCancelBatchOrders (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+        }
         //
         //     {
         //         "code": "0",
