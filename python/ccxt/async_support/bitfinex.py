@@ -415,7 +415,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
-        see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+        :see: https://docs.bitfinex.com/v1/reference/rest-auth-fees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitfinex api endpoint
         :returns dict[]: a list of `fees structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -447,7 +447,7 @@ class bitfinex(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+        :see: https://docs.bitfinex.com/v1/reference/rest-auth-fees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitfinex api endpoint
         :returns dict[]: a list of `fees structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`

@@ -735,7 +735,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://www.bitstamp.net/api/#all-tickers
+        :see: https://www.bitstamp.net/api/#all-tickers
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the bitstamp api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -1137,7 +1137,7 @@ class bitstamp(Exchange, ImplicitAPI):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
-        see https://www.bitstamp.net/api/#balance
+        :see: https://www.bitstamp.net/api/#balance
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitstamp api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -1191,7 +1191,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://www.bitstamp.net/api/#balance
+        :see: https://www.bitstamp.net/api/#balance
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitstamp api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`

@@ -537,7 +537,7 @@ class woo(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        see https://docs.woo.org/#get-account-information-new
+        :see: https://docs.woo.org/#get-account-information-new
         :param dict [params]: extra parameters specific to the woo api endpoint
         :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
         """
@@ -720,8 +720,8 @@ class woo(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        see https://docs.woo.org/#send-order
-        see https://docs.woo.org/#send-algo-order
+        :see: https://docs.woo.org/#send-order
+        :see: https://docs.woo.org/#send-algo-order
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -870,10 +870,10 @@ class woo(Exchange, ImplicitAPI):
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
-        see https://docs.woo.org/#edit-order
-        see https://docs.woo.org/#edit-order-by-client_order_id
-        see https://docs.woo.org/#edit-algo-order
-        see https://docs.woo.org/#edit-algo-order-by-client_order_id
+        :see: https://docs.woo.org/#edit-order
+        :see: https://docs.woo.org/#edit-order-by-client_order_id
+        :see: https://docs.woo.org/#edit-algo-order
+        :see: https://docs.woo.org/#edit-algo-order-by-client_order_id
         edit a trade order
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -937,9 +937,9 @@ class woo(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.woo.org/#cancel-algo-order
-        see https://docs.woo.org/#cancel-order
-        see https://docs.woo.org/#cancel-order-by-client_order_id
+        :see: https://docs.woo.org/#cancel-algo-order
+        :see: https://docs.woo.org/#cancel-order
+        :see: https://docs.woo.org/#cancel-order-by-client_order_id
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -985,9 +985,9 @@ class woo(Exchange, ImplicitAPI):
 
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.woo.org/#cancel-all-pending-orders
-        see https://docs.woo.org/#cancel-orders
-        see https://docs.woo.org/#cancel-all-pending-algo-orders
+        :see: https://docs.woo.org/#cancel-all-pending-orders
+        :see: https://docs.woo.org/#cancel-orders
+        :see: https://docs.woo.org/#cancel-all-pending-algo-orders
         cancel all open orders in a market
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the woo api endpoint
@@ -1015,8 +1015,8 @@ class woo(Exchange, ImplicitAPI):
 
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.woo.org/#get-algo-order
-        see https://docs.woo.org/#get-order
+        :see: https://docs.woo.org/#get-algo-order
+        :see: https://docs.woo.org/#get-order
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the woo api endpoint
@@ -1080,8 +1080,8 @@ class woo(Exchange, ImplicitAPI):
 
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.woo.org/#get-orders
-        see https://docs.woo.org/#get-algo-orders
+        :see: https://docs.woo.org/#get-orders
+        :see: https://docs.woo.org/#get-algo-orders
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1318,7 +1318,7 @@ class woo(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.woo.org/#kline-public
+        :see: https://docs.woo.org/#kline-public
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1509,7 +1509,7 @@ class woo(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://docs.woo.org/#get-current-holding-get-balance-new
+        :see: https://docs.woo.org/#get-current-holding-get-balance-new
         :param dict [params]: extra parameters specific to the woo api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -1956,7 +1956,7 @@ class woo(Exchange, ImplicitAPI):
     def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
-        see https://docs.woo.org/#repay-interest
+        :see: https://docs.woo.org/#repay-interest
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str symbol: not used by woo.repayMargin()
@@ -2223,7 +2223,7 @@ class woo(Exchange, ImplicitAPI):
     def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical funding rate prices
-        see https://docs.woo.org/#get-funding-rate-history-for-one-market-public
+        :see: https://docs.woo.org/#get-funding-rate-history-for-one-market-public
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch

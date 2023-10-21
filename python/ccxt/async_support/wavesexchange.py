@@ -2200,8 +2200,8 @@ class wavesexchange(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://docs.wx.network/en/api/gateways/deposit/currencies
-        see https://docs.wx.network/en/api/gateways/withdraw/currencies
+        :see: https://docs.wx.network/en/api/gateways/deposit/currencies
+        :see: https://docs.wx.network/en/api/gateways/withdraw/currencies
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`

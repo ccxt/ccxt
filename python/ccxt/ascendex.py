@@ -995,8 +995,8 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://ascendex.github.io/ascendex-pro-api/#ticker
-        see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
+        :see: https://ascendex.github.io/ascendex-pro-api/#ticker
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the ascendex api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -1156,7 +1156,7 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://ascendex.github.io/ascendex-pro-api/#market-trades
+        :see: https://ascendex.github.io/ascendex-pro-api/#market-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1783,7 +1783,7 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
-        see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
+        :see: https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -2826,7 +2826,7 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
+        :see: https://ascendex.github.io/ascendex-pro-api/#list-all-assets
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the ascendex api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`

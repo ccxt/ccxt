@@ -256,7 +256,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}):
         """
-        see https://docs-en.probit.com/reference/market
+        :see: https://docs-en.probit.com/reference/market
         retrieves data on all markets for probit
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
@@ -356,7 +356,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_currencies(self, params={}):
         """
-        see https://docs-en.probit.com/reference/currency
+        :see: https://docs-en.probit.com/reference/currency
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the probit api endpoint
         :returns dict: an associative dictionary of currencies
@@ -531,7 +531,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_balance(self, params={}):
         """
-        see https://docs-en.probit.com/reference/balance
+        :see: https://docs-en.probit.com/reference/balance
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the probit api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
@@ -553,7 +553,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
-        see https://docs-en.probit.com/reference/order_book
+        :see: https://docs-en.probit.com/reference/order_book
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -581,7 +581,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
-        see https://docs-en.probit.com/reference/ticker
+        :see: https://docs-en.probit.com/reference/ticker
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the probit api endpoint
@@ -614,7 +614,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_ticker(self, symbol: str, params={}):
         """
-        see https://docs-en.probit.com/reference/ticker
+        :see: https://docs-en.probit.com/reference/ticker
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the probit api endpoint
@@ -693,7 +693,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs-en.probit.com/reference/trade
+        :see: https://docs-en.probit.com/reference/trade
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -742,7 +742,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs-en.probit.com/reference/trade-1
+        :see: https://docs-en.probit.com/reference/trade-1
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -856,7 +856,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_time(self, params={}):
         """
-        see https://docs-en.probit.com/reference/time
+        :see: https://docs-en.probit.com/reference/time
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the probit api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -899,7 +899,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs-en.probit.com/reference/candle
+        :see: https://docs-en.probit.com/reference/candle
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -983,7 +983,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs-en.probit.com/reference/open_order-1
+        :see: https://docs-en.probit.com/reference/open_order-1
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -1004,7 +1004,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs-en.probit.com/reference/order
+        :see: https://docs-en.probit.com/reference/order
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1032,7 +1032,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://docs-en.probit.com/reference/order-3
+        :see: https://docs-en.probit.com/reference/order-3
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the probit api endpoint
@@ -1132,7 +1132,7 @@ class probit(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        see https://docs-en.probit.com/reference/order-1
+        :see: https://docs-en.probit.com/reference/order-1
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1214,7 +1214,7 @@ class probit(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://docs-en.probit.com/reference/order-2
+        :see: https://docs-en.probit.com/reference/order-2
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1251,7 +1251,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_deposit_address(self, code: str, params={}):
         """
-        see https://docs-en.probit.com/reference/deposit_address
+        :see: https://docs-en.probit.com/reference/deposit_address
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the probit api endpoint
@@ -1301,7 +1301,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_deposit_addresses(self, codes=None, params={}):
         """
-        see https://docs-en.probit.com/reference/deposit_address
+        :see: https://docs-en.probit.com/reference/deposit_address
         fetch deposit addresses for multiple currencies and chain types
         :param str[]|None codes: list of unified currency codes, default is None
         :param dict [params]: extra parameters specific to the probit api endpoint
@@ -1321,7 +1321,7 @@ class probit(Exchange, ImplicitAPI):
 
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
-        see https://docs-en.probit.com/reference/withdrawal
+        :see: https://docs-en.probit.com/reference/withdrawal
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -1396,7 +1396,7 @@ class probit(Exchange, ImplicitAPI):
         """
          * @deprecated
         use fetchDepositsWithdrawals instead
-        see https://docs-en.probit.com/reference/transferpayment
+        :see: https://docs-en.probit.com/reference/transferpayment
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch transactions for
         :param int [limit]: the maximum number of transaction structures to retrieve
@@ -1497,7 +1497,7 @@ class probit(Exchange, ImplicitAPI):
 
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
-        see https://docs-en.probit.com/reference/currency
+        :see: https://docs-en.probit.com/reference/currency
         fetch deposit and withdraw fees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the poloniex api endpoint
@@ -1668,7 +1668,7 @@ class probit(Exchange, ImplicitAPI):
 
     def sign_in(self, params={}):
         """
-        see https://docs-en.probit.com/reference/token
+        :see: https://docs-en.probit.com/reference/token
         sign in, must be called prior to using other authenticated methods
         :param dict [params]: extra parameters specific to the probit api endpoint
         :returns: response from exchange

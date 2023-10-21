@@ -306,7 +306,7 @@ class zonda(Exchange, ImplicitAPI):
 
     async def fetch_markets(self, params={}):
         """
-        see https://docs.zonda.exchange/reference/ticker-1
+        :see: https://docs.zonda.exchange/reference/ticker-1
         retrieves data on all markets for zonda
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
@@ -405,7 +405,7 @@ class zonda(Exchange, ImplicitAPI):
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/active-orders
+        :see: https://docs.zonda.exchange/reference/active-orders
         fetch all unfilled currently open orders
         :param str symbol: not used by zonda fetchOpenOrders
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -471,7 +471,7 @@ class zonda(Exchange, ImplicitAPI):
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/transactions-history
+        :see: https://docs.zonda.exchange/reference/transactions-history
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -530,7 +530,7 @@ class zonda(Exchange, ImplicitAPI):
 
     async def fetch_balance(self, params={}):
         """
-        see https://docs.zonda.exchange/reference/list-of-wallets
+        :see: https://docs.zonda.exchange/reference/list-of-wallets
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the zonda api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
@@ -541,7 +541,7 @@ class zonda(Exchange, ImplicitAPI):
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/orderbook-2
+        :see: https://docs.zonda.exchange/reference/orderbook-2
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -652,7 +652,7 @@ class zonda(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol, params={}):
         """
         v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
-        see https://docs.zonda.exchange/reference/market-statistics
+        :see: https://docs.zonda.exchange/reference/market-statistics
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the zonda api endpoint
         :param str [params.method]: v1_01PublicGetTradingTickerSymbol(default) or v1_01PublicGetTradingStatsSymbol
@@ -720,7 +720,7 @@ class zonda(Exchange, ImplicitAPI):
         """
          * @ignore
         v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
-        see https://docs.zonda.exchange/reference/market-statistics
+        :see: https://docs.zonda.exchange/reference/market-statistics
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the zonda api endpoint
         :param str [params.method]: v1_01PublicGetTradingTicker(default) or v1_01PublicGetTradingStats
@@ -788,7 +788,7 @@ class zonda(Exchange, ImplicitAPI):
 
     async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/operations-history
+        :see: https://docs.zonda.exchange/reference/operations-history
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
@@ -1156,7 +1156,7 @@ class zonda(Exchange, ImplicitAPI):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/candles-chart
+        :see: https://docs.zonda.exchange/reference/candles-chart
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1274,7 +1274,7 @@ class zonda(Exchange, ImplicitAPI):
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/last-transactions
+        :see: https://docs.zonda.exchange/reference/last-transactions
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -1418,7 +1418,7 @@ class zonda(Exchange, ImplicitAPI):
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/cancel-order
+        :see: https://docs.zonda.exchange/reference/cancel-order
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1475,7 +1475,7 @@ class zonda(Exchange, ImplicitAPI):
 
     async def fetch_deposit_address(self, code: str, params={}):
         """
-        see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
+        :see: https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the zonda api endpoint
@@ -1507,7 +1507,7 @@ class zonda(Exchange, ImplicitAPI):
 
     async def fetch_deposit_addresses(self, codes=None, params={}):
         """
-        see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
+        :see: https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
         fetch deposit addresses for multiple currencies and chain types
         :param str[]|None codes: zonda does not support filtering filtering by multiple codes and will ignore self parameter.
         :param dict [params]: extra parameters specific to the zonda api endpoint
@@ -1533,7 +1533,7 @@ class zonda(Exchange, ImplicitAPI):
 
     async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
-        see https://docs.zonda.exchange/reference/internal-transfer
+        :see: https://docs.zonda.exchange/reference/internal-transfer
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
         :param float amount: amount to transfer
@@ -1642,7 +1642,7 @@ class zonda(Exchange, ImplicitAPI):
 
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
-        see https://docs.zonda.exchange/reference/crypto-withdrawal-1
+        :see: https://docs.zonda.exchange/reference/crypto-withdrawal-1
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw

@@ -1927,7 +1927,7 @@ class ndax(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
-        see https://apidoc.ndax.io/#getdeposits
+        :see: https://apidoc.ndax.io/#getdeposits
         :param str code: unified currency code
         :param int [since]: not used by ndax fetchDeposits
         :param int [limit]: the maximum number of deposits structures to retrieve

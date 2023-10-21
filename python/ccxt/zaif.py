@@ -154,7 +154,7 @@ class zaif(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}):
         """
-        see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
+        :see: https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
         retrieves data on all markets for zaif
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
@@ -269,7 +269,7 @@ class zaif(Exchange, ImplicitAPI):
 
     def fetch_balance(self, params={}):
         """
-        see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id10
+        :see: https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id10
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the zaif api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
@@ -280,7 +280,7 @@ class zaif(Exchange, ImplicitAPI):
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
-        see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34
+        :see: https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -338,7 +338,7 @@ class zaif(Exchange, ImplicitAPI):
 
     def fetch_ticker(self, symbol: str, params={}):
         """
-        see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id22
+        :see: https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id22
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the zaif api endpoint
@@ -402,7 +402,7 @@ class zaif(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28
+        :see: https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -437,7 +437,7 @@ class zaif(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
+        :see: https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: must be 'limit'
@@ -465,7 +465,7 @@ class zaif(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
+        :see: https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
         cancels an open order
         :param str id: order id
         :param str symbol: not used by zaif cancelOrder()
@@ -523,7 +523,7 @@ class zaif(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28
+        :see: https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -545,7 +545,7 @@ class zaif(Exchange, ImplicitAPI):
 
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24
+        :see: https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -573,7 +573,7 @@ class zaif(Exchange, ImplicitAPI):
 
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
-        see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
+        :see: https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw

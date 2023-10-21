@@ -247,7 +247,7 @@ class okx(ccxt.async_support.okx):
 
     async def watch_ticker(self, symbol: str, params={}):
         """
-        see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the okx api endpoint
@@ -262,7 +262,7 @@ class okx(ccxt.async_support.okx):
 
     async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
-        see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the okx api endpoint
@@ -768,7 +768,7 @@ class okx(ccxt.async_support.okx):
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
         watches information on multiple trades made by the user
         :param str [symbol]: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
@@ -805,7 +805,7 @@ class okx(ccxt.async_support.okx):
 
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
         watches information on multiple orders made by the user
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1006,7 +1006,7 @@ class okx(ccxt.async_support.okx):
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
         """
-        see https://www.okx.com/docs-v5/en/#websocket-api-trade-place-order
+        :see: https://www.okx.com/docs-v5/en/#websocket-api-trade-place-order
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1070,8 +1070,8 @@ class okx(ccxt.async_support.okx):
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
         """
         edit a trade order
-        see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-amend-order
-        see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-amend-multiple-orders
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-amend-order
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-amend-multiple-orders
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1097,7 +1097,7 @@ class okx(ccxt.async_support.okx):
 
     async def cancel_order_ws(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://okx-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
+        :see: https://okx-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
         cancel multiple orders
         :param str id: order id
         :param str symbol: unified market symbol, default is None
@@ -1129,7 +1129,7 @@ class okx(ccxt.async_support.okx):
 
     async def cancel_orders_ws(self, ids: List[str], symbol: Optional[str] = None, params={}):
         """
-        see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
         cancel multiple orders
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
@@ -1161,7 +1161,7 @@ class okx(ccxt.async_support.okx):
 
     async def cancel_all_orders_ws(self, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.okx.com/websockets/#message-cancelAll
+        :see: https://docs.okx.com/websockets/#message-cancelAll
         cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the okx api endpoint

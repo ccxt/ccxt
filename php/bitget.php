@@ -2196,42 +2196,61 @@ class bitget extends Exchange {
         //         "symbol" => "BTCUSDT_UMCBL"
         //     }
         //
-        // private
+        // spot => fetchMyTrades
         //
         //     {
-        //         accountId => '4383649766',
-        //         $symbol => 'ETHBTC_SPBL',
-        //         orderId => '1009402341131468800',
-        //         fillId => '1009402351489581068',
-        //         orderType => 'limit',
-        //         side => 'sell',
-        //         fillPrice => '0.06997800',
-        //         fillQuantity => '0.04120000',
-        //         fillTotalAmount => '0.00288309',
-        //         feeCcy => 'BTC',
-        //         fees => '-0.00000288',
-        //         cTime => '1676386195060'
+        //         "accountId" => "7264631750",
+        //         "symbol" => "BTCUSDT_SPBL",
+        //         "orderId" => "1098394344925597696",
+        //         "fillId" => "1098394344974925824",
+        //         "orderType" => "market",
+        //         "side" => "sell",
+        //         "fillPrice" => "28467.68",
+        //         "fillQuantity" => "0.0002",
+        //         "fillTotalAmount" => "5.693536",
+        //         "feeCcy" => "USDT",
+        //         "fees" => "-0.005693536",
+        //         "takerMakerFlag" => "taker",
+        //         "cTime" => "1697603539699"
         //     }
         //
+        // swap and future => fetchMyTrades
+        //
         //     {
-        //         tradeId => '881640729552281602',
-        //         $symbol => 'BTCUSDT_UMCBL',
-        //         orderId => '881640729145409536',
-        //         price => '38429.50',
-        //         sizeQty => '0.001',
-        //         $fee => '0',
-        //         side => 'open_long',
-        //         fillAmount => '38.4295',
-        //         profit => '0',
-        //         cTime => '1645925450694'
+        //         "tradeId" => "1099351653724958721",
+        //         "symbol" => "BTCUSDT_UMCBL",
+        //         "orderId" => "1099351653682413569",
+        //         "price" => "29531.3",
+        //         "sizeQty" => "0.001",
+        //         "fee" => "-0.01771878",
+        //         "side" => "close_long",
+        //         "fillAmount" => "29.5313",
+        //         "profit" => "0.001",
+        //         "enterPointSource" => "WEB",
+        //         "tradeSide" => "close_long",
+        //         "holdMode" => "double_hold",
+        //         "takerMakerFlag" => "taker",
+        //         "cTime" => "1697831779891"
+        //     }
+        //
+        // isolated and cross margin => fetchMyTrades
+        //
+        //     {
+        //         "orderId" => "1099353730455318528",
+        //         "fillId" => "1099353730627092481",
+        //         "orderType" => "market",
+        //         "side" => "sell",
+        //         "fillPrice" => "29543.7",
+        //         "fillQuantity" => "0.0001",
+        //         "fillTotalAmount" => "2.95437",
+        //         "feeCcy" => "USDT",
+        //         "fees" => "-0.00295437",
+        //         "ctime" => "1697832275063"
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $amount = $this->safe_string_2($trade, 'fillQuantity', 'size');
-        $amount = $this->safe_string($trade, 'sizeQty', $amount);
-        $timestamp = $this->safe_integer_2($trade, 'fillTime', 'timestamp');
-        $timestamp = $this->safe_integer($trade, 'cTime', $timestamp);
+        $timestamp = $this->safe_integer_n($trade, array( 'fillTime', 'timestamp', 'ctime', 'cTime' ));
         $fee = null;
         $feeAmount = $this->safe_string($trade, 'fees');
         if ($feeAmount !== null) {
@@ -2242,7 +2261,6 @@ class bitget extends Exchange {
                 'cost' => Precise::string_neg($feeAmount),
             );
         }
-        $datetime = $this->iso8601($timestamp);
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string_2($trade, 'tradeId', 'fillId'),
@@ -2250,13 +2268,13 @@ class bitget extends Exchange {
             'symbol' => $symbol,
             'side' => $this->safe_string_lower($trade, 'side'),
             'type' => $this->safe_string($trade, 'orderType'),
-            'takerOrMaker' => null,
+            'takerOrMaker' => $this->safe_string($trade, 'takerMakerFlag'),
             'price' => $this->safe_string_2($trade, 'fillPrice', 'price'),
-            'amount' => $amount,
+            'amount' => $this->safe_string_n($trade, array( 'fillQuantity', 'size', 'sizeQty' )),
             'cost' => null,
-            'fee' => $fee,
             'timestamp' => $timestamp,
-            'datetime' => $datetime,
+            'datetime' => $this->iso8601($timestamp),
+            'fee' => $fee,
         ), $market);
     }
 
@@ -4351,12 +4369,14 @@ class bitget extends Exchange {
          * fetch all trades made by the user
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-order-fill-detail
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-transaction-details
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-order-$fills
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
-         * @param {int} [$params->until] *swap only* the latest time in ms to fetch entries for
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->check_required_symbol('fetchMyTrades', $symbol);
@@ -4371,15 +4391,40 @@ class bitget extends Exchange {
                 return $this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params, 500);
             }
         }
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
         $response = null;
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyTrades', $params);
+        $symbolRequest = ($marginMode !== null) ? ($market['info']['symbolName']) : ($market['id']);
+        $request = array(
+            'symbol' => $symbolRequest,
+        );
         if ($market['spot']) {
-            $response = $this->privateSpotPostTradeFills (array_merge($request, $params));
+            if ($marginMode !== null) {
+                list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+                if ($since !== null) {
+                    $request['startTime'] = $since;
+                } else {
+                    $now = $this->milliseconds();
+                    $request['startTime'] = $now - 7776000000;
+                }
+                if ($limit !== null) {
+                    $request['pageSize'] = $limit;
+                }
+                if ($marginMode === 'isolated') {
+                    $response = $this->privateMarginGetIsolatedOrderFills (array_merge($request, $params));
+                } elseif ($marginMode === 'cross') {
+                    $response = $this->privateMarginGetCrossOrderFills (array_merge($request, $params));
+                }
+            } else {
+                list($request, $params) = $this->handle_until_option('before', $request, $params);
+                if ($since !== null) {
+                    $request['after'] = $since;
+                }
+                if ($limit !== null) {
+                    $request['limit'] = $limit;
+                }
+                $response = $this->privateSpotPostTradeFills (array_merge($request, $params));
+            }
         } else {
             $orderId = $this->safe_string($params, 'orderId'); // when order id is not defined, startTime and endTime are required
             if ($since !== null) {
@@ -4394,29 +4439,88 @@ class bitget extends Exchange {
             $response = $this->privateMixGetOrderFills (array_merge($request, $params));
         }
         //
+        // spot
+        //
         //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => '1645918954082',
-        //       $data => array(
-        //         {
-        //           accountId => '6394957606',
-        //           $symbol => 'LTCUSDT_SPBL',
-        //           $orderId => '864752115272552448',
-        //           fillId => '864752115685969921',
-        //           orderType => 'limit',
-        //           side => 'buy',
-        //           fillPrice => '127.92000000',
-        //           fillQuantity => '0.10000000',
-        //           fillTotalAmount => '12.79200000',
-        //           feeCcy => 'LTC',
-        //           fees => '0.00000000',
-        //           cTime => '1641898891373'
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1697831543676,
+        //         "data" => array(
+        //             array(
+        //                 "accountId" => "7264631750",
+        //                 "symbol" => "BTCUSDT_SPBL",
+        //                 "orderId" => "1098394344925597696",
+        //                 "fillId" => "1098394344974925824",
+        //                 "orderType" => "market",
+        //                 "side" => "sell",
+        //                 "fillPrice" => "28467.68",
+        //                 "fillQuantity" => "0.0002",
+        //                 "fillTotalAmount" => "5.693536",
+        //                 "feeCcy" => "USDT",
+        //                 "fees" => "-0.005693536",
+        //                 "takerMakerFlag" => "taker",
+        //                 "cTime" => "1697603539699"
+        //             ),
+        //         )
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1697831790948,
+        //         "data" => array(
+        //             array(
+        //                 "tradeId" => "1099351653724958721",
+        //                 "symbol" => "BTCUSDT_UMCBL",
+        //                 "orderId" => "1099351653682413569",
+        //                 "price" => "29531.3",
+        //                 "sizeQty" => "0.001",
+        //                 "fee" => "-0.01771878",
+        //                 "side" => "close_long",
+        //                 "fillAmount" => "29.5313",
+        //                 "profit" => "0.001",
+        //                 "enterPointSource" => "WEB",
+        //                 "tradeSide" => "close_long",
+        //                 "holdMode" => "double_hold",
+        //                 "takerMakerFlag" => "taker",
+        //                 "cTime" => "1697831779891"
+        //             ),
+        //         )
+        //     }
+        //
+        // isolated and cross margin
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1697832285469,
+        //         "data" => {
+        //             "fills" => array(
+        //                 array(
+        //                     "orderId" => "1099353730455318528",
+        //                     "fillId" => "1099353730627092481",
+        //                     "orderType" => "market",
+        //                     "side" => "sell",
+        //                     "fillPrice" => "29543.7",
+        //                     "fillQuantity" => "0.0001",
+        //                     "fillTotalAmount" => "2.95437",
+        //                     "feeCcy" => "USDT",
+        //                     "fees" => "-0.00295437",
+        //                     "ctime" => "1697832275063"
+        //                 ),
+        //             ),
+        //             "minId" => "1099353591699161118",
+        //             "maxId" => "1099353730627092481"
         //         }
-        //       )
         //     }
         //
         $data = $this->safe_value($response, 'data');
+        if ($marginMode !== null) {
+            $fills = $this->safe_value($data, 'fills', array());
+            return $this->parse_trades($fills, $market, $since, $limit);
+        }
         return $this->parse_trades($data, $market, $since, $limit);
     }
 

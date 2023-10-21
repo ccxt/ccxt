@@ -1028,8 +1028,8 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
-        see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrdersByPair
-        see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyActiveStopOrdersByPair  # stop
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrdersByPair
+        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyActiveStopOrdersByPair  # stop
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -1080,10 +1080,10 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
-        see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrders
-        see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrdersByPair
-        see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrders       # stop
-        see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrdersByPair  # stop
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrders
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrdersByPair
+        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrders       # stop
+        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getMyStopOrdersByPair  # stop
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -1144,8 +1144,8 @@ class latoken(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        see https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
-        see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
+        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
         :param str [symbol]: not used by latoken fetchOrder
         :param dict [params]: extra parameters specific to the latoken api endpoint
         :param boolean [params.trigger]: True if fetching a trigger order
@@ -1187,8 +1187,8 @@ class latoken(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://api.latoken.com/doc/v2/#tag/Order/operation/placeOrder
-        see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/placeStopOrder  # stop
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/placeOrder
+        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/placeStopOrder  # stop
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1244,8 +1244,8 @@ class latoken(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
-        see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
-        see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  # stop
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
+        :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  # stop
         :param str id: order id
         :param str symbol: not used by latoken cancelOrder()
         :param dict [params]: extra parameters specific to the latoken api endpoint
@@ -1277,8 +1277,8 @@ class latoken(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders in a market
-        see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
-        see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
+        :see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the latoken api endpoint
         :param boolean [params.trigger]: True if cancelling trigger orders
