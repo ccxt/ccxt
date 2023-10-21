@@ -72,6 +72,10 @@ function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice (0, LOG_CHARS_LENGTH);
 }
 
+function getExactExceptionName (exc) {
+    return exc.constructor.name;
+}
+
 function exitScript () {
     process.exit (0);
 }
@@ -278,12 +282,12 @@ export default class testMainClass extends baseMainTestClass {
                 await this.testMethod (methodName, exchange, args, isPublic);
                 return true;
             } catch (e) {
-                const isAuthError = (e instanceof AuthenticationError);
-                const isRateLimitExceeded = (e instanceof RateLimitExceeded);
-                const isNetworkError = (e instanceof NetworkError);
-                const isDDoSProtection = (e instanceof DDoSProtection);
-                const isRequestTimeout = (e instanceof RequestTimeout);
-                const isNotSupported = (e instanceof NotSupported);
+                const isAuthError = getExactExceptionName (e) === 'AuthenticationError';
+                const isRateLimitExceeded = getExactExceptionName (e) === 'RateLimitExceeded';
+                const isNetworkError = getExactExceptionName (e) === 'NetworkError';
+                const isDDoSProtection = getExactExceptionName (e) === 'DDoSProtection';
+                const isRequestTimeout = getExactExceptionName (e) === 'RequestTimeout';
+                const isNotSupported = getExactExceptionName (e) === 'NotSupported';
                 const tempFailure = (isRateLimitExceeded || isNetworkError || isDDoSProtection || isRequestTimeout);
                 if (tempFailure) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
@@ -294,7 +298,7 @@ export default class testMainClass extends baseMainTestClass {
                         await exchange.sleep (i * 1000); // increase wait seconds on every retry
                         continue;
                     }
-                } else if (e instanceof OnMaintenance) {
+                } else if (getExactExceptionName (e) === 'OnMaintenance') {
                     // in case of maintenance, skip exchange (don't fail the test)
                     dump ('[TEST_WARNING] Exchange is on maintenance', exchange.id);
                 }
