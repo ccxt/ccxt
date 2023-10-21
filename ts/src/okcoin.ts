@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/okcoin.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, NetworkError, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, AccountNotEnabled, BadSymbol, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, NetworkError, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, AccountNotEnabled, BadSymbol, RateLimitExceeded, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1549,21 +1549,21 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#cancelOrder
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-order
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
+         * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
+         * @param {bool} [params.stop] True if cancel trigger or conditional orders
+         * @param {bool} [params.advanced] True if canceling advanced orders only
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        const stop = this.safeValue (params, 'stop');
-        if (stop) {
-            const orderInner = await this.cancelOrders ([ id ], symbol, params);
-            return this.safeValue (orderInner, 0);
-        }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const advanced = this.safeValue (params, 'advanced');
+        params = this.omit (params, [ 'stop', 'trigger', 'advanced' ]);
         const market = this.market (symbol);
         const request = {
             'instId': market['id'],
@@ -1577,7 +1577,14 @@ export default class okcoin extends Exchange {
             request['ordId'] = id;
         }
         const query = this.omit (params, [ 'clOrdId', 'clientOrderId' ]);
-        const response = await this.privatePostTradeCancelOrder (this.extend (request, query));
+        let response = undefined;
+        if (stop) {
+            response = await this.privatePostTradeCancelAlgos (this.extend (request, query));
+        } else if (advanced) {
+            response = await this.privatePostTradeCancelAdvanceAlgos (this.extend (request, query));
+        } else {
+            response = await this.privatePostTradeCancelOrder (this.extend (request, query));
+        }
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         const data = this.safeValue (response, 'data', []);
         const order = this.safeValue (data, 0);
@@ -1610,13 +1617,16 @@ export default class okcoin extends Exchange {
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
+        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        if (stop) {
+            throw new NotSupported (this.id + ' cancelOrder() does not support cancelling ' + stop + ' orders');
+        }
         this.checkRequiredSymbol ('cancelOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = [];
         const clientOrderIds = this.parseIds (this.safeValue2 (params, 'clOrdId', 'clientOrderId'));
         const algoIds = this.parseIds (this.safeValue (params, 'algoId'));
-        const stop = this.safeValue (params, 'stop');
         if (clientOrderIds === undefined) {
             ids = this.parseIds (ids);
             if (algoIds !== undefined) {
@@ -1628,17 +1638,10 @@ export default class okcoin extends Exchange {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (stop) {
-                    request.push ({
-                        'algoId': ids[i],
-                        'instId': market['id'],
-                    });
-                } else {
-                    request.push ({
-                        'ordId': ids[i],
-                        'instId': market['id'],
-                    });
-                }
+                request.push ({
+                    'ordId': ids[i],
+                    'instId': market['id'],
+                });
             }
         } else {
             for (let i = 0; i < clientOrderIds.length; i++) {
