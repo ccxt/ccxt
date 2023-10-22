@@ -370,6 +370,7 @@ export default class bittrex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601 (this.safeString (market, 'createdAt')),
                 'info': market,
             });
         }
@@ -618,7 +619,7 @@ export default class bittrex extends Exchange {
             const ticker = this.parseTicker (response[i]);
             tickers.push (ticker);
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -1911,8 +1912,8 @@ export default class bittrex extends Exchange {
             request['marketSymbol'] = market['id'];
         }
         const response = await this.privateGetExecutions (this.extend (request, params));
-        const trades = this.parseTrades (response, market);
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit) as any;
+        const trades = this.parseTrades (response, market, since, limit);
+        return trades;
     }
 
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

@@ -399,7 +399,7 @@ class coinex(ccxt.async_support.coinex):
 
     async def watch_ticker(self, symbol: str, params={}):
         """
-        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the coinex api endpoint
@@ -409,7 +409,7 @@ class coinex(ccxt.async_support.coinex):
 
     async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
-        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the coinex api endpoint
@@ -436,8 +436,8 @@ class coinex(ccxt.async_support.coinex):
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
-        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -466,8 +466,8 @@ class coinex(ccxt.async_support.coinex):
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
-        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
-        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -509,7 +509,7 @@ class coinex(ccxt.async_support.coinex):
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket023_kline_subscribe
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket023_kline_subscribe
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -557,7 +557,7 @@ class coinex(ccxt.async_support.coinex):
 
     async def fetch_ohlcv_ws(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
-        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query
         query historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to query OHLCV data for
         :param str timeframe: the length of time each candle represents

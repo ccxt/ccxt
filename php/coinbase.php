@@ -1068,6 +1068,7 @@ class coinbase extends Exchange {
                         'max' => $this->safe_number($market, 'quote_max_size'),
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -1211,7 +1212,7 @@ class coinbase extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($rates[$baseId], $market);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_tickers_v3(?array $symbols = null, $params = array ()) {
@@ -1264,7 +1265,7 @@ class coinbase extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($entry, $market);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker(string $symbol, $params = array ()) {
@@ -1338,10 +1339,9 @@ class coinbase extends Exchange {
         //
         $data = $this->safe_value($response, 'trades', array());
         $ticker = $this->parse_ticker($data[0], $market);
-        return array_merge($ticker, array(
-            'bid' => $this->safe_number($response, 'best_bid'),
-            'ask' => $this->safe_number($response, 'best_ask'),
-        ));
+        $ticker['bid'] = $this->safe_number($response, 'best_bid');
+        $ticker['ask'] = $this->safe_number($response, 'best_ask');
+        return $ticker;
     }
 
     public function parse_ticker($ticker, $market = null) {

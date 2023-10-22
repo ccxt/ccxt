@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitmex.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook } from './base/types.js';
 /**
  * @class bitmex
  * @extends Exchange
@@ -15,11 +15,11 @@ export default class bitmex extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: any): {
@@ -71,7 +71,7 @@ export default class bitmex extends Exchange {
         };
     };
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;

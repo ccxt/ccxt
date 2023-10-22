@@ -149,6 +149,7 @@ class kraken extends Exchange {
                         'Depth' => 1,
                         'OHLC' => 1,
                         'Spread' => 1,
+                        'SystemStatus' => 1,
                         'Ticker' => 1,
                         'Time' => 1,
                         'Trades' => 1,
@@ -161,6 +162,7 @@ class kraken extends Exchange {
                         'AddExport' => 3,
                         'Balance' => 3,
                         'CancelAll' => 3,
+                        'CancelAllOrdersAfter' => 3,
                         'CancelOrder' => 0,
                         'CancelOrderBatch' => 0,
                         'ClosedOrders' => 6,
@@ -196,6 +198,13 @@ class kraken extends Exchange {
                         // sub accounts
                         'CreateSubaccount' => 3,
                         'AccountTransfer' => 3,
+                        // earn
+                        'Earn/Allocate' => 3,
+                        'Earn/Deallocate' => 3,
+                        'Earn/AllocateStatus' => 3,
+                        'Earn/DeallocateStatus' => 3,
+                        'Earn/Strategies' => 3,
+                        'Earn/Allocations' => 3,
                     ),
                 ),
             ),
@@ -483,6 +492,7 @@ class kraken extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -798,7 +808,7 @@ class kraken extends Exchange {
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker(string $symbol, $params = array ()) {
@@ -937,7 +947,7 @@ class kraken extends Exchange {
         } else {
             $direction = 'in';
         }
-        $timestamp = $this->safe_integer_product($item, 'time', 1000);
+        $timestamp = $this->safe_timestamp($item, 'time');
         return array(
             'info' => $item,
             'id' => $id,
@@ -1683,7 +1693,8 @@ class kraken extends Exchange {
             throw new OrderNotFound($this->id . ' fetchOrder() could not find $order $id ' . $id);
         }
         $order = $this->parse_order(array_merge(array( 'id' => $id ), $result[$id]));
-        return array_merge(array( 'info' => $response ), $order);
+        $order['info'] = $order;
+        return $order;
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

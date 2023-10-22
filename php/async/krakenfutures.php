@@ -385,6 +385,7 @@ class krakenfutures extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->parse8601($this->safe_string($market, 'openingDate')),
                     'info' => $market,
                 );
             }
@@ -942,7 +943,8 @@ class krakenfutures extends Exchange {
             $status = $this->safe_string($response['editStatus'], 'status');
             $this->verify_order_action_success($status, 'editOrder', array( 'filled' ));
             $order = $this->parse_order($response['editStatus']);
-            return array_merge(array( 'info' => $response ), $order);
+            $order['info'] = $response;
+            return $order;
         }) ();
     }
 
@@ -1366,6 +1368,7 @@ class krakenfutures extends Exchange {
             'type' => $this->parse_order_type($type),
             'timeInForce' => $timeInForce,
             'postOnly' => $type === 'post',
+            'reduceOnly' => $this->safe_value($details, 'reduceOnly'),
             'side' => $this->safe_string($details, 'side'),
             'price' => $price,
             'stopPrice' => $this->safe_string($details, 'triggerPrice'),
@@ -1534,11 +1537,10 @@ class krakenfutures extends Exchange {
                 throw new BadRequest($this->id . ' fetchBalance has no $account for ' . $type);
             }
             $balance = $this->parse_balance($account);
-            return array_merge(array(
-                'info' => $response,
-                'timestamp' => $this->parse8601($datetime),
-                'datetime' => $datetime,
-            ), $balance);
+            $balance['info'] = $response;
+            $balance['timestamp'] = $this->parse8601($datetime);
+            $balance['datetime'] = $datetime;
+            return $balance;
         }) ();
     }
 

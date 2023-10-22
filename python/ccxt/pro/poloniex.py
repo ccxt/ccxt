@@ -75,7 +75,7 @@ class poloniex(ccxt.async_support.poloniex):
         """
          * @ignore
         authenticates the user to access private web socket channels
-        see https://docs.poloniex.com/#authenticated-channels-market-data-authentication
+        :see: https://docs.poloniex.com/#authenticated-channels-market-data-authentication
         :returns dict: response from exchange
         """
         self.check_required_credentials()
@@ -156,7 +156,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://docs.poloniex.com/#public-channels-market-data-candlesticks
+        :see: https://docs.poloniex.com/#public-channels-market-data-candlesticks
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -177,7 +177,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://docs.poloniex.com/#public-channels-market-data-ticker
+        :see: https://docs.poloniex.com/#public-channels-market-data-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -190,7 +190,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_tickers(self, symbols=None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://docs.poloniex.com/#public-channels-market-data-ticker
+        :see: https://docs.poloniex.com/#public-channels-market-data-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -206,7 +206,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://docs.poloniex.com/#public-channels-market-data-trades
+        :see: https://docs.poloniex.com/#public-channels-market-data-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -224,7 +224,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://docs.poloniex.com/#public-channels-market-data-book-level-2
+        :see: https://docs.poloniex.com/#public-channels-market-data-book-level-2
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by poloniex watchOrderBook
         :param dict [params]: extra parameters specific to the poloniex api endpoint
@@ -240,7 +240,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
-        see https://docs.poloniex.com/#authenticated-channels-market-data-orders
+        :see: https://docs.poloniex.com/#authenticated-channels-market-data-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: not used by poloniex watchOrders
         :param int [limit]: not used by poloniex watchOrders
@@ -261,7 +261,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user using orders stream
-        see https://docs.poloniex.com/#authenticated-channels-market-data-orders
+        :see: https://docs.poloniex.com/#authenticated-channels-market-data-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: not used by poloniex watchMyTrades
         :param int [limit]: not used by poloniex watchMyTrades
@@ -283,7 +283,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_balance(self, params={}):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        see https://docs.poloniex.com/#authenticated-channels-market-data-balances
+        :see: https://docs.poloniex.com/#authenticated-channels-market-data-balances
         :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """

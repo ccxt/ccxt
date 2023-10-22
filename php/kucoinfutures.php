@@ -505,6 +505,7 @@ class kucoinfutures extends kucoin {
                         'max' => $this->safe_number($market, 'quoteMaxSize'),
                     ),
                 ),
+                'created' => $this->safe_integer($market, 'firstOpenDate'),
                 'info' => $market,
             );
         }
@@ -1179,7 +1180,7 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $data = $this->safe_value($response, 'data', array());
-        return array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($data, 'orderId'),
             'clientOrderId' => null,
             'timestamp' => null,
@@ -1202,7 +1203,7 @@ class kucoinfutures extends kucoin {
             'stopPrice' => null,
             'triggerPrice' => null,
             'info' => $response,
-        );
+        ), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {

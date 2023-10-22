@@ -57,12 +57,12 @@ export default class coinbase extends Exchange {
     fetchMarketsV3(params?: {}): Promise<any[]>;
     fetchCurrenciesFromCache(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
-    fetchTickersV2(symbols?: string[], params?: {}): Promise<any>;
-    fetchTickersV3(symbols?: string[], params?: {}): Promise<any>;
-    fetchTicker(symbol: string, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    fetchTickersV2(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    fetchTickersV3(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickerV2(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickerV3(symbol: string, params?: {}): Promise<any>;
+    fetchTickerV3(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     parseBalance(response: any, params?: {}): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;

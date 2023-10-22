@@ -129,7 +129,7 @@ export default class binance extends Exchange {
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;

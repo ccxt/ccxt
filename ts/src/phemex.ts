@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
+import { FundingRateHistory, Int, OrderBook, OrderSide, OrderType } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -602,6 +602,7 @@ export default class phemex extends Exchange {
                     'max': this.parseNumber (this.safeString (market, 'maxOrderQty')),
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }
@@ -701,6 +702,7 @@ export default class phemex extends Exchange {
                     'max': this.parseSafeNumber (this.safeString (market, 'maxOrderValue')),
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }
@@ -969,7 +971,7 @@ export default class phemex extends Exchange {
         }
         result[bidsKey] = this.sortBy (result[bidsKey], 0, true);
         result[asksKey] = this.sortBy (result[asksKey], 0);
-        return result;
+        return result as any;
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -1024,7 +1026,7 @@ export default class phemex extends Exchange {
         const timestamp = this.safeIntegerProduct (result, 'timestamp', 0.000001);
         const orderbook = this.customParseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
         orderbook['nonce'] = this.safeInteger (result, 'sequence');
-        return orderbook as any;
+        return orderbook as OrderBook;
     }
 
     toEn (n, scale) {

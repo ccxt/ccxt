@@ -153,6 +153,7 @@ class kraken extends kraken$1 {
                         'Depth': 1,
                         'OHLC': 1,
                         'Spread': 1,
+                        'SystemStatus': 1,
                         'Ticker': 1,
                         'Time': 1,
                         'Trades': 1,
@@ -165,6 +166,7 @@ class kraken extends kraken$1 {
                         'AddExport': 3,
                         'Balance': 3,
                         'CancelAll': 3,
+                        'CancelAllOrdersAfter': 3,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
                         'ClosedOrders': 6,
@@ -200,6 +202,13 @@ class kraken extends kraken$1 {
                         // sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
+                        // earn
+                        'Earn/Allocate': 3,
+                        'Earn/Deallocate': 3,
+                        'Earn/AllocateStatus': 3,
+                        'Earn/DeallocateStatus': 3,
+                        'Earn/Strategies': 3,
+                        'Earn/Allocations': 3,
                     },
                 },
             },
@@ -487,6 +496,7 @@ class kraken extends kraken$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -802,7 +812,7 @@ class kraken extends kraken$1 {
             const ticker = tickers[id];
             result[symbol] = this.parseTicker(ticker, market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -942,7 +952,7 @@ class kraken extends kraken$1 {
         else {
             direction = 'in';
         }
-        const timestamp = this.safeIntegerProduct(item, 'time', 1000);
+        const timestamp = this.safeTimestamp(item, 'time');
         return {
             'info': item,
             'id': id,
@@ -1701,7 +1711,8 @@ class kraken extends kraken$1 {
             throw new errors.OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }
         const order = this.parseOrder(this.extend({ 'id': id }, result[id]));
-        return this.extend({ 'info': response }, order);
+        order['info'] = order;
+        return order;
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

@@ -1095,6 +1095,7 @@ class gate extends Exchange {
                         'max' => $margin ? $this->safe_number($market, 'max_quote_amount') : null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -1293,6 +1294,7 @@ class gate extends Exchange {
                     'max' => null,
                 ),
             ),
+            'created' => null,
             'info' => $market,
         );
     }
@@ -1414,6 +1416,7 @@ class gate extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->safe_timestamp($market, 'create_time'),
                     'info' => $market,
                 );
             }
@@ -2797,7 +2800,8 @@ class gate extends Exchange {
                 $result[$code] = $this->parse_balance_helper($entry);
             }
         }
-        return $isolated ? $result : $this->safe_balance($result);
+        $returnResult = $isolated ? $result : $this->safe_balance($result);
+        return $returnResult;
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -5793,7 +5797,7 @@ class gate extends Exchange {
         //        lsr_taker => '9.3765153315902'
         //    }
         //
-        $timestamp = $this->safe_integer_product($interest, 'time', 1000);
+        $timestamp = $this->safe_timestamp($interest, 'time');
         return array(
             'symbol' => $this->safe_string($market, 'symbol'),
             'openInterestAmount' => $this->safe_number($interest, 'open_interest'),

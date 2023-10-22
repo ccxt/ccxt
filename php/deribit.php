@@ -801,6 +801,7 @@ class deribit extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->safe_integer($market, 'creation_timestamp'),
                     'info' => $market,
                 );
             }
@@ -1132,7 +1133,7 @@ class deribit extends Exchange {
             $symbol = $ticker['symbol'];
             $tickers[$symbol] = $ticker;
         }
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {

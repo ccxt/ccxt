@@ -367,6 +367,7 @@ export default class latoken extends Exchange {
                             'max': this.safeNumber(market, 'maxOrderCost' + capitalizedQuote),
                         },
                     },
+                    'created': this.safeInteger(market, 'created'),
                     'info': market,
                 });
             }

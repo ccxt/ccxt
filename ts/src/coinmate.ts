@@ -368,7 +368,7 @@ export default class coinmate extends Exchange {
         const ticker = this.safeValue (response, 'data');
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeNumber (ticker, 'last');
-        return {
+        return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -389,7 +389,7 @@ export default class coinmate extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'amount'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

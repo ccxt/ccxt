@@ -107,7 +107,7 @@ class bl3p extends Exchange {
                 ),
             ),
             'markets' => array(
-                'BTC/EUR' => array( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'BTC', 'quoteId' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025, 'type' => 'spot', 'spot' => true ),
+                'BTC/EUR' => $this->safe_market_structure(array( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'BTC', 'quoteId' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025, 'type' => 'spot', 'spot' => true )),
             ),
             'precisionMode' => TICK_SIZE,
         ));

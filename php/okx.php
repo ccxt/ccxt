@@ -247,6 +247,7 @@ class okx extends Exchange {
                         'trade/orders-history-archive' => 1,
                         'trade/fills' => 1 / 3,
                         'trade/fills-history' => 2.2,
+                        'trade/fills-archive' => 2,
                         'trade/order-algo' => 1,
                         'trade/orders-algo-pending' => 1,
                         'trade/orders-algo-history' => 1,
@@ -313,6 +314,12 @@ class okx extends Exchange {
                         'tradingBot/grid/orders-algo-details' => 1,
                         'tradingBot/grid/sub-orders' => 1,
                         'tradingBot/grid/positions' => 1,
+                        'tradingBot/grid/ai-param' => 1,
+                        'tradingBot/public/rsi-back-testing' => 1,
+                        'tradingBot/signal/orders-algo-details' => 1,
+                        'tradingBot/signal/positions' => 1,
+                        'tradingBot/signal/sub-orders' => 1,
+                        'tradingBot/signal/event-history' => 1,
                         'tradingBot/recurring/orders-algo-pending' => 1,
                         'tradingBot/recurring/orders-algo-history' => 1,
                         'tradingBot/recurring/orders-algo-details' => 1,
@@ -369,6 +376,7 @@ class okx extends Exchange {
                         'trade/amend-order' => 1 / 3,
                         'trade/amend-batch-orders' => 1 / 150,
                         'trade/close-position' => 1,
+                        'trade/fills-archive' => 172800, // 5 req per day = 5/24/60/60 => 10/5*24*60*60=172800
                         'trade/order-algo' => 1,
                         'trade/cancel-algos' => 1,
                         'trade/amend-algos' => 1,
@@ -443,6 +451,7 @@ class okx extends Exchange {
                         'broker/nd/rebate-per-orders' => 36000,
                         'finance/sfp/dcd/quote' => 10,
                         'finance/sfp/dcd/order' => 10,
+                        'broker/nd/report-subaccount-ip' => 0.25,
                         'broker/fd/rebate-per-orders' => 36000,
                     ),
                 ),
@@ -2718,10 +2727,9 @@ class okx extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0);
         $order = $this->parse_order($first, $market);
-        return array_merge($order, array(
-            'type' => $type,
-            'side' => $side,
-        ));
+        $order['type'] = $type;
+        $order['side'] = $side;
+        return $order;
     }
 
     public function edit_order_request(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
@@ -2831,10 +2839,9 @@ class okx extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0);
         $order = $this->parse_order($first, $market);
-        return array_merge($order, array(
-            'type' => $type,
-            'side' => $side,
-        ));
+        $order['type'] = $type;
+        $order['side'] = $side;
+        return $order;
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -3864,7 +3871,7 @@ class okx extends Exchange {
             $market = $this->market($symbol);
             $request['instId'] = $market['id'];
         }
-        list($request, $params) = $this->handle_until_option('end', $params, $request);
+        list($request, $params) = $this->handle_until_option('end', $request, $params);
         list($type, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $request['instType'] = $this->convert_to_instrument_type($type);
         if ($limit !== null) {
@@ -3981,7 +3988,7 @@ class okx extends Exchange {
             $currency = $this->currency($code);
             $request['ccy'] = $currency['id'];
         }
-        list($request, $params) = $this->handle_until_option('end', $params, $request);
+        list($request, $params) = $this->handle_until_option('end', $request, $params);
         $response = $this->$method (array_merge($request, $query));
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
@@ -4421,7 +4428,7 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
-        list($request, $params) = $this->handle_until_option('after', $params, $request);
+        list($request, $params) = $this->handle_until_option('after', $request, $params);
         $response = $this->privateGetAssetDepositHistory (array_merge($request, $params));
         //
         //     {
@@ -5718,6 +5725,7 @@ class okx extends Exchange {
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {int} [$params->leverage] leverage
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
@@ -5731,11 +5739,11 @@ class okx extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $lever = $this->safe_integer($params, 'lever');
+        $lever = $this->safe_integer_2($params, 'lever', 'leverage');
         if (($lever === null) || ($lever < 1) || ($lever > 125)) {
             throw new BadRequest($this->id . ' setMarginMode() $params["lever"] should be between 1 and 125');
         }
-        $params = $this->omit($params, array( 'lever' ));
+        $params = $this->omit($params, array( 'leverage' ));
         $request = array(
             'lever' => $lever,
             'mgnMode' => $marginMode,

@@ -5,7 +5,7 @@ import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, OrderSide, OrderType } from './base/types.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 
 // ---------------------------------------------------------------------------
@@ -455,6 +455,7 @@ export default class kuna extends Exchange {
                                 'max': undefined,
                             },
                         },
+                        'created': undefined,
                         'info': undefined,
                     });
                 }
@@ -535,7 +536,7 @@ export default class kuna extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (response[id], market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -694,7 +695,7 @@ export default class kuna extends Exchange {
                 ohlcv[5],
             ]);
         }
-        return result;
+        return result as OHLCV[];
     }
 
     parseBalance (response) {

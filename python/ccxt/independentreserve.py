@@ -212,6 +212,7 @@ class independentreserve(Exchange, ImplicitAPI):
                             'max': None,
                         },
                     },
+                    'created': None,
                     'info': id,
                 })
         return result

@@ -314,7 +314,8 @@ class btcalpha extends Exchange {
         //        sell => '22521.11'
         //    }
         //
-        $timestamp = $this->safe_integer_product($ticker, 'timestamp', 1000000);
+        $timestampStr = $this->safe_string($ticker, 'timestamp');
+        $timestamp = intval(Precise::string_mul($timestampStr, '1000000'));
         $marketId = $this->safe_string($ticker, 'pair');
         $market = $this->safe_market($marketId, $market, '_');
         $last = $this->safe_string($ticker, 'last');
@@ -767,9 +768,8 @@ class btcalpha extends Exchange {
             $order = $this->parse_order($response, $market);
             $orderAmount = (string) $order['amount'];
             $amount = Precise::string_gt($orderAmount, '0') ? $order['amount'] : $amount;
-            return array_merge($order, array(
-                'amount' => $this->parse_number($amount),
-            ));
+            $order['amount'] = $this->parse_number($amount);
+            return $order;
         }) ();
     }
 

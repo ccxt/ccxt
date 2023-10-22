@@ -660,6 +660,7 @@ class bitmex extends bitmex$1 {
                         'max': positionIsQuote ? maxOrderQty : undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'listing')),
                 'info': market,
             });
         }
@@ -1040,6 +1041,7 @@ class bitmex extends bitmex$1 {
             'Deposit': 'transaction',
             'Transfer': 'transfer',
             'AffiliatePayout': 'referral',
+            'SpotTrade': 'trade',
         };
         return this.safeString(types, type, type);
     }
@@ -1351,7 +1353,7 @@ class bitmex extends bitmex$1 {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     parseTicker(ticker, market = undefined) {
         // see response sample under "fetchMarkets" because same endpoint is being used here
@@ -1577,9 +1579,9 @@ class bitmex extends bitmex$1 {
             const feeCurrencyCode = this.safeCurrencyCode(currencyId);
             const feeRateString = this.safeString(trade, 'commission');
             fee = {
-                'cost': feeCostString,
+                'cost': Precise["default"].stringAbs(feeCostString),
                 'currency': feeCurrencyCode,
-                'rate': feeRateString,
+                'rate': Precise["default"].stringAbs(feeRateString),
             };
         }
         // Trade or Funding
@@ -2107,7 +2109,8 @@ class bitmex extends bitmex$1 {
         //         }
         //     ]
         //
-        return this.parsePositions(response, symbols);
+        const results = this.parsePositions(response, symbols);
+        return this.filterByArrayPositions(results, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
         //

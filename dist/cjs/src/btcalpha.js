@@ -307,7 +307,8 @@ class btcalpha extends btcalpha$1 {
         //        sell: '22521.11'
         //    }
         //
-        const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 1000000);
+        const timestampStr = this.safeString(ticker, 'timestamp');
+        const timestamp = parseInt(Precise["default"].stringMul(timestampStr, '1000000'));
         const marketId = this.safeString(ticker, 'pair');
         market = this.safeMarket(marketId, market, '_');
         const last = this.safeString(ticker, 'last');
@@ -747,9 +748,8 @@ class btcalpha extends btcalpha$1 {
         const order = this.parseOrder(response, market);
         const orderAmount = order['amount'].toString();
         amount = Precise["default"].stringGt(orderAmount, '0') ? order['amount'] : amount;
-        return this.extend(order, {
-            'amount': this.parseNumber(amount),
-        });
+        order['amount'] = this.parseNumber(amount);
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
