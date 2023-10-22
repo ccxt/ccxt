@@ -25,7 +25,7 @@ from ccxt.async_support.base.throttler import Throttler
 
 from ccxt.base.errors import BaseError, BadSymbol, BadRequest, BadResponse, AuthenticationError, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidOrder, InvalidAddress, RateLimitExceeded
 from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES, SIGNIFICANT_DIGITS
-from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade
+from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade, OrderRequest
 
 # -----------------------------------------------------------------------------
 
@@ -2391,6 +2391,9 @@ class Exchange(BaseExchange):
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
+
+    async def create_orders(self, orders: List[OrderRequest]):
+        raise NotSupported(self.id + ' createOrders() is not supported yet')
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
         raise NotSupported(self.id + ' createOrderWs() is not supported yet')

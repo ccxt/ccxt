@@ -4343,7 +4343,7 @@ export default class binance extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeString (rawOrder, 'amount');
             const price = this.safeString (rawOrder, 'price');
-            const params = this.safeValue (rawOrder, 'params');
+            const params = this.safeValue (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, params);
             ordersRequests.push (orderRequest);
         }
