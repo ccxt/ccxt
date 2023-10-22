@@ -3445,7 +3445,7 @@ class bitget(Exchange, ImplicitAPI):
                 return self.privateMarginPostIsolatedOrderBatchCancelOrder(self.extend(spotMarginRequest, params))
         request = {
             'productType': productType,
-            'marginCoin': market['settleId'],
+            'marginCoin': self.safe_string(market, 'settleId', 'USDT'),
         }
         stop = self.safe_value_2(params, 'stop', 'trigger')
         planType = self.safe_string(params, 'planType')
