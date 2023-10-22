@@ -3806,9 +3806,11 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const ordersRequests = [];
+        const orderSymbols = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
+            orderSymbols.push (marketId);
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
@@ -3822,11 +3824,15 @@ export default class gate extends Exchange {
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
-        const market = {};
+        const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const market = this.market (symbols[0]);
+        if (market['future'] || market['option']) {
+            throw new NotSupported (this.id + ' createOrders() does not support futures or options markets');
+        }
         let response = undefined;
         if (market['spot']) {
             response = await this.privateSpotPostBatchOrders (ordersRequests);
-        } else if (market['contract']) {
+        } else if (market['swap']) {
             response = await this.privateFuturesPostSettleBatchOrders (ordersRequests);
         }
         return this.parseOrders (response);
