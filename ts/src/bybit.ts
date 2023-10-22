@@ -3694,6 +3694,7 @@ export default class bybit extends Exchange {
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const lowerCaseType = type.toLowerCase ();
         if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
@@ -3825,7 +3826,7 @@ export default class bybit extends Exchange {
         return this.extend (request, params);
     }
 
-    async createOrders (orders: OrderRequest[]) {
+    async createOrders (orders: OrderRequest[], params = {}) {
         /**
          * @method
          * @name bybit#createOrders
@@ -3845,17 +3846,22 @@ export default class bybit extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeString (rawOrder, 'amount');
             const price = this.safeString (rawOrder, 'price');
-            const params = this.safeValue (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, params);
+            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
         const market = this.market (symbols[0]);
+        let category = undefined;
+        [ category, params ] = this.getBybitType ('createOrders', market, params);
+        if ((category === 'spot') || (category === 'inverse')) {
+            throw new NotSupported (this.id + ' createOrders does not allow spot or inverse orders');
+        }
         const request = {
-            'category': this.getBybitType ('createOrders', market),
+            'category': category,
             'request': ordersRequests,
         };
-        const response = await this.privatePostV5OrderCreateBatch (request);
+        const response = await this.privatePostV5OrderCreateBatch (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'list', []);
         return this.parseOrders (data);

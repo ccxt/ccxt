@@ -3702,7 +3702,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
-    async createOrders (orders: OrderRequest[]): Promise<Order[]> {
+    async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' createOrders() is not supported yet');
     }
 

@@ -2766,7 +2766,7 @@ export default class okx extends Exchange {
         return order;
     }
 
-    async createOrders (orders: OrderRequest[]) {
+    async createOrders (orders: OrderRequest[], params = {}) {
         /**
          * @method
          * @name okx#createOrders

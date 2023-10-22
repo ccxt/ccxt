@@ -39,6 +39,7 @@ export default class binance extends Exchange {
                 'cancelOrders': true,  // contract only
                 'createDepositAddress': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -4324,12 +4325,13 @@ export default class binance extends Exchange {
         }, market);
     }
 
-    async createOrders (orders: OrderRequest[]) {
+    async createOrders (orders: OrderRequest[], params = {}) {
         /**
          * @method
          * @name binance#createOrders
          * @description *contract only* create a list of trade orders
          * @see https://binance-docs.github.io/apidocs/futures/en/#place-multiple-orders-trade
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
