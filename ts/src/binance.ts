@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Market, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation } from './base/types.js';
+import { Market, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest } from './base/types.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -4322,6 +4322,45 @@ export default class binance extends Exchange {
             },
             'trades': fills,
         }, market);
+    }
+
+    async createOrders (orders: OrderRequest[]) {
+        /**
+         * @method
+         * @name binance#createOrders
+         * @description *contract only* create a list of trade orders
+         * @see https://binance-docs.github.io/apidocs/futures/en/#place-multiple-orders-trade
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        let orderSymbols = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            orderSymbols.push (marketId);
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeString (rawOrder, 'amount');
+            const price = this.safeString (rawOrder, 'price');
+            const params = this.safeValue (rawOrder, 'params');
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, params);
+            ordersRequests.push (orderRequest);
+        }
+        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const market = this.market (orderSymbols[0]);
+        if (market['spot']) {
+            throw new NotSupported (this.id + ' createOrders() does not support ' + market['type'] + ' orders');
+        }
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.fapiPrivatePostBatchOrders (ordersRequests);
+        } else if (market['option']) {
+            response = await this.eapiPrivatePostBatchOrders (ordersRequests);
+        } else {
+            response = await this.dapiPrivatePostBatchOrders (ordersRequests);
+        }
+        return this.parseOrders (response);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
