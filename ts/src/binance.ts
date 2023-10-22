@@ -4345,8 +4345,8 @@ export default class binance extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeString (rawOrder, 'amount');
             const price = this.safeString (rawOrder, 'price');
-            const params = this.safeValue (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, params);
+            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
@@ -4355,9 +4355,10 @@ export default class binance extends Exchange {
             throw new NotSupported (this.id + ' createOrders() does not support ' + market['type'] + ' orders');
         }
         let response = undefined;
-        const request = {
+        let request = {
             'batchOrders': ordersRequests,
         };
+        request = this.extend (request, params);
         if (market['linear']) {
             response = await this.fapiPrivatePostBatchOrders (request);
         } else if (market['option']) {
