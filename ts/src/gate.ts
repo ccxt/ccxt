@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest } from './base/types.js';
 
 /**
  * @class gate
@@ -3696,6 +3696,140 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const trigger = this.safeValue (params, 'trigger');
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isStopLossOrder = stopLossPrice !== undefined;
+        const isTakeProfitOrder = takeProfitPrice !== undefined;
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        const nonTriggerOrder = !isStopOrder && (trigger === undefined);
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (market['spot'] || market['margin']) {
+            if (nonTriggerOrder) {
+                response = await this.privateSpotPostOrders (orderRequest);
+            } else {
+                response = await this.privateSpotPostPriceOrders (orderRequest);
+            }
+        } else if (market['swap']) {
+            if (nonTriggerOrder) {
+                response = await this.privateFuturesPostSettleOrders (orderRequest);
+            } else {
+                response = await this.privateFuturesPostSettlePriceOrders (orderRequest);
+            }
+        } else if (market['future']) {
+            if (nonTriggerOrder) {
+                response = await this.privateDeliveryPostSettleOrders (orderRequest);
+            } else {
+                response = await this.privateDeliveryPostSettlePriceOrders (orderRequest);
+            }
+        } else {
+            response = await this.privateOptionsPostOrders (orderRequest);
+        }
+        // const response = await this[method] (this.deepExtend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "id": "95282841887",
+        //         "text": "apiv4",
+        //         "create_time": "1637383156",
+        //         "update_time": "1637383156",
+        //         "create_time_ms": 1637383156017,
+        //         "update_time_ms": 1637383156017,
+        //         "status": "open",
+        //         "currency_pair": "ETH_USDT",
+        //         "type": "limit",
+        //         "account": "spot",
+        //         "side": "buy",
+        //         "amount": "0.01",
+        //         "price": "3500",
+        //         "time_in_force": "gtc",
+        //         "iceberg": "0",
+        //         "left": "0.01",
+        //         "fill_price": "0",
+        //         "filled_total": "0",
+        //         "fee": "0",
+        //         "fee_currency": "ETH",
+        //         "point_fee": "0",
+        //         "gt_fee": "0",
+        //         "gt_discount": false,
+        //         "rebated_fee": "0",
+        //         "rebated_fee_currency": "USDT"
+        //     }
+        //
+        // spot conditional
+        //
+        //     {"id": 5891843}
+        //
+        // futures, perpetual swaps and options
+        //
+        //     {
+        //         "id": 95938572327,
+        //         "contract": "ETH_USDT",
+        //         "mkfr": "0",
+        //         "tkfr": "0.0005",
+        //         "tif": "gtc",
+        //         "is_reduce_only": false,
+        //         "create_time": 1637384600.08,
+        //         "price": "3000",
+        //         "size": 1,
+        //         "refr": "0",
+        //         "left": 1,
+        //         "text": "api",
+        //         "fill_price": "0",
+        //         "user": 2436035,
+        //         "status": "open",
+        //         "is_liq": false,
+        //         "refu": 0,
+        //         "is_close": false,
+        //         "iceberg": 0
+        //     }
+        //
+        // futures and perpetual swaps conditionals
+        //
+        //     {"id": 7615567}
+        //
+        return this.parseOrder (response, market);
+    }
+
+    async createOrders (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name gate#createOrders
+         * @description create a list of trade orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-orders
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
+            ordersRequests.push (orderRequest);
+        }
+        const market = {};
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.privateSpotPostBatchOrders (ordersRequests);
+        } else if (market['contract']) {
+            response = await this.privateFuturesPostSettleBatchOrders (ordersRequests);
+        }
+        return this.parseOrders (response);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        const market = this.market (symbol);
         const contract = market['contract'];
         const trigger = this.safeValue (params, 'trigger');
         const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
@@ -3707,7 +3841,6 @@ export default class gate extends Exchange {
         if (isStopLossOrder && isTakeProfitOrder) {
             throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
-        let methodTail = 'Orders';
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const exchangeSpecificTimeInForce = this.safeStringLowerN (params, [ 'timeInForce', 'tif', 'time_in_force' ]);
         let postOnly = undefined;
@@ -3917,80 +4050,8 @@ export default class gate extends Exchange {
                     };
                 }
             }
-            methodTail = 'PriceOrders';
         }
-        const method = this.getSupportedMapping (market['type'], {
-            'spot': 'privateSpotPost' + methodTail,
-            'margin': 'privateSpotPost' + methodTail,
-            'swap': 'privateFuturesPostSettle' + methodTail,
-            'future': 'privateDeliveryPostSettle' + methodTail,
-            'option': 'privateOptionsPostOrders',
-        });
-        const response = await this[method] (this.deepExtend (request, params));
-        //
-        // spot
-        //
-        //     {
-        //         "id": "95282841887",
-        //         "text": "apiv4",
-        //         "create_time": "1637383156",
-        //         "update_time": "1637383156",
-        //         "create_time_ms": 1637383156017,
-        //         "update_time_ms": 1637383156017,
-        //         "status": "open",
-        //         "currency_pair": "ETH_USDT",
-        //         "type": "limit",
-        //         "account": "spot",
-        //         "side": "buy",
-        //         "amount": "0.01",
-        //         "price": "3500",
-        //         "time_in_force": "gtc",
-        //         "iceberg": "0",
-        //         "left": "0.01",
-        //         "fill_price": "0",
-        //         "filled_total": "0",
-        //         "fee": "0",
-        //         "fee_currency": "ETH",
-        //         "point_fee": "0",
-        //         "gt_fee": "0",
-        //         "gt_discount": false,
-        //         "rebated_fee": "0",
-        //         "rebated_fee_currency": "USDT"
-        //     }
-        //
-        // spot conditional
-        //
-        //     {"id": 5891843}
-        //
-        // futures, perpetual swaps and options
-        //
-        //     {
-        //         "id": 95938572327,
-        //         "contract": "ETH_USDT",
-        //         "mkfr": "0",
-        //         "tkfr": "0.0005",
-        //         "tif": "gtc",
-        //         "is_reduce_only": false,
-        //         "create_time": 1637384600.08,
-        //         "price": "3000",
-        //         "size": 1,
-        //         "refr": "0",
-        //         "left": 1,
-        //         "text": "api",
-        //         "fill_price": "0",
-        //         "user": 2436035,
-        //         "status": "open",
-        //         "is_liq": false,
-        //         "refu": 0,
-        //         "is_close": false,
-        //         "iceberg": 0
-        //     }
-        //
-        // futures and perpetual swaps conditionals
-        //
-        //     {"id": 7615567}
-        //
-        return this.parseOrder (response, market);
+        return this.extend (request, params);
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
