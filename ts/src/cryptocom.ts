@@ -1182,7 +1182,7 @@ export default class cryptocom extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeValue (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            const orderRequest = this.createAdvancedOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const contigency = this.safeString (params, 'contingency_type', 'LIST');
@@ -1221,6 +1221,115 @@ export default class cryptocom extends Exchange {
         }
         const data = this.safeValue (result, 'result_list', []);
         return this.parseOrders (data);
+    }
+
+    createAdvancedOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        // differs slightly from createOrderRequest
+        // since the advanced order endpoint requires a different set of parameters
+        // namely here we don't support ref_price or spot_margin
+        // and market-buy orders need to send notional instead of quantity
+        const market = this.market (symbol);
+        const uppercaseType = type.toUpperCase ();
+        const request = {
+            'instrument_name': market['id'],
+            'side': side.toUpperCase (),
+        };
+        if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const broker = this.safeString (this.options, 'broker', 'CCXT');
+        request['broker_id'] = broker;
+        const timeInForce = this.safeStringUpper2 (params, 'timeInForce', 'time_in_force');
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'GTC') {
+                request['time_in_force'] = 'GOOD_TILL_CANCEL';
+            } else if (timeInForce === 'IOC') {
+                request['time_in_force'] = 'IMMEDIATE_OR_CANCEL';
+            } else if (timeInForce === 'FOK') {
+                request['time_in_force'] = 'FILL_OR_KILL';
+            } else {
+                request['time_in_force'] = timeInForce;
+            }
+        }
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if ((postOnly) || (timeInForce === 'PO')) {
+            request['exec_inst'] = [ 'POST_ONLY' ];
+            request['time_in_force'] = 'GOOD_TILL_CANCEL';
+        }
+        const triggerPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'ref_price' ]);
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const isTrigger = (triggerPrice !== undefined);
+        const isStopLossTrigger = (stopLossPrice !== undefined);
+        const isTakeProfitTrigger = (takeProfitPrice !== undefined);
+        if (isTrigger) {
+            price = price.toString ();
+            if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                if (side === 'buy') {
+                    if (Precise.stringLt (price, triggerPrice)) {
+                        request['type'] = 'TAKE_PROFIT_LIMIT';
+                    } else {
+                        request['type'] = 'STOP_LIMIT';
+                    }
+                } else {
+                    if (Precise.stringLt (price, triggerPrice)) {
+                        request['type'] = 'STOP_LIMIT';
+                    } else {
+                        request['type'] = 'TAKE_PROFIT_LIMIT';
+                    }
+                }
+            } else {
+                if (side === 'buy') {
+                    if (Precise.stringLt (price, triggerPrice)) {
+                        request['type'] = 'TAKE_PROFIT';
+                    } else {
+                        request['type'] = 'STOP_LOSS';
+                    }
+                } else {
+                    if (Precise.stringLt (price, triggerPrice)) {
+                        request['type'] = 'STOP_LOSS';
+                    } else {
+                        request['type'] = 'TAKE_PROFIT';
+                    }
+                }
+            }
+        } else if (isStopLossTrigger) {
+            if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
+                request['type'] = 'STOP_LIMIT';
+            } else {
+                request['type'] = 'STOP_LOSS';
+            }
+        } else if (isTakeProfitTrigger) {
+            if ((uppercaseType === 'LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                request['type'] = 'TAKE_PROFIT_LIMIT';
+            } else {
+                request['type'] = 'TAKE_PROFIT';
+            }
+        } else {
+            request['type'] = uppercaseType;
+        }
+        if ((side === 'buy') && ((uppercaseType === 'MARKET') || (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT'))) {
+            // use createmarketBuy logic here
+            if (this.options['createMarketBuyOrderRequiresPrice']) {
+                const cost = this.safeNumber2 (params, 'cost', 'notional');
+                params = this.omit (params, 'cost');
+                if (price === undefined && cost === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
+                } else {
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const quoteAmount = Precise.stringMul (amountString, priceString);
+                    amount = (cost !== undefined) ? cost : this.parseNumber (quoteAmount);
+                    request['notional'] = this.costToPrecision (symbol, amount);
+                }
+            } else {
+                request['notional'] = this.costToPrecision (symbol, amount);
+            }
+        } else {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        params = this.omit (params, [ 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        return this.extend (request, params);
     }
 
     async cancelAllOrders (symbol: string = undefined, params = {}) {
