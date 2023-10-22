@@ -1185,9 +1185,9 @@ export default class cryptocom extends Exchange {
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const contigency = this.safeString (params, 'contigency', 'LIST');
+        const contigency = this.safeString (params, 'contingency_type', 'LIST');
         const request = {
-            'contigency_type': contigency, // or OCO
+            'contingency_type': contigency, // or OCO
             'order_list': ordersRequests,
         };
         const response = await this.v1PrivatePostPrivateCreateOrderList (this.extend (request, params));
