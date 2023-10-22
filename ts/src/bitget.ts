@@ -3627,7 +3627,7 @@ export default class bitget extends Exchange {
         }
         const request = {
             'productType': productType,
-            'marginCoin': market['settleId'],
+            'marginCoin': this.safeString (market, 'settleId', 'USDT'),
         };
         const stop = this.safeValue2 (params, 'stop', 'trigger');
         const planType = this.safeString (params, 'planType');
