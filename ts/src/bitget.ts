@@ -3358,12 +3358,12 @@ export default class bitget extends Exchange {
         //     "requestTime": 1627293504612
         //   }
         //
-        const msg = this.safeString (response, 'msg');
-        if (msg !== 'success') {
-            const failure = this.safeValue (response, 'failure', []);
-            throw new BadRequest (this.id + ' createOrders() failed: ' + this.json (failure));
-        }
         const data = this.safeValue (response, 'data', {});
+        const failure = this.safeValue (data, 'failure', []);
+        const failureLength = failure.length;
+        if (failureLength > 0) {
+            throw new BadRequest (this.id + ' createOrders() failed: ' + this.json (response));
+        }
         const orderInfo = this.safeValue2 (data, 'orderInfo', 'resultList', []);
         return this.parseOrders (orderInfo, market);
     }
