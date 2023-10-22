@@ -4353,12 +4353,15 @@ export default class binance extends Exchange {
             throw new NotSupported (this.id + ' createOrders() does not support ' + market['type'] + ' orders');
         }
         let response = undefined;
+        const request = {
+            'batchOrders': ordersRequests,
+        };
         if (market['linear']) {
-            response = await this.fapiPrivatePostBatchOrders (ordersRequests);
+            response = await this.fapiPrivatePostBatchOrders (request);
         } else if (market['option']) {
-            response = await this.eapiPrivatePostBatchOrders (ordersRequests);
+            response = await this.eapiPrivatePostBatchOrders (request);
         } else {
-            response = await this.dapiPrivatePostBatchOrders (ordersRequests);
+            response = await this.dapiPrivatePostBatchOrders (request);
         }
         return this.parseOrders (response);
     }
@@ -8412,6 +8415,12 @@ export default class binance extends Exchange {
                 }
             }
             let query = undefined;
+            // handle batchOrders
+            if ((path === 'batchOrders') && (method === 'POST')) {
+                const batchOrders = this.safeValue (params, 'batchOrders');
+                const queryBatch = (this.json (batchOrders));
+                params['batchOrders'] = queryBatch;
+            }
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
             let extendedParams = this.extend ({
                 'timestamp': this.nonce (),
@@ -8544,10 +8553,9 @@ export default class binance extends Exchange {
         }
         if (Array.isArray (response)) {
             // cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
-            const numElements = response.length;
-            if (numElements > 0) {
-                const firstElement = response[0];
-                const errorCode = this.safeString (firstElement, 'code');
+            for (let i = 0; i < response.length; i++) {
+                const element = response[i];
+                const errorCode = this.safeString (element, 'code');
                 if (errorCode !== undefined) {
                     this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + body);
                 }
