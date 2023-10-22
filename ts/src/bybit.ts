@@ -3844,8 +3844,8 @@ export default class bybit extends Exchange {
             orderSymbols.push (marketId);
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeString (rawOrder, 'amount');
-            const price = this.safeString (rawOrder, 'price');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeValue (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
