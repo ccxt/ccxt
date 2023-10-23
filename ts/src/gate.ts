@@ -4297,6 +4297,22 @@ export default class gate extends Exchange {
         //        "order_type": ""
         //    }
         //
+        //    {
+        //        "text": "t-d18baf9ac44d82e2",
+        //        "succeeded": false,
+        //        "label": "BALANCE_NOT_ENOUGH",
+        //        "message": "Not enough balance"
+        //    }
+        //
+        const succeeded = this.safeValue (order, 'succeeded', true);
+        if (!succeeded) {
+            // cancelOrders response
+            return this.safeOrder ({
+                'clientOrderId': this.safeString (order, 'text'),
+                'info': order,
+                'status': 'rejected',
+            });
+        }
         const put = this.safeValue2 (order, 'put', 'initial', {});
         const trigger = this.safeValue (order, 'trigger', {});
         let contract = this.safeString (put, 'contract');
@@ -5744,7 +5760,15 @@ export default class gate extends Exchange {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit (params, this.extractParams (path));
-        path = this.implodeParams (path, params);
+        if (Array.isArray (params)) {
+            // endpoints like createOrders use an array instead of an object
+            // so we infer the settle from one of the elements
+            // they have to be all the same so relying on the first one is fine
+            const first = this.safeValue (params, 0, {});
+            path = this.implodeParams (path, first);
+        } else {
+            path = this.implodeParams (path, params);
+        }
         const endPart = (path === '') ? '' : ('/' + path);
         let entirePath = '/' + type + endPart;
         if ((type === 'subAccounts') || (type === 'withdrawals')) {
