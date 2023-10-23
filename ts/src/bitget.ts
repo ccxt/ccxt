@@ -2991,7 +2991,23 @@ export default class bitget extends Exchange {
         //         "fillTotalAmount": "0",
         //         "ctime": "1697773902588"
         //     }
+        // cancelOrders failing
         //
+        //         {
+        //           "orderId": "1627293504611",
+        //           "clientOid": "BITGET#1627293504611",
+        //           "errorMsg":"Duplicate clientOid"
+        //         }
+        //
+        const errorMessage = this.safeString (order, 'errorMsg');
+        if (errorMessage !== undefined) {
+            return this.safeOrder ({
+                'info': order,
+                'id': this.safeString (order, 'orderId'),
+                'clientOrderId': this.safeString (order, 'clientOrderId'),
+                'status': 'rejected',
+            }, market);
+        }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'cTime', 'ctime');
@@ -3361,12 +3377,9 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const failure = this.safeValue (data, 'failure', []);
-        const failureLength = failure.length;
-        if (failureLength > 0) {
-            throw new BadRequest (this.id + ' createOrders() failed: ' + this.json (response));
-        }
         const orderInfo = this.safeValue2 (data, 'orderInfo', 'resultList', []);
-        return this.parseOrders (orderInfo, market);
+        const both = this.arrayConcat (orderInfo, failure);
+        return this.parseOrders (both);
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
