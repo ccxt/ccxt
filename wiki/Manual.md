@@ -1601,30 +1601,31 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchMarkets ()`: Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as `symbol`, `base`, `quote` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
 - `fetchCurrencies ()`: Fetches  all available currencies an exchange and returns an associative dictionary of currencies (objects with properties such as `code`, `name`, etc.). Some exchanges do not have means for obtaining currencies via their online API. For those, the currencies will be extracted from market pairs or hardcoded.
 - `loadMarkets ([reload])`: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the `reload = true` flag is forced.
-- `fetchOrderBook (symbol[, limit = undefined[, params = {}]])`: Fetch L2/L3 order book for a particular market trading symbol.
-- `fetchStatus ([, params = {}])`: Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
-- `fetchL2OrderBook (symbol[, limit = undefined[, params]])`: Level 2 (price-aggregated) order book for a particular symbol.
-- `fetchTrades (symbol[, since[, [limit, [params]]]])`: Fetch recent trades for a particular trading symbol.
+- `fetchOrderBook (symbol, limit = undefined, params = {})`: Fetch L2/L3 order book for a particular market trading symbol.
+- `fetchStatus (params = {})`: Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
+- `fetchL2OrderBook (symbol, limit = undefined, params)`: Level 2 (price-aggregated) order book for a particular symbol.
+- `fetchTrades (symbol, since, limit, params)`: Fetch recent trades for a particular trading symbol.
 - `fetchTicker (symbol)`: Fetch latest ticker data by trading symbol.
 - `fetchBalance ()`: Fetch Balance.
-- `createOrder (symbol, type, side, amount[, price[, params]])`
-- `createLimitBuyOrder (symbol, amount, price[, params])`
-- `createLimitSellOrder (symbol, amount, price[, params])`
-- `createMarketBuyOrder (symbol, amount[, params])`
-- `createMarketSellOrder (symbol, amount[, params])`
-- `cancelOrder (id[, symbol[, params]])`
-- `fetchOrder (id[, symbol[, params]])`
-- `fetchOrders ([symbol[, since[, limit[, params]]]])`
-- `fetchOpenOrders ([symbol[, since, limit, params]]]])`
-- `fetchCanceledOrders ([symbol[, since[, limit[, params]]]])`
-- `fetchClosedOrders ([symbol[, since[, limit[, params]]]])`
-- `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
-- `fetchOpenInterest ([symbol[, params]])`
-- `fetchVolatilityHistory ([code[, params]])`
+- `createOrder (symbol, type, side, amount, price, params)`
+- `createOrders(orders, params)`
+- `createLimitBuyOrder (symbol, amount, price, param)`
+- `createLimitSellOrder (symbol, amount, price, param)`
+- `createMarketBuyOrder (symbol, amount, param)`
+- `createMarketSellOrder (symbol, amount, param)`
+- `cancelOrder (id, symbol, params)`
+- `fetchOrder (id, symbol, params)`
+- `fetchOrders (symbol, since, limit, params)`
+- `fetchOpenOrders (symbol, since, limit, params)`
+- `fetchCanceledOrders (symbol, since, limit, params)`
+- `fetchClosedOrders (symbol, since, limit, params)`
+- `fetchMyTrades (symbol, since, limit, params)`
+- `fetchOpenInterest (symbol, params)`
+- `fetchVolatilityHistory (code, params)`
 - `fetchUnderlyingAssets ()`
-- `fetchSettlementHistory ([symbol[, since[, limit[, params]]]])`
-- `fetchLiquidations ([symbol[, since[, limit[, params]]]])`
-- `fetchMyLiquidations ([symbol[, since[, limit[, params]]]])`
+- `fetchSettlementHistory (symbol, since, limit, params)`
+- `fetchLiquidations (symbol, since, limit, params)`
+- `fetchMyLiquidations (symbol, since, limit, params)`
 - ...
 
 ```text
