@@ -3609,13 +3609,13 @@ export default class Exchange {
         return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
     }
 
-    throwExactlyMatchedException (exactExceptions, key, message) {
+    throwExactlyMatchedException (exactExceptions, key, message, originUrl = undefined) {
         if (key in exactExceptions) {
             throw new exactExceptions[key] (message);
         }
     }
 
-    throwBroadlyMatchedException (broadExceptions, content, message) {
+    throwBroadlyMatchedException (broadExceptions, content, message, originUrl = undefined) {
         const broadKey = this.findBroadlyMatchedKey (broadExceptions, content);
         if (broadKey !== undefined) {
             throw new broadExceptions[broadKey] (message);

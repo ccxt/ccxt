@@ -8472,8 +8472,8 @@ export default class binance extends Exchange {
         }
         const message = this.safeString (response, 'msg');
         if (message !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, this.id + ' ' + message);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message, url);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, this.id + ' ' + message, url);
         }
         // checks against error codes
         const error = this.safeString (response, 'code');
@@ -8498,7 +8498,7 @@ export default class binance extends Exchange {
                 // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
                 throw new MarginModeAlreadySet (feedback);
             }
-            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback, url);
             throw new ExchangeError (feedback);
         }
         if (!success) {
@@ -8511,7 +8511,7 @@ export default class binance extends Exchange {
                 const firstElement = response[0];
                 const errorCode = this.safeString (firstElement, 'code');
                 if (errorCode !== undefined) {
-                    this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + body);
+                    this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + body, url);
                 }
             }
         }
