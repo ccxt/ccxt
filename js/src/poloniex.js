@@ -555,6 +555,7 @@ export default class poloniex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.safeInteger(market, 'tradableStartTime'),
                 'info': market,
             });
         }
@@ -1023,8 +1024,8 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        const result = this.parseTrades(response, market);
-        return this.filterBySinceLimit(result, since, limit);
+        const result = this.parseTrades(response, market, since, limit);
+        return result;
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1506,9 +1507,9 @@ export default class poloniex extends Exchange {
         //         "updateTime": 1646196019020
         //     }
         //
-        return this.extend(this.parseOrder(response), {
-            'id': id,
-        });
+        const order = this.parseOrder(response);
+        order['id'] = id;
+        return order;
     }
     async fetchOrderStatus(id, symbol = undefined, params = {}) {
         await this.loadMarkets();

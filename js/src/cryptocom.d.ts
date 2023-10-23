@@ -1,5 +1,5 @@
 import Exchange from './abstract/cryptocom.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Ticker } from './base/types.js';
 /**
  * @class cryptocom
  * @extends Exchange
@@ -7,8 +7,8 @@ import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory } fr
 export default class cryptocom extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchTicker(symbol: string, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -73,7 +73,7 @@ export default class cryptocom extends Exchange {
         toAccount: any;
         status: any;
     };
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
+    parseTicker(ticker: any, market?: any): Ticker;
     parseTrade(trade: any, market?: any): Trade;
     parseOHLCV(ohlcv: any, market?: any): number[];
     parseOrderStatus(status: any): string;
@@ -113,7 +113,6 @@ export default class cryptocom extends Exchange {
         datetime: any;
         info: any;
     };
-    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         symbol: any;
         marginMode: any;
@@ -125,7 +124,6 @@ export default class cryptocom extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowRates(params?: {}): Promise<any[]>;
     parseBorrowRates(info: any, codeKey: any): any[];
     customHandleMarginModeAndParams(methodName: any, params?: {}): any[];
     parseDepositWithdrawFee(fee: any, currency?: any): {

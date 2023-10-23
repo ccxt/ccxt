@@ -591,6 +591,7 @@ class wavesexchange extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $entry,
                 );
             }

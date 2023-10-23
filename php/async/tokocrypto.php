@@ -743,6 +743,7 @@ class tokocrypto extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
                 if (is_array($filtersByType) && array_key_exists('PRICE_FILTER', $filtersByType)) {

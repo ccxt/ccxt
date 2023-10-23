@@ -869,8 +869,8 @@ export default class okx extends okxRest {
         let type = undefined;
         // By default, receive order updates from any instrument type
         [type, params] = this.handleOptionAndParams(params, 'watchOrders', 'type', 'ANY');
-        const isStop = this.safeValue(params, 'stop', false);
-        params = this.omit(params, ['stop']);
+        const isStop = this.safeValue2(params, 'stop', 'trigger', false);
+        params = this.omit(params, ['stop', 'trigger']);
         await this.loadMarkets();
         await this.authenticate({ 'access': isStop ? 'business' : 'private' });
         let market = undefined;
@@ -957,8 +957,9 @@ export default class okx extends okxRest {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             if (this.orders === undefined) {
                 this.orders = new ArrayCacheBySymbolById(limit);
+                this.triggerOrders = new ArrayCacheBySymbolById(limit);
             }
-            const stored = this.orders;
+            const stored = (channel === 'orders-algo') ? this.triggerOrders : this.orders;
             const marketIds = [];
             const parsed = this.parseOrders(orders);
             for (let i = 0; i < parsed.length; i++) {
@@ -968,10 +969,10 @@ export default class okx extends okxRest {
                 const market = this.market(symbol);
                 marketIds.push(market['id']);
             }
-            client.resolve(this.orders, channel);
+            client.resolve(stored, channel);
             for (let i = 0; i < marketIds.length; i++) {
                 const messageHash = channel + ':' + marketIds[i];
-                client.resolve(this.orders, messageHash);
+                client.resolve(stored, messageHash);
             }
         }
     }

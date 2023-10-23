@@ -156,6 +156,7 @@ export default class kraken extends Exchange {
                         'Depth': 1,
                         'OHLC': 1,
                         'Spread': 1,
+                        'SystemStatus': 1,
                         'Ticker': 1,
                         'Time': 1,
                         'Trades': 1,
@@ -168,6 +169,7 @@ export default class kraken extends Exchange {
                         'AddExport': 3,
                         'Balance': 3,
                         'CancelAll': 3,
+                        'CancelAllOrdersAfter': 3,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
                         'ClosedOrders': 6,
@@ -203,6 +205,13 @@ export default class kraken extends Exchange {
                         // sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
+                        // earn
+                        'Earn/Allocate': 3,
+                        'Earn/Deallocate': 3,
+                        'Earn/AllocateStatus': 3,
+                        'Earn/DeallocateStatus': 3,
+                        'Earn/Strategies': 3,
+                        'Earn/Allocations': 3,
                     },
                 },
             },
@@ -490,6 +499,7 @@ export default class kraken extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -805,7 +815,7 @@ export default class kraken extends Exchange {
             const ticker = tickers[id];
             result[symbol] = this.parseTicker(ticker, market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -945,7 +955,7 @@ export default class kraken extends Exchange {
         else {
             direction = 'in';
         }
-        const timestamp = this.safeIntegerProduct(item, 'time', 1000);
+        const timestamp = this.safeTimestamp(item, 'time');
         return {
             'info': item,
             'id': id,
@@ -1704,7 +1714,8 @@ export default class kraken extends Exchange {
             throw new OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }
         const order = this.parseOrder(this.extend({ 'id': id }, result[id]));
-        return this.extend({ 'info': response }, order);
+        order['info'] = order;
+        return order;
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

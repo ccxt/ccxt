@@ -19,7 +19,7 @@ function testOpenInterest(exchange, skippedProperties, method, entry) {
     const emptyAllowedFor = ['symbol', 'timestamp', 'openInterestAmount', 'openInterestValue', 'datetime'];
     testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, 'symbol');
-    testSharedMethods.assertTimestamp(exchange, skippedProperties, method, entry);
+    testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
     //
     testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'openInterestAmount', '0');
     testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'openInterestValue', '0');

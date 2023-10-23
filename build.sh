@@ -117,6 +117,8 @@ done
 # faster version of pre-transpile (without bundle and atomic linting)
 npm run export-exchanges && npm run tsBuild && npm run emitAPI
 
+# check return types
+npm run validate-types ${REST_EXCHANGES[*]}
 
 echo "$msgPrefix REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
 PYTHON_FILES=()

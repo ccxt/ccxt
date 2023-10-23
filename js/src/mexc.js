@@ -1167,6 +1167,7 @@ export default class mexc extends Exchange {
                         'max': maxQuoteAmount,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1278,6 +1279,7 @@ export default class mexc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -2077,10 +2079,9 @@ export default class mexc extends Exchange {
         if (market['spot']) {
             return await this.createSpotOrder(market, type, side, amount, price, marginMode, query);
         }
-        else if (market['swap']) {
+        else {
             return await this.createSwapOrder(market, type, side, amount, price, marginMode, query);
         }
-        return undefined;
     }
     async createSpotOrder(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         const symbol = market['symbol'];
@@ -2151,12 +2152,12 @@ export default class mexc extends Exchange {
         //         "transactTime": 1661992652132
         //     }
         //
-        return this.extend(this.parseOrder(response, market), {
-            'side': side,
-            'type': type,
-            'price': price,
-            'amount': amount,
-        });
+        const order = this.parseOrder(response, market);
+        order['side'] = side;
+        order['type'] = type;
+        order['price'] = price;
+        order['amount'] = amount;
+        return order;
     }
     async createSwapOrder(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         await this.loadMarkets();
@@ -2740,7 +2741,7 @@ export default class mexc extends Exchange {
         }
         const [marketType] = this.handleMarketTypeAndParams('fetchOrdersByState', market, params);
         if (marketType === 'spot') {
-            throw new BadRequest(this.id + ' fetchOrdersByState() is not supported for ' + marketType);
+            throw new NotSupported(this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         }
         else {
             request['states'] = state;
@@ -4045,6 +4046,7 @@ export default class mexc extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, 'swap', true, true);
         const response = await this.contractPublicGetDetail(params);
         //
         //     {

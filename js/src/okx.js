@@ -253,6 +253,7 @@ export default class okx extends Exchange {
                         'trade/orders-history-archive': 1,
                         'trade/fills': 1 / 3,
                         'trade/fills-history': 2.2,
+                        'trade/fills-archive': 2,
                         'trade/order-algo': 1,
                         'trade/orders-algo-pending': 1,
                         'trade/orders-algo-history': 1,
@@ -319,6 +320,12 @@ export default class okx extends Exchange {
                         'tradingBot/grid/orders-algo-details': 1,
                         'tradingBot/grid/sub-orders': 1,
                         'tradingBot/grid/positions': 1,
+                        'tradingBot/grid/ai-param': 1,
+                        'tradingBot/public/rsi-back-testing': 1,
+                        'tradingBot/signal/orders-algo-details': 1,
+                        'tradingBot/signal/positions': 1,
+                        'tradingBot/signal/sub-orders': 1,
+                        'tradingBot/signal/event-history': 1,
                         'tradingBot/recurring/orders-algo-pending': 1,
                         'tradingBot/recurring/orders-algo-history': 1,
                         'tradingBot/recurring/orders-algo-details': 1,
@@ -375,6 +382,7 @@ export default class okx extends Exchange {
                         'trade/amend-order': 1 / 3,
                         'trade/amend-batch-orders': 1 / 150,
                         'trade/close-position': 1,
+                        'trade/fills-archive': 172800,
                         'trade/order-algo': 1,
                         'trade/cancel-algos': 1,
                         'trade/amend-algos': 1,
@@ -449,6 +457,7 @@ export default class okx extends Exchange {
                         'broker/nd/rebate-per-orders': 36000,
                         'finance/sfp/dcd/quote': 10,
                         'finance/sfp/dcd/order': 10,
+                        'broker/nd/report-subaccount-ip': 0.25,
                         'broker/fd/rebate-per-orders': 36000,
                     },
                 },
@@ -2759,10 +2768,9 @@ export default class okx extends Exchange {
         const data = this.safeValue(response, 'data', []);
         const first = this.safeValue(data, 0);
         const order = this.parseOrder(first, market);
-        return this.extend(order, {
-            'type': type,
-            'side': side,
-        });
+        order['type'] = type;
+        order['side'] = side;
+        return order;
     }
     editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market(symbol);
@@ -2873,10 +2881,9 @@ export default class okx extends Exchange {
         const data = this.safeValue(response, 'data', []);
         const first = this.safeValue(data, 0);
         const order = this.parseOrder(first, market);
-        return this.extend(order, {
-            'type': type,
-            'side': side,
-        });
+        order['type'] = type;
+        order['side'] = side;
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -3924,7 +3931,7 @@ export default class okx extends Exchange {
             market = this.market(symbol);
             request['instId'] = market['id'];
         }
-        [request, params] = this.handleUntilOption('end', params, request);
+        [request, params] = this.handleUntilOption('end', request, params);
         const [type, query] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
         request['instType'] = this.convertToInstrumentType(type);
         if (limit !== undefined) {
@@ -4043,7 +4050,7 @@ export default class okx extends Exchange {
             currency = this.currency(code);
             request['ccy'] = currency['id'];
         }
-        [request, params] = this.handleUntilOption('end', params, request);
+        [request, params] = this.handleUntilOption('end', request, params);
         const response = await this[method](this.extend(request, query));
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
@@ -4486,7 +4493,7 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
-        [request, params] = this.handleUntilOption('after', params, request);
+        [request, params] = this.handleUntilOption('after', request, params);
         const response = await this.privateGetAssetDepositHistory(this.extend(request, params));
         //
         //     {
@@ -5801,6 +5808,7 @@ export default class okx extends Exchange {
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {int} [params.leverage] leverage
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -5814,11 +5822,11 @@ export default class okx extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const lever = this.safeInteger(params, 'lever');
+        const lever = this.safeInteger2(params, 'lever', 'leverage');
         if ((lever === undefined) || (lever < 1) || (lever > 125)) {
             throw new BadRequest(this.id + ' setMarginMode() params["lever"] should be between 1 and 125');
         }
-        params = this.omit(params, ['lever']);
+        params = this.omit(params, ['leverage']);
         const request = {
             'lever': lever,
             'mgnMode': marginMode,

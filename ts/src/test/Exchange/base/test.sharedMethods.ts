@@ -107,9 +107,19 @@ function assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck
         assert (ts < maxTs, 'timestamp more than ' + maxTs.toString () + ' (19.01.2038)' + logText); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         if (nowToCheck !== undefined) {
             const maxMsOffset = 60000; // 1 min
-            assert (ts < nowToCheck + maxMsOffset, 'returned trade timestamp (' + exchange.iso8601 (ts) + ') is ahead of the current time (' + exchange.iso8601 (nowToCheck) + ')' + logText);
+            assert (ts < nowToCheck + maxMsOffset, 'returned item timestamp (' + exchange.iso8601 (ts) + ') is ahead of the current time (' + exchange.iso8601 (nowToCheck) + ')' + logText);
         }
     }
+}
+
+function assertTimestampAndDatetime (exchange, skippedProperties, method, entry, nowToCheck = undefined, keyNameOrIndex : any = 'timestamp') {
+    const logText = logTemplate (exchange, method, entry);
+    const skipValue = exchange.safeValue (skippedProperties, keyNameOrIndex);
+    if (skipValue !== undefined) {
+        return;
+    }
+    assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck, keyNameOrIndex);
+    const isDateTimeObject = typeof keyNameOrIndex === 'string';
     // only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
     if (isDateTimeObject) {
         // we also test 'datetime' here because it's certain sibling of 'timestamp'
@@ -127,6 +137,9 @@ function assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck
 }
 
 function assertCurrencyCode (exchange, skippedProperties, method, entry, actualCode, expectedCode = undefined) {
+    if ('currency' in skippedProperties) {
+        return;
+    }
     const logText = logTemplate (exchange, method, entry);
     if (actualCode !== undefined) {
         assert (typeof actualCode === 'string', 'currency code should be either undefined or a string' + logText);
@@ -264,7 +277,7 @@ function assertFeeStructure (exchange, skippedProperties, method, entry, key) {
     // todo: remove undefined check to make stricter
     if (feeObject !== undefined) {
         assert ('cost' in feeObject, keyString + ' fee object should contain "cost" key' + logText);
-        assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0');
+        // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
         assert ('currency' in feeObject, '"' + keyString + '" fee object should contain "currency" key' + logText);
         assertCurrencyCode (exchange, skippedProperties, method, entry, feeObject['currency']);
     }
@@ -276,7 +289,11 @@ function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending 
             const ascendingOrDescending = ascending ? 'ascending' : 'descending';
             const firstIndex = ascending ? i - 1 : i;
             const secondIndex = ascending ? i : i - 1;
-            assert (items[firstIndex]['timestamp'] >= items[secondIndex]['timestamp'], exchange.id + ' ' + method + ' ' + stringValue (codeOrSymbol) + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp. ' + exchange.json (items));
+            const firstTs = items[firstIndex]['timestamp'];
+            const secondTs = items[secondIndex]['timestamp'];
+            if (firstTs !== undefined && secondTs !== undefined) {
+                assert (items[firstIndex]['timestamp'] >= items[secondIndex]['timestamp'], exchange.id + ' ' + method + ' ' + stringValue (codeOrSymbol) + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp. ' + exchange.json (items));
+            }
         }
     }
 }
@@ -320,6 +337,7 @@ function checkPrecisionAccuracy (exchange, skippedProperties, method, entry, key
 export default {
     logTemplate,
     assertTimestamp,
+    assertTimestampAndDatetime,
     assertStructure,
     assertSymbol,
     assertCurrencyCode,

@@ -737,6 +737,7 @@ export default class hitbtc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1045,7 +1046,7 @@ export default class hitbtc extends Exchange {
             const entry = response[marketId];
             result[symbol] = this.parseTicker(entry, market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     parseTicker(ticker, market = undefined) {
         //

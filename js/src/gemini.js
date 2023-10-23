@@ -495,6 +495,7 @@ export default class gemini extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': row,
             });
         }
@@ -645,6 +646,7 @@ export default class gemini extends Exchange {
                     'max': undefined,
                 },
             },
+            'created': undefined,
             'info': response,
         };
     }
@@ -737,7 +739,13 @@ export default class gemini extends Exchange {
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         const method = this.safeValue(this.options, 'fetchTickerMethod', 'fetchTickerV1');
-        return await this[method](symbol, params);
+        if (method === 'fetchTickerV1') {
+            return await this.fetchTickerV1(symbol, params);
+        }
+        if (method === 'fetchTickerV2') {
+            return await this.fetchTickerV2(symbol, params);
+        }
+        return await this.fetchTickerV1AndV2(symbol, params);
     }
     parseTicker(ticker, market = undefined) {
         //

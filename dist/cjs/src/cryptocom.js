@@ -36,11 +36,11 @@ class cryptocom extends cryptocom$1 {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
-                'fetchBorrowInterest': true,
+                'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': true,
+                'fetchBorrowRates': false,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
@@ -334,6 +334,7 @@ class cryptocom extends cryptocom$1 {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '219': errors.InvalidOrder,
                     '10001': errors.ExchangeError,
                     '10002': errors.PermissionDenied,
                     '10003': errors.PermissionDenied,
@@ -563,6 +564,7 @@ class cryptocom extends cryptocom$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1055,7 +1057,7 @@ class cryptocom extends cryptocom$1 {
         }
         const postOnly = this.safeValue(params, 'postOnly', false);
         if ((postOnly) || (timeInForce === 'PO')) {
-            request['exec_inst'] = 'POST_ONLY';
+            request['exec_inst'] = ['POST_ONLY'];
             request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
         const triggerPrice = this.safeStringN(params, ['stopPrice', 'triggerPrice', 'ref_price']);
@@ -1863,8 +1865,8 @@ class cryptocom extends cryptocom$1 {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString(ticker, 'c'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': this.safeString(ticker, 'c'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'v'),
             'quoteVolume': this.safeString(ticker, 'vv'),
@@ -2008,10 +2010,16 @@ class cryptocom extends cryptocom$1 {
         const created = this.safeInteger(order, 'create_time');
         const marketId = this.safeString(order, 'instrument_name');
         const symbol = this.safeSymbol(marketId, market);
-        const execInst = this.safeString(order, 'exec_inst');
-        let postOnly = undefined;
+        const execInst = this.safeValue(order, 'exec_inst');
+        let postOnly = false;
         if (execInst !== undefined) {
-            postOnly = (execInst === 'POST_ONLY');
+            for (let i = 0; i < execInst.length; i++) {
+                const inst = execInst[i];
+                if (inst === 'POST_ONLY') {
+                    postOnly = true;
+                    break;
+                }
+            }
         }
         const feeCurrency = this.safeString(order, 'fee_instrument_name');
         return this.safeOrder({
@@ -2244,52 +2252,6 @@ class cryptocom extends cryptocom$1 {
             'info': info,
         };
     }
-    async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const request = {};
-        let market = undefined;
-        let currency = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-        }
-        if (code !== undefined) {
-            currency = this.currency(code);
-            request['currency'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['start_ts'] = since;
-        }
-        if (limit !== undefined) {
-            request['page_size'] = limit;
-        }
-        const response = await this.v2PrivatePostPrivateMarginGetInterestHistory(this.extend(request, params));
-        //
-        //     {
-        //         "id": 1656705829020,
-        //         "method": "private/margin/get-interest-history",
-        //         "code": 0,
-        //         "result": {
-        //             "list": [
-        //                 {
-        //                     "loan_id": "2643528867803765921",
-        //                     "currency": "USDT",
-        //                     "interest": 0.00000004,
-        //                     "time": 1656702899559,
-        //                     "stake_amount": 6,
-        //                     "interest_rate": 0.000025
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeValue(response, 'result', {});
-        const rows = this.safeValue(data, 'list', []);
-        let interest = undefined;
-        for (let i = 0; i < rows.length; i++) {
-            interest = this.parseBorrowInterests(rows, market);
-        }
-        return this.filterByCurrencySinceLimit(interest, code, since, limit);
-    }
     parseBorrowInterest(info, market = undefined) {
         //
         //     {
@@ -2317,38 +2279,6 @@ class cryptocom extends cryptocom$1 {
             'datetime': this.iso8601(timestamp),
             'info': info,
         };
-    }
-    async fetchBorrowRates(params = {}) {
-        /**
-         * @method
-         * @name cryptocom#fetchBorrowRates
-         * @description fetch the borrow interest rates of all currencies
-         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} a list of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
-         */
-        await this.loadMarkets();
-        const response = await this.v2PrivatePostPrivateMarginGetUserConfig(params);
-        //
-        //     {
-        //         "id": 1656707947456,
-        //         "method": "private/margin/get-user-config",
-        //         "code": 0,
-        //         "result": {
-        //             "stake_amount": 6,
-        //             "currency_configs": [
-        //                 {
-        //                     "currency": "AGLD",
-        //                     "hourly_rate": 0.00003334,
-        //                     "max_borrow_limit": 342.4032393,
-        //                     "min_borrow_limit": 30
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeValue(response, 'result', {});
-        const rates = this.safeValue(data, 'currency_configs', []);
-        return this.parseBorrowRates(rates, 'currency');
     }
     parseBorrowRates(info, codeKey) {
         //
@@ -3022,7 +2952,15 @@ class cryptocom extends cryptocom$1 {
             const paramsKeys = Object.keys(keysorted);
             let strSortKey = '';
             for (let i = 0; i < paramsKeys.length; i++) {
-                strSortKey = strSortKey + paramsKeys[i].toString() + requestParams[paramsKeys[i]].toString();
+                const key = paramsKeys[i].toString();
+                let value = requestParams[paramsKeys[i]];
+                if (Array.isArray(value)) {
+                    value = value.join(',');
+                }
+                else {
+                    value = value.toString();
+                }
+                strSortKey = strSortKey + key + value;
             }
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);

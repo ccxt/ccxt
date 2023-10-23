@@ -656,6 +656,7 @@ class bitmex(Exchange, ImplicitAPI):
                         'max': maxOrderQty if positionIsQuote else None,
                     },
                 },
+                'created': self.parse8601(self.safe_string(market, 'listing')),
                 'info': market,
             })
         return result
@@ -839,7 +840,7 @@ class bitmex(Exchange, ImplicitAPI):
 
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://www.bitmex.com/api/explorer/#not /Order/Order_getOrders
+        :see: https://www.bitmex.com/api/explorer/#not /Order/Order_getOrders
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -907,7 +908,7 @@ class bitmex(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://www.bitmex.com/api/explorer/#not /Execution/Execution_getTradeHistory
+        :see: https://www.bitmex.com/api/explorer/#not /Execution/Execution_getTradeHistory
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1004,6 +1005,7 @@ class bitmex(Exchange, ImplicitAPI):
             'Deposit': 'transaction',
             'Transfer': 'transfer',
             'AffiliatePayout': 'referral',
+            'SpotTrade': 'trade',
         }
         return self.safe_string(types, type, type)
 
@@ -1292,7 +1294,7 @@ class bitmex(Exchange, ImplicitAPI):
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def parse_ticker(self, ticker, market=None):
         # see response sample under "fetchMarkets" because same endpoint is being used here
@@ -1356,7 +1358,7 @@ class bitmex(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://www.bitmex.com/api/explorer/#not /Trade/Trade_getBucketed
+        :see: https://www.bitmex.com/api/explorer/#not /Trade/Trade_getBucketed
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1508,9 +1510,9 @@ class bitmex(Exchange, ImplicitAPI):
             feeCurrencyCode = self.safe_currency_code(currencyId)
             feeRateString = self.safe_string(trade, 'commission')
             fee = {
-                'cost': feeCostString,
+                'cost': Precise.string_abs(feeCostString),
                 'currency': feeCurrencyCode,
-                'rate': feeRateString,
+                'rate': Precise.string_abs(feeRateString),
             }
         # Trade or Funding
         execType = self.safe_string(trade, 'execType')
@@ -1661,7 +1663,7 @@ class bitmex(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://www.bitmex.com/api/explorer/#not /Trade/Trade_get
+        :see: https://www.bitmex.com/api/explorer/#not /Trade/Trade_get
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -1993,7 +1995,8 @@ class bitmex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_positions(response, symbols)
+        results = self.parse_positions(response, symbols)
+        return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):
         #
@@ -2354,7 +2357,7 @@ class bitmex(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
-        see https://www.bitmex.com/api/explorer/#not /User/User_getDepositAddress
+        :see: https://www.bitmex.com/api/explorer/#not /User/User_getDepositAddress
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the bitmex api endpoint
         :param str [params.network]: deposit chain, can view all chains via self.publicGetWalletAssets, default is eth, unless the currency has a default chain within self.options['networks']
@@ -2449,7 +2452,7 @@ class bitmex(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://www.bitmex.com/api/explorer/#not /Wallet/Wallet_getAssetsConfig
+        :see: https://www.bitmex.com/api/explorer/#not /Wallet/Wallet_getAssetsConfig
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitmex api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -2500,7 +2503,7 @@ class bitmex(Exchange, ImplicitAPI):
     def fetch_liquidations(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         retrieves the public liquidations of a trading pair
-        see https://www.bitmex.com/api/explorer/#not /Liquidation/Liquidation_get
+        :see: https://www.bitmex.com/api/explorer/#not /Liquidation/Liquidation_get
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve

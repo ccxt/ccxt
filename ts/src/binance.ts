@@ -249,7 +249,8 @@ export default class binance extends Exchange {
                         'margin/exchange-small-liability-history': 0.6667,
                         'margin/next-hourly-interest-rate': 0.6667,
                         'margin/capital-flow': 10, // Weight(IP): 100 => cost = 0.1 * 100 = 10
-                        'margin/delist-schedule': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'margin/delist-schedule': 10, // Weight(IP): 100 => cost = 0.1 * 100 = 10
+                        'margin/available-inventory': 0.3334, // Weight(UID): 50 => cost = 0.006667 * 50 = 0.3334
                         'loan/vip/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/request/data': 2.6668, // Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
@@ -640,12 +641,14 @@ export default class binance extends Exchange {
                         'premiumIndexKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
-                        'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                        'ticker/bookTicker': { 'cost': 2, 'noSymbol': 5 },
+                        'constituents': 2,
                         'openInterest': 1,
                     },
                 },
                 'dapiData': {
                     'get': {
+                        'delivery-price': 1,
                         'openInterestHist': 1,
                         'topLongShortAccountRatio': 1,
                         'topLongShortPositionRatio': 1,
@@ -725,6 +728,8 @@ export default class binance extends Exchange {
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
                         'openInterest': 1,
                         'indexInfo': 1,
+                        'assetIndex': { 'cost': 1, 'noSymbol': 10 },
+                        'constituents': 2,
                         'apiTradingStatus': { 'cost': 1, 'noSymbol': 10 },
                         'lvtKlines': 1,
                     },
@@ -866,8 +871,8 @@ export default class binance extends Exchange {
                     'get': {
                         'ping': 0.2, // Weight(IP): 1 => cost = 0.2 * 1 = 0.2
                         'time': 0.2,
-                        'depth': { 'cost': 0.4, 'byLimit': [ [ 100, 0.4 ], [ 500, 2 ], [ 1000, 4 ], [ 5000, 20 ] ] },
-                        'trades': 0.4, // Weight(IP): 2 => cost = 0.2 * 2 = 0.4
+                        'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ], [ 5000, 50 ] ] },
+                        'trades': 2, // Weight(IP): 10 => cost = 0.2 * 10 = 2
                         'aggTrades': 0.4,
                         'historicalTrades': 2, // Weight(IP): 10 => cost = 0.2 * 10 = 2
                         'klines': 0.4,
@@ -964,7 +969,7 @@ export default class binance extends Exchange {
                         'margin/marginInterestHistory': 1,
                         'portfolio/interest-history': 50, // 50
                         'um/income': 30,
-                        'cm/income ': 30,
+                        'cm/income': 30,
                         'um/account': 5,
                         'cm/account': 5,
                         'portfolio/repay-futures-switch': 3, // Weight(IP): 30 => cost = 0.1 * 30 = 3
@@ -4868,7 +4873,7 @@ export default class binance extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
+        return this.filterBy (orders, 'status', 'closed') as Order[];
     }
 
     async fetchCanceledOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

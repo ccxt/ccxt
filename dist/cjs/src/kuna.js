@@ -451,6 +451,7 @@ class kuna extends kuna$1 {
                                 'max': undefined,
                             },
                         },
+                        'created': undefined,
                         'info': undefined,
                     });
                 }
@@ -528,7 +529,7 @@ class kuna extends kuna$1 {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker(response[id], market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**

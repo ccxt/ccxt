@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\lbank2 as Exchange;
+use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
@@ -423,6 +424,7 @@ class lbank2 extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -522,6 +524,7 @@ class lbank2 extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -1517,8 +1520,10 @@ class lbank2 extends Exchange {
                 $options = $this->safe_value($this->options, 'fetchOrder', array());
                 $method = $this->safe_string($options, 'method', 'fetchOrderSupplement');
             }
-            $result = Async\await($this->$method ($id, $symbol, $params));
-            return $result;
+            if ($method === 'fetchOrderSupplement') {
+                return Async\await($this->fetch_order_supplement($id, $symbol, $params));
+            }
+            return Async\await($this->fetch_order_default($id, $symbol, $params));
         }) ();
     }
 
@@ -1594,12 +1599,13 @@ class lbank2 extends Exchange {
             if ($numOrders === 1) {
                 return $this->parse_order($result[0]);
             } else {
-                $parsedOrders = array();
-                for ($i = 0; $i < $numOrders; $i++) {
-                    $parsedOrder = $this->parse_order($result[$i]);
-                    $parsedOrders[] = $parsedOrder;
-                }
-                return $parsedOrders;
+                // $parsedOrders = array();
+                // for ($i = 0; $i < $numOrders; $i++) {
+                //     $parsedOrder = $this->parse_order($result[$i]);
+                //     $parsedOrders[] = $parsedOrder;
+                // }
+                // return $parsedOrders;
+                throw new BadRequest($this->id . ' fetchOrder() can only fetch one order at a time');
             }
         }) ();
     }

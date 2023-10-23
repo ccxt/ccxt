@@ -22,7 +22,7 @@ function test_open_interest($exchange, $skipped_properties, $method, $entry) {
     $empty_allowed_for = ['symbol', 'timestamp', 'openInterestAmount', 'openInterestValue', 'datetime'];
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
     assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol');
-    assert_timestamp($exchange, $skipped_properties, $method, $entry);
+    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry);
     //
     assert_greater($exchange, $skipped_properties, $method, $entry, 'openInterestAmount', '0');
     assert_greater($exchange, $skipped_properties, $method, $entry, 'openInterestValue', '0');

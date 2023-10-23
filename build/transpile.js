@@ -294,6 +294,7 @@ class Transpiler {
             [ /\.fetchPaginatedCallDeterministic\s/g, '.fetch_paginated_call_deterministic'],
             [ /\.fetchPaginatedCallCursor\s/g, '.fetch_paginated_call_cursor'],
             [ /\.removeRepeatedElementsFromArray\s/g, '.remove_repeated_elements_from_array'],
+            [ /\.stringToCharsArray\s/g, '.string_to_chars_array'],
             [ /\.handleUntilOption\s/g, '.handle_until_option'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
@@ -473,7 +474,7 @@ class Transpiler {
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
-            [ /(\s+) \* @see( .*)/g, '$1see$2' ], // docstring @see
+            [ /(\s+) \* @see( .*)/g, '$1:see:$2' ], // docstring @see
             [ /(\s+ \* @(param|returns) {[^}]*)string(\[\])?([^}]*}.*)/g, '$1str$3$4' ], // docstring type conversion
             [ /(\s+ \* @(param|returns) {[^}]*)object(\[\])?([^}]*}.*)/g, '$1dict$3$4' ], // docstring type conversion
             [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
@@ -695,7 +696,7 @@ class Transpiler {
     getTypescriptRemovalRegexes() {
         return [
             [ /\((\w+)\sas\s\w+\)/g, '$1'], // remove (this as any) or (x as number) paren included
-            [ /\sas \w+(\[])?/g, ''], // remove any "as any" or "as number" or "as trade[]"
+            [ /\sas (Dictionary<)?\w+(\[])?(>)?/g, ''], // remove any "as any" or "as number" or "as trade[]"
             [ /([let|const][^:]+):([^=]+)(\s+=.*$)/g, '$1$3'], // remove variable type
         ]
     }
@@ -2436,6 +2437,13 @@ class Transpiler {
         const fileHeaders = {
             pyAsync: [
                 "import asyncio",
+                "import ccxt.async_support as ccxt  # noqa: E402",
+                "",
+                "",
+                "",
+            ],
+            pyPro: [
+                "import asyncio",
                 "import ccxt.pro as ccxt  # noqa: E402",
                 "",
                 "",
@@ -2447,7 +2455,7 @@ class Transpiler {
                 "date_default_timezone_set('UTC');",
                 "",
                 "use ccxt\\Precise;",
-                "use React\\Async;",
+                "use React\\Async;",    
                 "use React\\Promise;",
                 "",
                 "",
@@ -2465,6 +2473,7 @@ class Transpiler {
             const tsFile = examplesFolders.ts + filenameWithExtenstion
             let tsContent = fs.readFileSync (tsFile).toString ()
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
+                const isCcxtPro = tsContent.indexOf ('ccxt.pro') > -1;
                 log.magenta ('Transpiling from', tsFile.yellow)
                 const fileName = filenameWithExtenstion.replace ('.ts', '')
                 // temporary: avoid console.log with + (plos) because it may break in python.
@@ -2537,7 +2546,7 @@ class Transpiler {
                 }
 
                 // write files
-                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + fileHeaders.pyAsync + finalBodies.pyAsync)
+                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + (isCcxtPro ? fileHeaders.pyPro : fileHeaders.pyAsync) + finalBodies.pyAsync)
                 overwriteFile (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
         }

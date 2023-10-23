@@ -1367,9 +1367,8 @@ class bitstamp extends Exchange {
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             $order = $this->parse_order($response, $market);
-            return array_merge($order, array(
-                'type' => $type,
-            ));
+            $order['type'] = $type;
+            return $order;
         }) ();
     }
 

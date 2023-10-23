@@ -1675,6 +1675,12 @@ class huobi(Exchange, ImplicitAPI):
             # 7 Settlement Completed
             # 8 Delivered
             # 9 Suspending of Trade
+            created = None
+            createdDate = self.safe_string(market, 'create_date')  # i.e 20230101
+            if createdDate is not None:
+                createdArray = self.string_to_chars_array(createdDate)
+                createdDate = createdArray[0] + createdArray[1] + createdArray[2] + createdArray[3] + '-' + createdArray[4] + createdArray[5] + '-' + createdArray[6] + createdArray[7] + ' 00:00:00'
+                created = self.parse8601(createdDate)
             result.append({
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1727,6 +1733,7 @@ class huobi(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': created,
                 'info': market,
             })
         return result
@@ -1901,10 +1908,10 @@ class huobi(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
-        see https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the huobi api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -2037,7 +2044,7 @@ class huobi(Exchange, ImplicitAPI):
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -2277,9 +2284,9 @@ class huobi(Exchange, ImplicitAPI):
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
-        see https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -2430,10 +2437,10 @@ class huobi(Exchange, ImplicitAPI):
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit=1000, params={}):
         """
-        see https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
-        see https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-trade-records-of-a-contract
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-trade-records-of-a-contract
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-trade-records-of-a-contract
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-trade-records-of-a-contract
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -2524,10 +2531,10 @@ class huobi(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
-        see https://huobiapi.github.io/docs/dm/v1/en/#get-kline-data
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-data
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-kline-data
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-data
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -3630,12 +3637,12 @@ class huobi(Exchange, ImplicitAPI):
 
     async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
-        see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -3655,21 +3662,19 @@ class huobi(Exchange, ImplicitAPI):
         contract = (marketType == 'swap') or (marketType == 'future')
         if contract and (symbol is None):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument for ' + marketType + ' orders')
-        response = None
         if contract:
-            response = await self.fetch_contract_orders(symbol, since, limit, params)
+            return await self.fetch_contract_orders(symbol, since, limit, params)
         else:
-            response = await self.fetch_spot_orders(symbol, since, limit, params)
-        return response
+            return await self.fetch_spot_orders(symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
-        see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -3689,18 +3694,16 @@ class huobi(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
-        response = None
         if marketType == 'spot':
-            response = await self.fetch_closed_spot_orders(symbol, since, limit, params)
+            return await self.fetch_closed_spot_orders(symbol, since, limit, params)
         else:
-            response = await self.fetch_closed_contract_orders(symbol, since, limit, params)
-        return response
+            return await self.fetch_closed_contract_orders(symbol, since, limit, params)
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -4326,15 +4329,15 @@ class huobi(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   # spot, margin
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        # coin-m swap
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   # coin-m swap trigger
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           # usdt-m swap cross
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      # usdt-m swap cross trigger
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        # usdt-m swap isolated
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   # usdt-m swap isolated trigger
-        see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        # coin-m futures
-        see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   # coin-m futures contract trigger
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   # spot, margin
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        # coin-m swap
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   # coin-m swap trigger
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           # usdt-m swap cross
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      # usdt-m swap cross trigger
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        # usdt-m swap isolated
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   # usdt-m swap isolated trigger
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        # coin-m futures
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   # coin-m futures contract trigger
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -4354,18 +4357,16 @@ class huobi(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
-        response = None
         if marketType == 'spot':
-            response = await self.create_spot_order(symbol, type, side, amount, price, query)
+            return await self.create_spot_order(symbol, type, side, amount, price, query)
         else:
-            response = await self.create_contract_order(symbol, type, side, amount, price, query)
-        return response
+            return await self.create_contract_order(symbol, type, side, amount, price, query)
 
     async def create_spot_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
          * @ignore
         create a spot trade order
-        see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -4456,7 +4457,7 @@ class huobi(Exchange, ImplicitAPI):
         #     {"status":"ok","data":"438398393065481"}
         #
         id = self.safe_string(response, 'data')
-        return {
+        return self.safe_order({
             'info': response,
             'id': id,
             'timestamp': None,
@@ -4464,10 +4465,10 @@ class huobi(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'status': None,
             'symbol': None,
-            'type': None,
-            'side': None,
-            'price': None,
-            'amount': None,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
             'filled': None,
             'remaining': None,
             'cost': None,
@@ -4475,16 +4476,16 @@ class huobi(Exchange, ImplicitAPI):
             'fee': None,
             'clientOrderId': None,
             'average': None,
-        }
+        }, market)
 
     async def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
         """
          * @ignore
         create a contract trade order
-        see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-an-order
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -5373,13 +5374,13 @@ class huobi(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
-        see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
-        see https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
-        see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross
-        see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated
-        see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross
-        see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from 'spot', 'future', 'swap'
@@ -5572,8 +5573,8 @@ class huobi(Exchange, ImplicitAPI):
 
     async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
         fetches historical funding rate prices
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: not used by huobi, but filtered internally by ccxt
@@ -6016,9 +6017,9 @@ class huobi(Exchange, ImplicitAPI):
     async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   # linear swaps
-        see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          # coin-m futures
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          # coin-m swaps
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   # linear swaps
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          # coin-m futures
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          # coin-m swaps
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
@@ -6704,7 +6705,7 @@ class huobi(Exchange, ImplicitAPI):
 
     async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
@@ -6896,9 +6897,9 @@ class huobi(Exchange, ImplicitAPI):
     async def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Retrieves the open interest history of a currency
-        see https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: '1h', '4h', '12h', or '1d'
         :param int [since]: Not used by huobi api, but response parsed by CCXT
@@ -7006,9 +7007,9 @@ class huobi(Exchange, ImplicitAPI):
     async def fetch_open_interest(self, symbol: str, params={}):
         """
         Retrieves the open interest of a currency
-        see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
@@ -7171,8 +7172,8 @@ class huobi(Exchange, ImplicitAPI):
     async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
-        see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
-        see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param str symbol: unified market symbol, required for isolated margin
@@ -7220,7 +7221,7 @@ class huobi(Exchange, ImplicitAPI):
     async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
-        see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str symbol: unified market symbol
@@ -7393,7 +7394,7 @@ class huobi(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the huobi api endpoint
         :returns dict[]: a list of `fees structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -7594,9 +7595,9 @@ class huobi(Exchange, ImplicitAPI):
     async def fetch_liquidations(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         retrieves the public liquidations of a trading pair
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
-        see https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
