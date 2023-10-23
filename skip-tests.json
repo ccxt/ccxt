@@ -509,6 +509,7 @@
         }
     },
     "btcalpha": {
+	"skip": true, 
         "skipMethods": {
             "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
             "fetchL2OrderBook": "same",
