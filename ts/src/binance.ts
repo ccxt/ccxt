@@ -1395,6 +1395,15 @@ export default class binance extends Exchange {
                 },
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
+            'exceptionTypeMappings': {
+                'spot': [
+                    'v1', 'public', 'private', 'sapi', 'sapiV2', 'sapiV3', 'sapiV4',
+                ],
+                'inverse': [ 'dapiPublic', 'dapiPrivate', 'dapiData', 'dapiPrivateV2' ],
+                'linear': [ 'fapiPublic', 'fapiPrivate', 'fapiData', 'fapiPrivateV2' ],
+                'options': [ 'eapiPublic', 'eapiPrivate', 'fapiData', 'fapiPrivateV2' ],
+                // 'papi': 'https://papi.binance.com/papi/v1',
+            },
             'exceptions': {
                 'exact': {
                     'System is under maintenance.': OnMaintenance, // {"code":1,"msg":"System is under maintenance."}
