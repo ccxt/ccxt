@@ -561,6 +561,10 @@ Thank you!
 - [CCXT Channel on Telegram](https://t.me/ccxt_announcements) (important announcements)
 - [CCXT Chat on Telegram](https://t.me/ccxt_chat) (technical support)
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=ccxt/ccxt&type=Date)](https://star-history.com/#ccxt/ccxt&Date)
+
 ## Contact Us
 
 For business inquiries: info@ccxt.trade
