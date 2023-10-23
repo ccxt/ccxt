@@ -3508,7 +3508,31 @@ export default class bybit extends Exchange {
         //         "createdTime": "1684476068369",
         //         "updatedTime": "1684476068372"
         //     }
+        // createOrders failed order
+        //    {
+        //        category: 'linear',
+        //        symbol: 'LTCUSDT',
+        //        orderId: '',
+        //        orderLinkId: '',
+        //        createAt: '',
+        //        code: '10001',
+        //        msg: 'The number of contracts exceeds maximum limit allowed: too large'
+        //    }
         //
+        const code = this.safeString (order, 'code');
+        if (code !== undefined) {
+            if (code !== '0') {
+                const category = this.safeString (order, 'category');
+                const inferedMarketType = (category === 'spot') ? 'spot' : 'contract';
+                return this.safeOrder ({
+                    'info': order,
+                    'status': 'rejected',
+                    'id': this.safeString (order, 'orderId'),
+                    'clientOrderId': this.safeString (order, 'orderLinkId'),
+                    'symbol': this.safeSymbol (this.safeString (order, 'symbol'), undefined, undefined, inferedMarketType),
+                });
+            }
+        }
         const marketId = this.safeString (order, 'symbol');
         const isContract = ('tpslMode' in order);
         let marketType = undefined;
@@ -3864,6 +3888,53 @@ export default class bybit extends Exchange {
         const response = await this.privatePostV5OrderCreateBatch (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'list', []);
+        const retInfo = this.safeValue (response, 'retExtInfo', {});
+        const codes = this.safeValue (retInfo, 'list', []);
+        // extend the error with the unsuccessful orders
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const retCode = this.safeInteger (code, 'code');
+            if (retCode !== 0) {
+                data[i] = this.extend (data[i], code);
+            }
+        }
+        //
+        // {
+        //     "retCode":0,
+        //     "retMsg":"OK",
+        //     "result":{
+        //        "list":[
+        //           {
+        //              "category":"linear",
+        //              "symbol":"LTCUSDT",
+        //              "orderId":"",
+        //              "orderLinkId":"",
+        //              "createAt":""
+        //           },
+        //           {
+        //              "category":"linear",
+        //              "symbol":"LTCUSDT",
+        //              "orderId":"3c9f65b6-01ad-4ac0-9741-df17e02a4223",
+        //              "orderLinkId":"",
+        //              "createAt":"1698075516029"
+        //           }
+        //        ]
+        //     },
+        //     "retExtInfo":{
+        //        "list":[
+        //           {
+        //              "code":10001,
+        //              "msg":"The number of contracts exceeds maximum limit allowed: too large"
+        //           },
+        //           {
+        //              "code":0,
+        //              "msg":"OK"
+        //           }
+        //        ]
+        //     },
+        //     "time":1698075516029
+        // }
+        //
         return this.parseOrders (data);
     }
 
