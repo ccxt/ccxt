@@ -1363,6 +1363,9 @@ abstract class binance extends \ccxt\Exchange {
     public function fapipublic_get_lvtklines($params = array()) {
         return $this->request('lvtKlines', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function fapidata_get_delivery_price($params = array()) {
+        return $this->request('delivery-price', 'fapiData', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function fapidata_get_openinteresthist($params = array()) {
         return $this->request('openInterestHist', 'fapiData', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -3348,6 +3351,9 @@ abstract class binance extends \ccxt\Exchange {
     }
     public function fapiPublicGetLvtKlines($params = array()) {
         return $this->request('lvtKlines', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiDataGetDeliveryPrice($params = array()) {
+        return $this->request('delivery-price', 'fapiData', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiDataGetOpenInterestHist($params = array()) {
         return $this->request('openInterestHist', 'fapiData', 'GET', $params, null, null, array("cost" => 1));

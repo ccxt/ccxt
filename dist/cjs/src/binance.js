@@ -734,6 +734,7 @@ class binance extends binance$1 {
                 },
                 'fapiData': {
                     'get': {
+                        'delivery-price': 1,
                         'openInterestHist': 1,
                         'topLongShortAccountRatio': 1,
                         'topLongShortPositionRatio': 1,

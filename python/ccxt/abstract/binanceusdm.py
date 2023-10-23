@@ -454,6 +454,7 @@ class ImplicitAPI:
     fapipublic_get_constituents = fapiPublicGetConstituents = Entry('constituents', 'fapiPublic', 'GET', {'cost': 2})
     fapipublic_get_apitradingstatus = fapiPublicGetApiTradingStatus = Entry('apiTradingStatus', 'fapiPublic', 'GET', {'cost': 1, 'noSymbol': 10})
     fapipublic_get_lvtklines = fapiPublicGetLvtKlines = Entry('lvtKlines', 'fapiPublic', 'GET', {'cost': 1})
+    fapidata_get_delivery_price = fapiDataGetDeliveryPrice = Entry('delivery-price', 'fapiData', 'GET', {'cost': 1})
     fapidata_get_openinteresthist = fapiDataGetOpenInterestHist = Entry('openInterestHist', 'fapiData', 'GET', {'cost': 1})
     fapidata_get_toplongshortaccountratio = fapiDataGetTopLongShortAccountRatio = Entry('topLongShortAccountRatio', 'fapiData', 'GET', {'cost': 1})
     fapidata_get_toplongshortpositionratio = fapiDataGetTopLongShortPositionRatio = Entry('topLongShortPositionRatio', 'fapiData', 'GET', {'cost': 1})

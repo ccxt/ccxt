@@ -453,6 +453,7 @@ interface binance {
     fapiPublicGetConstituents(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetApiTradingStatus(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetLvtKlines(params?: {}): Promise<implicitReturnType>;
+    fapiDataGetDeliveryPrice(params?: {}): Promise<implicitReturnType>;
     fapiDataGetOpenInterestHist(params?: {}): Promise<implicitReturnType>;
     fapiDataGetTopLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;
     fapiDataGetTopLongShortPositionRatio(params?: {}): Promise<implicitReturnType>;
