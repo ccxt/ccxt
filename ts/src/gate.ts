@@ -3821,6 +3821,7 @@ export default class gate extends Exchange {
             if (triggerValue !== undefined) {
                 throw new NotSupported (this.id + ' createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)');
             }
+            extendedParams['textIsRequired'] = true; // Gate.io requires a text parameter for each order here
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
@@ -3957,6 +3958,7 @@ export default class gate extends Exchange {
                 }
             }
             let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
+            const textIsRequired = this.safeValue (params, 'textIsRequired', false);
             if (clientOrderId !== undefined) {
                 // user-defined, must follow the rules if not empty
                 //     prefixed with t-
@@ -3965,11 +3967,16 @@ export default class gate extends Exchange {
                 if (clientOrderId.length > 28) {
                     throw new BadRequest (this.id + ' createOrder () clientOrderId or text param must be up to 28 characters');
                 }
-                params = this.omit (params, [ 'text', 'clientOrderId' ]);
+                params = this.omit (params, [ 'text', 'clientOrderId', 'textIsRequired' ]);
                 if (clientOrderId[0] !== 't') {
                     clientOrderId = 't-' + clientOrderId;
                 }
                 request['text'] = clientOrderId;
+            } else {
+                if (textIsRequired) {
+                    // batchOrders requires text in the request
+                    request['text'] = 't-' + this.uuid16 ();
+                }
             }
         } else {
             if (market['option']) {
