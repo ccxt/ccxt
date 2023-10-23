@@ -48,6 +48,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'createMarketOrder': False,
                 'createOrder': True,
                 'editOrder': True,
@@ -923,6 +924,64 @@ class krakenfutures(Exchange, ImplicitAPI):
         if 'cancelStatus' in response:
             order = self.parse_order(response['cancelStatus'])
         return self.extend({'info': response}, order)
+
+    async def cancel_orders(self, ids: List[str], symbol: Optional[str] = None, params={}):
+        """
+        cancel multiple orders
+        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+        :param [str] ids: order ids
+        :param str [symbol]: unified market symbol
+        :param dict [params]: extra parameters specific to the bingx api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param [str] [params.clientOrderIds]: max length 10 e.g. ["my_id_1","my_id_2"]
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        orders = []
+        clientOrderIds = self.safe_value(params, 'clientOrderIds', [])
+        clientOrderIdsLength = len(clientOrderIds)
+        if clientOrderIdsLength > 0:
+            for i in range(0, len(clientOrderIds)):
+                orders.append({'order': 'cancel', 'cliOrdId': clientOrderIds[i]})
+        else:
+            for i in range(0, len(ids)):
+                orders.append({'order': 'cancel', 'order_id': ids[i]})
+        request = {
+            'batchOrder': orders,
+        }
+        response = await self.privatePostBatchorder(self.extend(request, params))
+        # {
+        #     result: 'success',
+        #     serverTime: '2023-10-23T16:36:51.327Z',
+        #     batchStatus: [
+        #       {
+        #         status: 'cancelled',
+        #         order_id: '101c2327-f12e-45f2-8445-7502b87afc0b',
+        #         orderEvents: [
+        #           {
+        #             uid: '101c2327-f12e-45f2-8445-7502b87afc0b',
+        #             order: {
+        #               orderId: '101c2327-f12e-45f2-8445-7502b87afc0b',
+        #               cliOrdId: null,
+        #               type: 'lmt',
+        #               symbol: 'PF_LTCUSD',
+        #               side: 'buy',
+        #               quantity: '0.10000000000',
+        #               filled: '0E-11',
+        #               limitPrice: '50.00000000000',
+        #               reduceOnly: False,
+        #               timestamp: '2023-10-20T10:29:13.005Z',
+        #               lastUpdateTimestamp: '2023-10-20T10:29:13.005Z'
+        #             },
+        #             type: 'CANCEL'
+        #           }
+        #         ]
+        #       }
+        #     ]
+        # }
+        batchStatus = self.safe_value(response, 'batchStatus', [])
+        return self.parse_orders(batchStatus)
 
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
@@ -2033,7 +2092,10 @@ class krakenfutures(Exchange, ImplicitAPI):
         params = self.omit(params, self.extract_params(path))
         query = endpoint
         postData = ''
-        if params:
+        if path == 'batchorder':
+            postData = 'json=' + self.json(params)
+            body = postData
+        elif params:
             postData = self.urlencode(params)
             query += '?' + postData
         url = self.urls['api'][api] + query
@@ -2046,7 +2108,8 @@ class krakenfutures(Exchange, ImplicitAPI):
             secret = self.base64_to_binary(self.secret)  # 3
             signature = self.hmac(hash, secret, hashlib.sha512, 'base64')  # 4-5
             headers = {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json',
                 'APIKey': self.apiKey,
                 'Authent': signature,
             }
