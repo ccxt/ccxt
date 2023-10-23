@@ -4251,7 +4251,17 @@ export default class binance extends Exchange {
         //         "lastTrade": {"id":"69","time":"1676084430567","price":"24.9","qty":"1.00"},
         //         "mmp": false
         //     }
+        //     {
+        // cancelOrders/createOrders
+        //          "code": -4005,
+        //          "msg": "Quantity greater than max quantity."
+        //       },
         //
+        const code = this.safeString (order, 'code');
+        if (code !== undefined) {
+            // cancelOrders/createOrders might have a partial success
+            return this.safeOrder ({ 'info': order, 'status': 'rejected' }, market);
+        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const marketType = ('closePosition' in order) ? 'contract' : 'spot';
@@ -4366,6 +4376,40 @@ export default class binance extends Exchange {
         } else {
             response = await this.dapiPrivatePostBatchOrders (request);
         }
+        //
+        //   [
+        //       {
+        //          "code": -4005,
+        //          "msg": "Quantity greater than max quantity."
+        //       },
+        //       {
+        //          "orderId": 650640530,
+        //          "symbol": "LTCUSDT",
+        //          "status": "NEW",
+        //          "clientOrderId": "x-xcKtGhcu32184eb13585491289bbaf",
+        //          "price": "54.00",
+        //          "avgPrice": "0.00",
+        //          "origQty": "0.100",
+        //          "executedQty": "0.000",
+        //          "cumQty": "0.000",
+        //          "cumQuote": "0.00000",
+        //          "timeInForce": "GTC",
+        //          "type": "LIMIT",
+        //          "reduceOnly": false,
+        //          "closePosition": false,
+        //          "side": "BUY",
+        //          "positionSide": "BOTH",
+        //          "stopPrice": "0.00",
+        //          "workingType": "CONTRACT_PRICE",
+        //          "priceProtect": false,
+        //          "origType": "LIMIT",
+        //          "priceMatch": "NONE",
+        //          "selfTradePreventionMode": "NONE",
+        //          "goodTillDate": 0,
+        //          "updateTime": 1698073926929
+        //       }
+        //   ]
+        //
         return this.parseOrders (response);
     }
 
@@ -8556,8 +8600,9 @@ export default class binance extends Exchange {
         }
         if (Array.isArray (response)) {
             // cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
-            for (let i = 0; i < response.length; i++) {
-                const element = response[i];
+            const arrayLength = response.length;
+            if (arrayLength === 1) { // when there's a single error we can throw, otherwise we have a partial success
+                const element = response[0];
                 const errorCode = this.safeString (element, 'code');
                 if (errorCode !== undefined) {
                     this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + body);
