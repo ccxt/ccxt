@@ -2099,7 +2099,7 @@ export default class bitmart extends Exchange {
                 '7': 'canceling',
                 '8': 'canceled',
                 'new': 'open',
-                'partially_filled': 'filled',
+                'partially_filled': 'open',
                 'filled': 'filled',
                 'partially_canceled': 'canceled',
             },
