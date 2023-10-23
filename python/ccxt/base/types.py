@@ -43,6 +43,13 @@ class Balance(TypedDict):
     total: Union[None, str, float]
 
 
+class Currency(TypedDict):
+    id: Union[None, str]
+    code: Union[None, str]
+    numericId: Union[None, int]
+    precision: Union[None, int]
+
+
 IndexType = Union[str, int]
 Numeric = Union[None, str, float, int]
 

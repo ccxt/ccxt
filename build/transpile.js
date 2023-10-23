@@ -1534,6 +1534,7 @@ class Transpiler {
                 'string': 'string',
                 'number': 'float',
                 'boolean': 'bool',
+                'Currency': 'array',
                 'Promise<any>': 'mixed',
                 'Balance': 'array',
                 'IndexType': 'int|string',
