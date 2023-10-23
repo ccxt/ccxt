@@ -1172,7 +1172,6 @@ export default class cryptocom extends Exchange {
          * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        // TODO: NOT WORKING, SIGNATURE ERROR
         await this.loadMarkets ();
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
@@ -1215,13 +1214,31 @@ export default class cryptocom extends Exchange {
         //     }
         // }
         //
-        const result = this.safeValue (response, 'result', {});
-        if ('list_id' in result) {
-            const ocoOrders = [ { 'order_id': result['list_id'] } ];
+        //   {
+        //       "id" : 1698068111133,
+        //       "method" : "private/create-order-list",
+        //       "code" : 0,
+        //       "result" : [ {
+        //         "code" : 0,
+        //         "index" : 0,
+        //         "client_oid" : "1698068111133_0",
+        //         "order_id" : "6142909896519488206"
+        //       }, {
+        //         "code" : 306,
+        //         "index" : 1,
+        //         "client_oid" : "1698068111133_1",
+        //         "message" : "INSUFFICIENT_AVAILABLE_BALANCE",
+        //         "order_id" : "6142909896519488207"
+        //       } ]
+        //   }
+        //
+        const result = this.safeValue (response, 'result', []);
+        const listId = this.safeString (result, 'list_id');
+        if (listId !== undefined) {
+            const ocoOrders = [ { 'order_id': listId } ];
             return this.parseOrders (ocoOrders);
         }
-        const data = this.safeValue (result, 'result_list', []);
-        return this.parseOrders (data);
+        return this.parseOrders (result);
     }
 
     createAdvancedOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
@@ -2188,12 +2205,31 @@ export default class cryptocom extends Exchange {
         //         "update_time": 1686806053993
         //     }
         //
+        // createOrders
+        //     {
+        //             "code" : 306,
+        //             "index" : 1,
+        //             "client_oid" : "1698068111133_1",
+        //             "message" : "INSUFFICIENT_AVAILABLE_BALANCE",
+        //             "order_id" : "6142909896519488207"
+        //     }
+        //
+        const code = this.safeInteger (order, 'code');
+        if ((code !== undefined) && (code !== 0)) {
+            return this.safeOrder ({
+                'id': this.safeString (order, 'order_id'),
+                'clientOrderId': this.safeString (order, 'client_oid'),
+                'info': order,
+                'status': 'rejected',
+            });
+        }
         const created = this.safeInteger (order, 'create_time');
         const marketId = this.safeString (order, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
         const execInst = this.safeValue (order, 'exec_inst');
-        let postOnly = false;
+        let postOnly = undefined;
         if (execInst !== undefined) {
+            postOnly = false;
             for (let i = 0; i < execInst.length; i++) {
                 const inst = execInst[i];
                 if (inst === 'POST_ONLY') {
@@ -3182,28 +3218,7 @@ export default class cryptocom extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const requestParams = this.extend ({}, params);
-            // const keysorted = this.keysort (requestParams);
             const paramsKeys = Object.keys (requestParams);
-            // let strSortKey = '';
-            // for (let i = 0; i < paramsKeys.length; i++) {
-            //     const key = paramsKeys[i].toString ();
-            //     let value = requestParams[paramsKeys[i]];
-            //     if (Array.isArray (value)) {
-            //         let newValue = '';
-            //         for (let j = 0; j < value.length; j++) {
-            //             const current = value[j];
-            //             if (typeof current === 'object') {
-            //                 newValue += ',' + this.json (current);
-            //             } else {
-            //                 newValue += ',' + current.toString ();
-            //             }
-            //         }
-            //         value = newValue;
-            //     } else {
-            //         value = value.toString ();
-            //     }
-            //     strSortKey = strSortKey + key + value;
-            // }
             const strSortKey = this.paramsToString (requestParams, 0);
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
