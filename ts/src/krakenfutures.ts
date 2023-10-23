@@ -994,7 +994,7 @@ export default class krakenfutures extends Exchange {
         const request = {
             'batchOrder': orders,
         };
-        const response = this.privatePostBatchorder (this.extend (request, params));
+        const response = await this.privatePostBatchorder (this.extend (request, params));
         // {
         //     result: 'success',
         //     serverTime: '2023-10-23T16:36:51.327Z',
