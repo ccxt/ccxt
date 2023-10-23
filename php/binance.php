@@ -152,7 +152,6 @@ class binance extends Exchange {
                     'v1' => 'https://testnet.binance.vision/api/v1',
                 ),
                 'api' => array(
-                    'wapi' => 'https://api.binance.com/wapi/v3',
                     'sapi' => 'https://api.binance.com/sapi/v1',
                     'sapiV2' => 'https://api.binance.com/sapi/v2',
                     'sapiV3' => 'https://api.binance.com/sapi/v3',
@@ -594,27 +593,6 @@ class binance extends Exchange {
                 'sapiV4' => array(
                     'get' => array(
                         'sub-account/assets' => 0.40002, // Weight(UID) => 60 => cost = 0.006667 * 60 = 0.40002
-                    ),
-                ),
-                // deprecated
-                'wapi' => array(
-                    'post' => array(
-                        'withdraw' => 1,
-                        'sub-account/transfer' => 1,
-                    ),
-                    'get' => array(
-                        'depositHistory' => 1,
-                        'withdrawHistory' => 1,
-                        'depositAddress' => 1,
-                        'accountStatus' => 1,
-                        'systemStatus' => 1,
-                        'apiTradingStatus' => 1,
-                        'userAssetDribbletLog' => 1,
-                        'tradeFee' => 1,
-                        'assetDetail' => 1,
-                        'sub-account/list' => 1,
-                        'sub-account/transfer/history' => 1,
-                        'sub-account/assets' => 1,
                     ),
                 ),
                 'dapiPublic' => array(
@@ -8214,9 +8192,6 @@ class binance extends Exchange {
         }
         $url = $this->urls['api'][$api];
         $url .= '/' . $path;
-        if ($api === 'wapi') {
-            $url .= '.html';
-        }
         if ($path === 'historicalTrades') {
             if ($this->apiKey) {
                 $headers = array(
@@ -8240,7 +8215,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'papi')) {
+        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'papi')) {
             $this->check_required_credentials();
             if ($method === 'POST' && (($path === 'order') || ($path === 'sor/order'))) {
                 // inject in implicit API calls
@@ -8298,7 +8273,7 @@ class binance extends Exchange {
             $headers = array(
                 'X-MBX-APIKEY' => $this->apiKey,
             );
-            if (($method === 'GET') || ($method === 'DELETE') || ($api === 'wapi')) {
+            if (($method === 'GET') || ($method === 'DELETE')) {
                 $url .= '?' . $query;
             } else {
                 $body = $query;
@@ -8333,7 +8308,6 @@ class binance extends Exchange {
         if ($response === null) {
             return null; // fallback to default $error handler
         }
-        // check $success value for wapi endpoints
         // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {
@@ -8422,7 +8396,7 @@ class binance extends Exchange {
     public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
         // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
-        if (($api === 'private') || ($api === 'wapi')) {
+        if ($api === 'private') {
             $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
         return $response;

@@ -1066,48 +1066,6 @@ abstract class binanceus extends \ccxt\binance {
     public function sapiv4_get_sub_account_assets($params = array()) {
         return $this->request('sub-account/assets', 'sapiV4', 'GET', $params, null, null, array("cost" => 0.40002));
     }
-    public function wapi_post_withdraw($params = array()) {
-        return $this->request('withdraw', 'wapi', 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function wapi_post_sub_account_transfer($params = array()) {
-        return $this->request('sub-account/transfer', 'wapi', 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function wapi_get_deposithistory($params = array()) {
-        return $this->request('depositHistory', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapi_get_withdrawhistory($params = array()) {
-        return $this->request('withdrawHistory', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapi_get_depositaddress($params = array()) {
-        return $this->request('depositAddress', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapi_get_accountstatus($params = array()) {
-        return $this->request('accountStatus', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapi_get_systemstatus($params = array()) {
-        return $this->request('systemStatus', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapi_get_apitradingstatus($params = array()) {
-        return $this->request('apiTradingStatus', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapi_get_userassetdribbletlog($params = array()) {
-        return $this->request('userAssetDribbletLog', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapi_get_tradefee($params = array()) {
-        return $this->request('tradeFee', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapi_get_assetdetail($params = array()) {
-        return $this->request('assetDetail', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapi_get_sub_account_list($params = array()) {
-        return $this->request('sub-account/list', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapi_get_sub_account_transfer_history($params = array()) {
-        return $this->request('sub-account/transfer/history', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapi_get_sub_account_assets($params = array()) {
-        return $this->request('sub-account/assets', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function dapipublic_get_ping($params = array()) {
         return $this->request('ping', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -3054,48 +3012,6 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function sapiV4GetSubAccountAssets($params = array()) {
         return $this->request('sub-account/assets', 'sapiV4', 'GET', $params, null, null, array("cost" => 0.40002));
-    }
-    public function wapiPostWithdraw($params = array()) {
-        return $this->request('withdraw', 'wapi', 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function wapiPostSubAccountTransfer($params = array()) {
-        return $this->request('sub-account/transfer', 'wapi', 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function wapiGetDepositHistory($params = array()) {
-        return $this->request('depositHistory', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapiGetWithdrawHistory($params = array()) {
-        return $this->request('withdrawHistory', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapiGetDepositAddress($params = array()) {
-        return $this->request('depositAddress', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapiGetAccountStatus($params = array()) {
-        return $this->request('accountStatus', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapiGetSystemStatus($params = array()) {
-        return $this->request('systemStatus', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapiGetApiTradingStatus($params = array()) {
-        return $this->request('apiTradingStatus', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapiGetUserAssetDribbletLog($params = array()) {
-        return $this->request('userAssetDribbletLog', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapiGetTradeFee($params = array()) {
-        return $this->request('tradeFee', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapiGetAssetDetail($params = array()) {
-        return $this->request('assetDetail', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapiGetSubAccountList($params = array()) {
-        return $this->request('sub-account/list', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapiGetSubAccountTransferHistory($params = array()) {
-        return $this->request('sub-account/transfer/history', 'wapi', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function wapiGetSubAccountAssets($params = array()) {
-        return $this->request('sub-account/assets', 'wapi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function dapiPublicGetPing($params = array()) {
         return $this->request('ping', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1));

@@ -182,7 +182,6 @@ class binance(Exchange, ImplicitAPI):
                     'v1': 'https://testnet.binance.vision/api/v1',
                 },
                 'api': {
-                    'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'sapiV2': 'https://api.binance.com/sapi/v2',
                     'sapiV3': 'https://api.binance.com/sapi/v3',
@@ -624,27 +623,6 @@ class binance(Exchange, ImplicitAPI):
                 'sapiV4': {
                     'get': {
                         'sub-account/assets': 0.40002,  # Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
-                    },
-                },
-                # deprecated
-                'wapi': {
-                    'post': {
-                        'withdraw': 1,
-                        'sub-account/transfer': 1,
-                    },
-                    'get': {
-                        'depositHistory': 1,
-                        'withdrawHistory': 1,
-                        'depositAddress': 1,
-                        'accountStatus': 1,
-                        'systemStatus': 1,
-                        'apiTradingStatus': 1,
-                        'userAssetDribbletLog': 1,
-                        'tradeFee': 1,
-                        'assetDetail': 1,
-                        'sub-account/list': 1,
-                        'sub-account/transfer/history': 1,
-                        'sub-account/assets': 1,
                     },
                 },
                 'dapiPublic': {
@@ -7784,8 +7762,6 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
         url = self.urls['api'][api]
         url += '/' + path
-        if api == 'wapi':
-            url += '.html'
         if path == 'historicalTrades':
             if self.apiKey:
                 headers = {
@@ -7805,7 +7781,7 @@ class binance(Exchange, ImplicitAPI):
                     body = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'papi'):
+        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'papi'):
             self.check_required_credentials()
             if method == 'POST' and ((path == 'order') or (path == 'sor/order')):
                 # inject in implicit API calls
@@ -7854,7 +7830,7 @@ class binance(Exchange, ImplicitAPI):
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
             }
-            if (method == 'GET') or (method == 'DELETE') or (api == 'wapi'):
+            if (method == 'GET') or (method == 'DELETE'):
                 url += '?' + query
             else:
                 body = query
@@ -7879,7 +7855,6 @@ class binance(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use self.price_to_precision(symbol, amount) ' + body)
         if response is None:
             return None  # fallback to default error handler
-        # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
         success = self.safe_value(response, 'success', True)
         if not success:
@@ -7950,7 +7925,7 @@ class binance(Exchange, ImplicitAPI):
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         response = await self.fetch2(path, api, method, params, headers, body, config)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if (api == 'private') or (api == 'wapi'):
+        if api == 'private':
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
 
