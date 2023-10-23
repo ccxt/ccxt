@@ -3602,7 +3602,10 @@ The exchanges' order management APIs differ by design. The user has to understan
 - `fetchOrder()` – fetches a single order (open or closed) by order `id`.
 - `fetchOrders()` – fetches a list of all orders (either open or closed/canceled).
 - `createOrder()` – used for placing orders
-- `cancelOrder()` – used for canceling orders
+- `createOrders()` – used for placing multiple orders within the same request
+- `cancelOrder()` – used for canceling a single order
+- `cancelOrders()` - used for canceling multiple orders
+- `cancelAllOrders()` - used for canceling all orders
 
 The majority of the exchanges will have a way of fetching currently-open orders. Thus, the `exchange.has['fetchOpenOrders']`. If that method is not available, then most likely the `exchange.has['fetchOrders']` that will provide a list of all orders. The exchange will return a list of open orders either from `fetchOpenOrders()` or from `fetchOrders()`. One of the two methods is usually available from any exchange.
 
@@ -3786,10 +3789,14 @@ There are different types of orders that a user can send to the exchange, regula
 
 Placing an order always requires a `symbol` that the user has to specify (which market you want to trade).
 
-To place an order use the `createOrder` method. You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later.
+To place an order use the `createOrder` method. You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later. If you need to place multiple orders simultaneously, you can check the availability of the `createOrders` method.
 
 ```javascript
 createOrder (symbol, type, side, amount, price = undefined, params = {})
+```
+
+```javascript
+createOrders (orders, params = {}) // orders is a list in which each element contains a symbol, type, side, amount, price and params
 ```
 
 Parameters
