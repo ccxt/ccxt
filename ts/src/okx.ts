@@ -3195,6 +3195,15 @@ export default class okx extends Exchange {
         //         "uly": "BTC-USDT"
         //     }
         //
+        const scode = this.safeString (order, 'sCode');
+        if ((scode !== undefined) && (scode !== '0')) {
+            return this.safeOrder ({
+                'id': this.safeString (order, 'ordId'),
+                'clientOrderId': this.safeString (order, 'clOrdId'),
+                'status': 'rejected',
+                'info': order,
+            });
+        }
         const id = this.safeString2 (order, 'algoId', 'ordId');
         const timestamp = this.safeInteger (order, 'cTime');
         const lastUpdateTimestamp = this.safeInteger (order, 'uTime');
@@ -6973,7 +6982,7 @@ export default class okx extends Exchange {
         //    }
         //
         const code = this.safeString (response, 'code');
-        if (code !== '0') {
+        if ((code !== '0') && (code !== '2')) { // 2 means that bulk operation partially succeeded
             const feedback = this.id + ' ' + body;
             const data = this.safeValue (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
