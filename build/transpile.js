@@ -2437,6 +2437,13 @@ class Transpiler {
         const fileHeaders = {
             pyAsync: [
                 "import asyncio",
+                "import ccxt.async_support as ccxt  # noqa: E402",
+                "",
+                "",
+                "",
+            ],
+            pyPro: [
+                "import asyncio",
                 "import ccxt.pro as ccxt  # noqa: E402",
                 "",
                 "",
@@ -2448,7 +2455,7 @@ class Transpiler {
                 "date_default_timezone_set('UTC');",
                 "",
                 "use ccxt\\Precise;",
-                "use React\\Async;",
+                "use React\\Async;",    
                 "use React\\Promise;",
                 "",
                 "",
@@ -2466,6 +2473,7 @@ class Transpiler {
             const tsFile = examplesFolders.ts + filenameWithExtenstion
             let tsContent = fs.readFileSync (tsFile).toString ()
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
+                const isCcxtPro = tsContent.indexOf ('ccxt.pro') > -1;
                 log.magenta ('Transpiling from', tsFile.yellow)
                 const fileName = filenameWithExtenstion.replace ('.ts', '')
                 // temporary: avoid console.log with + (plos) because it may break in python.
@@ -2538,7 +2546,7 @@ class Transpiler {
                 }
 
                 // write files
-                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + fileHeaders.pyAsync + finalBodies.pyAsync)
+                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + (isCcxtPro ? fileHeaders.pyPro : fileHeaders.pyAsync) + finalBodies.pyAsync)
                 overwriteFile (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
         }

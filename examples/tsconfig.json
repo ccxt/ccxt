@@ -2,6 +2,7 @@
   "extends": "../tsconfig-base.json",
   "compilerOptions": {
     "composite": true, 
+    "sourceMap": false,
     "rootDir": "./ts",
     "outDir": "./js",
   },
