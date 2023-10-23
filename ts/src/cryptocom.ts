@@ -1172,6 +1172,7 @@ export default class cryptocom extends Exchange {
          * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
+        // TODO: NOT WORKING, SIGNATURE ERROR
         await this.loadMarkets ();
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
@@ -3135,6 +3136,39 @@ export default class cryptocom extends Exchange {
         return this.milliseconds ();
     }
 
+    paramsToString (object, level) {
+        const maxLevel = 3;
+        if (level >= maxLevel) {
+            return object.toString ();
+        }
+        if (typeof object === 'string') {
+            return object;
+        }
+        let returnString = '';
+        let paramsKeys = undefined;
+        if (Array.isArray (object)) {
+            paramsKeys = object;
+        } else {
+            const sorted = this.keysort (object);
+            paramsKeys = Object.keys (sorted);
+        }
+        for (let i = 0; i < paramsKeys.length; i++) {
+            const key = paramsKeys[i];
+            returnString += key;
+            const value = object[key];
+            if (value === 'undefined') {
+                returnString += 'null';
+            } else if (Array.isArray (value)) {
+                for (let j = 0; j < value.length; j++) {
+                    returnString += this.paramsToString (value[j], level + 1);
+                }
+            } else {
+                returnString += value.toString ();
+            }
+        }
+        return returnString;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = this.safeString (api, 0);
         const access = this.safeString (api, 1);
@@ -3148,19 +3182,29 @@ export default class cryptocom extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const requestParams = this.extend ({}, params);
-            const keysorted = this.keysort (requestParams);
-            const paramsKeys = Object.keys (keysorted);
-            let strSortKey = '';
-            for (let i = 0; i < paramsKeys.length; i++) {
-                const key = paramsKeys[i].toString ();
-                let value = requestParams[paramsKeys[i]];
-                if (Array.isArray (value)) {
-                    value = value.join (',');
-                } else {
-                    value = value.toString ();
-                }
-                strSortKey = strSortKey + key + value;
-            }
+            // const keysorted = this.keysort (requestParams);
+            const paramsKeys = Object.keys (requestParams);
+            // let strSortKey = '';
+            // for (let i = 0; i < paramsKeys.length; i++) {
+            //     const key = paramsKeys[i].toString ();
+            //     let value = requestParams[paramsKeys[i]];
+            //     if (Array.isArray (value)) {
+            //         let newValue = '';
+            //         for (let j = 0; j < value.length; j++) {
+            //             const current = value[j];
+            //             if (typeof current === 'object') {
+            //                 newValue += ',' + this.json (current);
+            //             } else {
+            //                 newValue += ',' + current.toString ();
+            //             }
+            //         }
+            //         value = newValue;
+            //     } else {
+            //         value = value.toString ();
+            //     }
+            //     strSortKey = strSortKey + key + value;
+            // }
+            const strSortKey = this.paramsToString (requestParams, 0);
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
             const paramsKeysLength = paramsKeys.length;
