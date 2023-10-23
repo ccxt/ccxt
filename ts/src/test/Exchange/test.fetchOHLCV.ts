@@ -28,11 +28,13 @@ async function testFetchOHLCV (exchange, skippedProperties, symbol) {
     // ensure bars amount is less then limit
     assert (barsLength <= limit, 'Returned bars amount (' + barsLength.toString () + ') is more than requested (' + limit.toString () + ')' + logText);
     // ensure bars amount is more than zero
-    if (!('compareAmountToZero' in skippedProperties)) {
-        assert (barsLengthAboveZero, 'Returned bars amount should be more then zero' + logText);
-    }
-    // if no bars were returned, we can't do any more checks
     if (!barsLengthAboveZero) {
+        // zero-amount of bars should not be tolerated for major exchagnes, because it would indicate implementation issue
+        // so unless the target exchange (probably mostly lower end exchanges) is skipped, we should assert that
+        if (!('compareAmountToZero' in skippedProperties)) {
+            assert (barsLengthAboveZero, 'Returned bars amount should be more then zero' + logText);
+        }
+        // exchange was skipped for zero-bars, then just return and don't do any further check, because there were no ohlcv entries
         return;
     }
     const minActrualTs = ohlcvs[0][0];
@@ -46,7 +48,7 @@ async function testFetchOHLCV (exchange, skippedProperties, symbol) {
     if (limit !== undefined) {
         assert (maxActualTs <= maxExpectedTs, 'Returned bars maximum timestamp (' + maxActualTs.toString () + ') is greater than expected limit timestamp (' + maxExpectedTs.toString () + ')' + logText);
     }
-    // ensure current bar is greaterOrEqual than previous one by duration
+    // ensure current bar ts is >= previous bar + one duration
     if (!('compareDuration' in skippedProperties)) {
         for (let i = 0; i < barsLength; i++) {
             const ohlcv = ohlcvs[i];
@@ -55,7 +57,8 @@ async function testFetchOHLCV (exchange, skippedProperties, symbol) {
                 const previousBarTs = ohlcvs[i - 1][0];
                 const diffBetweenCurrentAndPrevious = barTs - previousBarTs;
                 assert (diffBetweenCurrentAndPrevious > 0, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') should be positive' + logText);
-                const isInteger = testSharedMethods.isInteger (diffBetweenCurrentAndPrevious / durationMs);
+                // ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
+                const isInteger = Number.isInteger (diffBetweenCurrentAndPrevious / durationMs);
                 assert (isInteger, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') is not multiplier of duration (' + durationMs.toString () + ')' + logText);
             }
         }
