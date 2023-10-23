@@ -3609,26 +3609,26 @@ export default class Exchange {
         return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
     }
 
-    throwExactlyMatchedException (exact, string, message) {
-        if (string in exact) {
-            throw new exact[string] (message);
+    throwExactlyMatchedException (exactExceptions, key, message) {
+        if (key in exactExceptions) {
+            throw new exactExceptions[key] (message);
         }
     }
 
-    throwBroadlyMatchedException (broad, string, message) {
-        const broadKey = this.findBroadlyMatchedKey (broad, string);
+    throwBroadlyMatchedException (broadExceptions, content, message) {
+        const broadKey = this.findBroadlyMatchedKey (broadExceptions, content);
         if (broadKey !== undefined) {
-            throw new broad[broadKey] (message);
+            throw new broadExceptions[broadKey] (message);
         }
     }
 
-    findBroadlyMatchedKey (broad, string) {
+    findBroadlyMatchedKey (broad, content) {
         // a helper for matching error strings exactly vs broadly
         const keys = Object.keys (broad);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (string !== undefined) { // #issues/12698
-                if (string.indexOf (key) >= 0) {
+            if (content !== undefined) { // #issues/12698
+                if (content.indexOf (key) >= 0) {
                     return key;
                 }
             }
