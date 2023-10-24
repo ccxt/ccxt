@@ -1403,6 +1403,17 @@ export default class binance extends Exchange {
                 // 'papi': 'https://papi.binance.com/papi/v1',
             },
             'exceptions': {
+                'spot': {
+                    'exact': {
+                        '-1004': ExchangeError, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
+                    },
+                },
+                'option': {
+                    'exact': {
+                        '-1003': ExchangeError, // override for undocumented code
+                        '-1004': ExchangeError, // override for undocumented code
+                    },
+                },
                 'exact': {
                     'System is under maintenance.': OnMaintenance, // {"code":1,"msg":"System is under maintenance."}
                     'System abnormality': ExchangeError, // {"code":-1000,"msg":"System abnormality"}
@@ -1427,7 +1438,7 @@ export default class binance extends Exchange {
                     '-1001': ExchangeNotAvailable, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
                     '-1002': AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
                     '-1003': RateLimitExceeded, // {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
-                    '-1004': DDoSProtection, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
+                    '-1004': BadRequest, // -1004 DUPLICATE_IP This IP is already on the white list
                     '-1005': PermissionDenied, // {"code":-1005,"msg":"No such IP has been white listed"}
                     '-1006': BadResponse, // {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
                     '-1007': RequestTimeout, // {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
