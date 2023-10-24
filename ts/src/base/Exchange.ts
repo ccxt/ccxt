@@ -3609,9 +3609,32 @@ export default class Exchange {
         return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
     }
 
+    getExceptionMarketType (originUrl) {
+        if (originUrl !== undefined) {
+            const apiUrls = this.urls['api'];
+            const exceptionMappings = this.safeValue (this.options, 'exceptionTypeMappings', {});
+            const marketTypesArray = Object.keys (exceptionMappings); // would be among: ['spot', 'future', 'swap', 'option', 'linear', 'inverse']
+            for (let i = 0; i < marketTypesArray.length; i++) {
+                const marketTypeKey = marketTypesArray[i];
+                const applicableKeysOfApi = exceptionMappings[marketTypeKey]; // would be array of "api" members, like : ['public', 'private', 'fapiPublic', 'fapiPrivate', 'dapiPublic', 'dapiPrivate'] ...
+                for (let j = 0; j < applicableKeysOfApi.length; j++) {
+                    const applicableKeyOfApi = applicableKeysOfApi[j];
+                    const baseApiUrlForKey = this.safeString (apiUrls, applicableKeyOfApi);
+                    if (baseApiUrlForKey !== undefined && originUrl.indexOf (applicableKeyOfApi) >= 0) {
+                        return marketTypeKey;
+                    }
+                }
+            }
+        }
+        return undefined;
+    }
+
     throwExactlyMatchedException (exactExceptions, key, message, originUrl = undefined) {
-        if (key in exactExceptions) {
-            throw new exactExceptions[key] (message);
+        const marketType = this.getExceptionMarketType (originUrl);
+        if (marketType === undefined) {
+            if (key in exactExceptions) {
+                throw new exactExceptions[key] (message);
+            }
         }
     }
 
