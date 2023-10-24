@@ -52,7 +52,7 @@ class cex(ccxt.async_support.cex):
     async def watch_balance(self, params={}):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        see https://cex.io/websocket-api#get-balance
+        :see: https://cex.io/websocket-api#get-balance
         :param dict [params]: extra parameters specific to the cex api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -108,7 +108,7 @@ class cex(ccxt.async_support.cex):
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol. Note: can only watch one symbol at a time.
-        see https://cex.io/websocket-api#old-pair-room
+        :see: https://cex.io/websocket-api#old-pair-room
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -214,7 +214,7 @@ class cex(ccxt.async_support.cex):
 
     async def watch_ticker(self, symbol: str, params={}):
         """
-        see https://cex.io/websocket-api#ticker-subscription
+        :see: https://cex.io/websocket-api#ticker-subscription
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the cex api endpoint
@@ -249,7 +249,7 @@ class cex(ccxt.async_support.cex):
 
     async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
-        see https://cex.io/websocket-api#ticker-subscription
+        :see: https://cex.io/websocket-api#ticker-subscription
         watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the cex api endpoint
@@ -360,7 +360,7 @@ class cex(ccxt.async_support.cex):
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of orders associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods(~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
-        see https://docs.cex.io/#ws-api-open-orders
+        :see: https://docs.cex.io/#ws-api-open-orders
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -394,7 +394,7 @@ class cex(ccxt.async_support.cex):
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of trades associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods(~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
-        see https://docs.cex.io/#ws-api-open-orders
+        :see: https://docs.cex.io/#ws-api-open-orders
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -804,7 +804,7 @@ class cex(ccxt.async_support.cex):
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://cex.io/websocket-api#orderbook-subscribe
+        :see: https://cex.io/websocket-api#orderbook-subscribe
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the cex api endpoint
@@ -925,7 +925,7 @@ class cex(ccxt.async_support.cex):
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://cex.io/websocket-api#minute-data
+        :see: https://cex.io/websocket-api#minute-data
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. It will return the last 120 minutes with the selected timeframe and then 1m candle updates after that.
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents.

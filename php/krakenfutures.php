@@ -28,6 +28,7 @@ class krakenfutures extends Exchange {
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,
                 'editOrder' => true,
@@ -946,6 +947,68 @@ class krakenfutures extends Exchange {
         return array_merge(array( 'info' => $response ), $order);
     }
 
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple $orders
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+         * @param {[string]} $ids order $ids
+         * @param {string} [$symbol] unified market $symbol
+         * @param {array} [$params] extra parameters specific to the bingx api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {[string]} [$params->clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $this->load_markets();
+        $orders = array();
+        $clientOrderIds = $this->safe_value($params, 'clientOrderIds', array());
+        $clientOrderIdsLength = count($clientOrderIds);
+        if ($clientOrderIdsLength > 0) {
+            for ($i = 0; $i < count($clientOrderIds); $i++) {
+                $orders[] = array( 'order' => 'cancel', 'cliOrdId' => $clientOrderIds[$i] );
+            }
+        } else {
+            for ($i = 0; $i < count($ids); $i++) {
+                $orders[] = array( 'order' => 'cancel', 'order_id' => $ids[$i] );
+            }
+        }
+        $request = array(
+            'batchOrder' => $orders,
+        );
+        $response = $this->privatePostBatchorder (array_merge($request, $params));
+        // {
+        //     result => 'success',
+        //     serverTime => '2023-10-23T16:36:51.327Z',
+        //     $batchStatus => array(
+        //       {
+        //         status => 'cancelled',
+        //         order_id => '101c2327-f12e-45f2-8445-7502b87afc0b',
+        //         orderEvents => array(
+        //           {
+        //             uid => '101c2327-f12e-45f2-8445-7502b87afc0b',
+        //             order => array(
+        //               orderId => '101c2327-f12e-45f2-8445-7502b87afc0b',
+        //               cliOrdId => null,
+        //               type => 'lmt',
+        //               $symbol => 'PF_LTCUSD',
+        //               side => 'buy',
+        //               quantity => '0.10000000000',
+        //               filled => '0E-11',
+        //               limitPrice => '50.00000000000',
+        //               reduceOnly => false,
+        //               timestamp => '2023-10-20T10:29:13.005Z',
+        //               lastUpdateTimestamp => '2023-10-20T10:29:13.005Z'
+        //             ),
+        //             type => 'CANCEL'
+        //           }
+        //         )
+        //       }
+        //     )
+        // }
+        $batchStatus = $this->safe_value($response, 'batchStatus', array());
+        return $this->parse_orders($batchStatus);
+    }
+
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * Cancels all orders on the exchange, including trigger orders
@@ -1342,6 +1405,7 @@ class krakenfutures extends Exchange {
             'type' => $this->parse_order_type($type),
             'timeInForce' => $timeInForce,
             'postOnly' => $type === 'post',
+            'reduceOnly' => $this->safe_value($details, 'reduceOnly'),
             'side' => $this->safe_string($details, 'side'),
             'price' => $price,
             'stopPrice' => $this->safe_string($details, 'triggerPrice'),
@@ -2128,7 +2192,10 @@ class krakenfutures extends Exchange {
         $params = $this->omit($params, $this->extract_params($path));
         $query = $endpoint;
         $postData = '';
-        if ($params) {
+        if ($path === 'batchorder') {
+            $postData = 'json=' . $this->json($params);
+            $body = $postData;
+        } elseif ($params) {
             $postData = $this->urlencode($params);
             $query .= '?' . $postData;
         }
@@ -2143,7 +2210,8 @@ class krakenfutures extends Exchange {
             $secret = base64_decode($this->secret); // 3
             $signature = $this->hmac($hash, $secret, 'sha512', 'base64'); // 4-5
             $headers = array(
-                'Content-Type' => 'application/json',
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Accept' => 'application/json',
                 'APIKey' => $this->apiKey,
                 'Authent' => $signature,
             );

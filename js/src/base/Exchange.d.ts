@@ -68,6 +68,7 @@ export default class Exchange {
     orderbooks: {};
     tickers: {};
     orders: any;
+    triggerOrders: any;
     trades: any;
     transactions: {};
     ohlcvs: any;

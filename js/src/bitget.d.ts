@@ -314,6 +314,18 @@ export default class bitget extends Exchange {
         datetime: any;
         info: any;
     };
+    fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
+    parseLiquidation(liquidation: any, market?: any): {
+        info: any;
+        symbol: any;
+        contracts: any;
+        contractSize: any;
+        price: any;
+        baseValue: any;
+        quoteValue: number;
+        timestamp: number;
+        datetime: string;
+    };
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

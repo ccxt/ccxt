@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.18'
+__version__ = '4.1.24'
 
 # -----------------------------------------------------------------------------
 
@@ -237,6 +237,7 @@ class Exchange(object):
     balance = None
     orderbooks = None
     orders = None
+    triggerOrders = None
     myTrades = None
     trades = None
     transactions = None

@@ -50,7 +50,7 @@ class wazirx(ccxt.async_support.wazirx):
     async def watch_balance(self, params={}):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        see https://docs.wazirx.com/#account-update
+        :see: https://docs.wazirx.com/#account-update
         :param dict [params]: extra parameters specific to the wazirx api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -166,7 +166,7 @@ class wazirx(ccxt.async_support.wazirx):
     async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://docs.wazirx.com/#all-market-tickers-stream
+        :see: https://docs.wazirx.com/#all-market-tickers-stream
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the wazirx api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -187,7 +187,7 @@ class wazirx(ccxt.async_support.wazirx):
     async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        see https://docs.wazirx.com/#all-market-tickers-stream
+        :see: https://docs.wazirx.com/#all-market-tickers-stream
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the wazirx api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -343,7 +343,7 @@ class wazirx(ccxt.async_support.wazirx):
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watch trades by user
-        see https://docs.wazirx.com/#trade-update
+        :see: https://docs.wazirx.com/#trade-update
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -455,7 +455,7 @@ class wazirx(ccxt.async_support.wazirx):
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://docs.wazirx.com/#depth-stream
+        :see: https://docs.wazirx.com/#depth-stream
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the wazirx api endpoint

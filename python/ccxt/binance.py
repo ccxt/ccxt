@@ -181,7 +181,6 @@ class binance(Exchange, ImplicitAPI):
                     'v1': 'https://testnet.binance.vision/api/v1',
                 },
                 'api': {
-                    'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'sapiV2': 'https://api.binance.com/sapi/v2',
                     'sapiV3': 'https://api.binance.com/sapi/v3',
@@ -625,27 +624,6 @@ class binance(Exchange, ImplicitAPI):
                         'sub-account/assets': 0.40002,  # Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
                     },
                 },
-                # deprecated
-                'wapi': {
-                    'post': {
-                        'withdraw': 1,
-                        'sub-account/transfer': 1,
-                    },
-                    'get': {
-                        'depositHistory': 1,
-                        'withdrawHistory': 1,
-                        'depositAddress': 1,
-                        'accountStatus': 1,
-                        'systemStatus': 1,
-                        'apiTradingStatus': 1,
-                        'userAssetDribbletLog': 1,
-                        'tradeFee': 1,
-                        'assetDetail': 1,
-                        'sub-account/list': 1,
-                        'sub-account/transfer/history': 1,
-                        'sub-account/assets': 1,
-                    },
-                },
                 'dapiPublic': {
                     'get': {
                         'ping': 1,
@@ -671,6 +649,7 @@ class binance(Exchange, ImplicitAPI):
                 },
                 'dapiData': {
                     'get': {
+                        'delivery-price': 1,
                         'openInterestHist': 1,
                         'topLongShortAccountRatio': 1,
                         'topLongShortPositionRatio': 1,
@@ -758,6 +737,7 @@ class binance(Exchange, ImplicitAPI):
                 },
                 'fapiData': {
                     'get': {
+                        'delivery-price': 1,
                         'openInterestHist': 1,
                         'topLongShortAccountRatio': 1,
                         'topLongShortPositionRatio': 1,
@@ -893,8 +873,8 @@ class binance(Exchange, ImplicitAPI):
                     'get': {
                         'ping': 0.2,  # Weight(IP): 1 => cost = 0.2 * 1 = 0.2
                         'time': 0.2,
-                        'depth': {'cost': 0.4, 'byLimit': [[100, 0.4], [500, 2], [1000, 4], [5000, 20]]},
-                        'trades': 0.4,  # Weight(IP): 2 => cost = 0.2 * 2 = 0.4
+                        'depth': {'cost': 1, 'byLimit': [[100, 1], [500, 5], [1000, 10], [5000, 50]]},
+                        'trades': 2,  # Weight(IP): 10 => cost = 0.2 * 10 = 2
                         'aggTrades': 0.4,
                         'historicalTrades': 2,  # Weight(IP): 10 => cost = 0.2 * 10 = 2
                         'klines': 0.4,
@@ -1801,9 +1781,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        see https://binance-docs.github.io/apidocs/spot/en/#check-server-time       # spot
-        see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    # swap
-        see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   # future
+        :see: https://binance-docs.github.io/apidocs/spot/en/#check-server-time       # spot
+        :see: https://binance-docs.github.io/apidocs/futures/en/#check-server-time    # swap
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   # future
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -1824,7 +1804,7 @@ class binance(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -1991,10 +1971,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for binance
-        see https://binance-docs.github.io/apidocs/spot/en/#exchange-information         # spot
-        see https://binance-docs.github.io/apidocs/futures/en/#exchange-information      # swap
-        see https://binance-docs.github.io/apidocs/delivery/en/#exchange-information     # future
-        see https://binance-docs.github.io/apidocs/voptions/en/#exchange-information     # option
+        :see: https://binance-docs.github.io/apidocs/spot/en/#exchange-information         # spot
+        :see: https://binance-docs.github.io/apidocs/futures/en/#exchange-information      # swap
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#exchange-information     # future
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#exchange-information     # option
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -2477,14 +2457,14 @@ class binance(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data                  # spot
-        see https://binance-docs.github.io/apidocs/spot/en/#query-cross-margin-account-details-user_data   # cross margin
-        see https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-account-info-user_data   # isolated margin
-        see https://binance-docs.github.io/apidocs/spot/en/#lending-account-user_data                      # lending
-        see https://binance-docs.github.io/apidocs/spot/en/#funding-wallet-user_data                       # funding
-        see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data            # swap
-        see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              # future
-        see https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           # option
+        :see: https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data                  # spot
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-cross-margin-account-details-user_data   # cross margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-isolated-margin-account-info-user_data   # isolated margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#lending-account-user_data                      # lending
+        :see: https://binance-docs.github.io/apidocs/spot/en/#funding-wallet-user_data                       # funding
+        :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data            # swap
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data              # future
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#option-account-information-trade           # option
         :param dict [params]: extra parameters specific to the binance api endpoint
         :param str [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot'
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
@@ -2721,10 +2701,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://binance-docs.github.io/apidocs/spot/en/#order-book      # spot
-        see https://binance-docs.github.io/apidocs/futures/en/#order-book   # swap
-        see https://binance-docs.github.io/apidocs/delivery/en/#order-book  # future
-        see https://binance-docs.github.io/apidocs/voptions/en/#order-book  # option
+        :see: https://binance-docs.github.io/apidocs/spot/en/#order-book      # spot
+        :see: https://binance-docs.github.io/apidocs/futures/en/#order-book   # swap
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#order-book  # future
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#order-book  # option
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the binance api endpoint
@@ -2935,7 +2915,7 @@ class binance(Exchange, ImplicitAPI):
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        see https://binance-docs.github.io/apidocs/spot/en/#system-status-system
+        :see: https://binance-docs.github.io/apidocs/spot/en/#system-status-system
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a `status structure <https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure>`
         """
@@ -2958,10 +2938,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
-        see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
-        see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
-        see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     # option
+        :see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
+        :see: https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     # option
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -2988,9 +2968,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
-        see https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker        # spot
-        see https://binance-docs.github.io/apidocs/futures/en/#symbol-order-book-ticker     # swap
-        see https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker    # future
+        :see: https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker        # spot
+        :see: https://binance-docs.github.io/apidocs/futures/en/#symbol-order-book-ticker     # swap
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#symbol-order-book-ticker    # future
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -3017,9 +2997,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_last_prices(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches the last price for multiple markets
-        see https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         # spot
-        see https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       # swap
-        see https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     # future
+        :see: https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         # spot
+        :see: https://binance-docs.github.io/apidocs/future/en/#symbol-price-ticker       # swap
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#symbol-price-ticker     # future
         :param str[]|None symbols: unified symbols of the markets to fetch the last prices
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -3115,10 +3095,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
-        see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
-        see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
-        see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     # option
+        :see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
+        :see: https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     # option
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -3212,14 +3192,14 @@ class binance(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-        see https://binance-docs.github.io/apidocs/voptions/en/#kline-candlestick-data
-        see https://binance-docs.github.io/apidocs/futures/en/#index-price-kline-candlestick-data
-        see https://binance-docs.github.io/apidocs/futures/en/#mark-price-kline-candlestick-data
-        see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
-        see https://binance-docs.github.io/apidocs/delivery/en/#index-price-kline-candlestick-data
-        see https://binance-docs.github.io/apidocs/delivery/en/#mark-price-kline-candlestick-data
-        see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#index-price-kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#mark-price-kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#index-price-kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#mark-price-kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -3521,18 +3501,18 @@ class binance(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
          * Default fetchTradesMethod
-        see https://binance-docs.github.io/apidocs/spot/en/#compressed-aggregate-trades-list        # publicGetAggTrades(spot)
-        see https://binance-docs.github.io/apidocs/futures/en/#compressed-aggregate-trades-list     # fapiPublicGetAggTrades(swap)
-        see https://binance-docs.github.io/apidocs/delivery/en/#compressed-aggregate-trades-list    # dapiPublicGetAggTrades(future)
-        see https://binance-docs.github.io/apidocs/voptions/en/#recent-trades-list                  # eapiPublicGetTrades(option)
+        :see: https://binance-docs.github.io/apidocs/spot/en/#compressed-aggregate-trades-list        # publicGetAggTrades(spot)
+        :see: https://binance-docs.github.io/apidocs/futures/en/#compressed-aggregate-trades-list     # fapiPublicGetAggTrades(swap)
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#compressed-aggregate-trades-list    # dapiPublicGetAggTrades(future)
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#recent-trades-list                  # eapiPublicGetTrades(option)
          * Other fetchTradesMethod
-        see https://binance-docs.github.io/apidocs/spot/en/#recent-trades-list                      # publicGetTrades(spot)
-        see https://binance-docs.github.io/apidocs/futures/en/#recent-trades-list                   # fapiPublicGetTrades(swap)
-        see https://binance-docs.github.io/apidocs/delivery/en/#recent-trades-list                  # dapiPublicGetTrades(future)
-        see https://binance-docs.github.io/apidocs/spot/en/#old-trade-lookup-market_data            # publicGetHistoricalTrades(spot)
-        see https://binance-docs.github.io/apidocs/future/en/#old-trade-lookup-market_data          # fapiPublicGetHistoricalTrades(swap)
-        see https://binance-docs.github.io/apidocs/delivery/en/#old-trade-lookup-market_data        # dapiPublicGetHistoricalTrades(future)
-        see https://binance-docs.github.io/apidocs/voptions/en/#old-trade-lookup-market_data        # eapiPublicGetHistoricalTrades(option)
+        :see: https://binance-docs.github.io/apidocs/spot/en/#recent-trades-list                      # publicGetTrades(spot)
+        :see: https://binance-docs.github.io/apidocs/futures/en/#recent-trades-list                   # fapiPublicGetTrades(swap)
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#recent-trades-list                  # dapiPublicGetTrades(future)
+        :see: https://binance-docs.github.io/apidocs/spot/en/#old-trade-lookup-market_data            # publicGetHistoricalTrades(spot)
+        :see: https://binance-docs.github.io/apidocs/future/en/#old-trade-lookup-market_data          # fapiPublicGetHistoricalTrades(swap)
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#old-trade-lookup-market_data        # dapiPublicGetHistoricalTrades(future)
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#old-trade-lookup-market_data        # eapiPublicGetHistoricalTrades(option)
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
         :param int [limit]: default 500, max 1000
@@ -3654,7 +3634,7 @@ class binance(Exchange, ImplicitAPI):
     def edit_spot_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
         edit a trade order
-        see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
@@ -3821,8 +3801,8 @@ class binance(Exchange, ImplicitAPI):
     def edit_contract_order(self, id: str, symbol, type, side, amount, price=None, params={}):
         """
         edit a trade order
-        see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
-        see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
+        :see: https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -3885,9 +3865,9 @@ class binance(Exchange, ImplicitAPI):
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
-        see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
-        see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
-        see https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
+        :see: https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#modify-order-trade
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -4159,13 +4139,13 @@ class binance(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
-        see https://binance-docs.github.io/apidocs/spot/en/#test-new-order-trade
-        see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade
-        see https://binance-docs.github.io/apidocs/delivery/en/#new-order-trade
-        see https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
-        see https://binance-docs.github.io/apidocs/spot/en/#new-order-using-sor-trade
-        see https://binance-docs.github.io/apidocs/spot/en/#test-new-order-using-sor-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#new-order-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#test-new-order-trade
+        :see: https://binance-docs.github.io/apidocs/futures/en/#new-order-trade
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#new-order-trade
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#new-order-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#new-order-using-sor-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#test-new-order-using-sor-trade
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         :param str side: 'buy' or 'sell'
@@ -4389,11 +4369,11 @@ class binance(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        see https://binance-docs.github.io/apidocs/spot/en/#query-order-user_data
-        see https://binance-docs.github.io/apidocs/futures/en/#query-order-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#query-order-user_data
-        see https://binance-docs.github.io/apidocs/voptions/en/#query-single-order-trade
-        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-order-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-order-user_data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#query-order-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#query-order-user_data
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#query-single-order-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-order-user_data
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the binance api endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
@@ -4434,11 +4414,11 @@ class binance(Exchange, ImplicitAPI):
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
-        see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
-        see https://binance-docs.github.io/apidocs/futures/en/#all-orders-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
-        see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
-        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#all-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -4559,16 +4539,16 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
-        see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
-        see https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
+        :see: https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
         fetch all unfilled currently open orders
-        see https://binance-docs.github.io/apidocs/spot/en/#current-open-orders-user_data
-        see https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
-        see https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
-        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-open-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#current-open-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#current-all-open-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#query-current-open-option-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-open-orders-user_data
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
@@ -4623,11 +4603,11 @@ class binance(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
-        see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
-        see https://binance-docs.github.io/apidocs/futures/en/#all-orders-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
-        see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
-        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#all-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#all-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -4641,9 +4621,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
-        see https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
-        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
-        see https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-all-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#query-option-order-history-trade
         :param str symbol: unified market symbol of the market the orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -4664,11 +4644,11 @@ class binance(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
-        see https://binance-docs.github.io/apidocs/spot/en/#cancel-order-trade
-        see https://binance-docs.github.io/apidocs/futures/en/#cancel-order-trade
-        see https://binance-docs.github.io/apidocs/delivery/en/#cancel-order-trade
-        see https://binance-docs.github.io/apidocs/voptions/en/#cancel-option-order-trade
-        see https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-order-trade
+        :see: https://binance-docs.github.io/apidocs/futures/en/#cancel-order-trade
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#cancel-order-trade
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#cancel-option-order-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the binance api endpoint
@@ -4710,11 +4690,11 @@ class binance(Exchange, ImplicitAPI):
 
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
-        see https://binance-docs.github.io/apidocs/spot/en/#cancel-all-open-orders-on-a-symbol-trade
-        see https://binance-docs.github.io/apidocs/futures/en/#cancel-all-open-orders-trade
-        see https://binance-docs.github.io/apidocs/delivery/en/#cancel-all-open-orders-trade
-        see https://binance-docs.github.io/apidocs/voptions/en/#cancel-all-option-orders-on-specific-symbol-trade
-        see https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-all-open-orders-on-a-symbol-trade
+        :see: https://binance-docs.github.io/apidocs/futures/en/#cancel-all-open-orders-trade
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#cancel-all-open-orders-trade
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#cancel-all-option-orders-on-specific-symbol-trade
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-cancel-order-trade
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the binance api endpoint
@@ -4750,8 +4730,8 @@ class binance(Exchange, ImplicitAPI):
     def cancel_orders(self, ids: List[int], symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
-        see https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
-        see https://binance-docs.github.io/apidocs/delivery/en/#cancel-multiple-orders-trade
+        :see: https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#cancel-multiple-orders-trade
         :param [str] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the bingx api endpoint
@@ -4815,10 +4795,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
-        see https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
-        see https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data
-        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -4842,10 +4822,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
-        see https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
-        see https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data
-        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#account-trade-list-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-account-39-s-trade-list-user_data
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -4975,7 +4955,7 @@ class binance(Exchange, ImplicitAPI):
     def fetch_my_dust_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all dust trades made by the user
-        see https://binance-docs.github.io/apidocs/spot/en/#dustlog-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#dustlog-user_data
         :param str symbol: not used by binance fetchMyDustTrades()
         :param int [since]: the earliest time in ms to fetch my dust trades for
         :param int [limit]: the maximum number of dust trades to retrieve
@@ -5103,10 +5083,10 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
         fetch all deposits made to an account
-        see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
-        see https://binance-docs.github.io/apidocs/spot/en/#deposit-history-supporting-network-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#deposit-history-supporting-network-user_data
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -5204,11 +5184,11 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
-        see https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
         fetch all withdrawals made from an account
-        see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
-        see https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -5567,8 +5547,8 @@ class binance(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
-        see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
-        see https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -5645,9 +5625,9 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
         fetch a history of internal transfers made on an account
-        see https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-user-universal-transfer-history-user_data
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of transfers structures to retrieve
@@ -5713,7 +5693,7 @@ class binance(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
-        see https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
@@ -5781,7 +5761,7 @@ class binance(Exchange, ImplicitAPI):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
-        see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
         :param str[]|None codes: not used by binance fetchTransactionFees()
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -5891,7 +5871,7 @@ class binance(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
         :param str[]|None codes: not used by binance fetchDepositWithdrawFees()
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -6011,7 +5991,7 @@ class binance(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
-        see https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#withdraw-user_data
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -6073,9 +6053,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
-        see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
-        see https://binance-docs.github.io/apidocs/futures/en/#user-commission-rate-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#user-commission-rate-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#user-commission-rate-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#user-commission-rate-user_data
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -6125,9 +6105,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        see https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
-        see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#trade-fee-user_data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
         """
@@ -6291,7 +6271,7 @@ class binance(Exchange, ImplicitAPI):
     def futures_transfer(self, code: str, amount, type, params={}):
         """
         transfer between futures account
-        see https://binance-docs.github.io/apidocs/spot/en/#new-future-account-transfer-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#new-future-account-transfer-user_data
         :param str code: unified currency code
         :param float amount: the amount to transfer
         :param str type: 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
@@ -6319,8 +6299,8 @@ class binance(Exchange, ImplicitAPI):
     def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
-        see https://binance-docs.github.io/apidocs/futures/en/#mark-price
-        see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+        :see: https://binance-docs.github.io/apidocs/futures/en/#mark-price
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a `funding rate structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
@@ -6357,8 +6337,8 @@ class binance(Exchange, ImplicitAPI):
     def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical funding rate prices
-        see https://binance-docs.github.io/apidocs/futures/en/#get-funding-rate-history
-        see https://binance-docs.github.io/apidocs/delivery/en/#get-funding-rate-history-of-perpetual-futures
+        :see: https://binance-docs.github.io/apidocs/futures/en/#get-funding-rate-history
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#get-funding-rate-history-of-perpetual-futures
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
@@ -6424,8 +6404,8 @@ class binance(Exchange, ImplicitAPI):
     def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch the funding rate for multiple markets
-        see https://binance-docs.github.io/apidocs/futures/en/#mark-price
-        see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+        :see: https://binance-docs.github.io/apidocs/futures/en/#mark-price
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a dictionary of `funding rates structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure>`, indexe by market symbols
@@ -6906,8 +6886,8 @@ class binance(Exchange, ImplicitAPI):
     def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        see https://binance-docs.github.io/apidocs/futures/en/#notional-and-leverage-brackets-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#notional-bracket-for-symbol-user_data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#notional-and-leverage-brackets-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#notional-bracket-for-symbol-user_data
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure>`, indexed by market symbols
@@ -7005,7 +6985,7 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_position(self, symbol: str, params={}):
         """
-        see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
         fetch data on an open position
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the binance api endpoint
@@ -7046,7 +7026,7 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_option_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
-        see https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
         fetch data on open options positions
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the binance api endpoint
@@ -7172,8 +7152,8 @@ class binance(Exchange, ImplicitAPI):
     def fetch_account_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch account positions
-        see https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#account-information-user_data
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: data on account positions
@@ -7203,8 +7183,8 @@ class binance(Exchange, ImplicitAPI):
     def fetch_positions_risk(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch positions risk
-        see https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#position-information-user_data
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: data on the positions risk
@@ -7293,8 +7273,8 @@ class binance(Exchange, ImplicitAPI):
     def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
-        see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
@@ -7333,8 +7313,8 @@ class binance(Exchange, ImplicitAPI):
     def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
-        see https://binance-docs.github.io/apidocs/futures/en/#change-initial-leverage-trade
-        see https://binance-docs.github.io/apidocs/delivery/en/#change-initial-leverage-trade
+        :see: https://binance-docs.github.io/apidocs/futures/en/#change-initial-leverage-trade
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#change-initial-leverage-trade
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the binance api endpoint
@@ -7364,8 +7344,8 @@ class binance(Exchange, ImplicitAPI):
     def set_margin_mode(self, marginMode: str, symbol: Optional[str] = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
-        see https://binance-docs.github.io/apidocs/futures/en/#change-margin-type-trade
-        see https://binance-docs.github.io/apidocs/delivery/en/#change-margin-type-trade
+        :see: https://binance-docs.github.io/apidocs/futures/en/#change-margin-type-trade
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#change-margin-type-trade
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the binance api endpoint
@@ -7420,8 +7400,8 @@ class binance(Exchange, ImplicitAPI):
     def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
         """
         set hedged to True or False for a market
-        see https://binance-docs.github.io/apidocs/futures/en/#change-position-mode-trade
-        see https://binance-docs.github.io/apidocs/delivery/en/#change-position-mode-trade
+        :see: https://binance-docs.github.io/apidocs/futures/en/#change-position-mode-trade
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#change-position-mode-trade
         :param bool hedged: set to True to use dualSidePosition
         :param str symbol: not used by binance setPositionMode()
         :param dict [params]: extra parameters specific to the binance api endpoint
@@ -7455,7 +7435,7 @@ class binance(Exchange, ImplicitAPI):
     def fetch_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical settlement records
-        see https://binance-docs.github.io/apidocs/voptions/en/#historical-exercise-records
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#historical-exercise-records
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
         :param int [limit]: number of records, default 100, max 100
@@ -7495,7 +7475,7 @@ class binance(Exchange, ImplicitAPI):
     def fetch_my_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical settlement records of the user
-        see https://binance-docs.github.io/apidocs/voptions/en/#user-exercise-record-user_data
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#user-exercise-record-user_data
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
@@ -7624,9 +7604,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        see https://binance-docs.github.io/apidocs/voptions/en/#account-funding-flow-user_data
-        see https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#account-funding-flow-user_data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#get-income-history-user_data
         :param str code: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry
         :param int [limit]: max number of ledger entrys to return
@@ -7781,8 +7761,6 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
         url = self.urls['api'][api]
         url += '/' + path
-        if api == 'wapi':
-            url += '.html'
         if path == 'historicalTrades':
             if self.apiKey:
                 headers = {
@@ -7802,7 +7780,7 @@ class binance(Exchange, ImplicitAPI):
                     body = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'papi'):
+        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'papi'):
             self.check_required_credentials()
             if method == 'POST' and ((path == 'order') or (path == 'sor/order')):
                 # inject in implicit API calls
@@ -7851,7 +7829,7 @@ class binance(Exchange, ImplicitAPI):
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
             }
-            if (method == 'GET') or (method == 'DELETE') or (api == 'wapi'):
+            if (method == 'GET') or (method == 'DELETE'):
                 url += '?' + query
             else:
                 body = query
@@ -7876,7 +7854,6 @@ class binance(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use self.price_to_precision(symbol, amount) ' + body)
         if response is None:
             return None  # fallback to default error handler
-        # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
         success = self.safe_value(response, 'success', True)
         if not success:
@@ -7947,7 +7924,7 @@ class binance(Exchange, ImplicitAPI):
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         response = self.fetch2(path, api, method, params, headers, body, config)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if (api == 'private') or (api == 'wapi'):
+        if api == 'private':
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
 
@@ -8005,8 +7982,8 @@ class binance(Exchange, ImplicitAPI):
 
     def reduce_margin(self, symbol: str, amount, params={}):
         """
-        see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
-        see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+        :see: https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
         remove margin from a position
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
@@ -8017,8 +7994,8 @@ class binance(Exchange, ImplicitAPI):
 
     def add_margin(self, symbol: str, amount, params={}):
         """
-        see https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
-        see https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#modify-isolated-position-margin-trade
+        :see: https://binance-docs.github.io/apidocs/futures/en/#modify-isolated-position-margin-trade
         add margin
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
@@ -8030,7 +8007,7 @@ class binance(Exchange, ImplicitAPI):
     def fetch_borrow_rate(self, code: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
-        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a `borrow rate structure <https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure>`
@@ -8058,7 +8035,7 @@ class binance(Exchange, ImplicitAPI):
     def fetch_borrow_rate_history(self, code: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
-        see https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data
         :param str code: unified currency code
         :param int [since]: timestamp for the earliest borrow rate
         :param int [limit]: the maximum number of `borrow rate structures <https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure>` to retrieve
@@ -8126,7 +8103,7 @@ class binance(Exchange, ImplicitAPI):
     def create_gift_code(self, code: str, amount, params={}):
         """
         create gift code
-        see https://binance-docs.github.io/apidocs/spot/en/#create-a-single-token-gift-card-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#create-a-single-token-gift-card-user_data
         :param str code: gift code
         :param float amount: amount of currency for the gift
         :param dict [params]: extra parameters specific to the binance api endpoint
@@ -8162,7 +8139,7 @@ class binance(Exchange, ImplicitAPI):
     def redeem_gift_code(self, giftcardCode, params={}):
         """
         redeem gift code
-        see https://binance-docs.github.io/apidocs/spot/en/#redeem-a-binance-gift-card-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#redeem-a-binance-gift-card-user_data
         :param str giftcardCode:
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: response from the exchange
@@ -8187,7 +8164,7 @@ class binance(Exchange, ImplicitAPI):
     def verify_gift_code(self, id: str, params={}):
         """
         verify gift code
-        see https://binance-docs.github.io/apidocs/spot/en/#verify-binance-gift-card-by-gift-card-number-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#verify-binance-gift-card-by-gift-card-number-user_data
         :param str id: reference number id
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: response from the exchange
@@ -8209,7 +8186,7 @@ class binance(Exchange, ImplicitAPI):
     def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
-        see https://binance-docs.github.io/apidocs/spot/en/#get-interest-history-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#get-interest-history-user_data
         :param str code: unified currency code
         :param str symbol: unified market symbol when fetch interest in isolated markets
         :param int [since]: the earliest time in ms to fetch borrrow interest for
@@ -8271,7 +8248,7 @@ class binance(Exchange, ImplicitAPI):
     def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
-        see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str symbol: unified market symbol, required for isolated margin
@@ -8302,7 +8279,7 @@ class binance(Exchange, ImplicitAPI):
     def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
-        see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param str symbol: unified market symbol, required for isolated margin
@@ -8350,8 +8327,8 @@ class binance(Exchange, ImplicitAPI):
     def fetch_open_interest_history(self, symbol: str, timeframe='5m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Retrieves the open interest history of a currency
-        see https://binance-docs.github.io/apidocs/delivery/en/#open-interest-statistics
-        see https://binance-docs.github.io/apidocs/futures/en/#open-interest-statistics
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#open-interest-statistics
+        :see: https://binance-docs.github.io/apidocs/futures/en/#open-interest-statistics
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
         :param int [since]: the time(ms) of the earliest record to retrieve unix timestamp
@@ -8409,9 +8386,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_open_interest(self, symbol: str, params={}):
         """
         retrieves the open interest of a contract trading pair
-        see https://binance-docs.github.io/apidocs/futures/en/#open-interest
-        see https://binance-docs.github.io/apidocs/delivery/en/#open-interest
-        see https://binance-docs.github.io/apidocs/voptions/en/#open-interest
+        :see: https://binance-docs.github.io/apidocs/futures/en/#open-interest
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#open-interest
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#open-interest
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
@@ -8490,9 +8467,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_my_liquidations(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         retrieves the users liquidated positions
-        see https://binance-docs.github.io/apidocs/spot/en/#get-force-liquidation-record-user_data
-        see https://binance-docs.github.io/apidocs/futures/en/#user-39-s-force-orders-user_data
-        see https://binance-docs.github.io/apidocs/delivery/en/#user-39-s-force-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/spot/en/#get-force-liquidation-record-user_data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#user-39-s-force-orders-user_data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#user-39-s-force-orders-user_data
         :param str [symbol]: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve

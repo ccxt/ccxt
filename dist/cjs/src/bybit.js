@@ -2774,7 +2774,7 @@ class bybit extends bybit$1 {
             const feeToken = this.safeString(trade, 'feeTokenId');
             const feeCurrency = this.safeCurrencyCode(feeToken);
             fee = {
-                'cost': Precise["default"].stringAbs(feeCost),
+                'cost': feeCost,
                 'currency': feeCurrency,
             };
         }
@@ -2940,7 +2940,7 @@ class bybit extends bybit$1 {
                 feeCurrencyCode = market['inverse'] ? market['base'] : market['settle'];
             }
             fee = {
-                'cost': Precise["default"].stringAbs(feeCostString),
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
@@ -3285,8 +3285,10 @@ class bybit extends bybit$1 {
             request['accountType'] = unifiedType;
             response = await this.privateGetV5AssetTransferQueryAccountCoinsBalance(this.extend(request, params));
         }
-        request['accountType'] = unifiedType;
-        response = await this.privateGetV5AccountWalletBalance(this.extend(request, params));
+        else {
+            request['accountType'] = unifiedType;
+            response = await this.privateGetV5AccountWalletBalance(this.extend(request, params));
+        }
         //
         // cross
         //     {

@@ -5814,6 +5814,7 @@ export default class okx extends Exchange {
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {int} [params.leverage] leverage
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -5827,11 +5828,11 @@ export default class okx extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const lever = this.safeInteger (params, 'lever');
+        const lever = this.safeInteger2 (params, 'lever', 'leverage');
         if ((lever === undefined) || (lever < 1) || (lever > 125)) {
             throw new BadRequest (this.id + ' setMarginMode() params["lever"] should be between 1 and 125');
         }
-        params = this.omit (params, [ 'lever' ]);
+        params = this.omit (params, [ 'leverage' ]);
         const request = {
             'lever': lever,
             'mgnMode': marginMode,

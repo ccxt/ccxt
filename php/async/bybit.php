@@ -2786,7 +2786,7 @@ class bybit extends Exchange {
             $feeToken = $this->safe_string($trade, 'feeTokenId');
             $feeCurrency = $this->safe_currency_code($feeToken);
             $fee = array(
-                'cost' => Precise::string_abs($feeCost),
+                'cost' => $feeCost,
                 'currency' => $feeCurrency,
             );
         }
@@ -2950,7 +2950,7 @@ class bybit extends Exchange {
                 $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['settle'];
             }
             $fee = array(
-                'cost' => Precise::string_abs($feeCostString),
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -3290,9 +3290,10 @@ class bybit extends Exchange {
                 // because it requires transfer permission
                 $request['accountType'] = $unifiedType;
                 $response = Async\await($this->privateGetV5AssetTransferQueryAccountCoinsBalance (array_merge($request, $params)));
+            } else {
+                $request['accountType'] = $unifiedType;
+                $response = Async\await($this->privateGetV5AccountWalletBalance (array_merge($request, $params)));
             }
-            $request['accountType'] = $unifiedType;
-            $response = Async\await($this->privateGetV5AccountWalletBalance (array_merge($request, $params)));
             //
             // cross
             //     {

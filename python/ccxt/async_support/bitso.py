@@ -1242,7 +1242,7 @@ class bitso(Exchange, ImplicitAPI):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
-        see https://bitso.com/api_info#fees
+        :see: https://bitso.com/api_info#fees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitso api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -1329,7 +1329,7 @@ class bitso(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://bitso.com/api_info#fees
+        :see: https://bitso.com/api_info#fees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitso api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`

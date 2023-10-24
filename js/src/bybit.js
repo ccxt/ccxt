@@ -2771,7 +2771,7 @@ export default class bybit extends Exchange {
             const feeToken = this.safeString(trade, 'feeTokenId');
             const feeCurrency = this.safeCurrencyCode(feeToken);
             fee = {
-                'cost': Precise.stringAbs(feeCost),
+                'cost': feeCost,
                 'currency': feeCurrency,
             };
         }
@@ -2937,7 +2937,7 @@ export default class bybit extends Exchange {
                 feeCurrencyCode = market['inverse'] ? market['base'] : market['settle'];
             }
             fee = {
-                'cost': Precise.stringAbs(feeCostString),
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
@@ -3282,8 +3282,10 @@ export default class bybit extends Exchange {
             request['accountType'] = unifiedType;
             response = await this.privateGetV5AssetTransferQueryAccountCoinsBalance(this.extend(request, params));
         }
-        request['accountType'] = unifiedType;
-        response = await this.privateGetV5AccountWalletBalance(this.extend(request, params));
+        else {
+            request['accountType'] = unifiedType;
+            response = await this.privateGetV5AccountWalletBalance(this.extend(request, params));
+        }
         //
         // cross
         //     {
