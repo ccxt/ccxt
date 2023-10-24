@@ -30,7 +30,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import Balance, IndexType, OrderSide, OrderType, Trade
+from ccxt.base.types import Balance, IndexType, OrderSide, OrderType, Trade, OrderRequest
 
 # -----------------------------------------------------------------------------
 
@@ -3585,6 +3585,9 @@ class Exchange(object):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
+
+    def create_orders(self, orders: List[OrderRequest]):
+        raise NotSupported(self.id + ' createOrders() is not supported yet')
 
     def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
         raise NotSupported(self.id + ' createOrderWs() is not supported yet')

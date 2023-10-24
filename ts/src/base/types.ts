@@ -252,6 +252,15 @@ export interface Liquidation {
     quoteValue?: number;
 }
 
+export interface OrderRequest {
+    symbol: string;
+    type: string;
+    side: string;
+    amount?: number;
+    price?: number | undefined;
+    params?: any;
+}
+
 /** [ timestamp, open, high, low, close, volume ] */
 export type OHLCV = [number, number, number, number, number, number];
 
