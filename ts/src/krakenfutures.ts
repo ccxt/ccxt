@@ -1373,7 +1373,7 @@ export default class krakenfutures extends Exchange {
         const orderEvents = this.safeValue (order, 'orderEvents', []);
         const errorStatus = this.safeString (order, 'status');
         const orderEventsLength = orderEvents.length;
-        if ((errorStatus !== undefined) && (orderEventsLength === 0)) {
+        if (('orderEvents' in order) && (errorStatus !== undefined) && (orderEventsLength === 0)) {
             // creteOrders error response
             return this.safeOrder ({ 'info': order, 'status': 'rejected' });
         }
