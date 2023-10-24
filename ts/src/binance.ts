@@ -8,6 +8,8 @@ import { Market, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, Fundi
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
+import { eddsa } from './base/functions/crypto.js';
+import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -8479,7 +8481,11 @@ export default class binance extends Exchange {
             }
             let signature = undefined;
             if (this.secret.indexOf ('PRIVATE KEY') > -1) {
-                signature = this.encodeURIComponent (rsa (query, this.secret, sha256));
+                if (this.secret.length > 120) {
+                    signature = this.encodeURIComponent (rsa (query, this.secret, sha256));
+                } else {
+                    signature = this.encodeURIComponent (eddsa (this.encode (query), this.secret, ed25519));
+                }
             } else {
                 signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
             }

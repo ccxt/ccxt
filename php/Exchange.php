@@ -1277,11 +1277,21 @@ class Exchange {
         return $signature;
     }
 
-    public static function eddsa($request, $secret, $algorithm = 'ed25519') {
+    public static function axolotl($request, $secret, $algorithm = 'ed25519') {
         // this method is experimental ( ͡° ͜ʖ ͡°)
         $curve = new EdDSA($algorithm);
         $signature = $curve->signModified($request, $secret);
         return static::binary_to_base58(static::base16_to_binary($signature->toHex()));
+    }
+
+    public static function eddsa($request, $secret, $algorithm = 'ed25519') {
+        $curve = new EdDSA($algorithm);
+        preg_match('/^-----BEGIN PRIVATE KEY-----\s(\S{64})\s-----END PRIVATE KEY-----$/', $secret, $match);
+        // trim pem header from 48 bytes -> 32 bytes
+        // in hex so 96 chars -> 64 chars
+        $hex_secret = substr(bin2hex(base64_decode($match[1])), 32);
+        $signature = $curve->sign(bin2hex(static::encode($request)), $hex_secret);
+        return static::binary_to_base64(static::base16_to_binary($signature->toHex()));
     }
 
     public function throttle($cost = null) {
@@ -1586,7 +1596,7 @@ class Exchange {
         throw new ExchangeError($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
     }
 
-    public function add_method($function_name, $callback) { 
+    public function add_method($function_name, $callback) {
         $function_name = strtolower($function_name);
         $this->overriden_methods[$function_name] = $callback;
     }
