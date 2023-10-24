@@ -8414,7 +8414,7 @@ export default class binance extends Exchange {
                 if (this.secret.length > 120) {
                     signature = this.encodeURIComponent (rsa (query, this.secret, sha256));
                 } else {
-                    signature = this.encodeURIComponent (eddsa (this.encode (query), this.secret, ed25519))
+                    signature = this.encodeURIComponent (eddsa (this.encode (query), this.secret, ed25519));
                 }
             } else {
                 signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
