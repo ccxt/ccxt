@@ -66,10 +66,12 @@ class bitget extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
                 'fetchMarginMode' => null,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMyLiquidations' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -5907,6 +5909,153 @@ class bitget extends Exchange {
             'timestamp' => null,
             'datetime' => null,
             'info' => $info,
+        );
+    }
+
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * retrieves the users liquidated positions
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-liquidation-records
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-liquidation-records
+             * @param {string} [$symbol] unified CCXT $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch $liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the bitget api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest liquidation
+             * @param {string} [$params->marginMode] 'cross' or 'isolated' default value is 'cross'
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchMyLiquidations', $market, $params);
+            if ($type !== 'spot') {
+                throw new NotSupported($this->id . ' fetchMyLiquidations() supports spot margin markets only');
+            }
+            $request = array();
+            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            } else {
+                $request['startTime'] = $this->milliseconds() - 7776000000;
+            }
+            if ($limit !== null) {
+                $request['pageSize'] = $limit;
+            }
+            $response = null;
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMyLiquidations', $params, 'cross');
+            if ($marginMode === 'isolated') {
+                $this->check_required_symbol('fetchMyLiquidations', $symbol);
+                $request['symbol'] = $market['info']['symbolName'];
+                $response = Async\await($this->privateMarginGetIsolatedLiquidationList (array_merge($request, $params)));
+            } elseif ($marginMode === 'cross') {
+                $response = Async\await($this->privateMarginGetCrossLiquidationList (array_merge($request, $params)));
+            }
+            //
+            // isolated
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1698114119193,
+            //         "data" => {
+            //             "resultList" => array(
+            //                 {
+            //                     "liqId" => "123",
+            //                     "symbol" => "BTCUSDT",
+            //                     "liqStartTime" => "1653453245342",
+            //                     "liqEndTime" => "16312423423432",
+            //                     "liqRisk" => "1.01",
+            //                     "totalAssets" => "1242.34",
+            //                     "totalDebt" => "1100",
+            //                     "LiqFee" => "1.2",
+            //                     "cTime" => "1653453245342"
+            //                 }
+            //             ),
+            //             "maxId" => "0",
+            //             "minId" => "0"
+            //         }
+            //     }
+            //
+            // cross
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1698114119193,
+            //         "data" => {
+            //             "resultList" => array(
+            //                 {
+            //                     "liqId" => "123",
+            //                     "liqStartTime" => "1653453245342",
+            //                     "liqEndTime" => "16312423423432",
+            //                     "liqRisk" => "1.01",
+            //                     "totalAssets" => "1242.34",
+            //                     "totalDebt" => "1100",
+            //                     "LiqFee" => "1.2",
+            //                     "cTime" => "1653453245342"
+            //                 }
+            //             ),
+            //             "maxId" => "0",
+            //             "minId" => "0"
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $liquidations = $this->safe_value($data, 'resultList', array());
+            return $this->parse_liquidations($liquidations, $market, $since, $limit);
+        }) ();
+    }
+
+    public function parse_liquidation($liquidation, $market = null) {
+        //
+        // isolated
+        //
+        //     {
+        //         "liqId" => "123",
+        //         "symbol" => "BTCUSDT",
+        //         "liqStartTime" => "1653453245342",
+        //         "liqEndTime" => "16312423423432",
+        //         "liqRisk" => "1.01",
+        //         "totalAssets" => "1242.34",
+        //         "totalDebt" => "1100",
+        //         "LiqFee" => "1.2",
+        //         "cTime" => "1653453245342"
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "liqId" => "123",
+        //         "liqStartTime" => "1653453245342",
+        //         "liqEndTime" => "16312423423432",
+        //         "liqRisk" => "1.01",
+        //         "totalAssets" => "1242.34",
+        //         "totalDebt" => "1100",
+        //         "LiqFee" => "1.2",
+        //         "cTime" => "1653453245342"
+        //     }
+        //
+        $marketId = $this->safe_string($liquidation, 'symbol');
+        $timestamp = $this->safe_integer($liquidation, 'liqEndTime');
+        $liquidationFee = $this->safe_string($liquidation, 'LiqFee');
+        $totalDebt = $this->safe_string($liquidation, 'totalDebt');
+        $quoteValueString = Precise::string_add($liquidationFee, $totalDebt);
+        return array(
+            'info' => $liquidation,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'contracts' => null,
+            'contractSize' => null,
+            'price' => null,
+            'baseValue' => null,
+            'quoteValue' => $this->parse_number($quoteValueString),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 

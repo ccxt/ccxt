@@ -83,10 +83,12 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
                 'fetchMarginMode': None,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMyLiquidations': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
@@ -5522,6 +5524,144 @@ class bitget(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
             'info': info,
+        }
+
+    def fetch_my_liquidations(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        retrieves the users liquidated positions
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-liquidation-records
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-liquidation-records
+        :param str [symbol]: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the bitget api endpoint
+        :param int [params.until]: timestamp in ms of the latest liquidation
+        :param str [params.marginMode]: 'cross' or 'isolated' default value is 'cross'
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchMyLiquidations', market, params)
+        if type != 'spot':
+            raise NotSupported(self.id + ' fetchMyLiquidations() supports spot margin markets only')
+        request = {}
+        request, params = self.handle_until_option('endTime', request, params)
+        if since is not None:
+            request['startTime'] = since
+        else:
+            request['startTime'] = self.milliseconds() - 7776000000
+        if limit is not None:
+            request['pageSize'] = limit
+        response = None
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchMyLiquidations', params, 'cross')
+        if marginMode == 'isolated':
+            self.check_required_symbol('fetchMyLiquidations', symbol)
+            request['symbol'] = market['info']['symbolName']
+            response = self.privateMarginGetIsolatedLiquidationList(self.extend(request, params))
+        elif marginMode == 'cross':
+            response = self.privateMarginGetCrossLiquidationList(self.extend(request, params))
+        #
+        # isolated
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1698114119193,
+        #         "data": {
+        #             "resultList": [
+        #                 {
+        #                     "liqId": "123",
+        #                     "symbol": "BTCUSDT",
+        #                     "liqStartTime": "1653453245342",
+        #                     "liqEndTime": "16312423423432",
+        #                     "liqRisk": "1.01",
+        #                     "totalAssets": "1242.34",
+        #                     "totalDebt": "1100",
+        #                     "LiqFee": "1.2",
+        #                     "cTime": "1653453245342"
+        #                 }
+        #             ],
+        #             "maxId": "0",
+        #             "minId": "0"
+        #         }
+        #     }
+        #
+        # cross
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1698114119193,
+        #         "data": {
+        #             "resultList": [
+        #                 {
+        #                     "liqId": "123",
+        #                     "liqStartTime": "1653453245342",
+        #                     "liqEndTime": "16312423423432",
+        #                     "liqRisk": "1.01",
+        #                     "totalAssets": "1242.34",
+        #                     "totalDebt": "1100",
+        #                     "LiqFee": "1.2",
+        #                     "cTime": "1653453245342"
+        #                 }
+        #             ],
+        #             "maxId": "0",
+        #             "minId": "0"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        liquidations = self.safe_value(data, 'resultList', [])
+        return self.parse_liquidations(liquidations, market, since, limit)
+
+    def parse_liquidation(self, liquidation, market=None):
+        #
+        # isolated
+        #
+        #     {
+        #         "liqId": "123",
+        #         "symbol": "BTCUSDT",
+        #         "liqStartTime": "1653453245342",
+        #         "liqEndTime": "16312423423432",
+        #         "liqRisk": "1.01",
+        #         "totalAssets": "1242.34",
+        #         "totalDebt": "1100",
+        #         "LiqFee": "1.2",
+        #         "cTime": "1653453245342"
+        #     }
+        #
+        # cross
+        #
+        #     {
+        #         "liqId": "123",
+        #         "liqStartTime": "1653453245342",
+        #         "liqEndTime": "16312423423432",
+        #         "liqRisk": "1.01",
+        #         "totalAssets": "1242.34",
+        #         "totalDebt": "1100",
+        #         "LiqFee": "1.2",
+        #         "cTime": "1653453245342"
+        #     }
+        #
+        marketId = self.safe_string(liquidation, 'symbol')
+        timestamp = self.safe_integer(liquidation, 'liqEndTime')
+        liquidationFee = self.safe_string(liquidation, 'LiqFee')
+        totalDebt = self.safe_string(liquidation, 'totalDebt')
+        quoteValueString = Precise.string_add(liquidationFee, totalDebt)
+        return {
+            'info': liquidation,
+            'symbol': self.safe_symbol(marketId, market),
+            'contracts': None,
+            'contractSize': None,
+            'price': None,
+            'baseValue': None,
+            'quoteValue': self.parse_number(quoteValueString),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

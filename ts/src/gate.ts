@@ -285,8 +285,6 @@ export default class gate extends Exchange {
                     },
                     'portfolio': {
                         'get': {
-                            'spot/currency_pairs': 20 / 15,
-                            'spot/currency_pairs/{currency_pair}': 20 / 15,
                             'accounts': 20 / 15,
                             'account_mode': 20 / 15,
                             'borrowable': 20 / 15,
@@ -294,19 +292,10 @@ export default class gate extends Exchange {
                             'loans': 20 / 15,
                             'loan_records': 20 / 15,
                             'interest_records': 20 / 15,
-                            'spot/orders': 20 / 15,
-                            'spot/orders/{order_id}': 20 / 15,
                         },
                         'post': {
                             'account_mode': 20 / 15,
                             'loans': 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
-                            'spot/orders': 20 / 15,
-                        },
-                        'delete': {
-                            'spot/orders/{order_id}': 20 / 15,
-                        },
-                        'patch': {
-                            'spot/orders/{order_id}': 20 / 15,
                         },
                     },
                     'spot': {
@@ -329,6 +318,7 @@ export default class gate extends Exchange {
                             'orders': 0.4,
                             'cancel_batch_orders': 20 / 75,
                             'countdown_cancel_all': 20 / 75,
+                            'amend_batch_orders': 0.4,
                             'price_orders': 0.4,
                         },
                         'delete': {
@@ -498,6 +488,9 @@ export default class gate extends Exchange {
                         },
                         'post': {
                             'uni/lends': 20 / 15,
+                        },
+                        'put': {
+                            'uni/interest_reinvest': 20 / 15,
                         },
                         'patch': {
                             'uni/lends': 20 / 15,

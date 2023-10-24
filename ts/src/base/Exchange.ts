@@ -1932,7 +1932,7 @@ export default class Exchange {
         this.markets_by_id = {};
         // handle marketId conflicts
         // we insert spot markets first
-        const marketValues = this.sortBy (this.toArray (markets), 'spot', true);
+        const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
             if (value['id'] in this.markets_by_id) {
@@ -1980,8 +1980,8 @@ export default class Exchange {
                     quoteCurrencies.push (currency);
                 }
             }
-            baseCurrencies = this.sortBy (baseCurrencies, 'code');
-            quoteCurrencies = this.sortBy (quoteCurrencies, 'code');
+            baseCurrencies = this.sortBy (baseCurrencies, 'code', false, '');
+            quoteCurrencies = this.sortBy (quoteCurrencies, 'code', false, '');
             this.baseCurrencies = this.indexBy (baseCurrencies, 'code');
             this.quoteCurrencies = this.indexBy (quoteCurrencies, 'code');
             const allCurrencies = this.arrayConcat (baseCurrencies, quoteCurrencies);
