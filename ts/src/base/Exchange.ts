@@ -3632,8 +3632,8 @@ export default class Exchange {
 
     throwExactlyMatchedException (exactExceptions, key, message, originUrl = undefined) {
         const marketType = this.getExceptionMarketType (originUrl);
-        if (marketType in exactExceptions) {
-            const targetExceptions = exactExceptions[marketType];
+        if (marketType in this.exceptions) {
+            const targetExceptions = this.exceptions[marketType];
             const targetExceptionsExact = this.safeValue (targetExceptions, 'exact', {});
             if (key in targetExceptionsExact) {
                 throw new targetExceptionsExact[key] (message);
