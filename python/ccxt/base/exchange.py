@@ -1362,6 +1362,11 @@ class Exchange(object):
 
     @staticmethod
     def eddsa(request, secret, curve='ed25519'):
+        private_key = load_pem_private_key(Exchange.encode(secret), None)
+        return Exchange.binary_to_base64(private_key.sign(request))
+
+    @staticmethod
+    def axolotl(request, secret, curve='ed25519'):
         random = b'\x00' * 64
         request = base64.b16decode(request, casefold=True)
         secret = base64.b16decode(secret, casefold=True)
