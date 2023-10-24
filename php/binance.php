@@ -33,6 +33,7 @@ class binance extends Exchange {
                 'cancelOrders' => true,  // contract only
                 'createDepositAddress' => false,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -4191,7 +4192,17 @@ class binance extends Exchange {
         //         "lastTrade" => array("id":"69","time":"1676084430567","price":"24.9","qty":"1.00"),
         //         "mmp" => false
         //     }
+        //     array(
+        // cancelOrders/createOrders
+        //          "code" => -4005,
+        //          "msg" => "Quantity greater than max quantity."
+        //       ),
         //
+        $code = $this->safe_string($order, 'code');
+        if ($code !== null) {
+            // cancelOrders/createOrders might have a partial success
+            return $this->safe_order(array( 'info' => $order, 'status' => 'rejected' ), $market);
+        }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $marketType = (is_array($order) && array_key_exists('closePosition', $order)) ? 'contract' : 'spot';
@@ -4263,6 +4274,82 @@ class binance extends Exchange {
             ),
             'trades' => $fills,
         ), $market);
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        /**
+         * *contract only* create a list of trade $orders
+         * @see https://binance-docs.github.io/apidocs/futures/en/#place-multiple-$orders-trade
+         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         */
+        $this->load_markets();
+        $ordersRequests = array();
+        $orderSymbols = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $marketId = $this->safe_string($rawOrder, 'symbol');
+            $orderSymbols[] = $marketId;
+            $type = $this->safe_string($rawOrder, 'type');
+            $side = $this->safe_string($rawOrder, 'side');
+            $amount = $this->safe_value($rawOrder, 'amount');
+            $price = $this->safe_value($rawOrder, 'price');
+            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+            $ordersRequests[] = $orderRequest;
+        }
+        $orderSymbols = $this->market_symbols($orderSymbols, null, false, true, true);
+        $market = $this->market($orderSymbols[0]);
+        if ($market['spot']) {
+            throw new NotSupported($this->id . ' createOrders() does not support ' . $market['type'] . ' orders');
+        }
+        $response = null;
+        $request = array(
+            'batchOrders' => $ordersRequests,
+        );
+        $request = array_merge($request, $params);
+        if ($market['linear']) {
+            $response = $this->fapiPrivatePostBatchOrders ($request);
+        } elseif ($market['option']) {
+            $response = $this->eapiPrivatePostBatchOrders ($request);
+        } else {
+            $response = $this->dapiPrivatePostBatchOrders ($request);
+        }
+        //
+        //   array(
+        //       array(
+        //          "code" => -4005,
+        //          "msg" => "Quantity greater than max quantity."
+        //       ),
+        //       {
+        //          "orderId" => 650640530,
+        //          "symbol" => "LTCUSDT",
+        //          "status" => "NEW",
+        //          "clientOrderId" => "x-xcKtGhcu32184eb13585491289bbaf",
+        //          "price" => "54.00",
+        //          "avgPrice" => "0.00",
+        //          "origQty" => "0.100",
+        //          "executedQty" => "0.000",
+        //          "cumQty" => "0.000",
+        //          "cumQuote" => "0.00000",
+        //          "timeInForce" => "GTC",
+        //          "type" => "LIMIT",
+        //          "reduceOnly" => false,
+        //          "closePosition" => false,
+        //          "side" => "BUY",
+        //          "positionSide" => "BOTH",
+        //          "stopPrice" => "0.00",
+        //          "workingType" => "CONTRACT_PRICE",
+        //          "priceProtect" => false,
+        //          "origType" => "LIMIT",
+        //          "priceMatch" => "NONE",
+        //          "selfTradePreventionMode" => "NONE",
+        //          "goodTillDate" => 0,
+        //          "updateTime" => 1698073926929
+        //       }
+        //   )
+        //
+        return $this->parse_orders($response);
     }
 
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
@@ -8230,6 +8317,12 @@ class binance extends Exchange {
                 }
             }
             $query = null;
+            // handle $batchOrders
+            if (($path === 'batchOrders') && ($method === 'POST')) {
+                $batchOrders = $this->safe_value($params, 'batchOrders');
+                $queryBatch = ($this->json($batchOrders));
+                $params['batchOrders'] = $queryBatch;
+            }
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
             $extendedParams = array_merge(array(
                 'timestamp' => $this->nonce(),
@@ -8361,10 +8454,10 @@ class binance extends Exchange {
         }
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             // cancelOrders returns an array like this => [array("code":-2011,"msg":"Unknown order sent.")]
-            $numElements = count($response);
-            if ($numElements > 0) {
-                $firstElement = $response[0];
-                $errorCode = $this->safe_string($firstElement, 'code');
+            $arrayLength = count($response);
+            if ($arrayLength === 1) { // when there's a single $error we can throw, otherwise we have a partial $success
+                $element = $response[0];
+                $errorCode = $this->safe_string($element, 'code');
                 if ($errorCode !== null) {
                     $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $this->id . ' ' . $body);
                 }

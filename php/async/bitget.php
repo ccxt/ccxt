@@ -41,6 +41,7 @@ class bitget extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createReduceOnlyOrder' => false,
                 'editOrder' => true,
                 'fetchAccounts' => false,
@@ -2998,7 +2999,23 @@ class bitget extends Exchange {
         //         "fillTotalAmount" => "0",
         //         "ctime" => "1697773902588"
         //     }
+        // cancelOrders failing
         //
+        //         {
+        //           "orderId" => "1627293504611",
+        //           "clientOid" => "BITGET#1627293504611",
+        //           "errorMsg":"Duplicate clientOid"
+        //         }
+        //
+        $errorMessage = $this->safe_string($order, 'errorMsg');
+        if ($errorMessage !== null) {
+            return $this->safe_order(array(
+                'info' => $order,
+                'id' => $this->safe_string($order, 'orderId'),
+                'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
+                'status' => 'rejected',
+            ), $market);
+        }
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($order, 'cTime', 'ctime');
@@ -3077,9 +3094,9 @@ class bitget extends Exchange {
              * @param {float} [$params->triggerPrice] *swap only* The $price at which a trigger order is triggered at
              * @param {float} [$params->stopLossPrice] *swap only* The $price at which a stop loss order is triggered at
              * @param {float} [$params->takeProfitPrice] *swap only* The $price at which a take profit order is triggered at
-             * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+             * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
              * @param {float} [$params->takeProfit.triggerPrice] *swap only* take profit trigger $price
-             * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+             * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
              * @param {float} [$params->stopLoss.triggerPrice] *swap only* stop loss trigger $price
              * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
              * @param {string} [$params->marginMode] 'isolated' or 'cross' for spot margin trading
@@ -3088,177 +3105,35 @@ class bitget extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $marketType = null;
             $marginMode = null;
-            $response = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
             list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
-            $marketId = $market['id'];
-            $parts = explode('_', $marketId);
-            $marginMarketId = $this->safe_string_upper($parts, 0);
-            $symbolRequest = ($marginMode !== null) ? $marginMarketId : $marketId;
-            $request = array(
-                'symbol' => $symbolRequest,
-                'orderType' => $type,
-            );
-            $isMarketOrder = $type === 'market';
             $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
             $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
             $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
-            $stopLoss = $this->safe_value($params, 'stopLoss');
-            $takeProfit = $this->safe_value($params, 'takeProfit');
             $isTriggerOrder = $triggerPrice !== null;
             $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
             $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
-            $isStopLoss = $stopLoss !== null;
-            $isTakeProfit = $takeProfit !== null;
             $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
-            $isStopLossOrTakeProfit = $isStopLoss || $isTakeProfit;
-            if ($this->sum($isTriggerOrder, $isStopLossTriggerOrder, $isTakeProfitTriggerOrder) > 1) {
-                throw new ExchangeError($this->id . ' createOrder() $params can only contain one of $triggerPrice, stopLossPrice, takeProfitPrice');
-            }
-            if (($type === 'limit') && ($triggerPrice === null)) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            // default $triggerType to $market $price for unification
-            $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
-            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
-            $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
-            $exchangeSpecificTifParam = $this->safe_string_n($params, array( 'force', 'timeInForceValue', 'timeInForce' ));
-            $postOnly = null;
-            list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $exchangeSpecificTifParam === 'post_only', $params);
-            $defaultTimeInForce = $this->safe_string_lower($this->options, 'defaultTimeInForce');
-            $timeInForce = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
-            $timeInForceKey = 'timeInForceValue';
-            if ($marketType === 'spot') {
-                if ($marginMode !== null) {
-                    $timeInForceKey = 'timeInForce';
-                } elseif ($triggerPrice === null) {
-                    $timeInForceKey = 'force';
-                }
-            }
-            if ($postOnly) {
-                $request[$timeInForceKey] = 'post_only';
-            } elseif ($timeInForce === 'gtc') {
-                $gtcRequest = ($marginMode !== null) ? 'gtc' : 'normal';
-                $request[$timeInForceKey] = $gtcRequest;
-            } elseif ($timeInForce === 'fok') {
-                $request[$timeInForceKey] = 'fok';
-            } elseif ($timeInForce === 'ioc') {
-                $request[$timeInForceKey] = 'ioc';
-            }
-            $params = $this->omit($params, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly' ));
-            if (($marketType === 'swap') || ($marketType === 'future')) {
-                $request['marginCoin'] = $market['settleId'];
-                if ($clientOrderId !== null) {
-                    $request['clientOid'] = $clientOrderId;
-                }
-                if ($isTriggerOrder || $isStopLossOrTakeProfitTrigger) {
-                    $request['triggerType'] = $triggerType;
-                }
-                if ($isStopLossOrTakeProfitTrigger) {
-                    if (!$isMarketOrder) {
-                        throw new ExchangeError($this->id . ' createOrder() bitget $stopLoss or $takeProfit orders must be $market orders');
-                    }
-                    $request['holdSide'] = ($side === 'buy') ? 'long' : 'short';
-                } else {
-                    $request['size'] = $this->amount_to_precision($symbol, $amount);
-                    if ($reduceOnly) {
-                        $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
-                    } else {
-                        if ($side === 'buy') {
-                            $request['side'] = 'open_long';
-                        } elseif ($side === 'sell') {
-                            $request['side'] = 'open_short';
-                        } else {
-                            $request['side'] = $side;
-                        }
-                    }
-                }
+            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = null;
+            if ($market['spot']) {
                 if ($isTriggerOrder) {
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                    if ($price !== null) {
-                        $request['executePrice'] = $this->price_to_precision($symbol, $price);
-                    }
-                    $response = Async\await($this->privateMixPostPlanPlacePlan (array_merge($request, $params)));
-                } elseif ($isStopLossOrTakeProfitTrigger) {
-                    if ($isStopLossTriggerOrder) {
-                        $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-                        $request['planType'] = 'pos_loss';
-                    } elseif ($isTakeProfitTriggerOrder) {
-                        $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
-                        $request['planType'] = 'pos_profit';
-                    }
-                    $response = Async\await($this->privateMixPostPlanPlacePositionsTPSL (array_merge($request, $params)));
+                    $response = Async\await($this->privateSpotPostPlanPlacePlan ($request));
+                } elseif ($marginMode === 'isolated') {
+                    $response = Async\await($this->privateMarginPostIsolatedOrderPlaceOrder ($request));
+                } elseif ($marginMode === 'cross') {
+                    $response = Async\await($this->privateMarginPostCrossOrderPlaceOrder ($request));
                 } else {
-                    if ($isStopLoss) {
-                        $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
-                        $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
-                    }
-                    if ($isTakeProfit) {
-                        $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
-                        $request['presetTakeProfitPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
-                    }
-                    $response = Async\await($this->privateMixPostOrderPlaceOrder (array_merge($request, $params)));
-                }
-            } elseif ($marketType === 'spot') {
-                if ($isStopLossOrTakeProfitTrigger || $isStopLossOrTakeProfit) {
-                    throw new InvalidOrder($this->id . ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
-                }
-                $quantity = null;
-                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
-                    } else {
-                        $amountString = $this->number_to_string($amount);
-                        $priceString = $this->number_to_string($price);
-                        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                        $quantity = $this->price_to_precision($symbol, $cost);
-                    }
-                } else {
-                    $quantity = $this->amount_to_precision($symbol, $amount);
-                }
-                $request['side'] = $side;
-                if ($triggerPrice !== null) {
-                    if ($quantity !== null) {
-                        $request['size'] = $quantity;
-                    }
-                    $request['triggerType'] = $triggerType;
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                    if ($price !== null) {
-                        $request['executePrice'] = $this->price_to_precision($symbol, $price);
-                    }
-                    if ($clientOrderId !== null) {
-                        $request['clientOrderId'] = $clientOrderId;
-                    }
-                    $response = Async\await($this->privateSpotPostPlanPlacePlan (array_merge($request, $params)));
-                } elseif ($marginMode !== null) {
-                    $request['loanType'] = 'normal';
-                    if ($clientOrderId !== null) {
-                        $request['clientOid'] = $clientOrderId;
-                    }
-                    if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
-                        $request['quoteAmount'] = $quantity;
-                    } else {
-                        $request['baseQuantity'] = $quantity;
-                    }
-                    if ($marginMode === 'isolated') {
-                        $response = Async\await($this->privateMarginPostIsolatedOrderPlaceOrder (array_merge($request, $params)));
-                    } elseif ($marginMode === 'cross') {
-                        $response = Async\await($this->privateMarginPostCrossOrderPlaceOrder (array_merge($request, $params)));
-                    }
-                } else {
-                    if ($clientOrderId !== null) {
-                        $request['clientOrderId'] = $clientOrderId;
-                    }
-                    if ($quantity !== null) {
-                        $request['quantity'] = $quantity;
-                    }
-                    $response = Async\await($this->privateSpotPostTradeOrders (array_merge($request, $params)));
+                    $response = Async\await($this->privateSpotPostTradeOrders ($request));
                 }
             } else {
-                throw new NotSupported($this->id . ' createOrder() does not support ' . $marketType . ' orders');
+                if ($isTriggerOrder) {
+                    $response = Async\await($this->privateMixPostPlanPlacePlan ($request));
+                } elseif ($isStopLossOrTakeProfitTrigger) {
+                    $response = Async\await($this->privateMixPostPlanPlacePositionsTPSL ($request));
+                } else {
+                    $response = Async\await($this->privateMixPostOrderPlaceOrder ($request));
+                }
             }
             //
             //     {
@@ -3273,6 +3148,245 @@ class bitget extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             return $this->parse_order($data, $market);
+        }) ();
+    }
+
+    public function create_order_request($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $marketType = null;
+        $marginMode = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        $marketId = $market['id'];
+        $parts = explode('_', $marketId);
+        $marginMarketId = $this->safe_string_upper($parts, 0);
+        $symbolRequest = ($marginMode !== null) ? $marginMarketId : $marketId;
+        $request = array(
+            'symbol' => $symbolRequest,
+            'orderType' => $type,
+        );
+        $isMarketOrder = $type === 'market';
+        $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
+        $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+        $stopLoss = $this->safe_value($params, 'stopLoss');
+        $takeProfit = $this->safe_value($params, 'takeProfit');
+        $isTriggerOrder = $triggerPrice !== null;
+        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
+        $isStopLoss = $stopLoss !== null;
+        $isTakeProfit = $takeProfit !== null;
+        $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
+        $isStopLossOrTakeProfit = $isStopLoss || $isTakeProfit;
+        if ($this->sum($isTriggerOrder, $isStopLossTriggerOrder, $isTakeProfitTriggerOrder) > 1) {
+            throw new ExchangeError($this->id . ' createOrder() $params can only contain one of $triggerPrice, stopLossPrice, takeProfitPrice');
+        }
+        if (($type === 'limit') && ($triggerPrice === null)) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        // default $triggerType to $market $price for unification
+        $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
+        $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+        $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
+        $exchangeSpecificTifParam = $this->safe_string_n($params, array( 'force', 'timeInForceValue', 'timeInForce' ));
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $exchangeSpecificTifParam === 'post_only', $params);
+        $defaultTimeInForce = $this->safe_string_lower($this->options, 'defaultTimeInForce');
+        $timeInForce = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
+        $timeInForceKey = 'timeInForceValue';
+        if ($marketType === 'spot') {
+            if ($marginMode !== null) {
+                $timeInForceKey = 'timeInForce';
+            } elseif ($triggerPrice === null) {
+                $timeInForceKey = 'force';
+            }
+        }
+        if ($postOnly) {
+            $request[$timeInForceKey] = 'post_only';
+        } elseif ($timeInForce === 'gtc') {
+            $gtcRequest = ($marginMode !== null) ? 'gtc' : 'normal';
+            $request[$timeInForceKey] = $gtcRequest;
+        } elseif ($timeInForce === 'fok') {
+            $request[$timeInForceKey] = 'fok';
+        } elseif ($timeInForce === 'ioc') {
+            $request[$timeInForceKey] = 'ioc';
+        }
+        $params = $this->omit($params, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly' ));
+        if (($marketType === 'swap') || ($marketType === 'future')) {
+            $request['marginCoin'] = $market['settleId'];
+            if ($clientOrderId !== null) {
+                $request['clientOid'] = $clientOrderId;
+            }
+            if ($isTriggerOrder || $isStopLossOrTakeProfitTrigger) {
+                $request['triggerType'] = $triggerType;
+            }
+            if ($isStopLossOrTakeProfitTrigger) {
+                if (!$isMarketOrder) {
+                    throw new ExchangeError($this->id . ' createOrder() bitget $stopLoss or $takeProfit orders must be $market orders');
+                }
+                $request['holdSide'] = ($side === 'buy') ? 'long' : 'short';
+            } else {
+                $request['size'] = $this->amount_to_precision($symbol, $amount);
+                if ($reduceOnly) {
+                    $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
+                } else {
+                    if ($side === 'buy') {
+                        $request['side'] = 'open_long';
+                    } elseif ($side === 'sell') {
+                        $request['side'] = 'open_short';
+                    } else {
+                        $request['side'] = $side;
+                    }
+                }
+            }
+            if ($isTriggerOrder) {
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+                if ($price !== null) {
+                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                }
+            } elseif ($isStopLossOrTakeProfitTrigger) {
+                if ($isStopLossTriggerOrder) {
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                    $request['planType'] = 'pos_loss';
+                } elseif ($isTakeProfitTriggerOrder) {
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                    $request['planType'] = 'pos_profit';
+                }
+            } else {
+                if ($isStopLoss) {
+                    $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
+                    $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
+                }
+                if ($isTakeProfit) {
+                    $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
+                    $request['presetTakeProfitPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
+                }
+            }
+        } elseif ($marketType === 'spot') {
+            if ($isStopLossOrTakeProfitTrigger || $isStopLossOrTakeProfit) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
+            }
+            $quantity = null;
+            $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+            if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                } else {
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                    $quantity = $this->price_to_precision($symbol, $cost);
+                }
+            } else {
+                $quantity = $this->amount_to_precision($symbol, $amount);
+            }
+            $request['side'] = $side;
+            if ($triggerPrice !== null) {
+                if ($quantity !== null) {
+                    $request['size'] = $quantity;
+                }
+                $request['triggerType'] = $triggerType;
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+                if ($price !== null) {
+                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                }
+                if ($clientOrderId !== null) {
+                    $request['clientOrderId'] = $clientOrderId;
+                }
+            } elseif ($marginMode !== null) {
+                $request['loanType'] = 'normal';
+                if ($clientOrderId !== null) {
+                    $request['clientOid'] = $clientOrderId;
+                }
+                if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
+                    $request['quoteAmount'] = $quantity;
+                } else {
+                    $request['baseQuantity'] = $quantity;
+                }
+            } else {
+                if ($clientOrderId !== null) {
+                    $request['clientOrderId'] = $clientOrderId;
+                }
+                if ($quantity !== null) {
+                    $request['quantity'] = $quantity;
+                }
+            }
+        } else {
+            throw new NotSupported($this->id . ' createOrder() does not support ' . $marketType . ' orders');
+        }
+        return array_merge($request, $params);
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders (all $orders should be of the same $symbol)
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#batch-order
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#batch-order
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $symbol = null;
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                if ($symbol === null) {
+                    $symbol = $marketId;
+                } else {
+                    if ($symbol !== $marketId) {
+                        throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                    }
+                }
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = null;
+            if ($market['spot']) {
+                $request['orderList'] = $ordersRequests;
+                $response = Async\await($this->privateSpotPostTradeBatchOrders ($request));
+            } else {
+                $request['orderDataList'] = $ordersRequests;
+                $request['marginCoin'] = $market['settleId'];
+                $response = Async\await($this->privateMixPostOrderBatchOrders ($request));
+            }
+            //
+            // {
+            //     "code" => "00000",
+            //     "data" => {
+            //       "orderInfo" => array(
+            //         {
+            //           "orderId" => "1627293504612",
+            //           "clientOid" => "BITGET#1627293504612"
+            //         }
+            //       ),
+            //       "failure":array(
+            //         array(
+            //           "orderId" => "1627293504611",
+            //           "clientOid" => "BITGET#1627293504611",
+            //           "errorMsg":"Duplicate clientOid"
+            //         }
+            //       )
+            //     ),
+            //     "msg" => "success",
+            //     "requestTime" => 1627293504612
+            //   }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $failure = $this->safe_value($data, 'failure', array());
+            $orderInfo = $this->safe_value_2($data, 'orderInfo', 'resultList', array());
+            $both = $this->array_concat($orderInfo, $failure);
+            return $this->parse_orders($both);
         }) ();
     }
 

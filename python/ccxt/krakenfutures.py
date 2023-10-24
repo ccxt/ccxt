@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderRequest
 from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
@@ -801,22 +802,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'fee': None,
         })
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
-        """
-        Create an order on the exchange
-        :param str symbol: market symbol
-        :param str type: One of 'limit', 'market', 'take_profit'
-        :param str side: buy or sell
-        :param int amount: Contract quantity
-        :param float [price]: Limit order price
-        :param float [params.stopPrice]: The stop price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
-        :param bool [params.reduceOnly]: Set if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default False,
-        :param bool [params.postOnly]: Set if you wish to make a postOnly order, Default False
-        :param str [params.triggerSignal]: If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
-        :param str [params.cliOrdId]: UUID The order identity that is specified from the user, It must be globally unique
-        :param str [params.clientOrderId]: UUID The order identity that is specified from the user, It must be globally unique
-        """
-        self.load_markets()
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         type = self.safe_string(params, 'orderType', type)
         timeInForce = self.safe_string(params, 'timeInForce')
         stopPrice = self.safe_string(params, 'stopPrice')
@@ -846,7 +832,26 @@ class krakenfutures(Exchange, ImplicitAPI):
             request['limitPrice'] = price
         if clientOrderId is not None:
             request['cliOrdId'] = clientOrderId
-        response = self.privatePostSendorder(self.extend(request, params))
+        return self.extend(request, params)
+
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        """
+        Create an order on the exchange
+        :param str symbol: market symbol
+        :param str type: One of 'limit', 'market', 'take_profit'
+        :param str side: buy or sell
+        :param int amount: Contract quantity
+        :param float [price]: Limit order price
+        :param float [params.stopPrice]: The stop price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
+        :param bool [params.reduceOnly]: Set if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default False,
+        :param bool [params.postOnly]: Set if you wish to make a postOnly order, Default False
+        :param str [params.triggerSignal]: If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
+        :param str [params.cliOrdId]: UUID The order identity that is specified from the user, It must be globally unique
+        :param str [params.clientOrderId]: UUID The order identity that is specified from the user, It must be globally unique
+        """
+        self.load_markets()
+        orderRequest = self.create_order_request(symbol, type, side, amount, price, params)
+        response = self.privatePostSendorder(orderRequest)
         #
         #    {
         #        "result": "success",
@@ -881,6 +886,53 @@ class krakenfutures(Exchange, ImplicitAPI):
         status = self.safe_string(sendStatus, 'status')
         self.verify_order_action_success(status, 'createOrder', ['filled'])
         return self.parse_order(sendStatus)
+
+    def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        self.load_markets()
+        ordersRequests = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_value(rawOrder, 'params', {})
+            extendedParams = self.extend(orderParams, params)  # the request does not accept extra params since it's a list, so we're extending each order with the common params
+            if not ('order_tag' in extendedParams):
+                # order tag is mandatory so we will generate one if not provided
+                extendedParams['order_tag'] = self.sum(i, str(1))  # sequential counter
+            extendedParams['order'] = 'send'
+            orderRequest = self.create_order_request(marketId, type, side, amount, price, extendedParams)
+            ordersRequests.append(orderRequest)
+        request = {
+            'batchOrder': ordersRequests,
+        }
+        response = self.privatePostBatchorder(self.extend(request, params))
+        #
+        # {
+        #     "result": "success",
+        #     "serverTime": "2023-10-24T08:40:57.339Z",
+        #     "batchStatus": [
+        #        {
+        #           "status": "requiredArgumentMissing",
+        #           "orderEvents": []
+        #        },
+        #        {
+        #           "status": "requiredArgumentMissing",
+        #           "orderEvents": []
+        #        }
+        #     ]
+        # }
+        #
+        data = self.safe_value(response, 'batchStatus', [])
+        return self.parse_orders(data)
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
@@ -1250,14 +1302,24 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        "lastUpdateTime": "2019-09-05T17:01:17.410Z"
         #    }
         #
+        # createOrders error
+        #    {
+        #       "status": "requiredArgumentMissing",
+        #       "orderEvents": []
+        #    }
+        #
         orderEvents = self.safe_value(order, 'orderEvents', [])
+        errorStatus = self.safe_string(order, 'status')
+        orderEventsLength = len(orderEvents)
+        if ('orderEvents' in order) and (errorStatus is not None) and (orderEventsLength == 0):
+            # creteOrders error response
+            return self.safe_order({'info': order, 'status': 'rejected'})
         details = None
         isPrior = False
         fixed = False
         statusId = None
         price = None
         trades = []
-        orderEventsLength = len(orderEvents)
         if orderEventsLength:
             executions = []
             for i in range(0, len(orderEvents)):

@@ -43,6 +43,7 @@ class okx extends Exchange {
                 'cancelOrders' => true,
                 'createDepositAddress' => false,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -2774,6 +2775,56 @@ class okx extends Exchange {
         }) ();
     }
 
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-$orders
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $extendedParams = array_merge($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
+                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $response = Async\await($this->privatePostTradeBatchOrders ($ordersRequests));
+            // {
+            //     "code" => "0",
+            //     "data" => array(
+            //        array(
+            //           "clOrdId" => "e847386590ce4dBCc7f2a1b4c4509f82",
+            //           "ordId" => "636305438765568000",
+            //           "sCode" => "0",
+            //           "sMsg" => "Order placed",
+            //           "tag" => "e847386590ce4dBC"
+            //        ),
+            //        {
+            //           "clOrdId" => "e847386590ce4dBC0b9993fe642d8f62",
+            //           "ordId" => "636305438765568001",
+            //           "sCode" => "0",
+            //           "sMsg" => "Order placed",
+            //           "tag" => "e847386590ce4dBC"
+            //        }
+            //     ),
+            //     "inTime" => "1697979038584486",
+            //     "msg" => "",
+            //     "outTime" => "1697979038586493"
+            // }
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_orders($data);
+        }) ();
+    }
+
     public function edit_order_request(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $request = array(
@@ -3151,6 +3202,15 @@ class okx extends Exchange {
         //         "uly" => "BTC-USDT"
         //     }
         //
+        $scode = $this->safe_string($order, 'sCode');
+        if (($scode !== null) && ($scode !== '0')) {
+            return $this->safe_order(array(
+                'id' => $this->safe_string($order, 'ordId'),
+                'clientOrderId' => $this->safe_string($order, 'clOrdId'),
+                'status' => 'rejected',
+                'info' => $order,
+            ));
+        }
         $id = $this->safe_string_2($order, 'algoId', 'ordId');
         $timestamp = $this->safe_integer($order, 'cTime');
         $lastUpdateTimestamp = $this->safe_integer($order, 'uTime');
@@ -6932,7 +6992,7 @@ class okx extends Exchange {
         //    }
         //
         $code = $this->safe_string($response, 'code');
-        if ($code !== '0') {
+        if (($code !== '0') && ($code !== '2')) { // 2 means that bulk operation partially succeeded
             $feedback = $this->id . ' ' . $body;
             $data = $this->safe_value($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {

@@ -9,6 +9,7 @@ import asyncio
 import hashlib
 import json
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderRequest
 from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
@@ -59,6 +60,7 @@ class bitget(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
+                'createOrders': True,
                 'createReduceOnlyOrder': False,
                 'editOrder': True,
                 'fetchAccounts': False,
@@ -2883,7 +2885,22 @@ class bitget(Exchange, ImplicitAPI):
         #         "fillTotalAmount": "0",
         #         "ctime": "1697773902588"
         #     }
+        # cancelOrders failing
         #
+        #         {
+        #           "orderId": "1627293504611",
+        #           "clientOid": "BITGET#1627293504611",
+        #           "errorMsg":"Duplicate clientOid"
+        #         }
+        #
+        errorMessage = self.safe_string(order, 'errorMsg')
+        if errorMessage is not None:
+            return self.safe_order({
+                'info': order,
+                'id': self.safe_string(order, 'orderId'),
+                'clientOrderId': self.safe_string(order, 'clientOrderId'),
+                'status': 'rejected',
+            }, market)
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_2(order, 'cTime', 'ctime')
@@ -2968,9 +2985,51 @@ class bitget(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
+        isTriggerOrder = triggerPrice is not None
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        response = None
+        if market['spot']:
+            if isTriggerOrder:
+                response = await self.privateSpotPostPlanPlacePlan(request)
+            elif marginMode == 'isolated':
+                response = await self.privateMarginPostIsolatedOrderPlaceOrder(request)
+            elif marginMode == 'cross':
+                response = await self.privateMarginPostCrossOrderPlaceOrder(request)
+            else:
+                response = await self.privateSpotPostTradeOrders(request)
+        else:
+            if isTriggerOrder:
+                response = await self.privateMixPostPlanPlacePlan(request)
+            elif isStopLossOrTakeProfitTrigger:
+                response = await self.privateMixPostPlanPlacePositionsTPSL(request)
+            else:
+                response = await self.privateMixPostOrderPlaceOrder(request)
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1645932209602,
+        #         "data": {
+        #             "orderId": "881669078313766912",
+        #             "clientOrderId": "iauIBf#a45b595f96474d888d0ada"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_order(data, market)
+
+    def create_order_request(self, symbol, type, side, amount, price=None, params={}):
+        market = self.market(symbol)
         marketType = None
         marginMode = None
-        response = None
         marketType, params = self.handle_market_type_and_params('createOrder', market, params)
         marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         marketId = market['id']
@@ -3048,7 +3107,6 @@ class bitget(Exchange, ImplicitAPI):
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if price is not None:
                     request['executePrice'] = self.price_to_precision(symbol, price)
-                response = await self.privateMixPostPlanPlacePlan(self.extend(request, params))
             elif isStopLossOrTakeProfitTrigger:
                 if isStopLossTriggerOrder:
                     request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
@@ -3056,7 +3114,6 @@ class bitget(Exchange, ImplicitAPI):
                 elif isTakeProfitTriggerOrder:
                     request['triggerPrice'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                     request['planType'] = 'pos_profit'
-                response = await self.privateMixPostPlanPlacePositionsTPSL(self.extend(request, params))
             else:
                 if isStopLoss:
                     slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
@@ -3064,7 +3121,6 @@ class bitget(Exchange, ImplicitAPI):
                 if isTakeProfit:
                     tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
                     request['presetTakeProfitPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
-                response = await self.privateMixPostOrderPlaceOrder(self.extend(request, params))
         elif marketType == 'spot':
             if isStopLossOrTakeProfitTrigger or isStopLossOrTakeProfit:
                 raise InvalidOrder(self.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets')
@@ -3090,7 +3146,6 @@ class bitget(Exchange, ImplicitAPI):
                     request['executePrice'] = self.price_to_precision(symbol, price)
                 if clientOrderId is not None:
                     request['clientOrderId'] = clientOrderId
-                response = await self.privateSpotPostPlanPlacePlan(self.extend(request, params))
             elif marginMode is not None:
                 request['loanType'] = 'normal'
                 if clientOrderId is not None:
@@ -3099,31 +3154,80 @@ class bitget(Exchange, ImplicitAPI):
                     request['quoteAmount'] = quantity
                 else:
                     request['baseQuantity'] = quantity
-                if marginMode == 'isolated':
-                    response = await self.privateMarginPostIsolatedOrderPlaceOrder(self.extend(request, params))
-                elif marginMode == 'cross':
-                    response = await self.privateMarginPostCrossOrderPlaceOrder(self.extend(request, params))
             else:
                 if clientOrderId is not None:
                     request['clientOrderId'] = clientOrderId
                 if quantity is not None:
                     request['quantity'] = quantity
-                response = await self.privateSpotPostTradeOrders(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' createOrder() does not support ' + marketType + ' orders')
+        return self.extend(request, params)
+
+    async def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders(all orders should be of the same symbol)
+        :see: https://bitgetlimited.github.io/apidoc/en/spot/#batch-order
+        :see: https://bitgetlimited.github.io/apidoc/en/mix/#batch-order
+        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        await self.load_markets()
+        ordersRequests = []
+        symbol = None
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            if symbol is None:
+                symbol = marketId
+            else:
+                if symbol != marketId:
+                    raise BadRequest(self.id + ' createOrders() requires all orders to have the same symbol')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = None
+        if market['spot']:
+            request['orderList'] = ordersRequests
+            response = await self.privateSpotPostTradeBatchOrders(request)
+        else:
+            request['orderDataList'] = ordersRequests
+            request['marginCoin'] = market['settleId']
+            response = await self.privateMixPostOrderBatchOrders(request)
         #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1645932209602,
-        #         "data": {
-        #             "orderId": "881669078313766912",
-        #             "clientOrderId": "iauIBf#a45b595f96474d888d0ada"
+        # {
+        #     "code": "00000",
+        #     "data": {
+        #       "orderInfo": [
+        #         {
+        #           "orderId": "1627293504612",
+        #           "clientOid": "BITGET#1627293504612"
         #         }
-        #     }
+        #       ],
+        #       "failure":[
+        #         {
+        #           "orderId": "1627293504611",
+        #           "clientOid": "BITGET#1627293504611",
+        #           "errorMsg":"Duplicate clientOid"
+        #         }
+        #       ]
+        #     },
+        #     "msg": "success",
+        #     "requestTime": 1627293504612
+        #   }
         #
         data = self.safe_value(response, 'data', {})
-        return self.parse_order(data, market)
+        failure = self.safe_value(data, 'failure', [])
+        orderInfo = self.safe_value_2(data, 'orderInfo', 'resultList', [])
+        both = self.array_concat(orderInfo, failure)
+        return self.parse_orders(both)
 
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
