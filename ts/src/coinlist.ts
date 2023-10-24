@@ -1,8 +1,8 @@
 import Exchange from './abstract/coinlist.js';
-// import { ExchangeError } from './base/errors.js';
+import { AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { Precise } from './base/Precise.js';
-// import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import { Int, OrderSide, OrderType } from './base/types.js';
 
 /**
@@ -93,7 +93,7 @@ export default class coinlist extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
@@ -148,6 +148,7 @@ export default class coinlist extends Exchange {
                 },
                 'private': {
                     'get': {
+                        'v1/fees': 1,
                         // todo
                     },
                     'post': {
@@ -169,6 +170,8 @@ export default class coinlist extends Exchange {
             // https://trade-docs.coinlist.co/?javascript--nodejs#cancel-all-after-dead-man-39-s-switch
             'exceptions': {
                 'exact': {
+                    '400': AuthenticationError, // {"status":400,"message":"invalid signature","message_code":"AUTH_SIG_INVALID"}
+                    '401': AuthenticationError, // Unauthorized
                     // to do: add
                 },
                 'broad': {
@@ -533,6 +536,17 @@ export default class coinlist extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         "2023-10-17T15:30:00.000Z",
+        //         "28582.64000000",
+        //         "28582.64000000",
+        //         "28582.64000000",
+        //         "28582.64000000",
+        //         "0.0050",
+        //         null
+        //     ]
+        //
         return [
             this.parse8601 (this.safeString (ohlcv, 0)),
             this.safeNumber (ohlcv, 1),
@@ -635,18 +649,84 @@ export default class coinlist extends Exchange {
         }, market);
     }
 
+    async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetV1Fees (params);
+        //
+        //     {
+        //         "fees_by_symbols": {
+        //             "BTC-USD,ETH-USD": {
+        //                 "base": {
+        //                     "fees": {
+        //                         "maker": 0.0035,
+        //                         "taker": 0.005
+        //                     },
+        //                     "floors": {
+        //                         "maker": 0.0035,
+        //                         "taker": 0.005
+        //                     }
+        //                     },
+        //                     "volume_tier_1": {
+        //                     "fees": {
+        //                         "maker": 0.0035,
+        //                         "taker": 0.005
+        //                     },
+        //                     "floors": {
+        //                         "maker": 0.0035,
+        //                         "taker": 0.005
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        //
+        // const data = this.safeValue (response, 'data', {});
+        // const pairs = this.safeValue (data, 'pairs', []);
+        // const result = {};
+        // for (let i = 0; i < pairs.length; i++) {
+        //     const pair = pairs[i];
+        //     const marketId = this.safeString (pair, 'name');
+        //     const market = this.safeMarket (marketId);
+        //     const symbol = market['symbol'];
+        //     result[symbol] = {
+        //         'info': pair,
+        //         'symbol': symbol,
+        //         'maker': this.safeNumber (pair, 'maker_fee_rate_quote'),
+        //         'taker': this.safeNumber (pair, 'taker_fee_rate_quote'),
+        //         'percentage': true,
+        //         'tierBased': false,
+        //     };
+        // }
+        return response;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);
         url = url + '/' + endpoint;
+        query = this.urlencode (query);
+        if (query.length !== 0) {
+            url += '?' + query;
+        }
         if (api === 'private') {
-            // todo
-        } else {
-            query = this.urlencode (query);
-            if (query.length !== 0) {
-                url += '?' + query;
-            }
+            this.checkRequiredCredentials ();
+            const timestamp = this.seconds ();
+            const signature = this.numberToString (timestamp) + method + endpoint;
+            let encodedSignature = this.hmac (this.encode (signature), this.encode (this.base64ToString (this.secret)), sha256);
+            encodedSignature = this.stringToBase64 (encodedSignature);
+            headers = {
+                'CL-ACCESS-KEY': this.apiKey,
+                'CL-ACCESS-SIG': encodedSignature,
+                'CL-ACCESS-TIMESTAMP': timestamp,
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
