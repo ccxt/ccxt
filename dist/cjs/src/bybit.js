@@ -3285,8 +3285,10 @@ class bybit extends bybit$1 {
             request['accountType'] = unifiedType;
             response = await this.privateGetV5AssetTransferQueryAccountCoinsBalance(this.extend(request, params));
         }
-        request['accountType'] = unifiedType;
-        response = await this.privateGetV5AccountWalletBalance(this.extend(request, params));
+        else {
+            request['accountType'] = unifiedType;
+            response = await this.privateGetV5AccountWalletBalance(this.extend(request, params));
+        }
         //
         // cross
         //     {

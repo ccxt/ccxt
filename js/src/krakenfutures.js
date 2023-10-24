@@ -35,6 +35,7 @@ export default class krakenfutures extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createMarketOrder': false,
                 'createOrder': true,
                 'editOrder': true,
@@ -964,6 +965,70 @@ export default class krakenfutures extends Exchange {
             order = this.parseOrder(response['cancelStatus']);
         }
         return this.extend({ 'info': response }, order);
+    }
+    async cancelOrders(ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#cancelOrders
+         * @description cancel multiple orders
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+         * @param {[string]} ids order ids
+         * @param {string} [symbol] unified market symbol
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {[string]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const orders = [];
+        const clientOrderIds = this.safeValue(params, 'clientOrderIds', []);
+        const clientOrderIdsLength = clientOrderIds.length;
+        if (clientOrderIdsLength > 0) {
+            for (let i = 0; i < clientOrderIds.length; i++) {
+                orders.push({ 'order': 'cancel', 'cliOrdId': clientOrderIds[i] });
+            }
+        }
+        else {
+            for (let i = 0; i < ids.length; i++) {
+                orders.push({ 'order': 'cancel', 'order_id': ids[i] });
+            }
+        }
+        const request = {
+            'batchOrder': orders,
+        };
+        const response = await this.privatePostBatchorder(this.extend(request, params));
+        // {
+        //     result: 'success',
+        //     serverTime: '2023-10-23T16:36:51.327Z',
+        //     batchStatus: [
+        //       {
+        //         status: 'cancelled',
+        //         order_id: '101c2327-f12e-45f2-8445-7502b87afc0b',
+        //         orderEvents: [
+        //           {
+        //             uid: '101c2327-f12e-45f2-8445-7502b87afc0b',
+        //             order: {
+        //               orderId: '101c2327-f12e-45f2-8445-7502b87afc0b',
+        //               cliOrdId: null,
+        //               type: 'lmt',
+        //               symbol: 'PF_LTCUSD',
+        //               side: 'buy',
+        //               quantity: '0.10000000000',
+        //               filled: '0E-11',
+        //               limitPrice: '50.00000000000',
+        //               reduceOnly: false,
+        //               timestamp: '2023-10-20T10:29:13.005Z',
+        //               lastUpdateTimestamp: '2023-10-20T10:29:13.005Z'
+        //             },
+        //             type: 'CANCEL'
+        //           }
+        //         ]
+        //       }
+        //     ]
+        // }
+        const batchStatus = this.safeValue(response, 'batchStatus', []);
+        return this.parseOrders(batchStatus);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -2151,7 +2216,11 @@ export default class krakenfutures extends Exchange {
         params = this.omit(params, this.extractParams(path));
         let query = endpoint;
         let postData = '';
-        if (Object.keys(params).length) {
+        if (path === 'batchorder') {
+            postData = 'json=' + this.json(params);
+            body = postData;
+        }
+        else if (Object.keys(params).length) {
             postData = this.urlencode(params);
             query += '?' + postData;
         }
@@ -2166,7 +2235,8 @@ export default class krakenfutures extends Exchange {
             const secret = this.base64ToBinary(this.secret); // 3
             const signature = this.hmac(hash, secret, sha512, 'base64'); // 4-5
             headers = {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json',
                 'APIKey': this.apiKey,
                 'Authent': signature,
             };

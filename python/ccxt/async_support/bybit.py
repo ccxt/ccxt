@@ -3151,8 +3151,9 @@ class bybit(Exchange, ImplicitAPI):
             # because it requires transfer permission
             request['accountType'] = unifiedType
             response = await self.privateGetV5AssetTransferQueryAccountCoinsBalance(self.extend(request, params))
-        request['accountType'] = unifiedType
-        response = await self.privateGetV5AccountWalletBalance(self.extend(request, params))
+        else:
+            request['accountType'] = unifiedType
+            response = await self.privateGetV5AccountWalletBalance(self.extend(request, params))
         #
         # cross
         #     {

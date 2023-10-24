@@ -3249,9 +3249,10 @@ class bybit extends Exchange {
             // because it requires transfer permission
             $request['accountType'] = $unifiedType;
             $response = $this->privateGetV5AssetTransferQueryAccountCoinsBalance (array_merge($request, $params));
+        } else {
+            $request['accountType'] = $unifiedType;
+            $response = $this->privateGetV5AccountWalletBalance (array_merge($request, $params));
         }
-        $request['accountType'] = $unifiedType;
-        $response = $this->privateGetV5AccountWalletBalance (array_merge($request, $params));
         //
         // cross
         //     {

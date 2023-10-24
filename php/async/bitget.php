@@ -3632,7 +3632,7 @@ class bitget extends Exchange {
             }
             $request = array(
                 'productType' => $productType,
-                'marginCoin' => $market['settleId'],
+                'marginCoin' => $this->safe_string($market, 'settleId', 'USDT'),
             );
             $stop = $this->safe_value_2($params, 'stop', 'trigger');
             $planType = $this->safe_string($params, 'planType');

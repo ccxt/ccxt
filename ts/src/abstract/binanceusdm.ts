@@ -362,20 +362,6 @@ interface binance {
     sapiV3GetSubAccountAssets (params?: {}): Promise<implicitReturnType>;
     sapiV3PostAssetGetUserAsset (params?: {}): Promise<implicitReturnType>;
     sapiV4GetSubAccountAssets (params?: {}): Promise<implicitReturnType>;
-    wapiPostWithdraw (params?: {}): Promise<implicitReturnType>;
-    wapiPostSubAccountTransfer (params?: {}): Promise<implicitReturnType>;
-    wapiGetDepositHistory (params?: {}): Promise<implicitReturnType>;
-    wapiGetWithdrawHistory (params?: {}): Promise<implicitReturnType>;
-    wapiGetDepositAddress (params?: {}): Promise<implicitReturnType>;
-    wapiGetAccountStatus (params?: {}): Promise<implicitReturnType>;
-    wapiGetSystemStatus (params?: {}): Promise<implicitReturnType>;
-    wapiGetApiTradingStatus (params?: {}): Promise<implicitReturnType>;
-    wapiGetUserAssetDribbletLog (params?: {}): Promise<implicitReturnType>;
-    wapiGetTradeFee (params?: {}): Promise<implicitReturnType>;
-    wapiGetAssetDetail (params?: {}): Promise<implicitReturnType>;
-    wapiGetSubAccountList (params?: {}): Promise<implicitReturnType>;
-    wapiGetSubAccountTransferHistory (params?: {}): Promise<implicitReturnType>;
-    wapiGetSubAccountAssets (params?: {}): Promise<implicitReturnType>;
     dapiPublicGetPing (params?: {}): Promise<implicitReturnType>;
     dapiPublicGetTime (params?: {}): Promise<implicitReturnType>;
     dapiPublicGetExchangeInfo (params?: {}): Promise<implicitReturnType>;
@@ -461,6 +447,7 @@ interface binance {
     fapiPublicGetConstituents (params?: {}): Promise<implicitReturnType>;
     fapiPublicGetApiTradingStatus (params?: {}): Promise<implicitReturnType>;
     fapiPublicGetLvtKlines (params?: {}): Promise<implicitReturnType>;
+    fapiDataGetDeliveryPrice (params?: {}): Promise<implicitReturnType>;
     fapiDataGetOpenInterestHist (params?: {}): Promise<implicitReturnType>;
     fapiDataGetTopLongShortAccountRatio (params?: {}): Promise<implicitReturnType>;
     fapiDataGetTopLongShortPositionRatio (params?: {}): Promise<implicitReturnType>;
