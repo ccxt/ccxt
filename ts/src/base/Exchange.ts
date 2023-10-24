@@ -3645,6 +3645,15 @@ export default class Exchange {
     }
 
     throwBroadlyMatchedException (broadExceptions, content, message, originUrl = undefined) {
+        const marketType = this.getExceptionMarketType (originUrl);
+        if (marketType in this.exceptions) {
+            const targetExceptions = this.exceptions[marketType];
+            const targetExceptionsBroad = this.safeValue (targetExceptions, 'broad', {});
+            const broadKey = this.findBroadlyMatchedKey (targetExceptionsBroad, content);
+            if ((broadKey!== undefined) && (broadKey in targetExceptionsBroad)) {
+                throw new targetExceptionsBroad[broadKey] (message);
+            }
+        }
         const broadKey = this.findBroadlyMatchedKey (broadExceptions, content);
         if (broadKey !== undefined) {
             throw new broadExceptions[broadKey] (message);
