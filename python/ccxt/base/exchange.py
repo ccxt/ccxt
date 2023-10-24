@@ -988,8 +988,8 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def sort_by(array, key, descending=False):
-        return sorted(array, key=lambda k: k[key] if k[key] is not None else "", reverse=descending)
+    def sort_by(array, key, descending=False, default = 0):
+        return sorted(array, key=lambda k: k[key] if k[key] is not None else default, reverse=descending)
 
     @staticmethod
     def sort_by_2(array, key1, key2, descending=False):

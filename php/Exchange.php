@@ -793,13 +793,15 @@ class Exchange {
         return $result;
     }
 
-    public static function sort_by($arrayOfArrays, $key, $descending = false) {
+    public static function sort_by($arrayOfArrays, $key, $descending = false, $default = 0) {
         $descending = $descending ? -1 : 1;
-        usort($arrayOfArrays, function ($a, $b) use ($key, $descending) {
-            if ($a[$key] == $b[$key]) {
+        usort($arrayOfArrays, function ($a, $b) use ($key, $descending, $default) {
+            $first = isset($a[$key]) ? $a[$key] : $default;
+            $second = isset($b[$key]) ? $b[$key] : $default;
+            if ($first == $second) {
                 return 0;
             }
-            return $a[$key] < $b[$key] ? -$descending : $descending;
+            return $first < $second ? -$descending : $descending;
         });
         return $arrayOfArrays;
     }
