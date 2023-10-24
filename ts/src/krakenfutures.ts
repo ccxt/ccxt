@@ -941,8 +941,9 @@ export default class krakenfutures extends Exchange {
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!('order_tag' in extendedParams)) {
                 // order tag is mandatory so we will generate one if not provided
-                extendedParams['order_tag'] = this.sum (i, 1).toString (); // sequantial counter
+                extendedParams['order_tag'] = this.sum (i, 1).toString (); // sequential counter
             }
+            extendedParams['order'] = 'send';
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
