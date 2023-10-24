@@ -1298,8 +1298,8 @@ class bybit(Exchange):
                 return self.markets[symbol]
             elif symbol in self.markets_by_id:
                 return self.markets_by_id[symbol]
-            elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):
-                return self.create_expired_option_market(symbol)
+            # elif (symbol.find('-C') > -1) or (symbol.find('-P') > -1):
+            #     return self.create_expired_option_market(symbol)
         raise BadSymbol('{} does not have market symbol {}'.format(self.id, symbol))
 
     def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
