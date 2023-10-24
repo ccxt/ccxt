@@ -1388,13 +1388,17 @@ export default class kuna extends Exchange {
          * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         this.checkAddress (address);
-        const chain = this.safeString2 (params, 'chain', 'network');
+        let chain = this.safeString2 (params, 'chain', 'network');
         params = this.omit (params, [ 'chain', 'network' ]);
-        if (chain === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw() requires a chain parameter or a network parameter');
-        }
         await this.loadMarkets ();
         const currency = this.currency (code);
+        if (chain === undefined) {
+            if (currency['code'].indexOf ('USD') > 0) {
+                throw new ArgumentsRequired (this.id + ' withdraw () requires an extra parameter params["network"] to withdraw ' + currency['code']);
+            } else {
+                chain = currency['id'];
+            }
+        }
         const networkId = this.networkCodeToId (chain);
         const request = {
             'currency': networkId,
@@ -1809,11 +1813,12 @@ export default class kuna extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = undefined;
         if (Array.isArray (api)) {
+            const isGet = method === 'GET';
             const [ version, access ] = api;
             if (version === 'v3') {
                 url = this.urls['api'][version] + '/' + version + '/' + this.implodeParams (path, params);
                 if (access === 'public') {
-                    if (method === 'GET') {
+                    if (isGet) {
                         if (Object.keys (params).length) {
                             url += '?' + this.urlencode (params);
                         }
@@ -1825,16 +1830,21 @@ export default class kuna extends Exchange {
                     throw new NotSupported (this.id + ' private v3 API is not supported yet');
                 }
             } else if (version === 'v4') {
-                const urlPath = '/' + version + '/' + this.implodeParams (path, params);
-                url = this.urls['api'][version] + urlPath;
+                let urlPath = '/' + version + '/' + this.implodeParams (path, params);
                 if (access === 'private') {
+                    if (isGet) {
+                        const numParams = Object.keys (params).length;
+                        if (numParams > 0) {
+                            urlPath += '?' + this.urlencode (params);
+                        }
+                    }
                     const nonce = this.nonce ().toString ();
                     let auth = urlPath + nonce;
-                    if (method !== 'GET') {
+                    if (isGet) {
+                        auth = auth + this.json ({});
+                    } else {
                         auth = auth + this.json (params);
                         body = params;
-                    } else {
-                        auth = auth + this.json ({});
                     }
                     headers = {
                         'Content-Type': 'application/json',
@@ -1848,6 +1858,7 @@ export default class kuna extends Exchange {
                         headers['account'] = 'pro';
                     }
                 }
+                url = this.urls['api'][version] + urlPath;
             }
         } else {
             let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
