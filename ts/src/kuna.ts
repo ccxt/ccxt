@@ -1396,7 +1396,7 @@ export default class kuna extends Exchange {
             if (currency['code'].indexOf ('USD') > 0) {
                 throw new ArgumentsRequired (this.id + ' withdraw () requires an extra parameter params["network"] to withdraw ' + currency['code']);
             } else {
-                chain = currency['id'];
+                chain = currency['id'].toUpperCase ();
             }
         }
         const networkId = this.networkCodeToId (chain);
