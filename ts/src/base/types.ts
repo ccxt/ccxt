@@ -256,8 +256,8 @@ export interface OrderRequest {
     symbol: string;
     type: string;
     side: string;
-    amount: number;
-    price: number | undefined;
+    amount?: number;
+    price?: number | undefined;
     params?: any;
 }
 
