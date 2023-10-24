@@ -41,7 +41,7 @@ export default class coinlist extends Exchange {
                 'createStopOrder': false,
                 'deposit': false,
                 'editOrder': false,
-                'fetchAccounts': false,
+                'fetchAccounts': true,
                 'fetchBalance': false,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
@@ -73,7 +73,7 @@ export default class coinlist extends Exchange {
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': undefined,
@@ -82,7 +82,7 @@ export default class coinlist extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
-                'fetchOrderTrades': false,
+                'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
@@ -149,6 +149,9 @@ export default class coinlist extends Exchange {
                 'private': {
                     'get': {
                         'v1/fees': 1,
+                        'v1/accounts': 1,
+                        'v1/balances': 1,
+                        'v1/fills': 1,
                         // todo
                     },
                     'post': {
@@ -612,16 +615,26 @@ export default class coinlist extends Exchange {
         //
         // fetchTrades
         //     {
-        //         "symbol":"BTC-USDT",
-        //         "auction_code":"BTC-USDT-2023-10-01T08:05:56.000Z",
-        //         "price":"27241.53000000",
-        //         "volume":"0.0052",
-        //         "imbalance":"-1.0983",
-        //         "logical_time":"2023-10-01T08:05:56.000Z",
-        //         "call_time":"2023-10-01T08:05:56.068Z"
+        //         "symbol": "BTC-USDT",
+        //         "auction_code": "BTC-USDT-2023-10-01T08:05:56.000Z",
+        //         "price": "27241.53000000",
+        //         "volume": "0.0052",
+        //         "imbalance": "-1.0983",
+        //         "logical_time": "2023-10-01T08:05:56.000Z",
+        //         "call_time": "2023-10-01T08:05:56.068Z"
         //     }
         //
         // fetchMyTrades
+        //     {
+        //         "symbol": "string",
+        //         "auction_code": "string",
+        //         "order_id": "93101167-9065-4b9c-b98b-5d789a3ed9fe",
+        //         "quantity": "string",
+        //         "fee": "string",
+        //         "fee_type": "string",
+        //         "price": "string",
+        //         "logical_time": "2019-08-24T14:15:22Z"
+        //     }
         //
         // createOrder
         //
@@ -631,10 +644,12 @@ export default class coinlist extends Exchange {
         const id = this.safeString (trade, 'auction_code'); // todo: find out is it trade or order id
         const timestamp = this.parse8601 (this.safeString (trade, 'logical_time')); // todo: find out what time is good
         const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'volume');
+        const amountString = this.safeString2 (trade, 'volume', 'quantity');
+        const order = this.safeString (trade, 'order_id', undefined);
+        const fee = this.safeString (trade, 'fee', undefined);
         return this.safeTrade ({
             'id': id,
-            'order': undefined,
+            'order': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -644,7 +659,7 @@ export default class coinlist extends Exchange {
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
             'info': trade,
         }, market);
     }
@@ -705,6 +720,154 @@ export default class coinlist extends Exchange {
         //     };
         // }
         return response;
+    }
+
+    async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetV1Accounts (params);
+        //
+        //     {
+        //         "accounts": [
+        //             {
+        //                 "trader_id": "b18507ce-7d55-4bf1-b12a-0ccca5b90936",
+        //                 "name": "string"
+        //             }
+        //         ]
+        //     }
+        //
+        const accounts = this.safeValue (response, 'accounts', []);
+        return this.parseAccounts (accounts, params);
+    }
+
+    parseAccount (account) {
+        //
+        //     {
+        //         "trader_id": "b18507ce-7d55-4bf1-b12a-0ccca5b90936",
+        //         "name": "string"
+        //     }
+        //
+        return {
+            'id': this.safeString (account, 'trader_id'),
+            'type': undefined,
+            'code': undefined,
+            'info': account,
+        };
+    }
+
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetV1Balances (params);
+        //
+        //     {
+        //         "asset_balances": {
+        //             "BTC": "0.00308696",
+        //             "ETH": "20.000000000000000000"
+        //         },
+        //         "asset_holds": {
+        //             "BTC": "0.00000000",
+        //             "ETH": "1.000000000000000000"
+        //         },
+        //         "net_liquidation_value_usd": "string"
+        //     }
+        //
+        return this.parseBalance (response);
+    }
+
+    parseBalance (response) {
+        // const balances = this.safeValue (response, 'balances', []);
+        const timestamp = this.milliseconds ();
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        // for (let i = 0; i < balances.length; i++) {
+        //     const balance = balances[i];
+        //     const currencyId = this.safeString (balance, 'asset');
+        //     const code = this.safeCurrencyCode (currencyId);
+        //     const account = this.account ();
+        //     account['free'] = this.safeString (balance, 'free');
+        //     account['used'] = this.safeString (balance, 'locked');
+        //     result[code] = account;
+        // }
+        return this.safeBalance (result);
+    }
+
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this.privateGetV1Fills (this.extend (request, params));
+        //
+        //     {
+        //         "fills": [
+        //             {
+        //                 "symbol": "string",
+        //                 "auction_code": "string",
+        //                 "order_id": "93101167-9065-4b9c-b98b-5d789a3ed9fe",
+        //                 "quantity": "string",
+        //                 "fee": "string",
+        //                 "fee_type": "string",
+        //                 "price": "string",
+        //                 "logical_time": "2019-08-24T14:15:22Z"
+        //             }
+        //         ]
+        //     }
+        //
+        const fills = this.safeValue (response, 'fills', []);
+        return this.parseTrades (fills, market, since, limit);
+    }
+
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @param {string} id order id
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades to retrieve
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         */
+        const request = {
+            'order_id': id,
+        };
+        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
