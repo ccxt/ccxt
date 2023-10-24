@@ -141,7 +141,7 @@ def exception_message(exc):
     return message
 
 
-def compare_exact_exception_type(exc, exceptionType):
+def compare_exception_type(exc, exceptionType):
     # return type(exc) == exceptionType
     #
     # update: for now we check the exception and it's inheritances
