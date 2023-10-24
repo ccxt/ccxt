@@ -8358,7 +8358,11 @@ class binance extends Exchange {
             }
             $signature = null;
             if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
-                $signature = $this->encode_uri_component($this->rsa($query, $this->secret, 'sha256'));
+                if (strlen($this->secret) > 120) {
+                    $signature = $this->encode_uri_component($this->rsa($query, $this->secret, 'sha256'));
+                } else {
+                    $signature = $this->encode_uri_component($this->eddsa($this->encode($query), $this->secret, 'ed25519'));
+                }
             } else {
                 $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
             }

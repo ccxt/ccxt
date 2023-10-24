@@ -763,7 +763,7 @@ class wavesexchange extends Exchange {
                 $messageHex = bin2hex($this->encode($message));
                 $payload = $prefix . $messageHex;
                 $hexKey = bin2hex($this->base58_to_binary($this->secret));
-                $signature = $this->eddsa($payload, $hexKey, 'ed25519');
+                $signature = axolotl ($payload, $hexKey, 'ed25519');
                 $request = array(
                     'grant_type' => 'password',
                     'scope' => 'general',
@@ -1446,7 +1446,7 @@ class wavesexchange extends Exchange {
             if (($serializedOrder[0] === '"') && ($serializedOrder[(strlen($serializedOrder) - 1)] === '"')) {
                 $serializedOrder = mb_substr($serializedOrder, 1, strlen($serializedOrder) - 1 - 1);
             }
-            $signature = $this->eddsa(bin2hex($this->base58_to_binary($serializedOrder)), bin2hex($this->base58_to_binary($this->secret)), 'ed25519');
+            $signature = axolotl (bin2hex($this->base58_to_binary($serializedOrder)), bin2hex($this->base58_to_binary($this->secret)), 'ed25519');
             $body['signature'] = $signature;
             //
             //     {
@@ -1562,7 +1562,7 @@ class wavesexchange extends Exchange {
             );
             $binary = $this->binary_concat_array($byteArray);
             $hexSecret = bin2hex($this->base58_to_binary($this->secret));
-            $signature = $this->eddsa(bin2hex($binary), $hexSecret, 'ed25519');
+            $signature = axolotl (bin2hex($binary), $hexSecret, 'ed25519');
             $request = array(
                 'Timestamp' => (string) $timestamp,
                 'Signature' => $signature,
@@ -1598,7 +1598,7 @@ class wavesexchange extends Exchange {
             );
             $binary = $this->binary_concat_array($byteArray);
             $hexSecret = bin2hex($this->base58_to_binary($this->secret));
-            $signature = $this->eddsa(bin2hex($binary), $hexSecret, 'ed25519');
+            $signature = axolotl (bin2hex($binary), $hexSecret, 'ed25519');
             $request = array(
                 'Accept' => 'application/json',
                 'Timestamp' => (string) $timestamp,
@@ -1968,7 +1968,7 @@ class wavesexchange extends Exchange {
             );
             $binary = $this->binary_concat_array($byteArray);
             $hexSecret = bin2hex($this->base58_to_binary($this->secret));
-            $signature = $this->eddsa(bin2hex($binary), $hexSecret, 'ed25519');
+            $signature = axolotl (bin2hex($binary), $hexSecret, 'ed25519');
             $matcherRequest = array(
                 'publicKey' => $this->apiKey,
                 'signature' => $signature,
@@ -2568,7 +2568,7 @@ class wavesexchange extends Exchange {
             ];
             $binary = $this->binary_concat_array($byteArray);
             $hexSecret = bin2hex($this->base58_to_binary($this->secret));
-            $signature = $this->eddsa(bin2hex($binary), $hexSecret, 'ed25519');
+            $signature = axolotl (bin2hex($binary), $hexSecret, 'ed25519');
             $request = array(
                 'senderPublicKey' => $this->apiKey,
                 'amount' => $amountInteger,

@@ -6,6 +6,8 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
+var crypto = require('./base/functions/crypto.js');
+var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -8568,7 +8570,12 @@ class binance extends binance$1 {
             }
             let signature = undefined;
             if (this.secret.indexOf('PRIVATE KEY') > -1) {
-                signature = this.encodeURIComponent(rsa.rsa(query, this.secret, sha256.sha256));
+                if (this.secret.length > 120) {
+                    signature = this.encodeURIComponent(rsa.rsa(query, this.secret, sha256.sha256));
+                }
+                else {
+                    signature = this.encodeURIComponent(crypto.eddsa(this.encode(query), this.secret, ed25519.ed25519));
+                }
             }
             else {
                 signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
