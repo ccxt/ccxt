@@ -91,7 +91,7 @@ export default class coinlist extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
@@ -135,12 +135,15 @@ export default class coinlist extends Exchange {
                     'get': {
                         'v1/time': 1,
                         'v1/symbols': 1,
-                        'v1/symbols/{symbol}': 1, // todo: should I implement this one?
                         'v1/symbols/summary': 1,
                         'v1/symbols/{symbol}/summary': 1,
                         'v1/symbols/{symbol}/book': 1,
                         'v1/symbols/{symbol}/candles': 1,
-                        // todo
+                        'v1/symbols/{symbol}/auctions': 1,
+                        // todo: should I implement this methods?
+                        'v1/symbols/{symbol}': 1, // returns one market
+                        'v1/symbols/{symbol}/quote': 1, // returns lv1 book (last trade and the best bid and ask)
+                        'v1/symbols/{symbol}/auctions/{auction_code}': 1, // retruns one trade by trade id
                     },
                 },
                 'private': {
@@ -177,6 +180,7 @@ export default class coinlist extends Exchange {
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {
         // todo
+        return 1;
     }
 
     async fetchTime (params = {}) {
@@ -478,7 +482,7 @@ export default class coinlist extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
+         * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -537,6 +541,98 @@ export default class coinlist extends Exchange {
             this.safeNumber (ohlcv, 4),
             this.safeNumber (ohlcv, 5),
         ];
+    }
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['start_time'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this.publicGetV1SymbolsSymbolAuctions (this.extend (request, params));
+        //
+        //     {
+        //         "auctions": [
+        //             {
+        //                 "symbol":"BTC-USDT",
+        //                 "auction_code":"BTC-USDT-2023-10-01T08:05:56.000Z",
+        //                 "price":"27241.53000000",
+        //                 "volume":"0.0052",
+        //                 "imbalance":"-1.0983",
+        //                 "logical_time":"2023-10-01T08:05:56.000Z",
+        //                 "call_time":"2023-10-01T08:05:56.068Z"
+        //             },
+        //             {
+        //                 "symbol":"BTC-USDT",
+        //                 "auction_code":"BTC-USDT-2023-10-01T08:09:09.000Z",
+        //                 "price":"27236.83000000",
+        //                 "volume":"0.0283",
+        //                 "imbalance":"-1.0754",
+        //                 "logical_time":"2023-10-01T08:09:09.000Z",
+        //                 "call_time":"2023-10-01T08:09:09.078Z"
+        //             }
+        //         ]
+        //     }
+        //
+        const auctions = this.safeValue (response, 'auctions', []);
+        return this.parseTrades (auctions, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades
+        //     {
+        //         "symbol":"BTC-USDT",
+        //         "auction_code":"BTC-USDT-2023-10-01T08:05:56.000Z",
+        //         "price":"27241.53000000",
+        //         "volume":"0.0052",
+        //         "imbalance":"-1.0983",
+        //         "logical_time":"2023-10-01T08:05:56.000Z",
+        //         "call_time":"2023-10-01T08:05:56.068Z"
+        //     }
+        //
+        // fetchMyTrades
+        //
+        // createOrder
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const id = this.safeString (trade, 'auction_code'); // todo: find out is it trade or order id
+        const timestamp = this.parse8601 (this.safeString (trade, 'logical_time')); // todo: find out what time is good
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'volume');
+        return this.safeTrade ({
+            'id': id,
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': undefined,
+            'takerOrMaker': undefined,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
