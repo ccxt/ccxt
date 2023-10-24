@@ -285,7 +285,7 @@ export default class testMainClass extends baseMainTestClass {
                 return true;
             } catch (e) {
                 const isAuthError = compareExceptionType (e, AuthenticationError);
-                const isNetworkError = compareExceptionType (e, NetworkError); // includes DDoSProtection, RateLimitExceeded, RequestTimeoutExchangeNotAvailable
+                const isNetworkError = compareExceptionType (e, NetworkError); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable"
                 const isNotSupported = compareExceptionType (e, NotSupported);
                 const isExchangeNotAvailable = compareExceptionType (e, ExchangeNotAvailable);
                 const isInvalidNonce = compareExceptionType (e, InvalidNonce);
