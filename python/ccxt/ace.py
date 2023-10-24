@@ -975,7 +975,7 @@ class ace(Exchange, ImplicitAPI):
                 'timeStamp': nonce,
             }, params)
             dataKeys = list(data.keys())
-            sortedDataKeys = self.sort_by(dataKeys, 0)
+            sortedDataKeys = self.sort_by(dataKeys, 0, False, '')
             for i in range(0, len(sortedDataKeys)):
                 key = sortedDataKeys[i]
                 auth += self.safe_string(data, key)

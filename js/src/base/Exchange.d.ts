@@ -161,7 +161,7 @@ export default class Exchange {
     flatten: (x: any, out?: any[]) => any[];
     unique: (x: any) => any[];
     indexBy: (x: any, k: any, out?: {}) => {};
-    sortBy: (array: any, key: any, descending?: boolean, direction?: number) => any;
+    sortBy: (array: any, key: any, descending?: boolean, defaultValue?: any, direction?: number) => any;
     sortBy2: (array: any, key1: any, key2: any, descending?: boolean, direction?: number) => any;
     groupBy: (x: any, k: any, out?: {}) => {};
     aggregate: typeof functions.aggregate;
