@@ -3700,7 +3700,7 @@ export default class bybit extends Exchange {
             return await this.createUsdcOrder (symbol, type, side, amount, price, params);
         }
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const response = await this.privatePostV5OrderCreate (this.extend (orderRequest, params));
+        const response = await this.privatePostV5OrderCreate (orderRequest); // already extended inside createOrderRequest
         //
         //     {
         //         "retCode": 0,
