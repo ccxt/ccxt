@@ -130,11 +130,10 @@ export default class kuna extends Exchange {
                             'order/private/history': 1,
                             'order/private/{id}/trades': 1,
                             'order/private/details/{id}': 1,
-                            'order/private/details/{id}?withTrades={withTrades}': 1,
                             'trade/private/history': 1,
                             'transaction/private/{hash}': 1,
                             'deposit/private/preRequest': 1,
-                            'deposit/private/crypto/address?source={source}': 1,
+                            'deposit/private/crypto/address': 1,
                             'deposit/private/crypto/getMerchantAddress': 1,
                             'deposit/private/history': 1,
                             'deposit/private/details/{depositId}': 1,
@@ -1155,7 +1154,7 @@ export default class kuna extends Exchange {
             'id': id,
             'withTrades': true,
         };
-        const response = await this.v4PrivateGetOrderPrivateDetailsIdWithTradesWithTrades (this.extend (request, params));
+        const response = await this.v4PrivateGetOrderPrivateDetailsId (this.extend (request, params));
         //
         //    {
         //        "data": {
@@ -1462,7 +1461,7 @@ export default class kuna extends Exchange {
         if (until !== undefined) {
             request['dateTo'] = this.iso8601 (until);
         }
-        const response = this.v4PrivateGetWithdrawPrivateHistory (this.extend (request, params));
+        const response = await this.v4PrivateGetWithdrawPrivateHistory (this.extend (request, params));
         //
         //    {
         //        "data": [
@@ -1487,7 +1486,8 @@ export default class kuna extends Exchange {
         //        ]
         //    }
         //
-        return this.parseTransactions (response, currency);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency);
     }
 
     async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
@@ -1573,9 +1573,9 @@ export default class kuna extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'source': currency['id'],
+            'source': currency['id'].toUpperCase (),
         };
-        const response = await this.v4PrivateGetDepositPrivateCryptoAddressSourceSource (this.extend (request, params));
+        const response = await this.v4PrivateGetDepositPrivateCryptoAddress (this.extend (request, params));
         //
         //    {
         //        "data": {
@@ -1770,9 +1770,9 @@ export default class kuna extends Exchange {
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'network': this.networkIdToCode (networkId),
-            'addressFrom': isDeposit ? undefined : address,
+            'addressFrom': isDeposit ? address : undefined,
             'address': address,
-            'addressTo': isDeposit ? address : undefined,
+            'addressTo': isDeposit ? undefined : address,
             'amount': this.safeNumber (transaction, 'amount'),
             'type': !isDeposit ? 'withdrawal' : type,
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
