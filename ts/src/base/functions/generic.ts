@@ -86,7 +86,7 @@ const filterBy = (x, k, value = undefined, out = []) => {
     return out;
 };
 
-const sortBy = (array, key, descending = false, defaultValue = 0, direction = descending ? -1 : 1) => array.sort ((a, b) => {
+const sortBy = (array, key, descending = false, defaultValue:any = 0, direction = descending ? -1 : 1) => array.sort ((a, b) => {
     const first = (key in a) ? a[key] : defaultValue;
     const second = (key in b) ? b[key] : defaultValue;
     if (first < second) {
