@@ -142,7 +142,10 @@ def exception_message(exc):
 
 
 def compare_exact_exception_type(exc, exceptionType):
-    return type(exc) == exceptionType
+    # return type(exc) == exceptionType
+    #
+    # update: for now we check the exception and it's inheritances
+    return isinstance(exc, exceptionType)
 
 
 def exit_script():
@@ -191,10 +194,9 @@ async def close(exchange):
 import asyncio
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
-from ccxt.base.errors import DDoSProtection
-from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import AuthenticationError
 
 

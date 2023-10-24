@@ -109,9 +109,11 @@ function exception_message($exc) {
 }
 
 function compare_exact_exception_type($exc, $exceptionType) {
-    // as exclusion, because of transpilation nuances, `$exceptionType` is string here
-    $classFullName = '\\' . get_class($exc);
-    return $classFullName === $exceptionType;
+    // $classFullName = '\\' . get_class($exc);
+    // return $classFullName === $exceptionType; (`$exceptionType` is string here)
+    //
+    // update: for now we check the exception and it's inheritances
+    return ($exc instanceof $exceptionType);
 }
 
 function exit_script() {
@@ -168,10 +170,9 @@ use Exception; // a common import
 
 use ccxt\NotSupported;
 use ccxt\NetworkError;
-use ccxt\DDoSProtection;
-use ccxt\RateLimitExceeded;
+use ccxt\ExchangeNotAvailable;
+use ccxt\InvalidNonce;
 use ccxt\OnMaintenance;
-use ccxt\RequestTimeout;
 use ccxt\AuthenticationError;
 
 class testMainClass extends baseMainTestClass {

@@ -16,13 +16,11 @@ process.on ('unhandledRejection', (e: any) => {
 });
 const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 const AuthenticationError = ccxt.AuthenticationError;
-const RateLimitExceeded = ccxt.RateLimitExceeded;
-const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
-const NetworkError = ccxt.NetworkError;
-const DDoSProtection = ccxt.DDoSProtection;
-const OnMaintenance = ccxt.OnMaintenance;
-const RequestTimeout = ccxt.RequestTimeout;
 const NotSupported = ccxt.NotSupported;
+const NetworkError = ccxt.NetworkError;
+const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
+const InvalidNonce = ccxt.InvalidNonce;
+const OnMaintenance = ccxt.OnMaintenance;
 
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
@@ -74,7 +72,10 @@ function exceptionMessage (exc) {
 
 function compareExactExceptionType (exc, exceptionType) {
     // we want to avoid "instanceof" because it also checks subclasses and we want to check only exact class
-    return exc.constructor === exceptionType;
+    // return exc.constructor === exceptionType;
+    //
+    // update: for now we check the exception and it's inheritances
+    return exc instanceof exceptionType;
 }
 
 function exitScript () {
@@ -284,12 +285,12 @@ export default class testMainClass extends baseMainTestClass {
                 return true;
             } catch (e) {
                 const isAuthError = compareExactExceptionType (e, AuthenticationError);
-                const isRateLimitExceeded = compareExactExceptionType (e, RateLimitExceeded);
-                const isNetworkError = compareExactExceptionType (e, NetworkError);
-                const isDDoSProtection = compareExactExceptionType (e, DDoSProtection);
-                const isRequestTimeout = compareExactExceptionType (e, RequestTimeout);
+                const isNetworkError = compareExactExceptionType (e, NetworkError); // includes DDoSProtection, RateLimitExceeded, RequestTimeoutExchangeNotAvailable
                 const isNotSupported = compareExactExceptionType (e, NotSupported);
-                const tempFailure = (isRateLimitExceeded || isNetworkError || isDDoSProtection || isRequestTimeout);
+                const isExchangeNotAvailable = compareExactExceptionType (e, ExchangeNotAvailable);
+                const isInvalidNonce = compareExactExceptionType (e, InvalidNonce);
+                const isOnMaintenance = compareExactExceptionType (e, OnMaintenance);
+                const tempFailure = !isOnMaintenance && !isExchangeNotAvailable && !isInvalidNonce && isNetworkError;
                 if (tempFailure) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
