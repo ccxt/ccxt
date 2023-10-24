@@ -281,6 +281,7 @@ export default class Exchange {
     enableRateLimit: boolean = undefined;
 
     httpExceptions = undefined
+    exceptionTypeMappings = undefined
 
     limits: {
         amount?: MinMax,
@@ -3612,7 +3613,7 @@ export default class Exchange {
     getExceptionMarketType (originUrl) {
         if (originUrl !== undefined) {
             const apiUrls = this.urls['api'];
-            const exceptionMappings = this.safeValue (this.options, 'exceptionTypeMappings', {});
+            const exceptionMappings = this.exceptionTypeMappings;
             const marketTypesArray = Object.keys (exceptionMappings); // would be among: ['spot', 'future', 'swap', 'option', 'linear', 'inverse']
             for (let i = 0; i < marketTypesArray.length; i++) {
                 const marketTypeKey = marketTypesArray[i];
@@ -3631,10 +3632,14 @@ export default class Exchange {
 
     throwExactlyMatchedException (exactExceptions, key, message, originUrl = undefined) {
         const marketType = this.getExceptionMarketType (originUrl);
-        if (marketType === undefined) {
-            if (key in exactExceptions) {
-                throw new exactExceptions[key] (message);
+        if (marketType in exactExceptions) {
+            const targetExceptions = exactExceptions[marketType];
+            if (key in targetExceptions) {
+                throw new targetExceptions[key] (message);
             }
+        }
+        if (key in exactExceptions) {
+            throw new exactExceptions[key] (message);
         }
     }
 
