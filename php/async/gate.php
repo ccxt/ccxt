@@ -292,8 +292,6 @@ class gate extends Exchange {
                     ),
                     'portfolio' => array(
                         'get' => array(
-                            'spot/currency_pairs' => 20 / 15,
-                            'spot/currency_pairs/{currency_pair}' => 20 / 15,
                             'accounts' => 20 / 15,
                             'account_mode' => 20 / 15,
                             'borrowable' => 20 / 15,
@@ -301,19 +299,10 @@ class gate extends Exchange {
                             'loans' => 20 / 15,
                             'loan_records' => 20 / 15,
                             'interest_records' => 20 / 15,
-                            'spot/orders' => 20 / 15,
-                            'spot/orders/{order_id}' => 20 / 15,
                         ),
                         'post' => array(
                             'account_mode' => 20 / 15,
                             'loans' => 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
-                            'spot/orders' => 20 / 15,
-                        ),
-                        'delete' => array(
-                            'spot/orders/{order_id}' => 20 / 15,
-                        ),
-                        'patch' => array(
-                            'spot/orders/{order_id}' => 20 / 15,
                         ),
                     ),
                     'spot' => array(
@@ -336,6 +325,7 @@ class gate extends Exchange {
                             'orders' => 0.4,
                             'cancel_batch_orders' => 20 / 75,
                             'countdown_cancel_all' => 20 / 75,
+                            'amend_batch_orders' => 0.4,
                             'price_orders' => 0.4,
                         ),
                         'delete' => array(
@@ -505,6 +495,9 @@ class gate extends Exchange {
                         ),
                         'post' => array(
                             'uni/lends' => 20 / 15,
+                        ),
+                        'put' => array(
+                            'uni/interest_reinvest' => 20 / 15,
                         ),
                         'patch' => array(
                             'uni/lends' => 20 / 15,
