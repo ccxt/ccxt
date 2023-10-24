@@ -1328,7 +1328,7 @@ class bingx(Exchange, ImplicitAPI):
         :param boolean [params.standard]: whether to fetch standard contract balances
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
-        self.load_markets()
+        # self.load_markets()
         response = None
         standard = None
         standard, params = self.handle_option_and_params(params, 'fetchBalance', 'standard', False)
