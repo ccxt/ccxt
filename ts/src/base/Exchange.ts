@@ -3306,10 +3306,6 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchBorrowInterest() is not supported yet');
     }
 
-    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<OrderBook>> {
-        throw new NotSupported (this.id + ' fetchOrderBooks() is not supported yet');
-    }
-
     async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         throw new NotSupported (this.id + ' fetchLedger() is not supported yet');
     }
