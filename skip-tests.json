@@ -1080,9 +1080,8 @@
         "skipWs": true,
         "skipMethods":{
             "fetchCurrencies": {
-                "networks": "not yet implemented",
-                "withdraw": "not provided for some currencies",
-                "deposit": "not provided for some currencies"
+                "depositForNonCrypto": "not provided",
+                "withdrawForNonCrypto": "not provided"
             },
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
