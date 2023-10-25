@@ -885,9 +885,6 @@ export default class Exchange {
     proxyModulesLoaded:boolean = false;
 
     async loadProxyModules () {
-        if (this.proxyModulesLoaded) {
-            return;
-        }
         this.proxyModulesLoaded = true;
         // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
         this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
@@ -904,7 +901,7 @@ export default class Exchange {
     setProxyAgents (httpProxy, httpsProxy, socksProxy) {
         if (httpProxy) {
             if (this.httpProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' you need to initialize proxies with `.loadProxyModules()` method at first to use proxies');
+                throw new NotSupported (this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
             }
             if (!(httpProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
@@ -912,7 +909,7 @@ export default class Exchange {
             this.agent = this.proxyDictionaries[httpProxy];
         } else if (httpsProxy) {
             if (this.httpsProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' you need to initialize proxies with `.loadProxyModules()` method at first to use proxies');
+                throw new NotSupported (this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
             }
             if (!(httpsProxy in this.proxyDictionaries)) {
                 this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy);
@@ -965,7 +962,9 @@ export default class Exchange {
         // proxy agents
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
         this.checkConflictingProxies (httpProxy || httpsProxy || socksProxy, proxyUrl);
-        await this.loadProxyModules (); // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method
+        if (!this.proxyModulesLoaded) {
+            await this.loadProxyModules (); // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method
+        }
         this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
         // user-agent
         const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
