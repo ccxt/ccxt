@@ -2,6 +2,7 @@
 namespace Ratchet\RFC6455\Messaging;
 
 use Ratchet\RFC6455\Handshake\PermessageDeflateOptions;
+use React\EventLoop\Loop;
 
 class MessageBuffer {
     /**
@@ -79,6 +80,16 @@ class MessageBuffer {
      */
     private $compressedMessage;
 
+    /**
+     * @var array
+     */
+    private $messageQueue;
+
+    /**
+     * @var bool
+     */
+    private $processingQueue;
+
     function __construct(
         CloseFrameChecker $frameChecker,
         callable $onMessage,
@@ -132,6 +143,8 @@ class MessageBuffer {
             throw new \InvalidArgumentException($maxMessagePayloadSize . 'is not a valid maxMessagePayloadSize');
         }
         $this->maxMessagePayloadSize = $maxMessagePayloadSize;
+        $this->messageQueue = array();
+        $this->processingQueue = false;
     }
 
     public function onData($data) {
@@ -142,6 +155,26 @@ class MessageBuffer {
             $this->leftovers = $data;
 
             return;
+        }
+        // flush the queue if a new frame arrives
+        while (count($this->messageQueue) > 1) {
+            $this->processData(array_shift($this->messageQueue));
+        }
+        // we schedule a callback for each message
+        // if there are multiple messages in a single frame:
+        // the user will be notified for each message,
+        // instead processing all the messages synchronously
+        $callback_loop = function () use (&$callback_loop) {
+            if (count($this->messageQueue)) {
+                $this->processData(array_shift($this->messageQueue));
+                Loop::futureTick($callback_loop);
+            } else {
+                $this->processingQueue = false;
+            }
+        };
+        if (!$this->processingQueue) {
+            Loop::futureTick($callback_loop);
+            $this->processingQueue = true;
         }
 
         $frameStart = 0;
@@ -191,7 +224,8 @@ class MessageBuffer {
             if (!$isCoalesced) {
                 break;
             }
-            $this->processData(substr($data, $frameStart, $payload_length + $headerSize));
+            $slice = substr($data, $frameStart, $payload_length + $headerSize);
+            array_push($this->messageQueue, $slice);
             $frameStart = $frameStart + $payload_length + $headerSize;
         }
 
