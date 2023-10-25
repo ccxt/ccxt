@@ -29,8 +29,8 @@ export default class coinlist extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'borrowMargin': false,
-                'cancelAllOrders': false,
-                'cancelOrder': false,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
                 'cancelOrders': false,
                 'createDepositAddress': false,
                 'createOrder': false,
@@ -52,7 +52,7 @@ export default class coinlist extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': false,
@@ -76,8 +76,8 @@ export default class coinlist extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrder': undefined,
-                'fetchOpenOrders': false,
+                'fetchOpenOrder': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -140,10 +140,11 @@ export default class coinlist extends Exchange {
                         'v1/symbols/{symbol}/book': 1,
                         'v1/symbols/{symbol}/candles': 1,
                         'v1/symbols/{symbol}/auctions': 1,
-                        // todo: should I implement this methods?
+                        // Not unified -------------------------------
                         'v1/symbols/{symbol}': 1, // returns one market
                         'v1/symbols/{symbol}/quote': 1, // returns lv1 book (last trade and the best bid and ask)
                         'v1/symbols/{symbol}/auctions/{auction_code}': 1, // retruns one trade by trade id
+                        // ----------------------------------------------
                     },
                 },
                 'private': {
@@ -160,6 +161,8 @@ export default class coinlist extends Exchange {
                         // todo
                     },
                     'delete': {
+                        'v1/orders': 1,
+                        'v1/orders/{order_id}': 1,
                         // todo
                     },
                 },
@@ -971,9 +974,85 @@ export default class coinlist extends Exchange {
         return this.parseOrder (response);
     }
 
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'status': 'accepted',
+        };
+        return this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'status': 'done',
+        };
+        return this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#cancelAllOrders
+         * @description cancel open orders of market
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateDeleteV1Orders (this.extend (request, params));
+        // return this.parseOrders (response, market);
+        return response; // todo: check it
+    }
+
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinsph#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string} symbol not used by coinsph cancelOrder ()
+         * @param {object} [params] extra parameters specific to the coinsph api endpoint
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'order_id': id,
+        };
+        const response = await this.privateDeleteV1OrdersOrderId (this.extend (request, params));
+        // return this.parseOrder (response);
+        return response; // todo: check it
+    }
+
     parseOrder (order, market = undefined) {
         //
-        // fetchOrders
+        // fetchOrder, fetchOrders
         //     {
         //         "order_id": "93101167-9065-4b9c-b98b-5d789a3ed9fe",
         //         "client_id": "string",
