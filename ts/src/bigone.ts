@@ -881,29 +881,65 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'asset_pair_name': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 50, max 200
+        let response = undefined;
+        if (market['contract']) {
+            const request = {
+                'symbol': market['id'],
+            };
+            response = await this.contractPublicGetDepthSymbolSnapshot (this.extend (request, params));
+            //
+            //    {
+            //        bids: {
+            //            '20000': '20',
+            //            ...
+            //            '34552': '64851',
+            //            '34526.5': '59594',
+            //            ...
+            //            '34551.5': '29711'
+            //        },
+            //        asks: {
+            //            '34557': '34395',
+            //            ...
+            //            '40000': '20',
+            //            '34611.5': '56024',
+            //            ...
+            //            '34578.5': '66367'
+            //        },
+            //        to: '59737174',
+            //        lastPrice: '34554.5',
+            //        bestPrices: {
+            //            ask: '34557.0',
+            //            bid: '34552.0'
+            //        },
+            //        from: '0'
+            //    }
+            //
+            return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'quantity'); // TODO
+        } else {
+            const request = {
+                'asset_pair_name': market['id'],
+            };
+            if (limit !== undefined) {
+                request['limit'] = limit; // default 50, max 200
+            }
+            response = await this.publicGetAssetPairsAssetPairNameDepth (this.extend (request, params));
+            //
+            //     {
+            //         "code":0,
+            //         "data": {
+            //             "asset_pair_name": "EOS-BTC",
+            //             "bids": [
+            //                 { "price": "42", "order_count": 4, "quantity": "23.33363711" }
+            //             ],
+            //             "asks": [
+            //                 { "price": "45", "order_count": 2, "quantity": "4193.3283464" }
+            //             ]
+            //         }
+            //     }
+            //
+            const orderbook = this.safeValue (response, 'data', {});
+            return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'quantity');
         }
-        const response = await this.publicGetAssetPairsAssetPairNameDepth (this.extend (request, params));
-        //
-        //     {
-        //         "code":0,
-        //         "data": {
-        //             "asset_pair_name": "EOS-BTC",
-        //             "bids": [
-        //                 { "price": "42", "order_count": 4, "quantity": "23.33363711" }
-        //             ],
-        //             "asks": [
-        //                 { "price": "45", "order_count": 2, "quantity": "4193.3283464" }
-        //             ]
-        //         }
-        //     }
-        //
-        const orderbook = this.safeValue (response, 'data', {});
-        return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
     parseTrade (trade, market = undefined) {
