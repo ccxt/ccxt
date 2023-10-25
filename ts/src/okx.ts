@@ -926,6 +926,7 @@ export default class okx extends Exchange {
                     // 'TERRA': 'Terra',
                     // 'TERRACLASSIC': 'Terra Classic',
                 },
+                'networksAreTitlesInsteadOfIds': true,
                 'fetchOpenInterestHistory': {
                     'timeframes': {
                         '5m': '5m',
@@ -1497,15 +1498,6 @@ export default class okx extends Exchange {
         return this.parseMarkets (data);
     }
 
-    safeNetwork (networkId) {
-        const networksById = {
-            'Bitcoin': 'BTC',
-            'Omni': 'OMNI',
-            'TRON': 'TRC20',
-        };
-        return this.safeString (networksById, networkId, networkId);
-    }
-
     async fetchCurrencies (params = {}) {
         /**
          * @method
@@ -1585,7 +1577,7 @@ export default class okx extends Exchange {
             let currencyActive = false;
             let depositEnabled = false;
             let withdrawEnabled = false;
-            let maxPrecision = undefined;
+            let minPrecision = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const canDeposit = this.safeValue (chain, 'canDep');
@@ -1595,34 +1587,30 @@ export default class okx extends Exchange {
                 const canInternal = this.safeValue (chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (active) ? active : currencyActive;
-                const networkId = this.safeString (chain, 'chain');
-                if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
-                    const parts = networkId.split ('-');
-                    const chainPart = this.safeString (parts, 1, networkId);
-                    const networkCode = this.safeNetwork (chainPart);
-                    const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
-                    if (maxPrecision === undefined) {
-                        maxPrecision = precision;
-                    } else {
-                        maxPrecision = Precise.stringMin (maxPrecision, precision);
-                    }
-                    networks[networkCode] = {
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': active,
-                        'deposit': canDeposit,
-                        'withdraw': canWithdraw,
-                        'fee': this.safeNumber (chain, 'minFee'),
-                        'precision': this.parseNumber (precision),
-                        'limits': {
-                            'withdraw': {
-                                'min': this.safeNumber (chain, 'minWd'),
-                                'max': this.safeNumber (chain, 'maxWd'),
-                            },
+                const networkId = this.safeString (chain, 'chain'); // USDT-BEP20, USDT-Avalance-C etc
+                const parts = networkId.split ('-');
+                parts.shift ();
+                const networkTitle = parts.join ('-');
+                this.setNetworkMappingForNetworkCurrencyJunction (code, networkTitle, networkId);
+                const networkCode = this.networkIdToCode (networkTitle);
+                const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
+                minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (minPrecision, precision);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': active,
+                    'deposit': canDeposit,
+                    'withdraw': canWithdraw,
+                    'fee': this.safeNumber (chain, 'minFee'),
+                    'precision': this.parseNumber (precision),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'minWd'),
+                            'max': this.safeNumber (chain, 'maxWd'),
                         },
-                        'info': chain,
-                    };
-                }
+                    },
+                    'info': chain,
+                };
             }
             const firstChain = this.safeValue (chains, 0);
             result[code] = {
@@ -1634,7 +1622,7 @@ export default class okx extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': undefined,
-                'precision': this.parseNumber (maxPrecision),
+                'precision': this.parseNumber (minPrecision),
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -4289,63 +4277,17 @@ export default class okx extends Exchange {
             tag = this.safeString (addrEx, 'comment');
         }
         const currencyId = this.safeString (depositAddress, 'ccy');
-        currency = this.safeCurrency (currencyId, currency);
-        const code = currency['code'];
-        const chain = this.safeString (depositAddress, 'chain');
-        const networks = this.safeValue (currency, 'networks', {});
-        const networksById = this.indexBy (networks, 'id');
-        let networkData = this.safeValue (networksById, chain);
-        // inconsistent naming responses from exchange
-        // with respect to network naming provided in currency info vs address chain-names and ids
-        //
-        // response from address endpoint:
-        //      {
-        //          "chain": "USDT-Polygon",
-        //          "ctAddr": "",
-        //          "ccy": "USDT",
-        //          "to":"6" ,
-        //          "addr": "0x1903441e386cc49d937f6302955b5feb4286dcfa",
-        //          "selected": true
-        //      }
-        // network information from currency['networks'] field:
-        // Polygon: {
-        //        info: {
-        //            canDep: false,
-        //            canInternal: false,
-        //            canWd: false,
-        //            ccy: 'USDT',
-        //            chain: 'USDT-Polygon-Bridge',
-        //            mainNet: false,
-        //            maxFee: '26.879528',
-        //            minFee: '13.439764',
-        //            minWd: '0.001',
-        //            name: ''
-        //        },
-        //        id: 'USDT-Polygon-Bridge',
-        //        network: 'Polygon',
-        //        active: false,
-        //        deposit: false,
-        //        withdraw: false,
-        //        fee: 13.439764,
-        //        precision: undefined,
-        //        limits: {
-        //            withdraw: {
-        //                min: 0.001,
-        //                max: undefined
-        //            }
-        //        }
-        //     },
-        //
-        if (chain === 'USDT-Polygon') {
-            networkData = this.safeValue (networksById, 'USDT-Polygon-Bridge');
-        }
-        const network = this.safeString (networkData, 'network');
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
+        // the exchange replies with inconsistent network naming
+        // a network id may be missing in the currency structure from fetchCurrencies
+        const networkId = this.safeString (depositAddress, 'chain');
+        const networkCode = this.extractNetworkCodeFromNetworkId (networkId);
         this.checkAddress (address);
         return {
-            'currency': code,
+            'currency': currencyCode,
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': networkCode,
             'info': depositAddress,
         };
     }
@@ -4403,36 +4345,12 @@ export default class okx extends Exchange {
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
-        const rawNetwork = this.safeStringUpper (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeString (networks, rawNetwork, rawNetwork);
-        params = this.omit (params, 'network');
-        const response = await this.fetchDepositAddressesByNetwork (code, params);
-        let result = undefined;
-        if (network === undefined) {
-            result = this.safeValue (response, code);
-            if (result === undefined) {
-                const alias = this.safeString (networks, code, code);
-                result = this.safeValue (response, alias);
-                if (result === undefined) {
-                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
-                    result = this.safeValue (response, defaultNetwork);
-                    if (result === undefined) {
-                        const values = Object.values (response);
-                        result = this.safeValue (values, 0);
-                        if (result === undefined) {
-                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
-                        }
-                    }
-                }
-            }
-            return result;
-        }
-        result = this.safeValue (response, network);
-        if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
-        }
-        return result;
+        await this.loadMarkets ();
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, params);
+        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (code, networkCode, indexedAddresses);
+        return indexedAddresses[selectedNetworkCode];
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
@@ -4459,20 +4377,19 @@ export default class okx extends Exchange {
             'ccy': currency['id'],
             'toAddr': address,
             'dest': '4', // 2 = OKCoin International, 3 = OKX 4 = others
-            'amt': this.numberToString (amount),
         };
-        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        if (network !== undefined) {
-            const networks = this.safeValue (this.options, 'networks', {});
-            network = this.safeString (networks, network.toUpperCase (), network); // handle ETH>ERC20 alias
-            request['chain'] = currency['id'] + '-' + network;
-            params = this.omit (params, 'network');
+        let networkId = undefined;
+        let networkCode = undefined;
+        [ networkCode, networkId, params ] = this.handleNetworkIdAndParams (params);
+        if (networkId !== undefined) {
+            request['chain'] = this.networkCodeToId (networkId, code);
         }
+        request['amt'] = this.currencyToPrecision (code, amount, networkCode);
         let fee = this.safeString (params, 'fee');
         if (fee === undefined) {
             const currencies = await this.fetchCurrencies ();
             this.currencies = this.deepExtend (this.currencies, currencies);
-            const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (network), {});
+            const targetNetwork = this.safeValue (currency['networks'], this.networkIdToCode (networkId), {});
             fee = this.safeString (targetNetwork, 'fee');
             if (fee === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');

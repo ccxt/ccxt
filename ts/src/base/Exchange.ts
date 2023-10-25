@@ -296,6 +296,7 @@ export default class Exchange {
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
+    generatedNetworkData = {}
     currencies_by_id = undefined
     codes = undefined
 
@@ -1752,6 +1753,97 @@ export default class Exchange {
 
     afterConstruct () {
         this.createNetworksByIdObject ();
+        this.createNetworksDataContainer ();
+    }
+
+    createNetworksDataContainer () {
+        this.generatedNetworkData = {
+            // for unique currency-network-id junctions (i.e. bitmart, etc)
+            'currencyIdToCurrencyCode': {},
+            'currencyIdToNetworkCode': {},
+            'currencyCodeAndNetworkCodeToCurrencyId': {},
+            // for unique network-currency-id junctions (i.e. okx, etc)
+            'networkIdToCurrencyCode': {},
+            'networkIdToNetworkCode': {},
+            'currencyCodeAndNetworkCodeToNetworkId': {},
+        };
+    }
+
+    setNetworkMappingForCurrencyNetworkJunction (currencyCode, networkTitle, currencyId) {
+        // unique currency id means that exchange uses currency id junctions like: 'USDT-BEP20', 'USDT-TRX', etc
+        const networkCode = this.networkIdToCode (networkTitle);
+        this.generatedNetworkData['currencyIdToCurrencyCode'][currencyId] = currencyCode;
+        this.generatedNetworkData['currencyIdToNetworkCode'][currencyId] = networkCode;
+        if (!(currencyCode in this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'])) {
+            this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'][currencyCode] = {};
+        }
+        this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'][currencyCode][networkCode] = currencyId;
+    }
+
+    setNetworkMappingForNetworkCurrencyJunction (currencyCode, networkTitle, networkId) {
+        // this method is used when exchange uses unique network id (for same network) for different currencies, such as a currency object might have multiple network objects in its dictionary, but each network's id would be unique, i.e. ethereum network might be referred with `usdtErc20` for usdt token, but `erc20Shib` for SHIB token
+        const networkCode = this.networkIdToCode (networkTitle);
+        this.generatedNetworkData['networkIdToCurrencyCode'][networkId] = currencyCode;
+        this.generatedNetworkData['networkIdToNetworkCode'][networkId] = networkCode;
+        if (!(currencyCode in this.generatedNetworkData['currencyCodeAndNetworkCodeToNetworkId'])) {
+            this.generatedNetworkData['currencyCodeAndNetworkCodeToNetworkId'][currencyCode] = {};
+        }
+        this.generatedNetworkData['currencyCodeAndNetworkCodeToNetworkId'][currencyCode][networkCode] = networkId;
+    }
+
+    handleNetworkIdAndParams (networkCodeOrId, params = {}) {
+        let networkCode = undefined;
+        let networkId = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            const mappings = this.safeValue (this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'], networkId, {});
+            networkId = this.safeString (mappings, networkCode);
+            if (networkId === undefined) {
+                throw new ArgumentsRequired (this.id + ' handleNetworkIdAndParams() can not derive the networkId, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
+            }
+        } else {
+            networkId = networkCodeOrId;
+            networkCode = this.networkIdToCode (networkId);
+        }
+        return [ networkCode, networkId, params ];
+    }
+
+    handleCurrencyIdAndParams (currencyCodeOrId, params = {}) {
+        let networkCode = undefined;
+        let currencyId = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            const mappings = this.safeValue (this.generatedNetworkData['currencyCodeAndNetworkCodeToCurrencyId'], currencyCodeOrId, {});
+            currencyId = this.safeString (mappings, networkCode);
+            if (currencyId === undefined) {
+                throw new ArgumentsRequired (this.id + ' handleCurrencyIdAndParams() can not derive the currencyId, please pass an unified currency code (e.g. "USDT") and "network" param (e.g. "ERC20")');
+            }
+        } else {
+            currencyId = currencyCodeOrId;
+        }
+        return [ currencyId, params ];
+    }
+
+    extractNetworkCodeFromNetworkId (networkId, currencyCode = undefined) {
+        // if unified 'network' param was not passed by user, then we might try to mean that user might have passed an exchange-specific network-id (i.e. USDT-TRC20) and we should handle it too
+        let networkCode = this.safeString (this.generatedNetworkData['networkIdToNetworkCode'], networkId);
+        if (networkCode === undefined) {
+            networkCode = this.networkIdToCode (networkId, currencyCode);
+        }
+        return networkCode;
+    }
+
+    extractCurrencyCodeAndNetworkCodeFromCurrencyId (currencyId, currency = undefined) {
+        // if unified 'network' param was not passed by user, then we might try to mean that user might have passed an exchange-specific currency-id (i.e. USDT-TRC20) and we should handle it too
+        let currencyCode = this.safeString (this.generatedNetworkData['currencyIdToCurrencyCode'], currencyId);
+        if (currencyCode === undefined) {
+            currencyCode = this.safeCurrencyCode (currencyId, currency);
+        }
+        let networkCode = this.safeString (this.generatedNetworkData['currencyIdToNetworkCode'], currencyId);
+        if (networkCode === undefined) {
+            networkCode = this.networkIdToCode (currencyId);
+        }
+        return [ currencyCode, networkCode ];
     }
 
     createNetworksByIdObject () {
@@ -2827,7 +2919,7 @@ export default class Exchange {
          * @ignore
          * @method
          * @name exchange#networkCodeToId
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined. See some more info at: https://github.com/ccxt/ccxt/pull/18495
          * @param {string} networkCode unified network code
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
@@ -2870,7 +2962,7 @@ export default class Exchange {
          * @ignore
          * @method
          * @name exchange#networkIdToCode
-         * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have "options['networksById']" defined.
+         * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have "options['networksById']" defined. See some more info at: https://github.com/ccxt/ccxt/pull/18495
          * @param {string} networkId exchange specific network id/title, like: TRON, Trc-20, usdt-erc20, etc
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} unified network code

@@ -441,7 +441,7 @@ export default class bitmart extends Exchange {
                     'FIO': 'FIO',
                     'SCRT': 'SCRT',
                     'IOTX': 'IOTX',
-                    'SOL': 'SOL',
+                    'SOL': 'SPL',
                     'ALGO': 'ALGO',
                     'ATOM': 'ATOM',
                     'DOT': 'DOT',
@@ -568,6 +568,7 @@ export default class bitmart extends Exchange {
                     // undetermined chains:
                     // LEX (for LexThum), TAYCAN (for TRICE), SFL (probably TAYCAN), OMNIA (for APEX), NAC (for NAC), KAG (Kinesis), CEM (crypto emergency), XVM (for Venidium), NEVM (for NEVM), IGT20 (for IGNITE), FILM (FILMCredits), CC (CloudCoin), MERGE (MERGE), LTNM (Bitcoin latinum), PLUGCN ( PlugChain), DINGO (dingo), LED (LEDGIS), AVAT (AVAT), VSOL (Vsolidus), EPIC (EPIC cash), NFC (netflowcoin), mrx (Metrix Coin), Idena (idena network), PKT (PKT Cash), BondDex (BondDex), XBN (XBN), KALAM (Kalamint), REV (RChain), KRC20 (MyDeFiPet), ARC20 (Hurricane Token), GMD (Coop network), BERS (Berith), ZEBI (Zebi), BRC (Baer Chain), DAPS (DAPS Coin), APL (Gold Secured Currency), NDAU (NDAU), WICC (WICC), UPG (Unipay God), TSL (TreasureSL), MXW (Maxonrow), CLC (Cifculation), SMH (SMH Coin), XIN (CPCoin), RDD (ReddCoin), OK (Okcash), KAR (KAR), CCX (ConcealNetwork),
                 },
+                'networksAreTitlesInsteadOfIds': true,
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
                     'type': 'spot', // 'spot', 'swap', 'account'
@@ -577,6 +578,8 @@ export default class bitmart extends Exchange {
                     'swap': 'swap',
                 },
                 'createMarketBuyOrderRequiresPrice': true,
+                // also, all currencies with gate have the same precision up to 4 decimals
+                'currencyPrecision': '1e-4',
             },
         });
     }
@@ -905,41 +908,101 @@ export default class bitmart extends Exchange {
         //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
         //         "data":{
         //             "currencies":[
-        //                 {"currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true},
-        //                 {"currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false},
-        //                 {"currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true},
+        //                 {
+        //                     "id": "USDT-TRC20",
+        //                     "name": "USDT-TRC20",
+        //                     "withdraw_enabled": true,
+        //                     "deposit_enabled": true
+        //                 },
+        //                 {
+        //                     "id": "USDT-ERC20",
+        //                     "name": "USDT-ERC20",
+        //                     "withdraw_enabled": true,
+        //                     "deposit_enabled": true
+        //                 },
+        //                 {
+        //                     "id": "ATOM",
+        //                     "name": "Cosmos",
+        //                     "withdraw_enabled": true,
+        //                     "deposit_enabled": true
+        //                 },
         //             ]
         //         }
-        //     }
+        //    }
         //
         const data = this.safeValue (response, 'data', {});
         const currencies = this.safeValue (data, 'currencies', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const id = this.safeString (currency, 'id');
-            const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
-            const withdrawEnabled = this.safeValue (currency, 'withdraw_enabled');
-            const depositEnabled = this.safeValue (currency, 'deposit_enabled');
-            const active = withdrawEnabled && depositEnabled;
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
-                'info': currency, // the original payload
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
+            const currencyId = this.safeString (currency, 'id'); // USDT-BEP20, USDT-TRX, etc
+            const parts = currencyId.split ('-');
+            const currencyTitle = parts[0];
+            const networkTitle = this.safeString2 (parts, 1, 0); // if there is no dedicated network-part after hyphen, then use the currencyTitle itself (i.e. ATOM, ALGO ...)
+            const code = this.safeCurrencyCode (currencyTitle);
+            // if it's first time of the currency loop
+            if (!(code in result)) {
+                result[code] = this.safeCurrencyStructure ({
+                    'info': [],
+                    'id': currencyTitle, // not actual 'currencyId' (USDT-BEP20, USDT-TRX, ...) but name itself (USDT)
+                    'lowerCaseId': currencyTitle.toLowerCase (),
+                    'code': code,
+                    'name': this.safeString (currency, 'name'),
+                    'limits': this.limits,
+                    'networks': {},
+                });
+            }
+            // now (as currency entry is defined in results) just add the current parsed entry into its networks
+            this.setNetworkMappingForCurrencyNetworkJunction (code, networkTitle, currencyId);
+            const networkCode = this.networkIdToCode (networkTitle);
+            const withdraw_enabled = this.safeValue (currency, 'withdraw_enabled');
+            const deposit_enabled = this.safeValue (currency, 'deposit_enabled');
+            const precisionString = this.options['currencyPrecision'];
+            result[code]['networks'][networkCode] = {
+                'info': currency,
+                'id': networkTitle,
+                'network': networkCode,
+                'active': (deposit_enabled || withdraw_enabled),
+                'deposit': deposit_enabled,
+                'withdraw': withdraw_enabled,
                 'fee': undefined,
-                'precision': undefined,
+                'precision': this.parseNumber (precisionString),
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
             };
+            // currency wide values
+            result[code]['withdraw'] = (withdraw_enabled || result[code]['withdraw'] === undefined) ? true : result[code]['withdraw'];
+            result[code]['deposit'] = (deposit_enabled || result[code]['deposit'] === undefined) ? true : result[code]['deposit'];
+            if (result[code]['withdraw'] && result[code]['deposit']) {
+                result[code]['active'] = true;
+            }
+            if (result[code]['precision'] === undefined) {
+                result[code]['precision'] = precisionString;
+            } else {
+                result[code]['precision'] = Precise.stringMin (this.numberToString (result[code]['precision']), precisionString);
+            }
+            result[code]['precision'] = this.parseNumber (result[code]['precision']);
         }
         return result;
+    }
+
+    currency (code) {
+        // as we have currency-ids like USDT-ERC20, we need to have `this.currency ('USDT')` instead of `this.currency ('USDT'), so make an override to achieve that
+        try {
+            return super.currency (code);
+        } catch (e) {
+            // if user passed exchange-specific id (i.e. USDT-TRC20) then we should try to derive the unified currency code from it
+            const unifiedCurrencyCode = this.safeString (this.generatedNetworkData['currencyIdToCurrencyCode'], code, code);
+            return super.currency (unifiedCurrencyCode);
+        }
     }
 
     async fetchTransactionFee (code: string, params = {}) {
@@ -1015,8 +1078,10 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
+        let currencyId = undefined;
+        [ currencyId, params ] = this.handleCurrencyIdAndParams (code, params);
         const request = {
-            'currency': currency['id'],
+            'currency': currencyId,
         };
         const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
         //
@@ -1033,7 +1098,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         const data = response['data'];
-        return this.parseDepositWithdrawFee (data);
+        return this.parseDepositWithdrawFee (data, currency);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -2681,20 +2746,11 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
+        let currencyId = undefined;
+        [ currencyId, params ] = this.handleCurrencyIdAndParams (code, params);
         const request = {
-            'currency': currency['id'],
+            'currency': currencyId,
         };
-        if (code === 'USDT') {
-            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
-            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            const networks = this.safeValue (this.options, 'networks', {});
-            let networkInner = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            networkInner = this.safeString (networks, networkInner, networkInner); // handle ERC20>ETH alias
-            if (networkInner !== undefined) {
-                request['currency'] = request['currency'] + '-' + networkInner; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                params = this.omit (params, 'network');
-            }
-        }
         const response = await this.privateGetAccountV1DepositAddress (this.extend (request, params));
         //
         //     {
@@ -2703,35 +2759,37 @@ export default class bitmart extends Exchange {
         //         "trace":"0e6edd79-f77f-4251-abe5-83ba75d06c1a",
         //         "data":{
         //             "currency":"USDT-TRC20",
-        //             "chain":"USDT-TRC20",
+        //             "chain":"TRON",
         //             "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
         //             "address_memo":""
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
-        const tag = this.safeString (data, 'address_memo');
-        const chain = this.safeString (data, 'chain');
-        let network = undefined;
-        if (chain !== undefined) {
-            const parts = chain.split ('-');
-            const networkId = this.safeString (parts, 1);
-            network = this.safeNetwork (networkId);
-        }
-        this.checkAddress (address);
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'network': network,
-            'info': response,
-        };
+        return this.parseDepositAddress (data, currency);
     }
 
-    safeNetwork (networkId) {
-        // TODO: parse
-        return networkId;
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "currency":"USDT-TRC20",
+        //         "chain":"TRON", // does not play any role in API engine
+        //         "address":"TGR3ghy2b5VLbyAYrmiE15jasR6aPHTvC5",
+        //         "address_memo":""
+        //     }
+        //
+        const currencyId = this.safeString (depositAddress, 'currency');
+        const [ currencyCode, networkCode ] = this.extractCurrencyCodeAndNetworkCodeFromCurrencyId (currencyId, currency);
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString (depositAddress, 'address_memo');
+        this.checkAddress (address);
+        return {
+            'currency': currencyCode,
+            'address': address,
+            'tag': tag,
+            'network': networkCode,
+            'info': depositAddress,
+        };
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
@@ -2751,25 +2809,16 @@ export default class bitmart extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'],
             'amount': amount,
-            'destination': 'To Digital Address', // To Digital Address, To Binance, To OKEX
+            'destination': 'To Digital Address', // To Digital Address, To Binance, To OKEX :))
             'address': address,
         };
         if (tag !== undefined) {
             request['address_memo'] = tag;
         }
-        if (code === 'USDT') {
-            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
-            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            const networks = this.safeValue (this.options, 'networks', {});
-            let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-            if (network !== undefined) {
-                request['currency'] = request['currency'] + '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                params = this.omit (params, 'network');
-            }
-        }
+        let currencyId = undefined;
+        [ currencyId, params ] = this.handleCurrencyIdAndParams (code, params);
+        request['currency'] = currencyId;
         const response = await this.privatePostAccountV1WithdrawApply (this.extend (request, params));
         //
         //     {
@@ -2803,19 +2852,9 @@ export default class bitmart extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
-        if (code === 'USDT') {
-            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
-            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            const networks = this.safeValue (this.options, 'networks', {});
-            let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-            if (network !== undefined) {
-                request['currency'] += '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                currency['code'] = request['currency']; // update currency code to filter
-                params = this.omit (params, 'network');
-            }
+            let currencyId = undefined;
+            [ currencyId, params ] = this.handleCurrencyIdAndParams (code, params);
+            request['currency'] = currencyId;
         }
         const response = await this.privateGetAccountV2DepositWithdrawHistory (this.extend (request, params));
         //
@@ -2829,14 +2868,14 @@ export default class bitmart extends Exchange {
         //                     "withdraw_id":"1679952",
         //                     "deposit_id":"",
         //                     "operation_type":"withdraw",
-        //                     "currency":"BMX",
+        //                     "currency":"USDT-TRC20",
         //                     "apply_time":1588867374000,
-        //                     "arrival_amount":"59.000000000000",
+        //                     "arrival_amount":"9.000000000000",
         //                     "fee":"1.000000000000",
-        //                     "status":0,
-        //                     "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        //                     "status":2,
+        //                     "address":"TBsA......tbmp11pADlop",
         //                     "address_memo":"",
-        //                     "tx_id":""
+        //                     "tx_id":"42cc9e54a53b1e8ab301....ee062f837d8ff97111"
         //                 },
         //             ]
         //         }
@@ -2872,14 +2911,14 @@ export default class bitmart extends Exchange {
         //                 "withdraw_id":"",
         //                 "deposit_id":"1679952",
         //                 "operation_type":"deposit",
-        //                 "currency":"BMX",
+        //                 "currency":"USDT-TRC20",
         //                 "apply_time":1588867374000,
         //                 "arrival_amount":"59.000000000000",
         //                 "fee":"1.000000000000",
         //                 "status":0,
-        //                 "address":"0xe57b69a8776b37860407965B73cdFFBDFe668Bb5",
+        //                 "address":"TBsA......tbmp11pADlop",
         //                 "address_memo":"",
-        //                 "tx_id":""
+        //                 "tx_id":"42cc9e54a53b1e8ab301....ee062f837d8ff97111"
         //             }
         //         }
         //     }
@@ -3009,14 +3048,14 @@ export default class bitmart extends Exchange {
         const amount = this.safeNumber (transaction, 'arrival_amount');
         const timestamp = this.safeInteger (transaction, 'apply_time');
         const currencyId = this.safeString (transaction, 'currency');
-        const code = this.safeCurrencyCode (currencyId, currency);
+        const [ currencyCode, networkCode ] = this.extractCurrencyCodeAndNetworkCodeFromCurrencyId (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': code,
+                'currency': currencyCode,
             };
         }
         const txid = this.safeString (transaction, 'tx_id');
@@ -3025,9 +3064,9 @@ export default class bitmart extends Exchange {
         return {
             'info': transaction,
             'id': id,
-            'currency': code,
+            'currency': currencyCode,
             'amount': amount,
-            'network': undefined,
+            'network': networkCode,
             'address': address,
             'addressFrom': undefined,
             'addressTo': undefined,
