@@ -1394,14 +1394,6 @@ export default class binance extends Exchange {
                     'BUSD': 'USD',
                 },
             },
-            // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
-            'exceptionTypeMappings': {
-                'spot': [ 'v1', 'public', 'private', 'sapi', 'sapiV2', 'sapiV3', 'sapiV4' ],
-                'inverse': [ 'dapiPublic', 'dapiPrivate', 'dapiData', 'dapiPrivateV2' ],
-                'linear': [ 'fapiPublic', 'fapiPrivate', 'fapiData', 'fapiPrivateV2' ],
-                'option': [ 'eapiPublic', 'eapiPrivate', 'fapiData', 'fapiPrivateV2' ],
-                // 'papi': 'https://papi.binance.com/papi/v1',
-            },
             'exceptions': {
                 'spot': {
                     'exact': {
@@ -8449,6 +8441,32 @@ export default class binance extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    throwExceptionByUrl (url, exactOrBroad, message, feedback) {
+        let marketType = undefined;
+        if (url.startsWith ('https://api.binance.com/sapi/') || url.startsWith ('https://api.binance.com/api/v1') || url.startsWith ('https://api.binance.com/api/v3')) {
+            marketType = 'spot';
+        } else if (url.startsWith ('https://api.binance.com/dapi/')) {
+            marketType = 'inverse';
+        } else if (url.startsWith ('https://api.binance.com/fapi/')) {
+            marketType = 'linear';
+        } else if (url.startsWith ('https://api.binance.com/eapi/')) {
+            marketType = 'option';
+        }
+        // for now these are skipped:
+        // 'dapiData': 'https://dapi.binance.com/futures/data'
+        // 'fapiData': 'https://fapi.binance.com/futures/data'
+        // 'papi': 'https://papi.binance.com/papi/v1'
+        if (marketType !== undefined) {
+            const exceptionsForMarketType = this.safeValue (this.exceptions, marketType, {});
+            const targetExceptions = this.safeValue (exceptionsForMarketType, exactOrBroad, {});
+            if (exactOrBroad === 'exact') {
+                this.throwExactlyMatchedException (targetExceptions, message, feedback);
+            } else if (exactOrBroad === 'broad') {
+                this.throwBroadlyMatchedException (targetExceptions, message, feedback);
+            }
+        }
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
@@ -8490,9 +8508,9 @@ export default class binance extends Exchange {
         }
         const message = this.safeString (response, 'msg');
         if (message !== undefined) {
-            this.throwMatchedExceptionByUrl (url, 'exact', message, this.id + ' ' + message);
+            this.throwExceptionByUrl (url, 'exact', message, this.id + ' ' + message);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
-            this.throwMatchedExceptionByUrl (url, 'broad', message, this.id + ' ' + message);
+            this.throwExceptionByUrl (url, 'broad', message, this.id + ' ' + message);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, this.id + ' ' + message);
         }
         // checks against error codes
@@ -8518,7 +8536,7 @@ export default class binance extends Exchange {
                 // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
                 throw new MarginModeAlreadySet (feedback);
             }
-            this.throwMatchedExceptionByUrl (url, 'exact', error, feedback);
+            this.throwExceptionByUrl (url, 'exact', error, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             throw new ExchangeError (feedback);
         }
@@ -8532,7 +8550,7 @@ export default class binance extends Exchange {
                 const firstElement = response[0];
                 const errorCode = this.safeString (firstElement, 'code');
                 if (errorCode !== undefined) {
-                    this.throwMatchedExceptionByUrl (url, 'exact', errorCode, this.id + ' ' + body);
+                    this.throwExceptionByUrl (url, 'exact', errorCode, this.id + ' ' + body);
                     this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + body);
                 }
             }
