@@ -1975,33 +1975,36 @@ export default class kucoin extends Exchange {
         }
         //
         // {
-        //     "data": [
-        //       {
-        //         "symbol": "KCS-USDT",
-        //         "type": "limit",
-        //         "side": "buy",
-        //         "price": "0.01",
-        //         "size": "0.01",
-        //         "funds": null,
-        //         "stp": "",
-        //         "stop": "",
-        //         "stopPrice": null,
-        //         "timeInForce": "GTC",
-        //         "cancelAfter": 0,
-        //         "postOnly": false,
-        //         "hidden": false,
-        //         "iceberge": false,
-        //         "iceberg": false,
-        //         "visibleSize": null,
-        //         "channel": "API",
-        //         "id": "611a6a309281bc000674d3c0",
-        //         "status": "success",
-        //         "failMsg": null,
-        //         "clientOid": "552a8a0b7cb04354be8266f0e202e7e9"
-        //       },
+        //     "code": "200000",
+        //     "data": {
+        //        "data": [
+        //           {
+        //              "symbol": "LTC-USDT",
+        //              "type": "limit",
+        //              "side": "sell",
+        //              "price": "90",
+        //              "size": "0.1",
+        //              "funds": null,
+        //              "stp": "",
+        //              "stop": "",
+        //              "stopPrice": null,
+        //              "timeInForce": "GTC",
+        //              "cancelAfter": 0,
+        //              "postOnly": false,
+        //              "hidden": false,
+        //              "iceberge": false,
+        //              "iceberg": false,
+        //              "visibleSize": null,
+        //              "channel": "API",
+        //              "id": "6539148443fcf500079d15e5",
+        //              "status": "success",
+        //              "failMsg": null,
+        //              "clientOid": "5c4c5398-8ab2-4b4e-af8a-e2d90ad2488f"
+        //           },
         // }
         //
-        const data = this.safeValue (response, 'data', []);
+        let data = this.safeValue (response, 'data', {});
+        data = this.safeValue (data, 'data', []);
         return this.parseOrders (data);
     }
 
