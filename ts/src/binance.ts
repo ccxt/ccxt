@@ -1396,14 +1396,44 @@ export default class binance extends Exchange {
             },
             'exceptions': {
                 'spot': {
+                    // https://binance-docs.github.io/apidocs/spot/en/#error-codes
                     'exact': {
                         '-1004': ExchangeNotAvailable, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
+                        '-1005': ExchangeError, // undocumented
+                        '-1008': ExchangeNotAvailable, // -1008 SERVER_BUSY: Server is currently overloaded with other requests. Please try again in a few minutes.
+                        '-1010': ExchangeError, // undocumented
+                        '-1011': ExchangeError, // undocumented
+                        '-1013': ExchangeError, // undocumented
+                        '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
+                    },
+                },
+                'linear': {
+                    // https://binance-docs.github.io/apidocs/futures/en/#error-codes
+                    'exact': {
+                        '-1008': ExchangeNotAvailable, // -1008 SERVER_BUSY: Server is currently overloaded with other requests. Please try again in a few minutes.
+                        '-1023': BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
+                        '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
+                    },
+                },
+                'inverse': {
+                    // https://binance-docs.github.io/apidocs/delivery/en/#error-codes
+                    'exact': {
+                        '-1008': ExchangeError, // undocumented
+                        '-1023': BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
+                        // '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
                     },
                 },
                 'option': {
+                    // https://binance-docs.github.io/apidocs/voptions/en/#error-codes
                     'exact': {
-                        '-1003': ExchangeError, // override for undocumented code
-                        '-1004': ExchangeError, // override for undocumented code
+                        '-1003': ExchangeError, // undocumented
+                        '-1004': ExchangeError, // undocumented
+                        '-1005': ExchangeError, // undocumented
+                        '-1006': ExchangeError, // undocumented
+                        '-1008': RateLimitExceeded, // -1008 TOO_MANY_REQUESTS
+                        '-1010': ExchangeError, // undocumented
+                        '-1011': ExchangeError, // undocumented
+                        '-1013': ExchangeError, // undocumented
                     },
                 },
                 'exact': {
@@ -1434,17 +1464,17 @@ export default class binance extends Exchange {
                     '-1005': PermissionDenied, // {"code":-1005,"msg":"No such IP has been white listed"}
                     '-1006': BadResponse, // {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
                     '-1007': RequestTimeout, // {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
+                    // '-1009': ExchangeError, // undocumented
                     '-1010': BadResponse, // {"code":-1010,"msg":"ERROR_MSG_RECEIVED."}
                     '-1011': PermissionDenied, // {"code":-1011,"msg":"This IP cannot access this route."}
-                    '-1013': InvalidOrder, // {"code":-1013,"msg":"createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL"}
+                    // '-1012': ExchangeError, // undocumented
+                    '-1013': InvalidOrder, // {"code":-1013,"msg":"createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL"} | -1013 INVALID_MESSAGE
                     '-1014': InvalidOrder, // {"code":-1014,"msg":"Unsupported order combination."}
                     '-1015': RateLimitExceeded, // {"code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'"}
-                    '-1016': ExchangeNotAvailable, // {"code":-1016,"msg":"'This service is no longer available.',"}
+                    '-1016': BadRequest, // {"code":-1016,"msg":"'This service is no longer available.',"}
                     '-1020': BadRequest, // {"code":-1020,"msg":"'This operation is not supported.'"}
                     '-1021': InvalidNonce, // {"code":-1021,"msg":"'your time is ahead of server'"}
                     '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
-                    '-1023': BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
-                    '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
                     '-1100': BadRequest, // {"code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'"}
                     '-1101': BadRequest, // {"code":-1101,"msg":"Too many parameters; expected %s and received %s."}
                     '-1102': BadRequest, // {"code":-1102,"msg":"Param %s or %s must be sent, but both were empty"}
