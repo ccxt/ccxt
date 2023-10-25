@@ -1,9 +1,9 @@
 import Exchange from './abstract/coinlist.js';
-import { AuthenticationError } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int } from './base/types.js'; // OrderSide, OrderType
+import { Int, OrderSide, OrderType } from './base/types.js';
 
 /**
  * @class coinlist
@@ -31,14 +31,14 @@ export default class coinlist extends Exchange {
                 'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': false,
+                'cancelOrders': true,
                 'createDepositAddress': false,
-                'createOrder': false,
-                'createPostOnlyOrder': false,
+                'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
-                'createStopLimitOrder': false,
-                'createStopMarketOrder': false,
-                'createStopOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'deposit': false,
                 'editOrder': false,
                 'fetchAccounts': true,
@@ -133,36 +133,41 @@ export default class coinlist extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v1/time': 1,
-                        'v1/symbols': 1,
-                        'v1/symbols/summary': 1,
-                        'v1/symbols/{symbol}/summary': 1,
-                        'v1/symbols/{symbol}/book': 1,
-                        'v1/symbols/{symbol}/candles': 1,
-                        'v1/symbols/{symbol}/auctions': 1,
+                        'v1/time': { 'bulk': false },
+                        'v1/symbols': { 'bulk': false },
+                        'v1/symbols/summary': { 'bulk': false },
+                        'v1/symbols/{symbol}/summary': { 'bulk': false },
+                        'v1/symbols/{symbol}/book': { 'bulk': false },
+                        'v1/symbols/{symbol}/candles': { 'bulk': false },
+                        'v1/symbols/{symbol}/auctions': { 'bulk': false },
                         // Not unified -------------------------------
-                        'v1/symbols/{symbol}': 1, // returns one market
-                        'v1/symbols/{symbol}/quote': 1, // returns lv1 book (last trade and the best bid and ask)
-                        'v1/symbols/{symbol}/auctions/{auction_code}': 1, // retruns one trade by trade id
+                        'v1/symbols/{symbol}': { 'bulk': false }, // returns one market
+                        'v1/symbols/{symbol}/quote': { 'bulk': false }, // returns lv1 book (last trade and the best bid and ask)
+                        'v1/symbols/{symbol}/auctions/{auction_code}': { 'bulk': false }, // retruns one trade by trade id
                         // ----------------------------------------------
                     },
                 },
                 'private': {
                     'get': {
-                        'v1/fees': 1,
-                        'v1/accounts': 1,
-                        'v1/balances': 1,
-                        'v1/fills': 1,
-                        'v1/orders': 1,
-                        'v1/orders/{order_id}': 1,
+                        'v1/fees': { 'bulk': false },
+                        'v1/accounts': { 'bulk': false },
+                        'v1/balances': { 'bulk': false },
+                        'v1/fills': { 'bulk': false },
+                        'v1/orders': { 'bulk': false },
+                        'v1/orders/{order_id}': { 'bulk': false },
                         // todo
                     },
                     'post': {
+                        'v1/orders': { 'bulk': false },
                         // todo
                     },
+                    'patch': {
+                        'v1/orders/{order_id}': { 'bulk': false },
+                    },
                     'delete': {
-                        'v1/orders': 1,
-                        'v1/orders/{order_id}': 1,
+                        'v1/orders': { 'bulk': false },
+                        'v1/orders/{order_id}': { 'bulk': false },
+                        'v1/orders/bulk': { 'bulk': true },
                         // todo
                     },
                 },
@@ -190,7 +195,10 @@ export default class coinlist extends Exchange {
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {
-        // todo
+        if (config['bulk']) {
+            const length = params.length;
+            return Math.ceil (length / 2);
+        }
         return 1;
     }
 
@@ -587,6 +595,7 @@ export default class coinlist extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
+        // todo: check for endpoint (are the auctions is the same as trades)
         const response = await this.publicGetV1SymbolsSymbolAuctions (this.extend (request, params));
         //
         //     {
@@ -641,8 +650,6 @@ export default class coinlist extends Exchange {
         //         "logical_time": "2019-08-24T14:15:22Z"
         //     }
         //
-        // createOrder
-        //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -660,7 +667,7 @@ export default class coinlist extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': undefined, // todo: check fee_type
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
@@ -1034,11 +1041,11 @@ export default class coinlist extends Exchange {
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
-         * @name coinsph#cancelOrder
+         * @name coinlist#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string} symbol not used by coinsph cancelOrder ()
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
+         * @param {string} symbol not used by coinlist cancelOrder ()
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -1050,9 +1057,119 @@ export default class coinlist extends Exchange {
         return response; // todo: check it
     }
 
+    async cancelOrders (ids, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#cancelOrders
+         * @description cancel multiple orders
+         * @param {string[]} ids order ids
+         * @param {string} symbol not used by coinlist cancelOrders ()
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        params = ids; // todo: how do we get 'body' of the request?
+        const response = await this.privateDeleteV1OrdersBulk (params);
+        return response; // todo: check
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'type': type,
+            'side': side,
+            'size': this.numberToString (this.amountToPrecision (symbol, amount)),
+        };
+        if (type === 'limit' || type === 'stop_limit' || type === 'take_limit') {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+            }
+            request['price'] = this.numberToString (this.priceToPrecision (symbol, price));
+        }
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly) {
+            params = this.omit (params, 'postOnly');
+            request['post_only'] = true;
+        }
+        const stopPrice = this.safeNumber (params, 'stopPrice', undefined);
+        if (stopPrice !== undefined) {
+            params = this.omit (params, 'stopPrice');
+            request['stop_price'] = stopPrice;
+            if (type === 'market') {
+                request['type'] = 'stop_market';
+            } else if (type === 'limit') {
+                request['type'] = 'stop_limit';
+            }
+        }
+        const response = await this.privatePostV1Orders (this.extend (request, params));
+        //
+        //     {
+        //         "client_id": "string",
+        //         "symbol": "string",
+        //         "type": "market",
+        //         "side": "buy",
+        //         "size": "string",
+        //         "price": "string",
+        //         "stop_price": "string",
+        //         "stop_trigger": "last",
+        //         "self_trade_prevention": "keep-newest",
+        //         "post_only": true,
+        //         "peg_price_type": "trailing-stop",
+        //         "peg_offset_value": "string",
+        //         "origin": "web"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#editOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'type': type,
+            'side': side,
+            'size': this.numberToString (this.amountToPrecision (symbol, amount)),
+        };
+        if (price !== undefined) {
+            request['price'] = this.numberToString (this.priceToPrecision (price, amount));
+        }
+        const response = await this.privatePatchV1OrdersOrderId (this.extend (request, params));
+        return this.parseOrder (response, market);
+    }
+
     parseOrder (order, market = undefined) {
         //
-        // fetchOrder, fetchOrders
+        // fetchOrder, fetchOrders, createOrder
         //     {
         //         "order_id": "93101167-9065-4b9c-b98b-5d789a3ed9fe",
         //         "client_id": "string",
@@ -1085,7 +1202,7 @@ export default class coinlist extends Exchange {
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const side = this.safeString (order, 'side');
         const price = this.safeString (order, 'price'); // todo: check for market orders
-        let stopPrice = this.safeString (order, 'stopPrice');
+        let stopPrice = this.safeString (order, 'stop_price');
         if (Precise.stringEq (stopPrice, '0')) { // todo: check for simple orders
             stopPrice = undefined;
         }
