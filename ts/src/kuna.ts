@@ -1918,7 +1918,10 @@ export default class kuna extends Exchange {
                 }
             }
         }
-        return { 'url': url, 'method': method, 'body': JSON.stringify (body), 'headers': headers };
+        if (body !== undefined) {
+            body = JSON.stringify (body);
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
