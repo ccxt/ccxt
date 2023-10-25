@@ -1950,6 +1950,9 @@ export default class kucoin extends Exchange {
                 }
             }
             const type = this.safeString (rawOrder, 'type');
+            if (type !== 'limit') {
+                throw new BadRequest (this.id + ' createOrders() only supports limit orders');
+            }
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
