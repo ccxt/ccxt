@@ -64,7 +64,7 @@ class bitget(Exchange, ImplicitAPI):
                 'editOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
+                'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
@@ -5766,6 +5766,192 @@ class bitget(Exchange, ImplicitAPI):
             'quoteValue': self.parse_number(quoteValueString),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+        }
+
+    def fetch_borrow_rate(self, code: str, params={}):
+        """
+        fetch the rate of interest to borrow a currency for margin trading
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-margin-interest-rate-and-max-borrowable-amount
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-margin-interest-rate-and-borrowable
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :param str [params.symbol]: required for isolated margin
+        :returns dict: a `borrow rate structure <https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        market = None
+        symbol = self.safe_string(params, 'symbol')
+        params = self.omit(params, 'symbol')
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {}
+        response = None
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBorrowRate', params, 'cross')
+        if (symbol is not None) or (marginMode == 'isolated'):
+            self.check_required_symbol('fetchBorrowRate', symbol)
+            request['symbol'] = market['info']['symbolName']
+            response = self.publicMarginGetIsolatedPublicInterestRateAndLimit(self.extend(request, params))
+        elif marginMode == 'cross':
+            request['coin'] = currency['code']
+            response = self.publicMarginGetCrossPublicInterestRateAndLimit(self.extend(request, params))
+        #
+        # isolated
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1698208075332,
+        #         "data": [
+        #             {
+        #                 "symbol": "BTCUSDT",
+        #                 "leverage": "10",
+        #                 "baseCoin": "BTC",
+        #                 "baseTransferInAble": True,
+        #                 "baseBorrowAble": True,
+        #                 "baseDailyInterestRate": "0.00007",
+        #                 "baseYearlyInterestRate": "0.02555",
+        #                 "baseMaxBorrowableAmount": "35",
+        #                 "baseVips": [
+        #                     {
+        #                         "level": "0",
+        #                         "dailyInterestRate": "0.00007",
+        #                         "yearlyInterestRate": "0.02555",
+        #                         "discountRate": "1"
+        #                     },
+        #                 ],
+        #                 "quoteCoin": "USDT",
+        #                 "quoteTransferInAble": True,
+        #                 "quoteBorrowAble": True,
+        #                 "quoteDailyInterestRate": "0.00012627",
+        #                 "quoteYearlyInterestRate": "0.04608855",
+        #                 "quoteMaxBorrowableAmount": "300000",
+        #                 "quoteVips": [
+        #                     {
+        #                         "level": "0",
+        #                         "dailyInterestRate": "0.000126279",
+        #                         "yearlyInterestRate": "0.046091835",
+        #                         "discountRate": "1"
+        #                     },
+        #                 ]
+        #             }
+        #         ]
+        #     }
+        #
+        # cross
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1698208150986,
+        #         "data": [
+        #             {
+        #                 "coin": "BTC",
+        #                 "leverage": "3",
+        #                 "transferInAble": True,
+        #                 "borrowAble": True,
+        #                 "dailyInterestRate": "0.00007",
+        #                 "yearlyInterestRate": "0.02555",
+        #                 "maxBorrowableAmount": "26",
+        #                 "vips": [
+        #                     {
+        #                         "level": "0",
+        #                         "dailyInterestRate": "0.00007",
+        #                         "yearlyInterestRate": "0.02555",
+        #                         "discountRate": "1"
+        #                     },
+        #                 ]
+        #             }
+        #         ]
+        #     }
+        #
+        timestamp = self.safe_integer(response, 'requestTime')
+        data = self.safe_value(response, 'data', [])
+        first = self.safe_value(data, 0, {})
+        first['timestamp'] = timestamp
+        return self.parse_borrow_rate(first, currency)
+
+    def parse_borrow_rate(self, info, currency=None):
+        #
+        # isolated
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "leverage": "10",
+        #         "baseCoin": "BTC",
+        #         "baseTransferInAble": True,
+        #         "baseBorrowAble": True,
+        #         "baseDailyInterestRate": "0.00007",
+        #         "baseYearlyInterestRate": "0.02555",
+        #         "baseMaxBorrowableAmount": "35",
+        #         "baseVips": [
+        #             {
+        #                 "level": "0",
+        #                 "dailyInterestRate": "0.00007",
+        #                 "yearlyInterestRate": "0.02555",
+        #                 "discountRate": "1"
+        #             },
+        #         ],
+        #         "quoteCoin": "USDT",
+        #         "quoteTransferInAble": True,
+        #         "quoteBorrowAble": True,
+        #         "quoteDailyInterestRate": "0.00012627",
+        #         "quoteYearlyInterestRate": "0.04608855",
+        #         "quoteMaxBorrowableAmount": "300000",
+        #         "quoteVips": [
+        #             {
+        #                 "level": "0",
+        #                 "dailyInterestRate": "0.000126279",
+        #                 "yearlyInterestRate": "0.046091835",
+        #                 "discountRate": "1"
+        #             },
+        #         ]
+        #     }
+        #
+        # cross
+        #
+        #     {
+        #         "coin": "BTC",
+        #         "leverage": "3",
+        #         "transferInAble": True,
+        #         "borrowAble": True,
+        #         "dailyInterestRate": "0.00007",
+        #         "yearlyInterestRate": "0.02555",
+        #         "maxBorrowableAmount": "26",
+        #         "vips": [
+        #             {
+        #                 "level": "0",
+        #                 "dailyInterestRate": "0.00007",
+        #                 "yearlyInterestRate": "0.02555",
+        #                 "discountRate": "1"
+        #             },
+        #         ]
+        #     }
+        #
+        code = currency['code']
+        baseCoin = self.safe_string(info, 'baseCoin')
+        quoteCoin = self.safe_string(info, 'quoteCoin')
+        currencyId = None
+        interestRate = None
+        if baseCoin is not None:
+            if code == baseCoin:
+                currencyId = baseCoin
+                interestRate = self.safe_number(info, 'baseDailyInterestRate')
+            elif code == quoteCoin:
+                currencyId = quoteCoin
+                interestRate = self.safe_number(info, 'quoteDailyInterestRate')
+        else:
+            currencyId = self.safe_string(info, 'coin')
+            interestRate = self.safe_number(info, 'dailyInterestRate')
+        timestamp = self.safe_integer(info, 'timestamp')
+        return {
+            'currency': self.safe_currency_code(currencyId, currency),
+            'rate': interestRate,
+            'period': 86400000,  # 1-Day
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
         }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

@@ -46,7 +46,7 @@ class bitget extends Exchange {
                 'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
+                'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
@@ -6170,6 +6170,200 @@ class bitget extends Exchange {
             'quoteValue' => $this->parse_number($quoteValueString),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function fetch_borrow_rate(string $code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the rate of interest to borrow a $currency for margin trading
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-margin-interest-rate-and-max-borrowable-amount
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-margin-interest-rate-and-borrowable
+             * @param {string} $code unified $currency $code
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @param {string} [$params->symbol] required for isolated margin
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $market = null;
+            $symbol = $this->safe_string($params, 'symbol');
+            $params = $this->omit($params, 'symbol');
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $request = array();
+            $response = null;
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowRate', $params, 'cross');
+            if (($symbol !== null) || ($marginMode === 'isolated')) {
+                $this->check_required_symbol('fetchBorrowRate', $symbol);
+                $request['symbol'] = $market['info']['symbolName'];
+                $response = Async\await($this->publicMarginGetIsolatedPublicInterestRateAndLimit (array_merge($request, $params)));
+            } elseif ($marginMode === 'cross') {
+                $request['coin'] = $currency['code'];
+                $response = Async\await($this->publicMarginGetCrossPublicInterestRateAndLimit (array_merge($request, $params)));
+            }
+            //
+            // isolated
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1698208075332,
+            //         "data" => array(
+            //             {
+            //                 "symbol" => "BTCUSDT",
+            //                 "leverage" => "10",
+            //                 "baseCoin" => "BTC",
+            //                 "baseTransferInAble" => true,
+            //                 "baseBorrowAble" => true,
+            //                 "baseDailyInterestRate" => "0.00007",
+            //                 "baseYearlyInterestRate" => "0.02555",
+            //                 "baseMaxBorrowableAmount" => "35",
+            //                 "baseVips" => array(
+            //                     array(
+            //                         "level" => "0",
+            //                         "dailyInterestRate" => "0.00007",
+            //                         "yearlyInterestRate" => "0.02555",
+            //                         "discountRate" => "1"
+            //                     ),
+            //                 ),
+            //                 "quoteCoin" => "USDT",
+            //                 "quoteTransferInAble" => true,
+            //                 "quoteBorrowAble" => true,
+            //                 "quoteDailyInterestRate" => "0.00012627",
+            //                 "quoteYearlyInterestRate" => "0.04608855",
+            //                 "quoteMaxBorrowableAmount" => "300000",
+            //                 "quoteVips" => array(
+            //                     array(
+            //                         "level" => "0",
+            //                         "dailyInterestRate" => "0.000126279",
+            //                         "yearlyInterestRate" => "0.046091835",
+            //                         "discountRate" => "1"
+            //                     ),
+            //                 )
+            //             }
+            //         )
+            //     }
+            //
+            // cross
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1698208150986,
+            //         "data" => array(
+            //             {
+            //                 "coin" => "BTC",
+            //                 "leverage" => "3",
+            //                 "transferInAble" => true,
+            //                 "borrowAble" => true,
+            //                 "dailyInterestRate" => "0.00007",
+            //                 "yearlyInterestRate" => "0.02555",
+            //                 "maxBorrowableAmount" => "26",
+            //                 "vips" => array(
+            //                     array(
+            //                         "level" => "0",
+            //                         "dailyInterestRate" => "0.00007",
+            //                         "yearlyInterestRate" => "0.02555",
+            //                         "discountRate" => "1"
+            //                     ),
+            //                 )
+            //             }
+            //         )
+            //     }
+            //
+            $timestamp = $this->safe_integer($response, 'requestTime');
+            $data = $this->safe_value($response, 'data', array());
+            $first = $this->safe_value($data, 0, array());
+            $first['timestamp'] = $timestamp;
+            return $this->parse_borrow_rate($first, $currency);
+        }) ();
+    }
+
+    public function parse_borrow_rate($info, $currency = null) {
+        //
+        // isolated
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "leverage" => "10",
+        //         "baseCoin" => "BTC",
+        //         "baseTransferInAble" => true,
+        //         "baseBorrowAble" => true,
+        //         "baseDailyInterestRate" => "0.00007",
+        //         "baseYearlyInterestRate" => "0.02555",
+        //         "baseMaxBorrowableAmount" => "35",
+        //         "baseVips" => array(
+        //             array(
+        //                 "level" => "0",
+        //                 "dailyInterestRate" => "0.00007",
+        //                 "yearlyInterestRate" => "0.02555",
+        //                 "discountRate" => "1"
+        //             ),
+        //         ),
+        //         "quoteCoin" => "USDT",
+        //         "quoteTransferInAble" => true,
+        //         "quoteBorrowAble" => true,
+        //         "quoteDailyInterestRate" => "0.00012627",
+        //         "quoteYearlyInterestRate" => "0.04608855",
+        //         "quoteMaxBorrowableAmount" => "300000",
+        //         "quoteVips" => array(
+        //             array(
+        //                 "level" => "0",
+        //                 "dailyInterestRate" => "0.000126279",
+        //                 "yearlyInterestRate" => "0.046091835",
+        //                 "discountRate" => "1"
+        //             ),
+        //         )
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "coin" => "BTC",
+        //         "leverage" => "3",
+        //         "transferInAble" => true,
+        //         "borrowAble" => true,
+        //         "dailyInterestRate" => "0.00007",
+        //         "yearlyInterestRate" => "0.02555",
+        //         "maxBorrowableAmount" => "26",
+        //         "vips" => array(
+        //             array(
+        //                 "level" => "0",
+        //                 "dailyInterestRate" => "0.00007",
+        //                 "yearlyInterestRate" => "0.02555",
+        //                 "discountRate" => "1"
+        //             ),
+        //         )
+        //     }
+        //
+        $code = $currency['code'];
+        $baseCoin = $this->safe_string($info, 'baseCoin');
+        $quoteCoin = $this->safe_string($info, 'quoteCoin');
+        $currencyId = null;
+        $interestRate = null;
+        if ($baseCoin !== null) {
+            if ($code === $baseCoin) {
+                $currencyId = $baseCoin;
+                $interestRate = $this->safe_number($info, 'baseDailyInterestRate');
+            } elseif ($code === $quoteCoin) {
+                $currencyId = $quoteCoin;
+                $interestRate = $this->safe_number($info, 'quoteDailyInterestRate');
+            }
+        } else {
+            $currencyId = $this->safe_string($info, 'coin');
+            $interestRate = $this->safe_number($info, 'dailyInterestRate');
+        }
+        $timestamp = $this->safe_integer($info, 'timestamp');
+        return array(
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'rate' => $interestRate,
+            'period' => 86400000, // 1-Day
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
         );
     }
 
