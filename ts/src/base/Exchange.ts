@@ -882,16 +882,17 @@ export default class Exchange {
     socksProxyAgentModule:any = undefined;
     socksProxyAgentModuleChecked:boolean = false;
     proxyDictionaries:any = {};
+    proxyModulesLoaded:boolean = false;
 
     async loadProxyModules () {
+        if (this.proxyModulesLoaded) {
+            return;
+        }
+        this.proxyModulesLoaded = true;
         // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-        if (this.httpProxyAgentModule === undefined) {
-            this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
-        }
-        if (this.httpsProxyAgentModule === undefined) {
-            this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
-        }
-        if (this.socksProxyAgentModule === undefined && this.socksProxyAgentModuleChecked === false) {
+        this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
+        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+        if (this.socksProxyAgentModuleChecked === false) {
             this.socksProxyAgentModuleChecked = true;
             try {
                 // @ts-ignore
