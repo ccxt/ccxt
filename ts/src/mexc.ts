@@ -2298,7 +2298,9 @@ export default class mexc extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeValue (rawOrder, 'params', {});
-            const orderRequest = this.createSpotOrderRequest (market, type, side, amount, price, orderParams);
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+            const orderRequest = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, orderParams);
             ordersRequests.push (orderRequest);
         }
         const request = {
