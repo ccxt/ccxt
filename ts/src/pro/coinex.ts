@@ -1035,11 +1035,16 @@ export default class coinex extends coinexRest {
         //         id: 1
         //     }
         //
-        const messageHashSpot = 'authenticated:spot';
-        const messageHashSwap = 'authenticated:swap';
-        client.resolve (message, messageHashSpot);
-        client.resolve (message, messageHashSwap);
-        return message;
+        const messageHashSpot = 'authenticated-spot';
+        const messageHashSwap = 'authenticated-swap';
+        const spotFuture = this.safeValue (client.futures, messageHashSpot);
+        if (spotFuture !== undefined) {
+            spotFuture.resolve (true);
+        }
+        const swapFuture = this.safeValue (client.futures, messageHashSwap);
+        if (swapFuture !== undefined) {
+            swapFuture.resolve (true);
+        }
     }
 
     handleSubscriptionStatus (client: Client, message) {
@@ -1058,62 +1063,44 @@ export default class coinex extends coinexRest {
         }
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
         const time = this.milliseconds ();
-        if (type === 'spot') {
-            const messageHash = 'authenticated:spot';
-            let future = this.safeValue (client.subscriptions, messageHash);
-            if (future !== undefined) {
-                return future;
-            }
+        const messageHash = (type === 'spot') ? 'authenticated-spot' : 'authenticated-swap';
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const requestId = this.requestId ();
             const subscribe = {
                 'id': requestId,
-                'future': 'authenticated:spot',
+                'future': messageHash,
             };
-            const signData = 'access_id=' + this.apiKey + '&tonce=' + this.numberToString (time) + '&secret_key=' + this.secret;
-            const hash = this.hash (this.encode (signData), md5);
             const request = {
                 'method': 'server.sign',
-                'params': [
+                'id': requestId,
+            };
+            if (type === 'spot') {
+                const signData = 'access_id=' + this.apiKey + '&tonce=' + this.numberToString (time) + '&secret_key=' + this.secret;
+                const hash = this.hash (this.encode (signData), md5);
+                request['params'] = [
                     this.apiKey,
                     hash.toUpperCase (),
                     time,
-                ],
-                'id': requestId,
-            };
-            future = this.watch (url, messageHash, request, requestId, subscribe);
-            client.subscriptions[messageHash] = future;
-            return future;
-        } else {
-            const messageHash = 'authenticated:swap';
-            let future = this.safeValue (client.subscriptions, messageHash);
-            if (future !== undefined) {
-                return future;
-            }
-            const requestId = this.requestId ();
-            const subscribe = {
-                'id': requestId,
-                'future': 'authenticated:swap',
-            };
-            const signData = 'access_id=' + this.apiKey + '&timestamp=' + this.numberToString (time) + '&secret_key=' + this.secret;
-            const hash = this.hash (this.encode (signData), sha256, 'hex');
-            const request = {
-                'method': 'server.sign',
-                'params': [
+                ];
+            } else {
+                const signData = 'access_id=' + this.apiKey + '&timestamp=' + this.numberToString (time) + '&secret_key=' + this.secret;
+                const hash = this.hash (this.encode (signData), sha256, 'hex');
+                request['params'] = [
                     this.apiKey,
                     hash.toLowerCase (),
                     time,
-                ],
-                'id': requestId,
-            };
-            future = this.watch (url, messageHash, request, requestId, subscribe);
-            client.subscriptions[messageHash] = future;
-            return future;
+                ];
+            }
+            this.watch (url, messageHash, request, requestId, subscribe);
         }
+        return future;
     }
 }
