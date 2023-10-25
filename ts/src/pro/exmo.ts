@@ -647,16 +647,18 @@ export default class exmo extends exmoRest {
         //     }
         //
         const messageHash = 'authenticated';
-        client.resolve (message, messageHash);
+        const future = this.safeValue (client.futures, messageHash);
+        future.resolve (true);
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         const messageHash = 'authenticated';
         const [ type, query ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const time = this.milliseconds ();
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
@@ -670,8 +672,7 @@ export default class exmo extends exmoRest {
                 'nonce': time,
             };
             const message = this.extend (request, query);
-            future = this.watch (url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch (url, messageHash, message, messageHash);
         }
         return future;
     }
