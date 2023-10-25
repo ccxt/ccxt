@@ -1897,7 +1897,11 @@ export default class kucoin extends Exchange {
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
         if (testOrder) {
-            response = await this.privatePostOrdersTest (orderRequest);
+            if (isMarginOrder) {
+                response = await this.privatePostMarginOrderTest (orderRequest);
+            } else {
+                response = await this.privatePostOrdersTest (orderRequest);
+            }
         } else if (isHf) {
             response = await this.privatePostHfOrders (orderRequest);
         } else if (isTriggerOrder) {
