@@ -2090,7 +2090,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    async createSpotOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
+    createSpotOrderRequest (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         const symbol = market['symbol'];
         const orderSide = (side === 'buy') ? 'BUY' : 'SELL';
         const request = {
@@ -2124,19 +2124,28 @@ export default class mexc extends Exchange {
             request['newClientOrderId'] = clientOrderId;
             params = this.omit (params, [ 'type', 'clientOrderId' ]);
         }
-        let method = 'spotPrivatePostOrder';
         if (marginMode !== undefined) {
             if (marginMode !== 'isolated') {
                 throw new BadRequest (this.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
             }
-            method = 'spotPrivatePostMarginOrder';
         }
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'LIMIT_MAKER', params);
         if (postOnly) {
             request['type'] = 'LIMIT_MAKER';
         }
-        const response = await this[method] (this.extend (request, params));
+        return this.extend (request, params);
+    }
+
+    async createSpotOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, params);
+        let response = undefined;
+        if (marginMode !== undefined) {
+            response = await this.spotPrivatePostMarginOrder (this.extend (request, params));
+        } else {
+            response = await this.spotPrivatePostOrder (this.extend (request, params));
+        }
         //
         // spot
         //
