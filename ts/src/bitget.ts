@@ -6265,8 +6265,11 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
+        const timestamp = this.safeInteger (response, 'requestTime');
         const data = this.safeValue (response, 'data', []);
-        return this.parseBorrowRate (data[0], currency);
+        const first = this.safeValue (data, 0, {});
+        first['timestamp'] = timestamp;
+        return this.parseBorrowRate (first, currency);
     }
 
     parseBorrowRate (info, currency = undefined) {
@@ -6343,12 +6346,13 @@ export default class bitget extends Exchange {
             currencyId = this.safeString (info, 'coin');
             interestRate = this.safeNumber (info, 'dailyInterestRate');
         }
+        const timestamp = this.safeInteger (info, 'timestamp');
         return {
             'currency': this.safeCurrencyCode (currencyId, currency),
             'rate': interestRate,
             'period': 86400000, // 1-Day
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'info': info,
         };
     }
