@@ -2596,6 +2596,7 @@ export default class kucoin extends Exchange {
         const stop = responseStop !== undefined;
         const stopTriggered = this.safeValue (order, 'stopTriggered', false);
         const isActive = this.safeValue2 (order, 'isActive', 'active');
+        const responseStatus = this.safeString (order, 'status');
         let status = undefined;
         if (isActive !== undefined) {
             if (isActive === true) {
@@ -2605,7 +2606,6 @@ export default class kucoin extends Exchange {
             }
         }
         if (stop) {
-            const responseStatus = this.safeString (order, 'status');
             if (responseStatus === 'NEW') {
                 status = 'open';
             } else if (!isActive && !stopTriggered) {
@@ -2614,6 +2614,9 @@ export default class kucoin extends Exchange {
         }
         if (cancelExist) {
             status = 'canceled';
+        }
+        if (responseStatus === 'fail') {
+            status = 'rejected';
         }
         const stopPrice = this.safeNumber (order, 'stopPrice');
         return this.safeOrder ({
