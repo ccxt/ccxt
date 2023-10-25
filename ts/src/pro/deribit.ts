@@ -811,19 +811,20 @@ export default class deribit extends deribitRest {
         //     }
         //
         const messageHash = 'authenticated';
-        client.resolve (message, messageHash);
-        return message;
+        const future = this.safeValue (client.futures, messageHash);
+        future.resolve (true);
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const time = this.milliseconds ();
         const timeString = this.numberToString (time);
         const nonce = timeString;
         const messageHash = 'authenticated';
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
             const signature = this.hmac (this.encode (timeString + '\n' + nonce + '\n'), this.encode (this.secret), sha256);
@@ -840,8 +841,7 @@ export default class deribit extends deribitRest {
                     'data': '',
                 },
             };
-            future = this.watch (url, messageHash, this.extend (request, params));
-            client.subscriptions[messageHash] = future;
+            this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
         return future;
     }
