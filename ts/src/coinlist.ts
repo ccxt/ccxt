@@ -1,9 +1,9 @@
 import Exchange from './abstract/coinlist.js';
 import { AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-// import { Precise } from './base/Precise.js';
+import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-// import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int } from './base/types.js'; // OrderSide, OrderType
 
 /**
  * @class coinlist
@@ -78,10 +78,10 @@ export default class coinlist extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositions': false,
@@ -152,6 +152,8 @@ export default class coinlist extends Exchange {
                         'v1/accounts': 1,
                         'v1/balances': 1,
                         'v1/fills': 1,
+                        'v1/orders': 1,
+                        'v1/orders/{order_id}': 1,
                         // todo
                     },
                     'post': {
@@ -868,6 +870,201 @@ export default class coinlist extends Exchange {
             'order_id': id,
         };
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this.privateGetV1Orders (this.extend (request, params));
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "order_id": "93101167-9065-4b9c-b98b-5d789a3ed9fe",
+        //                 "client_id": "string",
+        //                 "symbol": "string",
+        //                 "type": "market",
+        //                 "side": "buy",
+        //                 "size": "string",
+        //                 "price": "string",
+        //                 "stop_price": "string",
+        //                 "stop_trigger": "last",
+        //                 "self_trade_prevention": "keep-newest",
+        //                 "average_fill_price": "string",
+        //                 "fill_fees": "string",
+        //                 "size_filled": "string",
+        //                 "created_at": "2019-08-24T14:15:22Z",
+        //                 "epoch_timestamp": "2019-08-24T14:15:22Z",
+        //                 "post_only": true,
+        //                 "peg_price_type": "trailing-stop",
+        //                 "peg_offset_value": "string",
+        //                 "origin": "web",
+        //                 "status": "pending"
+        //             }
+        //         ]
+        //     }
+        //
+        const orders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {int|string} id order id
+         * @param {string} symbol not used by coinlist fetchOrder ()
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'order_id': id,
+        };
+        const response = await this.privateGetV1OrdersOrderId (this.extend (request, params));
+        //
+        //     {
+        //         "order_id": "93101167-9065-4b9c-b98b-5d789a3ed9fe",
+        //         "client_id": "string",
+        //         "symbol": "string",
+        //         "type": "market",
+        //         "side": "buy",
+        //         "size": "string",
+        //         "price": "string",
+        //         "stop_price": "string",
+        //         "stop_trigger": "last",
+        //         "self_trade_prevention": "keep-newest",
+        //         "average_fill_price": "string",
+        //         "fill_fees": "string",
+        //         "size_filled": "string",
+        //         "created_at": "2019-08-24T14:15:22Z",
+        //         "epoch_timestamp": "2019-08-24T14:15:22Z",
+        //         "post_only": true,
+        //         "peg_price_type": "trailing-stop",
+        //         "peg_offset_value": "string",
+        //         "origin": "web",
+        //         "status": "pending"
+        //     }
+        //
+        return this.parseOrder (response);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // fetchOrders
+        //     {
+        //         "order_id": "93101167-9065-4b9c-b98b-5d789a3ed9fe",
+        //         "client_id": "string",
+        //         "symbol": "string",
+        //         "type": "market",
+        //         "side": "buy",
+        //         "size": "string",
+        //         "price": "string",
+        //         "stop_price": "string",
+        //         "stop_trigger": "last",
+        //         "self_trade_prevention": "keep-newest",
+        //         "average_fill_price": "string",
+        //         "fill_fees": "string",
+        //         "size_filled": "string",
+        //         "created_at": "2019-08-24T14:15:22Z",
+        //         "epoch_timestamp": "2019-08-24T14:15:22Z",
+        //         "post_only": true,
+        //         "peg_price_type": "trailing-stop",
+        //         "peg_offset_value": "string",
+        //         "origin": "web",
+        //         "status": "pending"
+        //     }
+        //
+        const id = this.safeString (order, 'orderId');
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const clientOrderId = this.safeString (order, 'clientOrderId');
+        const timestamp = this.parse8601 (this.safeString (order, 'created_at', undefined));
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const type = this.parseOrderType (this.safeString (order, 'type'));
+        const side = this.safeString (order, 'side');
+        const price = this.safeString (order, 'price'); // todo: check for market orders
+        let stopPrice = this.safeString (order, 'stopPrice');
+        if (Precise.stringEq (stopPrice, '0')) { // todo: check for simple orders
+            stopPrice = undefined;
+        }
+        const average = this.safeString (order, 'average_fill_price');
+        const amount = this.safeString (order, 'size');
+        const filled = this.safeString (order, 'size_filled');
+        const feeCost = this.safeString (order, 'fill_fees');
+        const fee = {
+            'currency': 'USD',
+            'cost': feeCost,
+            'rate': undefined,
+        };
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': 'GTC',
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'average': average,
+            'amount': amount,
+            'cost': undefined,
+            'filled': filled,
+            'remaining': undefined,
+            'fee': fee,
+            'trades': undefined,
+            'info': order,
+        }, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'pending': 'open', // todo: check
+            'accepted': 'open',
+            'rejected': 'rejected',
+            'done': 'closed',
+            'canceled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (status) {
+        const statuses = {
+            'market': 'market',
+            'limit': 'limit',
+            'stop_market': 'market',
+            'stop_limit': 'limit',
+            'take_market': 'market',
+            'take_limit': 'limit',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
