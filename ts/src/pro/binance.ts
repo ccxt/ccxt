@@ -1342,19 +1342,17 @@ export default class binance extends binanceRest {
     }
 
     setBalanceCache (client: Client, type) {
-        if (type in client.subscriptions) {
-            return undefined;
+        if (type in this.balance) {
+            return;
         }
-        const options = this.safeValue (this.options, 'watchBalance');
-        const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
+        this.balance[type] = {};
+        const fetchBalanceSnapshot = this.handleOption ('watchBalance', 'fetchBalanceSnapshot', false);
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
                 this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
             }
-        } else {
-            this.balance[type] = {};
         }
     }
 
@@ -1363,7 +1361,7 @@ export default class binance extends binanceRest {
         this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
-        future.resolve ();
+        future.resolve (this.balance[type]);
         client.resolve (this.balance[type], type + ':balance');
     }
 
@@ -1472,11 +1470,10 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
-        const options = this.safeValue (this.options, 'watchBalance');
-        const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
-        const awaitBalanceSnapshot = this.safeValue (options, 'awaitBalanceSnapshot', true);
-        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
-            await client.future (type + ':fetchBalanceSnapshot');
+        const fetchBalanceSnapshot = this.handleOption ('watchBalance', 'fetchBalanceSnapshot', false);
+        const awaitBalanceSnapshot = this.handleOption ('watchBalance', 'awaitBalanceSnapshot', true);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot && this.isEmpty (this.balance[type])) {
+            return await client.future (type + ':fetchBalanceSnapshot');
         }
         const messageHash = type + ':balance';
         const message = undefined;
