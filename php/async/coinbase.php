@@ -1100,6 +1100,7 @@ class coinbase extends Exchange {
                             'max' => $this->safe_number($market, 'quote_max_size'),
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -1251,7 +1252,7 @@ class coinbase extends Exchange {
                 $symbol = $market['symbol'];
                 $result[$symbol] = $this->parse_ticker($rates[$baseId], $market);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -1306,7 +1307,7 @@ class coinbase extends Exchange {
                 $symbol = $market['symbol'];
                 $result[$symbol] = $this->parse_ticker($entry, $market);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -1386,10 +1387,9 @@ class coinbase extends Exchange {
             //
             $data = $this->safe_value($response, 'trades', array());
             $ticker = $this->parse_ticker($data[0], $market);
-            return array_merge($ticker, array(
-                'bid' => $this->safe_number($response, 'best_bid'),
-                'ask' => $this->safe_number($response, 'best_ask'),
-            ));
+            $ticker['bid'] = $this->safe_number($response, 'best_bid');
+            $ticker['ask'] = $this->safe_number($response, 'best_ask');
+            return $ticker;
         }) ();
     }
 
@@ -2456,7 +2456,7 @@ class coinbase extends Exchange {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
              * @param {int} [$params->until] the latest time in ms to fetch trades for
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
@@ -2626,7 +2626,7 @@ class coinbase extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {int} [$params->until] the latest time in ms to fetch trades for
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
@@ -2649,7 +2649,7 @@ class coinbase extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] the maximum number of closed order structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {int} [$params->until] the latest time in ms to fetch trades for
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
@@ -2689,7 +2689,7 @@ class coinbase extends Exchange {
              * @param {int} [$limit] the maximum amount of $candles to fetch, not used by coinbase
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
              * @param {int} [$params->until] the latest time in ms to fetch trades for
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -2815,7 +2815,7 @@ class coinbase extends Exchange {
              * @param {int} [$limit] the maximum number of trade structures to fetch
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
              * @param {int} [$params->until] the latest time in ms to fetch $trades for
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());

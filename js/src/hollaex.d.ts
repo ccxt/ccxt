@@ -1,5 +1,5 @@
 import Exchange from './abstract/hollaex.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Dictionary, Int, OrderBook, OrderSide, OrderType } from './base/types.js';
 /**
  * @class hollaex
  * @extends Exchange
@@ -8,11 +8,11 @@ export default class hollaex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<{}>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
-    parseTickers(response: any, symbols?: string[], params?: {}): any;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<import("./base/types.js").Ticker>>;
+    parseTickers(response: any, symbols?: string[], params?: {}): Dictionary<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;

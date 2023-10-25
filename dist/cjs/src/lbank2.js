@@ -421,6 +421,7 @@ class lbank2 extends lbank2$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -517,6 +518,7 @@ class lbank2 extends lbank2$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1505,8 +1507,10 @@ class lbank2 extends lbank2$1 {
             const options = this.safeValue(this.options, 'fetchOrder', {});
             method = this.safeString(options, 'method', 'fetchOrderSupplement');
         }
-        const result = await this[method](id, symbol, params);
-        return result;
+        if (method === 'fetchOrderSupplement') {
+            return await this.fetchOrderSupplement(id, symbol, params);
+        }
+        return await this.fetchOrderDefault(id, symbol, params);
     }
     async fetchOrderSupplement(id, symbol = undefined, params = {}) {
         this.checkRequiredSymbol('fetchOrder', symbol);
@@ -1577,12 +1581,13 @@ class lbank2 extends lbank2$1 {
             return this.parseOrder(result[0]);
         }
         else {
-            const parsedOrders = [];
-            for (let i = 0; i < numOrders; i++) {
-                const parsedOrder = this.parseOrder(result[i]);
-                parsedOrders.push(parsedOrder);
-            }
-            return parsedOrders;
+            // const parsedOrders = [];
+            // for (let i = 0; i < numOrders; i++) {
+            //     const parsedOrder = this.parseOrder (result[i]);
+            //     parsedOrders.push (parsedOrder);
+            // }
+            // return parsedOrders;
+            throw new errors.BadRequest(this.id + ' fetchOrder() can only fetch one order at a time');
         }
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {

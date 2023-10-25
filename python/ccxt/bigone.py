@@ -571,6 +571,7 @@ class bigone(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'max_quote_value'),
                     },
                 },
+                'created': None,
                 'info': market,
             }
             result.append(entry)
@@ -713,7 +714,7 @@ class bigone(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_time(self, params={}):
         """
@@ -1128,7 +1129,7 @@ class bigone(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://open.big.one/docs/spot_orders.html#create-order
+        :see: https://open.big.one/docs/spot_orders.html#create-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1686,7 +1687,7 @@ class bigone(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
-        see https://open.big.one/docs/spot_transfer.html#transfer-of-user
+        :see: https://open.big.one/docs/spot_transfer.html#transfer-of-user
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: 'SPOT', 'FUND', or 'CONTRACT'

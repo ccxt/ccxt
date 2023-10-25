@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -155,6 +155,7 @@ export default class kraken extends Exchange {
                         'Depth': 1,
                         'OHLC': 1,
                         'Spread': 1,
+                        'SystemStatus': 1,
                         'Ticker': 1,
                         'Time': 1,
                         'Trades': 1,
@@ -167,6 +168,7 @@ export default class kraken extends Exchange {
                         'AddExport': 3,
                         'Balance': 3,
                         'CancelAll': 3,
+                        'CancelAllOrdersAfter': 3,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
                         'ClosedOrders': 6,
@@ -202,6 +204,13 @@ export default class kraken extends Exchange {
                         // sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
+                        // earn
+                        'Earn/Allocate': 3,
+                        'Earn/Deallocate': 3,
+                        'Earn/AllocateStatus': 3,
+                        'Earn/DeallocateStatus': 3,
+                        'Earn/Strategies': 3,
+                        'Earn/Allocations': 3,
                     },
                 },
             },
@@ -491,6 +500,7 @@ export default class kraken extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -814,7 +824,7 @@ export default class kraken extends Exchange {
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -875,14 +885,14 @@ export default class kraken extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 720);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 720) as OHLCV[];
         }
         const market = this.market (symbol);
         const parsedTimeframe = this.safeInteger (this.timeframes, timeframe);
@@ -957,7 +967,7 @@ export default class kraken extends Exchange {
         } else {
             direction = 'in';
         }
-        const timestamp = this.safeIntegerProduct (item, 'time', 1000);
+        const timestamp = this.safeTimestamp (item, 'time');
         return {
             'info': item,
             'id': id,
@@ -1715,7 +1725,8 @@ export default class kraken extends Exchange {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
         }
         const order = this.parseOrder (this.extend ({ 'id': id }, result[id]));
-        return this.extend ({ 'info': response }, order);
+        order['info'] = order;
+        return order;
     }
 
     async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1797,7 +1808,7 @@ export default class kraken extends Exchange {
             const tradesFilteredBySymbol = this.filterBySymbol (trades, symbol);
             result = this.arrayConcat (result, tradesFilteredBySymbol);
         }
-        return result;
+        return result as Trade[];
     }
 
     async fetchOrdersByIds (ids, symbol: string = undefined, params = {}) {

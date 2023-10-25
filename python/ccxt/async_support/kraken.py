@@ -174,6 +174,7 @@ class kraken(Exchange, ImplicitAPI):
                         'Depth': 1,
                         'OHLC': 1,
                         'Spread': 1,
+                        'SystemStatus': 1,
                         'Ticker': 1,
                         'Time': 1,
                         'Trades': 1,
@@ -186,6 +187,7 @@ class kraken(Exchange, ImplicitAPI):
                         'AddExport': 3,
                         'Balance': 3,
                         'CancelAll': 3,
+                        'CancelAllOrdersAfter': 3,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
                         'ClosedOrders': 6,
@@ -221,6 +223,13 @@ class kraken(Exchange, ImplicitAPI):
                         # sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
+                        # earn
+                        'Earn/Allocate': 3,
+                        'Earn/Deallocate': 3,
+                        'Earn/AllocateStatus': 3,
+                        'Earn/DeallocateStatus': 3,
+                        'Earn/Strategies': 3,
+                        'Earn/Allocations': 3,
                     },
                 },
             },
@@ -374,7 +383,7 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}):
         """
         retrieves data on all markets for kraken
-        see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTradableAssetPairs
+        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getTradableAssetPairs
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -504,6 +513,7 @@ class kraken(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         result = self.append_inactive_markets(result)
@@ -549,7 +559,7 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        see https://docs.kraken.com/rest/#tag/Market-Data/operation/getAssetInfo
+        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getAssetInfo
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -605,7 +615,7 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
-        see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
+        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -672,7 +682,7 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOrderBook
+        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getOrderBook
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the kraken api endpoint
@@ -770,7 +780,7 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
+        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -796,12 +806,12 @@ class kraken(Exchange, ImplicitAPI):
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
+        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -843,13 +853,13 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOHLCData
+        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getOHLCData
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the kraken api endpoint
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters]  (ttps://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -925,7 +935,7 @@ class kraken(Exchange, ImplicitAPI):
             amount = Precise.string_abs(amount)
         else:
             direction = 'in'
-        timestamp = self.safe_integer_product(item, 'time', 1000)
+        timestamp = self.safe_timestamp(item, 'time')
         return {
             'info': item,
             'id': id,
@@ -949,9 +959,9 @@ class kraken(Exchange, ImplicitAPI):
 
     async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
+        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
         fetch the history of changes, actions done by the user or operations that altered balance of the user
-        see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
+        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
@@ -1117,7 +1127,7 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://docs.kraken.com/rest/#tag/Market-Data/operation/getRecentTrades
+        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getRecentTrades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1184,7 +1194,7 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://docs.kraken.com/rest/#tag/Account-Data/operation/getAccountBalance
+        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getAccountBalance
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -1204,7 +1214,7 @@ class kraken(Exchange, ImplicitAPI):
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        see https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
+        :see: https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1507,7 +1517,7 @@ class kraken(Exchange, ImplicitAPI):
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
-        see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
+        :see: https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1551,7 +1561,7 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
+        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
         :param str symbol: not used by kraken fetchOrder
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
@@ -1611,12 +1621,13 @@ class kraken(Exchange, ImplicitAPI):
         if not (id in result):
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
         order = self.parse_order(self.extend({'id': id}, result[id]))
-        return self.extend({'info': response}, order)
+        order['info'] = order
+        return order
 
     async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
-        see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo
+        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1703,7 +1714,7 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
-        see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeHistory
+        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeHistory
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1758,7 +1769,7 @@ class kraken(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
-        see https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrder
+        :see: https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrder
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the kraken api endpoint
@@ -1783,7 +1794,7 @@ class kraken(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
-        see https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrderBatch
+        :see: https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrderBatch
         :param str[] ids: open orders transaction ID(txid) or user reference(userref)
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the kraken api endpoint
@@ -1806,7 +1817,7 @@ class kraken(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
-        see https://docs.kraken.com/rest/#tag/Trading/operation/cancelAllOrders
+        :see: https://docs.kraken.com/rest/#tag/Trading/operation/cancelAllOrders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
@@ -1816,9 +1827,9 @@ class kraken(Exchange, ImplicitAPI):
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
+        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
         fetch all unfilled currently open orders
-        see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
+        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -1844,9 +1855,9 @@ class kraken(Exchange, ImplicitAPI):
 
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
         fetches information on multiple closed orders made by the user
-        see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -2036,9 +2047,9 @@ class kraken(Exchange, ImplicitAPI):
 
     async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
+        :see: https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
         fetch all deposits made to an account
-        see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
+        :see: https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -2072,7 +2083,7 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        see https://docs.kraken.com/rest/#tag/Market-Data/operation/getServerTime
+        :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getServerTime
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -2093,7 +2104,7 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
-        see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals
+        :see: https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -2127,7 +2138,7 @@ class kraken(Exchange, ImplicitAPI):
     async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
-        see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+        :see: https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
@@ -2172,7 +2183,7 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
-        see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+        :see: https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
@@ -2245,7 +2256,7 @@ class kraken(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
-        see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
+        :see: https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -2279,7 +2290,7 @@ class kraken(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
-        see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
+        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
         :param str[]|None symbols: not used by kraken fetchPositions()
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict[]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
@@ -2351,7 +2362,7 @@ class kraken(Exchange, ImplicitAPI):
     async def transfer_out(self, code: str, amount, params={}):
         """
         transfer from spot wallet to futures wallet
-        see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+        :see: https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
         :param str code: Unified currency code
         :param float amount: Size of the transfer
         :param dict [params]: Exchange specific parameters
@@ -2361,7 +2372,7 @@ class kraken(Exchange, ImplicitAPI):
 
     async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
-        see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+        :see: https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
         transfers currencies between sub-accounts(only spot->swap direction is supported)
         :param str code: Unified currency code
         :param float amount: Size of the transfer

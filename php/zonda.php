@@ -381,6 +381,7 @@ class zonda extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $item,
             );
         }

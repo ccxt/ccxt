@@ -508,6 +508,7 @@ export default class bitstamp extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1350,9 +1351,8 @@ export default class bitstamp extends Exchange {
         }
         const response = await this[method](this.extend(request, params));
         const order = this.parseOrder(response, market);
-        return this.extend(order, {
-            'type': type,
-        });
+        order['type'] = type;
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

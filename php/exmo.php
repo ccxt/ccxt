@@ -817,6 +817,7 @@ class exmo extends Exchange {
                         'max' => $this->safe_number($market, 'max_amount'),
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -1113,7 +1114,7 @@ class exmo extends Exchange {
             $ticker = $this->safe_value($response, $marketId);
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker(string $symbol, $params = array ()) {
@@ -1549,9 +1550,8 @@ class exmo extends Exchange {
         //     }
         //
         $order = $this->parse_order($response);
-        return array_merge($order, array(
-            'id' => (string) $id,
-        ));
+        $order['id'] = (string) $id;
+        return $order;
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

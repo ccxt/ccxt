@@ -61,7 +61,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     async def watch_balance(self, params={}):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        see https://exchange.blockchain.com/api/#balances
+        :see: https://exchange.blockchain.com/api/#balances
         :param dict [params]: extra parameters specific to the blockchaincom api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -125,7 +125,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market.
-        see https://exchange.blockchain.com/api/#prices
+        :see: https://exchange.blockchain.com/api/#prices
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents. Allows '1m', '5m', '15m', '1h', '6h' '1d'. Can only watch one timeframe per symbol.
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -198,7 +198,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://exchange.blockchain.com/api/#ticker
+        :see: https://exchange.blockchain.com/api/#ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the blockchaincom api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -300,7 +300,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://exchange.blockchain.com/api/#trades
+        :see: https://exchange.blockchain.com/api/#trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of    trades to fetch
@@ -395,7 +395,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
-        see https://exchange.blockchain.com/api/#mass-order-status-request-ordermassstatusrequest
+        :see: https://exchange.blockchain.com/api/#mass-order-status-request-ordermassstatusrequest
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -598,7 +598,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://exchange.blockchain.com/api/#l2-order-book
+        :see: https://exchange.blockchain.com/api/#l2-order-book
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dictConstructor [params]: extra parameters specific to the blockchaincom api endpoint

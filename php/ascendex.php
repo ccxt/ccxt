@@ -217,6 +217,7 @@ class ascendex extends Exchange {
                                 'futures/position' => 1,
                                 'futures/free-margin' => 1,
                                 'futures/order/hist/current' => 1,
+                                'futures/funding-payments' => 1,
                                 'futures/order/open' => 1,
                                 'futures/order/status' => 1,
                             ),
@@ -661,6 +662,7 @@ class ascendex extends Exchange {
                         'max' => $this->safe_number($market, 'maxNotional'),
                     ),
                 ),
+                'created' => $this->safe_integer($market, 'tradingStartTime'),
                 'info' => $market,
             );
         }
@@ -2718,7 +2720,7 @@ class ascendex extends Exchange {
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure margin structure}
          */
-        return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
+        return $this->modify_margin_helper($symbol, -$amount, 'reduce', $params);
     }
 
     public function add_margin(string $symbol, $amount, $params = array ()) {

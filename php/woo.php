@@ -396,6 +396,7 @@ class woo extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => $this->safe_timestamp($market, 'created_time'),
                 'info' => $market,
             );
         }
@@ -724,22 +725,22 @@ class woo extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
-         * @see https://docs.woo.org/#send-order
-         * @see https://docs.woo.org/#send-algo-order
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @see https://docs.woo.org/#send-$order
+         * @see https://docs.woo.org/#send-algo-$order
+         * create a trade $order
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the woo api endpoint
-         * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
-         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
+         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {float} [$params->algoType] 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
         $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
         $orderType = strtoupper($type);
@@ -786,7 +787,7 @@ class woo extends Exchange {
                 if ($this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true)) {
                     if ($cost === null) {
                         if ($price === null) {
-                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total order $cost-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or alternatively, supply the total $cost value in the 'order_amount' in  exchange-specific parameters");
+                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total $order $cost-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or alternatively, supply the total $cost value in the 'order_amount' in  exchange-specific parameters");
                         } else {
                             $amountString = $this->number_to_string($amount);
                             $priceString = $this->number_to_string($price);
@@ -859,9 +860,9 @@ class woo extends Exchange {
         //     timestamp => '1641383206.489',
         //     order_id => '86980774',
         //     order_type => 'LIMIT',
-        //     order_price => '1', // null for 'MARKET' order
-        //     order_quantity => '12', // null for 'MARKET' order
-        //     order_amount => null, // NOT-null for 'MARKET' order
+        //     order_price => '1', // null for 'MARKET' $order
+        //     order_quantity => '12', // null for 'MARKET' $order
+        //     order_amount => null, // NOT-null for 'MARKET' $order
         //     client_order_id => '0'
         // }
         // stop orders
@@ -884,10 +885,9 @@ class woo extends Exchange {
             $rows = $this->safe_value($data, 'rows', array());
             return $this->parse_order($rows[0], $market);
         }
-        return array_merge(
-            $this->parse_order($response, $market),
-            array( 'type' => $type )
-        );
+        $order = $this->parse_order($response, $market);
+        $order['type'] = $type;
+        return $order;
     }
 
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
@@ -1371,6 +1371,7 @@ class woo extends Exchange {
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.woo.org/#kline-public
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
@@ -2338,7 +2339,23 @@ class woo extends Exchange {
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         * @see https://docs.woo.org/#get-funding-rate-history-for-one-$market-public
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
+         * @param {array} [$params] extra parameters specific to the woo api endpoint
+         * @param {int} [$params->until] $timestamp in ms of the latest funding rate
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
+         */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'page', 25);
+        }
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2348,6 +2365,7 @@ class woo extends Exchange {
         if ($since !== null) {
             $request['start_t'] = $this->parse_to_int($since / 1000);
         }
+        list($request, $params) = $this->handle_until_option('end_t', $request, $params, 0.001);
         $response = $this->v1PublicGetFundingRateHistory (array_merge($request, $params));
         //
         //     {

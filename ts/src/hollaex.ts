@@ -6,7 +6,7 @@ import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, Order
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Dictionary, Int, OrderBook, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -315,6 +315,7 @@ export default class hollaex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601 (this.safeString (market, 'created_at')),
                 'info': market,
             });
         }
@@ -430,7 +431,7 @@ export default class hollaex extends Exchange {
             const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
             result[symbol] = this.parseOrderBook (response[marketId], symbol, timestamp);
         }
-        return result;
+        return result as Dictionary<OrderBook>;
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -543,7 +544,7 @@ export default class hollaex extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.extend (this.parseTicker (ticker, market), params);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     parseTicker (ticker, market = undefined) {

@@ -312,6 +312,7 @@ class hollaex extends hollaex$1 {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'created_at')),
                 'info': market,
             });
         }
@@ -534,7 +535,7 @@ class hollaex extends hollaex$1 {
             const symbol = market['symbol'];
             result[symbol] = this.extend(this.parseTicker(ticker, market), params);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     parseTicker(ticker, market = undefined) {
         //

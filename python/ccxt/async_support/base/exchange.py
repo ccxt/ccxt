@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.6'
+__version__ = '4.1.25'
 
 # -----------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ from ccxt.async_support.base.throttler import Throttler
 
 from ccxt.base.errors import BaseError, BadSymbol, BadRequest, BadResponse, AuthenticationError, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidOrder, InvalidAddress, RateLimitExceeded
 from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES, SIGNIFICANT_DIGITS
-from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade
+from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade, OrderRequest
 
 # -----------------------------------------------------------------------------
 
@@ -867,12 +867,86 @@ class Exchange(BaseExchange):
             },
         }, currency)
 
+    def safe_market_structure(self, market: Optional[object] = None):
+        cleanStructure = {
+            'id': None,
+            'lowercaseId': None,
+            'symbol': None,
+            'base': None,
+            'quote': None,
+            'settle': None,
+            'baseId': None,
+            'quoteId': None,
+            'settleId': None,
+            'type': None,
+            'spot': None,
+            'margin': None,
+            'swap': None,
+            'future': None,
+            'option': None,
+            'index': None,
+            'active': None,
+            'contract': None,
+            'linear': None,
+            'inverse': None,
+            'taker': None,
+            'maker': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': None,
+                'price': None,
+                'cost': None,
+                'base': None,
+                'quote': None,
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': None,
+        }
+        if market is not None:
+            result = self.extend(cleanStructure, market)
+            # set None swap/future/etc
+            if result['spot']:
+                if result['contract'] is None:
+                    result['contract'] = False
+                if result['swap'] is None:
+                    result['swap'] = False
+                if result['future'] is None:
+                    result['future'] = False
+                if result['option'] is None:
+                    result['option'] = False
+                if result['index'] is None:
+                    result['index'] = False
+            return result
+        return cleanStructure
+
     def set_markets(self, markets, currencies=None):
         values = []
         self.markets_by_id = {}
         # handle marketId conflicts
         # we insert spot markets first
-        marketValues = self.sort_by(self.to_array(markets), 'spot', True)
+        marketValues = self.sort_by(self.to_array(markets), 'spot', True, True)
         for i in range(0, len(marketValues)):
             value = marketValues[i]
             if value['id'] in self.markets_by_id:
@@ -915,8 +989,8 @@ class Exchange(BaseExchange):
                         'precision': self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
                     })
                     quoteCurrencies.append(currency)
-            baseCurrencies = self.sort_by(baseCurrencies, 'code')
-            quoteCurrencies = self.sort_by(quoteCurrencies, 'code')
+            baseCurrencies = self.sort_by(baseCurrencies, 'code', False, '')
+            quoteCurrencies = self.sort_by(quoteCurrencies, 'code', False, '')
             self.baseCurrencies = self.index_by(baseCurrencies, 'code')
             self.quoteCurrencies = self.index_by(quoteCurrencies, 'code')
             allCurrencies = self.array_concat(baseCurrencies, quoteCurrencies)
@@ -1349,7 +1423,7 @@ class Exchange(BaseExchange):
         #     string = True
         #
         #     [
-        #         {'currency': 'BTC', 'cost': '0.3'  },
+        #         {'currency': 'BTC', 'cost': '0.4'  },
         #         {'currency': 'BTC', 'cost': '0.6', 'rate': '0.00123'},
         #         {'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456'},
         #         {'currency': 'USDT', 'cost': '12.3456'},
@@ -1536,7 +1610,7 @@ class Exchange(BaseExchange):
             result.append(self.market_id(symbols[i]))
         return result
 
-    def market_symbols(self, symbols, type: Optional[str] = None, allowEmpty=True):
+    def market_symbols(self, symbols, type: Optional[str] = None, allowEmpty=True, sameTypeOnly=False, sameSubTypeOnly=False):
         if symbols is None:
             if not allowEmpty:
                 raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
@@ -1547,10 +1621,21 @@ class Exchange(BaseExchange):
                 raise ArgumentsRequired(self.id + ' empty list of symbols is not supported')
             return symbols
         result = []
+        marketType = None
+        isLinearSubType = None
         for i in range(0, len(symbols)):
             market = self.market(symbols[i])
+            if sameTypeOnly and (marketType is not None):
+                if market['type'] != marketType:
+                    raise BadRequest(self.id + ' symbols must be of the same type, either ' + marketType + ' or ' + market['type'] + '.')
+            if sameSubTypeOnly and (isLinearSubType is not None):
+                if market['linear'] != isLinearSubType:
+                    raise BadRequest(self.id + ' symbols must be of the same subType, either linear or inverse.')
             if type is not None and market['type'] != type:
-                raise BadRequest(self.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request')
+                raise BadRequest(self.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request')
+            marketType = market['type']
+            if not market['spot']:
+                isLinearSubType = market['linear']
             symbol = self.safe_string(market, 'symbol', symbols[i])
             result.append(symbol)
         return result
@@ -1706,7 +1791,7 @@ class Exchange(BaseExchange):
         value = self.safe_string_2(dictionary, key1, key2)
         return self.parse_number(value, d)
 
-    def parse_order_book(self, orderbook: object, symbol: str, timestamp: Optional[float] = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 0, amountKey: IndexType = 1):
+    def parse_order_book(self, orderbook: object, symbol: str, timestamp: Optional[int] = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 0, amountKey: IndexType = 1):
         bids = self.parse_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey)
         asks = self.parse_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey)
         return {
@@ -2283,6 +2368,9 @@ class Exchange(BaseExchange):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
 
+    async def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchOrderBooks() is not supported yet')
+
     async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' watchTickers() is not supported yet')
 
@@ -2303,6 +2391,9 @@ class Exchange(BaseExchange):
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
+
+    async def create_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' createOrders() is not supported yet')
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
         raise NotSupported(self.id + ' createOrderWs() is not supported yet')
@@ -2346,6 +2437,12 @@ class Exchange(BaseExchange):
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
 
+    async def fetch_my_liquidations(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchMyLiquidations() is not supported yet')
+
+    async def fetch_liquidations(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchLiquidations() is not supported yet')
+
     async def fetch_my_trades_ws(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchMyTradesWs() is not supported yet')
 
@@ -2374,6 +2471,9 @@ class Exchange(BaseExchange):
 
     async def fetch_open_interest(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
+
+    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported yet')
 
     def parse_last_price(self, price, market=None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
@@ -3039,6 +3139,13 @@ class Exchange(BaseExchange):
         """
         return self.filter_by_array(objects, key, values, indexed)
 
+    def filter_by_array_tickers(self, objects, key: IndexType, values=None, indexed=True):
+        """
+         * @ignore
+        Typed wrapper for filterByArray that returns a dictionary of tickers
+        """
+        return self.filter_by_array(objects, key, values, indexed)
+
     def resolve_promise_if_messagehash_matches(self, client, prefix: str, symbol: str, data):
         messageHashes = self.findMessageHashes(client, prefix)
         for i in range(0, len(messageHashes)):
@@ -3130,7 +3237,9 @@ class Exchange(BaseExchange):
                 errors += 1
                 if errors > maxRetries:
                     raise e
-        return self.remove_repeated_elements_from_array(result)
+        uniqueResults = self.remove_repeated_elements_from_array(result)
+        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
+        return self.filter_by_since_limit(uniqueResults, since, limit, key)
 
     async def safe_deterministic_call(self, method: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, timeframe: Optional[str] = None, params={}):
         maxRetries = None
@@ -3173,7 +3282,9 @@ class Exchange(BaseExchange):
         result = []
         for i in range(0, len(results)):
             result = self.array_concat(result, results[i])
-        return self.remove_repeated_elements_from_array(result)
+        uniqueResults = self.remove_repeated_elements_from_array(result)
+        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
+        return self.filter_by_since_limit(uniqueResults, since, limit, key)
 
     async def fetch_paginated_call_cursor(self, method: str, symbol: Optional[str] = None, since=None, limit=None, params={}, cursorReceived=None, cursorSent=None, cursorIncrement=None, maxEntriesPerRequest=None):
         maxCalls = None
@@ -3208,6 +3319,46 @@ class Exchange(BaseExchange):
                 if errors > maxRetries:
                     raise e
             i += 1
+        sorted = self.sortCursorPaginatedResult(result)
+        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
+        return self.filter_by_since_limit(sorted, since, limit, key)
+
+    async def fetch_paginated_call_incremental(self, method: str, symbol: Optional[str] = None, since=None, limit=None, params={}, pageKey=None, maxEntriesPerRequest=None):
+        maxCalls = None
+        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
+        maxRetries = None
+        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
+        maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
+        i = 0
+        errors = 0
+        result = []
+        while(i < maxCalls):
+            try:
+                params[pageKey] = i + 1
+                response = await getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
+                errors = 0
+                responseLength = len(response)
+                if self.verbose:
+                    self.log('Incremental pagination call', i + 1, 'method', method, 'response length', responseLength)
+                if responseLength == 0:
+                    break
+                result = self.array_concat(result, response)
+            except Exception as e:
+                errors += 1
+                if errors > maxRetries:
+                    raise e
+            i += 1
+        sorted = self.sortCursorPaginatedResult(result)
+        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
+        return self.filter_by_since_limit(sorted, since, limit, key)
+
+    def sort_cursor_paginated_result(self, result):
+        first = self.safe_value(result, 0)
+        if first is not None:
+            if 'timestamp' in first:
+                return self.sort_by(result, 'timestamp')
+            if 'id' in first:
+                return self.sort_by(result, 'id')
         return result
 
     def remove_repeated_elements_from_array(self, input):
@@ -3235,3 +3386,37 @@ class Exchange(BaseExchange):
             request[key] = self.parseToInt(until * multiplier)
             params = self.omit(params, ['until', 'till'])
         return [request, params]
+
+    def safe_open_interest(self, interest, market=None):
+        return self.extend(interest, {
+            'symbol': self.safe_string(market, 'symbol'),
+            'baseVolume': self.safe_number(interest, 'baseVolume'),  # deprecated
+            'quoteVolume': self.safe_number(interest, 'quoteVolume'),  # deprecated
+            'openInterestAmount': self.safe_number(interest, 'openInterestAmount'),
+            'openInterestValue': self.safe_number(interest, 'openInterestValue'),
+            'timestamp': self.safe_integer(interest, 'timestamp'),
+            'datetime': self.safe_string(interest, 'datetime'),
+            'info': self.safe_value(interest, 'info'),
+        })
+
+    def parse_liquidation(self, liquidation, market=None):
+        raise NotSupported(self.id + ' parseLiquidation() is not supported yet')
+
+    def parse_liquidations(self, liquidations, market=None, since: Optional[int] = None, limit: Optional[int] = None):
+        """
+         * @ignore
+        parses liquidation info from the exchange response
+        :param dict[] liquidations: each item describes an instance of a liquidation event
+        :param dict market: ccxt market
+        :param int [since]: when defined, the response items are filtered to only include items after self timestamp
+        :param int [limit]: limits the number of items in the response
+        :returns dict[]: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        result = []
+        for i in range(0, len(liquidations)):
+            entry = liquidations[i]
+            parsed = self.parseLiquidation(entry, market)
+            result.append(parsed)
+        sorted = self.sort_by(result, 'timestamp')
+        symbol = self.safe_string(market, 'symbol')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)

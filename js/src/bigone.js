@@ -570,6 +570,7 @@ export default class bigone extends Exchange {
                         'max': this.safeNumber(market, 'max_quote_value'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push(entry);
@@ -721,7 +722,7 @@ export default class bigone extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTime(params = {}) {
         /**

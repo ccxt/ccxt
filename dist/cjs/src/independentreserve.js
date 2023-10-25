@@ -211,6 +211,7 @@ class independentreserve extends independentreserve$1 {
                             'max': undefined,
                         },
                     },
+                    'created': undefined,
                     'info': id,
                 });
             }

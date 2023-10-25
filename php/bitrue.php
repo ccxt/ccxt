@@ -698,6 +698,7 @@ class bitrue extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
             $result[] = $entry;

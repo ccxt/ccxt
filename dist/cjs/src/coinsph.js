@@ -592,6 +592,7 @@ class coinsph extends coinsph$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

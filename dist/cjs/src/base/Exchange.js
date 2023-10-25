@@ -67,6 +67,7 @@ class Exchange {
         this.orderbooks = {};
         this.tickers = {};
         this.orders = undefined;
+        this.triggerOrders = undefined;
         this.transactions = {};
         this.positions = {};
         this.requiresWeb3 = false;
@@ -342,6 +343,7 @@ class Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createOrders': undefined,
                 'createPostOnlyOrder': undefined,
                 'createReduceOnlyOrder': undefined,
                 'createStopOrder': undefined,
@@ -981,11 +983,17 @@ class Exchange {
                         //               V
                         client.throttle(cost).then(() => {
                             client.send(message);
-                        }).catch((e) => { throw e; });
+                        }).catch((e) => {
+                            delete client.subscriptions[subscribeHash];
+                            future.reject(e);
+                        });
                     }
                     else {
                         client.send(message)
-                            .catch((e) => { throw e; });
+                            .catch((e) => {
+                            delete client.subscriptions[subscribeHash];
+                            future.reject(e);
+                        });
                     }
                 }
             }).catch((e) => {
@@ -1055,6 +1063,9 @@ class Exchange {
     }
     convertToBigInt(value) {
         return BigInt(value); // used on XT
+    }
+    stringToCharsArray(value) {
+        return value.split('');
     }
     valueIsDefined(value) {
         return value !== undefined && value !== null;
@@ -1519,12 +1530,93 @@ class Exchange {
             },
         }, currency);
     }
+    safeMarketStructure(market = undefined) {
+        const cleanStructure = {
+            'id': undefined,
+            'lowercaseId': undefined,
+            'symbol': undefined,
+            'base': undefined,
+            'quote': undefined,
+            'settle': undefined,
+            'baseId': undefined,
+            'quoteId': undefined,
+            'settleId': undefined,
+            'type': undefined,
+            'spot': undefined,
+            'margin': undefined,
+            'swap': undefined,
+            'future': undefined,
+            'option': undefined,
+            'index': undefined,
+            'active': undefined,
+            'contract': undefined,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': undefined,
+            'maker': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+                'cost': undefined,
+                'base': undefined,
+                'quote': undefined,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': undefined,
+        };
+        if (market !== undefined) {
+            const result = this.extend(cleanStructure, market);
+            // set undefined swap/future/etc
+            if (result['spot']) {
+                if (result['contract'] === undefined) {
+                    result['contract'] = false;
+                }
+                if (result['swap'] === undefined) {
+                    result['swap'] = false;
+                }
+                if (result['future'] === undefined) {
+                    result['future'] = false;
+                }
+                if (result['option'] === undefined) {
+                    result['option'] = false;
+                }
+                if (result['index'] === undefined) {
+                    result['index'] = false;
+                }
+            }
+            return result;
+        }
+        return cleanStructure;
+    }
     setMarkets(markets, currencies = undefined) {
         const values = [];
         this.markets_by_id = {};
         // handle marketId conflicts
         // we insert spot markets first
-        const marketValues = this.sortBy(this.toArray(markets), 'spot', true);
+        const marketValues = this.sortBy(this.toArray(markets), 'spot', true, true);
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
             if (value['id'] in this.markets_by_id) {
@@ -1574,8 +1666,8 @@ class Exchange {
                     quoteCurrencies.push(currency);
                 }
             }
-            baseCurrencies = this.sortBy(baseCurrencies, 'code');
-            quoteCurrencies = this.sortBy(quoteCurrencies, 'code');
+            baseCurrencies = this.sortBy(baseCurrencies, 'code', false, '');
+            quoteCurrencies = this.sortBy(quoteCurrencies, 'code', false, '');
             this.baseCurrencies = this.indexBy(baseCurrencies, 'code');
             this.quoteCurrencies = this.indexBy(quoteCurrencies, 'code');
             const allCurrencies = this.arrayConcat(baseCurrencies, quoteCurrencies);
@@ -2101,7 +2193,7 @@ class Exchange {
         //     string = true
         //
         //     [
-        //         { 'currency': 'BTC', 'cost': '0.3'  },
+        //         { 'currency': 'BTC', 'cost': '0.4'  },
         //         { 'currency': 'BTC', 'cost': '0.6', 'rate': '0.00123' },
         //         { 'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456' },
         //         { 'currency': 'USDT', 'cost': '12.3456' },
@@ -2325,7 +2417,7 @@ class Exchange {
         }
         return result;
     }
-    marketSymbols(symbols, type = undefined, allowEmpty = true) {
+    marketSymbols(symbols, type = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
         if (symbols === undefined) {
             if (!allowEmpty) {
                 throw new errors.ArgumentsRequired(this.id + ' empty list of symbols is not supported');
@@ -2340,10 +2432,26 @@ class Exchange {
             return symbols;
         }
         const result = [];
+        let marketType = undefined;
+        let isLinearSubType = undefined;
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(symbols[i]);
+            if (sameTypeOnly && (marketType !== undefined)) {
+                if (market['type'] !== marketType) {
+                    throw new errors.BadRequest(this.id + ' symbols must be of the same type, either ' + marketType + ' or ' + market['type'] + '.');
+                }
+            }
+            if (sameSubTypeOnly && (isLinearSubType !== undefined)) {
+                if (market['linear'] !== isLinearSubType) {
+                    throw new errors.BadRequest(this.id + ' symbols must be of the same subType, either linear or inverse.');
+                }
+            }
             if (type !== undefined && market['type'] !== type) {
-                throw new errors.BadRequest(this.id + ' symbols must be of same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+                throw new errors.BadRequest(this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+            }
+            marketType = market['type'];
+            if (!market['spot']) {
+                isLinearSubType = market['linear'];
             }
             const symbol = this.safeString(market, 'symbol', symbols[i]);
             result.push(symbol);
@@ -3197,6 +3305,9 @@ class Exchange {
     async fetchTickers(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTickers() is not supported yet');
     }
+    async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOrderBooks() is not supported yet');
+    }
     async watchTickers(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTickers() is not supported yet');
     }
@@ -3217,6 +3328,9 @@ class Exchange {
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrder() is not supported yet');
+    }
+    async createOrders(orders, params = {}) {
+        throw new errors.NotSupported(this.id + ' createOrders() is not supported yet');
     }
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrderWs() is not supported yet');
@@ -3260,6 +3374,12 @@ class Exchange {
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchMyTrades() is not supported yet');
     }
+    async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchMyLiquidations() is not supported yet');
+    }
+    async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchLiquidations() is not supported yet');
+    }
     async fetchMyTradesWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchMyTradesWs() is not supported yet');
     }
@@ -3290,6 +3410,9 @@ class Exchange {
     }
     async fetchOpenInterest(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+    }
+    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchFundingRateHistory() is not supported yet');
     }
     parseLastPrice(price, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLastPrice() is not supported yet');
@@ -4069,6 +4192,14 @@ class Exchange {
          */
         return this.filterByArray(objects, key, values, indexed);
     }
+    filterByArrayTickers(objects, key, values = undefined, indexed = true) {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a dictionary of tickers
+         */
+        return this.filterByArray(objects, key, values, indexed);
+    }
     resolvePromiseIfMessagehashMatches(client, prefix, symbol, data) {
         const messageHashes = this.findMessageHashes(client, prefix);
         for (let i = 0; i < messageHashes.length; i++) {
@@ -4181,7 +4312,9 @@ class Exchange {
                 }
             }
         }
-        return this.removeRepeatedElementsFromArray(result);
+        const uniqueResults = this.removeRepeatedElementsFromArray(result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit(uniqueResults, since, limit, key);
     }
     async safeDeterministicCall(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}) {
         let maxRetries = undefined;
@@ -4236,7 +4369,9 @@ class Exchange {
         for (let i = 0; i < results.length; i++) {
             result = this.arrayConcat(result, results[i]);
         }
-        return this.removeRepeatedElementsFromArray(result);
+        const uniqueResults = this.removeRepeatedElementsFromArray(result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit(uniqueResults, since, limit, key);
     }
     async fetchPaginatedCallCursor(method, symbol = undefined, since = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined) {
         let maxCalls = undefined;
@@ -4280,6 +4415,55 @@ class Exchange {
             }
             i += 1;
         }
+        const sorted = this.sortCursorPaginatedResult(result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit(sorted, since, limit, key);
+    }
+    async fetchPaginatedCallIncremental(method, symbol = undefined, since = undefined, limit = undefined, params = {}, pageKey = undefined, maxEntriesPerRequest = undefined) {
+        let maxCalls = undefined;
+        [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', 10);
+        let maxRetries = undefined;
+        [maxRetries, params] = this.handleOptionAndParams(params, method, 'maxRetries', 3);
+        [maxEntriesPerRequest, params] = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
+        let i = 0;
+        let errors = 0;
+        let result = [];
+        while (i < maxCalls) {
+            try {
+                params[pageKey] = i + 1;
+                const response = await this[method](symbol, since, maxEntriesPerRequest, params);
+                errors = 0;
+                const responseLength = response.length;
+                if (this.verbose) {
+                    this.log('Incremental pagination call', i + 1, 'method', method, 'response length', responseLength);
+                }
+                if (responseLength === 0) {
+                    break;
+                }
+                result = this.arrayConcat(result, response);
+            }
+            catch (e) {
+                errors += 1;
+                if (errors > maxRetries) {
+                    throw e;
+                }
+            }
+            i += 1;
+        }
+        const sorted = this.sortCursorPaginatedResult(result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit(sorted, since, limit, key);
+    }
+    sortCursorPaginatedResult(result) {
+        const first = this.safeValue(result, 0);
+        if (first !== undefined) {
+            if ('timestamp' in first) {
+                return this.sortBy(result, 'timestamp');
+            }
+            if ('id' in first) {
+                return this.sortBy(result, 'id');
+            }
+        }
         return result;
     }
     removeRepeatedElementsFromArray(input) {
@@ -4315,6 +4499,42 @@ class Exchange {
             params = this.omit(params, ['until', 'till']);
         }
         return [request, params];
+    }
+    safeOpenInterest(interest, market = undefined) {
+        return this.extend(interest, {
+            'symbol': this.safeString(market, 'symbol'),
+            'baseVolume': this.safeNumber(interest, 'baseVolume'),
+            'quoteVolume': this.safeNumber(interest, 'quoteVolume'),
+            'openInterestAmount': this.safeNumber(interest, 'openInterestAmount'),
+            'openInterestValue': this.safeNumber(interest, 'openInterestValue'),
+            'timestamp': this.safeInteger(interest, 'timestamp'),
+            'datetime': this.safeString(interest, 'datetime'),
+            'info': this.safeValue(interest, 'info'),
+        });
+    }
+    parseLiquidation(liquidation, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseLiquidation () is not supported yet');
+    }
+    parseLiquidations(liquidations, market = undefined, since = undefined, limit = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description parses liquidation info from the exchange response
+         * @param {object[]} liquidations each item describes an instance of a liquidation event
+         * @param {object} market ccxt market
+         * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
+         * @param {int} [limit] limits the number of items in the response
+         * @returns {object[]} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        const result = [];
+        for (let i = 0; i < liquidations.length; i++) {
+            const entry = liquidations[i];
+            const parsed = this.parseLiquidation(entry, market);
+            result.push(parsed);
+        }
+        const sorted = this.sortBy(result, 'timestamp');
+        const symbol = this.safeString(market, 'symbol');
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 }
 
