@@ -2298,11 +2298,13 @@ export default class mexc extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeValue (rawOrder, 'params', {});
-            const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-            const orderRequest = this.createSpotOrderRequest (marketId, type, side, amount, price, extendedParams);
+            const orderRequest = this.createSpotOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const response = await this.spotPrivatePostBatchOrders (ordersRequests);
+        const request = {
+            'batchOrders': ordersRequests,
+        };
+        const response = await this.spotPrivatePostBatchOrders (request);
         //
         // [
         //     {
