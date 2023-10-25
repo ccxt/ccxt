@@ -157,7 +157,7 @@ class MessageBuffer {
             return;
         }
         // flush the queue if a new frame arrives
-        while (count($this->messageQueue) > 1) {
+        while (count($this->messageQueue)) {
             $this->processData(array_shift($this->messageQueue));
         }
         // we schedule a callback for each message
