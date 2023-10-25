@@ -79,8 +79,9 @@ export default class poloniex extends poloniexRest {
         const url = this.urls['api']['ws']['private'];
         const messageHash = 'authenticated';
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const accessPath = '/ws';
             const requestString = 'GET\n' + accessPath + '\nsignTimestamp=' + timestamp;
             const signature = this.hmac (this.encode (requestString), this.encode (this.secret), sha256, 'base64');
@@ -96,7 +97,7 @@ export default class poloniex extends poloniexRest {
                 },
             };
             const message = this.extend (request, params);
-            future = await this.watch (url, messageHash, message);
+            this.watch (url, messageHash, message, messageHash);
             //
             //    {
             //        "data": {
@@ -117,7 +118,6 @@ export default class poloniex extends poloniexRest {
             //        "channel": "auth"
             //    }
             //
-            client.subscriptions[messageHash] = future;
         }
         return future;
     }
@@ -1048,7 +1048,8 @@ export default class poloniex extends poloniexRest {
         const success = this.safeValue (data, 'success');
         const messageHash = 'authenticated';
         if (success) {
-            client.resolve (message, messageHash);
+            const future = this.safeValue (client.futures, messageHash);
+            future.resolve (true);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));
             client.reject (error, messageHash);
@@ -1056,7 +1057,6 @@ export default class poloniex extends poloniexRest {
                 delete client.subscriptions[messageHash];
             }
         }
-        return message;
     }
 
     ping (client) {
@@ -1065,4 +1065,3 @@ export default class poloniex extends poloniexRest {
         };
     }
 }
-
