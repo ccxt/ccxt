@@ -1431,6 +1431,7 @@ export default class cryptocom extends Exchange {
             orderRequests.push (order);
         }
         const request = {
+            'contingency_type': 'LIST',
             'order_list': orderRequests,
         };
         const response = await this.v1PrivatePostPrivateCancelOrderList (this.extend (request, params));
