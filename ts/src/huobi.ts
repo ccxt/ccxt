@@ -92,6 +92,7 @@ export default class huobi extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
+                'fetchPositionsBySymbol': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
@@ -6839,6 +6840,78 @@ export default class huobi extends Exchange {
             }));
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
+    }
+
+    async fetchPositionsBySymbol (symbol, params = {}) {
+        // this exchange has different endpoints for margin-mode
+        this.checkRequiredArgument ('fetchPositionsBySymbol', this.safeValue (params, 'marginMode'), 'marginMode', [ 'cross', 'isolated' ]);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchPositionsBySymbol', params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['linear'] || !market['swap']) {
+            throw new NotSupported (this.id + ' fetchPositionsBySymbol() is not yet supported for ' + symbol + ' market. Coming soon...');
+        }
+        const request = {
+            'contract_code': market['id'],
+        };
+        let response = undefined;
+        if (!market['swap'] || !market['linear']) {
+            throw new NotSupported (this.id + ' fetchPositionsBySymbol() is not yet supported for ' + symbol + ' market..');
+        }
+        if (marginMode === 'cross') {
+            response = await this.contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo (this.extend (request, query));
+        } else {
+            response = await this.contractPrivatePostLinearSwapApiV1SwapPositionInfo (this.extend (request, query));
+        }
+        //
+        // similar response for cross & isolated (one-way mode, two-way-hedge mode)
+        //
+        //    {
+        //        "status": "ok",
+        //        "data": [
+        //            {
+        //                "symbol": "TRX",
+        //                "contract_code": "TRX-USDT",
+        //                "volume": "1.000000000000000000",
+        //                "available": "1.000000000000000000",
+        //                "frozen": "0E-18",
+        //                "cost_open": "0.064015000000000000",
+        //                "cost_hold": "0.064015000000000000",
+        //                "profit_unreal": "0.000900000000000000",
+        //                "profit_rate": "0.000702960243692880",
+        //                "lever_rate": "5",
+        //                "position_margin": "1.280480000000000000",
+        //                "direction": "buy",
+        //                "profit": "0.000900000000000000",
+        //                "last_price": "0.064024",
+        //                "margin_asset": "USDT",
+        //                "trade_partition": "USDT",
+        //                "position_mode": "dual_side", // dual_side, single_side
+        //                "margin_mode": "cross", // isolated, cross
+        //                "margin_account": "USDT", // "USDT" for cross, "TRX-USDT" for isolated
+        //                "contract_type": "swap", // present for cross
+        //                "pair": "TRX-USDT", // present for cross
+        //                "business_type": "swap", // present for cross
+        //                "store_time": null, // present for cross
+        //                "liquidation_price": null, // present for cross
+        //                "market_closing_slippage": null, // present for cross
+        //                "risk_rate": null, // present for cross
+        //                "new_risk_rate": null, // present for cross
+        //                "withdraw_available": null // present for cross
+        //            },
+        //            ... for hedge-mode, here can be second similar object, with just "direction:sell" difference
+        //        ],
+        //        "ts": "1675760123556"
+        //    }
+        //
+        const rawPositions = this.safeValue (response, 'data');
+        const positions = this.parsePositions (rawPositions, [ market['symbol'] ], params);
+        const timestamp = this.safeInteger (response, 'ts');
+        for (let i = 0; i < positions.length; i++) {
+            positions[i]['timestamp'] = timestamp;
+            positions[i]['datetime'] = this.iso8601 (timestamp);
+        }
+        return positions;
     }
 
     async fetchPosition (symbol: string, params = {}) {
