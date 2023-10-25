@@ -281,7 +281,6 @@ export default class Exchange {
     enableRateLimit: boolean = undefined;
 
     httpExceptions = undefined
-    exceptionTypeMappings = undefined
 
     limits: {
         amount?: MinMax,
@@ -3608,26 +3607,6 @@ export default class Exchange {
          * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          */
         return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
-    }
-
-    getExceptionMarketType (originUrl) {
-        if (originUrl !== undefined) {
-            const apiUrls = this.urls['api'];
-            const exceptionMappings = this.exceptionTypeMappings;
-            const marketTypesArray = Object.keys (exceptionMappings); // would be among: ['spot', 'future', 'swap', 'option', 'linear', 'inverse']
-            for (let i = 0; i < marketTypesArray.length; i++) {
-                const marketTypeKey = marketTypesArray[i];
-                const applicableKeysOfApi = exceptionMappings[marketTypeKey]; // would be array of "api" members, like : ['public', 'private', 'fapiPublic', 'fapiPrivate', 'dapiPublic', 'dapiPrivate'] ...
-                for (let j = 0; j < applicableKeysOfApi.length; j++) {
-                    const applicableKeyOfApi = applicableKeysOfApi[j];
-                    const baseApiUrlForKey = this.safeString (apiUrls, applicableKeyOfApi);
-                    if (baseApiUrlForKey !== undefined && originUrl.indexOf (applicableKeyOfApi) >= 0) {
-                        return marketTypeKey;
-                    }
-                }
-            }
-        }
-        return undefined;
     }
 
     throwExactlyMatchedException (exactExceptions, key, message) {
