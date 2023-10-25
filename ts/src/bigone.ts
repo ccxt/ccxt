@@ -547,12 +547,36 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
+        const contractResponse = await this.contractPublicGetInstruments (params);
+        //
+        //    [
+        //        {
+        //            "usdtPrice": 1.00031998,
+        //            "symbol": "BTCUSD",
+        //            "btcPrice": 34700.4,
+        //            "ethPrice": 1787.83,
+        //            "nextFundingRate": 0.00010,
+        //            "fundingRate": 0.00010,
+        //            "latestPrice": 34708.5,
+        //            "last24hPriceChange": 0.0321,
+        //            "indexPrice": 34700.4,
+        //            "volume24h": 261319063,
+        //            "turnover24h": 8204.129380685496,
+        //            "nextFundingTime": 1698285600000,
+        //            "markPrice": 34702.4646738,
+        //            "last24hMaxPrice": 35127.5,
+        //            "volume24hInUsd": 0.0,
+        //            "openValue": 32.88054722085945,
+        //            "last24hMinPrice": 33552.0,
+        //            "openInterest": 1141372.0
+        //        }
+        //        ...
+        //    ]
+        //
         const markets = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeString (market, 'name');
-            const uuid = this.safeString (market, 'id');
             const baseAsset = this.safeValue (market, 'base_asset', {});
             const quoteAsset = this.safeValue (market, 'quote_asset', {});
             const baseId = this.safeString (baseAsset, 'symbol');
@@ -560,8 +584,8 @@ export default class bigone extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const entry = {
-                'id': id,
-                'uuid': uuid,
+                'id': this.safeString (market, 'name'),
+                'uuid': this.safeString (market, 'id'),
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
@@ -610,6 +634,65 @@ export default class bigone extends Exchange {
                 'info': market,
             };
             result.push (entry);
+        }
+        for (let i = 0; i < contractResponse.length; i++) {
+            const market = contractResponse[i];
+            const marketId = this.safeString (market, 'symbol');
+            const baseId = marketId.slice (0, 3);
+            const quoteId = marketId.slice (3);
+            const inverse = (quoteId === 'USD');
+            const settleId = inverse ? baseId : quoteId;
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            result.push ({
+                'id': marketId,
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': inverse ? 'future' : 'swap',
+                'spot': false,
+                'margin': false,
+                'swap': !inverse,
+                'future': inverse,
+                'option': false,
+                'active': true,
+                'contract': true,
+                'linear': !inverse,
+                'inverse': inverse,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': undefined,
+                    'price': undefined,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
         }
         return result;
     }
