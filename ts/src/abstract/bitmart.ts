@@ -60,6 +60,7 @@ interface Exchange {
     privateGetSpotV1MarginIsolatedAccount (params?: {}): Promise<implicitReturnType>;
     privateGetSpotV1TradeFee (params?: {}): Promise<implicitReturnType>;
     privateGetSpotV1UserFee (params?: {}): Promise<implicitReturnType>;
+    privateGetSpotV1BrokerRebate (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateAssetsDetail (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateOrder (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateOrderHistory (params?: {}): Promise<implicitReturnType>;

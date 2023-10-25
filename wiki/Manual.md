@@ -144,7 +144,7 @@ The CCXT library currently supports the following 97 cryptocurrency exchange mar
 | [![ndax](https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg)](https://one.ndax.io/bfQiSL)                                                                     | ndax               | [NDAX](https://one.ndax.io/bfQiSL)                                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidoc.ndax.io/)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![novadax](https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg)](https://www.novadax.com.br/?s=ccxt)                                                           | novadax            | [NovaDAX](https://www.novadax.com.br/?s=ccxt)                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://doc.novadax.com/pt-BR/)                                                       |                                                                                                                             |                                                                              |
 | [![oceanex](https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg)](https://oceanex.pro/signup?referral=VE24QX)                                                   | oceanex            | [OceanEx](https://oceanex.pro/signup?referral=VE24QX)                                                   | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.oceanex.pro/doc/v1)                                                       |                                                                                                                             |                                                                              |
-| [![okcoin](https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg)](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                    | okcoin             | [OKCoin](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                     | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.okcoin.com/docs/en/)                                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![okcoin](https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg)](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                    | okcoin             | [OKCoin](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                     | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okcoin.com/docs/en/)                                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![okx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023)                           | okx                | [OKX](https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023)                            | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okx.com/docs-v5/en/)                                                      | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![paymium](https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg)](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)                          | paymium            | [Paymium](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/Paymium/api-documentation)                                         |                                                                                                                             |                                                                              |
 | [![phemex](https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg)](https://phemex.com/register?referralCode=EDNVJ)                                                | phemex             | [Phemex](https://phemex.com/register?referralCode=EDNVJ)                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/phemex/phemex-api-docs)                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -296,6 +296,38 @@ $exchange = new $exchange_class(array(
     ),
 ));
 $exchange->options['adjustForTimeDifference'] = false;
+```
+
+### Overriding Exchange Methods
+
+In all CCXT-supported languages, you can override instance methods during runtime:
+
+```javascript
+// JavaScript
+const ex = new ccxt.binance ();
+ex.fetch_ticker = function (symbol, params = {}) {
+    // your codes go here
+};
+console.log (ex.fetch_ticker('BTC/USDT'));
+```
+
+```python
+# PYTHON
+ex = ccxt.binance()
+def my_overload(symbol, params = {}):
+    # your codes go here
+
+ex.fetch_ticker = my_overload
+print(ex.fetch_ticker('BTC/USDT'))
+```
+
+```php
+// PHP
+$ex = new \ccxt\binance();
+$ex->add_method('fetch_ticker', function($symbol, $params = []) {
+    // your codes go here
+});
+var_dump($ex->call_method('fetch_ticker', ['BTC/USDT']));
 ```
 
 ### Testnets And Sandbox Environments
@@ -1562,34 +1594,38 @@ var_dump (new \ccxt\okcoin ()); // PHP
 
 - [Overriding Unified API Params](#overriding-unified-api-params)
 - [Pagination](#pagination)
+- [Automatic Pagination](#automatic-pagination)
 
 The unified ccxt API is a subset of methods common among the exchanges. It currently contains the following methods:
 
 - `fetchMarkets ()`: Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as `symbol`, `base`, `quote` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
 - `fetchCurrencies ()`: Fetches  all available currencies an exchange and returns an associative dictionary of currencies (objects with properties such as `code`, `name`, etc.). Some exchanges do not have means for obtaining currencies via their online API. For those, the currencies will be extracted from market pairs or hardcoded.
 - `loadMarkets ([reload])`: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the `reload = true` flag is forced.
-- `fetchOrderBook (symbol[, limit = undefined[, params = {}]])`: Fetch L2/L3 order book for a particular market trading symbol.
-- `fetchStatus ([, params = {}])`: Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
-- `fetchL2OrderBook (symbol[, limit = undefined[, params]])`: Level 2 (price-aggregated) order book for a particular symbol.
-- `fetchTrades (symbol[, since[, [limit, [params]]]])`: Fetch recent trades for a particular trading symbol.
+- `fetchOrderBook (symbol, limit = undefined, params = {})`: Fetch L2/L3 order book for a particular market trading symbol.
+- `fetchStatus (params = {})`: Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
+- `fetchL2OrderBook (symbol, limit = undefined, params)`: Level 2 (price-aggregated) order book for a particular symbol.
+- `fetchTrades (symbol, since, limit, params)`: Fetch recent trades for a particular trading symbol.
 - `fetchTicker (symbol)`: Fetch latest ticker data by trading symbol.
 - `fetchBalance ()`: Fetch Balance.
-- `createOrder (symbol, type, side, amount[, price[, params]])`
-- `createLimitBuyOrder (symbol, amount, price[, params])`
-- `createLimitSellOrder (symbol, amount, price[, params])`
-- `createMarketBuyOrder (symbol, amount[, params])`
-- `createMarketSellOrder (symbol, amount[, params])`
-- `cancelOrder (id[, symbol[, params]])`
-- `fetchOrder (id[, symbol[, params]])`
-- `fetchOrders ([symbol[, since[, limit[, params]]]])`
-- `fetchOpenOrders ([symbol[, since, limit, params]]]])`
-- `fetchCanceledOrders ([symbol[, since[, limit[, params]]]])`
-- `fetchClosedOrders ([symbol[, since[, limit[, params]]]])`
-- `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
-- `fetchOpenInterest ([symbol[, params]])`
-- `fetchVolatilityHistory ([code[, params]])`
+- `createOrder (symbol, type, side, amount, price, params)`
+- `createOrders(orders, params)`
+- `createLimitBuyOrder (symbol, amount, price, param)`
+- `createLimitSellOrder (symbol, amount, price, param)`
+- `createMarketBuyOrder (symbol, amount, param)`
+- `createMarketSellOrder (symbol, amount, param)`
+- `cancelOrder (id, symbol, params)`
+- `fetchOrder (id, symbol, params)`
+- `fetchOrders (symbol, since, limit, params)`
+- `fetchOpenOrders (symbol, since, limit, params)`
+- `fetchCanceledOrders (symbol, since, limit, params)`
+- `fetchClosedOrders (symbol, since, limit, params)`
+- `fetchMyTrades (symbol, since, limit, params)`
+- `fetchOpenInterest (symbol, params)`
+- `fetchVolatilityHistory (code, params)`
 - `fetchUnderlyingAssets ()`
-- `fetchSettlementHistory ([symbol[, since[, limit[, params]]]])`
+- `fetchSettlementHistory (symbol, since, limit, params)`
+- `fetchLiquidations (symbol, since, limit, params)`
+- `fetchMyLiquidations (symbol, since, limit, params)`
 - ...
 
 ```text
@@ -1659,6 +1695,50 @@ In most cases users are **required to use at least some type of pagination** in 
 - `fetchWithdrawals()`
 
 With methods returning lists of objects, exchanges may offer one or more types of pagination. CCXT unifies **date-based pagination** by default, with timestamps **in milliseconds** throughout the entire library.
+
+
+### Automatic Pagination
+
+*Warning: this is an experimental feature and might produce unexpected/incorrect results in some instances.*
+
+Recently, CCXT introduced a way to paginate through several results automatically by just providing the `paginate` flag inside `params,` lifting this work from the userland. Most leading exchanges support it, and more will be added in the future, but the easiest way to check it is to look in the method's documentation and search for the *pagination* parameter. As always there are exceptions, and some endpoints might not provide a way to paginate either through a timestamp or a cursor, and in those cases, there's nothing CCXT can do about it.
+
+
+Right now, we have three different ways of paginating:
+- **dynamic/time-based**: uses the `until` and `since` parameters to paginate through dynamic results like (trades, orders, transactions, etc). Since we don't know a priori how many entries are available to be fetched, it will perform one request at a time until we reach the end of the data or the maximum amount of pagination calls (configurable through an option)
+- **deterministic**: when we can pre-compute the boundaries of each page, it will perform the requests concurrently for maximum performance. This applies to OHLCV, Funding Rates, and Open Interest and also respects the `maxPaginationCalls` option.
+- **cursor-based**: when the exchange provides a cursor inside the response, we extract the cursor and perform the subsequent request until the end of the data or reach the maximum number of pagination calls.
+
+The user cannot select the pagination method used, it will depend from implementation to implementation, considering the exchange API's features.
+
+#### Pagination params
+
+We can't perform an infinite amount of requests, and some of them might throw an error for different reasons, thus, we have some options that allow the user to control these variables and other pagination specificities.
+
+*All the options below, should be provided inside `params`, you can check the examples below*
+
+- **paginate**: (**boolean**) indicates that the user wants to paginate through different pages to get more data. Default is *false*.
+- **paginationCalls**: (**integer**) allows the user to control the maximum amount of requests to paginate the data. Due to the rate limits, this value should not be too high. Default is 10.
+- **maxRetries**: (**integer**) how many times should the pagination mechanism retry upon getting an error. Default is 3
+- **paginationDirection**: (**string**) Only applies to the dynamic pagination and it can be either *forward* (start the pagination from some time in the past and paginate forward) or *backward* (start from the most recent time and paginate backward). If *forward* is selected then a *since* parameter must also be provided. Default is *backward*.
+- **maxEntriesPerRequest**: (**integer**): The max amount of entries per request so that we can maximize the data retrieved per call. It varies from endpoint to endpoint and CCXT will populate this value for you, but you can override it if needed.
+
+#### Examples
+
+```Python
+
+trades = await binance.fetch_trades("BTC/USDT", params = {"paginate": True}) # dynamic/time-based
+
+ohlcv = await binance.fetch_ohlcv("BTC/USDT", params = {"paginate": True, "paginationCalls": 5}) # deterministic-pagination will perform 5 requests
+
+trades = await binance.fetch_trades("BTC/USDT", since = 1664812416000, params = {"paginate": True, "paginationDirection": "forward"}) # dynamic/time-based pagination starting from 1664812416000
+
+ledger = await bybit.fetch_ledger(params = {"paginate": True}) # bybit returns a cursor so the pagination will be cursor-based
+
+funding_rates = await binance.fetch_funding_rate_history("BTC/USDT:USDT", params = {"paginate": True, "maxEntriesPerRequest": 50}) # customizes the number of entries per request
+
+```
+
 
 ### Working With Datetimes And Timestamps
 
@@ -1898,6 +1978,7 @@ if ($exchange->has['fetchMyTrades']) {
 - [Open Interest History](#open-interest-history)
 - [Volatility History](#volatility-history)
 - [Underlying Assets](#underlying-assets)
+- [Liquidations](#liquidations)
 
 ## Order Book
 
@@ -2993,6 +3074,44 @@ Returns
 }
 ```
 
+## Liquidations
+
+Use the `fetchLiquidations` method to get the public liquidations of a trading pair from the exchange.
+
+```javascript
+fetchLiquidations (symbol, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT-231006-25000-P"`)
+- **since** (Integer) Timestamp for the earliest liquidation (e.g. `1694073600000`)
+- **limit** (Integer) The maximum number of liquidations to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"until": 1645807945000}`)
+
+Returns
+
+- An array of [liquidation structures](#liquidation-structure)
+
+### Liquidation Structure
+
+```javascript
+[
+    {
+        'info':          { ... },                        // the original decoded JSON as is
+        'symbol':        'BTC/USDT:USDT-231006-25000-P', // unified CCXT market symbol
+        'contracts':     2,                              // the number of derivative contracts
+        'contractSize':  0.001,                          // the contract size for the trading pair
+        'price':         27038.64,                       // the average liquidation price in the quote currency
+        'baseValue':     0.002,                          // value in the base currency (contracts * contractSize)
+        'quoteValue':    54.07728,                       // value in the quote currency ((contracts * contractSize) * price)
+        'timestamp':     1696996782210,                  // Unix timestamp in milliseconds
+        'datetime':      '2023-10-11 03:59:42.000',      // ISO8601 datetime with milliseconds
+    },
+    ...
+]
+```
+
 # Private API
 
 - [Authentication](#authentication)
@@ -3483,7 +3602,10 @@ The exchanges' order management APIs differ by design. The user has to understan
 - `fetchOrder()` – fetches a single order (open or closed) by order `id`.
 - `fetchOrders()` – fetches a list of all orders (either open or closed/canceled).
 - `createOrder()` – used for placing orders
-- `cancelOrder()` – used for canceling orders
+- `createOrders()` – used for placing multiple orders within the same request
+- `cancelOrder()` – used for canceling a single order
+- `cancelOrders()` - used for canceling multiple orders
+- `cancelAllOrders()` - used for canceling all orders
 
 The majority of the exchanges will have a way of fetching currently-open orders. Thus, the `exchange.has['fetchOpenOrders']`. If that method is not available, then most likely the `exchange.has['fetchOrders']` that will provide a list of all orders. The exchange will return a list of open orders either from `fetchOpenOrders()` or from `fetchOrders()`. One of the two methods is usually available from any exchange.
 
@@ -3667,10 +3789,14 @@ There are different types of orders that a user can send to the exchange, regula
 
 Placing an order always requires a `symbol` that the user has to specify (which market you want to trade).
 
-To place an order use the `createOrder` method. You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later.
+To place an order use the `createOrder` method. You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later. If you need to place multiple orders simultaneously, you can check the availability of the `createOrders` method.
 
 ```javascript
 createOrder (symbol, type, side, amount, price = undefined, params = {})
+```
+
+```javascript
+createOrders (orders, params = {}) // orders is a list in which each element contains a symbol, type, side, amount, price and params
 ```
 
 Parameters

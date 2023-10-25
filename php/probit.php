@@ -331,6 +331,7 @@ class probit extends Exchange {
                         'max' => $this->safe_number($market, 'max_cost'),
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -1472,6 +1473,8 @@ class probit extends Exchange {
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
+        } else {
+            $request['limit'] = 100;
         }
         $response = $this->privateGetTransferPayment (array_merge($request, $params));
         //

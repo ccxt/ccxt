@@ -495,7 +495,7 @@ class exmo(ccxt.async_support.exmo):
         symbol = self.safe_symbol(marketId)
         orderBook = self.safe_value(message, 'data', {})
         messageHash = 'orderbook:' + symbol
-        timestamp = self.safe_number(message, 'ts')
+        timestamp = self.safe_integer(message, 'ts')
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
         if storedOrderBook is None:
             storedOrderBook = self.order_book({})

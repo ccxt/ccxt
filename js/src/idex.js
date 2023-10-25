@@ -312,6 +312,7 @@ export default class idex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }
@@ -1519,7 +1520,7 @@ export default class idex extends Exchange {
         //
         //    { serverTime: '1655258263236' }
         //
-        return this.safeNumber(response, 'serverTime');
+        return this.safeInteger(response, 'serverTime');
     }
     async fetchWithdrawal(id, code = undefined, params = {}) {
         /**

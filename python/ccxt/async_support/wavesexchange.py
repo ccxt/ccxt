@@ -585,6 +585,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': entry,
             })
         return result
@@ -728,7 +729,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             messageHex = self.binary_to_base16(self.encode(message))
             payload = prefix + messageHex
             hexKey = self.binary_to_base16(self.base58_to_binary(self.secret))
-            signature = self.eddsa(payload, hexKey, 'ed25519')
+            signature = axolotl(payload, hexKey, 'ed25519')
             request = {
                 'grant_type': 'password',
                 'scope': 'general',
@@ -1347,7 +1348,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         serializedOrder = await self.matcherPostMatcherOrdersSerialize(body)
         if (serializedOrder[0] == '"') and (serializedOrder[(len(serializedOrder) - 1)] == '"'):
             serializedOrder = serializedOrder[1:len(serializedOrder) - 1]
-        signature = self.eddsa(self.binary_to_base16(self.base58_to_binary(serializedOrder)), self.binary_to_base16(self.base58_to_binary(self.secret)), 'ed25519')
+        signature = axolotl(self.binary_to_base16(self.base58_to_binary(serializedOrder)), self.binary_to_base16(self.base58_to_binary(self.secret)), 'ed25519')
         body['signature'] = signature
         #
         #     {
@@ -1455,7 +1456,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         ]
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
-        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
+        signature = axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
         request = {
             'Timestamp': str(timestamp),
             'Signature': signature,
@@ -1487,7 +1488,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         ]
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
-        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
+        signature = axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
         request = {
             'Accept': 'application/json',
             'Timestamp': str(timestamp),
@@ -1827,7 +1828,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         ]
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
-        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
+        signature = axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
         matcherRequest = {
             'publicKey': self.apiKey,
             'signature': signature,
@@ -2199,8 +2200,8 @@ class wavesexchange(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://docs.wx.network/en/api/gateways/deposit/currencies
-        see https://docs.wx.network/en/api/gateways/withdraw/currencies
+        :see: https://docs.wx.network/en/api/gateways/deposit/currencies
+        :see: https://docs.wx.network/en/api/gateways/withdraw/currencies
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -2383,7 +2384,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         ]
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
-        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
+        signature = axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
         request = {
             'senderPublicKey': self.apiKey,
             'amount': amountInteger,

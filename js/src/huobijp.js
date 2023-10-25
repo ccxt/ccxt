@@ -517,6 +517,7 @@ export default class huobijp extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -724,7 +725,7 @@ export default class huobijp extends Exchange {
             ticker['datetime'] = this.iso8601(timestamp);
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1424,7 +1425,7 @@ export default class huobijp extends Exchange {
         const response = await this[method](this.extend(request, params));
         const timestamp = this.milliseconds();
         const id = this.safeString(response, 'data');
-        return {
+        return this.safeOrder({
             'info': response,
             'id': id,
             'timestamp': timestamp,
@@ -1443,7 +1444,7 @@ export default class huobijp extends Exchange {
             'fee': undefined,
             'clientOrderId': undefined,
             'average': undefined,
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

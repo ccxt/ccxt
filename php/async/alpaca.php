@@ -308,6 +308,7 @@ class alpaca extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $asset,
                 );
             }

@@ -375,6 +375,7 @@ class bittrex extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->parse8601($this->safe_string($market, 'createdAt')),
                     'info' => $market,
                 );
             }
@@ -623,7 +624,7 @@ class bittrex extends Exchange {
                 $ticker = $this->parse_ticker($response[$i]);
                 $tickers[] = $ticker;
             }
-            return $this->filter_by_array($tickers, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -928,8 +929,14 @@ class bittrex extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1440));
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $reverseId = $market['baseId'] . '-' . $market['quoteId'];
@@ -1910,8 +1917,8 @@ class bittrex extends Exchange {
                 $request['marketSymbol'] = $market['id'];
             }
             $response = Async\await($this->privateGetExecutions (array_merge($request, $params)));
-            $trades = $this->parse_trades($response, $market);
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            $trades = $this->parse_trades($response, $market, $since, $limit);
+            return $trades;
         }) ();
     }
 

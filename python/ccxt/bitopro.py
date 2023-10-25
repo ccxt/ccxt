@@ -364,6 +364,7 @@ class bitopro(Exchange, ImplicitAPI):
                     'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
                 },
                 'active': active,
+                'created': None,
                 'info': market,
             })
         return result
@@ -1527,7 +1528,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/open/currencies.md
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/open/currencies.md
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitopro api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`

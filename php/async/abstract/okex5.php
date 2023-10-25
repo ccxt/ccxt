@@ -241,6 +241,9 @@ abstract class okex5 extends \ccxt\async\okex {
     public function private_get_trade_fills_history($params = array()) {
         return $this->request('trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 2.2));
     }
+    public function private_get_trade_fills_archive($params = array()) {
+        return $this->request('trade/fills-archive', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_get_trade_order_algo($params = array()) {
         return $this->request('trade/order-algo', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -427,6 +430,24 @@ abstract class okex5 extends \ccxt\async\okex {
     public function private_get_tradingbot_grid_positions($params = array()) {
         return $this->request('tradingBot/grid/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_tradingbot_grid_ai_param($params = array()) {
+        return $this->request('tradingBot/grid/ai-param', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_tradingbot_public_rsi_back_testing($params = array()) {
+        return $this->request('tradingBot/public/rsi-back-testing', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_tradingbot_signal_orders_algo_details($params = array()) {
+        return $this->request('tradingBot/signal/orders-algo-details', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_tradingbot_signal_positions($params = array()) {
+        return $this->request('tradingBot/signal/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_tradingbot_signal_sub_orders($params = array()) {
+        return $this->request('tradingBot/signal/sub-orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_tradingbot_signal_event_history($params = array()) {
+        return $this->request('tradingBot/signal/event-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_tradingbot_recurring_orders_algo_pending($params = array()) {
         return $this->request('tradingBot/recurring/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -570,6 +591,9 @@ abstract class okex5 extends \ccxt\async\okex {
     }
     public function private_post_trade_close_position($params = array()) {
         return $this->request('trade/close-position', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_trade_fills_archive($params = array()) {
+        return $this->request('trade/fills-archive', 'private', 'POST', $params, null, null, array("cost" => 172800));
     }
     public function private_post_trade_order_algo($params = array()) {
         return $this->request('trade/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -771,6 +795,9 @@ abstract class okex5 extends \ccxt\async\okex {
     }
     public function private_post_finance_sfp_dcd_order($params = array()) {
         return $this->request('finance/sfp/dcd/order', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function private_post_broker_nd_report_subaccount_ip($params = array()) {
+        return $this->request('broker/nd/report-subaccount-ip', 'private', 'POST', $params, null, null, array("cost" => 0.25));
     }
     public function private_post_broker_fd_rebate_per_orders($params = array()) {
         return $this->request('broker/fd/rebate-per-orders', 'private', 'POST', $params, null, null, array("cost" => 36000));
@@ -1009,6 +1036,9 @@ abstract class okex5 extends \ccxt\async\okex {
     public function privateGetTradeFillsHistory($params = array()) {
         return $this->request('trade/fills-history', 'private', 'GET', $params, null, null, array("cost" => 2.2));
     }
+    public function privateGetTradeFillsArchive($params = array()) {
+        return $this->request('trade/fills-archive', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function privateGetTradeOrderAlgo($params = array()) {
         return $this->request('trade/order-algo', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1195,6 +1225,24 @@ abstract class okex5 extends \ccxt\async\okex {
     public function privateGetTradingBotGridPositions($params = array()) {
         return $this->request('tradingBot/grid/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetTradingBotGridAiParam($params = array()) {
+        return $this->request('tradingBot/grid/ai-param', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradingBotPublicRsiBackTesting($params = array()) {
+        return $this->request('tradingBot/public/rsi-back-testing', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradingBotSignalOrdersAlgoDetails($params = array()) {
+        return $this->request('tradingBot/signal/orders-algo-details', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradingBotSignalPositions($params = array()) {
+        return $this->request('tradingBot/signal/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradingBotSignalSubOrders($params = array()) {
+        return $this->request('tradingBot/signal/sub-orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradingBotSignalEventHistory($params = array()) {
+        return $this->request('tradingBot/signal/event-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetTradingBotRecurringOrdersAlgoPending($params = array()) {
         return $this->request('tradingBot/recurring/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1338,6 +1386,9 @@ abstract class okex5 extends \ccxt\async\okex {
     }
     public function privatePostTradeClosePosition($params = array()) {
         return $this->request('trade/close-position', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradeFillsArchive($params = array()) {
+        return $this->request('trade/fills-archive', 'private', 'POST', $params, null, null, array("cost" => 172800));
     }
     public function privatePostTradeOrderAlgo($params = array()) {
         return $this->request('trade/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -1539,6 +1590,9 @@ abstract class okex5 extends \ccxt\async\okex {
     }
     public function privatePostFinanceSfpDcdOrder($params = array()) {
         return $this->request('finance/sfp/dcd/order', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostBrokerNdReportSubaccountIp($params = array()) {
+        return $this->request('broker/nd/report-subaccount-ip', 'private', 'POST', $params, null, null, array("cost" => 0.25));
     }
     public function privatePostBrokerFdRebatePerOrders($params = array()) {
         return $this->request('broker/fd/rebate-per-orders', 'private', 'POST', $params, null, null, array("cost" => 36000));

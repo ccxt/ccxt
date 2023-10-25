@@ -324,7 +324,7 @@ class bybit extends \ccxt\async\bybit {
         $topic = $this->safe_string($message, 'topic', '');
         $updateType = $this->safe_string($message, 'type', '');
         $data = $this->safe_value($message, 'data', array());
-        $isSpot = $this->safe_string($data, 'openInterestValue') === null;
+        $isSpot = $this->safe_string($data, 'fundingRate') === null;
         $type = $isSpot ? 'spot' : 'contract';
         $symbol = null;
         $parsed = null;

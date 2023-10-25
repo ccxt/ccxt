@@ -5,13 +5,15 @@ import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, OrderSide, OrderType } from './base/types.js';
+import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 
 // ---------------------------------------------------------------------------
 
 /**
  * @class kuna
  * @extends Exchange
+ * @description Use the public-key as your apiKey
  */
 export default class kuna extends Exchange {
     describe () {
@@ -69,6 +71,7 @@ export default class kuna extends Exchange {
                 'api': {
                     'xreserve': 'https://api.xreserve.fund',
                     'v3': 'https://api.kuna.io',
+                    'v4': 'https://api.kuna.io',
                     'public': 'https://kuna.io', // v2
                     'private': 'https://kuna.io', // v2
                 },
@@ -85,6 +88,54 @@ export default class kuna extends Exchange {
                     },
                     'post': {
                         'delegate-transfer': 1,
+                    },
+                },
+                'v4': {
+                    'private': {
+                        'get': {
+                            'me': 1,
+                            'getBalance': 1,
+                            'active': 1,
+                            'order/history': 1,
+                            'order/private/{id}/trades': 1,
+                            'order/details/{id}?withTrades={withTrades}': 1,
+                            'trade/history': 1,
+                            'transaction/{hash}': 1,
+                            'deposit/preRequest': 1,
+                            'deposit/crypto/address': 1,
+                            'deposit/crypto/getMerchantAddress': 1,
+                            'deposit/history': 1,
+                            'deposit/details/{depositId}': 1,
+                            'withdraw/preRequest': 1,
+                            'withdraw/history': 1,
+                            'withdraw/details/{withdrawId}': 1,
+                            'kuna-code/{id}': 1,
+                            'kuna-code/{code}/check': 1,
+                            'kuna-code/issued-by-me': 1,
+                            'kuna-code/redeemed-by-me': 1,
+                        },
+                        'post': {
+                            'order/create': 1,
+                            'order/cancel': 1,
+                            'order/cancel/multi': 1,
+                            'deposit/crypto/generateAddress': 1,
+                            'deposit/crypto/generateMerchantAddress': 1,
+                            'withdraw/create': 1,
+                            'kuna-code': 1,
+                        },
+                        'put': {
+                            'kuna-code/redeem': 1,
+                        },
+                    },
+                    'public': {
+                        'get': {
+                            'timestamp': 1,
+                            'fees': 1,
+                            'currencies?type={type}': 1,
+                            'markets/getAll': 1,
+                            'markets/tickers?pairs={pairs}': 1,
+                            'order/book/{pairs}': 1,
+                        },
                     },
                 },
                 'v3': {
@@ -294,6 +345,9 @@ export default class kuna extends Exchange {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
             },
+            'options': {
+                // 'account': 'pro'      // Only for pro accounts
+            },
         });
     }
 
@@ -401,6 +455,7 @@ export default class kuna extends Exchange {
                                 'max': undefined,
                             },
                         },
+                        'created': undefined,
                         'info': undefined,
                     });
                 }
@@ -481,7 +536,7 @@ export default class kuna extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (response[id], market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -640,7 +695,7 @@ export default class kuna extends Exchange {
                 ohlcv[5],
             ]);
         }
-        return result;
+        return result as OHLCV[];
     }
 
     parseBalance (response) {
@@ -872,18 +927,49 @@ export default class kuna extends Exchange {
         let url = undefined;
         if (Array.isArray (api)) {
             const [ version, access ] = api;
-            url = this.urls['api'][version] + '/' + version + '/' + this.implodeParams (path, params);
-            if (access === 'public') {
-                if (method === 'GET') {
-                    if (Object.keys (params).length) {
-                        url += '?' + this.urlencode (params);
+            if (version === 'v3') {
+                url = this.urls['api'][version] + '/' + version + '/' + this.implodeParams (path, params);
+                if (access === 'public') {
+                    if (method === 'GET') {
+                        if (Object.keys (params).length) {
+                            url += '?' + this.urlencode (params);
+                        }
+                    } else if ((method === 'POST') || (method === 'PUT')) {
+                        headers = { 'Content-Type': 'application/json' };
+                        body = this.json (params);
                     }
-                } else if ((method === 'POST') || (method === 'PUT')) {
-                    headers = { 'Content-Type': 'application/json' };
-                    body = this.json (params);
+                } else if (access === 'private') {
+                    throw new NotSupported (this.id + ' private v3 API is not supported yet');
                 }
-            } else if (access === 'private') {
-                throw new NotSupported (this.id + ' private v3 API is not supported yet');
+            } else if (version === 'v4') {
+                const splitPath = path.split ('/');
+                const splitPathLength = splitPath.length;
+                let urlPath = '';
+                if ((splitPathLength > 1) && (splitPath[0] !== 'kuna-code')) {
+                    let pathTail = '';
+                    for (let i = 1; i < splitPathLength; i++) {
+                        pathTail += splitPath[i];
+                    }
+                    urlPath = '/' + version + '/' + splitPath[0] + '/' + access + '/' + this.implodeParams (pathTail, params);
+                } else {
+                    urlPath = '/' + version + '/' + access + '/' + this.implodeParams (path, params);
+                }
+                url = this.urls['api'][version] + urlPath;
+                if (access === 'private') {
+                    const nonce = this.nonce ();
+                    const auth = urlPath + nonce + this.json (params);
+                    headers = {
+                        'content-type': 'application/json',
+                        'accept': 'application/json',
+                        'nonce': nonce,
+                        'public-key': this.apiKey,
+                        'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha384, 'hex'),
+                    };
+                    const account = this.safeString (this.options, 'account');
+                    if (account === 'pro') {
+                        headers['account'] = 'pro';
+                    }
+                }
             }
         } else {
             let request = '/api/' + this.version + '/' + this.implodeParams (path, params);

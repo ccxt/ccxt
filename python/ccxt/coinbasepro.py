@@ -125,6 +125,7 @@ class coinbasepro(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': [
+                        'address-book',
                         'accounts',
                         'accounts/{id}',
                         'accounts/{id}/holds',
@@ -418,6 +419,7 @@ class coinbasepro(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             }))
         return result
@@ -496,6 +498,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -650,10 +653,11 @@ class coinbasepro(Exchange, ImplicitAPI):
             market = self.safe_market(marketId, None, delimiter)
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(first, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
@@ -762,16 +766,21 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
+        :param int [params.until]: the latest time in ms to fetch trades for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        # 2018-08-23
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, 100)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -779,11 +788,18 @@ class coinbasepro(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['start_date'] = self.iso8601(since)
+        until = self.safe_value_2(params, 'until', 'end_date')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['end_date'] = self.iso8601(until)
         response = self.privateGetFills(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -864,15 +880,22 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
+        :param int [params.until]: the latest time in ms to fetch trades for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 300)
         market = self.market(symbol)
         parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
         request = {
@@ -882,6 +905,8 @@ class coinbasepro(Exchange, ImplicitAPI):
             request['granularity'] = parsedTimeframe
         else:
             request['granularity'] = timeframe
+        until = self.safe_value_2(params, 'until', 'end')
+        params = self.omit(params, ['until'])
         if since is not None:
             request['start'] = self.iso8601(since)
             if limit is None:
@@ -889,11 +914,14 @@ class coinbasepro(Exchange, ImplicitAPI):
                 limit = 300  # max = 300
             else:
                 limit = min(300, limit)
-            parsedTimeframeMilliseconds = parsedTimeframe * 1000
-            if since % parsedTimeframeMilliseconds == 0:
-                request['end'] = self.iso8601(self.sum((limit - 1) * parsedTimeframeMilliseconds, since))
+            if until is None:
+                parsedTimeframeMilliseconds = parsedTimeframe * 1000
+                if since % parsedTimeframeMilliseconds == 0:
+                    request['end'] = self.iso8601(self.sum((limit - 1) * parsedTimeframeMilliseconds, since))
+                else:
+                    request['end'] = self.iso8601(self.sum(limit * parsedTimeframeMilliseconds, since))
             else:
-                request['end'] = self.iso8601(self.sum(limit * parsedTimeframeMilliseconds, since))
+                request['end'] = self.iso8601(until)
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         #
         #     [
@@ -1005,6 +1033,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
         fetches information on an order made by the user
         :param str symbol: not used by coinbasepro fetchOrder
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
@@ -1046,11 +1075,13 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
+        :param int [params.until]: the latest time in ms to fetch open orders for
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         request = {
@@ -1060,14 +1091,21 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
+        :param int [params.until]: the latest time in ms to fetch open orders for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params, 100)
         request = {}
         market = None
         if symbol is not None:
@@ -1075,16 +1113,24 @@ class coinbasepro(Exchange, ImplicitAPI):
             request['product_id'] = market['id']
         if limit is not None:
             request['limit'] = limit  # default 100
+        if since is not None:
+            request['start_date'] = self.iso8601(since)
+        until = self.safe_value_2(params, 'until', 'end_date')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['end_date'] = self.iso8601(until)
         response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
+        :param int [params.until]: the latest time in ms to fetch open orders for
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         request = {
@@ -1094,6 +1140,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1176,6 +1223,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1203,6 +1251,7 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
@@ -1369,11 +1418,13 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
+        :param int [params.until]: the latest time in ms to fetch trades for
         :returns dict: a `ledger structure <https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure>`
         """
         # https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
@@ -1399,6 +1450,10 @@ class coinbasepro(Exchange, ImplicitAPI):
             request['start_date'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit  # default 100
+        until = self.safe_value_2(params, 'until', 'end_date')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['end_date'] = self.iso8601(until)
         response = self.privateGetAccountsIdLedger(self.extend(request, params))
         for i in range(0, len(response)):
             response[i]['currency'] = code
@@ -1407,8 +1462,8 @@ class coinbasepro(Exchange, ImplicitAPI):
     def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None

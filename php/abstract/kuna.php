@@ -19,6 +19,108 @@ abstract class kuna extends \ccxt\Exchange {
     public function xreserve_post_delegate_transfer($params = array()) {
         return $this->request('delegate-transfer', 'xreserve', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function v4_private_get_me($params = array()) {
+        return $this->request('me', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_getbalance($params = array()) {
+        return $this->request('getBalance', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_active($params = array()) {
+        return $this->request('active', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_order_history($params = array()) {
+        return $this->request('order/history', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_order_private_id_trades($params = array()) {
+        return $this->request('order/private/{id}/trades', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_order_details_id_withtrades_withtrades($params = array()) {
+        return $this->request('order/details/{id}?withTrades={withTrades}', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_trade_history($params = array()) {
+        return $this->request('trade/history', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_transaction_hash($params = array()) {
+        return $this->request('transaction/{hash}', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_deposit_prerequest($params = array()) {
+        return $this->request('deposit/preRequest', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_deposit_crypto_address($params = array()) {
+        return $this->request('deposit/crypto/address', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_deposit_crypto_getmerchantaddress($params = array()) {
+        return $this->request('deposit/crypto/getMerchantAddress', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_deposit_history($params = array()) {
+        return $this->request('deposit/history', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_deposit_details_depositid($params = array()) {
+        return $this->request('deposit/details/{depositId}', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_withdraw_prerequest($params = array()) {
+        return $this->request('withdraw/preRequest', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_withdraw_history($params = array()) {
+        return $this->request('withdraw/history', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_withdraw_details_withdrawid($params = array()) {
+        return $this->request('withdraw/details/{withdrawId}', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_kuna_code_id($params = array()) {
+        return $this->request('kuna-code/{id}', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_kuna_code_code_check($params = array()) {
+        return $this->request('kuna-code/{code}/check', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_kuna_code_issued_by_me($params = array()) {
+        return $this->request('kuna-code/issued-by-me', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_get_kuna_code_redeemed_by_me($params = array()) {
+        return $this->request('kuna-code/redeemed-by-me', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_post_order_create($params = array()) {
+        return $this->request('order/create', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_post_order_cancel($params = array()) {
+        return $this->request('order/cancel', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_post_order_cancel_multi($params = array()) {
+        return $this->request('order/cancel/multi', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_post_deposit_crypto_generateaddress($params = array()) {
+        return $this->request('deposit/crypto/generateAddress', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_post_deposit_crypto_generatemerchantaddress($params = array()) {
+        return $this->request('deposit/crypto/generateMerchantAddress', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_post_withdraw_create($params = array()) {
+        return $this->request('withdraw/create', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_post_kuna_code($params = array()) {
+        return $this->request('kuna-code', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4_private_put_kuna_code_redeem($params = array()) {
+        return $this->request('kuna-code/redeem', array('v4', 'private'), 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function v4_public_get_timestamp($params = array()) {
+        return $this->request('timestamp', array('v4', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_public_get_fees($params = array()) {
+        return $this->request('fees', array('v4', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_public_get_currencies_type_type($params = array()) {
+        return $this->request('currencies?type={type}', array('v4', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_public_get_markets_getall($params = array()) {
+        return $this->request('markets/getAll', array('v4', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_public_get_markets_tickers_pairs_pairs($params = array()) {
+        return $this->request('markets/tickers?pairs={pairs}', array('v4', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4_public_get_order_book_pairs($params = array()) {
+        return $this->request('order/book/{pairs}', array('v4', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v3_public_get_timestamp($params = array()) {
         return $this->request('timestamp', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -444,6 +546,108 @@ abstract class kuna extends \ccxt\Exchange {
     }
     public function xreservePostDelegateTransfer($params = array()) {
         return $this->request('delegate-transfer', 'xreserve', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetMe($params = array()) {
+        return $this->request('me', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetGetBalance($params = array()) {
+        return $this->request('getBalance', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetActive($params = array()) {
+        return $this->request('active', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetOrderHistory($params = array()) {
+        return $this->request('order/history', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetOrderPrivateIdTrades($params = array()) {
+        return $this->request('order/private/{id}/trades', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetOrderDetailsIdWithTradesWithTrades($params = array()) {
+        return $this->request('order/details/{id}?withTrades={withTrades}', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetTradeHistory($params = array()) {
+        return $this->request('trade/history', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetTransactionHash($params = array()) {
+        return $this->request('transaction/{hash}', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetDepositPreRequest($params = array()) {
+        return $this->request('deposit/preRequest', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetDepositCryptoAddress($params = array()) {
+        return $this->request('deposit/crypto/address', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetDepositCryptoGetMerchantAddress($params = array()) {
+        return $this->request('deposit/crypto/getMerchantAddress', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetDepositHistory($params = array()) {
+        return $this->request('deposit/history', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetDepositDetailsDepositId($params = array()) {
+        return $this->request('deposit/details/{depositId}', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetWithdrawPreRequest($params = array()) {
+        return $this->request('withdraw/preRequest', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetWithdrawHistory($params = array()) {
+        return $this->request('withdraw/history', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetWithdrawDetailsWithdrawId($params = array()) {
+        return $this->request('withdraw/details/{withdrawId}', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetKunaCodeId($params = array()) {
+        return $this->request('kuna-code/{id}', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetKunaCodeCodeCheck($params = array()) {
+        return $this->request('kuna-code/{code}/check', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetKunaCodeIssuedByMe($params = array()) {
+        return $this->request('kuna-code/issued-by-me', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivateGetKunaCodeRedeemedByMe($params = array()) {
+        return $this->request('kuna-code/redeemed-by-me', array('v4', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivatePostOrderCreate($params = array()) {
+        return $this->request('order/create', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivatePostOrderCancel($params = array()) {
+        return $this->request('order/cancel', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivatePostOrderCancelMulti($params = array()) {
+        return $this->request('order/cancel/multi', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivatePostDepositCryptoGenerateAddress($params = array()) {
+        return $this->request('deposit/crypto/generateAddress', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivatePostDepositCryptoGenerateMerchantAddress($params = array()) {
+        return $this->request('deposit/crypto/generateMerchantAddress', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivatePostWithdrawCreate($params = array()) {
+        return $this->request('withdraw/create', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivatePostKunaCode($params = array()) {
+        return $this->request('kuna-code', array('v4', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v4PrivatePutKunaCodeRedeem($params = array()) {
+        return $this->request('kuna-code/redeem', array('v4', 'private'), 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function v4PublicGetTimestamp($params = array()) {
+        return $this->request('timestamp', array('v4', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PublicGetFees($params = array()) {
+        return $this->request('fees', array('v4', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PublicGetCurrenciesTypeType($params = array()) {
+        return $this->request('currencies?type={type}', array('v4', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PublicGetMarketsGetAll($params = array()) {
+        return $this->request('markets/getAll', array('v4', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PublicGetMarketsTickersPairsPairs($params = array()) {
+        return $this->request('markets/tickers?pairs={pairs}', array('v4', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v4PublicGetOrderBookPairs($params = array()) {
+        return $this->request('order/book/{pairs}', array('v4', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v3PublicGetTimestamp($params = array()) {
         return $this->request('timestamp', array('v3', 'public'), 'GET', $params, null, null, array("cost" => 1));

@@ -96,6 +96,7 @@ interface Exchange {
     publicGetV5MarketInsurance(params?: {}): Promise<implicitReturnType>;
     publicGetV5MarketRiskLimit(params?: {}): Promise<implicitReturnType>;
     publicGetV5MarketDeliveryPrice(params?: {}): Promise<implicitReturnType>;
+    publicGetV5MarketAccountRatio(params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotLeverTokenInfo(params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotLeverTokenReference(params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotMarginTradeData(params?: {}): Promise<implicitReturnType>;
@@ -451,6 +452,7 @@ interface Exchange {
     privatePostV5SpotCrossMarginTradeSwitch(params?: {}): Promise<implicitReturnType>;
     privatePostV5LendingPurchase(params?: {}): Promise<implicitReturnType>;
     privatePostV5LendingRedeem(params?: {}): Promise<implicitReturnType>;
+    privatePostV5LendingRedeemCancel(params?: {}): Promise<implicitReturnType>;
     privateDeleteSpotV1Order(params?: {}): Promise<implicitReturnType>;
     privateDeleteSpotV1OrderFast(params?: {}): Promise<implicitReturnType>;
     privateDeleteSpotOrderBatchCancel(params?: {}): Promise<implicitReturnType>;

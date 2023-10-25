@@ -236,6 +236,7 @@ class zaif extends zaif$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

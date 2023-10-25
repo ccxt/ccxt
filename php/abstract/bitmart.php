@@ -160,6 +160,9 @@ abstract class bitmart extends \ccxt\Exchange {
     public function private_get_spot_v1_user_fee($params = array()) {
         return $this->request('spot/v1/user_fee', 'private', 'GET', $params, null, null, array("cost" => 6));
     }
+    public function private_get_spot_v1_broker_rebate($params = array()) {
+        return $this->request('spot/v1/broker/rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_contract_private_assets_detail($params = array()) {
         return $this->request('contract/private/assets-detail', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -432,6 +435,9 @@ abstract class bitmart extends \ccxt\Exchange {
     }
     public function privateGetSpotV1UserFee($params = array()) {
         return $this->request('spot/v1/user_fee', 'private', 'GET', $params, null, null, array("cost" => 6));
+    }
+    public function privateGetSpotV1BrokerRebate($params = array()) {
+        return $this->request('spot/v1/broker/rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetContractPrivateAssetsDetail($params = array()) {
         return $this->request('contract/private/assets-detail', 'private', 'GET', $params, null, null, array("cost" => 5));

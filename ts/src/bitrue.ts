@@ -711,6 +711,7 @@ export default class bitrue extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push (entry);
@@ -842,7 +843,7 @@ export default class bitrue extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString (ticker, 'percentChange'),
+            'percentage': Precise.stringMul (this.safeString (ticker, 'percentChange'), '10000'),
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),

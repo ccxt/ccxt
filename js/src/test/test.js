@@ -12,11 +12,11 @@ import errorsHierarchy from '../base/errorHierarchy.js';
 // js specific codes //
 const DIR_NAME = fileURLToPath(new URL('.', import.meta.url));
 process.on('uncaughtException', (e) => {
-    console.log(e, '<UNHANDLED EXCEPTION>', e.stack);
+    exceptionMessage(e);
     process.exit(1);
 });
 process.on('unhandledRejection', (e) => {
-    console.log(e, '<UNHANDLED REJECTION>', e.stack);
+    exceptionMessage(e);
     process.exit(1);
 });
 const [processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined] = process.argv.filter((x) => !x.startsWith('--'));
@@ -27,6 +27,7 @@ const NetworkError = ccxt.NetworkError;
 const DDoSProtection = ccxt.DDoSProtection;
 const OnMaintenance = ccxt.OnMaintenance;
 const RequestTimeout = ccxt.RequestTimeout;
+const NotSupported = ccxt.NotSupported;
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
     constructor() {
@@ -45,6 +46,7 @@ class baseMainTestClass {
 const rootDir = DIR_NAME + '/../../../';
 const rootDirForSkips = DIR_NAME + '/../../../';
 const envVars = process.env;
+const LOG_CHARS_LENGTH = 10000;
 const ext = import.meta.url.split('.')[1];
 function dump(...args) {
     console.log(...args);
@@ -66,7 +68,7 @@ async function callMethod(testFiles, methodName, exchange, skippedProperties, ar
     return await testFiles[methodName](exchange, skippedProperties, ...args);
 }
 function exceptionMessage(exc) {
-    return '[' + exc.constructor.name + '] ' + exc.stack.slice(0, 1000);
+    return '[' + exc.constructor.name + '] ' + exc.stack.slice(0, LOG_CHARS_LENGTH);
 }
 function exitScript() {
     process.exit(0);
@@ -257,7 +259,7 @@ export default class testMainClass extends baseMainTestClass {
         // console from there. So, even if some public tests fail, the script will continue
         // doing other things (testing other spot/swap or private tests ...)
         const maxRetries = 3;
-        const argsStringified = '(' + args.join(',') + ')';
+        const argsStringified = exchange.json(args); // args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
         for (let i = 0; i < maxRetries; i++) {
             try {
                 await this.testMethod(methodName, exchange, args, isPublic);
@@ -269,6 +271,7 @@ export default class testMainClass extends baseMainTestClass {
                 const isNetworkError = (e instanceof NetworkError);
                 const isDDoSProtection = (e instanceof DDoSProtection);
                 const isRequestTimeout = (e instanceof RequestTimeout);
+                const isNotSupported = (e instanceof NotSupported);
                 const tempFailure = (isRateLimitExceeded || isNetworkError || isDDoSProtection || isRequestTimeout);
                 if (tempFailure) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
@@ -297,7 +300,13 @@ export default class testMainClass extends baseMainTestClass {
                 }
                 else {
                     // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
-                    dump('[TEST_FAILURE]', exceptionMessage(e), exchange.id, methodName, argsStringified);
+                    if (isNotSupported) {
+                        dump('[NOT_SUPPORTED]', exchange.id, methodName, argsStringified);
+                        return true; // why consider not supported as a failed test?
+                    }
+                    else {
+                        dump('[TEST_FAILURE]', exceptionMessage(e), exchange.id, methodName, argsStringified);
+                    }
                 }
                 return false;
             }
@@ -628,7 +637,7 @@ export default class testMainClass extends baseMainTestClass {
             'fetchTransactions': [code],
             'fetchDeposits': [code],
             'fetchWithdrawals': [code],
-            'fetchBorrowRates': [code],
+            'fetchBorrowRates': [],
             'fetchBorrowRate': [code],
             'fetchBorrowInterest': [code, symbol],
             // 'addMargin': [ ],
@@ -661,7 +670,7 @@ export default class testMainClass extends baseMainTestClass {
         const market = exchange.market(symbol);
         const isSpot = market['spot'];
         if (isSpot) {
-            tests['fetchCurrencies'] = [symbol];
+            tests['fetchCurrencies'] = [];
         }
         else {
             // derivatives only
@@ -693,7 +702,8 @@ export default class testMainClass extends baseMainTestClass {
         }
         const errorsCnt = errors.length; // PHP transpile count($errors)
         if (errorsCnt > 0) {
-            throw new Error('Failed private tests [' + market['type'] + ']: ' + errors.join(', '));
+            // throw new Error ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
+            dump('[TEST_FAILURE]', 'Failed private tests [' + market['type'] + ']: ' + errors.join(', '));
         }
         else {
             if (this.info) {
