@@ -53,7 +53,7 @@ export default class coinlist extends Exchange {
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
@@ -92,7 +92,7 @@ export default class coinlist extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
@@ -135,6 +135,7 @@ export default class coinlist extends Exchange {
                     'get': {
                         'v1/time': { 'bulk': false },
                         'v1/symbols': { 'bulk': false },
+                        'v1/assets': { 'bulk': false },
                         'v1/symbols/summary': { 'bulk': false },
                         'v1/symbols/{symbol}/summary': { 'bulk': false },
                         'v1/symbols/{symbol}/book': { 'bulk': false },
@@ -221,6 +222,67 @@ export default class coinlist extends Exchange {
         return this.parse8601 (string);
     }
 
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.publicGetV1Assets (params);
+        //
+        //     {
+        //         "assets": [
+        //             {
+        //                 "asset": "AAVE",
+        //                 "index_code": ".AAVEUSD",
+        //                 "decimal_places": 18,
+        //                 "min_withdrawal": "1.0000",
+        //                 "is_transferable": true,
+        //                 "is_visible": true
+        //             },
+        //             {
+        //                 "asset": "ALGO",
+        //                 "index_code": ".ALGOUSD",
+        //                 "decimal_places": 6,
+        //                 "min_withdrawal": "1.0000",
+        //                 "is_transferable": true,
+        //                 "is_visible": true
+        //             }
+        //         ]
+        //     }
+        //
+        const currencies = this.safeValue (response, 'assets', []);
+        const result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'asset');
+            const code = this.safeCurrencyCode (id);
+            const isTransferable = this.safeValue (currency, 'is_transferable', false);
+            const withdrawEnabled = isTransferable;
+            const depositEnabled = isTransferable;
+            const active = isTransferable;
+            const minWithdrawal = this.safeString (currency, 'min_withdrawal', undefined);
+            result[code] = {
+                'id': id,
+                'code': code,
+                'name': undefined,
+                'info': currency,
+                'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'fee': undefined,
+                'precision': undefined, // todo: check
+                'limits': {
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'withdraw': { 'min': minWithdrawal, 'max': undefined },
+                },
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -282,7 +344,7 @@ export default class coinlist extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': this.safeStringLower (market, 'status') === 'trading',
+                'active': true, // todo: check
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -783,6 +845,10 @@ export default class coinlist extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privateGetV1Balances (params);
+        return this.parseBalance (response);
+    }
+
+    parseBalance (response) {
         //
         //     {
         //         "asset_balances": {
@@ -796,26 +862,23 @@ export default class coinlist extends Exchange {
         //         "net_liquidation_value_usd": "string"
         //     }
         //
-        return this.parseBalance (response);
-    }
-
-    parseBalance (response) {
-        // const balances = this.safeValue (response, 'balances', []);
         const timestamp = this.milliseconds ();
         const result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        // for (let i = 0; i < balances.length; i++) {
-        //     const balance = balances[i];
-        //     const currencyId = this.safeString (balance, 'asset');
-        //     const code = this.safeCurrencyCode (currencyId);
-        //     const account = this.account ();
-        //     account['free'] = this.safeString (balance, 'free');
-        //     account['used'] = this.safeString (balance, 'locked');
-        //     result[code] = account;
-        // }
+        const totalBalances = this.safeValue (response, 'asset_balances', {});
+        const usedBalances = this.safeValue (response, 'asset_holds', {});
+        const currencyIds = Object.keys (totalBalances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (totalBalances, currencyId);
+            account['used'] = this.safeString (usedBalances, currencyId, undefined);
+            result[code] = account;
+        }
         return this.safeBalance (result);
     }
 
