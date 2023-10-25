@@ -54,7 +54,7 @@ export default class coinlist extends Exchange {
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDeposit': undefined,
+                'fetchDeposit': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -99,7 +99,7 @@ export default class coinlist extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
-                'fetchWithdrawal': undefined,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
@@ -141,7 +141,7 @@ export default class coinlist extends Exchange {
                         'v1/symbols/{symbol}/book': { 'bulk': false },
                         'v1/symbols/{symbol}/candles': { 'bulk': false },
                         'v1/symbols/{symbol}/auctions': { 'bulk': false },
-                        // Not unified -------------------------------
+                        // Not unified ----------------------------------
                         'v1/symbols/{symbol}': { 'bulk': false }, // returns one market
                         'v1/symbols/{symbol}/quote': { 'bulk': false }, // returns lv1 book (last trade and the best bid and ask)
                         'v1/symbols/{symbol}/auctions/{auction_code}': { 'bulk': false }, // retruns one trade by trade id
@@ -156,20 +156,44 @@ export default class coinlist extends Exchange {
                         'v1/fills': { 'bulk': false },
                         'v1/orders': { 'bulk': false },
                         'v1/orders/{order_id}': { 'bulk': false },
-                        // todo
+                        'v1/transfers': { 'bulk': false }, // todo
+                        // Not unified ----------------------------------
+                        'v1/accounts/{trader_id}': { 'bulk': false },
+                        'v1/accounts/{trader_id}/ledger': { 'bulk': false },
+                        'v1/accounts/{trader_id}/wallets': { 'bulk': false },
+                        'v1/accounts/{trader_id}/wallet-ledger': { 'bulk': false },
+                        'v1/accounts/{trader_id}/ledger-summary': { 'bulk': false },
+                        'v1/keys': { 'bulk': false },
+                        'v1/reports': { 'bulk': false },
+                        'v1/user': { 'bulk': false },
+                        'v1/credits': { 'bulk': false },
+                        // ----------------------------------------------
                     },
                     'post': {
                         'v1/orders': { 'bulk': false },
-                        // todo
+                        'v1/transfers/to-wallet': { 'bulk': false }, // todo
+                        'v1/transfers/from-wallet': { 'bulk': false }, // todo
+                        'v1/transfers/internal-transfer': { 'bulk': false }, // todo
+                        'v1/transfers/withdrawal-request': { 'bulk': false }, // todo
+                        // Not unified ----------------------------------
+                        'v1/keys': { 'bulk': false },
+                        'v1/orders/cancel-all-after': { 'bulk': false },
+                        'v1/orders/bulk': { 'bulk': true },
+                        // ----------------------------------------------
                     },
                     'patch': {
                         'v1/orders/{order_id}': { 'bulk': false },
+                        // Not unified ----------------------------------
+                        'v1/orders/bulk': { 'bulk': true },
+                        // ----------------------------------------------
                     },
                     'delete': {
                         'v1/orders': { 'bulk': false },
                         'v1/orders/{order_id}': { 'bulk': false },
                         'v1/orders/bulk': { 'bulk': true },
-                        // todo
+                        // Not unified ----------------------------------
+                        'v1/keys/{key}': { 'bulk': false },
+                        // ----------------------------------------------
                     },
                 },
             },
@@ -179,9 +203,8 @@ export default class coinlist extends Exchange {
             'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
-                'createMarketBuyOrderRequiresPrice': true, // true or false
+                // todo
             },
-            // https://trade-docs.coinlist.co/?javascript--nodejs#cancel-all-after-dead-man-39-s-switch
             'exceptions': {
                 'exact': {
                     '400': AuthenticationError, // {"status":400,"message":"invalid signature","message_code":"AUTH_SIG_INVALID"}
@@ -776,6 +799,7 @@ export default class coinlist extends Exchange {
         //         }
         //     }
         //
+        // todo: implement this mithod
         // const data = this.safeValue (response, 'data', {});
         // const pairs = this.safeValue (data, 'pairs', []);
         // const result = {};
