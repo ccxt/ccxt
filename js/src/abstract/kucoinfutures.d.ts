@@ -168,6 +168,7 @@ interface kucoin {
     futuresPrivatePostPositionMarginDepositMargin(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostBulletPrivate(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferIn(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostOrdersTest(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostPositionRiskLimitLevelChange(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostSubApiKey(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostSubApiKeyUpdate(params?: {}): Promise<implicitReturnType>;

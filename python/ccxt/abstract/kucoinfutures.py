@@ -169,6 +169,7 @@ class ImplicitAPI:
     futuresprivate_post_position_margin_deposit_margin = futuresPrivatePostPositionMarginDepositMargin = Entry('position/margin/deposit-margin', 'futuresPrivate', 'POST', {'cost': 1})
     futuresprivate_post_bullet_private = futuresPrivatePostBulletPrivate = Entry('bullet-private', 'futuresPrivate', 'POST', {'cost': 1})
     futuresprivate_post_transfer_in = futuresPrivatePostTransferIn = Entry('transfer-in', 'futuresPrivate', 'POST', {'cost': 1})
+    futuresprivate_post_orders_test = futuresPrivatePostOrdersTest = Entry('orders/test', 'futuresPrivate', 'POST', {'cost': 1.33})
     futuresprivate_post_position_risk_limit_level_change = futuresPrivatePostPositionRiskLimitLevelChange = Entry('position/risk-limit-level/change', 'futuresPrivate', 'POST', {'cost': 1})
     futuresprivate_post_sub_api_key = futuresPrivatePostSubApiKey = Entry('sub/api-key', 'futuresPrivate', 'POST', {'cost': 1})
     futuresprivate_post_sub_api_key_update = futuresPrivatePostSubApiKeyUpdate = Entry('sub/api-key/update', 'futuresPrivate', 'POST', {'cost': 1})

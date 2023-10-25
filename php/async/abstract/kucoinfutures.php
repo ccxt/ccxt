@@ -508,6 +508,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     public function futuresprivate_post_transfer_in($params = array()) {
         return $this->request('transfer-in', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function futuresprivate_post_orders_test($params = array()) {
+        return $this->request('orders/test', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1.33));
+    }
     public function futuresprivate_post_position_risk_limit_level_change($params = array()) {
         return $this->request('position/risk-limit-level/change', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1041,6 +1044,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     }
     public function futuresPrivatePostTransferIn($params = array()) {
         return $this->request('transfer-in', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function futuresPrivatePostOrdersTest($params = array()) {
+        return $this->request('orders/test', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1.33));
     }
     public function futuresPrivatePostPositionRiskLimitLevelChange($params = array()) {
         return $this->request('position/risk-limit-level/change', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
