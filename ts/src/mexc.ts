@@ -2223,11 +2223,11 @@ export default class mexc extends Exchange {
             // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         };
         let method = 'contractPrivatePostOrderSubmit';
-        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
-        if (stopPrice) {
+        if (triggerPrice) {
             method = 'contractPrivatePostPlanorderPlace';
-            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
             request['triggerType'] = this.safeInteger (params, 'triggerType', 1);
             request['executeCycle'] = this.safeInteger (params, 'executeCycle', 1);
             request['trend'] = this.safeInteger (params, 'trend', 1);
@@ -2253,7 +2253,10 @@ export default class mexc extends Exchange {
             request['externalOid'] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'externalOid', 'postOnly' ]);
-        const response = await this[method] (this.extend (request, params));
+        // SL & TP
+        let reqSlTp = undefined;
+        [ reqSlTp, params ] = this.handleSlTpParams (symbol, params);
+        const response = await this[method] (this.extend (this.extend (request, reqSlTp), params));
         //
         // Swap
         //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
@@ -2263,6 +2266,39 @@ export default class mexc extends Exchange {
         //
         const data = this.safeString (response, 'data');
         return this.parseOrder (data, market);
+    }
+
+    handleSlTpParams (symbol, params) {
+        const request = {};
+        let slPrice = this.safeValue (params, 'stopLossPrice');
+        let tpPrice = this.safeValue (params, 'takeProfitPrice');
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        if (stopLoss !== undefined) {
+            const stopLossTriggerPrice = this.safeValue (stopLoss, 'triggerPrice');
+            this.checkRequiredArgument ('createOrder', stopLossTriggerPrice, 'params["stopLoss"]["triggerPrice"]');
+            if (slPrice !== undefined) {
+                throw new BadRequest (this.id + ' createOrder() - when using unified param ["stopLoss"]["triggerPrice"], you should not set exchange specific params["stopLossPrice"]');
+            }
+            slPrice = stopLossTriggerPrice;
+            params = this.omit (params, 'stopLoss');
+        }
+        if (takeProfit !== undefined) {
+            const takeProfitTriggerPrice = this.safeValue (takeProfit, 'triggerPrice');
+            this.checkRequiredArgument ('createOrder', takeProfitTriggerPrice, 'params["takeProfit"]["triggerPrice"]');
+            if (tpPrice !== undefined) {
+                throw new BadRequest (this.id + ' createOrder() - when using unified param ["takeProfit"]["triggerPrice"], you should not set exchange specific params["takeProfitPrice"]');
+            }
+            tpPrice = takeProfitTriggerPrice;
+            params = this.omit (params, 'takeProfit');
+        }
+        if (slPrice !== undefined) {
+            request['stopLossPrice'] = this.priceToPrecision (symbol, slPrice);
+        }
+        if (tpPrice !== undefined) {
+            request['takeProfitPrice'] = this.priceToPrecision (symbol, tpPrice);
+        }
+        return [ request, params ];
     }
 
     async fetchOrder (id: string, symbol: string = undefined, params = {}) {
