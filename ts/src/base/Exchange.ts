@@ -3649,9 +3649,9 @@ export default class Exchange {
         if (marketType in this.exceptions) {
             const targetExceptions = this.exceptions[marketType];
             const targetExceptionsBroad = this.safeValue (targetExceptions, 'broad', {});
-            const broadKey = this.findBroadlyMatchedKey (targetExceptionsBroad, content);
-            if ((broadKey!== undefined) && (broadKey in targetExceptionsBroad)) {
-                throw new targetExceptionsBroad[broadKey] (message);
+            const targetBroadKey = this.findBroadlyMatchedKey (targetExceptionsBroad, content);
+            if ((targetBroadKey !== undefined) && (targetBroadKey in targetExceptionsBroad)) {
+                throw new targetExceptionsBroad[targetBroadKey] (message);
             }
         }
         const broadKey = this.findBroadlyMatchedKey (broadExceptions, content);
