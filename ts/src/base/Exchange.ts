@@ -3630,30 +3630,26 @@ export default class Exchange {
         return undefined;
     }
 
-    throwExactlyMatchedException (exactExceptions, key, message, originUrl = undefined) {
+    throwMatchedExceptionByUrl (originUrl, exactOrBroad, key, message) {
         const marketType = this.getExceptionMarketType (originUrl);
         if (marketType in this.exceptions) {
-            const targetExceptions = this.exceptions[marketType];
-            const targetExceptionsExact = this.safeValue (targetExceptions, 'exact', {});
-            if (key in targetExceptionsExact) {
-                throw new targetExceptionsExact[key] (message);
+            const targetExceptionsDict = this.exceptions[marketType];
+            const targetExceptionsSubDict = this.safeValue (targetExceptionsDict, exactOrBroad, {});
+            if (targetExceptionsDict === 'exact') {
+                this.throwBroadlyMatchedException (targetExceptionsSubDict, key, message);
+            } else {
+                this.throwExactlyMatchedException (targetExceptionsSubDict, key, message);
             }
         }
+    }
+
+    throwExactlyMatchedException (exactExceptions, key, message) {
         if (key in exactExceptions) {
             throw new exactExceptions[key] (message);
         }
     }
 
-    throwBroadlyMatchedException (broadExceptions, content, message, originUrl = undefined) {
-        const marketType = this.getExceptionMarketType (originUrl);
-        if (marketType in this.exceptions) {
-            const targetExceptions = this.exceptions[marketType];
-            const targetExceptionsBroad = this.safeValue (targetExceptions, 'broad', {});
-            const targetBroadKey = this.findBroadlyMatchedKey (targetExceptionsBroad, content);
-            if ((targetBroadKey !== undefined) && (targetBroadKey in targetExceptionsBroad)) {
-                throw new targetExceptionsBroad[targetBroadKey] (message);
-            }
-        }
+    throwBroadlyMatchedException (broadExceptions, content, message) {
         const broadKey = this.findBroadlyMatchedKey (broadExceptions, content);
         if (broadKey !== undefined) {
             throw new broadExceptions[broadKey] (message);
