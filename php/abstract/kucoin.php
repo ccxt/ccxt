@@ -250,6 +250,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function private_post_orders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
+    public function private_post_orders_test($params = array()) {
+        return $this->request('orders/test', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
     public function private_post_orders_multi($params = array()) {
         return $this->request('orders/multi', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
@@ -267,6 +270,9 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function private_post_margin_order($params = array()) {
         return $this->request('margin/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_margin_order_test($params = array()) {
+        return $this->request('margin/order/test', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_margin_repay_all($params = array()) {
         return $this->request('margin/repay/all', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -757,6 +763,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function privatePostOrders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
+    public function privatePostOrdersTest($params = array()) {
+        return $this->request('orders/test', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
     public function privatePostOrdersMulti($params = array()) {
         return $this->request('orders/multi', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
@@ -774,6 +783,9 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function privatePostMarginOrder($params = array()) {
         return $this->request('margin/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostMarginOrderTest($params = array()) {
+        return $this->request('margin/order/test', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostMarginRepayAll($params = array()) {
         return $this->request('margin/repay/all', 'private', 'POST', $params, null, null, array("cost" => 1));

@@ -225,12 +225,14 @@ export default class kucoin extends Exchange {
                         'deposit-addresses': 1,
                         'withdrawals': 1,
                         'orders': 4,
+                        'orders/test': 4,
                         'orders/multi': 20,
                         'isolated/borrow': 2,
                         'isolated/repay/all': 2,
                         'isolated/repay/single': 2,
                         'margin/borrow': 1,
                         'margin/order': 1,
+                        'margin/order/test': 1,
                         'margin/repay/all': 1,
                         'margin/repay/single': 1,
                         'margin/lend': 1,
@@ -1830,6 +1832,8 @@ export default class kucoin extends Exchange {
          * @see https://docs.kucoin.com/spot#place-a-new-order-2
          * @see https://docs.kucoin.com/spot#place-a-margin-order
          * @see https://docs.kucoin.com/spot-hf/#place-hf-order
+         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test
+         * @see https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} type 'limit' or 'market'
          * @param {string} side 'buy' or 'sell'
@@ -1859,9 +1863,55 @@ export default class kucoin extends Exchange {
          * @param {string} [params.stp] '', // self trade prevention, CN, CO, CB or DC
          * @param {bool} [params.autoBorrow] false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
          * @param {bool} [params.hf] false, // true for hf order
+         * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
+        const market = this.market(symbol);
+        const testOrder = this.safeValue(params, 'test', false);
+        params = this.omit(params, 'test');
+        const isHf = this.safeValue(params, 'hf', false);
+        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(params);
+        const tradeType = this.safeString(params, 'tradeType'); // keep it for backward compatibility
+        const isTriggerOrder = (triggerPrice || stopLossPrice || takeProfitPrice);
+        const marginResult = this.handleMarginModeAndParams('createOrder', params);
+        const marginMode = this.safeString(marginResult, 0);
+        const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
+        // don't omit anything before calling createOrderRequest
+        const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (testOrder) {
+            if (isMarginOrder) {
+                response = await this.privatePostMarginOrderTest(orderRequest);
+            }
+            else {
+                response = await this.privatePostOrdersTest(orderRequest);
+            }
+        }
+        else if (isHf) {
+            response = await this.privatePostHfOrders(orderRequest);
+        }
+        else if (isTriggerOrder) {
+            response = await this.privatePostStopOrder(orderRequest);
+        }
+        else if (isMarginOrder) {
+            response = await this.privatePostMarginOrder(orderRequest);
+        }
+        else {
+            response = await this.privatePostOrders(orderRequest);
+        }
+        //
+        //     {
+        //         code: '200000',
+        //         data: {
+        //             "orderId": "5bd6e9286d99522a52e458de"
+        //         }
+        //    }
+        //
+        const data = this.safeValue(response, 'data', {});
+        return this.parseOrder(data, market);
+    }
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
         // required param, cannot be used twice
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId', this.uuid());
@@ -1894,15 +1944,12 @@ export default class kucoin extends Exchange {
             request['size'] = amountString;
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(params);
-        params = this.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice']);
         const tradeType = this.safeString(params, 'tradeType'); // keep it for backward compatibility
-        let method = 'privatePostOrders';
-        const isHf = this.safeValue(params, 'hf', false);
-        if (isHf) {
-            method = 'privatePostHfOrders';
-        }
-        else if (triggerPrice || stopLossPrice || takeProfitPrice) {
+        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(params);
+        const isTriggerOrder = (triggerPrice || stopLossPrice || takeProfitPrice);
+        const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
+        params = this.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice']);
+        if (isTriggerOrder) {
             if (triggerPrice) {
                 request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
             }
@@ -1916,7 +1963,6 @@ export default class kucoin extends Exchange {
                     request['stopPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
                 }
             }
-            method = 'privatePostStopOrder';
             if (marginMode === 'isolated') {
                 throw new BadRequest(this.id + ' createOrder does not support isolated margin for stop orders');
             }
@@ -1924,8 +1970,7 @@ export default class kucoin extends Exchange {
                 request['tradeType'] = this.options['marginModes'][marginMode];
             }
         }
-        else if (tradeType === 'MARGIN_TRADE' || marginMode !== undefined) {
-            method = 'privatePostMarginOrder';
+        else if (isMarginOrder) {
             if (marginMode === 'isolated') {
                 request['marginModel'] = 'isolated';
             }
@@ -1935,17 +1980,7 @@ export default class kucoin extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        const response = await this[method](this.extend(request, params));
-        //
-        //     {
-        //         code: '200000',
-        //         data: {
-        //             "orderId": "5bd6e9286d99522a52e458de"
-        //         }
-        //    }
-        //
-        const data = this.safeValue(response, 'data', {});
-        return this.parseOrder(data, market);
+        return this.extend(request, params);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
