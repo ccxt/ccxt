@@ -40,6 +40,7 @@ class kucoin extends kucoin$1 {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -1908,6 +1909,91 @@ class kucoin extends kucoin$1 {
         const data = this.safeValue(response, 'data', {});
         return this.parseOrder(data, market);
     }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name kucoin#createOrders
+         * @description create a list of trade orders
+         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders
+         * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params]  Extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.hf] false, // true for hf orders
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        let symbol = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            if (symbol === undefined) {
+                symbol = marketId;
+            }
+            else {
+                if (symbol !== marketId) {
+                    throw new errors.BadRequest(this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString(rawOrder, 'type');
+            if (type !== 'limit') {
+                throw new errors.BadRequest(this.id + ' createOrders() only supports limit orders');
+            }
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            ordersRequests.push(orderRequest);
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            'orderList': ordersRequests,
+        };
+        const hf = this.safeValue(params, 'hf', false);
+        params = this.omit(params, 'hf');
+        let response = undefined;
+        if (hf) {
+            response = await this.privatePostHfOrdersMulti(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePostOrdersMulti(this.extend(request, params));
+        }
+        //
+        // {
+        //     "code": "200000",
+        //     "data": {
+        //        "data": [
+        //           {
+        //              "symbol": "LTC-USDT",
+        //              "type": "limit",
+        //              "side": "sell",
+        //              "price": "90",
+        //              "size": "0.1",
+        //              "funds": null,
+        //              "stp": "",
+        //              "stop": "",
+        //              "stopPrice": null,
+        //              "timeInForce": "GTC",
+        //              "cancelAfter": 0,
+        //              "postOnly": false,
+        //              "hidden": false,
+        //              "iceberge": false,
+        //              "iceberg": false,
+        //              "visibleSize": null,
+        //              "channel": "API",
+        //              "id": "6539148443fcf500079d15e5",
+        //              "status": "success",
+        //              "failMsg": null,
+        //              "clientOid": "5c4c5398-8ab2-4b4e-af8a-e2d90ad2488f"
+        //           },
+        // }
+        //
+        let data = this.safeValue(response, 'data', {});
+        data = this.safeValue(data, 'data', []);
+        return this.parseOrders(data);
+    }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
         // required param, cannot be used twice
@@ -2507,6 +2593,7 @@ class kucoin extends kucoin$1 {
         const stop = responseStop !== undefined;
         const stopTriggered = this.safeValue(order, 'stopTriggered', false);
         const isActive = this.safeValue2(order, 'isActive', 'active');
+        const responseStatus = this.safeString(order, 'status');
         let status = undefined;
         if (isActive !== undefined) {
             if (isActive === true) {
@@ -2517,7 +2604,6 @@ class kucoin extends kucoin$1 {
             }
         }
         if (stop) {
-            const responseStatus = this.safeString(order, 'status');
             if (responseStatus === 'NEW') {
                 status = 'open';
             }
@@ -2527,6 +2613,9 @@ class kucoin extends kucoin$1 {
         }
         if (cancelExist) {
             status = 'canceled';
+        }
+        if (responseStatus === 'fail') {
+            status = 'rejected';
         }
         const stopPrice = this.safeNumber(order, 'stopPrice');
         return this.safeOrder({

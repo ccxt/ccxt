@@ -44,6 +44,7 @@ class kucoin extends Exchange {
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -1925,6 +1926,90 @@ class kucoin extends Exchange {
         }) ();
     }
 
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-$orders
+             * @see https://www.kucoin.com/docs/rest/spot-trading/spot-$hf-trade-pro-account/place-multiple-$hf-$orders
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params]  Extra parameters specific to the exchange API endpoint
+             * @param {bool} [$params->hf] false, // true for $hf $orders
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $symbol = null;
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                if ($symbol === null) {
+                    $symbol = $marketId;
+                } else {
+                    if ($symbol !== $marketId) {
+                        throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                    }
+                }
+                $type = $this->safe_string($rawOrder, 'type');
+                if ($type !== 'limit') {
+                    throw new BadRequest($this->id . ' createOrders() only supports limit orders');
+                }
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'orderList' => $ordersRequests,
+            );
+            $hf = $this->safe_value($params, 'hf', false);
+            $params = $this->omit($params, 'hf');
+            $response = null;
+            if ($hf) {
+                $response = Async\await($this->privatePostHfOrdersMulti (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostOrdersMulti (array_merge($request, $params)));
+            }
+            //
+            // {
+            //     "code" => "200000",
+            //     "data" => {
+            //        "data" => [
+            //           array(
+            //              "symbol" => "LTC-USDT",
+            //              "type" => "limit",
+            //              "side" => "sell",
+            //              "price" => "90",
+            //              "size" => "0.1",
+            //              "funds" => null,
+            //              "stp" => "",
+            //              "stop" => "",
+            //              "stopPrice" => null,
+            //              "timeInForce" => "GTC",
+            //              "cancelAfter" => 0,
+            //              "postOnly" => false,
+            //              "hidden" => false,
+            //              "iceberge" => false,
+            //              "iceberg" => false,
+            //              "visibleSize" => null,
+            //              "channel" => "API",
+            //              "id" => "6539148443fcf500079d15e5",
+            //              "status" => "success",
+            //              "failMsg" => null,
+            //              "clientOid" => "5c4c5398-8ab2-4b4e-af8a-e2d90ad2488f"
+            //           ),
+            // }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_value($data, 'data', array());
+            return $this->parse_orders($data);
+        }) ();
+    }
+
     public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         $market = $this->market($symbol);
         // required param, cannot be used twice
@@ -2513,6 +2598,7 @@ class kucoin extends Exchange {
         $stop = $responseStop !== null;
         $stopTriggered = $this->safe_value($order, 'stopTriggered', false);
         $isActive = $this->safe_value_2($order, 'isActive', 'active');
+        $responseStatus = $this->safe_string($order, 'status');
         $status = null;
         if ($isActive !== null) {
             if ($isActive === true) {
@@ -2522,7 +2608,6 @@ class kucoin extends Exchange {
             }
         }
         if ($stop) {
-            $responseStatus = $this->safe_string($order, 'status');
             if ($responseStatus === 'NEW') {
                 $status = 'open';
             } elseif (!$isActive && !$stopTriggered) {
@@ -2531,6 +2616,9 @@ class kucoin extends Exchange {
         }
         if ($cancelExist) {
             $status = 'canceled';
+        }
+        if ($responseStatus === 'fail') {
+            $status = 'rejected';
         }
         $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(
