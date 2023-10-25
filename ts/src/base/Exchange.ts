@@ -3630,19 +3630,6 @@ export default class Exchange {
         return undefined;
     }
 
-    throwMatchedExceptionByUrl (originUrl, exactOrBroad, key, message) {
-        const marketType = this.getExceptionMarketType (originUrl);
-        if (marketType in this.exceptions) {
-            const targetExceptionsDict = this.exceptions[marketType];
-            const targetExceptionsSubDict = this.safeValue (targetExceptionsDict, exactOrBroad, {});
-            if (targetExceptionsDict === 'exact') {
-                this.throwBroadlyMatchedException (targetExceptionsSubDict, key, message);
-            } else {
-                this.throwExactlyMatchedException (targetExceptionsSubDict, key, message);
-            }
-        }
-    }
-
     throwExactlyMatchedException (exactExceptions, key, message) {
         if (key in exactExceptions) {
             throw new exactExceptions[key] (message);
