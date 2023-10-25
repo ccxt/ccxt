@@ -70,17 +70,17 @@ export default class krakenfutures extends krakenfuturesRest {
         // Use the result of step 2 to hash the result of step 1 with the HMAC-SHA-512 algorithm
         // Base64-encode the result of step 3
         const url = this.urls['api']['ws'];
-        const messageHash = 'challenge';
+        const messageHash = 'authenticated';
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const request = {
                 'event': 'challenge',
                 'api_key': this.apiKey,
             };
             const message = this.extend (request, params);
-            future = await this.watch (url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch (url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -1320,7 +1320,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         const event = this.safeValue (message, 'event');
-        const messageHash = 'challenge';
+        const messageHash = 'authenticated';
         if (event !== 'error') {
             const challenge = this.safeValue (message, 'message');
             const hashedChallenge = this.hash (this.encode (challenge), sha256, 'binary');
@@ -1328,7 +1328,8 @@ export default class krakenfutures extends krakenfuturesRest {
             const signature = this.hmac (hashedChallenge, base64Secret, sha512, 'base64');
             this.options['challenge'] = challenge;
             this.options['signedChallenge'] = signature;
-            client.resolve (message, messageHash);
+            const future = this.safeValue (client.futures, messageHash);
+            future.resolve (true);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));
             client.reject (error, messageHash);
