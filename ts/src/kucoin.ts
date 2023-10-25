@@ -1884,6 +1884,43 @@ export default class kucoin extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const testOrder = this.safeValue (params, 'test', false);
+        params = this.omit (params, 'test');
+        const isHf = this.safeValue (params, 'hf', false);
+        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
+        const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
+        const isTriggerOrder = (triggerPrice || stopLossPrice || takeProfitPrice);
+        const marginResult = this.handleMarginModeAndParams ('createOrder', params);
+        const marginMode = this.safeString (marginResult, 0);
+        const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
+        // don't omit anything before calling createOrderRequest
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (testOrder) {
+            response = await this.privatePostOrdersTest (orderRequest);
+        } else if (isHf) {
+            response = await this.privatePostHfOrders (orderRequest);
+        } else if (isTriggerOrder) {
+            response = await this.privatePostStopOrder (orderRequest);
+        } else if (isMarginOrder) {
+            response = await this.privatePostMarginOrder (orderRequest);
+        } else {
+            response = await this.privatePostOrders (orderRequest);
+        }
+        //
+        //     {
+        //         code: '200000',
+        //         data: {
+        //             "orderId": "5bd6e9286d99522a52e458de"
+        //         }
+        //    }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        const market = this.market (symbol);
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
@@ -1945,31 +1982,7 @@ export default class kucoin extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        const testOrder = this.safeValue (params, 'test', false);
-        params = this.omit (params, 'test');
-        const isHf = this.safeValue (params, 'hf', false);
-        let response = undefined;
-        if (testOrder) {
-            response = await this.privatePostOrdersTest (this.extend (request, params));
-        } else if (isHf) {
-            response = await this.privatePostHfOrders (this.extend (request, params));
-        } else if (isTriggerOrder) {
-            response = await this.privatePostStopOrder (this.extend (request, params));
-        } else if (isMarginOrder) {
-            response = await this.privatePostMarginOrder (this.extend (request, params));
-        } else {
-            response = await this.privatePostOrders (this.extend (request, params));
-        }
-        //
-        //     {
-        //         code: '200000',
-        //         data: {
-        //             "orderId": "5bd6e9286d99522a52e458de"
-        //         }
-        //    }
-        //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data, market);
+        return this.extend (request, params);
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
