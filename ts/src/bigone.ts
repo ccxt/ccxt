@@ -1686,17 +1686,30 @@ export default class bigone extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bigone api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.page_token] *spot only* request page after this page token
+         * @param {string} [params.id] *contract only* order id of previous response for pagination
+         * @param {string} [params.side] *contract only* BUY, SELL, FUNDING(triggered every 8 hours), ADL_BUY or ADL_SELL
+         * @param {string} [params.order-id] *contract only* order id
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
         }
-        const market = this.market (symbol);
-        const request = {
-            'asset_pair_name': market['id'],
-            // 'page_token': 'dxzef', // request page after this page token
-        };
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const request = {};
+        if (type === 'spot') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+            }
+            request['asset_pair_name'] = market['id'];
+        } else {
+            request['symbol'] = market['id'];
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 200
         }
