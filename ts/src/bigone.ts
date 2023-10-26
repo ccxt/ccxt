@@ -58,6 +58,7 @@ export default class bigone extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
+                'setMargin': true,
                 'setMarginMode': true,
                 'transfer': true,
                 'withdraw': true,
@@ -2397,6 +2398,32 @@ export default class bigone extends Exchange {
         //        "rom": 0
         //    }
         //
+    }
+
+    async setMargin (symbol: string, amount, params = {}) {
+        /**
+         * @method
+         * @name bigone#setMargin
+         * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+         * @param {string} symbol unified market symbol of the market to set margin in
+         * @param {float} amount the amount to set the margin to
+         * @param {object} [params] parameters specific to the bigone api endpoint
+         * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'notional': this.amountToPrecision (market['symbol'], amount),
+        };
+        const response = await this.contractPrivatePutPositionsSymbolRiskLimit (this.extend (request, params));
+        //
+        //    {
+        //        "notional": 200,
+        //        "IMR": 0.015   // initial margin rate
+        //    }
+        //
+        return response;
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
