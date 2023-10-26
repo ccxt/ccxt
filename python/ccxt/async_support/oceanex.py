@@ -816,18 +816,6 @@ class oceanex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def create_orders(self, symbol: str, orders, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-            'orders': orders,
-        }
-        # orders: [{"side":"buy", "volume":.2, "price":1001}, {"side":"sell", "volume":0.2, "price":1002}]
-        response = await self.privatePostOrdersMulti(self.extend(request, params))
-        data = response['data']
-        return self.parse_orders(data)
-
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order

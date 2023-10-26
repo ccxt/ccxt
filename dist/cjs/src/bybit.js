@@ -35,6 +35,7 @@ class bybit extends bybit$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -1450,7 +1451,7 @@ class bybit extends bybit$1 {
         }
         return super.safeMarket(marketId, market, delimiter, marketType);
     }
-    getBybitType(method, market, params) {
+    getBybitType(method, market, params = {}) {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams(method, market, params);
         let subType = undefined;
@@ -3285,8 +3286,10 @@ class bybit extends bybit$1 {
             request['accountType'] = unifiedType;
             response = await this.privateGetV5AssetTransferQueryAccountCoinsBalance(this.extend(request, params));
         }
-        request['accountType'] = unifiedType;
-        response = await this.privateGetV5AccountWalletBalance(this.extend(request, params));
+        else {
+            request['accountType'] = unifiedType;
+            response = await this.privateGetV5AccountWalletBalance(this.extend(request, params));
+        }
         //
         // cross
         //     {
@@ -3511,7 +3514,31 @@ class bybit extends bybit$1 {
         //         "createdTime": "1684476068369",
         //         "updatedTime": "1684476068372"
         //     }
+        // createOrders failed order
+        //    {
+        //        category: 'linear',
+        //        symbol: 'LTCUSDT',
+        //        orderId: '',
+        //        orderLinkId: '',
+        //        createAt: '',
+        //        code: '10001',
+        //        msg: 'The number of contracts exceeds maximum limit allowed: too large'
+        //    }
         //
+        const code = this.safeString(order, 'code');
+        if (code !== undefined) {
+            if (code !== '0') {
+                const category = this.safeString(order, 'category');
+                const inferedMarketType = (category === 'spot') ? 'spot' : 'contract';
+                return this.safeOrder({
+                    'info': order,
+                    'status': 'rejected',
+                    'id': this.safeString(order, 'orderId'),
+                    'clientOrderId': this.safeString(order, 'orderLinkId'),
+                    'symbol': this.safeSymbol(this.safeString(order, 'symbol'), undefined, undefined, inferedMarketType),
+                });
+            }
+        }
         const marketId = this.safeString(order, 'symbol');
         const isContract = ('tpslMode' in order);
         let marketType = undefined;
@@ -3671,13 +3698,32 @@ class bybit extends bybit$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        symbol = market['symbol'];
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const isUsdcSettled = market['settle'] === 'USDC';
         if (isUsdcSettled && !isUnifiedAccount) {
             return await this.createUsdcOrder(symbol, type, side, amount, price, params);
         }
+        const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
+        const response = await this.privatePostV5OrderCreate(orderRequest); // already extended inside createOrderRequest
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "orderId": "1321003749386327552",
+        //             "orderLinkId": "spot-test-postonly"
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672211918471
+        //     }
+        //
+        const order = this.safeValue(response, 'result', {});
+        return this.parseOrder(order, market);
+    }
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        const market = this.market(symbol);
+        symbol = market['symbol'];
         const lowerCaseType = type.toLowerCase();
         if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new errors.ArgumentsRequired(this.id + ' createOrder requires a price argument for limit orders');
@@ -3819,21 +3865,94 @@ class bybit extends bybit$1 {
             request['orderLinkId'] = this.uuid16();
         }
         params = this.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit']);
-        const response = await this.privatePostV5OrderCreate(this.extend(request, params));
+        return this.extend(request, params);
+    }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name bybit#createOrders
+         * @description create a list of trade orders
+         * @see https://bybit-exchange.github.io/docs/v5/order/batch-place
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        const orderSymbols = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            orderSymbols.push(marketId);
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            ordersRequests.push(orderRequest);
+        }
+        const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        const market = this.market(symbols[0]);
+        let category = undefined;
+        [category, params] = this.getBybitType('createOrders', market, params);
+        if ((category === 'spot') || (category === 'inverse')) {
+            throw new errors.NotSupported(this.id + ' createOrders does not allow spot or inverse orders');
+        }
+        const request = {
+            'category': category,
+            'request': ordersRequests,
+        };
+        const response = await this.privatePostV5OrderCreateBatch(this.extend(request, params));
+        const result = this.safeValue(response, 'result', {});
+        const data = this.safeValue(result, 'list', []);
+        const retInfo = this.safeValue(response, 'retExtInfo', {});
+        const codes = this.safeValue(retInfo, 'list', []);
+        // extend the error with the unsuccessful orders
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const retCode = this.safeInteger(code, 'code');
+            if (retCode !== 0) {
+                data[i] = this.extend(data[i], code);
+            }
+        }
         //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "orderId": "1321003749386327552",
-        //             "orderLinkId": "spot-test-postonly"
-        //         },
-        //         "retExtInfo": {},
-        //         "time": 1672211918471
-        //     }
+        // {
+        //     "retCode":0,
+        //     "retMsg":"OK",
+        //     "result":{
+        //        "list":[
+        //           {
+        //              "category":"linear",
+        //              "symbol":"LTCUSDT",
+        //              "orderId":"",
+        //              "orderLinkId":"",
+        //              "createAt":""
+        //           },
+        //           {
+        //              "category":"linear",
+        //              "symbol":"LTCUSDT",
+        //              "orderId":"3c9f65b6-01ad-4ac0-9741-df17e02a4223",
+        //              "orderLinkId":"",
+        //              "createAt":"1698075516029"
+        //           }
+        //        ]
+        //     },
+        //     "retExtInfo":{
+        //        "list":[
+        //           {
+        //              "code":10001,
+        //              "msg":"The number of contracts exceeds maximum limit allowed: too large"
+        //           },
+        //           {
+        //              "code":0,
+        //              "msg":"OK"
+        //           }
+        //        ]
+        //     },
+        //     "time":1698075516029
+        // }
         //
-        const order = this.safeValue(response, 'result', {});
-        return this.parseOrder(order, market);
+        return this.parseOrders(data);
     }
     async createUsdcOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();

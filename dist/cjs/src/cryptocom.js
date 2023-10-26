@@ -33,6 +33,7 @@ class cryptocom extends cryptocom$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createOrders': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
@@ -1167,6 +1168,210 @@ class cryptocom extends cryptocom$1 {
         const result = this.safeValue(response, 'result', {});
         return this.parseOrder(result, market);
     }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#createOrders
+         * @description create a list of trade orders
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
+            ordersRequests.push(orderRequest);
+        }
+        const contigency = this.safeString(params, 'contingency_type', 'LIST');
+        const request = {
+            'contingency_type': contigency,
+            'order_list': ordersRequests,
+        };
+        const response = await this.v1PrivatePostPrivateCreateOrderList(this.extend(request, params));
+        //
+        // {
+        //     "id": 12,
+        //     "method": "private/create-order-list",
+        //     "code": 10001,
+        //     "result": {
+        //       "result_list": [
+        //         {
+        //           "index": 0,
+        //           "code": 0,
+        //           "order_id": "2015106383706015873",
+        //           "client_oid": "my_order_0001"
+        //         },
+        //         {
+        //           "index": 1,
+        //           "code": 20007,
+        //           "message": "INVALID_REQUEST",
+        //           "client_oid": "my_order_0002"
+        //         }
+        //       ]
+        //     }
+        // }
+        //
+        //   {
+        //       "id" : 1698068111133,
+        //       "method" : "private/create-order-list",
+        //       "code" : 0,
+        //       "result" : [ {
+        //         "code" : 0,
+        //         "index" : 0,
+        //         "client_oid" : "1698068111133_0",
+        //         "order_id" : "6142909896519488206"
+        //       }, {
+        //         "code" : 306,
+        //         "index" : 1,
+        //         "client_oid" : "1698068111133_1",
+        //         "message" : "INSUFFICIENT_AVAILABLE_BALANCE",
+        //         "order_id" : "6142909896519488207"
+        //       } ]
+        //   }
+        //
+        const result = this.safeValue(response, 'result', []);
+        const listId = this.safeString(result, 'list_id');
+        if (listId !== undefined) {
+            const ocoOrders = [{ 'order_id': listId }];
+            return this.parseOrders(ocoOrders);
+        }
+        return this.parseOrders(result);
+    }
+    createAdvancedOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        // differs slightly from createOrderRequest
+        // since the advanced order endpoint requires a different set of parameters
+        // namely here we don't support ref_price or spot_margin
+        // and market-buy orders need to send notional instead of quantity
+        const market = this.market(symbol);
+        const uppercaseType = type.toUpperCase();
+        const request = {
+            'instrument_name': market['id'],
+            'side': side.toUpperCase(),
+        };
+        if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            request['price'] = this.priceToPrecision(symbol, price);
+        }
+        const broker = this.safeString(this.options, 'broker', 'CCXT');
+        request['broker_id'] = broker;
+        const timeInForce = this.safeStringUpper2(params, 'timeInForce', 'time_in_force');
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'GTC') {
+                request['time_in_force'] = 'GOOD_TILL_CANCEL';
+            }
+            else if (timeInForce === 'IOC') {
+                request['time_in_force'] = 'IMMEDIATE_OR_CANCEL';
+            }
+            else if (timeInForce === 'FOK') {
+                request['time_in_force'] = 'FILL_OR_KILL';
+            }
+            else {
+                request['time_in_force'] = timeInForce;
+            }
+        }
+        const postOnly = this.safeValue(params, 'postOnly', false);
+        if ((postOnly) || (timeInForce === 'PO')) {
+            request['exec_inst'] = ['POST_ONLY'];
+            request['time_in_force'] = 'GOOD_TILL_CANCEL';
+        }
+        const triggerPrice = this.safeStringN(params, ['stopPrice', 'triggerPrice', 'ref_price']);
+        const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');
+        const isTrigger = (triggerPrice !== undefined);
+        const isStopLossTrigger = (stopLossPrice !== undefined);
+        const isTakeProfitTrigger = (takeProfitPrice !== undefined);
+        if (isTrigger) {
+            price = price.toString();
+            if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                if (side === 'buy') {
+                    if (Precise["default"].stringLt(price, triggerPrice)) {
+                        request['type'] = 'TAKE_PROFIT_LIMIT';
+                    }
+                    else {
+                        request['type'] = 'STOP_LIMIT';
+                    }
+                }
+                else {
+                    if (Precise["default"].stringLt(price, triggerPrice)) {
+                        request['type'] = 'STOP_LIMIT';
+                    }
+                    else {
+                        request['type'] = 'TAKE_PROFIT_LIMIT';
+                    }
+                }
+            }
+            else {
+                if (side === 'buy') {
+                    if (Precise["default"].stringLt(price, triggerPrice)) {
+                        request['type'] = 'TAKE_PROFIT';
+                    }
+                    else {
+                        request['type'] = 'STOP_LOSS';
+                    }
+                }
+                else {
+                    if (Precise["default"].stringLt(price, triggerPrice)) {
+                        request['type'] = 'STOP_LOSS';
+                    }
+                    else {
+                        request['type'] = 'TAKE_PROFIT';
+                    }
+                }
+            }
+        }
+        else if (isStopLossTrigger) {
+            if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
+                request['type'] = 'STOP_LIMIT';
+            }
+            else {
+                request['type'] = 'STOP_LOSS';
+            }
+        }
+        else if (isTakeProfitTrigger) {
+            if ((uppercaseType === 'LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                request['type'] = 'TAKE_PROFIT_LIMIT';
+            }
+            else {
+                request['type'] = 'TAKE_PROFIT';
+            }
+        }
+        else {
+            request['type'] = uppercaseType;
+        }
+        if ((side === 'buy') && ((uppercaseType === 'MARKET') || (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT'))) {
+            // use createmarketBuy logic here
+            if (this.options['createMarketBuyOrderRequiresPrice']) {
+                const cost = this.safeNumber2(params, 'cost', 'notional');
+                params = this.omit(params, 'cost');
+                if (price === undefined && cost === undefined) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
+                }
+                else {
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    const quoteAmount = Precise["default"].stringMul(amountString, priceString);
+                    amount = (cost !== undefined) ? cost : this.parseNumber(quoteAmount);
+                    request['notional'] = this.costToPrecision(symbol, amount);
+                }
+            }
+            else {
+                request['notional'] = this.costToPrecision(symbol, amount);
+            }
+        }
+        else {
+            request['quantity'] = this.amountToPrecision(symbol, amount);
+        }
+        params = this.omit(params, ['postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+        return this.extend(request, params);
+    }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
          * @method
@@ -2007,12 +2212,31 @@ class cryptocom extends cryptocom$1 {
         //         "update_time": 1686806053993
         //     }
         //
+        // createOrders
+        //     {
+        //             "code" : 306,
+        //             "index" : 1,
+        //             "client_oid" : "1698068111133_1",
+        //             "message" : "INSUFFICIENT_AVAILABLE_BALANCE",
+        //             "order_id" : "6142909896519488207"
+        //     }
+        //
+        const code = this.safeInteger(order, 'code');
+        if ((code !== undefined) && (code !== 0)) {
+            return this.safeOrder({
+                'id': this.safeString(order, 'order_id'),
+                'clientOrderId': this.safeString(order, 'client_oid'),
+                'info': order,
+                'status': 'rejected',
+            });
+        }
         const created = this.safeInteger(order, 'create_time');
         const marketId = this.safeString(order, 'instrument_name');
         const symbol = this.safeSymbol(marketId, market);
         const execInst = this.safeValue(order, 'exec_inst');
-        let postOnly = false;
+        let postOnly = undefined;
         if (execInst !== undefined) {
+            postOnly = false;
             for (let i = 0; i < execInst.length; i++) {
                 const inst = execInst[i];
                 if (inst === 'POST_ONLY') {
@@ -2934,6 +3158,41 @@ class cryptocom extends cryptocom$1 {
     nonce() {
         return this.milliseconds();
     }
+    paramsToString(object, level) {
+        const maxLevel = 3;
+        if (level >= maxLevel) {
+            return object.toString();
+        }
+        if (typeof object === 'string') {
+            return object;
+        }
+        let returnString = '';
+        let paramsKeys = undefined;
+        if (Array.isArray(object)) {
+            paramsKeys = object;
+        }
+        else {
+            const sorted = this.keysort(object);
+            paramsKeys = Object.keys(sorted);
+        }
+        for (let i = 0; i < paramsKeys.length; i++) {
+            const key = paramsKeys[i];
+            returnString += key;
+            const value = object[key];
+            if (value === 'undefined') {
+                returnString += 'null';
+            }
+            else if (Array.isArray(value)) {
+                for (let j = 0; j < value.length; j++) {
+                    returnString += this.paramsToString(value[j], level + 1);
+                }
+            }
+            else {
+                returnString += value.toString();
+            }
+        }
+        return returnString;
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = this.safeString(api, 0);
         const access = this.safeString(api, 1);
@@ -2948,20 +3207,8 @@ class cryptocom extends cryptocom$1 {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const requestParams = this.extend({}, params);
-            const keysorted = this.keysort(requestParams);
-            const paramsKeys = Object.keys(keysorted);
-            let strSortKey = '';
-            for (let i = 0; i < paramsKeys.length; i++) {
-                const key = paramsKeys[i].toString();
-                let value = requestParams[paramsKeys[i]];
-                if (Array.isArray(value)) {
-                    value = value.join(',');
-                }
-                else {
-                    value = value.toString();
-                }
-                strSortKey = strSortKey + key + value;
-            }
+            const paramsKeys = Object.keys(requestParams);
+            const strSortKey = this.paramsToString(requestParams, 0);
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256);
             const paramsKeysLength = paramsKeys.length;

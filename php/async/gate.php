@@ -87,6 +87,7 @@ class gate extends Exchange {
                 'cancelOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -292,8 +293,6 @@ class gate extends Exchange {
                     ),
                     'portfolio' => array(
                         'get' => array(
-                            'spot/currency_pairs' => 20 / 15,
-                            'spot/currency_pairs/{currency_pair}' => 20 / 15,
                             'accounts' => 20 / 15,
                             'account_mode' => 20 / 15,
                             'borrowable' => 20 / 15,
@@ -301,19 +300,10 @@ class gate extends Exchange {
                             'loans' => 20 / 15,
                             'loan_records' => 20 / 15,
                             'interest_records' => 20 / 15,
-                            'spot/orders' => 20 / 15,
-                            'spot/orders/{order_id}' => 20 / 15,
                         ),
                         'post' => array(
                             'account_mode' => 20 / 15,
                             'loans' => 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
-                            'spot/orders' => 20 / 15,
-                        ),
-                        'delete' => array(
-                            'spot/orders/{order_id}' => 20 / 15,
-                        ),
-                        'patch' => array(
-                            'spot/orders/{order_id}' => 20 / 15,
                         ),
                     ),
                     'spot' => array(
@@ -336,6 +326,7 @@ class gate extends Exchange {
                             'orders' => 0.4,
                             'cancel_batch_orders' => 20 / 75,
                             'countdown_cancel_all' => 20 / 75,
+                            'amend_batch_orders' => 0.4,
                             'price_orders' => 0.4,
                         ),
                         'delete' => array(
@@ -505,6 +496,9 @@ class gate extends Exchange {
                         ),
                         'post' => array(
                             'uni/lends' => 20 / 15,
+                        ),
+                        'put' => array(
+                            'uni/interest_reinvest' => 20 / 15,
                         ),
                         'patch' => array(
                             'uni/lends' => 20 / 15,
@@ -3688,28 +3682,27 @@ class gate extends Exchange {
             /**
              * Create an order on the exchange
              * @param {string} $symbol Unified CCXT $market $symbol
-             * @param {string} $type 'limit' or 'market' *"market" is $contract only*
+             * @param {string} $type 'limit' or 'market' *"market" is contract only*
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount the $amount of currency to trade
              * @param {float} [$price] *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
              * @param {array} [$params]  Extra parameters specific to the exchange API endpoint
              * @param {float} [$params->stopPrice] The $price at which a $trigger order is triggered at
              * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
-             * @param {string} [$params->marginMode] 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
+             * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
              * @param {int} [$params->iceberg] Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
              * @param {string} [$params->text] User defined information
              * @param {string} [$params->account] *spot and margin only* "spot", "margin" or "cross_margin"
              * @param {bool} [$params->auto_borrow] *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
-             * @param {string} [$params->settle] *$contract only* Unified Currency Code for settle currency
-             * @param {bool} [$params->reduceOnly] *$contract only* Indicates if this order is to reduce the size of a position
-             * @param {bool} [$params->close] *$contract only* Set to close the position, with size set to 0
-             * @param {bool} [$params->auto_size] *$contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
-             * @param {int} [$params->price_type] *$contract only* 0 latest deal $price, 1 mark $price, 2 index $price
+             * @param {string} [$params->settle] *contract only* Unified Currency Code for settle currency
+             * @param {bool} [$params->reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
+             * @param {bool} [$params->close] *contract only* Set to close the position, with size set to 0
+             * @param {bool} [$params->auto_size] *contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
+             * @param {int} [$params->price_type] *contract only* 0 latest deal $price, 1 mark $price, 2 index $price
              * @return {array|null} {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure An order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $contract = $market['contract'];
             $trigger = $this->safe_value($params, 'trigger');
             $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
             $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
@@ -3717,229 +3710,31 @@ class gate extends Exchange {
             $isStopLossOrder = $stopLossPrice !== null;
             $isTakeProfitOrder = $takeProfitPrice !== null;
             $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
-            if ($isStopLossOrder && $isTakeProfitOrder) {
-                throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
-            }
-            $methodTail = 'Orders';
-            $reduceOnly = $this->safe_value($params, 'reduceOnly');
-            $exchangeSpecificTimeInForce = $this->safe_string_lower_n($params, array( 'timeInForce', 'tif', 'time_in_force' ));
-            $postOnly = null;
-            list($postOnly, $params) = $this->handle_post_only($type === 'market', $exchangeSpecificTimeInForce === 'poc', $params);
-            $timeInForce = $this->handle_time_in_force($params);
-            if ($postOnly) {
-                $timeInForce = 'poc';
-            }
-            // we only omit the unified $params here
-            // this is because the other $params will get extended into the $request
-            $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ));
-            $isLimitOrder = ($type === 'limit');
-            $isMarketOrder = ($type === 'market');
-            if ($isLimitOrder && $price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for ' . $type . ' orders');
-            }
-            if ($isMarketOrder) {
-                if (($timeInForce === 'poc') || ($timeInForce === 'gtc')) {
-                    throw new ExchangeError($this->id . ' createOrder () $timeInForce for $market order can only be "FOK" or "IOC"');
-                } else {
-                    if ($timeInForce === null) {
-                        $defaultTif = $this->safe_string($this->options, 'defaultTimeInForce', 'IOC');
-                        $exchangeSpecificTif = $this->safe_string($this->options['timeInForce'], $defaultTif, 'ioc');
-                        $timeInForce = $exchangeSpecificTif;
-                    }
-                }
-                if ($contract) {
-                    $price = 0;
-                }
-            }
-            if ($contract) {
-                $amountToPrecision = $this->amount_to_precision($symbol, $amount);
-                $signedAmount = ($side === 'sell') ? Precise::string_neg($amountToPrecision) : $amountToPrecision;
-                $amount = intval($signedAmount);
-            }
-            $request = null;
             $nonTriggerOrder = !$isStopOrder && ($trigger === null);
-            if ($nonTriggerOrder) {
-                if ($contract) {
-                    // $contract order
-                    $request = array(
-                        'contract' => $market['id'], // filled in prepareRequest above
-                        'size' => $amount, // int64, positive = bid, negative = ask
-                        // 'iceberg' => 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
-                        // 'close' => false, // true to close the position, with size set to 0
-                        // 'reduce_only' => false, // St to be reduce-only order
-                        // 'tif' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
-                        // 'text' => $clientOrderId, // 't-abcdef1234567890',
-                        // 'auto_size' => '', // close_long, close_short, note size also needs to be set to 0
-                    );
-                    if (!$market['option']) {
-                        $request['settle'] = $market['settleId']; // filled in prepareRequest above
-                    }
-                    if ($isMarketOrder) {
-                        $request['price'] = $price; // set to 0 for $market orders
-                    } else {
-                        $request['price'] = $this->price_to_precision($symbol, $price);
-                    }
-                    if ($reduceOnly !== null) {
-                        $request['reduce_only'] = $reduceOnly;
-                    }
-                    if ($timeInForce !== null) {
-                        $request['tif'] = $timeInForce;
-                    }
+            $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = null;
+            if ($market['spot'] || $market['margin']) {
+                if ($nonTriggerOrder) {
+                    $response = Async\await($this->privateSpotPostOrders ($orderRequest));
                 } else {
-                    $marginMode = null;
-                    list($marginMode, $params) = $this->get_margin_mode(false, $params);
-                    // spot order
-                    $request = array(
-                        // 'text' => $clientOrderId, // 't-abcdef1234567890',
-                        'currency_pair' => $market['id'], // filled in prepareRequest above
-                        'type' => $type,
-                        'account' => $marginMode, // 'spot', 'margin', 'cross_margin'
-                        'side' => $side,
-                        // 'time_in_force' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
-                        // 'iceberg' => 0, // $amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
-                        // 'auto_borrow' => false, // used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
-                        // 'auto_repay' => false, // automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
-                    );
-                    $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                    if ($isMarketOrder && ($side === 'buy')) {
-                        if ($createMarketBuyOrderRequiresPrice) {
-                            if ($price === null) {
-                                throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
-                            } else {
-                                $amountString = $this->number_to_string($amount);
-                                $priceString = $this->number_to_string($price);
-                                $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                                $request['amount'] = $this->cost_to_precision($symbol, $cost);
-                            }
-                        } else {
-                            $cost = $this->safe_number($params, 'cost', $amount);
-                            $params = $this->omit($params, 'cost');
-                            $request['amount'] = $this->cost_to_precision($symbol, $cost);
-                        }
-                    } else {
-                        $request['amount'] = $this->amount_to_precision($symbol, $amount);
-                    }
-                    if ($isLimitOrder) {
-                        $request['price'] = $this->price_to_precision($symbol, $price);
-                    }
-                    if ($timeInForce !== null) {
-                        $request['time_in_force'] = $timeInForce;
-                    }
+                    $response = Async\await($this->privateSpotPostPriceOrders ($orderRequest));
                 }
-                $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
-                if ($clientOrderId !== null) {
-                    // user-defined, must follow the rules if not empty
-                    //     prefixed with t-
-                    //     no longer than 28 bytes without t- prefix
-                    //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
-                    if (strlen($clientOrderId) > 28) {
-                        throw new BadRequest($this->id . ' createOrder () $clientOrderId or text param must be up to 28 characters');
-                    }
-                    $params = $this->omit($params, array( 'text', 'clientOrderId' ));
-                    if ($clientOrderId[0] !== 't') {
-                        $clientOrderId = 't-' . $clientOrderId;
-                    }
-                    $request['text'] = $clientOrderId;
+            } elseif ($market['swap']) {
+                if ($nonTriggerOrder) {
+                    $response = Async\await($this->privateFuturesPostSettleOrders ($orderRequest));
+                } else {
+                    $response = Async\await($this->privateFuturesPostSettlePriceOrders ($orderRequest));
+                }
+            } elseif ($market['future']) {
+                if ($nonTriggerOrder) {
+                    $response = Async\await($this->privateDeliveryPostSettleOrders ($orderRequest));
+                } else {
+                    $response = Async\await($this->privateDeliveryPostSettlePriceOrders ($orderRequest));
                 }
             } else {
-                if ($market['option']) {
-                    throw new NotSupported($this->id . ' createOrder() conditional option orders are not supported');
-                }
-                if ($contract) {
-                    // $contract conditional order
-                    $request = array(
-                        'initial' => array(
-                            'contract' => $market['id'],
-                            'size' => $amount, // positive = buy, negative = sell, set to 0 to close the position
-                            'price' => $this->price_to_precision($symbol, $price), // set to 0 to use $market $price
-                            // 'close' => false, // set to true if trying to close the position
-                            // 'tif' => 'gtc', // gtc, ioc, if using $market $price, only ioc is supported
-                            // 'text' => $clientOrderId, // web, api, app
-                            // 'reduce_only' => false,
-                        ),
-                        'settle' => $market['settleId'],
-                    );
-                    if ($trigger === null) {
-                        $rule = null;
-                        $triggerOrderPrice = null;
-                        if ($isStopLossOrder) {
-                            // we $trigger orders be aliases for stopLoss orders because
-                            // gateio doesn't accept conventional $trigger orders for spot markets
-                            $rule = ($side === 'buy') ? 1 : 2;
-                            $triggerOrderPrice = $this->price_to_precision($symbol, $stopLossPrice);
-                        } elseif ($isTakeProfitOrder) {
-                            $rule = ($side === 'buy') ? 2 : 1;
-                            $triggerOrderPrice = $this->price_to_precision($symbol, $takeProfitPrice);
-                        }
-                        $priceType = $this->safe_integer($params, 'price_type', 0);
-                        if ($priceType < 0 || $priceType > 2) {
-                            throw new BadRequest($this->id . ' createOrder () price_type should be 0 latest deal $price, 1 mark $price, 2 index price');
-                        }
-                        $params = $this->omit($params, array( 'price_type' ));
-                        $request['trigger'] = array(
-                            // 'strategy_type' => 0, // 0 = by $price, 1 = by $price gap, only 0 is supported currently
-                            'price_type' => $priceType, // 0 latest deal $price, 1 mark $price, 2 index $price
-                            'price' => $this->price_to_precision($symbol, $triggerOrderPrice), // $price or gap
-                            'rule' => $rule, // 1 means price_type >= $price, 2 means price_type <= $price
-                            // 'expiration' => $expiration, how many seconds to wait for the condition to be triggered before cancelling the order
-                        );
-                    }
-                    if ($reduceOnly !== null) {
-                        $request['initial']['reduce_only'] = $reduceOnly;
-                    }
-                    if ($timeInForce !== null) {
-                        $request['initial']['tif'] = $timeInForce;
-                    }
-                } else {
-                    // spot conditional order
-                    $options = $this->safe_value($this->options, 'createOrder', array());
-                    $marginMode = null;
-                    list($marginMode, $params) = $this->get_margin_mode(true, $params);
-                    if ($timeInForce === null) {
-                        $timeInForce = 'gtc';
-                    }
-                    $request = array(
-                        'put' => array(
-                            'type' => $type,
-                            'side' => $side,
-                            'price' => $this->price_to_precision($symbol, $price),
-                            'amount' => $this->amount_to_precision($symbol, $amount),
-                            'account' => $marginMode,
-                            'time_in_force' => $timeInForce, // gtc, ioc (ioc is for taker only, so shouldnt't be in conditional order)
-                        ),
-                        'market' => $market['id'],
-                    );
-                    if ($trigger === null) {
-                        $defaultExpiration = $this->safe_integer($options, 'expiration');
-                        $expiration = $this->safe_integer($params, 'expiration', $defaultExpiration);
-                        $rule = null;
-                        $triggerOrderPrice = null;
-                        if ($isStopLossOrder) {
-                            // we $trigger orders be aliases for stopLoss orders because
-                            // gateio doesn't accept conventional $trigger orders for spot markets
-                            $rule = ($side === 'buy') ? '>=' : '<=';
-                            $triggerOrderPrice = $this->price_to_precision($symbol, $stopLossPrice);
-                        } elseif ($isTakeProfitOrder) {
-                            $rule = ($side === 'buy') ? '<=' : '>=';
-                            $triggerOrderPrice = $this->price_to_precision($symbol, $takeProfitPrice);
-                        }
-                        $request['trigger'] = array(
-                            'price' => $this->price_to_precision($symbol, $triggerOrderPrice),
-                            'rule' => $rule, // >= triggered when $market $price larger than or equal to $price field, <= triggered when $market $price less than or equal to $price field
-                            'expiration' => $expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
-                        );
-                    }
-                }
-                $methodTail = 'PriceOrders';
+                $response = Async\await($this->privateOptionsPostOrders ($orderRequest));
             }
-            $method = $this->get_supported_mapping($market['type'], array(
-                'spot' => 'privateSpotPost' . $methodTail,
-                'margin' => 'privateSpotPost' . $methodTail,
-                'swap' => 'privateFuturesPostSettle' . $methodTail,
-                'future' => 'privateDeliveryPostSettle' . $methodTail,
-                'option' => 'privateOptionsPostOrders',
-            ));
-            $response = Async\await($this->$method ($this->deep_extend($request, $params)));
+            // $response = Async\await($this->$method ($this->deep_extend(request, $params)));
             //
             // spot
             //
@@ -3975,7 +3770,7 @@ class gate extends Exchange {
             //
             //     array("id" => 5891843)
             //
-            // futures, perpetual swaps and $options
+            // futures, perpetual swaps and options
             //
             //     {
             //         "id" => 95938572327,
@@ -4005,6 +3800,283 @@ class gate extends Exchange {
             //
             return $this->parse_order($response, $market);
         }) ();
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
+             * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-$orders
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $orderSymbols = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $orderSymbols[] = $marketId;
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $extendedParams = array_merge($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
+                $triggerValue = $this->safe_value_n($orderParams, array( 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ));
+                if ($triggerValue !== null) {
+                    throw new NotSupported($this->id . ' createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)');
+                }
+                $extendedParams['textIsRequired'] = true; // Gate.io requires a text parameter for each order here
+                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
+            $market = $this->market($symbols[0]);
+            if ($market['future'] || $market['option']) {
+                throw new NotSupported($this->id . ' createOrders() does not support futures or options markets');
+            }
+            $response = null;
+            if ($market['spot']) {
+                $response = Async\await($this->privateSpotPostBatchOrders ($ordersRequests));
+            } elseif ($market['swap']) {
+                $response = Async\await($this->privateFuturesPostSettleBatchOrders ($ordersRequests));
+            }
+            return $this->parse_orders($response);
+        }) ();
+    }
+
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $contract = $market['contract'];
+        $trigger = $this->safe_value($params, 'trigger');
+        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $isStopLossOrder = $stopLossPrice !== null;
+        $isTakeProfitOrder = $takeProfitPrice !== null;
+        $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
+        if ($isStopLossOrder && $isTakeProfitOrder) {
+            throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
+        }
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        $exchangeSpecificTimeInForce = $this->safe_string_lower_n($params, array( 'timeInForce', 'tif', 'time_in_force' ));
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($type === 'market', $exchangeSpecificTimeInForce === 'poc', $params);
+        $timeInForce = $this->handle_time_in_force($params);
+        if ($postOnly) {
+            $timeInForce = 'poc';
+        }
+        // we only omit the unified $params here
+        // this is because the other $params will get extended into the $request
+        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ));
+        $isLimitOrder = ($type === 'limit');
+        $isMarketOrder = ($type === 'market');
+        if ($isLimitOrder && $price === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for ' . $type . ' orders');
+        }
+        if ($isMarketOrder) {
+            if (($timeInForce === 'poc') || ($timeInForce === 'gtc')) {
+                throw new ExchangeError($this->id . ' createOrder () $timeInForce for $market order can only be "FOK" or "IOC"');
+            } else {
+                if ($timeInForce === null) {
+                    $defaultTif = $this->safe_string($this->options, 'defaultTimeInForce', 'IOC');
+                    $exchangeSpecificTif = $this->safe_string($this->options['timeInForce'], $defaultTif, 'ioc');
+                    $timeInForce = $exchangeSpecificTif;
+                }
+            }
+            if ($contract) {
+                $price = 0;
+            }
+        }
+        if ($contract) {
+            $amountToPrecision = $this->amount_to_precision($symbol, $amount);
+            $signedAmount = ($side === 'sell') ? Precise::string_neg($amountToPrecision) : $amountToPrecision;
+            $amount = intval($signedAmount);
+        }
+        $request = null;
+        $nonTriggerOrder = !$isStopOrder && ($trigger === null);
+        if ($nonTriggerOrder) {
+            if ($contract) {
+                // $contract order
+                $request = array(
+                    'contract' => $market['id'], // filled in prepareRequest above
+                    'size' => $amount, // int64, positive = bid, negative = ask
+                    // 'iceberg' => 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
+                    // 'close' => false, // true to close the position, with size set to 0
+                    // 'reduce_only' => false, // St to be reduce-only order
+                    // 'tif' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
+                    // 'text' => $clientOrderId, // 't-abcdef1234567890',
+                    // 'auto_size' => '', // close_long, close_short, note size also needs to be set to 0
+                );
+                if (!$market['option']) {
+                    $request['settle'] = $market['settleId']; // filled in prepareRequest above
+                }
+                if ($isMarketOrder) {
+                    $request['price'] = $price; // set to 0 for $market orders
+                } else {
+                    $request['price'] = $this->price_to_precision($symbol, $price);
+                }
+                if ($reduceOnly !== null) {
+                    $request['reduce_only'] = $reduceOnly;
+                }
+                if ($timeInForce !== null) {
+                    $request['tif'] = $timeInForce;
+                }
+            } else {
+                $marginMode = null;
+                list($marginMode, $params) = $this->get_margin_mode(false, $params);
+                // spot order
+                $request = array(
+                    // 'text' => $clientOrderId, // 't-abcdef1234567890',
+                    'currency_pair' => $market['id'], // filled in prepareRequest above
+                    'type' => $type,
+                    'account' => $marginMode, // 'spot', 'margin', 'cross_margin'
+                    'side' => $side,
+                    // 'time_in_force' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
+                    // 'iceberg' => 0, // $amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
+                    // 'auto_borrow' => false, // used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
+                    // 'auto_repay' => false, // automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
+                );
+                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+                if ($isMarketOrder && ($side === 'buy')) {
+                    if ($createMarketBuyOrderRequiresPrice) {
+                        if ($price === null) {
+                            throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                        } else {
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                            $request['amount'] = $this->cost_to_precision($symbol, $cost);
+                        }
+                    } else {
+                        $cost = $this->safe_number($params, 'cost', $amount);
+                        $params = $this->omit($params, 'cost');
+                        $request['amount'] = $this->cost_to_precision($symbol, $cost);
+                    }
+                } else {
+                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                }
+                if ($isLimitOrder) {
+                    $request['price'] = $this->price_to_precision($symbol, $price);
+                }
+                if ($timeInForce !== null) {
+                    $request['time_in_force'] = $timeInForce;
+                }
+            }
+            $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
+            $textIsRequired = $this->safe_value($params, 'textIsRequired', false);
+            if ($clientOrderId !== null) {
+                // user-defined, must follow the rules if not empty
+                //     prefixed with t-
+                //     no longer than 28 bytes without t- prefix
+                //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
+                if (strlen($clientOrderId) > 28) {
+                    throw new BadRequest($this->id . ' createOrder () $clientOrderId or text param must be up to 28 characters');
+                }
+                $params = $this->omit($params, array( 'text', 'clientOrderId', 'textIsRequired' ));
+                if ($clientOrderId[0] !== 't') {
+                    $clientOrderId = 't-' . $clientOrderId;
+                }
+                $request['text'] = $clientOrderId;
+            } else {
+                if ($textIsRequired) {
+                    // batchOrders requires text in the $request
+                    $request['text'] = 't-' . $this->uuid16();
+                }
+            }
+        } else {
+            if ($market['option']) {
+                throw new NotSupported($this->id . ' createOrder() conditional option orders are not supported');
+            }
+            if ($contract) {
+                // $contract conditional order
+                $request = array(
+                    'initial' => array(
+                        'contract' => $market['id'],
+                        'size' => $amount, // positive = buy, negative = sell, set to 0 to close the position
+                        'price' => $this->price_to_precision($symbol, $price), // set to 0 to use $market $price
+                        // 'close' => false, // set to true if trying to close the position
+                        // 'tif' => 'gtc', // gtc, ioc, if using $market $price, only ioc is supported
+                        // 'text' => $clientOrderId, // web, api, app
+                        // 'reduce_only' => false,
+                    ),
+                    'settle' => $market['settleId'],
+                );
+                if ($trigger === null) {
+                    $rule = null;
+                    $triggerOrderPrice = null;
+                    if ($isStopLossOrder) {
+                        // we $trigger orders be aliases for stopLoss orders because
+                        // gateio doesn't accept conventional $trigger orders for spot markets
+                        $rule = ($side === 'buy') ? 1 : 2;
+                        $triggerOrderPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    } elseif ($isTakeProfitOrder) {
+                        $rule = ($side === 'buy') ? 2 : 1;
+                        $triggerOrderPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    }
+                    $priceType = $this->safe_integer($params, 'price_type', 0);
+                    if ($priceType < 0 || $priceType > 2) {
+                        throw new BadRequest($this->id . ' createOrder () price_type should be 0 latest deal $price, 1 mark $price, 2 index price');
+                    }
+                    $params = $this->omit($params, array( 'price_type' ));
+                    $request['trigger'] = array(
+                        // 'strategy_type' => 0, // 0 = by $price, 1 = by $price gap, only 0 is supported currently
+                        'price_type' => $priceType, // 0 latest deal $price, 1 mark $price, 2 index $price
+                        'price' => $this->price_to_precision($symbol, $triggerOrderPrice), // $price or gap
+                        'rule' => $rule, // 1 means price_type >= $price, 2 means price_type <= $price
+                        // 'expiration' => $expiration, how many seconds to wait for the condition to be triggered before cancelling the order
+                    );
+                }
+                if ($reduceOnly !== null) {
+                    $request['initial']['reduce_only'] = $reduceOnly;
+                }
+                if ($timeInForce !== null) {
+                    $request['initial']['tif'] = $timeInForce;
+                }
+            } else {
+                // spot conditional order
+                $options = $this->safe_value($this->options, 'createOrder', array());
+                $marginMode = null;
+                list($marginMode, $params) = $this->get_margin_mode(true, $params);
+                if ($timeInForce === null) {
+                    $timeInForce = 'gtc';
+                }
+                $request = array(
+                    'put' => array(
+                        'type' => $type,
+                        'side' => $side,
+                        'price' => $this->price_to_precision($symbol, $price),
+                        'amount' => $this->amount_to_precision($symbol, $amount),
+                        'account' => $marginMode,
+                        'time_in_force' => $timeInForce, // gtc, ioc (ioc is for taker only, so shouldnt't be in conditional order)
+                    ),
+                    'market' => $market['id'],
+                );
+                if ($trigger === null) {
+                    $defaultExpiration = $this->safe_integer($options, 'expiration');
+                    $expiration = $this->safe_integer($params, 'expiration', $defaultExpiration);
+                    $rule = null;
+                    $triggerOrderPrice = null;
+                    if ($isStopLossOrder) {
+                        // we $trigger orders be aliases for stopLoss orders because
+                        // gateio doesn't accept conventional $trigger orders for spot markets
+                        $rule = ($side === 'buy') ? '>=' : '<=';
+                        $triggerOrderPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    } elseif ($isTakeProfitOrder) {
+                        $rule = ($side === 'buy') ? '<=' : '>=';
+                        $triggerOrderPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    }
+                    $request['trigger'] = array(
+                        'price' => $this->price_to_precision($symbol, $triggerOrderPrice),
+                        'rule' => $rule, // >= triggered when $market $price larger than or equal to $price field, <= triggered when $market $price less than or equal to $price field
+                        'expiration' => $expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
+                    );
+                }
+            }
+        }
+        return array_merge($request, $params);
     }
 
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
@@ -4233,6 +4305,22 @@ class gate extends Exchange {
         //        "order_type" => ""
         //    }
         //
+        //    {
+        //        "text" => "t-d18baf9ac44d82e2",
+        //        "succeeded" => false,
+        //        "label" => "BALANCE_NOT_ENOUGH",
+        //        "message" => "Not enough balance"
+        //    }
+        //
+        $succeeded = $this->safe_value($order, 'succeeded', true);
+        if (!$succeeded) {
+            // cancelOrders response
+            return $this->safe_order(array(
+                'clientOrderId' => $this->safe_string($order, 'text'),
+                'info' => $order,
+                'status' => 'rejected',
+            ));
+        }
         $put = $this->safe_value_2($order, 'put', 'initial', array());
         $trigger = $this->safe_value($order, 'trigger', array());
         $contract = $this->safe_string($put, 'contract');
@@ -5681,7 +5769,15 @@ class gate extends Exchange {
         $authentication = $api[0]; // public, private
         $type = $api[1]; // spot, margin, future, delivery
         $query = $this->omit($params, $this->extract_params($path));
-        $path = $this->implode_params($path, $params);
+        if (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) {
+            // endpoints like createOrders use an array instead of an object
+            // so we infer the settle from one of the elements
+            // they have to be all the same so relying on the $first one is fine
+            $first = $this->safe_value($params, 0, array());
+            $path = $this->implode_params($path, $first);
+        } else {
+            $path = $this->implode_params($path, $params);
+        }
         $endPart = ($path === '') ? '' : ('/' . $path);
         $entirePath = '/' . $type . $endPart;
         if (($type === 'subAccounts') || ($type === 'withdrawals')) {

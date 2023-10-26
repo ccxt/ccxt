@@ -77,6 +77,7 @@ class gate extends Exchange {
                 'cancelOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -282,8 +283,6 @@ class gate extends Exchange {
                     ),
                     'portfolio' => array(
                         'get' => array(
-                            'spot/currency_pairs' => 20 / 15,
-                            'spot/currency_pairs/{currency_pair}' => 20 / 15,
                             'accounts' => 20 / 15,
                             'account_mode' => 20 / 15,
                             'borrowable' => 20 / 15,
@@ -291,19 +290,10 @@ class gate extends Exchange {
                             'loans' => 20 / 15,
                             'loan_records' => 20 / 15,
                             'interest_records' => 20 / 15,
-                            'spot/orders' => 20 / 15,
-                            'spot/orders/{order_id}' => 20 / 15,
                         ),
                         'post' => array(
                             'account_mode' => 20 / 15,
                             'loans' => 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
-                            'spot/orders' => 20 / 15,
-                        ),
-                        'delete' => array(
-                            'spot/orders/{order_id}' => 20 / 15,
-                        ),
-                        'patch' => array(
-                            'spot/orders/{order_id}' => 20 / 15,
                         ),
                     ),
                     'spot' => array(
@@ -326,6 +316,7 @@ class gate extends Exchange {
                             'orders' => 0.4,
                             'cancel_batch_orders' => 20 / 75,
                             'countdown_cancel_all' => 20 / 75,
+                            'amend_batch_orders' => 0.4,
                             'price_orders' => 0.4,
                         ),
                         'delete' => array(
@@ -495,6 +486,9 @@ class gate extends Exchange {
                         ),
                         'post' => array(
                             'uni/lends' => 20 / 15,
+                        ),
+                        'put' => array(
+                            'uni/interest_reinvest' => 20 / 15,
                         ),
                         'patch' => array(
                             'uni/lends' => 20 / 15,
@@ -3621,26 +3615,169 @@ class gate extends Exchange {
         /**
          * Create an order on the exchange
          * @param {string} $symbol Unified CCXT $market $symbol
-         * @param {string} $type 'limit' or 'market' *"market" is $contract only*
+         * @param {string} $type 'limit' or 'market' *"market" is contract only*
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
          * @param {float} [$price] *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
          * @param {array} [$params]  Extra parameters specific to the exchange API endpoint
          * @param {float} [$params->stopPrice] The $price at which a $trigger order is triggered at
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
-         * @param {string} [$params->marginMode] 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
+         * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
          * @param {int} [$params->iceberg] Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
          * @param {string} [$params->text] User defined information
          * @param {string} [$params->account] *spot and margin only* "spot", "margin" or "cross_margin"
          * @param {bool} [$params->auto_borrow] *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
-         * @param {string} [$params->settle] *$contract only* Unified Currency Code for settle currency
-         * @param {bool} [$params->reduceOnly] *$contract only* Indicates if this order is to reduce the size of a position
-         * @param {bool} [$params->close] *$contract only* Set to close the position, with size set to 0
-         * @param {bool} [$params->auto_size] *$contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
-         * @param {int} [$params->price_type] *$contract only* 0 latest deal $price, 1 mark $price, 2 index $price
+         * @param {string} [$params->settle] *contract only* Unified Currency Code for settle currency
+         * @param {bool} [$params->reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
+         * @param {bool} [$params->close] *contract only* Set to close the position, with size set to 0
+         * @param {bool} [$params->auto_size] *contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
+         * @param {int} [$params->price_type] *contract only* 0 latest deal $price, 1 mark $price, 2 index $price
          * @return {array|null} {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure An order structure}
          */
         $this->load_markets();
+        $market = $this->market($symbol);
+        $trigger = $this->safe_value($params, 'trigger');
+        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $isStopLossOrder = $stopLossPrice !== null;
+        $isTakeProfitOrder = $takeProfitPrice !== null;
+        $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
+        $nonTriggerOrder = !$isStopOrder && ($trigger === null);
+        $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $response = null;
+        if ($market['spot'] || $market['margin']) {
+            if ($nonTriggerOrder) {
+                $response = $this->privateSpotPostOrders ($orderRequest);
+            } else {
+                $response = $this->privateSpotPostPriceOrders ($orderRequest);
+            }
+        } elseif ($market['swap']) {
+            if ($nonTriggerOrder) {
+                $response = $this->privateFuturesPostSettleOrders ($orderRequest);
+            } else {
+                $response = $this->privateFuturesPostSettlePriceOrders ($orderRequest);
+            }
+        } elseif ($market['future']) {
+            if ($nonTriggerOrder) {
+                $response = $this->privateDeliveryPostSettleOrders ($orderRequest);
+            } else {
+                $response = $this->privateDeliveryPostSettlePriceOrders ($orderRequest);
+            }
+        } else {
+            $response = $this->privateOptionsPostOrders ($orderRequest);
+        }
+        // $response = $this->$method ($this->deep_extend(request, $params));
+        //
+        // spot
+        //
+        //     {
+        //         "id" => "95282841887",
+        //         "text" => "apiv4",
+        //         "create_time" => "1637383156",
+        //         "update_time" => "1637383156",
+        //         "create_time_ms" => 1637383156017,
+        //         "update_time_ms" => 1637383156017,
+        //         "status" => "open",
+        //         "currency_pair" => "ETH_USDT",
+        //         "type" => "limit",
+        //         "account" => "spot",
+        //         "side" => "buy",
+        //         "amount" => "0.01",
+        //         "price" => "3500",
+        //         "time_in_force" => "gtc",
+        //         "iceberg" => "0",
+        //         "left" => "0.01",
+        //         "fill_price" => "0",
+        //         "filled_total" => "0",
+        //         "fee" => "0",
+        //         "fee_currency" => "ETH",
+        //         "point_fee" => "0",
+        //         "gt_fee" => "0",
+        //         "gt_discount" => false,
+        //         "rebated_fee" => "0",
+        //         "rebated_fee_currency" => "USDT"
+        //     }
+        //
+        // spot conditional
+        //
+        //     array("id" => 5891843)
+        //
+        // futures, perpetual swaps and options
+        //
+        //     {
+        //         "id" => 95938572327,
+        //         "contract" => "ETH_USDT",
+        //         "mkfr" => "0",
+        //         "tkfr" => "0.0005",
+        //         "tif" => "gtc",
+        //         "is_reduce_only" => false,
+        //         "create_time" => 1637384600.08,
+        //         "price" => "3000",
+        //         "size" => 1,
+        //         "refr" => "0",
+        //         "left" => 1,
+        //         "text" => "api",
+        //         "fill_price" => "0",
+        //         "user" => 2436035,
+        //         "status" => "open",
+        //         "is_liq" => false,
+        //         "refu" => 0,
+        //         "is_close" => false,
+        //         "iceberg" => 0
+        //     }
+        //
+        // futures and perpetual swaps conditionals
+        //
+        //     array("id" => 7615567)
+        //
+        return $this->parse_order($response, $market);
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        /**
+         * create a list of trade $orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-$orders
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         */
+        $this->load_markets();
+        $ordersRequests = array();
+        $orderSymbols = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $marketId = $this->safe_string($rawOrder, 'symbol');
+            $orderSymbols[] = $marketId;
+            $type = $this->safe_string($rawOrder, 'type');
+            $side = $this->safe_string($rawOrder, 'side');
+            $amount = $this->safe_value($rawOrder, 'amount');
+            $price = $this->safe_value($rawOrder, 'price');
+            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $extendedParams = array_merge($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
+            $triggerValue = $this->safe_value_n($orderParams, array( 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ));
+            if ($triggerValue !== null) {
+                throw new NotSupported($this->id . ' createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)');
+            }
+            $extendedParams['textIsRequired'] = true; // Gate.io requires a text parameter for each order here
+            $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
+            $ordersRequests[] = $orderRequest;
+        }
+        $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
+        $market = $this->market($symbols[0]);
+        if ($market['future'] || $market['option']) {
+            throw new NotSupported($this->id . ' createOrders() does not support futures or options markets');
+        }
+        $response = null;
+        if ($market['spot']) {
+            $response = $this->privateSpotPostBatchOrders ($ordersRequests);
+        } elseif ($market['swap']) {
+            $response = $this->privateFuturesPostSettleBatchOrders ($ordersRequests);
+        }
+        return $this->parse_orders($response);
+    }
+
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $contract = $market['contract'];
         $trigger = $this->safe_value($params, 'trigger');
@@ -3653,7 +3790,6 @@ class gate extends Exchange {
         if ($isStopLossOrder && $isTakeProfitOrder) {
             throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
         }
-        $methodTail = 'Orders';
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $exchangeSpecificTimeInForce = $this->safe_string_lower_n($params, array( 'timeInForce', 'tif', 'time_in_force' ));
         $postOnly = null;
@@ -3760,6 +3896,7 @@ class gate extends Exchange {
                 }
             }
             $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
+            $textIsRequired = $this->safe_value($params, 'textIsRequired', false);
             if ($clientOrderId !== null) {
                 // user-defined, must follow the rules if not empty
                 //     prefixed with t-
@@ -3768,11 +3905,16 @@ class gate extends Exchange {
                 if (strlen($clientOrderId) > 28) {
                     throw new BadRequest($this->id . ' createOrder () $clientOrderId or text param must be up to 28 characters');
                 }
-                $params = $this->omit($params, array( 'text', 'clientOrderId' ));
+                $params = $this->omit($params, array( 'text', 'clientOrderId', 'textIsRequired' ));
                 if ($clientOrderId[0] !== 't') {
                     $clientOrderId = 't-' . $clientOrderId;
                 }
                 $request['text'] = $clientOrderId;
+            } else {
+                if ($textIsRequired) {
+                    // batchOrders requires text in the $request
+                    $request['text'] = 't-' . $this->uuid16();
+                }
             }
         } else {
             if ($market['option']) {
@@ -3863,80 +4005,8 @@ class gate extends Exchange {
                     );
                 }
             }
-            $methodTail = 'PriceOrders';
         }
-        $method = $this->get_supported_mapping($market['type'], array(
-            'spot' => 'privateSpotPost' . $methodTail,
-            'margin' => 'privateSpotPost' . $methodTail,
-            'swap' => 'privateFuturesPostSettle' . $methodTail,
-            'future' => 'privateDeliveryPostSettle' . $methodTail,
-            'option' => 'privateOptionsPostOrders',
-        ));
-        $response = $this->$method ($this->deep_extend($request, $params));
-        //
-        // spot
-        //
-        //     {
-        //         "id" => "95282841887",
-        //         "text" => "apiv4",
-        //         "create_time" => "1637383156",
-        //         "update_time" => "1637383156",
-        //         "create_time_ms" => 1637383156017,
-        //         "update_time_ms" => 1637383156017,
-        //         "status" => "open",
-        //         "currency_pair" => "ETH_USDT",
-        //         "type" => "limit",
-        //         "account" => "spot",
-        //         "side" => "buy",
-        //         "amount" => "0.01",
-        //         "price" => "3500",
-        //         "time_in_force" => "gtc",
-        //         "iceberg" => "0",
-        //         "left" => "0.01",
-        //         "fill_price" => "0",
-        //         "filled_total" => "0",
-        //         "fee" => "0",
-        //         "fee_currency" => "ETH",
-        //         "point_fee" => "0",
-        //         "gt_fee" => "0",
-        //         "gt_discount" => false,
-        //         "rebated_fee" => "0",
-        //         "rebated_fee_currency" => "USDT"
-        //     }
-        //
-        // spot conditional
-        //
-        //     array("id" => 5891843)
-        //
-        // futures, perpetual swaps and $options
-        //
-        //     {
-        //         "id" => 95938572327,
-        //         "contract" => "ETH_USDT",
-        //         "mkfr" => "0",
-        //         "tkfr" => "0.0005",
-        //         "tif" => "gtc",
-        //         "is_reduce_only" => false,
-        //         "create_time" => 1637384600.08,
-        //         "price" => "3000",
-        //         "size" => 1,
-        //         "refr" => "0",
-        //         "left" => 1,
-        //         "text" => "api",
-        //         "fill_price" => "0",
-        //         "user" => 2436035,
-        //         "status" => "open",
-        //         "is_liq" => false,
-        //         "refu" => 0,
-        //         "is_close" => false,
-        //         "iceberg" => 0
-        //     }
-        //
-        // futures and perpetual swaps conditionals
-        //
-        //     array("id" => 7615567)
-        //
-        return $this->parse_order($response, $market);
+        return array_merge($request, $params);
     }
 
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
@@ -4163,6 +4233,22 @@ class gate extends Exchange {
         //        "order_type" => ""
         //    }
         //
+        //    {
+        //        "text" => "t-d18baf9ac44d82e2",
+        //        "succeeded" => false,
+        //        "label" => "BALANCE_NOT_ENOUGH",
+        //        "message" => "Not enough balance"
+        //    }
+        //
+        $succeeded = $this->safe_value($order, 'succeeded', true);
+        if (!$succeeded) {
+            // cancelOrders response
+            return $this->safe_order(array(
+                'clientOrderId' => $this->safe_string($order, 'text'),
+                'info' => $order,
+                'status' => 'rejected',
+            ));
+        }
         $put = $this->safe_value_2($order, 'put', 'initial', array());
         $trigger = $this->safe_value($order, 'trigger', array());
         $contract = $this->safe_string($put, 'contract');
@@ -5585,7 +5671,15 @@ class gate extends Exchange {
         $authentication = $api[0]; // public, private
         $type = $api[1]; // spot, margin, future, delivery
         $query = $this->omit($params, $this->extract_params($path));
-        $path = $this->implode_params($path, $params);
+        if (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) {
+            // endpoints like createOrders use an array instead of an object
+            // so we infer the settle from one of the elements
+            // they have to be all the same so relying on the $first one is fine
+            $first = $this->safe_value($params, 0, array());
+            $path = $this->implode_params($path, $first);
+        } else {
+            $path = $this->implode_params($path, $params);
+        }
         $endPart = ($path === '') ? '' : ('/' . $path);
         $entirePath = '/' . $type . $endPart;
         if (($type === 'subAccounts') || ($type === 'withdrawals')) {

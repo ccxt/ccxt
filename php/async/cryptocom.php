@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
+use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
@@ -38,6 +39,7 @@ class cryptocom extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
@@ -1165,6 +1167,194 @@ class cryptocom extends Exchange {
         }) ();
     }
 
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $orderRequest = $this->create_advanced_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $contigency = $this->safe_string($params, 'contingency_type', 'LIST');
+            $request = array(
+                'contingency_type' => $contigency, // or OCO
+                'order_list' => $ordersRequests,
+            );
+            $response = Async\await($this->v1PrivatePostPrivateCreateOrderList (array_merge($request, $params)));
+            //
+            // {
+            //     "id" => 12,
+            //     "method" => "private/create-order-list",
+            //     "code" => 10001,
+            //     "result" => {
+            //       "result_list" => array(
+            //         array(
+            //           "index" => 0,
+            //           "code" => 0,
+            //           "order_id" => "2015106383706015873",
+            //           "client_oid" => "my_order_0001"
+            //         ),
+            //         {
+            //           "index" => 1,
+            //           "code" => 20007,
+            //           "message" => "INVALID_REQUEST",
+            //           "client_oid" => "my_order_0002"
+            //         }
+            //       )
+            //     }
+            // }
+            //
+            //   {
+            //       "id" : 1698068111133,
+            //       "method" : "private/create-order-list",
+            //       "code" : 0,
+            //       "result" : array( array(
+            //         "code" : 0,
+            //         "index" : 0,
+            //         "client_oid" : "1698068111133_0",
+            //         "order_id" : "6142909896519488206"
+            //       ), {
+            //         "code" : 306,
+            //         "index" : 1,
+            //         "client_oid" : "1698068111133_1",
+            //         "message" : "INSUFFICIENT_AVAILABLE_BALANCE",
+            //         "order_id" : "6142909896519488207"
+            //       } )
+            //   }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $listId = $this->safe_string($result, 'list_id');
+            if ($listId !== null) {
+                $ocoOrders = array( array( 'order_id' => $listId ) );
+                return $this->parse_orders($ocoOrders);
+            }
+            return $this->parse_orders($result);
+        }) ();
+    }
+
+    public function create_advanced_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        // differs slightly from createOrderRequest
+        // since the advanced order endpoint requires a different set of parameters
+        // namely here we don't support ref_price or spot_margin
+        // and $market-buy orders need to send notional instead of quantity
+        $market = $this->market($symbol);
+        $uppercaseType = strtoupper($type);
+        $request = array(
+            'instrument_name' => $market['id'],
+            'side' => strtoupper($side),
+        );
+        if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $broker = $this->safe_string($this->options, 'broker', 'CCXT');
+        $request['broker_id'] = $broker;
+        $timeInForce = $this->safe_string_upper_2($params, 'timeInForce', 'time_in_force');
+        if ($timeInForce !== null) {
+            if ($timeInForce === 'GTC') {
+                $request['time_in_force'] = 'GOOD_TILL_CANCEL';
+            } elseif ($timeInForce === 'IOC') {
+                $request['time_in_force'] = 'IMMEDIATE_OR_CANCEL';
+            } elseif ($timeInForce === 'FOK') {
+                $request['time_in_force'] = 'FILL_OR_KILL';
+            } else {
+                $request['time_in_force'] = $timeInForce;
+            }
+        }
+        $postOnly = $this->safe_value($params, 'postOnly', false);
+        if (($postOnly) || ($timeInForce === 'PO')) {
+            $request['exec_inst'] = array( 'POST_ONLY' );
+            $request['time_in_force'] = 'GOOD_TILL_CANCEL';
+        }
+        $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'ref_price' ));
+        $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
+        $isTrigger = ($triggerPrice !== null);
+        $isStopLossTrigger = ($stopLossPrice !== null);
+        $isTakeProfitTrigger = ($takeProfitPrice !== null);
+        if ($isTrigger) {
+            $price = (string) $price;
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                if ($side === 'buy') {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'TAKE_PROFIT_LIMIT';
+                    } else {
+                        $request['type'] = 'STOP_LIMIT';
+                    }
+                } else {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'STOP_LIMIT';
+                    } else {
+                        $request['type'] = 'TAKE_PROFIT_LIMIT';
+                    }
+                }
+            } else {
+                if ($side === 'buy') {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'TAKE_PROFIT';
+                    } else {
+                        $request['type'] = 'STOP_LOSS';
+                    }
+                } else {
+                    if (Precise::string_lt($price, $triggerPrice)) {
+                        $request['type'] = 'STOP_LOSS';
+                    } else {
+                        $request['type'] = 'TAKE_PROFIT';
+                    }
+                }
+            }
+        } elseif ($isStopLossTrigger) {
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'STOP_LIMIT')) {
+                $request['type'] = 'STOP_LIMIT';
+            } else {
+                $request['type'] = 'STOP_LOSS';
+            }
+        } elseif ($isTakeProfitTrigger) {
+            if (($uppercaseType === 'LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+                $request['type'] = 'TAKE_PROFIT_LIMIT';
+            } else {
+                $request['type'] = 'TAKE_PROFIT';
+            }
+        } else {
+            $request['type'] = $uppercaseType;
+        }
+        if (($side === 'buy') && (($uppercaseType === 'MARKET') || ($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT'))) {
+            // use createmarketBuy logic here
+            if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                $cost = $this->safe_number_2($params, 'cost', 'notional');
+                $params = $this->omit($params, 'cost');
+                if ($price === null && $cost === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
+                } else {
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $quoteAmount = Precise::string_mul($amountString, $priceString);
+                    $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
+                    $request['notional'] = $this->cost_to_precision($symbol, $amount);
+                }
+            } else {
+                $request['notional'] = $this->cost_to_precision($symbol, $amount);
+            }
+        } else {
+            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+        }
+        $params = $this->omit($params, array( 'postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        return array_merge($request, $params);
+    }
+
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
@@ -2020,12 +2210,31 @@ class cryptocom extends Exchange {
         //         "update_time" => 1686806053993
         //     }
         //
+        // createOrders
+        //     {
+        //             "code" : 306,
+        //             "index" : 1,
+        //             "client_oid" : "1698068111133_1",
+        //             "message" : "INSUFFICIENT_AVAILABLE_BALANCE",
+        //             "order_id" : "6142909896519488207"
+        //     }
+        //
+        $code = $this->safe_integer($order, 'code');
+        if (($code !== null) && ($code !== 0)) {
+            return $this->safe_order(array(
+                'id' => $this->safe_string($order, 'order_id'),
+                'clientOrderId' => $this->safe_string($order, 'client_oid'),
+                'info' => $order,
+                'status' => 'rejected',
+            ));
+        }
         $created = $this->safe_integer($order, 'create_time');
         $marketId = $this->safe_string($order, 'instrument_name');
         $symbol = $this->safe_symbol($marketId, $market);
         $execInst = $this->safe_value($order, 'exec_inst');
-        $postOnly = false;
+        $postOnly = null;
         if ($execInst !== null) {
+            $postOnly = false;
             for ($i = 0; $i < count($execInst); $i++) {
                 $inst = $execInst[$i];
                 if ($inst === 'POST_ONLY') {
@@ -2967,6 +3176,39 @@ class cryptocom extends Exchange {
         return $this->milliseconds();
     }
 
+    public function params_to_string($object, $level) {
+        $maxLevel = 3;
+        if ($level >= $maxLevel) {
+            return (string) $object;
+        }
+        if (gettype($object) === 'string') {
+            return $object;
+        }
+        $returnString = '';
+        $paramsKeys = null;
+        if (gettype($object) === 'array' && array_keys($object) === array_keys(array_keys($object))) {
+            $paramsKeys = $object;
+        } else {
+            $sorted = $this->keysort($object);
+            $paramsKeys = is_array($sorted) ? array_keys($sorted) : array();
+        }
+        for ($i = 0; $i < count($paramsKeys); $i++) {
+            $key = $paramsKeys[$i];
+            $returnString .= $key;
+            $value = $object[$key];
+            if ($value === 'null') {
+                $returnString .= 'null';
+            } elseif (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
+                for ($j = 0; $j < count($value); $j++) {
+                    $returnString .= $this->params_to_string($value[$j], $level + 1);
+                }
+            } else {
+                $returnString .= (string) $value;
+            }
+        }
+        return $returnString;
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $type = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
@@ -2980,19 +3222,8 @@ class cryptocom extends Exchange {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $requestParams = array_merge(array(), $params);
-            $keysorted = $this->keysort($requestParams);
-            $paramsKeys = is_array($keysorted) ? array_keys($keysorted) : array();
-            $strSortKey = '';
-            for ($i = 0; $i < count($paramsKeys); $i++) {
-                $key = (string) $paramsKeys[$i];
-                $value = $requestParams[$paramsKeys[$i]];
-                if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
-                    $value = implode(',', $value);
-                } else {
-                    $value = (string) $value;
-                }
-                $strSortKey = $strSortKey . $key . $value;
-            }
+            $paramsKeys = is_array($requestParams) ? array_keys($requestParams) : array();
+            $strSortKey = $this->params_to_string($requestParams, 0);
             $payload = $path . $nonce . $this->apiKey . $strSortKey . $nonce;
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
             $paramsKeysLength = count($paramsKeys);

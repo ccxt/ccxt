@@ -31,6 +31,7 @@ class bybit extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -1443,7 +1444,7 @@ class bybit extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function get_bybit_type($method, $market, $params) {
+    public function get_bybit_type($method, $market, $params = array ()) {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params($method, $market, $params);
         $subType = null;
@@ -3249,9 +3250,10 @@ class bybit extends Exchange {
             // because it requires transfer permission
             $request['accountType'] = $unifiedType;
             $response = $this->privateGetV5AssetTransferQueryAccountCoinsBalance (array_merge($request, $params));
+        } else {
+            $request['accountType'] = $unifiedType;
+            $response = $this->privateGetV5AccountWalletBalance (array_merge($request, $params));
         }
-        $request['accountType'] = $unifiedType;
-        $response = $this->privateGetV5AccountWalletBalance (array_merge($request, $params));
         //
         // cross
         //     {
@@ -3479,7 +3481,31 @@ class bybit extends Exchange {
         //         "createdTime" => "1684476068369",
         //         "updatedTime" => "1684476068372"
         //     }
+        // createOrders failed $order
+        //    {
+        //        $category => 'linear',
+        //        $symbol => 'LTCUSDT',
+        //        orderId => '',
+        //        orderLinkId => '',
+        //        createAt => '',
+        //        $code => '10001',
+        //        msg => 'The number of contracts exceeds maximum limit allowed => too large'
+        //    }
         //
+        $code = $this->safe_string($order, 'code');
+        if ($code !== null) {
+            if ($code !== '0') {
+                $category = $this->safe_string($order, 'category');
+                $inferedMarketType = ($category === 'spot') ? 'spot' : 'contract';
+                return $this->safe_order(array(
+                    'info' => $order,
+                    'status' => 'rejected',
+                    'id' => $this->safe_string($order, 'orderId'),
+                    'clientOrderId' => $this->safe_string($order, 'orderLinkId'),
+                    'symbol' => $this->safe_symbol($this->safe_string($order, 'symbol'), null, null, $inferedMarketType),
+                ));
+            }
+        }
         $marketId = $this->safe_string($order, 'symbol');
         $isContract = (is_array($order) && array_key_exists('tpslMode', $order));
         $marketType = null;
@@ -3627,21 +3653,41 @@ class bybit extends Exchange {
          * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
          * @param {float} [$params->stopLossPrice] The $price at which a stop loss $order is triggered at
          * @param {float} [$params->takeProfitPrice] The $price at which a take profit $order is triggered at
-         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit $order will be triggered
+         * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered
+         * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
         list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
         $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
         $isUsdcSettled = $market['settle'] === 'USDC';
         if ($isUsdcSettled && !$isUnifiedAccount) {
             return $this->create_usdc_order($symbol, $type, $side, $amount, $price, $params);
         }
+        $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $response = $this->privatePostV5OrderCreate ($orderRequest); // already extended inside createOrderRequest
+        //
+        //     {
+        //         "retCode" => 0,
+        //         "retMsg" => "OK",
+        //         "result" => array(
+        //             "orderId" => "1321003749386327552",
+        //             "orderLinkId" => "spot-test-postonly"
+        //         ),
+        //         "retExtInfo" => array(),
+        //         "time" => 1672211918471
+        //     }
+        //
+        $order = $this->safe_value($response, 'result', array());
+        return $this->parse_order($order, $market);
+    }
+
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $lowerCaseType = strtolower($type);
         if (($price === null) && ($lowerCaseType === 'limit')) {
             throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
@@ -3654,17 +3700,17 @@ class bybit extends Exchange {
             // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
             // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
             // 'reduceOnly' => false, // reduce only, required for linear orders
-            // when creating a closing $order, bybit recommends a True value for
+            // when creating a closing order, bybit recommends a True value for
             //  closeOnTrigger to avoid failing due to insufficient available margin
             // 'closeOnTrigger' => false, required for linear orders
-            // 'orderLinkId' => 'string', // unique client $order id, max 36 characters
+            // 'orderLinkId' => 'string', // unique client order id, max 36 characters
             // 'triggerPrice' => 123.46, // trigger $price, required for conditional orders
             // 'triggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
             // 'tpTriggerby' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
             // 'slTriggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
             // 'mmp' => false // $market maker protection
             // 'positionIdx' => 0, // Position mode. Unified account has one-way mode only (0)
-            // 'triggerDirection' => 1, // Conditional $order param. Used to identify the expected direction of the conditional $order-> 1 => triggered when $market $price rises to $triggerPrice 2 => triggered when $market $price falls to $triggerPrice
+            // 'triggerDirection' => 1, // Conditional order param. Used to identify the expected direction of the conditional order. 1 => triggered when $market $price rises to $triggerPrice 2 => triggered when $market $price falls to $triggerPrice
             // Valid for spot only.
             // 'isLeverage' => 0, // Whether to borrow. 0(default) => false, 1 => true
             // 'orderFilter' => 'Order' // Order,tpslOrder. If not passed, Order by default
@@ -3686,7 +3732,7 @@ class bybit extends Exchange {
                 $cost = $this->safe_number($params, 'cost');
                 $params = $this->omit($params, 'cost');
                 if ($price === null && $cost === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
                 } else {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
@@ -3770,21 +3816,93 @@ class bybit extends Exchange {
             $request['orderLinkId'] = $this->uuid16();
         }
         $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit' ));
-        $response = $this->privatePostV5OrderCreate (array_merge($request, $params));
+        return array_merge($request, $params);
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        /**
+         * create a list of trade $orders
+         * @see https://bybit-exchange.github.io/docs/v5/order/batch-place
+         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         */
+        $this->load_markets();
+        $ordersRequests = array();
+        $orderSymbols = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $marketId = $this->safe_string($rawOrder, 'symbol');
+            $orderSymbols[] = $marketId;
+            $type = $this->safe_string($rawOrder, 'type');
+            $side = $this->safe_string($rawOrder, 'side');
+            $amount = $this->safe_value($rawOrder, 'amount');
+            $price = $this->safe_value($rawOrder, 'price');
+            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+            $ordersRequests[] = $orderRequest;
+        }
+        $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
+        $market = $this->market($symbols[0]);
+        $category = null;
+        list($category, $params) = $this->get_bybit_type('createOrders', $market, $params);
+        if (($category === 'spot') || ($category === 'inverse')) {
+            throw new NotSupported($this->id . ' createOrders does not allow spot or inverse orders');
+        }
+        $request = array(
+            'category' => $category,
+            'request' => $ordersRequests,
+        );
+        $response = $this->privatePostV5OrderCreateBatch (array_merge($request, $params));
+        $result = $this->safe_value($response, 'result', array());
+        $data = $this->safe_value($result, 'list', array());
+        $retInfo = $this->safe_value($response, 'retExtInfo', array());
+        $codes = $this->safe_value($retInfo, 'list', array());
+        // extend the error with the unsuccessful $orders
+        for ($i = 0; $i < count($codes); $i++) {
+            $code = $codes[$i];
+            $retCode = $this->safe_integer($code, 'code');
+            if ($retCode !== 0) {
+                $data[$i] = array_merge($data[$i], $code);
+            }
+        }
         //
-        //     {
-        //         "retCode" => 0,
-        //         "retMsg" => "OK",
-        //         "result" => array(
-        //             "orderId" => "1321003749386327552",
-        //             "orderLinkId" => "spot-test-postonly"
-        //         ),
-        //         "retExtInfo" => array(),
-        //         "time" => 1672211918471
-        //     }
+        // {
+        //     "retCode":0,
+        //     "retMsg":"OK",
+        //     "result":{
+        //        "list":array(
+        //           array(
+        //              "category":"linear",
+        //              "symbol":"LTCUSDT",
+        //              "orderId":"",
+        //              "orderLinkId":"",
+        //              "createAt":""
+        //           ),
+        //           array(
+        //              "category":"linear",
+        //              "symbol":"LTCUSDT",
+        //              "orderId":"3c9f65b6-01ad-4ac0-9741-df17e02a4223",
+        //              "orderLinkId":"",
+        //              "createAt":"1698075516029"
+        //           }
+        //        )
+        //     ),
+        //     "retExtInfo":{
+        //        "list":array(
+        //           array(
+        //              "code":10001,
+        //              "msg":"The number of contracts exceeds maximum limit allowed => too large"
+        //           ),
+        //           array(
+        //              "code":0,
+        //              "msg":"OK"
+        //           }
+        //        )
+        //     ),
+        //     "time":1698075516029
+        // }
         //
-        $order = $this->safe_value($response, 'result', array());
-        return $this->parse_order($order, $market);
+        return $this->parse_orders($data);
     }
 
     public function create_usdc_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

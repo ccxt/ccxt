@@ -316,7 +316,7 @@ class bybit extends bybit$1 {
         const topic = this.safeString(message, 'topic', '');
         const updateType = this.safeString(message, 'type', '');
         const data = this.safeValue(message, 'data', {});
-        const isSpot = this.safeString(data, 'openInterestValue') === undefined;
+        const isSpot = this.safeString(data, 'fundingRate') === undefined;
         const type = isSpot ? 'spot' : 'contract';
         let symbol = undefined;
         let parsed = undefined;

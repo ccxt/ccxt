@@ -79,8 +79,6 @@ interface Exchange {
     privateSubAccountsPostSubAccountsUserIdUnlock(params?: {}): Promise<implicitReturnType>;
     privateSubAccountsPutSubAccountsUserIdKeysKey(params?: {}): Promise<implicitReturnType>;
     privateSubAccountsDeleteSubAccountsUserIdKeysKey(params?: {}): Promise<implicitReturnType>;
-    privatePortfolioGetSpotCurrencyPairs(params?: {}): Promise<implicitReturnType>;
-    privatePortfolioGetSpotCurrencyPairsCurrencyPair(params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetAccounts(params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetAccountMode(params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetBorrowable(params?: {}): Promise<implicitReturnType>;
@@ -88,13 +86,8 @@ interface Exchange {
     privatePortfolioGetLoans(params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetLoanRecords(params?: {}): Promise<implicitReturnType>;
     privatePortfolioGetInterestRecords(params?: {}): Promise<implicitReturnType>;
-    privatePortfolioGetSpotOrders(params?: {}): Promise<implicitReturnType>;
-    privatePortfolioGetSpotOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privatePortfolioPostAccountMode(params?: {}): Promise<implicitReturnType>;
     privatePortfolioPostLoans(params?: {}): Promise<implicitReturnType>;
-    privatePortfolioPostSpotOrders(params?: {}): Promise<implicitReturnType>;
-    privatePortfolioDeleteSpotOrdersOrderId(params?: {}): Promise<implicitReturnType>;
-    privatePortfolioPatchSpotOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     privateSpotGetFee(params?: {}): Promise<implicitReturnType>;
     privateSpotGetBatchFee(params?: {}): Promise<implicitReturnType>;
     privateSpotGetAccounts(params?: {}): Promise<implicitReturnType>;
@@ -110,6 +103,7 @@ interface Exchange {
     privateSpotPostOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotPostCancelBatchOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotPostCountdownCancelAll(params?: {}): Promise<implicitReturnType>;
+    privateSpotPostAmendBatchOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotPostPriceOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteOrders(params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteOrdersOrderId(params?: {}): Promise<implicitReturnType>;
@@ -227,6 +221,7 @@ interface Exchange {
     privateEarnGetUniInterestsCurrency(params?: {}): Promise<implicitReturnType>;
     privateEarnGetUniInterestRecords(params?: {}): Promise<implicitReturnType>;
     privateEarnPostUniLends(params?: {}): Promise<implicitReturnType>;
+    privateEarnPutUniInterestReinvest(params?: {}): Promise<implicitReturnType>;
     privateEarnPatchUniLends(params?: {}): Promise<implicitReturnType>;
     privateLoanGetCollateralOrders(params?: {}): Promise<implicitReturnType>;
     privateLoanGetCollateralOrdersOrderId(params?: {}): Promise<implicitReturnType>;

@@ -1034,7 +1034,7 @@ class ace extends Exchange {
                 'timeStamp' => $nonce,
             ), $params);
             $dataKeys = is_array($data) ? array_keys($data) : array();
-            $sortedDataKeys = $this->sort_by($dataKeys, 0);
+            $sortedDataKeys = $this->sort_by($dataKeys, 0, false, '');
             for ($i = 0; $i < count($sortedDataKeys); $i++) {
                 $key = $sortedDataKeys[$i];
                 $auth .= $this->safe_string($data, $key);
