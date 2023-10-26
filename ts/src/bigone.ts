@@ -1228,6 +1228,9 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['contract']) {
+            throw new BadRequest (this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
+        }
         if (limit === undefined) {
             limit = 100; // default 100, max 500
         }
