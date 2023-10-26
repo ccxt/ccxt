@@ -123,7 +123,10 @@ class woo extends woo$1 {
                 'fees': [
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
-                'referral': 'https://referral.woo.org/BAJS6oNmZb3vi3RGA',
+                'referral': {
+                    'url': 'https://x.woo.org/register?ref=YWOWC96B',
+                    'discount': 0.35,
+                },
             },
             'api': {
                 'v1': {
