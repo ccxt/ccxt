@@ -126,7 +126,7 @@ export default class woo extends Exchange {
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
                 'referral': {
-                    'url': 'https://referral.woo.org/BAJS6oNmZb3vi3RGA',
+                    'url': 'x.woo.org/register?ref=YWOWC96B',
                     'discount': 0.35,
                 },
             },
