@@ -92,13 +92,13 @@ export default class coinlist extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
                 'fetchWithdrawalWhitelist': false,
@@ -109,7 +109,7 @@ export default class coinlist extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': false,
                 'ws': false,
             },
@@ -156,7 +156,7 @@ export default class coinlist extends Exchange {
                         'v1/fills': { 'bulk': false },
                         'v1/orders': { 'bulk': false },
                         'v1/orders/{order_id}': { 'bulk': false },
-                        'v1/transfers': { 'bulk': false }, // todo
+                        'v1/transfers': { 'bulk': false },
                         // Not unified ----------------------------------
                         'v1/accounts/{trader_id}': { 'bulk': false },
                         'v1/accounts/{trader_id}/ledger': { 'bulk': false },
@@ -171,11 +171,11 @@ export default class coinlist extends Exchange {
                     },
                     'post': {
                         'v1/orders': { 'bulk': false },
+                        'v1/transfers/internal-transfer': { 'bulk': false },
+                        // Not unified ----------------------------------
                         'v1/transfers/to-wallet': { 'bulk': false }, // todo
                         'v1/transfers/from-wallet': { 'bulk': false }, // todo
-                        'v1/transfers/internal-transfer': { 'bulk': false }, // todo
                         'v1/transfers/withdrawal-request': { 'bulk': false }, // todo
-                        // Not unified ----------------------------------
                         'v1/keys': { 'bulk': false },
                         'v1/orders/cancel-all-after': { 'bulk': false },
                         'v1/orders/bulk': { 'bulk': true },
@@ -1211,6 +1211,13 @@ export default class coinlist extends Exchange {
             'order_id': id,
         };
         const response = await this.privateDeleteV1OrdersOrderId (this.extend (request, params));
+        //
+        //     {
+        //         message: 'Cancel order request received.',
+        //         order_id: 'd36e7588-6525-485c-b768-8ad8b3f745f9',
+        //         timestamp: '2023-10-26T14:36:37.559Z'
+        //     }
+        //
         // return this.parseOrder (response);
         return response; // todo: check it
     }
@@ -1226,7 +1233,7 @@ export default class coinlist extends Exchange {
          * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        params = ids; // todo: find the way to make bulk methods
+        params = ids; // todo: find the way to make bulk methods and implement this one
         const response = await this.privateDeleteV1OrdersBulk (params);
         return response;
     }
@@ -1378,11 +1385,28 @@ export default class coinlist extends Exchange {
         //         "trader_id": "9c6f737e-a829-4843-87b1-b1ce86f2853b"
         //     },
         //
+        // cancelOrder
+        //     {
+        //         message: 'Cancel order request received.',
+        //         order_id: 'd36e7588-6525-485c-b768-8ad8b3f745f9',
+        //         timestamp: '2023-10-26T14:36:37.559Z'
+        //     }
+        //
+        // cancelOrders
+        //     {
+        //         message: 'Order cancellation request received.',
+        //         timestamp: '2023-10-26T10:29:28.652Z'
+        //     }
+        //
         const id = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const clientOrderId = this.safeString (order, 'client_id', undefined);
-        const timestamp = this.parse8601 (this.safeString2 (order, 'created_at', 'epoch_timestamp', undefined));
+        let timestampString = this.safeString2 (order, 'created_at', 'epoch_timestamp', undefined);
+        if (timestampString === undefined) {
+            timestampString = this.safeString (order, 'timestamp', undefined);
+        }
+        const timestamp = this.parse8601 (timestampString);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const side = this.safeString (order, 'side');
@@ -1441,6 +1465,126 @@ export default class coinlist extends Exchange {
             'stop_limit': 'limit',
             'take_market': 'market',
             'take_limit': 'limit',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name coinlist#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        amount = this.currencyToPrecision (code, amount);
+        const request = {
+            'from_trader_id': fromAccount,
+            'to_trader_id': toAccount,
+            'asset': currency['id'],
+            'amount': amount,
+        };
+        const response = await this.privatePostV1TransfersInternalTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "message": "string",
+        //         "message_code": "string",
+        //         "message_details": {}
+        //     }
+        //
+        // todo: find out how to create additional account and check this method
+        const transfer = this.parseTransfer (response, currency);
+        return transfer;
+    }
+
+    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchTransfers
+         * @description fetch a history of internal transfers between CoinList.co and CoinList Pro. It does not return external deposits or withdrawals
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for
+         * @param {int} [limit] the maximum number of  transfers structures to retrieve (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         */
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request = {};
+        if (since !== undefined) {
+            request['start_time'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const response = await this.privateGetV1Transfers (this.extend (request, params));
+        //
+        //     {
+        //         "transfers": [
+        //             {
+        //                 "transfer_id": "2c02db25-e8f2-4271-8222-e110bfd0aa2a",
+        //                 "created_at": "2023-10-20T13:15:37.000Z",
+        //                 "confirmed_at": "2023-10-20T13:15:37.000Z",
+        //                 "asset": "ETH",
+        //                 "amount": "0.010000000000000000",
+        //                 "status": "confirmed"
+        //             },
+        //             {
+        //                 "transfer_id": "890694db-156c-4e93-a3ef-4db61685aca7",
+        //                 "created_at": "2023-10-26T14:32:22.000Z",
+        //                 "confirmed_at": "2023-10-26T14:32:22.000Z",
+        //                 "asset": "USD",
+        //                 "amount": "-3.00",
+        //                 "status": "confirmed"
+        //             }
+        //         ]
+        //     }
+        //
+        const transfers = this.safeValue (response, 'transfers', []);
+        return this.parseTransfers (transfers, currency, since, limit);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        // fetchTransfers
+        //     {
+        //         "transfer_id": "890694db-156c-4e93-a3ef-4db61685aca7",
+        //         "created_at": "2023-10-26T14:32:22.000Z",
+        //         "confirmed_at": "2023-10-26T14:32:22.000Z",
+        //         "asset": "USD",
+        //         "amount": "-3.00",
+        //         "status": "confirmed"
+        //     }
+        //
+        // todo for transfer ()
+        const currencyId = this.safeString (transfer, 'asset');
+        const confirmedAt = this.safeString (transfer, 'confirmed_at');
+        const timetstamp = this.parse8601 (confirmedAt);
+        const status = this.safeString (transfer, 'status');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'transfer_id'),
+            'timestamp': timetstamp,
+            'datetime': this.iso8601 (timetstamp),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransferStatus (status),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'confirmed': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
