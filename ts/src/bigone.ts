@@ -26,10 +26,10 @@ export default class bigone extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': false,
                 'swap': undefined, // has but unimplemented
                 'future': undefined, // has but unimplemented
-                'option': undefined,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketBuyOrderWithCost': true,
@@ -83,6 +83,8 @@ export default class bigone extends Exchange {
                 'api': {
                     'public': 'https://{hostname}/api/v3',
                     'private': 'https://{hostname}/api/v3/viewer',
+                    'contractPublic': 'https://{hostname}/api/contract/v2',
+                    'contractPrivate': 'https://{hostname}/api/contract/v2',
                     'webExchange': 'https://{hostname}/api/',
                 },
                 'www': 'https://big.one',
@@ -120,6 +122,38 @@ export default class bigone extends Exchange {
                         'orders/cancel',
                         'withdrawals',
                         'transfer',
+                    ],
+                },
+                'contractPublic': {
+                    'get': [
+                        'instruments',
+                        'depth@{symbol}/snapshot',
+                        'instruments/difference',
+                        'instruments/prices',
+                    ],
+                },
+                'contractPrivate': {
+                    'get': [
+                        'accounts',
+                        'orders/{id}',
+                        'orders',
+                        'orders/opening',
+                        'orders/count',
+                        'orders/opening/count',
+                        'trades',
+                        'trades/count',
+                    ],
+                    'post': [
+                        'orders',
+                        'orders/batch',
+                    ],
+                    'put': [
+                        'positions/{symbol}/margin',
+                        'positions/{symbol}/risk-limit',
+                    ],
+                    'delete': [
+                        'orders/{id}',
+                        'orders/batch',
                     ],
                 },
                 'webExchange': {
@@ -1528,7 +1562,7 @@ export default class bigone extends Exchange {
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         headers = {};
-        if (api === 'public' || api === 'webExchange') {
+        if (api === 'public' || api === 'webExchange' || api === 'contractPublic') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -1549,7 +1583,7 @@ export default class bigone extends Exchange {
                 }
             } else if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
-                body = this.json (query);
+                body = query;
             }
         }
         headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
@@ -1953,7 +1987,7 @@ export default class bigone extends Exchange {
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
-        if (code !== '0') {
+        if ((code !== '0') && (code !== undefined)) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
