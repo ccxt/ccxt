@@ -50,7 +50,7 @@ export default class coinlist extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchCanceledOrders': false,
+                'fetchCanceledOrders': false, // todo
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -726,14 +726,15 @@ export default class coinlist extends Exchange {
         //
         // fetchMyTrades
         //     {
-        //         "symbol": "string",
-        //         "auction_code": "string",
-        //         "order_id": "93101167-9065-4b9c-b98b-5d789a3ed9fe",
-        //         "quantity": "string",
-        //         "fee": "string",
-        //         "fee_type": "string",
-        //         "price": "string",
-        //         "logical_time": "2019-08-24T14:15:22Z"
+        //         symbol: 'ETH-USDT',
+        //         auction_code: 'ETH-USDT-2023-10-20T13:22:14.000Z',
+        //         order_id: '83ed365f-497d-433b-96c1-9d08c1a12842',
+        //         quantity: '0.0008',
+        //         price: '1615.24000000',
+        //         fee: '0.005815',
+        //         fee_type: 'taker',
+        //         fee_currency: 'USDT',
+        //         logical_time: '2023-10-20T13:22:14.000Z'
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
@@ -745,12 +746,22 @@ export default class coinlist extends Exchange {
         const amountString = this.safeString2 (trade, 'volume', 'quantity');
         const order = this.safeString (trade, 'order_id', undefined);
         let fee = undefined;
+        let side = undefined;
         const feeCost = this.safeString (trade, 'fee', undefined);
         if (feeCost !== undefined) {
+            // only in fetchMyTrades
+            const amountIsPositive = Precise.stringGt (amountString, '0');
+            if (amountIsPositive) {
+                side = 'buy';
+            } else {
+                side = 'sell';
+            }
             fee = {
                 'cost': feeCost,
+                'currency': this.safeString (trade, 'fee_currency', undefined),
             };
         }
+        const takerOrMaker = this.safeString (trade, 'fee_type', undefined);
         return this.safeTrade ({
             'id': id,
             'order': order,
@@ -758,8 +769,8 @@ export default class coinlist extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'side': undefined,
-            'takerOrMaker': undefined, // todo: check fee_type
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
@@ -780,50 +791,61 @@ export default class coinlist extends Exchange {
         const response = await this.privateGetV1Fees (params);
         //
         //     {
-        //         "fees_by_symbols": {
-        //             "BTC-USD,ETH-USD": {
-        //                 "base": {
-        //                     "fees": {
-        //                         "maker": 0.0035,
-        //                         "taker": 0.005
-        //                     },
-        //                     "floors": {
-        //                         "maker": 0.0035,
-        //                         "taker": 0.005
-        //                     }
-        //                     },
-        //                     "volume_tier_1": {
-        //                     "fees": {
-        //                         "maker": 0.0035,
-        //                         "taker": 0.005
-        //                     },
-        //                     "floors": {
-        //                         "maker": 0.0035,
-        //                         "taker": 0.005
-        //                     }
+        //         fees_by_symbols: {
+        //             'BTC-USD,BTC-USDT,ETH-USD,ETH-USDT,ETH-BTC,AAVE-USD,AAVE-USDT,ALGO-USD,ALGO-USDT,AVAX-USD,AVAX-USDT,BICO-USD,BICO-USDT,BLD-USD,BLD-USDT,BTRST-USDT,BZZ-USDT,CELO-USD,CELO-BTC,CFG-USD,CFG-USDT,CLV-USDT,COMP-USD,COMP-USDT,CYBER-USDT,CQT-USDT,CSPR-USD,CSPR-USDT,CUSD-USD,CUSD-USDC,DOGE-USD,DOGE-USDT,DOT-USD,DOT-USDT,EFI-USDT,FIL-USD,FIL-USDT,FLOW-USD,FLOW-USDT,GAL-USD,GAL-USDT,GODS-USDT,GOG-USDT,HMT-USD,HMT-USDT,ICP-USD,ICP-USDT,IMX-USD,IMX-USDT,LINK-USD,LINK-USDT,MATIC-USD,MATIC-USDT,MINA-USD,MINA-USDT,MKR-USD,MKR-USDT,NEON-USDT,NYM-USD,NYM-USDT,OCEAN-USD,OXT-USD,ROSE-USD,ROSE-USDT,SKL-USD,SKL-USDT,SOL-USD,SOL-USDT,STX-USDT,SUI-USDT,T-USDT,UNI-USD,UNI-USDT,USDT-USD,VEGA-USDT,WAXL-USD,WAXL-USDT,WBTC-BTC,WCFG-USD,WCFG-USDT,XTZ-USD': {
+        //                 base: {
+        //                     fees: { maker: '0', taker: '0.0045', liquidation: '0' },
+        //                     floors: { maker: null, taker: null }
+        //                 },
+        //                 volume_tier_1: {
+        //                     fees: { maker: '0', taker: '0.003', liquidation: '0' },
+        //                     floors: { maker: null, taker: null }
+        //                 },
+        //                 volume_tier_2: {
+        //                     fees: { maker: '0', taker: '0.0025', liquidation: '0' },
+        //                     floors: { maker: null, taker: null }
+        //                 },
+        //                 volume_tier_3: {
+        //                     fees: { maker: '0', taker: '0.002', liquidation: '0' },
+        //                     floors: { maker: null, taker: null }
+        //                 },
+        //                 volume_tier_4: {
+        //                     fees: { maker: '0', taker: '0.0018', liquidation: '0' },
+        //                     floors: { maker: null, taker: null }
+        //                 },
+        //                 volume_tier_5: {
+        //                     fees: { maker: '0', taker: '0.0018', liquidation: '0' },
+        //                     floors: { maker: null, taker: null }
+        //                 },
+        //                 volume_tier_6: {
+        //                     fees: { maker: '0', taker: '0.0016', liquidation: '0' },
+        //                     floors: { maker: null, taker: null }
+        //                 },
+        //                 volume_tier_7: {
+        //                     fees: { maker: '0', taker: '0.0013', liquidation: '0' },
+        //                     floors: { maker: null, taker: null }
+        //                 },
+        //                 volume_tier_8: {
+        //                     fees: { maker: '0', taker: '0.0012', liquidation: '0' },
+        //                     floors: { maker: null, taker: null }
+        //                 },
+        //                 volume_tier_9: {
+        //                     fees: { maker: '0', taker: '0.001', liquidation: '0' },
+        //                     floors: { maker: null, taker: null }
         //                 }
+        //                 volume_tier_10: {
+        //                     fees: { maker: '0', taker: '0.0005', liquidation: '0' },
+        //                     floors: { maker: null, taker: null }
+        //                 },
+        //                 volume_tier_11: {
+        //                     fees: { maker: '0', taker: '0.0005', liquidation: '0' },
+        //                     floors: { maker: null, taker: null }
+        //                 },
         //             }
         //         }
         //     }
         //
-        // todo: implement this mithod
-        // const data = this.safeValue (response, 'data', {});
-        // const pairs = this.safeValue (data, 'pairs', []);
-        // const result = {};
-        // for (let i = 0; i < pairs.length; i++) {
-        //     const pair = pairs[i];
-        //     const marketId = this.safeString (pair, 'name');
-        //     const market = this.safeMarket (marketId);
-        //     const symbol = market['symbol'];
-        //     result[symbol] = {
-        //         'info': pair,
-        //         'symbol': symbol,
-        //         'maker': this.safeNumber (pair, 'maker_fee_rate_quote'),
-        //         'taker': this.safeNumber (pair, 'taker_fee_rate_quote'),
-        //         'percentage': true,
-        //         'tierBased': false,
-        //     };
-        // }
+        // todo: parse the response
         return response;
     }
 
@@ -907,7 +929,7 @@ export default class coinlist extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['total'] = this.safeString (totalBalances, currencyId);
-            account['used'] = this.safeString (usedBalances, currencyId, undefined);
+            account['used'] = this.safeString (usedBalances, currencyId, '0');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -940,17 +962,29 @@ export default class coinlist extends Exchange {
         const response = await this.privateGetV1Fills (this.extend (request, params));
         //
         //     {
-        //         "fills": [
+        //         fills: [
         //             {
-        //                 "symbol": "string",
-        //                 "auction_code": "string",
-        //                 "order_id": "93101167-9065-4b9c-b98b-5d789a3ed9fe",
-        //                 "quantity": "string",
-        //                 "fee": "string",
-        //                 "fee_type": "string",
-        //                 "price": "string",
-        //                 "logical_time": "2019-08-24T14:15:22Z"
-        //             }
+        //                 symbol: 'ETH-USDT',
+        //                 auction_code: 'ETH-USDT-2023-10-20T13:16:30.000Z',
+        //                 order_id: '39911d5f-c789-4a7d-ad34-820a804d1da6',
+        //                 quantity: '-0.0009',
+        //                 price: '1608.83000000',
+        //                 fee: '0.006516',
+        //                 fee_type: 'taker',
+        //                 fee_currency: 'USDT',
+        //                 logical_time: '2023-10-20T13:16:30.000Z'
+        //             },
+        //             {
+        //                 symbol: 'ETH-USDT',
+        //                 auction_code: 'ETH-USDT-2023-10-20T13:22:14.000Z',
+        //                 order_id: '83ed365f-497d-433b-96c1-9d08c1a12842',
+        //                 quantity: '0.0008',
+        //                 price: '1615.24000000',
+        //                 fee: '0.005815',
+        //                 fee_type: 'taker',
+        //                 fee_currency: 'USDT',
+        //                 logical_time: '2023-10-20T13:22:14.000Z'
+        //             },
         //         ]
         //     }
         //
@@ -1003,32 +1037,35 @@ export default class coinlist extends Exchange {
         const response = await this.privateGetV1Orders (this.extend (request, params));
         //
         //     {
-        //         "orders": [
+        //         "orders":[
         //             {
-        //                 "order_id": "93101167-9065-4b9c-b98b-5d789a3ed9fe",
-        //                 "client_id": "string",
-        //                 "symbol": "string",
-        //                 "type": "market",
-        //                 "side": "buy",
-        //                 "size": "string",
-        //                 "price": "string",
-        //                 "stop_price": "string",
-        //                 "stop_trigger": "last",
-        //                 "self_trade_prevention": "keep-newest",
-        //                 "average_fill_price": "string",
-        //                 "fill_fees": "string",
-        //                 "size_filled": "string",
-        //                 "created_at": "2019-08-24T14:15:22Z",
-        //                 "epoch_timestamp": "2019-08-24T14:15:22Z",
-        //                 "post_only": true,
-        //                 "peg_price_type": "trailing-stop",
-        //                 "peg_offset_value": "string",
-        //                 "origin": "web",
-        //                 "status": "pending"
+        //                 "order_id":"913ea6e7-9fc9-43fb-9db1-f195d3baa93f",
+        //                 "price":"35800.00000000",
+        //                 "stop_price":null,
+        //                 "cost":"0.00000000",
+        //                 "fill_fees":"0.00000000",
+        //                 "trader_id":"9c6f737e-a829-4843-87b1-b1ce86f2853b",
+        //                 "status":"accepted",
+        //                 "epoch_timestamp":"2023-10-26T08:20:56.307Z",
+        //                 "origin":"web",
+        //                 "self_trade_prevention":null,
+        //                 "client_id":null,
+        //                 "created_at":"2023-10-26T08:20:56.307Z",
+        //                 "symbol":"BTC-USDT",
+        //                 "size":"0.0003",
+        //                 "side":"sell",
+        //                 "type":"limit",
+        //                 "post_only":false,
+        //                 "size_filled":"0.0000"
         //             }
         //         ]
         //     }
         //
+        // todo: check params:
+        // "stop_trigger": "last",
+        // "average_fill_price": "string",
+        // "peg_price_type": "trailing-stop",
+        // "peg_offset_value": "string",
         const orders = this.safeValue (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -1128,8 +1165,13 @@ export default class coinlist extends Exchange {
             request['symbol'] = market['id'];
         }
         const response = await this.privateDeleteV1Orders (this.extend (request, params));
-        // return this.parseOrders (response, market);
-        return response; // todo: check it
+        //
+        //     {
+        //         message: 'Order cancellation request received.',
+        //         timestamp: '2023-10-26T10:29:28.652Z'
+        //     }
+        //
+        return response; // todo: what should it return?
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
@@ -1263,43 +1305,61 @@ export default class coinlist extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // fetchOrder, fetchOrders, createOrder
+        // fetchOrder
         //     {
-        //         "order_id": "93101167-9065-4b9c-b98b-5d789a3ed9fe",
-        //         "client_id": "string",
-        //         "symbol": "string",
-        //         "type": "market",
-        //         "side": "buy",
-        //         "size": "string",
-        //         "price": "string",
-        //         "stop_price": "string",
-        //         "stop_trigger": "last",
-        //         "self_trade_prevention": "keep-newest",
-        //         "average_fill_price": "string",
-        //         "fill_fees": "string",
-        //         "size_filled": "string",
-        //         "created_at": "2019-08-24T14:15:22Z",
-        //         "epoch_timestamp": "2019-08-24T14:15:22Z",
-        //         "post_only": true,
-        //         "peg_price_type": "trailing-stop",
-        //         "peg_offset_value": "string",
+        //         "order_id": "913ea6e7-9fc9-43fb-9db1-f195d3baa93f",
+        //         "price": "35800.00000000",
+        //         "stop_price":null,
+        //         "cost": "0.00000000",
+        //         "fill_fees": "0.00000000",
+        //         "trader_id": "9c6f737e-a829-4843-87b1-b1ce86f2853b",
+        //         "status": "canceled",
+        //         "epoch_timestamp": "2023-10-26T08:20:56.307Z",
         //         "origin": "web",
-        //         "status": "pending"
+        //         "self_trade_prevention":null,
+        //         "client_id":null,
+        //         "symbol": "BTC-USDT",
+        //         "size": "0.0003",
+        //         "side": "sell",
+        //         "type": "limit",
+        //         "post_only":false,
+        //         "size_filled": "0.0000"
         //     }
         //
-        const id = this.safeString (order, 'orderId');
+        // fetchOrders
+        //     {
+        //         "order_id":"913ea6e7-9fc9-43fb-9db1-f195d3baa93f",
+        //         "price":"35800.00000000",
+        //         "stop_price":null,
+        //         "cost":"0.00000000",
+        //         "fill_fees":"0.00000000",
+        //         "trader_id":"9c6f737e-a829-4843-87b1-b1ce86f2853b",
+        //         "status":"accepted",
+        //         "epoch_timestamp":"2023-10-26T08:20:56.307Z",
+        //         "origin":"web",
+        //         "self_trade_prevention":null,
+        //         "client_id":null,
+        //         "created_at":"2023-10-26T08:20:56.307Z",
+        //         "symbol":"BTC-USDT",
+        //         "size":"0.0003",
+        //         "side":"sell",
+        //         "type":"limit",
+        //         "post_only":false,
+        //         "size_filled":"0.0000"
+        //     }
+        //
+        // createOrder
+        //
+        const id = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const clientOrderId = this.safeString (order, 'clientOrderId');
-        const timestamp = this.parse8601 (this.safeString (order, 'created_at', undefined));
+        const clientOrderId = this.safeString (order, 'client_id', undefined);
+        const timestamp = this.parse8601 (this.safeString2 (order, 'created_at', 'epoch_timestamp', undefined));
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const side = this.safeString (order, 'side');
         const price = this.safeString (order, 'price'); // todo: check for market orders
-        let stopPrice = this.safeString (order, 'stop_price');
-        if (Precise.stringEq (stopPrice, '0')) { // todo: check for simple orders
-            stopPrice = undefined;
-        }
+        const stopPrice = this.safeString (order, 'stop_price', undefined);
         const average = this.safeString (order, 'average_fill_price');
         const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'size_filled');
@@ -1362,19 +1422,25 @@ export default class coinlist extends Exchange {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode (request);
-        if (query.length !== 0) {
-            url += '?' + query;
-        }
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.seconds ().toString ();
-            const auth = timestamp + method + endpoint;
+            let auth = timestamp + method + endpoint;
+            if (method === 'POST' || method === 'PATCH') {
+                body = this.json (request);
+                auth += body;
+            } else if (query.length !== 0) {
+                auth += '?' + query;
+            }
             const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
             headers = {
                 'CL-ACCESS-KEY': this.apiKey,
                 'CL-ACCESS-SIG': signature,
                 'CL-ACCESS-TIMESTAMP': timestamp,
+                'Content-Type': 'application/json',
             };
+        } else if (query.length !== 0) {
+            url += '?' + query;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
