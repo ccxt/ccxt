@@ -1405,22 +1405,7 @@ export default class binance extends Exchange {
                         '-1011': ExchangeError, // undocumented
                         '-1013': ExchangeError, // undocumented
                         '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
-                    },
-                },
-                'linear': {
-                    // https://binance-docs.github.io/apidocs/futures/en/#error-codes
-                    'exact': {
-                        '-1008': ExchangeNotAvailable, // -1008 SERVER_BUSY: Server is currently overloaded with other requests. Please try again in a few minutes.
-                        '-1023': BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
-                        '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
-                    },
-                },
-                'inverse': {
-                    // https://binance-docs.github.io/apidocs/delivery/en/#error-codes
-                    'exact': {
-                        '-1008': ExchangeError, // undocumented
-                        '-1023': BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
-                        // '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
+                        '-1113': ExchangeError, // undocumented
                     },
                 },
                 'option': {
@@ -1434,6 +1419,34 @@ export default class binance extends Exchange {
                         '-1010': ExchangeError, // undocumented
                         '-1011': ExchangeError, // undocumented
                         '-1013': ExchangeError, // undocumented
+                        '-1112': ExchangeError, // undocumented
+                        '-1113': ExchangeError, // undocumented
+                        '-1114': ExchangeError, // undocumented
+                        '-1128': BadSymbol, // BAD_CONTRACT
+                    },
+                },
+                'linear': {
+                    // https://binance-docs.github.io/apidocs/futures/en/#error-codes
+                    'exact': {
+                        '-1008': ExchangeNotAvailable, // -1008 SERVER_BUSY: Server is currently overloaded with other requests. Please try again in a few minutes.
+                        '-1023': BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
+                        '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
+                        '-1108': BadRequest, // {"code":-1108,"msg":"Invalid asset."}
+                        '-1109': AuthenticationError, // {"code":-1109,"msg":"Invalid account."}
+                        '-1110': BadRequest, // {"code":-1110,"msg":"Invalid symbolType."}
+                        '-1122': BadRequest, // INVALID_SYMBOL_STATUS
+                        '-1126': BadSymbol, // ASSET_NOT_SUPPORTED
+                    },
+                },
+                'inverse': {
+                    // https://binance-docs.github.io/apidocs/delivery/en/#error-codes
+                    'exact': {
+                        '-1008': ExchangeError, // undocumented
+                        '-1023': BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
+                        // '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
+                        '-1108': BadRequest, // {"code":-1108,"msg":"Invalid asset."}
+                        '-1109': AuthenticationError, // {"code":-1109,"msg":"Invalid account."}
+                        '-1110': BadRequest, // {"code":-1110,"msg":"Invalid symbolType."}
                     },
                 },
                 'exact': {
@@ -1482,9 +1495,6 @@ export default class binance extends Exchange {
                     '-1104': BadRequest, // {"code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9"}
                     '-1105': BadRequest, // {"code":-1105,"msg":"Parameter %s was empty."}
                     '-1106': BadRequest, // {"code":-1106,"msg":"Parameter %s sent when not required."}
-                    '-1108': BadRequest, // {"code":-1108,"msg":"Invalid asset."}
-                    '-1109': AuthenticationError, // {"code":-1109,"msg":"Invalid account."}
-                    '-1110': BadRequest, // {"code":-1110,"msg":"Invalid symbolType."}
                     '-1111': BadRequest, // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
                     '-1112': InvalidOrder, // {"code":-1112,"msg":"No orders on book for symbol."}
                     '-1113': BadRequest, // {"code":-1113,"msg":"Withdrawal amount must be negative."}
@@ -1498,7 +1508,7 @@ export default class binance extends Exchange {
                     '-1121': BadSymbol, // {"code":-1121,"msg":"Invalid symbol."}
                     '-1125': AuthenticationError, // {"code":-1125,"msg":"This listenKey does not exist."}
                     '-1127': BadRequest, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
-                    '-1128': BadRequest, // {"code":-1128,"msg":"{"code":-1128,"msg":"Combination of optional parameters invalid."}"}
+                    '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                     '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
                     '-1131': BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
                     '-1135': BadRequest, // This error code will occur if a parameter requiring a JSON object is invalid.
