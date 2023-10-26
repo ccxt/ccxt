@@ -1406,6 +1406,10 @@ export default class binance extends Exchange {
                         '-1013': ExchangeError, // undocumented
                         '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
                         '-1113': ExchangeError, // undocumented
+                        '-1131': BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
+                        '-1134': BadRequest, // BAD_STRATEGY_TYPE
+                        '-1145': BadRequest, // INVALID_CANCEL_RESTRICTIONS
+                        '-1151': BadRequest, // DUPLICATE_SYMBOLS
                     },
                 },
                 'option': {
@@ -1423,6 +1427,8 @@ export default class binance extends Exchange {
                         '-1113': ExchangeError, // undocumented
                         '-1114': ExchangeError, // undocumented
                         '-1128': BadSymbol, // BAD_CONTRACT
+                        '-1129': BadSymbol, // BAD_CURRENCY
+                        '-1131': BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
                     },
                 },
                 'linear': {
@@ -1436,6 +1442,7 @@ export default class binance extends Exchange {
                         '-1110': BadRequest, // {"code":-1110,"msg":"Invalid symbolType."}
                         '-1122': BadRequest, // INVALID_SYMBOL_STATUS
                         '-1126': BadSymbol, // ASSET_NOT_SUPPORTED
+                        '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
                     },
                 },
                 'inverse': {
@@ -1447,6 +1454,7 @@ export default class binance extends Exchange {
                         '-1108': BadRequest, // {"code":-1108,"msg":"Invalid asset."}
                         '-1109': AuthenticationError, // {"code":-1109,"msg":"Invalid account."}
                         '-1110': BadRequest, // {"code":-1110,"msg":"Invalid symbolType."}
+                        '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
                     },
                 },
                 'exact': {
@@ -1510,9 +1518,7 @@ export default class binance extends Exchange {
                     '-1127': BadRequest, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
                     '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                     '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
-                    '-1131': BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
-                    '-1135': BadRequest, // This error code will occur if a parameter requiring a JSON object is invalid.
-                    '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
+                    '-1135': BadRequest, // undocumented - This error code will occur if a parameter requiring a JSON object is invalid.
                     '-2008': AuthenticationError, // {"code":-2008,"msg":"Invalid Api-Key ID."}
                     '-2010': ExchangeError, // {"code":-2010,"msg":"generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc..."}
                     '-2011': OrderNotFound, // {"code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'"}
