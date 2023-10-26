@@ -1389,7 +1389,7 @@ class Exchange(object):
 
     @staticmethod
     def decode(string):
-        return string.decode('latin-1')
+        return string.encode().decode('latin-1')
 
     @staticmethod
     def to_array(value):
