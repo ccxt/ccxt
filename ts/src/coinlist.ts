@@ -206,6 +206,7 @@ export default class coinlist extends Exchange {
                 // todo
             },
             'exceptions': {
+                // https://trade-docs.coinlist.co/?javascript--nodejs#message-codes
                 'exact': {
                     '400': AuthenticationError, // {"status":400,"message":"invalid signature","message_code":"AUTH_SIG_INVALID"}
                     '401': AuthenticationError, // Unauthorized
@@ -743,7 +744,13 @@ export default class coinlist extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString2 (trade, 'volume', 'quantity');
         const order = this.safeString (trade, 'order_id', undefined);
-        const fee = this.safeString (trade, 'fee', undefined);
+        let fee = undefined;
+        const feeCost = this.safeString (trade, 'fee', undefined);
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+            };
+        }
         return this.safeTrade ({
             'id': id,
             'order': order,
@@ -1351,23 +1358,21 @@ export default class coinlist extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
-        let query = this.omit (params, this.extractParams (path));
-        const endpoint = this.implodeParams (path, params);
-        url = url + '/' + endpoint;
-        query = this.urlencode (query);
+        const request = this.omit (params, this.extractParams (path));
+        const endpoint = '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + endpoint;
+        const query = this.urlencode (request);
         if (query.length !== 0) {
             url += '?' + query;
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const timestamp = this.seconds ();
-            const signature = this.numberToString (timestamp) + method + endpoint;
-            let encodedSignature = this.hmac (this.encode (signature), this.encode (this.base64ToString (this.secret)), sha256);
-            encodedSignature = this.stringToBase64 (encodedSignature);
+            const timestamp = this.seconds ().toString ();
+            const auth = timestamp + method + endpoint;
+            const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
             headers = {
                 'CL-ACCESS-KEY': this.apiKey,
-                'CL-ACCESS-SIG': encodedSignature,
+                'CL-ACCESS-SIG': signature,
                 'CL-ACCESS-TIMESTAMP': timestamp,
             };
         }
