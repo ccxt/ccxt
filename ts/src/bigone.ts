@@ -1150,7 +1150,6 @@ export default class bigone extends Exchange {
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
-         * TODO: throw error if contract
          * @method
          * @name bigone#fetchTrades
          * @description get the list of most recent trades for a particular symbol
@@ -1162,6 +1161,9 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['contract']) {
+            throw new BadRequest (this.id + ' fetchTrades () can only fetch trades for spot markets');
+        }
         const request = {
             'asset_pair_name': market['id'],
         };
