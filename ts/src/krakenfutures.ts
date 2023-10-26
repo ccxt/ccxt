@@ -409,6 +409,7 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#fetchOrderBook
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-orderbook
          * @description Fetches a list of open orders in a market
          * @param {string} symbol Unified market symbol
          * @param {int} [limit] Not used by krakenfutures
@@ -456,6 +457,15 @@ export default class krakenfutures extends Exchange {
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+         * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetTickers (params);
         //
@@ -656,6 +666,7 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#fetchTrades
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
          * @descriptions Fetch a history of filled trades that this account has made
          * @param {string} symbol Unified CCXT market symbol
          * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -975,6 +986,7 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#editOrder
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-edit-order
          * @description Edit an open order on the exchange
          * @param {string} id order id
          * @param {string} symbol Not used by Krakenfutures
@@ -1005,6 +1017,10 @@ export default class krakenfutures extends Exchange {
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
         /**
+         * @method
+         * @name krakenfutures#cancelOrder
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-order
+         * @description Cancel an open order on the exchange
          * @param {string} id Order id
          * @param {string} symbol Not used by Krakenfutures
          * @param {object} [params] Exchange specific params
@@ -1089,6 +1105,7 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#cancelAllOrders
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-all-orders
          * @description Cancels all orders on the exchange, including trigger orders
          * @param {str} symbol Unified market symbol
          * @param {dict} [params] Exchange specific params
@@ -1106,6 +1123,7 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#fetchOpenOrders
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-orders
          * @description Gets all open orders, including trigger orders, for an account from the exchange api
          * @param {string} symbol Unified market symbol
          * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
@@ -1514,6 +1532,18 @@ export default class krakenfutures extends Exchange {
     }
 
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-data-get-your-fills
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] *not used by the  api* the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -1547,9 +1577,10 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#fetchBalance
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-wallets
          * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
          * @param {object} [params] Exchange specific parameters
-         * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'cash' *
+         * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
          * @param {string} [params.symbol] A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
          * @returns A [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
@@ -1653,7 +1684,7 @@ export default class krakenfutures extends Exchange {
             type = symbol;
         }
         if (type === undefined) {
-            type = (symbol === undefined) ? 'cash' : symbol;
+            type = (symbol === undefined) ? 'flex' : symbol;
         }
         const accountName = this.parseAccount (type);
         const accounts = this.safeValue (response, 'accounts');
@@ -1853,6 +1884,17 @@ export default class krakenfutures extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-funding-rates-historical-funding-rates
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
+         * @param {object} [params] extra parameters specific to the api endpoint
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
+         */
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1896,6 +1938,7 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#fetchPositions
+         * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
          * @description Fetches current contract trading positions
          * @param {string[]} symbols List of unified symbols
          * @param {object} [params] Not used by krakenfutures
@@ -1977,7 +2020,7 @@ export default class krakenfutures extends Exchange {
             'entryPrice': this.safeNumber (position, 'price'),
             'notional': undefined,
             'leverage': leverage,
-            'unrealizedPnl': this.safeNumber (position, 'unrealizedFunding'),
+            'unrealizedPnl': undefined,
             'contracts': this.safeNumber (position, 'size'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
@@ -1991,6 +2034,15 @@ export default class krakenfutures extends Exchange {
     }
 
     async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#fetchLeverageTiers
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
+         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}, indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.publicGetInstruments (params);
         //
@@ -2172,6 +2224,8 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#transfer
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-wallet-transfer
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-withdrawal-to-spot-wallet
          * @description transfers currencies between sub-accounts
          * @param {string} code Unified currency code
          * @param {float} amount Size of the transfer
