@@ -114,13 +114,6 @@ export default class kucoin extends Exchange {
                     'futuresPublic': 'https://api-futures.kucoin.com',
                     'webExchange': 'https://kucoin.com/_api',
                 },
-                'test': {
-                    'public': 'https://openapi-sandbox.kucoin.com',
-                    'private': 'https://openapi-sandbox.kucoin.com',
-                    'futuresPrivate': 'https://api-sandbox-futures.kucoin.com',
-                    'futuresPublic': 'https://api-sandbox-futures.kucoin.com',
-                    'webExchange': 'https://kucoin.com/_api',
-                },
                 'www': 'https://www.kucoin.com',
                 'doc': [
                     'https://docs.kucoin.com',
@@ -4303,10 +4296,6 @@ export default class kucoin extends Exchange {
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};
         let url = this.urls['api'][api];
-        const isSandbox = url.indexOf ('sandbox') >= 0;
-        if (path === 'symbols' && !isSandbox) {
-            endpoint = '/api/v2/' + this.implodeParams (path, params);
-        }
         if (Object.keys (query).length) {
             if ((method === 'GET') || (method === 'DELETE')) {
                 endpoint += '?' + this.rawencode (query);
