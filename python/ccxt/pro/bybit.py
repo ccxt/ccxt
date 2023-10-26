@@ -311,7 +311,7 @@ class bybit(ccxt.async_support.bybit):
         topic = self.safe_string(message, 'topic', '')
         updateType = self.safe_string(message, 'type', '')
         data = self.safe_value(message, 'data', {})
-        isSpot = self.safe_string(data, 'openInterestValue') is None
+        isSpot = self.safe_string(data, 'fundingRate') is None
         type = 'spot' if isSpot else 'contract'
         symbol = None
         parsed = None

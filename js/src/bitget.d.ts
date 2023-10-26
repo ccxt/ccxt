@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest } from './base/types.js';
 /**
  * @class bitget
  * @extends Exchange
@@ -150,6 +150,8 @@ export default class bitget extends Exchange {
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): Order;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrderRequest(symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): any;
+    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any>;
@@ -312,6 +314,34 @@ export default class bitget extends Exchange {
         symbol: any;
         timestamp: any;
         datetime: any;
+        info: any;
+    };
+    fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
+    parseLiquidation(liquidation: any, market?: any): {
+        info: any;
+        symbol: any;
+        contracts: any;
+        contractSize: any;
+        price: any;
+        baseValue: any;
+        quoteValue: number;
+        timestamp: number;
+        datetime: string;
+    };
+    fetchBorrowRate(code: string, params?: {}): Promise<{
+        currency: any;
+        rate: any;
+        period: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    }>;
+    parseBorrowRate(info: any, currency?: any): {
+        currency: any;
+        rate: any;
+        period: number;
+        timestamp: number;
+        datetime: string;
         info: any;
     };
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;

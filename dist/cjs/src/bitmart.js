@@ -2096,7 +2096,7 @@ class bitmart extends bitmart$1 {
                 '7': 'canceling',
                 '8': 'canceled',
                 'new': 'open',
-                'partially_filled': 'filled',
+                'partially_filled': 'open',
                 'filled': 'filled',
                 'partially_canceled': 'canceled',
             },

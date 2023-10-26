@@ -28,7 +28,6 @@ export default class oceanex extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     parseOrder(order: any, market?: any): Order;
     parseOrderStatus(status: any): string;
-    createOrders(symbol: string, orders: any, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<Order[]>;

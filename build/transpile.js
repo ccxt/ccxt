@@ -915,6 +915,9 @@ class Transpiler {
         if (bodyAsString.match (/: OrderSide/)) {
             libraries.push ('from ccxt.base.types import OrderSide')
         }
+        if (bodyAsString.match (/: List\[OrderRequest\]/)) {
+            libraries.push ('from ccxt.base.types import OrderRequest')
+        }
         if (bodyAsString.match (/: OrderType/)) {
             libraries.push ('from ccxt.base.types import OrderType')
         }

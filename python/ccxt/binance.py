@@ -8,6 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import hashlib
 import json
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderRequest
 from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
@@ -62,6 +63,7 @@ class binance(Exchange, ImplicitAPI):
                 'cancelOrders': True,  # contract only
                 'createDepositAddress': False,
                 'createOrder': True,
+                'createOrders': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -181,7 +183,6 @@ class binance(Exchange, ImplicitAPI):
                     'v1': 'https://testnet.binance.vision/api/v1',
                 },
                 'api': {
-                    'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'sapiV2': 'https://api.binance.com/sapi/v2',
                     'sapiV3': 'https://api.binance.com/sapi/v3',
@@ -625,27 +626,6 @@ class binance(Exchange, ImplicitAPI):
                         'sub-account/assets': 0.40002,  # Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
                     },
                 },
-                # deprecated
-                'wapi': {
-                    'post': {
-                        'withdraw': 1,
-                        'sub-account/transfer': 1,
-                    },
-                    'get': {
-                        'depositHistory': 1,
-                        'withdrawHistory': 1,
-                        'depositAddress': 1,
-                        'accountStatus': 1,
-                        'systemStatus': 1,
-                        'apiTradingStatus': 1,
-                        'userAssetDribbletLog': 1,
-                        'tradeFee': 1,
-                        'assetDetail': 1,
-                        'sub-account/list': 1,
-                        'sub-account/transfer/history': 1,
-                        'sub-account/assets': 1,
-                    },
-                },
                 'dapiPublic': {
                     'get': {
                         'ping': 1,
@@ -759,6 +739,7 @@ class binance(Exchange, ImplicitAPI):
                 },
                 'fapiData': {
                     'get': {
+                        'delivery-price': 1,
                         'openInterestHist': 1,
                         'topLongShortAccountRatio': 1,
                         'topLongShortPositionRatio': 1,
@@ -4089,7 +4070,16 @@ class binance(Exchange, ImplicitAPI):
         #         "lastTrade": {"id":"69","time":"1676084430567","price":"24.9","qty":"1.00"},
         #         "mmp": False
         #     }
+        #     {
+        # cancelOrders/createOrders
+        #          "code": -4005,
+        #          "msg": "Quantity greater than max quantity."
+        #       },
         #
+        code = self.safe_string(order, 'code')
+        if code is not None:
+            # cancelOrders/createOrders might have a partial success
+            return self.safe_order({'info': order, 'status': 'rejected'}, market)
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         marketType = 'contract' if ('closePosition' in order) else 'spot'
@@ -4156,6 +4146,78 @@ class binance(Exchange, ImplicitAPI):
             },
             'trades': fills,
         }, market)
+
+    def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        *contract only* create a list of trade orders
+        :see: https://binance-docs.github.io/apidocs/futures/en/#place-multiple-orders-trade
+        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        self.load_markets()
+        ordersRequests = []
+        orderSymbols = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            orderSymbols.append(marketId)
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(orderSymbols[0])
+        if market['spot']:
+            raise NotSupported(self.id + ' createOrders() does not support ' + market['type'] + ' orders')
+        response = None
+        request = {
+            'batchOrders': ordersRequests,
+        }
+        request = self.extend(request, params)
+        if market['linear']:
+            response = self.fapiPrivatePostBatchOrders(request)
+        elif market['option']:
+            response = self.eapiPrivatePostBatchOrders(request)
+        else:
+            response = self.dapiPrivatePostBatchOrders(request)
+        #
+        #   [
+        #       {
+        #          "code": -4005,
+        #          "msg": "Quantity greater than max quantity."
+        #       },
+        #       {
+        #          "orderId": 650640530,
+        #          "symbol": "LTCUSDT",
+        #          "status": "NEW",
+        #          "clientOrderId": "x-xcKtGhcu32184eb13585491289bbaf",
+        #          "price": "54.00",
+        #          "avgPrice": "0.00",
+        #          "origQty": "0.100",
+        #          "executedQty": "0.000",
+        #          "cumQty": "0.000",
+        #          "cumQuote": "0.00000",
+        #          "timeInForce": "GTC",
+        #          "type": "LIMIT",
+        #          "reduceOnly": False,
+        #          "closePosition": False,
+        #          "side": "BUY",
+        #          "positionSide": "BOTH",
+        #          "stopPrice": "0.00",
+        #          "workingType": "CONTRACT_PRICE",
+        #          "priceProtect": False,
+        #          "origType": "LIMIT",
+        #          "priceMatch": "NONE",
+        #          "selfTradePreventionMode": "NONE",
+        #          "goodTillDate": 0,
+        #          "updateTime": 1698073926929
+        #       }
+        #   ]
+        #
+        return self.parse_orders(response)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
@@ -7782,8 +7844,6 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
         url = self.urls['api'][api]
         url += '/' + path
-        if api == 'wapi':
-            url += '.html'
         if path == 'historicalTrades':
             if self.apiKey:
                 headers = {
@@ -7803,7 +7863,7 @@ class binance(Exchange, ImplicitAPI):
                     body = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'papi'):
+        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'papi'):
             self.check_required_credentials()
             if method == 'POST' and ((path == 'order') or (path == 'sor/order')):
                 # inject in implicit API calls
@@ -7816,6 +7876,11 @@ class binance(Exchange, ImplicitAPI):
                     brokerId = self.safe_string(broker, marketType, defaultId)
                     params['newClientOrderId'] = brokerId + self.uuid22()
             query = None
+            # handle batchOrders
+            if (path == 'batchOrders') and (method == 'POST'):
+                batchOrders = self.safe_value(params, 'batchOrders')
+                queryBatch = (self.json(batchOrders))
+                params['batchOrders'] = queryBatch
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({
                 'timestamp': self.nonce(),
@@ -7845,14 +7910,17 @@ class binance(Exchange, ImplicitAPI):
                 query = self.urlencode(extendedParams)
             signature = None
             if self.secret.find('PRIVATE KEY') > -1:
-                signature = self.encode_uri_component(self.rsa(query, self.secret, 'sha256'))
+                if len(self.secret) > 120:
+                    signature = self.encode_uri_component(self.rsa(query, self.secret, 'sha256'))
+                else:
+                    signature = self.encode_uri_component(self.eddsa(self.encode(query), self.secret, 'ed25519'))
             else:
                 signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
             query += '&' + 'signature=' + signature
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
             }
-            if (method == 'GET') or (method == 'DELETE') or (api == 'wapi'):
+            if (method == 'GET') or (method == 'DELETE'):
                 url += '?' + query
             else:
                 body = query
@@ -7877,7 +7945,6 @@ class binance(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use self.price_to_precision(symbol, amount) ' + body)
         if response is None:
             return None  # fallback to default error handler
-        # check success value for wapi endpoints
         # response in format {'msg': 'The coin does not exist.', 'success': True/false}
         success = self.safe_value(response, 'success', True)
         if not success:
@@ -7921,10 +7988,10 @@ class binance(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         if isinstance(response, list):
             # cancelOrders returns an array like self: [{"code":-2011,"msg":"Unknown order sent."}]
-            numElements = len(response)
-            if numElements > 0:
-                firstElement = response[0]
-                errorCode = self.safe_string(firstElement, 'code')
+            arrayLength = len(response)
+            if arrayLength == 1:  # when there's a single error we can throw, otherwise we have a partial success
+                element = response[0]
+                errorCode = self.safe_string(element, 'code')
                 if errorCode is not None:
                     self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.id + ' ' + body)
         return None
@@ -7948,7 +8015,7 @@ class binance(Exchange, ImplicitAPI):
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         response = self.fetch2(path, api, method, params, headers, body, config)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if (api == 'private') or (api == 'wapi'):
+        if api == 'private':
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
 

@@ -850,19 +850,6 @@ class oceanex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_orders(string $symbol, $orders, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-            'orders' => $orders,
-        );
-        // $orders => [array("side":"buy", "volume":.2, "price":1001), array("side":"sell", "volume":0.2, "price":1002)]
-        $response = $this->privatePostOrdersMulti (array_merge($request, $params));
-        $data = $response['data'];
-        return $this->parse_orders($data);
-    }
-
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order

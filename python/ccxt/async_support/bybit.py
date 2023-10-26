@@ -8,6 +8,7 @@ from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderRequest
 from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
@@ -53,6 +54,7 @@ class bybit(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createOrders': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -1443,7 +1445,7 @@ class bybit(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(bybit, self).safe_market(marketId, market, delimiter, marketType)
 
-    def get_bybit_type(self, method, market, params):
+    def get_bybit_type(self, method, market, params={}):
         type = None
         type, params = self.handle_market_type_and_params(method, market, params)
         subType = None
@@ -3151,8 +3153,9 @@ class bybit(Exchange, ImplicitAPI):
             # because it requires transfer permission
             request['accountType'] = unifiedType
             response = await self.privateGetV5AssetTransferQueryAccountCoinsBalance(self.extend(request, params))
-        request['accountType'] = unifiedType
-        response = await self.privateGetV5AccountWalletBalance(self.extend(request, params))
+        else:
+            request['accountType'] = unifiedType
+            response = await self.privateGetV5AccountWalletBalance(self.extend(request, params))
         #
         # cross
         #     {
@@ -3377,7 +3380,29 @@ class bybit(Exchange, ImplicitAPI):
         #         "createdTime": "1684476068369",
         #         "updatedTime": "1684476068372"
         #     }
+        # createOrders failed order
+        #    {
+        #        category: 'linear',
+        #        symbol: 'LTCUSDT',
+        #        orderId: '',
+        #        orderLinkId: '',
+        #        createAt: '',
+        #        code: '10001',
+        #        msg: 'The number of contracts exceeds maximum limit allowed: too large'
+        #    }
         #
+        code = self.safe_string(order, 'code')
+        if code is not None:
+            if code != '0':
+                category = self.safe_string(order, 'category')
+                inferedMarketType = 'spot' if (category == 'spot') else 'contract'
+                return self.safe_order({
+                    'info': order,
+                    'status': 'rejected',
+                    'id': self.safe_string(order, 'orderId'),
+                    'clientOrderId': self.safe_string(order, 'orderLinkId'),
+                    'symbol': self.safe_symbol(self.safe_string(order, 'symbol'), None, None, inferedMarketType),
+                })
         marketId = self.safe_string(order, 'symbol')
         isContract = ('tpslMode' in order)
         marketType = None
@@ -3519,12 +3544,31 @@ class bybit(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         isUsdcSettled = market['settle'] == 'USDC'
         if isUsdcSettled and not isUnifiedAccount:
             return await self.create_usdc_order(symbol, type, side, amount, price, params)
+        orderRequest = self.create_order_request(symbol, type, side, amount, price, params)
+        response = await self.privatePostV5OrderCreate(orderRequest)  # already extended inside createOrderRequest
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "orderId": "1321003749386327552",
+        #             "orderLinkId": "spot-test-postonly"
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1672211918471
+        #     }
+        #
+        order = self.safe_value(response, 'result', {})
+        return self.parse_order(order, market)
+
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        market = self.market(symbol)
+        symbol = market['symbol']
         lowerCaseType = type.lower()
         if (price is None) and (lowerCaseType == 'limit'):
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
@@ -3639,21 +3683,88 @@ class bybit(Exchange, ImplicitAPI):
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
         params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit'])
-        response = await self.privatePostV5OrderCreate(self.extend(request, params))
+        return self.extend(request, params)
+
+    async def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :see: https://bybit-exchange.github.io/docs/v5/order/batch-place
+        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        await self.load_markets()
+        ordersRequests = []
+        orderSymbols = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            orderSymbols.append(marketId)
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        symbols = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(symbols[0])
+        category = None
+        category, params = self.get_bybit_type('createOrders', market, params)
+        if (category == 'spot') or (category == 'inverse'):
+            raise NotSupported(self.id + ' createOrders does not allow spot or inverse orders')
+        request = {
+            'category': category,
+            'request': ordersRequests,
+        }
+        response = await self.privatePostV5OrderCreateBatch(self.extend(request, params))
+        result = self.safe_value(response, 'result', {})
+        data = self.safe_value(result, 'list', [])
+        retInfo = self.safe_value(response, 'retExtInfo', {})
+        codes = self.safe_value(retInfo, 'list', [])
+        # self.extend the error with the unsuccessful orders
+        for i in range(0, len(codes)):
+            code = codes[i]
+            retCode = self.safe_integer(code, 'code')
+            if retCode != 0:
+                data[i] = self.extend(data[i], code)
         #
-        #     {
-        #         "retCode": 0,
-        #         "retMsg": "OK",
-        #         "result": {
-        #             "orderId": "1321003749386327552",
-        #             "orderLinkId": "spot-test-postonly"
-        #         },
-        #         "retExtInfo": {},
-        #         "time": 1672211918471
-        #     }
+        # {
+        #     "retCode":0,
+        #     "retMsg":"OK",
+        #     "result":{
+        #        "list":[
+        #           {
+        #              "category":"linear",
+        #              "symbol":"LTCUSDT",
+        #              "orderId":"",
+        #              "orderLinkId":"",
+        #              "createAt":""
+        #           },
+        #           {
+        #              "category":"linear",
+        #              "symbol":"LTCUSDT",
+        #              "orderId":"3c9f65b6-01ad-4ac0-9741-df17e02a4223",
+        #              "orderLinkId":"",
+        #              "createAt":"1698075516029"
+        #           }
+        #        ]
+        #     },
+        #     "retExtInfo":{
+        #        "list":[
+        #           {
+        #              "code":10001,
+        #              "msg":"The number of contracts exceeds maximum limit allowed: too large"
+        #           },
+        #           {
+        #              "code":0,
+        #              "msg":"OK"
+        #           }
+        #        ]
+        #     },
+        #     "time":1698075516029
+        # }
         #
-        order = self.safe_value(response, 'result', {})
-        return self.parse_order(order, market)
+        return self.parse_orders(data)
 
     async def create_usdc_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

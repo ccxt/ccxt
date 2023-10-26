@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderRequest
 from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
@@ -50,6 +51,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createOrders': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
@@ -1108,6 +1110,171 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
+    async def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
+        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        await self.load_markets()
+        ordersRequests = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderRequest = self.create_advanced_order_request(marketId, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        contigency = self.safe_string(params, 'contingency_type', 'LIST')
+        request = {
+            'contingency_type': contigency,  # or OCO
+            'order_list': ordersRequests,
+        }
+        response = await self.v1PrivatePostPrivateCreateOrderList(self.extend(request, params))
+        #
+        # {
+        #     "id": 12,
+        #     "method": "private/create-order-list",
+        #     "code": 10001,
+        #     "result": {
+        #       "result_list": [
+        #         {
+        #           "index": 0,
+        #           "code": 0,
+        #           "order_id": "2015106383706015873",
+        #           "client_oid": "my_order_0001"
+        #         },
+        #         {
+        #           "index": 1,
+        #           "code": 20007,
+        #           "message": "INVALID_REQUEST",
+        #           "client_oid": "my_order_0002"
+        #         }
+        #       ]
+        #     }
+        # }
+        #
+        #   {
+        #       "id" : 1698068111133,
+        #       "method" : "private/create-order-list",
+        #       "code" : 0,
+        #       "result" : [{
+        #         "code" : 0,
+        #         "index" : 0,
+        #         "client_oid" : "1698068111133_0",
+        #         "order_id" : "6142909896519488206"
+        #       }, {
+        #         "code" : 306,
+        #         "index" : 1,
+        #         "client_oid" : "1698068111133_1",
+        #         "message" : "INSUFFICIENT_AVAILABLE_BALANCE",
+        #         "order_id" : "6142909896519488207"
+        #       }]
+        #   }
+        #
+        result = self.safe_value(response, 'result', [])
+        listId = self.safe_string(result, 'list_id')
+        if listId is not None:
+            ocoOrders = [{'order_id': listId}]
+            return self.parse_orders(ocoOrders)
+        return self.parse_orders(result)
+
+    def create_advanced_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        # differs slightly from createOrderRequest
+        # since the advanced order endpoint requires a different set of parameters
+        # namely here we don't support ref_price or spot_margin
+        # and market-buy orders need to send notional instead of quantity
+        market = self.market(symbol)
+        uppercaseType = type.upper()
+        request = {
+            'instrument_name': market['id'],
+            'side': side.upper(),
+        }
+        if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
+            request['price'] = self.price_to_precision(symbol, price)
+        broker = self.safe_string(self.options, 'broker', 'CCXT')
+        request['broker_id'] = broker
+        timeInForce = self.safe_string_upper_2(params, 'timeInForce', 'time_in_force')
+        if timeInForce is not None:
+            if timeInForce == 'GTC':
+                request['time_in_force'] = 'GOOD_TILL_CANCEL'
+            elif timeInForce == 'IOC':
+                request['time_in_force'] = 'IMMEDIATE_OR_CANCEL'
+            elif timeInForce == 'FOK':
+                request['time_in_force'] = 'FILL_OR_KILL'
+            else:
+                request['time_in_force'] = timeInForce
+        postOnly = self.safe_value(params, 'postOnly', False)
+        if (postOnly) or (timeInForce == 'PO'):
+            request['exec_inst'] = ['POST_ONLY']
+            request['time_in_force'] = 'GOOD_TILL_CANCEL'
+        triggerPrice = self.safe_string_n(params, ['stopPrice', 'triggerPrice', 'ref_price'])
+        stopLossPrice = self.safe_number(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
+        isTrigger = (triggerPrice is not None)
+        isStopLossTrigger = (stopLossPrice is not None)
+        isTakeProfitTrigger = (takeProfitPrice is not None)
+        if isTrigger:
+            price = str(price)
+            if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
+                if side == 'buy':
+                    if Precise.string_lt(price, triggerPrice):
+                        request['type'] = 'TAKE_PROFIT_LIMIT'
+                    else:
+                        request['type'] = 'STOP_LIMIT'
+                else:
+                    if Precise.string_lt(price, triggerPrice):
+                        request['type'] = 'STOP_LIMIT'
+                    else:
+                        request['type'] = 'TAKE_PROFIT_LIMIT'
+            else:
+                if side == 'buy':
+                    if Precise.string_lt(price, triggerPrice):
+                        request['type'] = 'TAKE_PROFIT'
+                    else:
+                        request['type'] = 'STOP_LOSS'
+                else:
+                    if Precise.string_lt(price, triggerPrice):
+                        request['type'] = 'STOP_LOSS'
+                    else:
+                        request['type'] = 'TAKE_PROFIT'
+        elif isStopLossTrigger:
+            if (uppercaseType == 'LIMIT') or (uppercaseType == 'STOP_LIMIT'):
+                request['type'] = 'STOP_LIMIT'
+            else:
+                request['type'] = 'STOP_LOSS'
+        elif isTakeProfitTrigger:
+            if (uppercaseType == 'LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
+                request['type'] = 'TAKE_PROFIT_LIMIT'
+            else:
+                request['type'] = 'TAKE_PROFIT'
+        else:
+            request['type'] = uppercaseType
+        if (side == 'buy') and ((uppercaseType == 'MARKET') or (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT')):
+            # use createmarketBuy logic here
+            if self.options['createMarketBuyOrderRequiresPrice']:
+                cost = self.safe_number_2(params, 'cost', 'notional')
+                params = self.omit(params, 'cost')
+                if price is None and cost is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = False to supply the cost in the amount argument(the exchange-specific behaviour)')
+                else:
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    quoteAmount = Precise.string_mul(amountString, priceString)
+                    amount = cost if (cost is not None) else self.parse_number(quoteAmount)
+                    request['notional'] = self.cost_to_precision(symbol, amount)
+            else:
+                request['notional'] = self.cost_to_precision(symbol, amount)
+        else:
+            request['quantity'] = self.amount_to_precision(symbol, amount)
+        params = self.omit(params, ['postOnly', 'clientOrderId', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        return self.extend(request, params)
+
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
@@ -1888,12 +2055,30 @@ class cryptocom(Exchange, ImplicitAPI):
         #         "update_time": 1686806053993
         #     }
         #
+        # createOrders
+        #     {
+        #             "code" : 306,
+        #             "index" : 1,
+        #             "client_oid" : "1698068111133_1",
+        #             "message" : "INSUFFICIENT_AVAILABLE_BALANCE",
+        #             "order_id" : "6142909896519488207"
+        #     }
+        #
+        code = self.safe_integer(order, 'code')
+        if (code is not None) and (code != 0):
+            return self.safe_order({
+                'id': self.safe_string(order, 'order_id'),
+                'clientOrderId': self.safe_string(order, 'client_oid'),
+                'info': order,
+                'status': 'rejected',
+            })
         created = self.safe_integer(order, 'create_time')
         marketId = self.safe_string(order, 'instrument_name')
         symbol = self.safe_symbol(marketId, market)
         execInst = self.safe_value(order, 'exec_inst')
-        postOnly = False
+        postOnly = None
         if execInst is not None:
+            postOnly = False
             for i in range(0, len(execInst)):
                 inst = execInst[i]
                 if inst == 'POST_ONLY':
@@ -2761,6 +2946,32 @@ class cryptocom(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
+    def params_to_string(self, object, level):
+        maxLevel = 3
+        if level >= maxLevel:
+            return str(object)
+        if isinstance(object, str):
+            return object
+        returnString = ''
+        paramsKeys = None
+        if isinstance(object, list):
+            paramsKeys = object
+        else:
+            sorted = self.keysort(object)
+            paramsKeys = list(sorted.keys())
+        for i in range(0, len(paramsKeys)):
+            key = paramsKeys[i]
+            returnString += key
+            value = object[key]
+            if value == 'None':
+                returnString += 'None'
+            elif isinstance(value, list):
+                for j in range(0, len(value)):
+                    returnString += self.params_to_string(value[j], level + 1)
+            else:
+                returnString += str(value)
+        return returnString
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         type = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
@@ -2773,17 +2984,8 @@ class cryptocom(Exchange, ImplicitAPI):
             self.check_required_credentials()
             nonce = str(self.nonce())
             requestParams = self.extend({}, params)
-            keysorted = self.keysort(requestParams)
-            paramsKeys = list(keysorted.keys())
-            strSortKey = ''
-            for i in range(0, len(paramsKeys)):
-                key = str(paramsKeys[i])
-                value = requestParams[paramsKeys[i]]
-                if isinstance(value, list):
-                    value = ','.join(value)
-                else:
-                    value = str(value)
-                strSortKey = strSortKey + key + value
+            paramsKeys = list(requestParams.keys())
+            strSortKey = self.params_to_string(requestParams, 0)
             payload = path + nonce + self.apiKey + strSortKey + nonce
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
             paramsKeysLength = len(paramsKeys)

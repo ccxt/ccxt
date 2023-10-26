@@ -34,6 +34,7 @@ class krakenfutures extends Exchange {
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,
                 'editOrder' => true,
@@ -828,6 +829,43 @@ class krakenfutures extends Exchange {
         ));
     }
 
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        $type = $this->safe_string($params, 'orderType', $type);
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        $stopPrice = $this->safe_string($params, 'stopPrice');
+        $postOnly = false;
+        list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'post', $params);
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'cliOrdId');
+        $params = $this->omit($params, array( 'clientOrderId', 'cliOrdId' ));
+        if (($type === 'stp' || $type === 'take_profit') && $stopPrice === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder requires $params->stopPrice when $type is ' . $type);
+        }
+        if ($stopPrice !== null && $type !== 'take_profit') {
+            $type = 'stp';
+        } elseif ($postOnly) {
+            $type = 'post';
+        } elseif ($timeInForce === 'ioc') {
+            $type = 'ioc';
+        } elseif ($type === 'limit') {
+            $type = 'lmt';
+        } elseif ($type === 'market') {
+            $type = 'mkt';
+        }
+        $request = array(
+            'orderType' => $type,
+            'symbol' => $this->market_id($symbol),
+            'side' => $side,
+            'size' => $amount,
+        );
+        if ($price !== null) {
+            $request['limitPrice'] = $price;
+        }
+        if ($clientOrderId !== null) {
+            $request['cliOrdId'] = $clientOrderId;
+        }
+        return array_merge($request, $params);
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -839,46 +877,14 @@ class krakenfutures extends Exchange {
              * @param {float} [$price] Limit order $price
              * @param {float} [$params->stopPrice] The stop $price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst $price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
              * @param {bool} [$params->reduceOnly] Set if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default false,
-             * @param {bool} [$params->postOnly] Set if you wish to make a $postOnly order, Default false
+             * @param {bool} [$params->postOnly] Set if you wish to make a postOnly order, Default false
              * @param {string} [$params->triggerSignal] If placing a stp or take_profit, the signal used for trigger, One of => 'mark', 'index', 'last', last is market $price
              * @param {string} [$params->cliOrdId] UUID The order identity that is specified from the user, It must be globally unique
              * @param {string} [$params->clientOrderId] UUID The order identity that is specified from the user, It must be globally unique
              */
             Async\await($this->load_markets());
-            $type = $this->safe_string($params, 'orderType', $type);
-            $timeInForce = $this->safe_string($params, 'timeInForce');
-            $stopPrice = $this->safe_string($params, 'stopPrice');
-            $postOnly = false;
-            list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'post', $params);
-            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'cliOrdId');
-            $params = $this->omit($params, array( 'clientOrderId', 'cliOrdId' ));
-            if (($type === 'stp' || $type === 'take_profit') && $stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder requires $params->stopPrice when $type is ' . $type);
-            }
-            if ($stopPrice !== null && $type !== 'take_profit') {
-                $type = 'stp';
-            } elseif ($postOnly) {
-                $type = 'post';
-            } elseif ($timeInForce === 'ioc') {
-                $type = 'ioc';
-            } elseif ($type === 'limit') {
-                $type = 'lmt';
-            } elseif ($type === 'market') {
-                $type = 'mkt';
-            }
-            $request = array(
-                'orderType' => $type,
-                'symbol' => $this->market_id($symbol),
-                'side' => $side,
-                'size' => $amount,
-            );
-            if ($price !== null) {
-                $request['limitPrice'] = $price;
-            }
-            if ($clientOrderId !== null) {
-                $request['cliOrdId'] = $clientOrderId;
-            }
-            $response = Async\await($this->privatePostSendorder (array_merge($request, $params)));
+            $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = Async\await($this->privatePostSendorder ($orderRequest));
             //
             //    {
             //        "result" => "success",
@@ -913,6 +919,58 @@ class krakenfutures extends Exchange {
             $status = $this->safe_string($sendStatus, 'status');
             $this->verify_order_action_success($status, 'createOrder', array( 'filled' ));
             return $this->parse_order($sendStatus);
+        }) ();
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $extendedParams = array_merge($orderParams, $params); // the $request does not accept extra $params since it's a list, so we're extending each order with the common $params
+                if (!(is_array($extendedParams) && array_key_exists('order_tag', $extendedParams))) {
+                    // order tag is mandatory so we will generate one if not provided
+                    $extendedParams['order_tag'] = $this->sum($i, (string) 1); // sequential counter
+                }
+                $extendedParams['order'] = 'send';
+                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $request = array(
+                'batchOrder' => $ordersRequests,
+            );
+            $response = Async\await($this->privatePostBatchorder (array_merge($request, $params)));
+            //
+            // {
+            //     "result" => "success",
+            //     "serverTime" => "2023-10-24T08:40:57.339Z",
+            //     "batchStatus" => array(
+            //        array(
+            //           "status" => "requiredArgumentMissing",
+            //           "orderEvents" => array()
+            //        ),
+            //        {
+            //           "status" => "requiredArgumentMissing",
+            //           "orderEvents" => array()
+            //        }
+            //     )
+            // }
+            //
+            $data = $this->safe_value($response, 'batchStatus', array());
+            return $this->parse_orders($data);
         }) ();
     }
 
@@ -965,6 +1023,70 @@ class krakenfutures extends Exchange {
                 $order = $this->parse_order($response['cancelStatus']);
             }
             return array_merge(array( 'info' => $response ), $order);
+        }) ();
+    }
+
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple $orders
+             * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+             * @param {[string]} $ids order $ids
+             * @param {string} [$symbol] unified market $symbol
+             * @param {array} [$params] extra parameters specific to the bingx api endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {[string]} [$params->clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $orders = array();
+            $clientOrderIds = $this->safe_value($params, 'clientOrderIds', array());
+            $clientOrderIdsLength = count($clientOrderIds);
+            if ($clientOrderIdsLength > 0) {
+                for ($i = 0; $i < count($clientOrderIds); $i++) {
+                    $orders[] = array( 'order' => 'cancel', 'cliOrdId' => $clientOrderIds[$i] );
+                }
+            } else {
+                for ($i = 0; $i < count($ids); $i++) {
+                    $orders[] = array( 'order' => 'cancel', 'order_id' => $ids[$i] );
+                }
+            }
+            $request = array(
+                'batchOrder' => $orders,
+            );
+            $response = Async\await($this->privatePostBatchorder (array_merge($request, $params)));
+            // {
+            //     result => 'success',
+            //     serverTime => '2023-10-23T16:36:51.327Z',
+            //     $batchStatus => array(
+            //       {
+            //         status => 'cancelled',
+            //         order_id => '101c2327-f12e-45f2-8445-7502b87afc0b',
+            //         orderEvents => array(
+            //           {
+            //             uid => '101c2327-f12e-45f2-8445-7502b87afc0b',
+            //             order => array(
+            //               orderId => '101c2327-f12e-45f2-8445-7502b87afc0b',
+            //               cliOrdId => null,
+            //               type => 'lmt',
+            //               $symbol => 'PF_LTCUSD',
+            //               side => 'buy',
+            //               quantity => '0.10000000000',
+            //               filled => '0E-11',
+            //               limitPrice => '50.00000000000',
+            //               reduceOnly => false,
+            //               timestamp => '2023-10-20T10:29:13.005Z',
+            //               lastUpdateTimestamp => '2023-10-20T10:29:13.005Z'
+            //             ),
+            //             type => 'CANCEL'
+            //           }
+            //         )
+            //       }
+            //     )
+            // }
+            $batchStatus = $this->safe_value($response, 'batchStatus', array());
+            return $this->parse_orders($batchStatus);
         }) ();
     }
 
@@ -1247,14 +1369,25 @@ class krakenfutures extends Exchange {
         //        "lastUpdateTime" => "2019-09-05T17:01:17.410Z"
         //    }
         //
+        // createOrders error
+        //    {
+        //       "status" => "requiredArgumentMissing",
+        //       "orderEvents" => array()
+        //    }
+        //
         $orderEvents = $this->safe_value($order, 'orderEvents', array());
+        $errorStatus = $this->safe_string($order, 'status');
+        $orderEventsLength = count($orderEvents);
+        if ((is_array($order) && array_key_exists('orderEvents', $order)) && ($errorStatus !== null) && ($orderEventsLength === 0)) {
+            // creteOrders error response
+            return $this->safe_order(array( 'info' => $order, 'status' => 'rejected' ));
+        }
         $details = null;
         $isPrior = false;
         $fixed = false;
         $statusId = null;
         $price = null;
         $trades = array();
-        $orderEventsLength = count($orderEvents);
         if ($orderEventsLength) {
             $executions = array();
             for ($i = 0; $i < count($orderEvents); $i++) {
@@ -2175,7 +2308,10 @@ class krakenfutures extends Exchange {
         $params = $this->omit($params, $this->extract_params($path));
         $query = $endpoint;
         $postData = '';
-        if ($params) {
+        if ($path === 'batchorder') {
+            $postData = 'json=' . $this->json($params);
+            $body = $postData;
+        } elseif ($params) {
             $postData = $this->urlencode($params);
             $query .= '?' . $postData;
         }
@@ -2190,7 +2326,8 @@ class krakenfutures extends Exchange {
             $secret = base64_decode($this->secret); // 3
             $signature = $this->hmac($hash, $secret, 'sha512', 'base64'); // 4-5
             $headers = array(
-                'Content-Type' => 'application/json',
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Accept' => 'application/json',
                 'APIKey' => $this->apiKey,
                 'Authent' => $signature,
             );

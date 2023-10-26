@@ -35,6 +35,7 @@ export default class krakenfutures extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createMarketOrder': false,
                 'createOrder': true,
                 'editOrder': true,
@@ -826,24 +827,7 @@ export default class krakenfutures extends Exchange {
             'fee': undefined,
         });
     }
-    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name krakenfutures#createOrder
-         * @description Create an order on the exchange
-         * @param {string} symbol market symbol
-         * @param {string} type One of 'limit', 'market', 'take_profit'
-         * @param {string} side buy or sell
-         * @param {int} amount Contract quantity
-         * @param {float} [price] Limit order price
-         * @param {float} [params.stopPrice] The stop price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
-         * @param {bool} [params.reduceOnly] Set as true if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default false,
-         * @param {bool} [params.postOnly] Set as true if you wish to make a postOnly order, Default false
-         * @param {string} [params.triggerSignal] If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
-         * @param {string} [params.cliOrdId] UUID The order identity that is specified from the user, It must be globally unique
-         * @param {string} [params.clientOrderId] UUID The order identity that is specified from the user, It must be globally unique
-         */
-        await this.loadMarkets();
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         type = this.safeString(params, 'orderType', type);
         const timeInForce = this.safeString(params, 'timeInForce');
         const stopPrice = this.safeString(params, 'stopPrice');
@@ -881,7 +865,28 @@ export default class krakenfutures extends Exchange {
         if (clientOrderId !== undefined) {
             request['cliOrdId'] = clientOrderId;
         }
-        const response = await this.privatePostSendorder(this.extend(request, params));
+        return this.extend(request, params);
+    }
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#createOrder
+         * @description Create an order on the exchange
+         * @param {string} symbol market symbol
+         * @param {string} type One of 'limit', 'market', 'take_profit'
+         * @param {string} side buy or sell
+         * @param {int} amount Contract quantity
+         * @param {float} [price] Limit order price
+         * @param {float} [params.stopPrice] The stop price associated with a stop or take profit order, Required if orderType is stp or take_profit, Must not have more than 2 decimal places, Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order,
+         * @param {bool} [params.reduceOnly] Set as true if you wish the order to only reduce an existing position, Any order which increases an existing position will be rejected, Default false,
+         * @param {bool} [params.postOnly] Set as true if you wish to make a postOnly order, Default false
+         * @param {string} [params.triggerSignal] If placing a stp or take_profit, the signal used for trigger, One of: 'mark', 'index', 'last', last is market price
+         * @param {string} [params.cliOrdId] UUID The order identity that is specified from the user, It must be globally unique
+         * @param {string} [params.clientOrderId] UUID The order identity that is specified from the user, It must be globally unique
+         */
+        await this.loadMarkets();
+        const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
+        const response = await this.privatePostSendorder(orderRequest);
         //
         //    {
         //        "result": "success",
@@ -916,6 +921,57 @@ export default class krakenfutures extends Exchange {
         const status = this.safeString(sendStatus, 'status');
         this.verifyOrderActionSuccess(status, 'createOrder', ['filled']);
         return this.parseOrder(sendStatus);
+    }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#createOrders
+         * @description create a list of trade orders
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const extendedParams = this.extend(orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            if (!('order_tag' in extendedParams)) {
+                // order tag is mandatory so we will generate one if not provided
+                extendedParams['order_tag'] = this.sum(i, 1).toString(); // sequential counter
+            }
+            extendedParams['order'] = 'send';
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
+            ordersRequests.push(orderRequest);
+        }
+        const request = {
+            'batchOrder': ordersRequests,
+        };
+        const response = await this.privatePostBatchorder(this.extend(request, params));
+        //
+        // {
+        //     "result": "success",
+        //     "serverTime": "2023-10-24T08:40:57.339Z",
+        //     "batchStatus": [
+        //        {
+        //           "status": "requiredArgumentMissing",
+        //           "orderEvents": []
+        //        },
+        //        {
+        //           "status": "requiredArgumentMissing",
+        //           "orderEvents": []
+        //        }
+        //     ]
+        // }
+        //
+        const data = this.safeValue(response, 'batchStatus', []);
+        return this.parseOrders(data);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
@@ -964,6 +1020,70 @@ export default class krakenfutures extends Exchange {
             order = this.parseOrder(response['cancelStatus']);
         }
         return this.extend({ 'info': response }, order);
+    }
+    async cancelOrders(ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#cancelOrders
+         * @description cancel multiple orders
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+         * @param {[string]} ids order ids
+         * @param {string} [symbol] unified market symbol
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {[string]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const orders = [];
+        const clientOrderIds = this.safeValue(params, 'clientOrderIds', []);
+        const clientOrderIdsLength = clientOrderIds.length;
+        if (clientOrderIdsLength > 0) {
+            for (let i = 0; i < clientOrderIds.length; i++) {
+                orders.push({ 'order': 'cancel', 'cliOrdId': clientOrderIds[i] });
+            }
+        }
+        else {
+            for (let i = 0; i < ids.length; i++) {
+                orders.push({ 'order': 'cancel', 'order_id': ids[i] });
+            }
+        }
+        const request = {
+            'batchOrder': orders,
+        };
+        const response = await this.privatePostBatchorder(this.extend(request, params));
+        // {
+        //     result: 'success',
+        //     serverTime: '2023-10-23T16:36:51.327Z',
+        //     batchStatus: [
+        //       {
+        //         status: 'cancelled',
+        //         order_id: '101c2327-f12e-45f2-8445-7502b87afc0b',
+        //         orderEvents: [
+        //           {
+        //             uid: '101c2327-f12e-45f2-8445-7502b87afc0b',
+        //             order: {
+        //               orderId: '101c2327-f12e-45f2-8445-7502b87afc0b',
+        //               cliOrdId: null,
+        //               type: 'lmt',
+        //               symbol: 'PF_LTCUSD',
+        //               side: 'buy',
+        //               quantity: '0.10000000000',
+        //               filled: '0E-11',
+        //               limitPrice: '50.00000000000',
+        //               reduceOnly: false,
+        //               timestamp: '2023-10-20T10:29:13.005Z',
+        //               lastUpdateTimestamp: '2023-10-20T10:29:13.005Z'
+        //             },
+        //             type: 'CANCEL'
+        //           }
+        //         ]
+        //       }
+        //     ]
+        // }
+        const batchStatus = this.safeValue(response, 'batchStatus', []);
+        return this.parseOrders(batchStatus);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -1239,14 +1359,25 @@ export default class krakenfutures extends Exchange {
         //        "lastUpdateTime": "2019-09-05T17:01:17.410Z"
         //    }
         //
+        // createOrders error
+        //    {
+        //       "status": "requiredArgumentMissing",
+        //       "orderEvents": []
+        //    }
+        //
         const orderEvents = this.safeValue(order, 'orderEvents', []);
+        const errorStatus = this.safeString(order, 'status');
+        const orderEventsLength = orderEvents.length;
+        if (('orderEvents' in order) && (errorStatus !== undefined) && (orderEventsLength === 0)) {
+            // creteOrders error response
+            return this.safeOrder({ 'info': order, 'status': 'rejected' });
+        }
         let details = undefined;
         let isPrior = false;
         let fixed = false;
         let statusId = undefined;
         let price = undefined;
         let trades = [];
-        const orderEventsLength = orderEvents.length;
         if (orderEventsLength) {
             const executions = [];
             for (let i = 0; i < orderEvents.length; i++) {
@@ -2151,7 +2282,11 @@ export default class krakenfutures extends Exchange {
         params = this.omit(params, this.extractParams(path));
         let query = endpoint;
         let postData = '';
-        if (Object.keys(params).length) {
+        if (path === 'batchorder') {
+            postData = 'json=' + this.json(params);
+            body = postData;
+        }
+        else if (Object.keys(params).length) {
             postData = this.urlencode(params);
             query += '?' + postData;
         }
@@ -2166,7 +2301,8 @@ export default class krakenfutures extends Exchange {
             const secret = this.base64ToBinary(this.secret); // 3
             const signature = this.hmac(hash, secret, sha512, 'base64'); // 4-5
             headers = {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json',
                 'APIKey': this.apiKey,
                 'Authent': signature,
             };

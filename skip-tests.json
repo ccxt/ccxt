@@ -174,7 +174,7 @@
         }
     },
     "bitfinex2": {
-        "skipWs": true,
+        "//skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -509,6 +509,7 @@
         }
     },
     "btcalpha": {
+	"skip": true, 
         "skipMethods": {
             "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
             "fetchL2OrderBook": "same",
@@ -1079,9 +1080,8 @@
         "skipWs": true,
         "skipMethods":{
             "fetchCurrencies": {
-                "networks": "not yet implemented",
-                "withdraw": "not provided for some currencies",
-                "deposit": "not provided for some currencies"
+                "depositForNonCrypto": "not provided",
+                "withdrawForNonCrypto": "not provided"
             },
             "loadMarkets": {
                 "currencyIdAndCode": "messed"

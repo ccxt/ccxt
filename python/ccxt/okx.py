@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderRequest
 from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
@@ -60,6 +61,7 @@ class okx(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'createDepositAddress': False,
                 'createOrder': True,
+                'createOrders': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -2635,6 +2637,52 @@ class okx(Exchange, ImplicitAPI):
         order['side'] = side
         return order
 
+    def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
+        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        self.load_markets()
+        ordersRequests = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_value(rawOrder, 'params', {})
+            extendedParams = self.extend(orderParams, params)  # the request does not accept extra params since it's a list, so we're extending each order with the common params
+            orderRequest = self.create_order_request(marketId, type, side, amount, price, extendedParams)
+            ordersRequests.append(orderRequest)
+        response = self.privatePostTradeBatchOrders(ordersRequests)
+        # {
+        #     "code": "0",
+        #     "data": [
+        #        {
+        #           "clOrdId": "e847386590ce4dBCc7f2a1b4c4509f82",
+        #           "ordId": "636305438765568000",
+        #           "sCode": "0",
+        #           "sMsg": "Order placed",
+        #           "tag": "e847386590ce4dBC"
+        #        },
+        #        {
+        #           "clOrdId": "e847386590ce4dBC0b9993fe642d8f62",
+        #           "ordId": "636305438765568001",
+        #           "sCode": "0",
+        #           "sMsg": "Order placed",
+        #           "tag": "e847386590ce4dBC"
+        #        }
+        #     ],
+        #     "inTime": "1697979038584486",
+        #     "msg": "",
+        #     "outTime": "1697979038586493"
+        # }
+        data = self.safe_value(response, 'data', [])
+        return self.parse_orders(data)
+
     def edit_order_request(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         market = self.market(symbol)
         request = {
@@ -2981,6 +3029,14 @@ class okx(Exchange, ImplicitAPI):
         #         "uly": "BTC-USDT"
         #     }
         #
+        scode = self.safe_string(order, 'sCode')
+        if (scode is not None) and (scode != '0'):
+            return self.safe_order({
+                'id': self.safe_string(order, 'ordId'),
+                'clientOrderId': self.safe_string(order, 'clOrdId'),
+                'status': 'rejected',
+                'info': order,
+            })
         id = self.safe_string_2(order, 'algoId', 'ordId')
         timestamp = self.safe_integer(order, 'cTime')
         lastUpdateTimestamp = self.safe_integer(order, 'uTime')
@@ -6454,7 +6510,7 @@ class okx(Exchange, ImplicitAPI):
         #    }
         #
         code = self.safe_string(response, 'code')
-        if code != '0':
+        if (code != '0') and (code != '2'):  # 2 means that bulk operation partially succeeded
             feedback = self.id + ' ' + body
             data = self.safe_value(response, 'data', [])
             for i in range(0, len(data)):
