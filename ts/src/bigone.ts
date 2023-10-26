@@ -718,6 +718,8 @@ export default class bigone extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
+        // spot
+        //
         //     {
         //         "asset_pair_name":"ETH-BTC",
         //         "bid":{"price":"0.021593","order_count":1,"quantity":"0.20936"},
@@ -730,18 +732,41 @@ export default class bigone extends Exchange {
         //         "daily_change":"-0.000182"
         //     }
         //
-        const marketId = this.safeString (ticker, 'asset_pair_name');
-        const symbol = this.safeSymbol (marketId, market, '-');
-        const timestamp = undefined;
-        const close = this.safeString (ticker, 'close');
+        // contract
+        //
+        //    {
+        //        "usdtPrice": 1.00031998,
+        //        "symbol": "BTCUSD",
+        //        "btcPrice": 34700.4,
+        //        "ethPrice": 1787.83,
+        //        "nextFundingRate": 0.00010,
+        //        "fundingRate": 0.00010,
+        //        "latestPrice": 34708.5,
+        //        "last24hPriceChange": 0.0321,
+        //        "indexPrice": 34700.4,
+        //        "volume24h": 261319063,
+        //        "turnover24h": 8204.129380685496,
+        //        "nextFundingTime": 1698285600000,
+        //        "markPrice": 34702.4646738,
+        //        "last24hMaxPrice": 35127.5,
+        //        "volume24hInUsd": 0.0,
+        //        "openValue": 32.88054722085945,
+        //        "last24hMinPrice": 33552.0,
+        //        "openInterest": 1141372.0
+        //    }
+        //
+        const marketType = ('asset_pair_name' in ticker) ? 'spot' : 'swap';
+        const marketId = this.safeString2 (ticker, 'asset_pair_name', 'symbol');
+        const symbol = this.safeSymbol (marketId, market, '-', marketType);
+        const close = this.safeString2 (ticker, 'close', 'latestPrice');
         const bid = this.safeValue (ticker, 'bid', {});
         const ask = this.safeValue (ticker, 'ask', {});
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high'),
-            'low': this.safeString (ticker, 'low'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': this.safeString (ticker, 'high', 'last24hMaxPrice'),
+            'low': this.safeString (ticker, 'low', 'last24hMinPrice'),
             'bid': this.safeString (bid, 'price'),
             'bidVolume': this.safeString (bid, 'quantity'),
             'ask': this.safeString (ask, 'price'),
@@ -751,11 +776,11 @@ export default class bigone extends Exchange {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': this.safeString (ticker, 'daily_change'),
+            'change': this.safeString2 (ticker, 'daily_change', 'last24hPriceChange'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'volume'),
-            'quoteVolume': undefined,
+            'baseVolume': this.safeString2 (ticker, 'volume', 'volume24h'),
+            'quoteVolume': this.safeString (ticker, 'volume24hInUsd'),
             'info': ticker,
         }, market);
     }
@@ -1459,7 +1484,7 @@ export default class bigone extends Exchange {
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const timeInForce = this.safeString (params, 'timeInForce');
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const isContract = (marketType === 'swap') || (marketType === 'future');
         const request = {};
         if (isContract) {
@@ -1560,7 +1585,7 @@ export default class bigone extends Exchange {
             market = this.market (symbol);
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         let response = undefined;
         if ((type === 'swap') || (type === 'future')) {
             response = await this.contractPrivateDeleteOrdersId (this.extend (request, params));
@@ -1670,7 +1695,7 @@ export default class bigone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const request = {};
         if ((type === 'swap') || (type === 'future')) {
             const until = this.safeInteger (params, 'until');
@@ -1740,7 +1765,7 @@ export default class bigone extends Exchange {
             market = this.market (symbol);
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const request = {};
         if (type === 'spot') {
             if (symbol === undefined) {
@@ -1826,7 +1851,7 @@ export default class bigone extends Exchange {
             market = this.market (symbol);
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if ((type === 'swap') || (type === 'future')) {
             const request = {};
             if (market !== undefined) {
