@@ -810,7 +810,7 @@ class bybit(Exchange):
                     '170227': ExchangeError,  # This feature is not supported.
                     '170228': InvalidOrder,
                     # The purchase amount of each order exceeds the estimated maximum purchase amount.
-                    '170229': InvalidOrder,  # The sell quantity per order exceeds the estimated maximum sell quantity.
+                    '170229': InsufficientFunds,  # The sell quantity per order exceeds the estimated maximum sell quantity.
                     '170234': ExchangeError,  # System Error
                     '170210': InvalidOrder,  # New order rejected.
                     '170213': OrderNotFound,  # Order does not exist.
@@ -6228,11 +6228,13 @@ class bybit(Exchange):
                         headers = {
                             'Content-Type': 'application/json',
                         }
-                    if self.partner_name:
-                        headers["Referer"] = self.partner_name
                 else:
                     url += '?' + self.rawencode(sortedQuery)
                     url += '&sign=' + signature
+
+        if method == 'POST':
+            if self.partner_name:
+                headers['Referer'] = self.partner_name
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
