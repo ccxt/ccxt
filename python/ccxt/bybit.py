@@ -6231,10 +6231,9 @@ class bybit(Exchange):
                 else:
                     url += '?' + self.rawencode(sortedQuery)
                     url += '&sign=' + signature
-
-        if method == 'POST':
-            if self.partner_name:
-                headers['Referer'] = self.partner_name
+            if method == 'POST':
+                if self.partner_name:
+                    headers['Referer'] = self.partner_name
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
