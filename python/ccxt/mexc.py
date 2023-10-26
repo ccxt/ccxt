@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderRequest
 from ccxt.base.types import OrderType
 from ccxt.base.types import IndexType
 from typing import Optional
@@ -53,6 +54,7 @@ class mexc(Exchange, ImplicitAPI):
                 'cancelOrders': None,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createOrders': True,
                 'createReduceOnlyOrder': True,
                 'deposit': None,
                 'editOrder': None,
@@ -2006,7 +2008,7 @@ class mexc(Exchange, ImplicitAPI):
         else:
             return self.create_swap_order(market, type, side, amount, price, marginMode, query)
 
-    def create_spot_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
+    def create_spot_order_request(self, market, type, side, amount, price=None, marginMode=None, params={}):
         symbol = market['symbol']
         orderSide = 'BUY' if (side == 'buy') else 'SELL'
         request = {
@@ -2035,16 +2037,23 @@ class mexc(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['newClientOrderId'] = clientOrderId
             params = self.omit(params, ['type', 'clientOrderId'])
-        method = 'spotPrivatePostOrder'
         if marginMode is not None:
             if marginMode != 'isolated':
                 raise BadRequest(self.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
-            method = 'spotPrivatePostMarginOrder'
         postOnly = None
         postOnly, params = self.handle_post_only(type == 'market', type == 'LIMIT_MAKER', params)
         if postOnly:
             request['type'] = 'LIMIT_MAKER'
-        response = getattr(self, method)(self.extend(request, params))
+        return self.extend(request, params)
+
+    def create_spot_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
+        self.load_markets()
+        request = self.create_spot_order_request(market, type, side, amount, price, marginMode, params)
+        response = None
+        if marginMode is not None:
+            response = self.spotPrivatePostMarginOrder(self.extend(request, params))
+        else:
+            response = self.spotPrivatePostOrder(self.extend(request, params))
         #
         # spot
         #
@@ -2159,6 +2168,63 @@ class mexc(Exchange, ImplicitAPI):
         #
         data = self.safe_string(response, 'data')
         return self.parse_order(data, market)
+
+    def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        *spot only*  *all orders must have the same symbol* create a list of trade orders
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-orders
+        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to api endpoint
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        self.load_markets()
+        ordersRequests = []
+        symbol = None
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            market = self.market(marketId)
+            if not market['spot']:
+                raise NotSupported(self.id + ' createOrders() is only supported for spot markets')
+            if symbol is None:
+                symbol = marketId
+            else:
+                if symbol != marketId:
+                    raise BadRequest(self.id + ' createOrders() requires all orders to have the same symbol')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_value(rawOrder, 'params', {})
+            marginMode = None
+            marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+            orderRequest = self.create_spot_order_request(market, type, side, amount, price, marginMode, orderParams)
+            ordersRequests.append(orderRequest)
+        request = {
+            'batchOrders': ordersRequests,
+        }
+        response = self.spotPrivatePostBatchOrders(request)
+        #
+        # [
+        #     {
+        #       "symbol": "BTCUSDT",
+        #       "orderId": "1196315350023612316",
+        #       "newClientOrderId": "hio8279hbdsds",
+        #       "orderListId": -1
+        #     },
+        #     {
+        #       "newClientOrderId": "123456",
+        #       "msg": "The minimum transaction volume cannot be less than:0.5USDT",
+        #       "code": 30002
+        #     },
+        #     {
+        #       "symbol": "BTCUSDT",
+        #       "orderId": "1196315350023612318",
+        #       "orderListId": -1
+        #     }
+        # ]
+        #
+        return self.parse_orders(response)
 
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -2955,6 +3021,22 @@ class mexc(Exchange, ImplicitAPI):
         #         "updateTime": "1648984276000",
         #     }
         #
+        # createOrders error
+        #
+        #     {
+        #         "newClientOrderId": "123456",
+        #         "msg": "The minimum transaction volume cannot be less than:0.5USDT",
+        #         "code": 30002
+        #     }
+        #
+        code = self.safe_integer(order, 'code')
+        if code is not None:
+            # error upon placing multiple orders
+            return self.safe_order({
+                'info': order,
+                'status': 'rejected',
+                'clientOrderId': self.safe_string(order, 'newClientOrderId'),
+            })
         id = None
         if isinstance(order, str):
             id = order

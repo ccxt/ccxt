@@ -22,6 +22,7 @@ export default class cryptocom extends Exchange {
     createAdvancedOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    cancelOrders(ids: any, symbol?: string, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseAddress(addressString: any): any[];

@@ -1282,6 +1282,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_post_v5_position_add_margin($params = array()) {
         return $this->request('v5/position/add-margin', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
+    public function private_post_v5_position_confirm_pending_mmr($params = array()) {
+        return $this->request('v5/position/confirm-pending-mmr', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
     public function private_post_v5_account_upgrade_to_uta($params = array()) {
         return $this->request('v5/account/upgrade-to-uta', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
@@ -2652,6 +2655,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privatePostV5PositionAddMargin($params = array()) {
         return $this->request('v5/position/add-margin', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostV5PositionConfirmPendingMmr($params = array()) {
+        return $this->request('v5/position/confirm-pending-mmr', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
     public function privatePostV5AccountUpgradeToUta($params = array()) {
         return $this->request('v5/account/upgrade-to-uta', 'private', 'POST', $params, null, null, array("cost" => 2.5));

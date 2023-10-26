@@ -400,6 +400,7 @@ class krakenfutures extends Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-orderbook
          * Fetches a list of open orders in a $market
          * @param {string} $symbol Unified $market $symbol
          * @param {int} [$limit] Not used by krakenfutures
@@ -447,6 +448,13 @@ class krakenfutures extends Exchange {
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-$tickers
+         * @param {string[]} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
+         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
+         */
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
         //
@@ -643,6 +651,7 @@ class krakenfutures extends Exchange {
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-trade-$history
          * @descriptions Fetch a $history of filled trades that this account has made
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {int} [$since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with $params->until
@@ -956,6 +965,7 @@ class krakenfutures extends Exchange {
 
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         /**
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$order-management-edit-$order
          * Edit an open $order on the exchange
          * @param {string} $id $order $id
          * @param {string} $symbol Not used by Krakenfutures
@@ -986,6 +996,8 @@ class krakenfutures extends Exchange {
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$order-management-cancel-$order
+         * Cancel an open $order on the exchange
          * @param {string} $id Order $id
          * @param {string} $symbol Not used by Krakenfutures
          * @param {array} [$params] Exchange specific $params
@@ -1066,6 +1078,7 @@ class krakenfutures extends Exchange {
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-all-orders
          * Cancels all orders on the exchange, including trigger orders
          * @param {str} $symbol Unified market $symbol
          * @param {dict} [$params] Exchange specific $params
@@ -1081,6 +1094,7 @@ class krakenfutures extends Exchange {
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-$orders
          * Gets all open $orders, including trigger $orders, for an account from the exchange api
          * @param {string} $symbol Unified $market $symbol
          * @param {int} [$since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
@@ -1489,6 +1503,16 @@ class krakenfutures extends Exchange {
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-data-get-your-fills
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] *not used by the  api* the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+         */
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
@@ -1520,9 +1544,10 @@ class krakenfutures extends Exchange {
 
     public function fetch_balance($params = array ()) {
         /**
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$account-information-get-wallets
          * Fetch the $balance for a sub-$account, all sub-$account balances are inside 'info' in the $response
          * @param {array} [$params] Exchange specific parameters
-         * @param {string} [$params->type] The sub-$account $type to query the $balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market $symbol * defaults to 'cash' *
+         * @param {string} [$params->type] The sub-$account $type to query the $balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market $symbol * defaults to 'flex' *
          * @param {string} [$params->symbol] A unified market $symbol, when assigned the $balance for a trading market that matches the $symbol is returned
          * @return A {@link https://github.com/ccxt/ccxt/wiki/Manual#$balance-structure $balance structure}
          */
@@ -1626,7 +1651,7 @@ class krakenfutures extends Exchange {
             $type = $symbol;
         }
         if ($type === null) {
-            $type = ($symbol === null) ? 'cash' : $symbol;
+            $type = ($symbol === null) ? 'flex' : $symbol;
         }
         $accountName = $this->parse_account($type);
         $accounts = $this->safe_value($response, 'accounts');
@@ -1824,6 +1849,15 @@ class krakenfutures extends Exchange {
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-funding-$rates-historical-funding-$rates
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
+         * @param {array} [$params] extra parameters specific to the api endpoint
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
+         */
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1865,6 +1899,7 @@ class krakenfutures extends Exchange {
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
+         * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
          * Fetches current contract trading positions
          * @param {string[]} $symbols List of unified $symbols
          * @param {array} [$params] Not used by krakenfutures
@@ -1946,7 +1981,7 @@ class krakenfutures extends Exchange {
             'entryPrice' => $this->safe_number($position, 'price'),
             'notional' => null,
             'leverage' => $leverage,
-            'unrealizedPnl' => $this->safe_number($position, 'unrealizedFunding'),
+            'unrealizedPnl' => null,
             'contracts' => $this->safe_number($position, 'size'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'marginRatio' => null,
@@ -1960,6 +1995,13 @@ class krakenfutures extends Exchange {
     }
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+        /**
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
+         * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+         */
         $this->load_markets();
         $response = $this->publicGetInstruments ($params);
         //
@@ -2138,6 +2180,8 @@ class krakenfutures extends Exchange {
 
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-wallet-$transfer
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-withdrawal-to-spot-wallet
          * transfers currencies between sub-accounts
          * @param {string} $code Unified $currency $code
          * @param {float} $amount Size of the $transfer

@@ -622,6 +622,7 @@ class bybit extends Exchange {
                         'v5/position/trading-stop' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/set-auto-add-margin' => 2.5,
                         'v5/position/add-margin' => 2.5,
+                        'v5/position/confirm-pending-mmr' => 2.5,
                         // account
                         'v5/account/upgrade-to-uta' => 2.5,
                         'v5/account/set-margin-mode' => 2.5,

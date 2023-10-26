@@ -65,6 +65,7 @@ class bitget(Exchange, ImplicitAPI):
                 'editOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -5950,6 +5951,138 @@ class bitget(Exchange, ImplicitAPI):
             'currency': self.safe_currency_code(currencyId, currency),
             'rate': interestRate,
             'period': 86400000,  # 1-Day
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    async def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch the interest owed by the user for borrowing currency for margin trading
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-interest-records
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-interest-records
+        :param str [code]: unified currency code
+        :param str [symbol]: unified market symbol when fetching interest in isolated markets
+        :param int [since]: the earliest time in ms to fetch borrow interest for
+        :param int [limit]: the maximum number of structures to retrieve
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :returns dict[]: a list of `borrow interest structures <https://github.com/ccxt/ccxt/wiki/Manual#borrow-interest-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {}
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['coin'] = currency['id']
+        if since is not None:
+            request['startTime'] = since
+        else:
+            request['startTime'] = self.milliseconds() - 7776000000
+        if limit is not None:
+            request['pageSize'] = limit
+        response = None
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params, 'cross')
+        if marginMode == 'isolated':
+            self.check_required_symbol('fetchBorrowInterest', symbol)
+            request['symbol'] = market['info']['symbolName']
+            response = await self.privateMarginGetIsolatedInterestList(self.extend(request, params))
+        elif marginMode == 'cross':
+            response = await self.privateMarginGetCrossInterestList(self.extend(request, params))
+        #
+        # isolated
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1698282523888,
+        #         "data": {
+        #             "resultList": [
+        #                 {
+        #                     "interestId": "1100560904468705284",
+        #                     "interestCoin": "USDT",
+        #                     "interestRate": "0.000126279",
+        #                     "loanCoin": "USDT",
+        #                     "amount": "0.00000298",
+        #                     "type": "scheduled",
+        #                     "symbol": "BTCUSDT",
+        #                     "ctime": "1698120000000"
+        #                 },
+        #             ],
+        #             "maxId": "1100560904468705284",
+        #             "minId": "1096915487398965249"
+        #         }
+        #     }
+        #
+        # cross
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1698282552126,
+        #         "data": {
+        #             "resultList": [
+        #                 {
+        #                     "interestId": "1099126154352799744",
+        #                     "interestCoin": "USDT",
+        #                     "interestRate": "0.000126279",
+        #                     "loanCoin": "USDT",
+        #                     "amount": "0.00002631",
+        #                     "type": "scheduled",
+        #                     "ctime": "1697778000000"
+        #                 },
+        #             ],
+        #             "maxId": "1099126154352799744",
+        #             "minId": "1096917004629716993"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        rows = self.safe_value(data, 'resultList', [])
+        interest = self.parse_borrow_interests(rows, market)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market=None):
+        #
+        # isolated
+        #
+        #     {
+        #         "interestId": "1100560904468705284",
+        #         "interestCoin": "USDT",
+        #         "interestRate": "0.000126279",
+        #         "loanCoin": "USDT",
+        #         "amount": "0.00000298",
+        #         "type": "scheduled",
+        #         "symbol": "BTCUSDT",
+        #         "ctime": "1698120000000"
+        #     }
+        #
+        # cross
+        #
+        #     {
+        #         "interestId": "1099126154352799744",
+        #         "interestCoin": "USDT",
+        #         "interestRate": "0.000126279",
+        #         "loanCoin": "USDT",
+        #         "amount": "0.00002631",
+        #         "type": "scheduled",
+        #         "ctime": "1697778000000"
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        market = self.safe_market(marketId, market)
+        marginMode = 'isolated' if (marketId is not None) else 'cross'
+        timestamp = self.safe_integer(info, 'ctime')
+        return {
+            'symbol': self.safe_string(market, 'symbol'),
+            'marginMode': marginMode,
+            'currency': self.safe_currency_code(self.safe_string(info, 'interestCoin')),
+            'interest': self.safe_number(info, 'amount'),
+            'interestRate': self.safe_number(info, 'interestRate'),
+            'amountBorrowed': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,

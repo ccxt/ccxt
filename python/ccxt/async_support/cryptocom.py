@@ -50,6 +50,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'createOrder': True,
                 'createOrders': True,
                 'fetchAccounts': True,
@@ -1322,6 +1323,34 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
+
+    async def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
+        """
+        cancel multiple orders
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+        :param str[] ids: order ids
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        self.check_required_symbol('cancelOrders', symbol)
+        await self.load_markets()
+        market = self.market(symbol)
+        orderRequests = []
+        for i in range(0, len(ids)):
+            id = ids[i]
+            order = {
+                'instrument_name': market['id'],
+                'order_id': str(id),
+            }
+            orderRequests.append(order)
+        request = {
+            'contingency_type': 'LIST',
+            'order_list': orderRequests,
+        }
+        response = await self.v1PrivatePostPrivateCancelOrderList(self.extend(request, params))
+        result = self.safe_value(response, 'result', [])
+        return self.parse_orders(result, market, None, None, params)
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

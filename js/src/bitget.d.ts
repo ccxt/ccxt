@@ -344,6 +344,18 @@ export default class bitget extends Exchange {
         datetime: string;
         info: any;
     };
+    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseBorrowInterest(info: any, market?: any): {
+        symbol: string;
+        marginMode: string;
+        currency: any;
+        interest: number;
+        interestRate: number;
+        amountBorrowed: any;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    };
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

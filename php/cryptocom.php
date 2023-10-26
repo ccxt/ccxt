@@ -30,6 +30,7 @@ class cryptocom extends Exchange {
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'createOrder' => true,
                 'createOrders' => true,
                 'fetchAccounts' => true,
@@ -1375,6 +1376,36 @@ class cryptocom extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_order($result, $market);
+    }
+
+    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-$order-list-list
+         * @param {string[]} $ids $order $ids
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structures}
+         */
+        $this->check_required_symbol('cancelOrders', $symbol);
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $orderRequests = array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $ids[$i];
+            $order = array(
+                'instrument_name' => $market['id'],
+                'order_id' => (string) $id,
+            );
+            $orderRequests[] = $order;
+        }
+        $request = array(
+            'contingency_type' => 'LIST',
+            'order_list' => $orderRequests,
+        );
+        $response = $this->v1PrivatePostPrivateCancelOrderList (array_merge($request, $params));
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_orders($result, $market, null, null, $params);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

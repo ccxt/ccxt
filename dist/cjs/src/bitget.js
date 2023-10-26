@@ -40,6 +40,7 @@ class bitget extends bitget$1 {
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -6369,6 +6370,147 @@ class bitget extends bitget$1 {
             'currency': this.safeCurrencyCode(currencyId, currency),
             'rate': interestRate,
             'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'info': info,
+        };
+    }
+    async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchBorrowInterest
+         * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-interest-records
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-interest-records
+         * @param {string} [code] unified currency code
+         * @param {string} [symbol] unified market symbol when fetching interest in isolated markets
+         * @param {int} [since] the earliest time in ms to fetch borrow interest for
+         * @param {int} [limit] the maximum number of structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {object[]} a list of [borrow interest structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-interest-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        else {
+            request['startTime'] = this.milliseconds() - 7776000000;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        let response = undefined;
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchBorrowInterest', params, 'cross');
+        if (marginMode === 'isolated') {
+            this.checkRequiredSymbol('fetchBorrowInterest', symbol);
+            request['symbol'] = market['info']['symbolName'];
+            response = await this.privateMarginGetIsolatedInterestList(this.extend(request, params));
+        }
+        else if (marginMode === 'cross') {
+            response = await this.privateMarginGetCrossInterestList(this.extend(request, params));
+        }
+        //
+        // isolated
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1698282523888,
+        //         "data": {
+        //             "resultList": [
+        //                 {
+        //                     "interestId": "1100560904468705284",
+        //                     "interestCoin": "USDT",
+        //                     "interestRate": "0.000126279",
+        //                     "loanCoin": "USDT",
+        //                     "amount": "0.00000298",
+        //                     "type": "scheduled",
+        //                     "symbol": "BTCUSDT",
+        //                     "ctime": "1698120000000"
+        //                 },
+        //             ],
+        //             "maxId": "1100560904468705284",
+        //             "minId": "1096915487398965249"
+        //         }
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1698282552126,
+        //         "data": {
+        //             "resultList": [
+        //                 {
+        //                     "interestId": "1099126154352799744",
+        //                     "interestCoin": "USDT",
+        //                     "interestRate": "0.000126279",
+        //                     "loanCoin": "USDT",
+        //                     "amount": "0.00002631",
+        //                     "type": "scheduled",
+        //                     "ctime": "1697778000000"
+        //                 },
+        //             ],
+        //             "maxId": "1099126154352799744",
+        //             "minId": "1096917004629716993"
+        //         }
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        const rows = this.safeValue(data, 'resultList', []);
+        const interest = this.parseBorrowInterests(rows, market);
+        return this.filterByCurrencySinceLimit(interest, code, since, limit);
+    }
+    parseBorrowInterest(info, market = undefined) {
+        //
+        // isolated
+        //
+        //     {
+        //         "interestId": "1100560904468705284",
+        //         "interestCoin": "USDT",
+        //         "interestRate": "0.000126279",
+        //         "loanCoin": "USDT",
+        //         "amount": "0.00000298",
+        //         "type": "scheduled",
+        //         "symbol": "BTCUSDT",
+        //         "ctime": "1698120000000"
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "interestId": "1099126154352799744",
+        //         "interestCoin": "USDT",
+        //         "interestRate": "0.000126279",
+        //         "loanCoin": "USDT",
+        //         "amount": "0.00002631",
+        //         "type": "scheduled",
+        //         "ctime": "1697778000000"
+        //     }
+        //
+        const marketId = this.safeString(info, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const marginMode = (marketId !== undefined) ? 'isolated' : 'cross';
+        const timestamp = this.safeInteger(info, 'ctime');
+        return {
+            'symbol': this.safeString(market, 'symbol'),
+            'marginMode': marginMode,
+            'currency': this.safeCurrencyCode(this.safeString(info, 'interestCoin')),
+            'interest': this.safeNumber(info, 'amount'),
+            'interestRate': this.safeNumber(info, 'interestRate'),
+            'amountBorrowed': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': info,
