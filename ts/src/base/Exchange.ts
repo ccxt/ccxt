@@ -1,7 +1,66 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable */
 
-import * as functions from './functions.js'
+import * as functions from './functions.js';
+import { inArray as inArrayFunc, keys as keysFunc, values as valuesFunc, vwap as vwapFunc } from './functions.js';
+// import exceptions from "./errors.js"
+import {
+    ArgumentsRequired,
+    AuthenticationError,
+    BadRequest,
+    BadResponse,
+    BadSymbol,
+    DDoSProtection,
+    ExchangeError,
+    ExchangeNotAvailable,
+    InvalidAddress,
+    InvalidOrder,
+    NetworkError,
+    NotSupported,
+    NullResponse,
+    RateLimitExceeded,
+    RequestTimeout
+} from "./errors.js";
+
+import { Precise } from './Precise.js';
+
+//-----------------------------------------------------------------------------
+import WsClient from './ws/WsClient.js';
+import { createFuture, Future } from './ws/Future.js';
+import { CountedOrderBook, IndexedOrderBook, OrderBook as WsOrderBook } from './ws/OrderBook.js';
+
+// ----------------------------------------------------------------------------
+//
+// import types
+import {
+    Balance,
+    Balances,
+    Currency,
+    DepositAddressResponse,
+    Dictionary,
+    Fee,
+    FundingRateHistory,
+    IndexType,
+    Int,
+    Liquidation,
+    Market,
+    MinMax,
+    OHLCV,
+    OHLCVC,
+    OpenInterest,
+    Order,
+    OrderBook,
+    OrderRequest,
+    OrderSide,
+    OrderType,
+    Position,
+    Ticker,
+    Trade,
+    Transaction
+} from './types.js';
+// ----------------------------------------------------------------------------
+// move this elsewhere
+import totp from './functions/totp.js';
 
 const {
     aggregate,
@@ -105,52 +164,32 @@ const {
     ymdhms,
     yymmdd,
     yyyymmdd
-} = functions
+} = functions;
 
-import {
-    keys as keysFunc,
-    values as valuesFunc,
-    inArray as inArrayFunc,
-    vwap as vwapFunc
-} from './functions.js'
-// import exceptions from "./errors.js"
-
-import { // eslint-disable-line object-curly-newline
-    ArgumentsRequired,
-    AuthenticationError,
-    BadRequest,
-    BadResponse,
-    BadSymbol,
-    DDoSProtection,
-    ExchangeError,
-    ExchangeNotAvailable,
-    InvalidAddress,
-    InvalidOrder,
-    NetworkError,
-    NotSupported,
-    NullResponse,
-    RateLimitExceeded,
-    RequestTimeout
-} from "./errors.js"
-
-import { Precise } from './Precise.js'
-
-//-----------------------------------------------------------------------------
-import WsClient from './ws/WsClient.js';
-import { createFuture, Future } from './ws/Future.js';
-import { CountedOrderBook, IndexedOrderBook, OrderBook as WsOrderBook } from './ws/OrderBook.js';
-
-// ----------------------------------------------------------------------------
-//
-
-// import types
-import { Balance, Balances, Currency, DepositAddressResponse, Dictionary, Fee, FundingRateHistory, IndexType, Int, Liquidation, Market, MinMax, OHLCV, OHLCVC, Order, OrderBook, OrderSide, OpenInterest, OrderRequest, OrderType, Position, Ticker, Trade, Transaction } from './types.js';
-export {Balance, Balances, Currency, DepositAddressResponse, Dictionary, Fee, FundingRateHistory, IndexType, Int, Liquidation, Market, MinMax, OHLCV, OHLCVC, Order, OrderBook, OrderSide, OrderType, Position, Ticker, Trade, Transaction} from './types.js'
-
-// ----------------------------------------------------------------------------
-// move this elsewhere
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './ws/Cache.js'
-import totp from './functions/totp.js';
+export {
+    Balance,
+    Balances,
+    Currency,
+    DepositAddressResponse,
+    Dictionary,
+    Fee,
+    FundingRateHistory,
+    IndexType,
+    Int,
+    Liquidation,
+    Market,
+    MinMax,
+    OHLCV,
+    OHLCVC,
+    Order,
+    OrderBook,
+    OrderSide,
+    OrderType,
+    Position,
+    Ticker,
+    Trade,
+    Transaction
+} from './types.js';
 
 // ----------------------------------------------------------------------------
 /**
@@ -159,9 +198,9 @@ import totp from './functions/totp.js';
 export default class Exchange {
     options: {
         [key: string]: any;
-    }
+    };
 
-    api = undefined
+    api = undefined;
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     http_proxy: string;
@@ -190,30 +229,30 @@ export default class Exchange {
         'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
     };
     headers: any = {};
-    origin = '*' // CORS origin
+    origin = '*'; // CORS origin
     //
     agent = undefined; // maintained for backwards compatibility
 
-    handleContentTypeApplicationZip = false
-    minFundingAddressLength = 1 // used in checkAddress
-    number = Number // or String (a pointer to a function)
-    quoteJsonNumbers = true // treat numbers in json as quoted precise strings
-    substituteCommonCurrencyCodes = true  // reserved
+    handleContentTypeApplicationZip = false;
+    minFundingAddressLength = 1; // used in checkAddress
+    number = Number; // or String (a pointer to a function)
+    quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
+    substituteCommonCurrencyCodes = true;  // reserved
 
     // whether fees should be summed by currency code
-    reduceFees = true
+    reduceFees = true;
 
     // do not delete this line, it is needed for users to be able to define their own fetchImplementation
-    AbortError: any
-    FetchError: any
-    fetchImplementation: any
+    AbortError: any;
+    FetchError: any;
+    fetchImplementation: any;
 
-    validateClientSsl = false
-    validateServerSsl = true
+    validateClientSsl = false;
+    validateServerSsl = true;
 
-    timeout       = 10000 // milliseconds
-    twofa         = undefined // two-factor authentication (2FA)
-    verbose       = false
+    timeout = 10000; // milliseconds
+    twofa = undefined; // two-factor authentication (2FA)
+    verbose = false;
 
     apiKey: string;
     login: string;
@@ -224,16 +263,16 @@ export default class Exchange {
     uid: string;
     walletAddress: string; // a wallet address "0x"-prefixed hexstring
 
-    balance = {}
-    myTrades: any
-    ohlcvs: any
-    orderbooks = {}
-    orders = undefined
-    positions = {}
-    tickers = {}
-    trades: any
-    transactions = {}
-    triggerOrders = undefined
+    balance = {};
+    myTrades: any;
+    ohlcvs: any;
+    orderbooks = {};
+    orders = undefined;
+    positions = {};
+    tickers = {};
+    trades: any;
+    transactions = {};
+    triggerOrders = undefined;
     urls: {
         api?: string | Dictionary<string>;
         api_management?: string;
@@ -249,22 +288,22 @@ export default class Exchange {
         amount: number | undefined,
         price: number | undefined
     };
-    requiresEddsa = false
-    requiresWeb3 = false
+    requiresEddsa = false;
+    requiresWeb3 = false;
 
-    enableLastHttpResponse = true
-    enableLastJsonResponse = true
-    enableLastResponseHeaders = true
-    last_http_response = undefined
-    last_json_response = undefined
-    last_response_headers = undefined
+    enableLastHttpResponse = true;
+    enableLastJsonResponse = true;
+    enableLastResponseHeaders = true;
+    last_http_response = undefined;
+    last_json_response = undefined;
+    last_response_headers = undefined;
 
-    id: string = undefined
+    id: string = undefined;
 
-    has: Dictionary<boolean | 'emulated'>
-    markets: Dictionary<any> = undefined
+    has: Dictionary<boolean | 'emulated'>;
+    markets: Dictionary<any> = undefined;
 
-    status = undefined
+    status = undefined;
 
     requiredCredentials: {
         apiKey: boolean;
@@ -279,10 +318,10 @@ export default class Exchange {
     };
     enableRateLimit: boolean = undefined;
     rateLimit: number = undefined; // milliseconds
-    throttler = undefined
-    tokenBucket = undefined
+    throttler = undefined;
+    tokenBucket = undefined;
 
-    httpExceptions = undefined
+    httpExceptions = undefined;
 
     limits: {
         amount?: MinMax,
@@ -296,140 +335,140 @@ export default class Exchange {
     markets_by_id: Dictionary<any> = undefined;
     symbols: string[] = undefined;
 
-    baseCurrencies = undefined
-    codes = undefined
-    currencies_by_id = undefined
-    quoteCurrencies = undefined
+    baseCurrencies = undefined;
+    codes = undefined;
+    currencies_by_id = undefined;
+    quoteCurrencies = undefined;
 
-    marketsLoading = undefined
-    reloadingMarkets = undefined
+    marketsLoading = undefined;
+    reloadingMarkets = undefined;
 
-    accounts = undefined
-    accountsById = undefined
+    accounts = undefined;
+    accountsById = undefined;
 
-    commonCurrencies = undefined
+    commonCurrencies = undefined;
 
     hostname: string = undefined;
 
-    paddingMode = undefined
+    paddingMode = undefined;
     precisionMode: number = undefined;
 
-    exceptions = {}
-    timeframes: Dictionary<number | string> = {}
+    exceptions = {};
+    timeframes: Dictionary<number | string> = {};
 
     version: string = undefined;
 
-    marketsByAltname = undefined
+    marketsByAltname = undefined;
 
-    name: string = undefined
+    name: string = undefined;
 
     lastRestRequestTimestamp: number;
 
-    targetAccount = undefined
+    targetAccount = undefined;
 
-    stablePairs = {}
+    stablePairs = {};
 
     // WS/PRO options
-    aggregate = aggregate
-    arrayConcat = arrayConcat
-    base16ToBinary = base16ToBinary
-    base58ToBinary = base58ToBinary
-    base64ToBinary = base64ToBinary
-    base64ToString = base64ToString
-    binaryConcat = binaryConcat
-    binaryConcatArray = binaryConcatArray
-    binaryToBase16 = binaryToBase16
-    binaryToBase58 = binaryToBase58
-    binaryToBase64 = binaryToBase64
-    capitalize = capitalize
-    clients = {}
-    clone = clone
-    crc32 = crc32
-    decimalToPrecision = decimalToPrecision
-    decode = decode
-    deepExtend = deepExtend
-    encode = encode
-    extend = extend
-    extractParams = extractParams
-    filterBy = filterBy
-    flatten = flatten
-    groupBy = groupBy
-    hash = hash
-    hmac = hmac
-    implodeParams = implodeParams
-    inArray = inArray
-    indexBy = indexBy
-    isArray = inArrayFunc
-    isEmpty = isEmpty
-    isJsonEncodedObject = isJsonEncodedObject
-    isNode = isNode
-    iso8601 = iso8601
-    json = json
-    keys = keysFunc
-    keysort = keysort
-    merge = merge
-    microseconds = microseconds
-    milliseconds = milliseconds
-    newUpdates = true
-    now = now
-    numberToBE = numberToBE
-    numberToLE = numberToLE
-    numberToString = numberToString
-    omit = omit
-    omitZero = omitZero
-    ordered = ordered
-    parse8601 = parse8601
-    parseDate = parseDate
-    parseTimeframe = parseTimeframe
-    precisionFromString = precisionFromString
-    rawencode = rawencode
-    safeFloat = safeFloat
-    safeFloat2 = safeFloat2
-    safeFloatN = safeFloatN
-    safeInteger = safeInteger
-    safeInteger2 = safeInteger2
-    safeIntegerN = safeIntegerN
-    safeIntegerProduct = safeIntegerProduct
-    safeIntegerProduct2 = safeIntegerProduct2
-    safeIntegerProductN = safeIntegerProductN
-    safeString = safeString
-    safeString2 = safeString2
-    safeStringLower = safeStringLower
-    safeStringLower2 = safeStringLower2
-    safeStringLowerN = safeStringLowerN
-    safeStringN = safeStringN
-    safeStringUpper = safeStringUpper
-    safeStringUpper2 = safeStringUpper2
-    safeStringUpperN = safeStringUpperN
-    safeTimestamp = safeTimestamp
-    safeTimestamp2 = safeTimestamp2
-    safeTimestampN = safeTimestampN
-    safeValue = safeValue
-    safeValue2 = safeValue2
-    safeValueN = safeValueN
-    seconds = seconds
-    sortBy = sortBy
-    sortBy2 = sortBy2
-    streaming = {}
-    stringToBase64 = stringToBase64
-    strip = strip
-    sum = sum
-    toArray = toArray
-    unCamelCase = unCamelCase
-    unique = unique
-    urlencode = urlencode
-    urlencodeNested = urlencodeNested
-    urlencodeWithArrayRepeat = urlencodeWithArrayRepeat
-    uuid = uuid
-    uuid16 = uuid16
-    uuid22 = uuid22
-    uuidv1 = uuidv1
-    values = valuesFunc
-    vwap = vwapFunc
-    ymd = ymd
-    ymdhms = ymdhms
-    yymmdd = yymmdd
-    yyyymmdd = yyyymmdd
+    aggregate = aggregate;
+    arrayConcat = arrayConcat;
+    base16ToBinary = base16ToBinary;
+    base58ToBinary = base58ToBinary;
+    base64ToBinary = base64ToBinary;
+    base64ToString = base64ToString;
+    binaryConcat = binaryConcat;
+    binaryConcatArray = binaryConcatArray;
+    binaryToBase16 = binaryToBase16;
+    binaryToBase58 = binaryToBase58;
+    binaryToBase64 = binaryToBase64;
+    capitalize = capitalize;
+    clients = {};
+    clone = clone;
+    crc32 = crc32;
+    decimalToPrecision = decimalToPrecision;
+    decode = decode;
+    deepExtend = deepExtend;
+    encode = encode;
+    extend = extend;
+    extractParams = extractParams;
+    filterBy = filterBy;
+    flatten = flatten;
+    groupBy = groupBy;
+    hash = hash;
+    hmac = hmac;
+    implodeParams = implodeParams;
+    inArray = inArray;
+    indexBy = indexBy;
+    isArray = inArrayFunc;
+    isEmpty = isEmpty;
+    isJsonEncodedObject = isJsonEncodedObject;
+    isNode = isNode;
+    iso8601 = iso8601;
+    json = json;
+    keys = keysFunc;
+    keysort = keysort;
+    merge = merge;
+    microseconds = microseconds;
+    milliseconds = milliseconds;
+    newUpdates = true;
+    now = now;
+    numberToBE = numberToBE;
+    numberToLE = numberToLE;
+    numberToString = numberToString;
+    omit = omit;
+    omitZero = omitZero;
+    ordered = ordered;
+    parse8601 = parse8601;
+    parseDate = parseDate;
+    parseTimeframe = parseTimeframe;
+    precisionFromString = precisionFromString;
+    rawencode = rawencode;
+    safeFloat = safeFloat;
+    safeFloat2 = safeFloat2;
+    safeFloatN = safeFloatN;
+    safeInteger = safeInteger;
+    safeInteger2 = safeInteger2;
+    safeIntegerN = safeIntegerN;
+    safeIntegerProduct = safeIntegerProduct;
+    safeIntegerProduct2 = safeIntegerProduct2;
+    safeIntegerProductN = safeIntegerProductN;
+    safeString = safeString;
+    safeString2 = safeString2;
+    safeStringLower = safeStringLower;
+    safeStringLower2 = safeStringLower2;
+    safeStringLowerN = safeStringLowerN;
+    safeStringN = safeStringN;
+    safeStringUpper = safeStringUpper;
+    safeStringUpper2 = safeStringUpper2;
+    safeStringUpperN = safeStringUpperN;
+    safeTimestamp = safeTimestamp;
+    safeTimestamp2 = safeTimestamp2;
+    safeTimestampN = safeTimestampN;
+    safeValue = safeValue;
+    safeValue2 = safeValue2;
+    safeValueN = safeValueN;
+    seconds = seconds;
+    sortBy = sortBy;
+    sortBy2 = sortBy2;
+    streaming = {};
+    stringToBase64 = stringToBase64;
+    strip = strip;
+    sum = sum;
+    toArray = toArray;
+    unCamelCase = unCamelCase;
+    unique = unique;
+    urlencode = urlencode;
+    urlencodeNested = urlencodeNested;
+    urlencodeWithArrayRepeat = urlencodeWithArrayRepeat;
+    uuid = uuid;
+    uuid16 = uuid16;
+    uuid22 = uuid22;
+    uuidv1 = uuidv1;
+    values = valuesFunc;
+    vwap = vwapFunc;
+    ymd = ymd;
+    ymdhms = ymdhms;
+    yymmdd = yymmdd;
+    yyyymmdd = yyyymmdd;
 
     describe () {
         return {
@@ -640,11 +679,11 @@ export default class Exchange {
                 'logo': undefined,
                 'www': undefined,
             },
-        } // return
+        }; // return
     } // describe ()
 
     constructor (userConfig = {}) {
-        Object.assign (this, functions)
+        Object.assign (this, functions);
         //
         //     if (isNode) {
         //         this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
@@ -658,99 +697,99 @@ export default class Exchange {
         this.options = this.getDefaultOptions (); // exchange-specific options, if any
         // fetch implementation options (JS only)
         // http properties
-        this.headers = {}
-        this.origin = '*' // CORS origin
+        this.headers = {};
+        this.origin = '*'; // CORS origin
         // underlying properties
-        this.handleContentTypeApplicationZip = false
-        this.minFundingAddressLength = 1 // used in checkAddress
-        this.number = Number // or String (a pointer to a function)
-        this.quoteJsonNumbers = true // treat numbers in json as quoted precise strings
-        this.substituteCommonCurrencyCodes = true  // reserved
+        this.handleContentTypeApplicationZip = false;
+        this.minFundingAddressLength = 1; // used in checkAddress
+        this.number = Number; // or String (a pointer to a function)
+        this.quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
+        this.substituteCommonCurrencyCodes = true;  // reserved
         // whether fees should be summed by currency code
-        this.reduceFees = true
+        this.reduceFees = true;
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
-        this.fetchImplementation = undefined
-        this.validateClientSsl = false
-        this.validateServerSsl = true
+        this.fetchImplementation = undefined;
+        this.validateClientSsl = false;
+        this.validateServerSsl = true;
         // default property values
-        this.timeout       = 10000 // milliseconds
-        this.twofa         = undefined // two-factor authentication (2FA)
-        this.verbose       = false
+        this.timeout = 10000; // milliseconds
+        this.twofa = undefined; // two-factor authentication (2FA)
+        this.verbose = false;
         // default credentials
-        this.apiKey = undefined
-        this.login = undefined
-        this.password = undefined
-        this.privateKey = undefined // a "0x"-prefixed hexstring private key for a wallet
-        this.secret = undefined
-        this.token = undefined // reserved for HTTP auth in some cases
-        this.uid = undefined
-        this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
+        this.apiKey = undefined;
+        this.login = undefined;
+        this.password = undefined;
+        this.privateKey = undefined; // a "0x"-prefixed hexstring private key for a wallet
+        this.secret = undefined;
+        this.token = undefined; // reserved for HTTP auth in some cases
+        this.uid = undefined;
+        this.walletAddress = undefined; // a wallet address "0x"-prefixed hexstring
         // placeholders for cached data
-        this.balance = {}
-        this.myTrades = undefined
-        this.ohlcvs = {}
-        this.orderbooks = {}
-        this.orders = undefined
-        this.positions = {}
-        this.tickers = {}
-        this.trades = {}
-        this.transactions = {}
+        this.balance = {};
+        this.myTrades = undefined;
+        this.ohlcvs = {};
+        this.orderbooks = {};
+        this.orders = undefined;
+        this.positions = {};
+        this.tickers = {};
+        this.trades = {};
+        this.transactions = {};
         // web3 and cryptography flags
-        this.requiresEddsa = false
-        this.requiresWeb3 = false
+        this.requiresEddsa = false;
+        this.requiresWeb3 = false;
         // response handling flags and properties
-        this.enableLastHttpResponse = true
-        this.enableLastJsonResponse = true
-        this.enableLastResponseHeaders = true
-        this.last_http_response = undefined
-        this.last_json_response = undefined
-        this.last_response_headers = undefined
-        this.lastRestRequestTimestamp = 0
+        this.enableLastHttpResponse = true;
+        this.enableLastJsonResponse = true;
+        this.enableLastResponseHeaders = true;
+        this.last_http_response = undefined;
+        this.last_json_response = undefined;
+        this.last_response_headers = undefined;
+        this.lastRestRequestTimestamp = 0;
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
-                const ownPropertyNames = Object.getOwnPropertyNames (obj)
+                const ownPropertyNames = Object.getOwnPropertyNames (obj);
                 for (let i = 0; i < ownPropertyNames.length; i++) {
-                    const k = ownPropertyNames[i]
-                    this[unCamelCase (k)] = this[k]
+                    const k = ownPropertyNames[i];
+                    this[unCamelCase (k)] = this[k];
                 }
-                unCamelCaseProperties (Object.getPrototypeOf (obj))
+                unCamelCaseProperties (Object.getPrototypeOf (obj));
             }
-        }
-        unCamelCaseProperties ()
+        };
+        unCamelCaseProperties ();
         // merge constructor overrides to this instance
-        const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig))
+        const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig));
         for (let i = 0; i < configEntries.length; i++) {
-            const [ property, value ] = configEntries[i]
+            const [ property, value ] = configEntries[i];
             if (value && Object.getPrototypeOf (value) === Object.prototype) {
-                this[property] = this.deepExtend (this[property], value)
+                this[property] = this.deepExtend (this[property], value);
             } else {
-                this[property] = value
+                this[property] = value;
             }
         }
         // http client options
         const agentOptions = {
             'keepAlive': true,
-        }
+        };
         // ssl options
         if (!this.validateServerSsl) {
             agentOptions['rejectUnauthorized'] = false;
         }
         // generate old metainfo interface
-        const hasKeys = Object.keys (this.has)
+        const hasKeys = Object.keys (this.has);
         for (let i = 0; i < hasKeys.length; i++) {
-            const k = hasKeys[i]
-            this['has' + this.capitalize (k)] = !!this.has[k] // converts 'emulated' to true
+            const k = hasKeys[i];
+            this['has' + this.capitalize (k)] = !!this.has[k]; // converts 'emulated' to true
         }
         // generate implicit api
         if (this.api) {
-            this.defineRestApi (this.api, 'request')
+            this.defineRestApi (this.api, 'request');
         }
         // init the request rate limiter
-        this.initRestRateLimiter ()
+        this.initRestRateLimiter ();
         // init predefined markets if any
         if (this.markets) {
-            this.setMarkets (this.markets)
+            this.setMarkets (this.markets);
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
@@ -759,11 +798,11 @@ export default class Exchange {
 
     encodeURIComponent (... args) {
         // @ts-expect-error
-        return encodeURIComponent (... args)
+        return encodeURIComponent (... args);
     }
 
     checkRequiredVersion (requiredVersion, error = true) {
-        let result = true
+        let result = true;
         const [ major1, minor1, patch1 ] = requiredVersion.split ('.')
             , [ major2, minor2, patch2 ] = (Exchange as any).ccxtVersion.split ('.')
             , intMajor1 = this.parseToInt (major1)
@@ -771,36 +810,36 @@ export default class Exchange {
             , intPatch1 = this.parseToInt (patch1)
             , intMajor2 = this.parseToInt (major2)
             , intMinor2 = this.parseToInt (minor2)
-            , intPatch2 = this.parseToInt (patch2)
+            , intPatch2 = this.parseToInt (patch2);
         if (intMajor1 > intMajor2) {
-            result = false
+            result = false;
         }
         if (intMajor1 === intMajor2) {
             if (intMinor1 > intMinor2) {
-                result = false
+                result = false;
             } else if (intMinor1 === intMinor2 && intPatch1 > intPatch2) {
-                result = false
+                result = false;
             }
         }
         if (!result) {
             if (error) {
-                throw new NotSupported ('Your current version of CCXT is ' + (Exchange as any).ccxtVersion + ', a newer version ' + requiredVersion + ' is required, please, upgrade your version of CCXT')
+                throw new NotSupported ('Your current version of CCXT is ' + (Exchange as any).ccxtVersion + ', a newer version ' + requiredVersion + ' is required, please, upgrade your version of CCXT');
             } else {
-                return error
+                return error;
             }
         }
-        return result
+        return result;
     }
 
     checkAddress (address) {
         if (address === undefined) {
-            throw new InvalidAddress (this.id + ' address is undefined')
+            throw new InvalidAddress (this.id + ' address is undefined');
         }
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         if ((this.unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' ')) {
-            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"')
+            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"');
         }
-        return address
+        return address;
     }
 
     initRestRateLimiter () {
@@ -818,62 +857,62 @@ export default class Exchange {
     }
 
     throttle (cost = undefined) {
-        return this.throttler.throttle (cost)
+        return this.throttler.throttle (cost);
     }
 
     defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
-        const splitPath = path.split (/[^a-zA-Z0-9]/)
-        const camelcaseSuffix = splitPath.map (this.capitalize).join ('')
-        const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_')
-        const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('')
-        const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ()).filter ((x) => x.length > 0)).join ('_')
-        const camelcase = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix)
-        const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix
-        const typeArgument = (paths.length > 1) ? paths : paths[0]
+        const splitPath = path.split (/[^a-zA-Z0-9]/);
+        const camelcaseSuffix = splitPath.map (this.capitalize).join ('');
+        const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_');
+        const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('');
+        const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ()).filter ((x) => x.length > 0)).join ('_');
+        const camelcase = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix);
+        const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix;
+        const typeArgument = (paths.length > 1) ? paths : paths[0];
         // handle call costs here
-        const partial = async (params = {}, context = {}) => this[methodName] (path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context)
+        const partial = async (params = {}, context = {}) => this[methodName] (path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context);
         // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
-        this[camelcase] = partial
-        this[underscore] = partial
+        this[camelcase] = partial;
+        this[underscore] = partial;
     }
 
     defineRestApi (api, methodName, paths = []) {
-        const keys = Object.keys (api)
+        const keys = Object.keys (api);
         for (let i = 0; i < keys.length; i++) {
-            const key = keys[i]
-            const value = api[key]
-            const uppercaseMethod = key.toUpperCase ()
-            const lowercaseMethod = key.toLowerCase ()
-            const camelcaseMethod = this.capitalize (lowercaseMethod)
+            const key = keys[i];
+            const value = api[key];
+            const uppercaseMethod = key.toUpperCase ();
+            const lowercaseMethod = key.toLowerCase ();
+            const camelcaseMethod = this.capitalize (lowercaseMethod);
             if (Array.isArray (value)) {
                 for (let k = 0; k < value.length; k++) {
-                    const path = value[k].trim ()
-                    this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths)
+                    const path = value[k].trim ();
+                    this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths);
                 }
                 // the options HTTP method conflicts with the 'options' API url path
                 // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
             } else if (key.match (/^(?:get|post|put|delete|head|patch)$/i)) {
                 const endpoints = Object.keys (value);
                 for (let j = 0; j < endpoints.length; j++) {
-                    const endpoint = endpoints[j]
-                    const path = endpoint.trim ()
-                    const config = value[endpoint]
+                    const endpoint = endpoints[j];
+                    const path = endpoint.trim ();
+                    const config = value[endpoint];
                     if (typeof config === 'object') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config)
+                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config);
                     } else if (typeof config === 'number') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: config })
+                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: config });
                     } else {
                         throw new NotSupported (this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
                     }
                 }
             } else {
-                this.defineRestApi (value, methodName, paths.concat ([ key ]))
+                this.defineRestApi (value, methodName, paths.concat ([ key ]));
             }
         }
     }
 
     log (... args) {
-        console.log (... args)
+        console.log (... args);
     }
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
@@ -885,16 +924,16 @@ export default class Exchange {
         if (proxyUrl !== undefined) {
             // in node we need to set header to *
             if (isNode) {
-                headers = this.extend ({ 'Origin': this.origin }, headers)
+                headers = this.extend ({ 'Origin': this.origin }, headers);
             }
             url = proxyUrl + url;
         } else if (httpProxy !== undefined) {
-            const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js')
-            const proxyAgent = new module.HttpProxyAgent(httpProxy);
+            const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
+            const proxyAgent = new module.HttpProxyAgent (httpProxy);
             this.agent = proxyAgent;
-        }  else if (httpsProxy !== undefined) {
-            const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js')
-            const proxyAgent = new module.HttpsProxyAgent(httpsProxy);
+        } else if (httpsProxy !== undefined) {
+            const module = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+            const proxyAgent = new module.HttpsProxyAgent (httpsProxy);
             proxyAgent.keepAlive = true;
             this.agent = proxyAgent;
         } else if (socksProxy !== undefined) {
@@ -905,37 +944,37 @@ export default class Exchange {
             } catch (e) {
                 throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" ');
             }
-            this.agent = new module.SocksProxyAgent(socksProxy);
+            this.agent = new module.SocksProxyAgent (socksProxy);
         }
 
         const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
         if (userAgent && isNode) {
             if (typeof userAgent === 'string') {
-                headers = this.extend ({ 'User-Agent': userAgent }, headers)
+                headers = this.extend ({ 'User-Agent': userAgent }, headers);
             } else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
-                headers = this.extend (userAgent, headers)
+                headers = this.extend (userAgent, headers);
             }
         }
-        headers = this.setHeaders (headers)
+        headers = this.setHeaders (headers);
         // ######## end of proxies ########
 
         if (this.verbose) {
-            this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
+            this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n");
         }
         if (this.fetchImplementation === undefined) {
             if (isNode) {
-                const module = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js')
+                const module = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js');
                 if (this.agent === undefined) {
-                    const { Agent } = await import (/* webpackIgnore: true */'node:https')
-                    this.agent = new Agent ({ keepAlive: true })
+                    const { Agent } = await import (/* webpackIgnore: true */'node:https');
+                    this.agent = new Agent ({ keepAlive: true });
                 }
-                this.AbortError = module.AbortError
-                this.fetchImplementation = module.default
-                this.FetchError = module.FetchError
+                this.AbortError = module.AbortError;
+                this.fetchImplementation = module.default;
+                this.FetchError = module.FetchError;
             } else {
-                this.fetchImplementation = self.fetch
-                this.AbortError = DOMException
-                this.FetchError = TypeError
+                this.fetchImplementation = self.fetch;
+                this.AbortError = DOMException;
+                this.FetchError = TypeError;
             }
         }
         // fetchImplementation cannot be called on this. in browsers:
@@ -945,14 +984,14 @@ export default class Exchange {
         if (this.agent) {
             params['agent'] = this.agent;
         }
-        const controller = new AbortController ()
-        params['signal'] = controller.signal
+        const controller = new AbortController ();
+        params['signal'] = controller.signal;
         const timeout = setTimeout (() => {
-            controller.abort ()
-        }, this.timeout)
+            controller.abort ();
+        }, this.timeout);
         try {
-            const response = await fetchImplementation (url, params)
-            clearTimeout (timeout)
+            const response = await fetchImplementation (url, params);
+            clearTimeout (timeout);
             return this.handleRestResponse (response, url, method, headers, body);
         } catch (e) {
             if (e instanceof this.AbortError) {
@@ -960,71 +999,71 @@ export default class Exchange {
             } else if (e instanceof this.FetchError) {
                 throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed');
             }
-            throw e
+            throw e;
         }
     }
 
     parseJson (jsonString) {
         try {
             if (this.isJsonEncodedObject (jsonString)) {
-                return JSON.parse (this.onJsonResponse (jsonString))
+                return JSON.parse (this.onJsonResponse (jsonString));
             }
         } catch (e) {
             // SyntaxError
-            return undefined
+            return undefined;
         }
     }
 
     getResponseHeaders (response) {
-        const result = {}
+        const result = {};
         response.headers.forEach ((value, key) => {
-            key = key.split ('-').map ((word) => this.capitalize (word)).join ('-')
-            result[key] = value
-        })
-        return result
+            key = key.split ('-').map ((word) => this.capitalize (word)).join ('-');
+            result[key] = value;
+        });
+        return result;
     }
 
     handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
-        const responseHeaders = this.getResponseHeaders (response)
+        const responseHeaders = this.getResponseHeaders (response);
         if (this.handleContentTypeApplicationZip && (responseHeaders['Content-Type'] === 'application/zip')) {
             const responseBuffer = response.buffer ();
             if (this.enableLastResponseHeaders) {
-                this.last_response_headers = responseHeaders
+                this.last_response_headers = responseHeaders;
             }
             if (this.enableLastHttpResponse) {
-                this.last_http_response = responseBuffer
+                this.last_http_response = responseBuffer;
             }
             if (this.verbose) {
-                this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "ZIP redacted", "\n")
+                this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "ZIP redacted", "\n");
             }
             // no error handler needed, because it would not be a zip response in case of an error
             return responseBuffer;
         }
         return response.text ().then ((responseBody) => {
             const bodyText = this.onRestResponse (response.status, response.statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody);
-            const json = this.parseJson (bodyText)
+            const json = this.parseJson (bodyText);
             if (this.enableLastResponseHeaders) {
-                this.last_response_headers = responseHeaders
+                this.last_response_headers = responseHeaders;
             }
             if (this.enableLastHttpResponse) {
-                this.last_http_response = responseBody
+                this.last_http_response = responseBody;
             }
             if (this.enableLastJsonResponse) {
-                this.last_json_response = json
+                this.last_json_response = json;
             }
             if (this.verbose) {
-                this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "\nResponseBody:\n", responseBody, "\n")
+                this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "\nResponseBody:\n", responseBody, "\n");
             }
-            const skipFurtherErrorHandling = this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
+            const skipFurtherErrorHandling = this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody);
             if (!skipFurtherErrorHandling) {
-                this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
+                this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody);
             }
-            return json || responseBody
-        })
+            return json || responseBody;
+        });
     }
 
     onRestResponse (statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
-        return responseBody.trim ()
+        return responseBody.trim ();
     }
 
     onJsonResponse (responseBody) {
@@ -1034,32 +1073,32 @@ export default class Exchange {
     async loadMarketsHelper (reload = false, params = {}) {
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
-                return this.setMarkets (this.markets)
+                return this.setMarkets (this.markets);
             }
-            return this.markets
+            return this.markets;
         }
-        let currencies = undefined
+        let currencies = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
-            currencies = await this.fetchCurrencies ()
+            currencies = await this.fetchCurrencies ();
         }
-        const markets = await this.fetchMarkets (params)
-        return this.setMarkets (markets, currencies)
+        const markets = await this.fetchMarkets (params);
+        return this.setMarkets (markets, currencies);
     }
 
     loadMarkets (reload = false, params = {}): Promise<Dictionary<Market>> {
         // this method is async, it returns a promise
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
-            this.reloadingMarkets = true
+            this.reloadingMarkets = true;
             this.marketsLoading = this.loadMarketsHelper (reload, params).then ((resolved) => {
-                this.reloadingMarkets = false
-                return resolved
+                this.reloadingMarkets = false;
+                return resolved;
             }, (error) => {
-                this.reloadingMarkets = false
-                throw error
-            })
+                this.reloadingMarkets = false;
+                throw error;
+            });
         }
-        return this.marketsLoading
+        return this.marketsLoading;
     }
 
     fetchCurrencies (params = {}) {
@@ -1075,21 +1114,21 @@ export default class Exchange {
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
-        return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
+        return new Promise ((resolve, reject) => resolve (Object.values (this.markets)));
     }
 
     checkRequiredDependencies () {
-        return
+        return;
     }
 
     parseNumber (value, d: number = undefined): number {
         if (value === undefined) {
-            return d
+            return d;
         } else {
             try {
-                return this.number (value)
+                return this.number (value);
             } catch (e) {
-                return d
+                return d;
             }
         }
     }
@@ -1122,14 +1161,14 @@ export default class Exchange {
     }
 
     spawn (method, ... args): Future {
-        const future = createFuture ()
-        method.apply (this, args).then (future.resolve).catch (future.reject)
-        return future
+        const future = createFuture ();
+        method.apply (this, args).then (future.resolve).catch (future.reject);
+        return future;
     }
 
     delay (timeout, method, ... args) {
         setTimeout (() => {
-            this.spawn (method, ... args)
+            this.spawn (method, ... args);
         }, timeout);
     }
 
@@ -1230,30 +1269,29 @@ export default class Exchange {
         // (connection established successfully)
         if (!clientSubscription) {
             connected.then (() => {
-                    const options = this.safeValue (this.options, 'ws');
-                    const cost = this.safeValue (options, 'cost', 1);
-                    if (message) {
-                        if (this.enableRateLimit && client.throttle) {
-                            // add cost here |
-                            //               |
-                            //               V
-                            client.throttle (cost).then (() => {
-                                client.send (message);
-                            }).catch ((e) => {
-                                delete client.subscriptions[subscribeHash];
-                                future.reject (e);
-                            });
-                        } else {
-                            client.send (message)
-                            .catch ((e) => {
-                                delete client.subscriptions[subscribeHash];
-                                future.reject (e);
-                            });
-                        }
+                const options = this.safeValue (this.options, 'ws');
+                const cost = this.safeValue (options, 'cost', 1);
+                if (message) {
+                    if (this.enableRateLimit && client.throttle) {
+                        // add cost here |
+                        //               |
+                        //               V
+                        client.throttle (cost).then (() => {
+                            client.send (message);
+                        }).catch ((e) => {
+                            delete client.subscriptions[subscribeHash];
+                            future.reject (e);
+                        });
+                    } else {
+                        client.send (message).catch ((e) => {
+                            delete client.subscriptions[subscribeHash];
+                            future.reject (e);
+                        });
                     }
-                }).catch ((e)=> {
-                    delete client.subscriptions[subscribeHash];
-                    future.reject (e);
+                }
+            }).catch ((e) => {
+                delete client.subscriptions[subscribeHash];
+                future.reject (e);
             });
         }
         return future;
@@ -1287,7 +1325,7 @@ export default class Exchange {
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i] as WsClient;
             delete this.clients[client.url];
-            closedClients.push(client.close ());
+            closedClients.push (client.close ());
         }
         return Promise.all (closedClients);
     }
@@ -1322,8 +1360,8 @@ export default class Exchange {
         }
     }
 
-    convertToBigInt(value: string) {
-        return BigInt(value); // used on XT
+    convertToBigInt (value: string) {
+        return BigInt (value); // used on XT
     }
 
     stringToCharsArray (value) {
@@ -1512,7 +1550,7 @@ export default class Exchange {
         const parsedArray = this.toArray (array) as any;
         let result = parsedArray;
         if (sinceIsDefined) {
-            result = [ ];
+            result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 const value = this.safeValue (entry, key);
@@ -1534,7 +1572,7 @@ export default class Exchange {
         let result = parsedArray;
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            result = [ ];
+            result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 const entryFiledEqualValue = entry[field] === value;
@@ -4685,7 +4723,7 @@ export default class Exchange {
         return res;
     }
 
-    handleMaxEntriesPerRequestAndParams (method: string, maxEntriesPerRequest: Int = undefined, params = {}): [Int, any] {
+    handleMaxEntriesPerRequestAndParams (method: string, maxEntriesPerRequest: Int = undefined, params = {}): [ Int, any ] {
         let newMaxEntriesPerRequest = undefined;
         [ newMaxEntriesPerRequest, params ] = this.handleOptionAndParams (params, method, 'maxEntriesPerRequest');
         if ((newMaxEntriesPerRequest !== undefined) && (newMaxEntriesPerRequest !== maxEntriesPerRequest)) {
