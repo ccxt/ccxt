@@ -57,6 +57,8 @@ export default class bigone extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
+                'setMarginMode': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -2281,6 +2283,120 @@ export default class bigone extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseTransaction (data, currency);
+    }
+
+    async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name bigone#setMarginMode
+         * @description set margin mode to 'cross' or 'isolated'
+         * @param {string} marginMode 'cross' or 'isolated'
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the bigone api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {float} [params.margin]
+         * @param {float} [params.leverage] valid when isCross to be true
+         * @returns {object} response from the exchange
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'isCross': marginMode === 'cross',
+        };
+        return await this.contractPrivatePutPositionsSymbolMargin (this.extend (request, params));
+        //
+        //    {
+        //        "feeRateMaker": -0.0002,
+        //        "id": "5aec8f3f-9846-41af-0005-1b306eeb533a",
+        //        "value": 0,
+        //        "marginRate": 0.01,
+        //        "size": 0,
+        //        "liquidatePrice": 0,
+        //        "markPrice": 11303.14,
+        //        "risk": 0,
+        //        "notional": 0,
+        //        "userId": "5aec525e-335d-4724-0005-20153b361f89",
+        //        "buyingNotional": 0,
+        //        "isCross": true,
+        //        "entryPrice": 0,
+        //        "symbol": "BTCUSD",
+        //        "seqNo": null,
+        //        "sellingNotional": -0.116909,
+        //        "riskLimit": 100,
+        //        "totalPnl": 0,
+        //        "feeRateTaker": 0.0007,
+        //        "sellingSize": -1400,
+        //        "unrealizedPnl": 0,
+        //        "realisedPnl": 0,
+        //        "equity": 0,
+        //        "buyingSize": 0,
+        //        "orderMargin": 0.0013327626,
+        //        "leverage": 100,
+        //        "margin": 0,
+        //        "rom": 0
+        //    }
+        //
+    }
+
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name bigone#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the bigone api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated'
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {float} [params.margin]
+         * @returns {object} response from the exchange
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        const marginMode = this.safeString (params, 'marginMode');
+        if (marginMode !== undefined) {
+            request['isCross'] = marginMode === 'cross';
+        }
+        return await this.contractPrivatePutPositionsSymbolMargin (this.extend (request, params));
+        //
+        //    {
+        //        "feeRateMaker": -0.0002,
+        //        "id": "5aec8f3f-9846-41af-0005-1b306eeb533a",
+        //        "value": 0,
+        //        "marginRate": 0.01,
+        //        "size": 0,
+        //        "liquidatePrice": 0,
+        //        "markPrice": 11303.14,
+        //        "risk": 0,
+        //        "notional": 0,
+        //        "userId": "5aec525e-335d-4724-0005-20153b361f89",
+        //        "buyingNotional": 0,
+        //        "isCross": true,
+        //        "entryPrice": 0,
+        //        "symbol": "BTCUSD",
+        //        "seqNo": null,
+        //        "sellingNotional": -0.116909,
+        //        "riskLimit": 100,
+        //        "totalPnl": 0,
+        //        "feeRateTaker": 0.0007,
+        //        "sellingSize": -1400,
+        //        "unrealizedPnl": 0,
+        //        "realisedPnl": 0,
+        //        "equity": 0,
+        //        "buyingSize": 0,
+        //        "orderMargin": 0.0013327626,
+        //        "leverage": 100,
+        //        "margin": 0,
+        //        "rom": 0
+        //    }
+        //
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
