@@ -811,6 +811,7 @@ class deribit extends deribit$1 {
                             'max': undefined,
                         },
                     },
+                    'created': this.safeInteger(market, 'creation_timestamp'),
                     'info': market,
                 });
             }
@@ -1145,7 +1146,7 @@ class deribit extends deribit$1 {
             const symbol = ticker['symbol'];
             tickers[symbol] = ticker;
         }
-        return this.filterByArray(tickers, 'symbol', symbols);
+        return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**

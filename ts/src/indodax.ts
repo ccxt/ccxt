@@ -5,7 +5,7 @@ import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -630,7 +630,8 @@ export default class indodax extends Exchange {
         const response = await this.privatePostGetOrder (this.extend (request, params));
         const orders = response['return'];
         const order = this.parseOrder (this.extend ({ 'id': id }, orders['order']), market);
-        return this.extend ({ 'info': response }, order);
+        order['info'] = response;
+        return order;
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -671,7 +672,7 @@ export default class indodax extends Exchange {
             const parsedOrders = this.parseOrders (marketOrders, market, since, limit);
             exchangeOrders = this.arrayConcat (exchangeOrders, parsedOrders);
         }
-        return exchangeOrders;
+        return exchangeOrders as Order[];
     }
 
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -699,7 +700,7 @@ export default class indodax extends Exchange {
         const response = await this.privatePostOrderHistory (this.extend (request, params));
         let orders = this.parseOrders (response['return']['orders'], market);
         orders = this.filterBy (orders, 'status', 'closed');
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as any;
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as Order[];
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {

@@ -385,6 +385,7 @@ class zonda extends zonda$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': item,
             });
         }

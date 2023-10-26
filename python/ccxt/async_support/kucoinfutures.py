@@ -179,6 +179,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'transfer-out': 1,  # v2
                         'transfer-in': 1,
                         'orders': 1.33,
+                        'orders/test': 1.33,
                         'position/margin/auto-deposit-status': 1,
                         'position/margin/deposit-margin': 1,
                         'position/risk-limit-level/change': 1,
@@ -516,6 +517,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'max': self.safe_number(market, 'quoteMaxSize'),
                     },
                 },
+                'created': self.safe_integer(market, 'firstOpenDate'),
                 'info': market,
             })
         return result
@@ -844,7 +846,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
 
     async def fetch_position(self, symbol: str, params={}):
         """
-        see https://docs.kucoin.com/futures/#get-position-details
+        :see: https://docs.kucoin.com/futures/#get-position-details
         fetch data on an open position
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
@@ -906,7 +908,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
-        see https://docs.kucoin.com/futures/#get-position-list
+        :see: https://docs.kucoin.com/futures/#get-position-list
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
         :returns dict[]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
@@ -1059,7 +1061,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
-        see https://docs.kucoin.com/futures/#place-an-order
+        :see: https://docs.kucoin.com/futures/#place-an-order
         :param str symbol: Unified CCXT market symbol
         :param str type: 'limit' or 'market'
         :param str side: 'buy' or 'sell'
@@ -1079,6 +1081,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str [params.stop]: 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
         :param str [params.stopPriceType]:  TP, IP or MP, defaults to MP: Mark Price
         :param bool [params.closeOrder]: set to True to close position
+        :param bool [params.test]: set to True to use the test order endpoint(does not submit order, use to validate params)
         :param bool [params.forceHold]: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
@@ -1142,7 +1145,13 @@ class kucoinfutures(kucoin, ImplicitAPI):
             if visibleSize is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a visibleSize parameter for iceberg orders')
         params = self.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])  # Time in force only valid for limit orders, exchange error when gtc for market orders
-        response = await self.futuresPrivatePostOrders(self.extend(request, params))
+        response = None
+        testOrder = self.safe_value(params, 'test', False)
+        params = self.omit(params, 'test')
+        if testOrder:
+            response = await self.futuresPrivatePostOrdersTest(self.extend(request, params))
+        else:
+            response = await self.futuresPrivatePostOrders(self.extend(request, params))
         #
         #    {
         #        code: "200000",
@@ -1152,7 +1161,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data', {})
-        return {
+        return self.safe_order({
             'id': self.safe_string(data, 'orderId'),
             'clientOrderId': None,
             'timestamp': None,
@@ -1175,7 +1184,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'stopPrice': None,
             'triggerPrice': None,
             'info': response,
-        }
+        }, market)
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -1366,8 +1375,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
     async def fetch_orders_by_status(self, status, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches a list of orders placed on the exchange
-        see https://docs.kucoin.com/futures/#get-order-list
-        see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+        :see: https://docs.kucoin.com/futures/#get-order-list
+        :see: https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
         :param str status: 'active' or 'closed', only 'active' is valid for stop orders
         :param str symbol: unified symbol for the market to retrieve orders from
         :param int [since]: timestamp in ms of the earliest order to retrieve
@@ -1465,7 +1474,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
-        see https://docs.kucoin.com/futures/#get-order-list
+        :see: https://docs.kucoin.com/futures/#get-order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -1486,7 +1495,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
     async def fetch_order(self, id=None, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        see https://docs.kucoin.com/futures/#get-details-of-a-single-order
+        :see: https://docs.kucoin.com/futures/#get-details-of-a-single-order
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
@@ -1822,7 +1831,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.kucoin.com/futures/#get-fills
+        :see: https://docs.kucoin.com/futures/#get-fills
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for

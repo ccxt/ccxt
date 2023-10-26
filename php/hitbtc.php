@@ -732,6 +732,7 @@ class hitbtc extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -1030,7 +1031,7 @@ class hitbtc extends Exchange {
             $entry = $response[$marketId];
             $result[$symbol] = $this->parse_ticker($entry, $market);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function parse_ticker($ticker, $market = null) {

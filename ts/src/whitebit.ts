@@ -6,7 +6,7 @@ import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, Invalid
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -386,6 +386,7 @@ export default class whitebit extends Exchange {
                         'max': this.safeNumber (market, 'maxTotal'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push (entry);
@@ -828,7 +829,7 @@ export default class whitebit extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -870,7 +871,7 @@ export default class whitebit extends Exchange {
         //          ]
         //      }
         //
-        const timestamp = this.safeIntegerProduct (response, 'timestamp', 1000);
+        const timestamp = this.safeTimestamp (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
@@ -975,7 +976,7 @@ export default class whitebit extends Exchange {
                 results = this.arrayConcat (results, parsed);
             }
             results = this.sortBy2 (results, 'timestamp', 'id');
-            return this.filterBySinceLimit (results, since, limit, 'timestamp') as any;
+            return this.filterBySinceLimit (results, since, limit, 'timestamp') as Trade[];
         }
     }
 
@@ -1441,7 +1442,7 @@ export default class whitebit extends Exchange {
         }
         results = this.sortBy (results, 'timestamp');
         results = this.filterBySymbolSinceLimit (results, symbol, since, limit);
-        return results;
+        return results as Order[];
     }
 
     parseOrderType (type) {

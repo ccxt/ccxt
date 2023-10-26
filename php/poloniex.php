@@ -550,6 +550,7 @@ class poloniex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => $this->safe_integer($market, 'tradableStartTime'),
                 'info' => $market,
             );
         }
@@ -1014,8 +1015,8 @@ class poloniex extends Exchange {
         //         }
         //     )
         //
-        $result = $this->parse_trades($response, $market);
-        return $this->filter_by_since_limit($result, $since, $limit);
+        $result = $this->parse_trades($response, $market, $since, $limit);
+        return $result;
     }
 
     public function parse_order_status($status) {
@@ -1444,14 +1445,14 @@ class poloniex extends Exchange {
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
-        * fetch an order by it's $id
-        * @see https://docs.poloniex.com/#authenticated-endpoints-orders-order-details
+        * fetch an $order by it's $id
+        * @see https://docs.poloniex.com/#authenticated-endpoints-orders-$order-details
         * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
-        * @param {string} $id order $id
+        * @param {string} $id $order $id
         * @param {string} $symbol unified market $symbol, default is null
         * @param {array} [$params] extra parameters specific to the poloniex api endpoint
-        * @param {boolean} [$params->trigger] true if fetching a trigger order
-        * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+        * @param {boolean} [$params->trigger] true if fetching a trigger $order
+        * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
         */
         $this->load_markets();
         $id = (string) $id;
@@ -1488,9 +1489,9 @@ class poloniex extends Exchange {
         //         "updateTime" => 1646196019020
         //     }
         //
-        return array_merge($this->parse_order($response), array(
-            'id' => $id,
-        ));
+        $order = $this->parse_order($response);
+        $order['id'] = $id;
+        return $order;
     }
 
     public function fetch_order_status(string $id, ?string $symbol = null, $params = array ()) {

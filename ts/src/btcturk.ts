@@ -6,7 +6,7 @@ import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './ba
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, OrderSide, OrderType, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -94,6 +94,7 @@ export default class btcturk extends Exchange {
                         'orderbook': 1,
                         'ticker': 0.1,
                         'trades': 1,   // ?last=COUNT (max 50)
+                        'ohlc': 1,
                         'server/exchangeinfo': 1,
                     },
                 },
@@ -105,6 +106,8 @@ export default class btcturk extends Exchange {
                         'users/transactions/trade': 1,
                     },
                     'post': {
+                        'users/transactions/crypto': 1,
+                        'users/transactions/fiat': 1,
                         'order': 1,
                         'cancelOrder': 1,
                     },
@@ -426,7 +429,7 @@ export default class btcturk extends Exchange {
          */
         await this.loadMarkets ();
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol);
+        return this.safeValue (tickers, symbol) as Ticker;
     }
 
     parseTrade (trade, market = undefined) {
@@ -654,7 +657,7 @@ export default class btcturk extends Exchange {
             results.push (this.parseOHLCV (ohlcv, market));
         }
         const sorted = this.sortBy (results, 0);
-        return this.filterBySinceLimit (sorted, since, limit, 0) as any;
+        return this.filterBySinceLimit (sorted, since, limit, 0) as OHLCV[];
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {

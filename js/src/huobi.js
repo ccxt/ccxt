@@ -1707,6 +1707,13 @@ export default class huobi extends Exchange {
             // 7 Settlement Completed
             // 8 Delivered
             // 9 Suspending of Trade
+            let created = undefined;
+            let createdDate = this.safeString(market, 'create_date'); // i.e 20230101
+            if (createdDate !== undefined) {
+                const createdArray = this.stringToCharsArray(createdDate);
+                createdDate = createdArray[0] + createdArray[1] + createdArray[2] + createdArray[3] + '-' + createdArray[4] + createdArray[5] + '-' + createdArray[6] + createdArray[7] + ' 00:00:00';
+                created = this.parse8601(createdDate);
+            }
             result.push({
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1759,6 +1766,7 @@ export default class huobi extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': created,
                 'info': market,
             });
         }
@@ -2098,7 +2106,7 @@ export default class huobi extends Exchange {
             ticker['datetime'] = this.iso8601(timestamp);
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -3904,14 +3912,12 @@ export default class huobi extends Exchange {
         if (contract && (symbol === undefined)) {
             throw new ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument for ' + marketType + ' orders');
         }
-        let response = undefined;
         if (contract) {
-            response = await this.fetchContractOrders(symbol, since, limit, params);
+            return await this.fetchContractOrders(symbol, since, limit, params);
         }
         else {
-            response = await this.fetchSpotOrders(symbol, since, limit, params);
+            return await this.fetchSpotOrders(symbol, since, limit, params);
         }
-        return response;
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -3944,14 +3950,12 @@ export default class huobi extends Exchange {
         }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
-        let response = undefined;
         if (marketType === 'spot') {
-            response = await this.fetchClosedSpotOrders(symbol, since, limit, params);
+            return await this.fetchClosedSpotOrders(symbol, since, limit, params);
         }
         else {
-            response = await this.fetchClosedContractOrders(symbol, since, limit, params);
+            return await this.fetchClosedContractOrders(symbol, since, limit, params);
         }
-        return response;
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -4652,14 +4656,12 @@ export default class huobi extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('createOrder', market, params);
-        let response = undefined;
         if (marketType === 'spot') {
-            response = await this.createSpotOrder(symbol, type, side, amount, price, query);
+            return await this.createSpotOrder(symbol, type, side, amount, price, query);
         }
         else {
-            response = await this.createContractOrder(symbol, type, side, amount, price, query);
+            return await this.createContractOrder(symbol, type, side, amount, price, query);
         }
-        return response;
     }
     async createSpotOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -4776,7 +4778,7 @@ export default class huobi extends Exchange {
         //     {"status":"ok","data":"438398393065481"}
         //
         const id = this.safeString(response, 'data');
-        return {
+        return this.safeOrder({
             'info': response,
             'id': id,
             'timestamp': undefined,
@@ -4784,10 +4786,10 @@ export default class huobi extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': undefined,
             'symbol': undefined,
-            'type': undefined,
-            'side': undefined,
-            'price': undefined,
-            'amount': undefined,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
             'filled': undefined,
             'remaining': undefined,
             'cost': undefined,
@@ -4795,7 +4797,7 @@ export default class huobi extends Exchange {
             'fee': undefined,
             'clientOrderId': undefined,
             'average': undefined,
-        };
+        }, market);
     }
     async createContractOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**

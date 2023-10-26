@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderRequest
 from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
@@ -52,6 +53,7 @@ class bybit(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createOrders': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -1442,7 +1444,7 @@ class bybit(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(bybit, self).safe_market(marketId, market, delimiter, marketType)
 
-    def get_bybit_type(self, method, market, params):
+    def get_bybit_type(self, method, market, params={}):
         type = None
         type, params = self.handle_market_type_and_params(method, market, params)
         subType = None
@@ -1454,7 +1456,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        see https://bybit-exchange.github.io/docs/v5/market/time
+        :see: https://bybit-exchange.github.io/docs/v5/market/time
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -1476,7 +1478,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        see https://bybit-exchange.github.io/docs/v5/asset/coin-info
+        :see: https://bybit-exchange.github.io/docs/v5/asset/coin-info
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -1599,7 +1601,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for bybit
-        see https://bybit-exchange.github.io/docs/v5/market/instrument
+        :see: https://bybit-exchange.github.io/docs/v5/market/instrument
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -2144,7 +2146,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://bybit-exchange.github.io/docs/v5/market/tickers
+        :see: https://bybit-exchange.github.io/docs/v5/market/tickers
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -2213,7 +2215,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://bybit-exchange.github.io/docs/v5/market/tickers
+        :see: https://bybit-exchange.github.io/docs/v5/market/tickers
         :param str[] symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: an array of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -2294,7 +2296,7 @@ class bybit(Exchange, ImplicitAPI):
             marketInner = self.market(symbol)
             if marketInner['type'] == type:
                 tickers[symbol] = ticker
-        return self.filter_by_array(tickers, 'symbol', symbols)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -2321,10 +2323,10 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://bybit-exchange.github.io/docs/v5/market/kline
-        see https://bybit-exchange.github.io/docs/v5/market/mark-kline
-        see https://bybit-exchange.github.io/docs/v5/market/index-kline
-        see https://bybit-exchange.github.io/docs/v5/market/preimum-index-kline
+        :see: https://bybit-exchange.github.io/docs/v5/market/kline
+        :see: https://bybit-exchange.github.io/docs/v5/market/mark-kline
+        :see: https://bybit-exchange.github.io/docs/v5/market/index-kline
+        :see: https://bybit-exchange.github.io/docs/v5/market/preimum-index-kline
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -2472,7 +2474,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches funding rates for multiple markets
-        see https://bybit-exchange.github.io/docs/v5/market/tickers
+        :see: https://bybit-exchange.github.io/docs/v5/market/tickers
         :param str[] symbols: unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: an array of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
@@ -2546,7 +2548,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical funding rate prices
-        see https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
+        :see: https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
@@ -2681,7 +2683,7 @@ class bybit(Exchange, ImplicitAPI):
             feeToken = self.safe_string(trade, 'feeTokenId')
             feeCurrency = self.safe_currency_code(feeToken)
             fee = {
-                'cost': Precise.string_abs(feeCost),
+                'cost': feeCost,
                 'currency': feeCurrency,
             }
         return self.safe_trade({
@@ -2832,7 +2834,7 @@ class bybit(Exchange, ImplicitAPI):
             else:
                 feeCurrencyCode = market['base'] if market['inverse'] else market['settle']
             fee = {
-                'cost': Precise.string_abs(feeCostString),
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
         return self.safe_trade({
@@ -2854,7 +2856,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://bybit-exchange.github.io/docs/v5/market/recent-trade
+        :see: https://bybit-exchange.github.io/docs/v5/market/recent-trade
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -2908,7 +2910,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://bybit-exchange.github.io/docs/v5/market/orderbook
+        :see: https://bybit-exchange.github.io/docs/v5/market/orderbook
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bybit api endpoint
@@ -3117,9 +3119,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/account-info
-        see https://bybit-exchange.github.io/docs/v5/asset/all-balance
-        see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
+        :see: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/account-info
+        :see: https://bybit-exchange.github.io/docs/v5/asset/all-balance
+        :see: https://bybit-exchange.github.io/docs/v5/account/wallet-balance
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :param str [params.type]: wallet type, ['spot', 'swap', 'fund']
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
@@ -3150,8 +3152,9 @@ class bybit(Exchange, ImplicitAPI):
             # because it requires transfer permission
             request['accountType'] = unifiedType
             response = self.privateGetV5AssetTransferQueryAccountCoinsBalance(self.extend(request, params))
-        request['accountType'] = unifiedType
-        response = self.privateGetV5AccountWalletBalance(self.extend(request, params))
+        else:
+            request['accountType'] = unifiedType
+            response = self.privateGetV5AccountWalletBalance(self.extend(request, params))
         #
         # cross
         #     {
@@ -3376,7 +3379,29 @@ class bybit(Exchange, ImplicitAPI):
         #         "createdTime": "1684476068369",
         #         "updatedTime": "1684476068372"
         #     }
+        # createOrders failed order
+        #    {
+        #        category: 'linear',
+        #        symbol: 'LTCUSDT',
+        #        orderId: '',
+        #        orderLinkId: '',
+        #        createAt: '',
+        #        code: '10001',
+        #        msg: 'The number of contracts exceeds maximum limit allowed: too large'
+        #    }
         #
+        code = self.safe_string(order, 'code')
+        if code is not None:
+            if code != '0':
+                category = self.safe_string(order, 'category')
+                inferedMarketType = 'spot' if (category == 'spot') else 'contract'
+                return self.safe_order({
+                    'info': order,
+                    'status': 'rejected',
+                    'id': self.safe_string(order, 'orderId'),
+                    'clientOrderId': self.safe_string(order, 'orderLinkId'),
+                    'symbol': self.safe_symbol(self.safe_string(order, 'symbol'), None, None, inferedMarketType),
+                })
         marketId = self.safe_string(order, 'symbol')
         isContract = ('tpslMode' in order)
         marketType = None
@@ -3401,9 +3426,14 @@ class bybit(Exchange, ImplicitAPI):
         fee = None
         feeCostString = self.safe_string(order, 'cumExecFee')
         if feeCostString is not None:
+            feeCurrency = None
+            if market['spot']:
+                feeCurrency = market['quote'] if (side == 'buy') else market['base']
+            else:
+                feeCurrency = market['settle']
             fee = {
                 'cost': feeCostString,
-                'currency': market['settle'],
+                'currency': feeCurrency,
             }
         clientOrderId = self.safe_string(order, 'orderLinkId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
@@ -3466,7 +3496,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        see https://bybit-exchange.github.io/docs/v5/order/order-list
+        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
@@ -3479,7 +3509,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.fetch_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            raise OrderNotFound('Order ' + id + ' does not exist.')
+            raise OrderNotFound('Order ' + str(id) + ' does not exist.')
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
         return self.safe_value(result, 0)
@@ -3487,7 +3517,7 @@ class bybit(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://bybit-exchange.github.io/docs/v5/order/create-order
+        :see: https://bybit-exchange.github.io/docs/v5/order/create-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -3513,12 +3543,31 @@ class bybit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         isUsdcSettled = market['settle'] == 'USDC'
         if isUsdcSettled and not isUnifiedAccount:
             return self.create_usdc_order(symbol, type, side, amount, price, params)
+        orderRequest = self.create_order_request(symbol, type, side, amount, price, params)
+        response = self.privatePostV5OrderCreate(orderRequest)  # already extended inside createOrderRequest
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "orderId": "1321003749386327552",
+        #             "orderLinkId": "spot-test-postonly"
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1672211918471
+        #     }
+        #
+        order = self.safe_value(response, 'result', {})
+        return self.parse_order(order, market)
+
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        market = self.market(symbol)
+        symbol = market['symbol']
         lowerCaseType = type.lower()
         if (price is None) and (lowerCaseType == 'limit'):
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
@@ -3633,21 +3682,88 @@ class bybit(Exchange, ImplicitAPI):
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
         params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit'])
-        response = self.privatePostV5OrderCreate(self.extend(request, params))
+        return self.extend(request, params)
+
+    def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :see: https://bybit-exchange.github.io/docs/v5/order/batch-place
+        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        self.load_markets()
+        ordersRequests = []
+        orderSymbols = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            orderSymbols.append(marketId)
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        symbols = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(symbols[0])
+        category = None
+        category, params = self.get_bybit_type('createOrders', market, params)
+        if (category == 'spot') or (category == 'inverse'):
+            raise NotSupported(self.id + ' createOrders does not allow spot or inverse orders')
+        request = {
+            'category': category,
+            'request': ordersRequests,
+        }
+        response = self.privatePostV5OrderCreateBatch(self.extend(request, params))
+        result = self.safe_value(response, 'result', {})
+        data = self.safe_value(result, 'list', [])
+        retInfo = self.safe_value(response, 'retExtInfo', {})
+        codes = self.safe_value(retInfo, 'list', [])
+        # self.extend the error with the unsuccessful orders
+        for i in range(0, len(codes)):
+            code = codes[i]
+            retCode = self.safe_integer(code, 'code')
+            if retCode != 0:
+                data[i] = self.extend(data[i], code)
         #
-        #     {
-        #         "retCode": 0,
-        #         "retMsg": "OK",
-        #         "result": {
-        #             "orderId": "1321003749386327552",
-        #             "orderLinkId": "spot-test-postonly"
-        #         },
-        #         "retExtInfo": {},
-        #         "time": 1672211918471
-        #     }
+        # {
+        #     "retCode":0,
+        #     "retMsg":"OK",
+        #     "result":{
+        #        "list":[
+        #           {
+        #              "category":"linear",
+        #              "symbol":"LTCUSDT",
+        #              "orderId":"",
+        #              "orderLinkId":"",
+        #              "createAt":""
+        #           },
+        #           {
+        #              "category":"linear",
+        #              "symbol":"LTCUSDT",
+        #              "orderId":"3c9f65b6-01ad-4ac0-9741-df17e02a4223",
+        #              "orderLinkId":"",
+        #              "createAt":"1698075516029"
+        #           }
+        #        ]
+        #     },
+        #     "retExtInfo":{
+        #        "list":[
+        #           {
+        #              "code":10001,
+        #              "msg":"The number of contracts exceeds maximum limit allowed: too large"
+        #           },
+        #           {
+        #              "code":0,
+        #              "msg":"OK"
+        #           }
+        #        ]
+        #     },
+        #     "time":1698075516029
+        # }
         #
-        order = self.safe_value(response, 'result', {})
-        return self.parse_order(order, market)
+        return self.parse_orders(data)
 
     def create_usdc_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -3811,9 +3927,9 @@ class bybit(Exchange, ImplicitAPI):
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
-        see https://bybit-exchange.github.io/docs/v5/order/amend-order
-        see https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
-        see https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
+        :see: https://bybit-exchange.github.io/docs/v5/order/amend-order
+        :see: https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
+        :see: https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -3956,7 +4072,7 @@ class bybit(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
-        see https://bybit-exchange.github.io/docs/v5/order/cancel-order
+        :see: https://bybit-exchange.github.io/docs/v5/order/cancel-order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bybit api endpoint
@@ -4053,7 +4169,7 @@ class bybit(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
-        see https://bybit-exchange.github.io/docs/v5/order/cancel-all
+        :see: https://bybit-exchange.github.io/docs/v5/order/cancel-all
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :param boolean [params.stop]: True if stop order
@@ -4208,7 +4324,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
-        see https://bybit-exchange.github.io/docs/v5/order/order-list
+        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -4316,7 +4432,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
-        see https://bybit-exchange.github.io/docs/v5/order/order-list
+        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -4332,7 +4448,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
-        see https://bybit-exchange.github.io/docs/v5/order/order-list
+        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: timestamp in ms of the earliest order, default is None
         :param int [limit]: max number of orders to return, default is None
@@ -4392,7 +4508,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
-        see https://bybit-exchange.github.io/docs/v5/order/open-order
+        :see: https://bybit-exchange.github.io/docs/v5/order/open-order
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
@@ -4492,7 +4608,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all the trades made from a single order
-        see https://bybit-exchange.github.io/docs/v5/position/execution
+        :see: https://bybit-exchange.github.io/docs/v5/position/execution
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -4556,7 +4672,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
-        see https://bybit-exchange.github.io/docs/v5/position/execution
+        :see: https://bybit-exchange.github.io/docs/v5/position/execution
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -4674,7 +4790,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
         fetch a dictionary of addresses for a currency, indexed by network
-        see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
+        :see: https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: a dictionary of `address structures <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>` indexed by the network
@@ -4716,7 +4832,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
-        see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
+        :see: https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
@@ -4760,7 +4876,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
-        see https://bybit-exchange.github.io/docs/v5/asset/deposit-record
+        :see: https://bybit-exchange.github.io/docs/v5/asset/deposit-record
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for, default = 30 days before the current time
         :param int [limit]: the maximum number of deposits structures to retrieve, default = 50, max = 50
@@ -4825,7 +4941,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
-        see https://bybit-exchange.github.io/docs/v5/asset/withdraw-record
+        :see: https://bybit-exchange.github.io/docs/v5/asset/withdraw-record
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -5001,7 +5117,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
-        see https://bybit-exchange.github.io/docs/v5/account/transaction-log
+        :see: https://bybit-exchange.github.io/docs/v5/account/transaction-log
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
@@ -5252,7 +5368,7 @@ class bybit(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
-        see https://bybit-exchange.github.io/docs/v5/asset/withdraw
+        :see: https://bybit-exchange.github.io/docs/v5/asset/withdraw
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -5294,7 +5410,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
-        see https://bybit-exchange.github.io/docs/v5/position
+        :see: https://bybit-exchange.github.io/docs/v5/position
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: a `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
@@ -5439,7 +5555,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
-        see https://bybit-exchange.github.io/docs/v5/position
+        :see: https://bybit-exchange.github.io/docs/v5/position
         :param str[] symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :param str [params.type]: market type, ['swap', 'option', 'spot']
@@ -5729,8 +5845,8 @@ class bybit(Exchange, ImplicitAPI):
     def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
         """
         set margin mode(account) or trade mode(symbol)
-        see https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
-        see https://bybit-exchange.github.io/docs/v5/position/cross-isolate
+        :see: https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
+        :see: https://bybit-exchange.github.io/docs/v5/position/cross-isolate
         :param str marginMode: account mode must be either [isolated, cross, portfolio], trade mode must be either [isolated, cross]
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the bybit api endpoint
@@ -5811,7 +5927,7 @@ class bybit(Exchange, ImplicitAPI):
     def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
-        see https://bybit-exchange.github.io/docs/v5/position/leverage
+        :see: https://bybit-exchange.github.io/docs/v5/position/leverage
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bybit api endpoint
@@ -5854,7 +5970,7 @@ class bybit(Exchange, ImplicitAPI):
     def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
         """
         set hedged to True or False for a market
-        see https://bybit-exchange.github.io/docs/v5/position/position-mode
+        :see: https://bybit-exchange.github.io/docs/v5/position/position-mode
         :param bool hedged:
         :param str symbol: used for unified account with inverse market
         :param dict [params]: extra parameters specific to the bybit api endpoint
@@ -5950,7 +6066,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_open_interest(self, symbol: str, params={}):
         """
         Retrieves the open interest of a derivative trading pair
-        see https://bybit-exchange.github.io/docs/v5/market/open-interest
+        :see: https://bybit-exchange.github.io/docs/v5/market/open-interest
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :param str [params.interval]: 5m, 15m, 30m, 1h, 4h, 1d
@@ -6006,7 +6122,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
-        see https://bybit-exchange.github.io/docs/v5/market/open-interest
+        :see: https://bybit-exchange.github.io/docs/v5/market/open-interest
         :param str symbol: Unified market symbol
         :param str timeframe: "5m", 15m, 30m, 1h, 4h, 1d
         :param int [since]: Not used by Bybit
@@ -6052,7 +6168,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_borrow_rate(self, code: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
-        see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
+        :see: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: a `borrow rate structure <https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure>`
@@ -6103,7 +6219,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
-        see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/account-info
+        :see: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/account-info
         :param str code: unified currency code
         :param str symbol: unified market symbol when fetch interest in isolated markets
         :param number [since]: the earliest time in ms to fetch borrrow interest for
@@ -6170,7 +6286,7 @@ class bybit(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
-        see https://bybit-exchange.github.io/docs/v5/asset/create-inter-transfer
+        :see: https://bybit-exchange.github.io/docs/v5/asset/create-inter-transfer
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -6221,7 +6337,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
-        see https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
+        :see: https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve
@@ -6274,7 +6390,7 @@ class bybit(Exchange, ImplicitAPI):
     def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
-        see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
+        :see: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param str symbol: not used by bybit.borrowMargin()
@@ -6312,7 +6428,7 @@ class bybit(Exchange, ImplicitAPI):
     def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
-        see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
+        :see: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str symbol: not used by bybit.repayMargin()
@@ -6459,7 +6575,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_market_leverage_tiers(self, symbol: str, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-        see https://bybit-exchange.github.io/docs/v5/market/risk-limit
+        :see: https://bybit-exchange.github.io/docs/v5/market/risk-limit
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: a `leverage tiers structure <https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure>`
@@ -6522,7 +6638,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
-        see https://bybit-exchange.github.io/docs/v5/account/fee-rate
+        :see: https://bybit-exchange.github.io/docs/v5/account/fee-rate
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -6560,7 +6676,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        see https://bybit-exchange.github.io/docs/v5/account/fee-rate
+        :see: https://bybit-exchange.github.io/docs/v5/account/fee-rate
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
@@ -6650,7 +6766,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://bybit-exchange.github.io/docs/v5/asset/coin-info
+        :see: https://bybit-exchange.github.io/docs/v5/asset/coin-info
         :param str[] codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -6695,7 +6811,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical settlement records
-        see https://bybit-exchange.github.io/docs/v5/market/delivery-price
+        :see: https://bybit-exchange.github.io/docs/v5/market/delivery-price
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
@@ -6746,7 +6862,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_my_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical settlement records of the user
-        see https://bybit-exchange.github.io/docs/v5/asset/delivery
+        :see: https://bybit-exchange.github.io/docs/v5/asset/delivery
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
@@ -6867,7 +6983,7 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_volatility_history(self, code: str, params={}):
         """
         fetch the historical volatility of an option market based on an underlying asset
-        see https://bybit-exchange.github.io/docs/v5/market/iv
+        :see: https://bybit-exchange.github.io/docs/v5/market/iv
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :param int [params.period]: the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270

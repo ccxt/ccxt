@@ -55,6 +55,7 @@ export interface Market {
         leverage?: MinMax,
         price?: MinMax,
     };
+    created?: number | undefined;
     info: any;
 }
 
@@ -168,6 +169,8 @@ export interface PartialBalances extends Dictionary<number> {
 
 export interface Balances extends Dictionary<Balance> {
     info: any;
+    timestamp?: any; // we need to fix this later
+    datetime?: any;
 }
 
 export interface DepositAddress {
@@ -247,6 +250,15 @@ export interface Liquidation {
     price: number;
     baseValue?: number;
     quoteValue?: number;
+}
+
+export interface OrderRequest {
+    symbol: string;
+    type: string;
+    side: string;
+    amount?: number;
+    price?: number | undefined;
+    params?: any;
 }
 
 /** [ timestamp, open, high, low, close, volume ] */

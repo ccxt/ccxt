@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvaila
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -732,7 +732,7 @@ export default class huobijp extends Exchange {
             ticker['datetime'] = this.iso8601 (timestamp);
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     parseTrade (trade, market = undefined) {
@@ -921,7 +921,7 @@ export default class huobijp extends Exchange {
             }
         }
         result = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as any;
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -1215,7 +1215,7 @@ export default class huobijp extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const method = this.safeString (this.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
-        return await this[method] (symbol, since, limit, params);
+        return await this[method] (symbol, since, limit, params) as Order[];
     }
 
     async fetchOpenOrdersV1 (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1447,7 +1447,7 @@ export default class huobijp extends Exchange {
         const response = await this[method] (this.extend (request, params));
         const timestamp = this.milliseconds ();
         const id = this.safeString (response, 'data');
-        return {
+        return this.safeOrder ({
             'info': response,
             'id': id,
             'timestamp': timestamp,
@@ -1466,7 +1466,7 @@ export default class huobijp extends Exchange {
             'fee': undefined,
             'clientOrderId': undefined,
             'average': undefined,
-        };
+        }, market);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {

@@ -344,7 +344,7 @@ export default class ace extends Exchange {
             const ticker = this.parseTicker (rawTicker, market);
             tickers.push (ticker);
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -895,10 +895,7 @@ export default class ace extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'attachment');
-        const trades = this.safeValue (data, 'trades');
-        if (trades === undefined) {
-            return trades;
-        }
+        const trades = this.safeValue (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1038,7 +1035,7 @@ export default class ace extends Exchange {
                 'timeStamp': nonce,
             }, params);
             const dataKeys = Object.keys (data);
-            const sortedDataKeys = this.sortBy (dataKeys, 0);
+            const sortedDataKeys = this.sortBy (dataKeys, 0, false, '');
             for (let i = 0; i < sortedDataKeys.length; i++) {
                 const key = sortedDataKeys[i];
                 auth += this.safeString (data, key);

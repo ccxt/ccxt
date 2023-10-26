@@ -43,6 +43,7 @@ class okx extends Exchange {
                 'cancelOrders' => true,
                 'createDepositAddress' => false,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -257,6 +258,7 @@ class okx extends Exchange {
                         'trade/orders-history-archive' => 1,
                         'trade/fills' => 1 / 3,
                         'trade/fills-history' => 2.2,
+                        'trade/fills-archive' => 2,
                         'trade/order-algo' => 1,
                         'trade/orders-algo-pending' => 1,
                         'trade/orders-algo-history' => 1,
@@ -323,6 +325,12 @@ class okx extends Exchange {
                         'tradingBot/grid/orders-algo-details' => 1,
                         'tradingBot/grid/sub-orders' => 1,
                         'tradingBot/grid/positions' => 1,
+                        'tradingBot/grid/ai-param' => 1,
+                        'tradingBot/public/rsi-back-testing' => 1,
+                        'tradingBot/signal/orders-algo-details' => 1,
+                        'tradingBot/signal/positions' => 1,
+                        'tradingBot/signal/sub-orders' => 1,
+                        'tradingBot/signal/event-history' => 1,
                         'tradingBot/recurring/orders-algo-pending' => 1,
                         'tradingBot/recurring/orders-algo-history' => 1,
                         'tradingBot/recurring/orders-algo-details' => 1,
@@ -379,6 +387,7 @@ class okx extends Exchange {
                         'trade/amend-order' => 1 / 3,
                         'trade/amend-batch-orders' => 1 / 150,
                         'trade/close-position' => 1,
+                        'trade/fills-archive' => 172800, // 5 req per day = 5/24/60/60 => 10/5*24*60*60=172800
                         'trade/order-algo' => 1,
                         'trade/cancel-algos' => 1,
                         'trade/amend-algos' => 1,
@@ -453,6 +462,7 @@ class okx extends Exchange {
                         'broker/nd/rebate-per-orders' => 36000,
                         'finance/sfp/dcd/quote' => 10,
                         'finance/sfp/dcd/order' => 10,
+                        'broker/nd/report-subaccount-ip' => 0.25,
                         'broker/fd/rebate-per-orders' => 36000,
                     ),
                 ),
@@ -2759,10 +2769,59 @@ class okx extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             $first = $this->safe_value($data, 0);
             $order = $this->parse_order($first, $market);
-            return array_merge($order, array(
-                'type' => $type,
-                'side' => $side,
-            ));
+            $order['type'] = $type;
+            $order['side'] = $side;
+            return $order;
+        }) ();
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-$orders
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $extendedParams = array_merge($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
+                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $response = Async\await($this->privatePostTradeBatchOrders ($ordersRequests));
+            // {
+            //     "code" => "0",
+            //     "data" => array(
+            //        array(
+            //           "clOrdId" => "e847386590ce4dBCc7f2a1b4c4509f82",
+            //           "ordId" => "636305438765568000",
+            //           "sCode" => "0",
+            //           "sMsg" => "Order placed",
+            //           "tag" => "e847386590ce4dBC"
+            //        ),
+            //        {
+            //           "clOrdId" => "e847386590ce4dBC0b9993fe642d8f62",
+            //           "ordId" => "636305438765568001",
+            //           "sCode" => "0",
+            //           "sMsg" => "Order placed",
+            //           "tag" => "e847386590ce4dBC"
+            //        }
+            //     ),
+            //     "inTime" => "1697979038584486",
+            //     "msg" => "",
+            //     "outTime" => "1697979038586493"
+            // }
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_orders($data);
         }) ();
     }
 
@@ -2874,10 +2933,9 @@ class okx extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             $first = $this->safe_value($data, 0);
             $order = $this->parse_order($first, $market);
-            return array_merge($order, array(
-                'type' => $type,
-                'side' => $side,
-            ));
+            $order['type'] = $type;
+            $order['side'] = $side;
+            return $order;
         }) ();
     }
 
@@ -3144,6 +3202,15 @@ class okx extends Exchange {
         //         "uly" => "BTC-USDT"
         //     }
         //
+        $scode = $this->safe_string($order, 'sCode');
+        if (($scode !== null) && ($scode !== '0')) {
+            return $this->safe_order(array(
+                'id' => $this->safe_string($order, 'ordId'),
+                'clientOrderId' => $this->safe_string($order, 'clOrdId'),
+                'status' => 'rejected',
+                'info' => $order,
+            ));
+        }
         $id = $this->safe_string_2($order, 'algoId', 'ordId');
         $timestamp = $this->safe_integer($order, 'cTime');
         $lastUpdateTimestamp = $this->safe_integer($order, 'uTime');
@@ -3921,7 +3988,7 @@ class okx extends Exchange {
                 $market = $this->market($symbol);
                 $request['instId'] = $market['id'];
             }
-            list($request, $params) = $this->handle_until_option('end', $params, $request);
+            list($request, $params) = $this->handle_until_option('end', $request, $params);
             list($type, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
             $request['instType'] = $this->convert_to_instrument_type($type);
             if ($limit !== null) {
@@ -4042,7 +4109,7 @@ class okx extends Exchange {
                 $currency = $this->currency($code);
                 $request['ccy'] = $currency['id'];
             }
-            list($request, $params) = $this->handle_until_option('end', $params, $request);
+            list($request, $params) = $this->handle_until_option('end', $request, $params);
             $response = Async\await($this->$method (array_merge($request, $query)));
             //
             // privateGetAccountBills, privateGetAccountBillsArchive
@@ -4490,7 +4557,7 @@ class okx extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100, max 100
             }
-            list($request, $params) = $this->handle_until_option('after', $params, $request);
+            list($request, $params) = $this->handle_until_option('after', $request, $params);
             $response = Async\await($this->privateGetAssetDepositHistory (array_merge($request, $params)));
             //
             //     {
@@ -5815,6 +5882,7 @@ class okx extends Exchange {
              * @param {string} $marginMode 'cross' or 'isolated'
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {int} [$params->leverage] leverage
              * @return {array} $response from the exchange
              */
             if ($symbol === null) {
@@ -5828,11 +5896,11 @@ class okx extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $lever = $this->safe_integer($params, 'lever');
+            $lever = $this->safe_integer_2($params, 'lever', 'leverage');
             if (($lever === null) || ($lever < 1) || ($lever > 125)) {
                 throw new BadRequest($this->id . ' setMarginMode() $params["lever"] should be between 1 and 125');
             }
-            $params = $this->omit($params, array( 'lever' ));
+            $params = $this->omit($params, array( 'leverage' ));
             $request = array(
                 'lever' => $lever,
                 'mgnMode' => $marginMode,
@@ -6924,7 +6992,7 @@ class okx extends Exchange {
         //    }
         //
         $code = $this->safe_string($response, 'code');
-        if ($code !== '0') {
+        if (($code !== '0') && ($code !== '2')) { // 2 means that bulk operation partially succeeded
             $feedback = $this->id . ' ' . $body;
             $data = $this->safe_value($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {

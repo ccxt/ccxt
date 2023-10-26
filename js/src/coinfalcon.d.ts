@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinfalcon.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, Ticker } from './base/types.js';
 /**
  * @class coinfalcon
  * @extends Exchange
@@ -7,9 +7,9 @@ import { Int, OrderSide, OrderType } from './base/types.js';
 export default class coinfalcon extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTicker(symbol: string, params?: {}): Promise<any>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;

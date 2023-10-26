@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.13';
+$version = '4.1.26';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.13';
+    const VERSION = '4.1.26';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -138,6 +138,7 @@ class Exchange {
     public $fees = array('trading' => array(), 'funding' => array());
     public $precision = array();
     public $orders = null;
+    public $triggerOrders = null;
     public $myTrades = null;
     public $trades = array();
     public $transactions = array();
@@ -792,13 +793,15 @@ class Exchange {
         return $result;
     }
 
-    public static function sort_by($arrayOfArrays, $key, $descending = false) {
+    public static function sort_by($arrayOfArrays, $key, $descending = false, $default = 0) {
         $descending = $descending ? -1 : 1;
-        usort($arrayOfArrays, function ($a, $b) use ($key, $descending) {
-            if ($a[$key] == $b[$key]) {
+        usort($arrayOfArrays, function ($a, $b) use ($key, $descending, $default) {
+            $first = isset($a[$key]) ? $a[$key] : $default;
+            $second = isset($b[$key]) ? $b[$key] : $default;
+            if ($first == $second) {
                 return 0;
             }
-            return $a[$key] < $b[$key] ? -$descending : $descending;
+            return $first < $second ? -$descending : $descending;
         });
         return $arrayOfArrays;
     }
@@ -1274,11 +1277,21 @@ class Exchange {
         return $signature;
     }
 
-    public static function eddsa($request, $secret, $algorithm = 'ed25519') {
+    public static function axolotl($request, $secret, $algorithm = 'ed25519') {
         // this method is experimental ( ͡° ͜ʖ ͡°)
         $curve = new EdDSA($algorithm);
         $signature = $curve->signModified($request, $secret);
         return static::binary_to_base58(static::base16_to_binary($signature->toHex()));
+    }
+
+    public static function eddsa($request, $secret, $algorithm = 'ed25519') {
+        $curve = new EdDSA($algorithm);
+        preg_match('/^-----BEGIN PRIVATE KEY-----\s(\S{64})\s-----END PRIVATE KEY-----$/', $secret, $match);
+        // trim pem header from 48 bytes -> 32 bytes
+        // in hex so 96 chars -> 64 chars
+        $hex_secret = substr(bin2hex(base64_decode($match[1])), 32);
+        $signature = $curve->sign(bin2hex(static::encode($request)), $hex_secret);
+        return static::binary_to_base64(static::base16_to_binary($signature->toHex()));
     }
 
     public function throttle($cost = null) {
@@ -1583,7 +1596,7 @@ class Exchange {
         throw new ExchangeError($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
     }
 
-    public function add_method($function_name, $callback) { 
+    public function add_method($function_name, $callback) {
         $function_name = strtolower($function_name);
         $this->overriden_methods[$function_name] = $callback;
     }
@@ -2061,6 +2074,10 @@ class Exchange {
 
     function parse_to_big_int($value) {
         return intval($value);
+    }
+
+    public function string_to_chars_array ($value) {
+        return str_split($value);
     }
 
     function valueIsDefined($value){
@@ -2581,12 +2598,94 @@ class Exchange {
         ), $currency);
     }
 
+    public function safe_market_structure(?array $market = null) {
+        $cleanStructure = array(
+            'id' => null,
+            'lowercaseId' => null,
+            'symbol' => null,
+            'base' => null,
+            'quote' => null,
+            'settle' => null,
+            'baseId' => null,
+            'quoteId' => null,
+            'settleId' => null,
+            'type' => null,
+            'spot' => null,
+            'margin' => null,
+            'swap' => null,
+            'future' => null,
+            'option' => null,
+            'index' => null,
+            'active' => null,
+            'contract' => null,
+            'linear' => null,
+            'inverse' => null,
+            'taker' => null,
+            'maker' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => null,
+                'price' => null,
+                'cost' => null,
+                'base' => null,
+                'quote' => null,
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => null,
+        );
+        if ($market !== null) {
+            $result = array_merge($cleanStructure, $market);
+            // set null swap/future/etc
+            if ($result['spot']) {
+                if ($result['contract'] === null) {
+                    $result['contract'] = false;
+                }
+                if ($result['swap'] === null) {
+                    $result['swap'] = false;
+                }
+                if ($result['future'] === null) {
+                    $result['future'] = false;
+                }
+                if ($result['option'] === null) {
+                    $result['option'] = false;
+                }
+                if ($result['index'] === null) {
+                    $result['index'] = false;
+                }
+            }
+            return $result;
+        }
+        return $cleanStructure;
+    }
+
     public function set_markets($markets, $currencies = null) {
         $values = array();
         $this->markets_by_id = array();
         // handle marketId conflicts
         // we insert spot $markets first
-        $marketValues = $this->sort_by($this->to_array($markets), 'spot', true);
+        $marketValues = $this->sort_by($this->to_array($markets), 'spot', true, true);
         for ($i = 0; $i < count($marketValues); $i++) {
             $value = $marketValues[$i];
             if (is_array($this->markets_by_id) && array_key_exists($value['id'], $this->markets_by_id)) {
@@ -2634,8 +2733,8 @@ class Exchange {
                     $quoteCurrencies[] = $currency;
                 }
             }
-            $baseCurrencies = $this->sort_by($baseCurrencies, 'code');
-            $quoteCurrencies = $this->sort_by($quoteCurrencies, 'code');
+            $baseCurrencies = $this->sort_by($baseCurrencies, 'code', false, '');
+            $quoteCurrencies = $this->sort_by($quoteCurrencies, 'code', false, '');
             $this->baseCurrencies = $this->index_by($baseCurrencies, 'code');
             $this->quoteCurrencies = $this->index_by($quoteCurrencies, 'code');
             $allCurrencies = $this->array_concat($baseCurrencies, $quoteCurrencies);
@@ -4327,6 +4426,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
     }
 
+    public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOrderBooks() is not supported yet');
+    }
+
     public function watch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchTickers() is not supported yet');
     }
@@ -4352,6 +4455,10 @@ class Exchange {
 
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        throw new NotSupported($this->id . ' createOrders() is not supported yet');
     }
 
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -5266,6 +5373,14 @@ class Exchange {
         /**
          * @ignore
          * Typed wrapper for filterByArray that returns a list of positions
+         */
+        return $this->filter_by_array($objects, $key, $values, $indexed);
+    }
+
+    public function filter_by_array_tickers($objects, int|string $key, $values = null, $indexed = true) {
+        /**
+         * @ignore
+         * Typed wrapper for filterByArray that returns a dictionary of tickers
          */
         return $this->filter_by_array($objects, $key, $values, $indexed);
     }

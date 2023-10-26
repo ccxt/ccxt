@@ -18,10 +18,6 @@ Current feature list:
 - an out of the box unified API that is extremely easy to integrate
 - works in Node 10.4+, Python 3, PHP 8.1+, netstandard2.0/2.1 and web browsers
 
-## Sponsored Promotion
-
-[![CCXT x Gate.io Upgrading Trading Campaign](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/261965226-7278c686-4ed1-4c6e-81aa-81f90a284cbe.jpg)](https://github.com/ccxt/ccxt/issues/18963)
-
 
 ## See Also
 
@@ -139,7 +135,7 @@ The CCXT library currently supports the following 97 cryptocurrency exchange mar
 | [![ndax](https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg)](https://one.ndax.io/bfQiSL)                                                                     | ndax               | [NDAX](https://one.ndax.io/bfQiSL)                                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidoc.ndax.io/)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![novadax](https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg)](https://www.novadax.com.br/?s=ccxt)                                                           | novadax            | [NovaDAX](https://www.novadax.com.br/?s=ccxt)                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://doc.novadax.com/pt-BR/)                                                       |                                                                                                                             |                                                                              |
 | [![oceanex](https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg)](https://oceanex.pro/signup?referral=VE24QX)                                                   | oceanex            | [OceanEx](https://oceanex.pro/signup?referral=VE24QX)                                                   | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.oceanex.pro/doc/v1)                                                       |                                                                                                                             |                                                                              |
-| [![okcoin](https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg)](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                    | okcoin             | [OKCoin](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                     | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.okcoin.com/docs/en/)                                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![okcoin](https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg)](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                    | okcoin             | [OKCoin](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                     | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okcoin.com/docs/en/)                                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![okx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023)                           | okx                | [OKX](https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023)                            | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okx.com/docs-v5/en/)                                                      | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![paymium](https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg)](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)                          | paymium            | [Paymium](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/Paymium/api-documentation)                                         |                                                                                                                             |                                                                              |
 | [![phemex](https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg)](https://phemex.com/register?referralCode=EDNVJ)                                                | phemex             | [Phemex](https://phemex.com/register?referralCode=EDNVJ)                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/phemex/phemex-api-docs)                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -214,13 +210,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.1.13/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@4.1.13/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.1.26/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@4.1.26/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.1.13/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.1.26/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -564,6 +560,10 @@ Thank you!
 - <sub>[![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/dhzSKYU)</sub>
 - [CCXT Channel on Telegram](https://t.me/ccxt_announcements) (important announcements)
 - [CCXT Chat on Telegram](https://t.me/ccxt_chat) (technical support)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=ccxt/ccxt&type=Date)](https://star-history.com/#ccxt/ccxt&Date)
 
 ## Contact Us
 

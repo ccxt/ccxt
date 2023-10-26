@@ -826,6 +826,7 @@ class exmo extends exmo$1 {
                         'max': this.safeNumber(market, 'max_amount'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1129,7 +1130,7 @@ class exmo extends exmo$1 {
             const ticker = this.safeValue(response, marketId);
             result[symbol] = this.parseTicker(ticker, market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -1584,9 +1585,8 @@ class exmo extends exmo$1 {
         //     }
         //
         const order = this.parseOrder(response);
-        return this.extend(order, {
-            'id': id.toString(),
-        });
+        order['id'] = id.toString();
+        return order;
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

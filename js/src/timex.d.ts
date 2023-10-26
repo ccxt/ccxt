@@ -106,6 +106,7 @@ export default class timex extends Exchange {
                 max: any;
             };
         };
+        created: any;
         info: any;
     };
     parseCurrency(currency: any): {

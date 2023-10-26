@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.13'
+__version__ = '4.1.26'
 
 # -----------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import Balance, IndexType, OrderSide, OrderType, Trade
+from ccxt.base.types import Balance, IndexType, OrderSide, OrderType, Trade, OrderRequest
 
 # -----------------------------------------------------------------------------
 
@@ -237,6 +237,7 @@ class Exchange(object):
     balance = None
     orderbooks = None
     orders = None
+    triggerOrders = None
     myTrades = None
     trades = None
     transactions = None
@@ -986,8 +987,8 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def sort_by(array, key, descending=False):
-        return sorted(array, key=lambda k: k[key] if k[key] is not None else "", reverse=descending)
+    def sort_by(array, key, descending=False, default=0):
+        return sorted(array, key=lambda k: k[key] if k[key] is not None else default, reverse=descending)
 
     @staticmethod
     def sort_by_2(array, key1, key2, descending=False):
@@ -1360,6 +1361,11 @@ class Exchange(object):
 
     @staticmethod
     def eddsa(request, secret, curve='ed25519'):
+        private_key = load_pem_private_key(Exchange.encode(secret), None)
+        return Exchange.binary_to_base64(private_key.sign(request))
+
+    @staticmethod
+    def axolotl(request, secret, curve='ed25519'):
         random = b'\x00' * 64
         request = base64.b16decode(request, casefold=True)
         secret = base64.b16decode(secret, casefold=True)
@@ -1647,6 +1653,9 @@ class Exchange(object):
 
     def convert_to_big_int(self, value):
         return int(value) if isinstance(value, str) else value
+
+    def string_to_chars_array(self, value):
+        return list(value)
 
     def valueIsDefined(self, value):
         return value is not None
@@ -2056,12 +2065,86 @@ class Exchange(object):
             },
         }, currency)
 
+    def safe_market_structure(self, market: Optional[object] = None):
+        cleanStructure = {
+            'id': None,
+            'lowercaseId': None,
+            'symbol': None,
+            'base': None,
+            'quote': None,
+            'settle': None,
+            'baseId': None,
+            'quoteId': None,
+            'settleId': None,
+            'type': None,
+            'spot': None,
+            'margin': None,
+            'swap': None,
+            'future': None,
+            'option': None,
+            'index': None,
+            'active': None,
+            'contract': None,
+            'linear': None,
+            'inverse': None,
+            'taker': None,
+            'maker': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': None,
+                'price': None,
+                'cost': None,
+                'base': None,
+                'quote': None,
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': None,
+        }
+        if market is not None:
+            result = self.extend(cleanStructure, market)
+            # set None swap/future/etc
+            if result['spot']:
+                if result['contract'] is None:
+                    result['contract'] = False
+                if result['swap'] is None:
+                    result['swap'] = False
+                if result['future'] is None:
+                    result['future'] = False
+                if result['option'] is None:
+                    result['option'] = False
+                if result['index'] is None:
+                    result['index'] = False
+            return result
+        return cleanStructure
+
     def set_markets(self, markets, currencies=None):
         values = []
         self.markets_by_id = {}
         # handle marketId conflicts
         # we insert spot markets first
-        marketValues = self.sort_by(self.to_array(markets), 'spot', True)
+        marketValues = self.sort_by(self.to_array(markets), 'spot', True, True)
         for i in range(0, len(marketValues)):
             value = marketValues[i]
             if value['id'] in self.markets_by_id:
@@ -2104,8 +2187,8 @@ class Exchange(object):
                         'precision': self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
                     })
                     quoteCurrencies.append(currency)
-            baseCurrencies = self.sort_by(baseCurrencies, 'code')
-            quoteCurrencies = self.sort_by(quoteCurrencies, 'code')
+            baseCurrencies = self.sort_by(baseCurrencies, 'code', False, '')
+            quoteCurrencies = self.sort_by(quoteCurrencies, 'code', False, '')
             self.baseCurrencies = self.index_by(baseCurrencies, 'code')
             self.quoteCurrencies = self.index_by(quoteCurrencies, 'code')
             allCurrencies = self.array_concat(baseCurrencies, quoteCurrencies)
@@ -3489,6 +3572,9 @@ class Exchange(object):
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
 
+    def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchOrderBooks() is not supported yet')
+
     def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' watchTickers() is not supported yet')
 
@@ -3509,6 +3595,9 @@ class Exchange(object):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
+
+    def create_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' createOrders() is not supported yet')
 
     def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
         raise NotSupported(self.id + ' createOrderWs() is not supported yet')
@@ -4255,6 +4344,13 @@ class Exchange(object):
         """
          * @ignore
         Typed wrapper for filterByArray that returns a list of positions
+        """
+        return self.filter_by_array(objects, key, values, indexed)
+
+    def filter_by_array_tickers(self, objects, key: IndexType, values=None, indexed=True):
+        """
+         * @ignore
+        Typed wrapper for filterByArray that returns a dictionary of tickers
         """
         return self.filter_by_array(objects, key, values, indexed)
 

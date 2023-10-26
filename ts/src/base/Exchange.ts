@@ -142,7 +142,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation } from './types.js';
+import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest } from './types.js';
 export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation} from './types.js'
 
 // ----------------------------------------------------------------------------
@@ -226,6 +226,7 @@ export default class Exchange {
     orderbooks   = {}
     tickers      = {}
     orders       = undefined
+    triggerOrders = undefined
     trades: any
     transactions = {}
     ohlcvs: any
@@ -456,6 +457,7 @@ export default class Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createOrders': undefined,
                 'createPostOnlyOrder': undefined,
                 'createReduceOnlyOrder': undefined,
                 'createStopOrder': undefined,
@@ -1235,10 +1237,16 @@ export default class Exchange {
                             //               V
                             client.throttle (cost).then (() => {
                                 client.send (message);
-                            }).catch ((e) => { throw e });
+                            }).catch ((e) => { 
+                                delete client.subscriptions[subscribeHash];
+                                future.reject (e);
+                            });
                         } else {
                             client.send (message)
-                            .catch ((e) => { throw e });
+                            .catch ((e) => {
+                                delete client.subscriptions[subscribeHash];
+                                future.reject (e);
+                            });
                         }
                     }
                 }).catch ((e)=> {
@@ -1314,6 +1322,10 @@ export default class Exchange {
 
     convertToBigInt(value: string) {
         return BigInt(value); // used on XT
+    }
+
+    stringToCharsArray (value) {
+        return value.split ('');
     }
 
     valueIsDefined(value){
@@ -1833,12 +1845,94 @@ export default class Exchange {
         }, currency);
     }
 
+    safeMarketStructure (market: object = undefined) {
+        const cleanStructure = {
+            'id': undefined,
+            'lowercaseId': undefined,
+            'symbol': undefined,
+            'base': undefined,
+            'quote': undefined,
+            'settle': undefined,
+            'baseId': undefined,
+            'quoteId': undefined,
+            'settleId': undefined,
+            'type': undefined,
+            'spot': undefined,
+            'margin': undefined,
+            'swap': undefined,
+            'future': undefined,
+            'option': undefined,
+            'index': undefined,
+            'active': undefined,
+            'contract': undefined,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': undefined,
+            'maker': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+                'cost': undefined,
+                'base': undefined,
+                'quote': undefined,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': undefined,
+        };
+        if (market !== undefined) {
+            const result = this.extend (cleanStructure, market);
+            // set undefined swap/future/etc
+            if (result['spot']) {
+                if (result['contract'] === undefined) {
+                    result['contract'] = false;
+                }
+                if (result['swap'] === undefined) {
+                    result['swap'] = false;
+                }
+                if (result['future'] === undefined) {
+                    result['future'] = false;
+                }
+                if (result['option'] === undefined) {
+                    result['option'] = false;
+                }
+                if (result['index'] === undefined) {
+                    result['index'] = false;
+                }
+            }
+            return result;
+        }
+        return cleanStructure;
+    }
+
     setMarkets (markets, currencies = undefined) {
         const values = [];
         this.markets_by_id = {};
         // handle marketId conflicts
         // we insert spot markets first
-        const marketValues = this.sortBy (this.toArray (markets), 'spot', true);
+        const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
             if (value['id'] in this.markets_by_id) {
@@ -1886,8 +1980,8 @@ export default class Exchange {
                     quoteCurrencies.push (currency);
                 }
             }
-            baseCurrencies = this.sortBy (baseCurrencies, 'code');
-            quoteCurrencies = this.sortBy (quoteCurrencies, 'code');
+            baseCurrencies = this.sortBy (baseCurrencies, 'code', false, '');
+            quoteCurrencies = this.sortBy (quoteCurrencies, 'code', false, '');
             this.baseCurrencies = this.indexBy (baseCurrencies, 'code');
             this.quoteCurrencies = this.indexBy (quoteCurrencies, 'code');
             const allCurrencies = this.arrayConcat (baseCurrencies, quoteCurrencies);
@@ -3590,6 +3684,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
     }
 
+    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<OrderBook>> {
+        throw new NotSupported (this.id + ' fetchOrderBooks() is not supported yet');
+    }
+
     async watchTickers (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
         throw new NotSupported (this.id + ' watchTickers() is not supported yet');
     }
@@ -3615,6 +3713,10 @@ export default class Exchange {
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
+    }
+
+    async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' createOrders() is not supported yet');
     }
 
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}): Promise<Order> {
@@ -4553,6 +4655,15 @@ export default class Exchange {
          * @description Typed wrapper for filterByArray that returns a list of positions
          */
         return this.filterByArray (objects, key, values, indexed) as Position[];
+    }
+
+    filterByArrayTickers (objects, key: IndexType, values = undefined, indexed = true): Dictionary<Ticker> {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a dictionary of tickers
+         */
+        return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
     }
 
     resolvePromiseIfMessagehashMatches (client, prefix: string, symbol: string, data) {

@@ -4,7 +4,7 @@ ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotA
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation } from './types.js';
+import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest } from './types.js';
 export { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation } from './types.js';
 /**
  * @class Exchange
@@ -67,6 +67,7 @@ export default class Exchange {
     orderbooks: {};
     tickers: {};
     orders: any;
+    triggerOrders: any;
     trades: any;
     transactions: {};
     ohlcvs: any;
@@ -160,7 +161,7 @@ export default class Exchange {
     flatten: (x: any, out?: any[]) => any[];
     unique: (x: any) => any[];
     indexBy: (x: any, k: any, out?: {}) => {};
-    sortBy: (array: any, key: any, descending?: boolean, direction?: number) => any;
+    sortBy: (array: any, key: any, descending?: boolean, defaultValue?: any, direction?: number) => any;
     sortBy2: (array: any, key1: any, key2: any, descending?: boolean, direction?: number) => any;
     groupBy: (x: any, k: any, out?: {}) => {};
     aggregate: typeof functions.aggregate;
@@ -284,6 +285,7 @@ export default class Exchange {
             createLimitOrder: boolean;
             createMarketOrder: boolean;
             createOrder: boolean;
+            createOrders: any;
             createPostOnlyOrder: any;
             createReduceOnlyOrder: any;
             createStopOrder: any;
@@ -516,6 +518,7 @@ export default class Exchange {
     close(): Promise<any[]>;
     loadOrderBook(client: any, messageHash: any, symbol: any, limit?: any, params?: {}): Promise<void>;
     convertToBigInt(value: string): bigint;
+    stringToCharsArray(value: any): any;
     valueIsDefined(value: any): boolean;
     arraySlice(array: any, first: any, second?: any): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
@@ -602,6 +605,7 @@ export default class Exchange {
         info: object;
     };
     safeCurrencyStructure(currency: object): any;
+    safeMarketStructure(market?: object): any;
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
     safeBalance(balance: object): Balances;
     safeOrder(order: object, market?: object): Order;
@@ -704,12 +708,14 @@ export default class Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
+    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
     watchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOrderWs(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<string>;
     fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<any>;
@@ -805,6 +811,7 @@ export default class Exchange {
     parseWsOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): any[];
     fetchTransactions(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     filterByArrayPositions(objects: any, key: IndexType, values?: any, indexed?: boolean): Position[];
+    filterByArrayTickers(objects: any, key: IndexType, values?: any, indexed?: boolean): Dictionary<Ticker>;
     resolvePromiseIfMessagehashMatches(client: any, prefix: string, symbol: string, data: any): void;
     resolveMultipleOHLCV(client: any, prefix: string, symbol: string, timeframe: string, data: any): void;
     createOHLCVObject(symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>>;

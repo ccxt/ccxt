@@ -334,6 +334,7 @@ class probit extends probit$1 {
                         'max': this.safeNumber(market, 'max_cost'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

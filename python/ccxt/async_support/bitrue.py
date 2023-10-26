@@ -1253,7 +1253,7 @@ class bitrue(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://github.com/Bitrue-exchange/Spot-official-api-docs#signed-endpoint-examples-for-post-apiv1order
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#signed-endpoint-examples-for-post-apiv1order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1845,7 +1845,7 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitrue api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`

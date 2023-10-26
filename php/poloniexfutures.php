@@ -99,22 +99,27 @@ class poloniexfutures extends Exchange {
                     'get' => array(
                         'account-overview' => 1,
                         'transaction-history' => 1,
+                        'maxActiveOrders' => 1,
+                        'maxRiskLimit' => 1,
+                        'userFeeRate' => 1,
+                        'marginType/query' => 1,
                         'orders' => 1,
                         'stopOrders' => 1,
                         'recentDoneOrders' => 1,
                         'orders/{order-id}' => 1,
+                        'clientOrderId/{clientOid}' => 1,
                         'fills' => 1,
                         'openOrderStatistics' => 1,
                         'position' => 1.5,
                         'positions' => 1.5,
                         'funding-history' => 1,
-                        'marginType/query' => 1,
                     ),
                     'post' => array(
                         'orders' => 1.5,
                         'batchOrders' => 1.5,
                         'position/margin/auto-deposit-status' => 1.5,
                         'position/margin/deposit-margin' => 1.5,
+                        'position/margin/withdraw-margin' => 1.5,
                         'bullet-private' => 1,
                         'marginType/change' => 1,
                     ),
@@ -331,6 +336,7 @@ class poloniexfutures extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => $this->safe_integer($market, 'firstOpenDate'),
                 'info' => $market,
             );
         }
@@ -865,7 +871,7 @@ class poloniexfutures extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data', array());
-        return array(
+        return $this->safe_order(array(
             'id' => $this->safe_string($data, 'orderId'),
             'clientOrderId' => null,
             'timestamp' => null,
@@ -887,7 +893,7 @@ class poloniexfutures extends Exchange {
             'postOnly' => null,
             'stopPrice' => null,
             'info' => $response,
-        );
+        ), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1238,7 +1244,7 @@ class poloniexfutures extends Exchange {
         }
         $request = array();
         if (!$stop) {
-            $request['status'] = $status === 'open' ? 'active' : 'done';
+            $request['status'] = ($status === 'open') ? 'active' : 'done';
         } elseif ($status !== 'open') {
             throw new BadRequest($this->id . ' fetchOrdersByStatus() can only fetch untriggered $stop orders');
         }

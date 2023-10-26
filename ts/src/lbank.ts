@@ -2,13 +2,13 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/lbank.js';
-import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } from './base/errors.js';
+import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { rsa } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -231,6 +231,7 @@ export default class lbank extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': id,
             });
         }
@@ -335,7 +336,7 @@ export default class lbank extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol: string, limit = 60, params = {}) {
@@ -677,9 +678,9 @@ export default class lbank extends Exchange {
         const orders = this.parseOrders (data, market);
         const numOrders = orders.length;
         if (numOrders === 1) {
-            return orders[0];
+            return orders[0] as Order;
         } else {
-            return orders as any;
+            throw new BadRequest (this.id + ' fetchOrder() can only return one order at a time. Found ' + numOrders + ' orders.');
         }
     }
 
@@ -729,7 +730,7 @@ export default class lbank extends Exchange {
         const closed = this.filterBy (orders, 'status', 'closed');
         const canceled = this.filterBy (orders, 'status', 'cancelled'); // cancelled orders may be partially filled
         const allOrders = this.arrayConcat (closed, canceled);
-        return this.filterBySymbolSinceLimit (allOrders, symbol, since, limit) as any;
+        return this.filterBySymbolSinceLimit (allOrders, symbol, since, limit) as Order[];
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {

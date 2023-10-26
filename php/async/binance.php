@@ -45,6 +45,7 @@ class binance extends Exchange {
                 'cancelOrders' => true,  // contract only
                 'createDepositAddress' => false,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -164,7 +165,6 @@ class binance extends Exchange {
                     'v1' => 'https://testnet.binance.vision/api/v1',
                 ),
                 'api' => array(
-                    'wapi' => 'https://api.binance.com/wapi/v3',
                     'sapi' => 'https://api.binance.com/sapi/v1',
                     'sapiV2' => 'https://api.binance.com/sapi/v2',
                     'sapiV3' => 'https://api.binance.com/sapi/v3',
@@ -255,7 +255,8 @@ class binance extends Exchange {
                         'margin/exchange-small-liability-history' => 0.6667,
                         'margin/next-hourly-interest-rate' => 0.6667,
                         'margin/capital-flow' => 10, // Weight(IP) => 100 => cost = 0.1 * 100 = 10
-                        'margin/delist-schedule' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
+                        'margin/delist-schedule' => 10, // Weight(IP) => 100 => cost = 0.1 * 100 = 10
+                        'margin/available-inventory' => 0.3334, // Weight(UID) => 50 => cost = 0.006667 * 50 = 0.3334
                         'loan/vip/loanable/data' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                         'loan/vip/collateral/data' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                         'loan/vip/request/data' => 2.6668, // Weight(UID) => 400 => cost = 0.006667 * 400 = 2.6668
@@ -607,27 +608,6 @@ class binance extends Exchange {
                         'sub-account/assets' => 0.40002, // Weight(UID) => 60 => cost = 0.006667 * 60 = 0.40002
                     ),
                 ),
-                // deprecated
-                'wapi' => array(
-                    'post' => array(
-                        'withdraw' => 1,
-                        'sub-account/transfer' => 1,
-                    ),
-                    'get' => array(
-                        'depositHistory' => 1,
-                        'withdrawHistory' => 1,
-                        'depositAddress' => 1,
-                        'accountStatus' => 1,
-                        'systemStatus' => 1,
-                        'apiTradingStatus' => 1,
-                        'userAssetDribbletLog' => 1,
-                        'tradeFee' => 1,
-                        'assetDetail' => 1,
-                        'sub-account/list' => 1,
-                        'sub-account/transfer/history' => 1,
-                        'sub-account/assets' => 1,
-                    ),
-                ),
                 'dapiPublic' => array(
                     'get' => array(
                         'ping' => 1,
@@ -646,12 +626,14 @@ class binance extends Exchange {
                         'premiumIndexKlines' => array( 'cost' => 1, 'byLimit' => array( array( 99, 1 ), array( 499, 2 ), array( 1000, 5 ), array( 10000, 10 ) ) ),
                         'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
-                        'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                        'ticker/bookTicker' => array( 'cost' => 2, 'noSymbol' => 5 ),
+                        'constituents' => 2,
                         'openInterest' => 1,
                     ),
                 ),
                 'dapiData' => array(
                     'get' => array(
+                        'delivery-price' => 1,
                         'openInterestHist' => 1,
                         'topLongShortAccountRatio' => 1,
                         'topLongShortPositionRatio' => 1,
@@ -731,12 +713,15 @@ class binance extends Exchange {
                         'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'openInterest' => 1,
                         'indexInfo' => 1,
+                        'assetIndex' => array( 'cost' => 1, 'noSymbol' => 10 ),
+                        'constituents' => 2,
                         'apiTradingStatus' => array( 'cost' => 1, 'noSymbol' => 10 ),
                         'lvtKlines' => 1,
                     ),
                 ),
                 'fapiData' => array(
                     'get' => array(
+                        'delivery-price' => 1,
                         'openInterestHist' => 1,
                         'topLongShortAccountRatio' => 1,
                         'topLongShortPositionRatio' => 1,
@@ -872,8 +857,8 @@ class binance extends Exchange {
                     'get' => array(
                         'ping' => 0.2, // Weight(IP) => 1 => cost = 0.2 * 1 = 0.2
                         'time' => 0.2,
-                        'depth' => array( 'cost' => 0.4, 'byLimit' => array( array( 100, 0.4 ), array( 500, 2 ), array( 1000, 4 ), array( 5000, 20 ) ) ),
-                        'trades' => 0.4, // Weight(IP) => 2 => cost = 0.2 * 2 = 0.4
+                        'depth' => array( 'cost' => 1, 'byLimit' => array( array( 100, 1 ), array( 500, 5 ), array( 1000, 10 ), array( 5000, 50 ) ) ),
+                        'trades' => 2, // Weight(IP) => 10 => cost = 0.2 * 10 = 2
                         'aggTrades' => 0.4,
                         'historicalTrades' => 2, // Weight(IP) => 10 => cost = 0.2 * 10 = 2
                         'klines' => 0.4,
@@ -970,7 +955,7 @@ class binance extends Exchange {
                         'margin/marginInterestHistory' => 1,
                         'portfolio/interest-history' => 50, // 50
                         'um/income' => 30,
-                        'cm/income ' => 30,
+                        'cm/income' => 30,
                         'um/account' => 5,
                         'cm/account' => 5,
                         'portfolio/repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
@@ -4249,7 +4234,17 @@ class binance extends Exchange {
         //         "lastTrade" => array("id":"69","time":"1676084430567","price":"24.9","qty":"1.00"),
         //         "mmp" => false
         //     }
+        //     array(
+        // cancelOrders/createOrders
+        //          "code" => -4005,
+        //          "msg" => "Quantity greater than max quantity."
+        //       ),
         //
+        $code = $this->safe_string($order, 'code');
+        if ($code !== null) {
+            // cancelOrders/createOrders might have a partial success
+            return $this->safe_order(array( 'info' => $order, 'status' => 'rejected' ), $market);
+        }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'symbol');
         $marketType = (is_array($order) && array_key_exists('closePosition', $order)) ? 'contract' : 'spot';
@@ -4321,6 +4316,84 @@ class binance extends Exchange {
             ),
             'trades' => $fills,
         ), $market);
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * *contract only* create a list of trade $orders
+             * @see https://binance-docs.github.io/apidocs/futures/en/#place-multiple-$orders-trade
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $orderSymbols = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $orderSymbols[] = $marketId;
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $orderSymbols = $this->market_symbols($orderSymbols, null, false, true, true);
+            $market = $this->market($orderSymbols[0]);
+            if ($market['spot']) {
+                throw new NotSupported($this->id . ' createOrders() does not support ' . $market['type'] . ' orders');
+            }
+            $response = null;
+            $request = array(
+                'batchOrders' => $ordersRequests,
+            );
+            $request = array_merge($request, $params);
+            if ($market['linear']) {
+                $response = Async\await($this->fapiPrivatePostBatchOrders ($request));
+            } elseif ($market['option']) {
+                $response = Async\await($this->eapiPrivatePostBatchOrders ($request));
+            } else {
+                $response = Async\await($this->dapiPrivatePostBatchOrders ($request));
+            }
+            //
+            //   array(
+            //       array(
+            //          "code" => -4005,
+            //          "msg" => "Quantity greater than max quantity."
+            //       ),
+            //       {
+            //          "orderId" => 650640530,
+            //          "symbol" => "LTCUSDT",
+            //          "status" => "NEW",
+            //          "clientOrderId" => "x-xcKtGhcu32184eb13585491289bbaf",
+            //          "price" => "54.00",
+            //          "avgPrice" => "0.00",
+            //          "origQty" => "0.100",
+            //          "executedQty" => "0.000",
+            //          "cumQty" => "0.000",
+            //          "cumQuote" => "0.00000",
+            //          "timeInForce" => "GTC",
+            //          "type" => "LIMIT",
+            //          "reduceOnly" => false,
+            //          "closePosition" => false,
+            //          "side" => "BUY",
+            //          "positionSide" => "BOTH",
+            //          "stopPrice" => "0.00",
+            //          "workingType" => "CONTRACT_PRICE",
+            //          "priceProtect" => false,
+            //          "origType" => "LIMIT",
+            //          "priceMatch" => "NONE",
+            //          "selfTradePreventionMode" => "NONE",
+            //          "goodTillDate" => 0,
+            //          "updateTime" => 1698073926929
+            //       }
+            //   )
+            //
+            return $this->parse_orders($response);
+        }) ();
     }
 
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
@@ -8330,9 +8403,6 @@ class binance extends Exchange {
         }
         $url = $this->urls['api'][$api];
         $url .= '/' . $path;
-        if ($api === 'wapi') {
-            $url .= '.html';
-        }
         if ($path === 'historicalTrades') {
             if ($this->apiKey) {
                 $headers = array(
@@ -8356,7 +8426,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'papi')) {
+        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'papi')) {
             $this->check_required_credentials();
             if ($method === 'POST' && (($path === 'order') || ($path === 'sor/order'))) {
                 // inject in implicit API calls
@@ -8371,6 +8441,12 @@ class binance extends Exchange {
                 }
             }
             $query = null;
+            // handle $batchOrders
+            if (($path === 'batchOrders') && ($method === 'POST')) {
+                $batchOrders = $this->safe_value($params, 'batchOrders');
+                $queryBatch = ($this->json($batchOrders));
+                $params['batchOrders'] = $queryBatch;
+            }
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
             $extendedParams = array_merge(array(
                 'timestamp' => $this->nonce(),
@@ -8406,7 +8482,11 @@ class binance extends Exchange {
             }
             $signature = null;
             if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
-                $signature = $this->encode_uri_component($this->rsa($query, $this->secret, 'sha256'));
+                if (strlen($this->secret) > 120) {
+                    $signature = $this->encode_uri_component($this->rsa($query, $this->secret, 'sha256'));
+                } else {
+                    $signature = $this->encode_uri_component($this->eddsa($this->encode($query), $this->secret, 'ed25519'));
+                }
             } else {
                 $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
             }
@@ -8414,7 +8494,7 @@ class binance extends Exchange {
             $headers = array(
                 'X-MBX-APIKEY' => $this->apiKey,
             );
-            if (($method === 'GET') || ($method === 'DELETE') || ($api === 'wapi')) {
+            if (($method === 'GET') || ($method === 'DELETE')) {
                 $url .= '?' . $query;
             } else {
                 $body = $query;
@@ -8449,7 +8529,6 @@ class binance extends Exchange {
         if ($response === null) {
             return null; // fallback to default $error handler
         }
-        // check $success value for wapi endpoints
         // $response in format array('msg' => 'The coin does not exist.', 'success' => true/false)
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {
@@ -8503,10 +8582,10 @@ class binance extends Exchange {
         }
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             // cancelOrders returns an array like this => [array("code":-2011,"msg":"Unknown order sent.")]
-            $numElements = count($response);
-            if ($numElements > 0) {
-                $firstElement = $response[0];
-                $errorCode = $this->safe_string($firstElement, 'code');
+            $arrayLength = count($response);
+            if ($arrayLength === 1) { // when there's a single $error we can throw, otherwise we have a partial $success
+                $element = $response[0];
+                $errorCode = $this->safe_string($element, 'code');
                 if ($errorCode !== null) {
                     $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $this->id . ' ' . $body);
                 }
@@ -8539,7 +8618,7 @@ class binance extends Exchange {
         return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config, $context) {
             $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
             // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
-            if (($api === 'private') || ($api === 'wapi')) {
+            if ($api === 'private') {
                 $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;
             }
             return $response;

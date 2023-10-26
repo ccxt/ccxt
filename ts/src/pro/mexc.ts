@@ -339,7 +339,7 @@ export default class mexc extends mexcRest {
         //     }
         //
         return [
-            this.safeIntegerProduct (ohlcv, 't', 1000),
+            this.safeTimestamp (ohlcv, 't'),
             this.safeNumber (ohlcv, 'o'),
             this.safeNumber (ohlcv, 'h'),
             this.safeNumber (ohlcv, 'l'),

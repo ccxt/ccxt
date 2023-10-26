@@ -881,14 +881,19 @@ class bingx extends Exchange {
         if ($time === 0) {
             $time = null;
         }
-        $isBuyerMaker = $this->safe_value_2($trade, 'buyerMaker', 'isBuyerMaker');
-        $side = $this->safe_string_lower_2($trade, 'side', 'S');
         $cost = $this->safe_string($trade, 'quoteQty');
         $type = ($cost === null) ? 'spot' : 'swap';
         $currencyId = $this->safe_string_2($trade, 'currency', 'N');
         $currencyCode = $this->safe_currency_code($currencyId);
         $m = $this->safe_value($trade, 'm', false);
         $marketId = $this->safe_string($trade, 's');
+        $isBuyerMaker = $this->safe_value_2($trade, 'buyerMaker', 'isBuyerMaker');
+        $takeOrMaker = ($isBuyerMaker || $m) ? 'maker' : 'taker';
+        $side = $this->safe_string_lower_2($trade, 'side', 'S');
+        if ($side === null) {
+            $side = ($isBuyerMaker || $m) ? 'sell' : 'buy';
+            $takeOrMaker = 'taker';
+        }
         return $this->safe_trade(array(
             'id' => $this->safe_string_n($trade, array( 'id', 't' )),
             'info' => $trade,
@@ -898,7 +903,7 @@ class bingx extends Exchange {
             'order' => $this->safe_string_2($trade, 'orderId', 'i'),
             'type' => $this->safe_string_lower($trade, 'o'),
             'side' => $this->parse_order_side($side),
-            'takerOrMaker' => ($isBuyerMaker || $m) ? 'maker' : 'taker',
+            'takerOrMaker' => $takeOrMaker,
             'price' => $this->safe_string_2($trade, 'price', 'p'),
             'amount' => $this->safe_string_n($trade, array( 'qty', 'amount', 'q' )),
             'cost' => $cost,
@@ -1544,7 +1549,7 @@ class bingx extends Exchange {
             'info' => $position,
             'id' => $this->safe_string($position, 'positionId'),
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
-            'notional' => $this->safe_string($position, 'positionAmt'),
+            'notional' => $this->safe_number($position, 'positionAmt'),
             'marginMode' => $marginMode,
             'liquidationPrice' => null,
             'entryPrice' => $this->safe_number_2($position, 'avgPrice', 'entryPrice'),
@@ -2666,8 +2671,10 @@ class bingx extends Exchange {
         $network = $this->safe_string($transaction, 'network');
         $currencyId = $this->safe_string($transaction, 'coin');
         $code = $this->safe_currency_code($currencyId, $currency);
-        if ($code !== null && mb_strpos($code, $network) !== false) {
-            $code = str_replace($network, '', $code);
+        if (($code !== null) && ($code !== $network) && mb_strpos($code, $network) !== false) {
+            if ($network !== null) {
+                $code = str_replace($network, '', $code);
+            }
         }
         $rawType = $this->safe_string($transaction, 'transferType');
         $type = ($rawType === '0') ? 'deposit' : 'withdrawal';

@@ -45,7 +45,7 @@ const safeInteger = (o: implicitReturnType, k: string | number, $default?: numbe
 };
 
 const safeIntegerProduct = (o: implicitReturnType, k: string | number, $factor: number, $default?: number): number => {
-    const n = asInteger (prop (o, k))
+    const n = asFloat (prop (o, k))
     return isNumber (n) ? parseInt (n * $factor as any) : $default
 };
 

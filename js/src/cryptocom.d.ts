@@ -1,5 +1,5 @@
 import Exchange from './abstract/cryptocom.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Ticker, OrderRequest } from './base/types.js';
 /**
  * @class cryptocom
  * @extends Exchange
@@ -7,8 +7,8 @@ import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory } fr
 export default class cryptocom extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchTicker(symbol: string, params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -18,6 +18,8 @@ export default class cryptocom extends Exchange {
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    createAdvancedOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -73,7 +75,7 @@ export default class cryptocom extends Exchange {
         toAccount: any;
         status: any;
     };
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
+    parseTicker(ticker: any, market?: any): Ticker;
     parseTrade(trade: any, market?: any): Trade;
     parseOHLCV(ohlcv: any, market?: any): number[];
     parseOrderStatus(status: any): string;
@@ -113,7 +115,6 @@ export default class cryptocom extends Exchange {
         datetime: any;
         info: any;
     };
-    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         symbol: any;
         marginMode: any;
@@ -125,7 +126,6 @@ export default class cryptocom extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowRates(params?: {}): Promise<any[]>;
     parseBorrowRates(info: any, codeKey: any): any[];
     customHandleMarginModeAndParams(methodName: any, params?: {}): any[];
     parseDepositWithdrawFee(fee: any, currency?: any): {
@@ -184,6 +184,7 @@ export default class cryptocom extends Exchange {
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
     nonce(): number;
+    paramsToString(object: any, level: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
