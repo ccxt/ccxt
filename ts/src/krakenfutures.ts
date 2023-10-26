@@ -1896,6 +1896,7 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#fetchPositions
+         * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
          * @description Fetches current contract trading positions
          * @param {string[]} symbols List of unified symbols
          * @param {object} [params] Not used by krakenfutures
@@ -1977,7 +1978,7 @@ export default class krakenfutures extends Exchange {
             'entryPrice': this.safeNumber (position, 'price'),
             'notional': undefined,
             'leverage': leverage,
-            'unrealizedPnl': this.safeNumber (position, 'unrealizedFunding'),
+            'unrealizedPnl': undefined,
             'contracts': this.safeNumber (position, 'size'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
