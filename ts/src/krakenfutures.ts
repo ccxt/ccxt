@@ -1580,7 +1580,7 @@ export default class krakenfutures extends Exchange {
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-wallets
          * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
          * @param {object} [params] Exchange specific parameters
-         * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'cash' *
+         * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
          * @param {string} [params.symbol] A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
          * @returns A [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
@@ -1684,7 +1684,7 @@ export default class krakenfutures extends Exchange {
             type = symbol;
         }
         if (type === undefined) {
-            type = (symbol === undefined) ? 'cash' : symbol;
+            type = (symbol === undefined) ? 'flex' : symbol;
         }
         const accountName = this.parseAccount (type);
         const accounts = this.safeValue (response, 'accounts');
