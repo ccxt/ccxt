@@ -8481,7 +8481,7 @@ export default class binance extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    throwExceptionByUrl (url, exactOrBroad, message, feedback) {
+    getExceptionMarketTypeByUrl (url, exactOrBroad) {
         let marketType = undefined;
         if (url.startsWith ('https://api.binance.com/sapi/') || url.startsWith ('https://api.binance.com/api/v1') || url.startsWith ('https://api.binance.com/api/v3')) {
             marketType = 'spot';
@@ -8499,12 +8499,9 @@ export default class binance extends Exchange {
         if (marketType !== undefined) {
             const exceptionsForMarketType = this.safeValue (this.exceptions, marketType, {});
             const targetExceptions = this.safeValue (exceptionsForMarketType, exactOrBroad, {});
-            if (exactOrBroad === 'exact') {
-                this.throwExactlyMatchedException (targetExceptions, message, feedback);
-            } else if (exactOrBroad === 'broad') {
-                this.throwBroadlyMatchedException (targetExceptions, message, feedback);
-            }
+            return targetExceptions;
         }
+        return undefined;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -8548,9 +8545,15 @@ export default class binance extends Exchange {
         }
         const message = this.safeString (response, 'msg');
         if (message !== undefined) {
-            this.throwExceptionByUrl (url, 'exact', message, this.id + ' ' + message);
+            const exactExceptions = this.getExceptionMarketTypeByUrl (url, 'exact');
+            if (exactExceptions !== undefined) {
+                this.throwExactlyMatchedException (exactExceptions, message, this.id + ' ' + message);
+            }
             this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
-            this.throwExceptionByUrl (url, 'broad', message, this.id + ' ' + message);
+            const broadExceptions = this.getExceptionMarketTypeByUrl (url, 'broad');
+            if (broadExceptions !== undefined) {
+                this.throwBroadlyMatchedException (broadExceptions, message, this.id + ' ' + message);
+            }
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, this.id + ' ' + message);
         }
         // checks against error codes
@@ -8576,7 +8579,10 @@ export default class binance extends Exchange {
                 // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
                 throw new MarginModeAlreadySet (feedback);
             }
-            this.throwExceptionByUrl (url, 'exact', error, feedback);
+            const exactExceptions = this.getExceptionMarketTypeByUrl (url, 'exact');
+            if (exactExceptions !== undefined) {
+                this.throwExactlyMatchedException (exactExceptions, error, feedback);
+            }
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             throw new ExchangeError (feedback);
         }
@@ -8590,7 +8596,10 @@ export default class binance extends Exchange {
                 const firstElement = response[0];
                 const errorCode = this.safeString (firstElement, 'code');
                 if (errorCode !== undefined) {
-                    this.throwExceptionByUrl (url, 'exact', errorCode, this.id + ' ' + body);
+                    const exactExceptions = this.getExceptionMarketTypeByUrl (url, 'exact');
+                    if (exactExceptions !== undefined) {
+                        this.throwExactlyMatchedException (exactExceptions, errorCode, this.id + ' ' + body);
+                    }
                     this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + body);
                 }
             }
