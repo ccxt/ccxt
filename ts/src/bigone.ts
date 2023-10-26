@@ -755,7 +755,7 @@ export default class bigone extends Exchange {
         //        "openInterest": 1141372.0
         //    }
         //
-        const marketType = ('asset_pair_name' in ticker) ? 'spot' : 'swap';
+        const marketType = ('asset_pair_name' in ticker) ? 'spot' : 'swap'; // TODO: more of these
         const marketId = this.safeString2 (ticker, 'asset_pair_name', 'symbol');
         const symbol = this.safeSymbol (marketId, market, '-', marketType);
         const close = this.safeString2 (ticker, 'close', 'latestPrice');
