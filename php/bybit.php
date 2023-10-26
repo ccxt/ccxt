@@ -3160,8 +3160,11 @@ class bybit extends Exchange {
         //         "time" => 1672125441042
         //     }
         //
+        $timestamp = $this->safe_integer($response, 'time');
         $result = array(
             'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
         $responseResult = $this->safe_value($response, 'result', array());
         $currencyList = $this->safe_value_n($responseResult, array( 'loanAccountList', 'list', 'balance' ));

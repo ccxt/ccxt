@@ -3072,8 +3072,11 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672125441042
         #     }
         #
+        timestamp = self.safe_integer(response, 'time')
         result = {
             'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }
         responseResult = self.safe_value(response, 'result', {})
         currencyList = self.safe_value_n(responseResult, ['loanAccountList', 'list', 'balance'])

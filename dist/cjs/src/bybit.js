@@ -3190,8 +3190,11 @@ class bybit extends bybit$1 {
         //         "time": 1672125441042
         //     }
         //
+        const timestamp = this.safeInteger(response, 'time');
         const result = {
             'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
         };
         const responseResult = this.safeValue(response, 'result', {});
         const currencyList = this.safeValueN(responseResult, ['loanAccountList', 'list', 'balance']);
