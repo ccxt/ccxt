@@ -762,7 +762,6 @@ export default class bigone extends Exchange {
 
     async fetchTicker (symbol: string, params = {}) {
         /**
-         * TODO: contract
          * @method
          * @name bigone#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -772,33 +771,39 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'asset_pair_name': market['id'],
-        };
-        const response = await this.publicGetAssetPairsAssetPairNameTicker (this.extend (request, params));
-        //
-        //     {
-        //         "code":0,
-        //         "data":{
-        //             "asset_pair_name":"ETH-BTC",
-        //             "bid":{"price":"0.021593","order_count":1,"quantity":"0.20936"},
-        //             "ask":{"price":"0.021613","order_count":1,"quantity":"2.87064"},
-        //             "open":"0.021795",
-        //             "high":"0.021795",
-        //             "low":"0.021471",
-        //             "close":"0.021613",
-        //             "volume":"117078.90431",
-        //             "daily_change":"-0.000182"
-        //         }
-        //     }
-        //
-        const ticker = this.safeValue (response, 'data', {});
-        return this.parseTicker (ticker, market);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
+        if (type === 'spot') {
+            const request = {
+                'asset_pair_name': market['id'],
+            };
+            const response = await this.publicGetAssetPairsAssetPairNameTicker (this.extend (request, params));
+            //
+            //     {
+            //         "code":0,
+            //         "data":{
+            //             "asset_pair_name":"ETH-BTC",
+            //             "bid":{"price":"0.021593","order_count":1,"quantity":"0.20936"},
+            //             "ask":{"price":"0.021613","order_count":1,"quantity":"2.87064"},
+            //             "open":"0.021795",
+            //             "high":"0.021795",
+            //             "low":"0.021471",
+            //             "close":"0.021613",
+            //             "volume":"117078.90431",
+            //             "daily_change":"-0.000182"
+            //         }
+            //     }
+            //
+            const ticker = this.safeValue (response, 'data', {});
+            return this.parseTicker (ticker, market);
+        } else {
+            const tickers = await this.fetchTickers ([ symbol ], params);
+            return this.safeValue (tickers, 0);
+        }
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
-         * TODO: contract
          * @method
          * @name bigone#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -807,50 +812,82 @@ export default class bigone extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
+        let market = undefined;
+        const symbol = this.safeString (symbols, 0);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const isSpot = type === 'spot';
         const request = {};
         symbols = this.marketSymbols (symbols);
-        if (symbols !== undefined) {
-            const ids = this.marketIds (symbols);
-            request['pair_names'] = ids.join (',');
+        let tickers = undefined;
+        if (isSpot) {
+            if (symbols !== undefined) {
+                const ids = this.marketIds (symbols);
+                request['pair_names'] = ids.join (',');
+            }
+            const response = await this.publicGetAssetPairsTickers (this.extend (request, params));
+            //
+            //     {
+            //         "code":0,
+            //         "data":[
+            //             {
+            //                 "asset_pair_name":"PCX-BTC",
+            //                 "bid":{"price":"0.000234","order_count":1,"quantity":"0.518"},
+            //                 "ask":{"price":"0.0002348","order_count":1,"quantity":"2.348"},
+            //                 "open":"0.0002343",
+            //                 "high":"0.0002348",
+            //                 "low":"0.0002162",
+            //                 "close":"0.0002348",
+            //                 "volume":"12887.016",
+            //                 "daily_change":"0.0000005"
+            //             },
+            //             {
+            //                 "asset_pair_name":"GXC-USDT",
+            //                 "bid":{"price":"0.5054","order_count":1,"quantity":"40.53"},
+            //                 "ask":{"price":"0.5055","order_count":1,"quantity":"38.53"},
+            //                 "open":"0.5262",
+            //                 "high":"0.5323",
+            //                 "low":"0.5055",
+            //                 "close":"0.5055",
+            //                 "volume":"603963.05",
+            //                 "daily_change":"-0.0207"
+            //             }
+            //         ]
+            //     }
+            //
+            tickers = this.safeValue (response, 'data', []);
+        } else {
+            tickers = await this.contractPublicGetInstruments (params);
+            //
+            //    [
+            //        {
+            //            "usdtPrice": 1.00031998,
+            //            "symbol": "BTCUSD",
+            //            "btcPrice": 34700.4,
+            //            "ethPrice": 1787.83,
+            //            "nextFundingRate": 0.00010,
+            //            "fundingRate": 0.00010,
+            //            "latestPrice": 34708.5,
+            //            "last24hPriceChange": 0.0321,
+            //            "indexPrice": 34700.4,
+            //            "volume24h": 261319063,
+            //            "turnover24h": 8204.129380685496,
+            //            "nextFundingTime": 1698285600000,
+            //            "markPrice": 34702.4646738,
+            //            "last24hMaxPrice": 35127.5,
+            //            "volume24hInUsd": 0.0,
+            //            "openValue": 32.88054722085945,
+            //            "last24hMinPrice": 33552.0,
+            //            "openInterest": 1141372.0
+            //        }
+            //        ...
+            //    ]
+            //
         }
-        const response = await this.publicGetAssetPairsTickers (this.extend (request, params));
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "asset_pair_name":"PCX-BTC",
-        //                 "bid":{"price":"0.000234","order_count":1,"quantity":"0.518"},
-        //                 "ask":{"price":"0.0002348","order_count":1,"quantity":"2.348"},
-        //                 "open":"0.0002343",
-        //                 "high":"0.0002348",
-        //                 "low":"0.0002162",
-        //                 "close":"0.0002348",
-        //                 "volume":"12887.016",
-        //                 "daily_change":"0.0000005"
-        //             },
-        //             {
-        //                 "asset_pair_name":"GXC-USDT",
-        //                 "bid":{"price":"0.5054","order_count":1,"quantity":"40.53"},
-        //                 "ask":{"price":"0.5055","order_count":1,"quantity":"38.53"},
-        //                 "open":"0.5262",
-        //                 "high":"0.5323",
-        //                 "low":"0.5055",
-        //                 "close":"0.5055",
-        //                 "volume":"603963.05",
-        //                 "daily_change":"-0.0207"
-        //             }
-        //         ]
-        //     }
-        //
-        const tickers = this.safeValue (response, 'data', []);
-        const result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker (tickers[i]);
-            const symbol = ticker['symbol'];
-            result[symbol] = ticker;
-        }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.parseTickers (tickers, symbols, params);
     }
 
     async fetchTime (params = {}) {
