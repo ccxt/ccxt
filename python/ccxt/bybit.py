@@ -4638,13 +4638,17 @@ class bybit(Exchange):
         read_only = self.safe_integer(result, "readOnly", default_value=False) == 1
         permissions = list()
         allow_all = type(ips) == list and "*" in ips
+        unifed_margin = self.safe_integer(result, 'unified') == 1
+        unifed_account = self.safe_integer(result, 'uta') == 1
         if not read_only:
             permissions = self.extract_trading_permissions(PERMISSION_TO_VALUE, response=exchange_permissions)
         return {
             "creation": self.parse8601(self.safe_string(result, "createdAt")),
             "expiration": self.parse8601(self.safe_string(result, "expiredAt")),
             "permissions": permissions,
-            "ip_restrict": not allow_all
+            "ip_restrict": not allow_all,
+            'unifed_account': unifed_account,
+            'unifed_margin': unifed_margin
         }
 
     def withdraw(self, code: str, amount, address, tag=None, params={}):
