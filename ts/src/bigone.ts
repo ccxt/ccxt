@@ -27,9 +27,9 @@ export default class bigone extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined, // has but unimplemented
-                'future': undefined, // has but unimplemented
-                'option': undefined,
+                'swap': true,
+                'future': true,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -759,6 +759,7 @@ export default class bigone extends Exchange {
 
     async fetchTicker (symbol: string, params = {}) {
         /**
+         * TODO: contract
          * @method
          * @name bigone#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -794,6 +795,7 @@ export default class bigone extends Exchange {
 
     async fetchTickers (symbols: string[] = undefined, params = {}) {
         /**
+         * TODO: contract
          * @method
          * @name bigone#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -1083,6 +1085,7 @@ export default class bigone extends Exchange {
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
+         * TODO: throw error if contract
          * @method
          * @name bigone#fetchTrades
          * @description get the list of most recent trades for a particular symbol
@@ -1279,10 +1282,49 @@ export default class bigone extends Exchange {
         //        "client_order_id": ''
         //    }
         //
+        // contract
+        //
+        //    {
+        //        "liquidateUserId": null,
+        //        "side": "BUY",
+        //        "meta": {
+        //            "bestPrice": null,
+        //            "markPrice": 10051.43,
+        //            "bestPrices": {
+        //                "ask": null,
+        //                "bid": null
+        //            }
+        //        },
+        //        "userId": "5aec525e-335d-4724-0005-20153b361f89",
+        //        "filledNotional": 0,
+        //        "ts": 1562063567960,
+        //        "notional": 0.102512,
+        //        "status": "NEW",
+        //        "isLiquidate": false,
+        //        "reduceOnly": false,
+        //        "type": "LIMIT",
+        //        "symbol": "BTCUSD",
+        //        "seqNo": null
+        //        "filled": 0
+        //        "conditional": {
+        //            "type": "REACH",
+        //            "priceType": "MARKET_PRICE",
+        //            "price": 8000
+        //        }
+        //       "id": "5aec8f9f-1609-4e54-0005-86e30e0cb1c6",
+        //        "size": 1000,                                     // Contract amount
+        //        "avgPrice": 0,
+        //        "price": 9755
+        //    }
+        //
+        const isContract = 'isLiquidate' in order;
         const id = this.safeString (order, 'id');
-        const marketId = this.safeString (order, 'asset_pair_name');
+        const marketId = this.safeString2 (order, 'asset_pair_name', 'symbol');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        let timestamp = this.safeInteger (order, 'ts');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        }
         let side = this.safeString (order, 'side');
         if (side === 'BID') {
             side = 'buy';
@@ -1290,6 +1332,10 @@ export default class bigone extends Exchange {
             side = 'sell';
         }
         let triggerPrice = this.safeString (order, 'stop_price');
+        const conditional = this.safeValue (order, 'conditional');
+        if (triggerPrice === undefined) {
+            triggerPrice = this.safeString (conditional, 'price');
+        }
         if (Precise.stringEq (triggerPrice, '0')) {
             triggerPrice = undefined;
         }
@@ -1299,15 +1345,19 @@ export default class bigone extends Exchange {
             timeInForce = 'IOC';
         }
         const type = this.parseType (this.safeString (order, 'type'));
-        const price = this.safeString (order, 'price');
         let amount = undefined;
         let filled = undefined;
         let cost = undefined;
-        if (type === 'market' && side === 'buy') {
-            cost = this.safeString (order, 'filled_amount');
+        if (isContract) {
+            amount = this.safeString (order, 'size');
+            filled = this.safeString (order, 'filled');
         } else {
-            amount = this.safeString (order, 'amount');
-            filled = this.safeString (order, 'filled_amount');
+            if (type === 'market' && side === 'buy') {
+                cost = this.safeString (order, 'filled_amount');
+            } else {
+                amount = this.safeString (order, 'amount');
+                filled = this.safeString (order, 'filled_amount');
+            }
         }
         return this.safeOrder ({
             'info': order,
@@ -1321,12 +1371,12 @@ export default class bigone extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': this.safeValue (order, 'post_only'),
             'side': side,
-            'price': price,
+            'price': this.safeString (order, 'price'),
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
-            'average': this.safeString (order, 'avg_deal_price'),
+            'average': this.safeString2 (order, 'avg_deal_price', 'avgPrice'),
             'filled': filled,
             'remaining': undefined,
             'status': this.parseOrderStatus (this.safeString (order, 'state')),
@@ -1352,63 +1402,87 @@ export default class bigone extends Exchange {
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {string} operator *stop order only* GTE or LTE (default)
-         * @param {string} client_order_id must match ^[a-zA-Z0-9-_]{1,36}$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
+         * @param {string} [params.operator] *spot stop order only* GTE or LTE (default)
+         * @param {string} [params.client_order_id] *spot only* must match ^[a-zA-Z0-9-_]{1,36}$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
+         * @param {object} [params.priceType] *contract only* MARK_PRICE, INDEX_PRICE, MARKET_PRICE (default)
+         *
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const isBuy = (side === 'buy');
-        const requestSide = isBuy ? 'BID' : 'ASK';
         let uppercaseType = type.toUpperCase ();
         const isLimit = uppercaseType === 'LIMIT';
         const exchangeSpecificParam = this.safeValue (params, 'post_only');
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly ((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
-        const request = {
-            'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
-            'side': requestSide, // order side one of "ASK"/"BID", required
-            'amount': this.amountToPrecision (symbol, amount), // order amount, string, required
-            // 'price': this.priceToPrecision (symbol, price), // order price, string, required
-            // 'operator': 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
-            // 'immediate_or_cancel': false, // limit orders only, must be false when post_only is true
-            // 'post_only': false, // limit orders only, must be false when immediate_or_cancel is true
-        };
-        if (isLimit || (uppercaseType === 'STOP_LIMIT')) {
-            request['price'] = this.priceToPrecision (symbol, price);
-            if (isLimit) {
-                const timeInForce = this.safeString (params, 'timeInForce');
-                if (timeInForce === 'IOC') {
-                    request['immediate_or_cancel'] = true;
-                }
-                if (postOnly) {
-                    request['post_only'] = true;
-                }
+        const timeInForce = this.safeString (params, 'timeInForce');
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const isContract = (marketType === 'swap') || (marketType === 'future');
+        const request = {};
+        if (isContract) {
+            const priceType = this.safeString (params, 'priceType', 'MARKET_PRICE');
+            if (postOnly) {
+                uppercaseType = 'POST_ONLY';
+            } else if (timeInForce === 'IOC') {
+                uppercaseType = 'IOC';
+            } else if (timeInForce === 'FOK') {
+                uppercaseType = 'FOK';
+            }
+            request['symbol'] = market['id'];
+            request['size'] = this.amountToPrecision (symbol, amount);
+            request['side'] = side;
+            request['type'] = uppercaseType;
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            if (triggerPrice !== undefined) {
+                request['conditional'] = {
+                    'type': 'REACH',
+                    'price': this.priceToPrecision (symbol, triggerPrice),
+                    'priceType': priceType,
+                };
             }
         } else {
-            const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
-            if (createMarketBuyOrderRequiresPrice && (side === 'buy')) {
-                if (price === undefined) {
-                    throw new InvalidOrder (this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
-                } else {
-                    const amountString = this.numberToString (amount);
-                    const priceString = this.numberToString (price);
-                    amount = this.parseNumber (Precise.stringMul (amountString, priceString));
+            request['asset_pair_name'] = market['id'];
+            request['side'] = isBuy ? 'BID' : 'ASK';
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            if (isLimit || (uppercaseType === 'STOP_LIMIT')) {
+                request['price'] = this.priceToPrecision (symbol, price);
+                if (isLimit) {
+                    if (timeInForce === 'IOC') {
+                        request['immediate_or_cancel'] = true;
+                    }
+                    if (postOnly) {
+                        request['post_only'] = true;
+                    }
+                }
+            } else {
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
+                if (createMarketBuyOrderRequiresPrice && (side === 'buy')) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                    } else {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        amount = this.parseNumber (Precise.stringMul (amountString, priceString));
+                    }
                 }
             }
-        }
-        request['amount'] = this.amountToPrecision (symbol, amount);
-        if (triggerPrice !== undefined) {
-            request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
-            request['operator'] = isBuy ? 'GTE' : 'LTE';
-            if (isLimit) {
-                uppercaseType = 'STOP_LIMIT';
-            } else if (uppercaseType === 'MARKET') {
-                uppercaseType = 'STOP_MARKET';
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            if (triggerPrice !== undefined) {
+                request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
+                request['operator'] = isBuy ? 'GTE' : 'LTE';
+                if (isLimit) {
+                    uppercaseType = 'STOP_LIMIT';
+                } else if (uppercaseType === 'MARKET') {
+                    uppercaseType = 'STOP_MARKET';
+                }
             }
+            request['type'] = uppercaseType;
         }
-        request['type'] = uppercaseType;
         params = this.omit (params, [ 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
         //
@@ -1441,19 +1515,32 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const request = { 'id': id };
-        const response = await this.privatePostOrdersIdCancel (this.extend (request, params));
-        //    {
-        //        "id": 10,
-        //        "asset_pair_name": "EOS-BTC",
-        //        "price": "10.00",
-        //        "amount": "10.00",
-        //        "filled_amount": "9.0",
-        //        "avg_deal_price": "12.0",
-        //        "side": "ASK",
-        //        "state": "CANCELLED",
-        //        "created_at":"2019-01-29T06:05:56Z",
-        //        "updated_at":"2019-01-29T06:05:56Z"
-        //    }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        let response = undefined;
+        if ((type === 'swap') || (type === 'future')) {
+            response = await this.contractPrivateDeleteOrdersId (this.extend (request, params));
+        } else {
+            response = await this.privatePostOrdersIdCancel (this.extend (request, params));
+            //
+            //    {
+            //        "id": 10,
+            //        "asset_pair_name": "EOS-BTC",
+            //        "price": "10.00",
+            //        "amount": "10.00",
+            //        "filled_amount": "9.0",
+            //        "avg_deal_price": "12.0",
+            //        "side": "ASK",
+            //        "state": "CANCELLED",
+            //        "created_at":"2019-01-29T06:05:56Z",
+            //        "updated_at":"2019-01-29T06:05:56Z"
+            //    }
+            //
+        }
         const order = this.safeValue (response, 'data');
         return this.parseOrder (order);
     }
@@ -1499,7 +1586,19 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const request = { 'id': id };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const isContract = (type === 'swap') || (type === 'future');
+        let response = undefined;
+        if (isContract) {
+            response = await this.contractPrivateGetOrdersId (this.extend (request, params));
+        } else {
+            response = await this.privateGetOrdersId (this.extend (request, params));
+        }
         const order = this.safeValue (response, 'data', {});
         return this.parseOrder (order);
     }
@@ -1513,6 +1612,16 @@ export default class bigone extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bigone api endpoint
+         * @param {int} [params.until] *contrat only* the latest time in ms to fetch orders for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.page_token] *spot only* request page after this page token
+         * @param {string} [params.side] 'ASK' or 'BID' (*spot*), BUY or SELL (*contract*)
+         * @param {string} [params.state] *spot only* 'CANCELLED', 'FILLED', 'PENDING'
+         * @param {string} [params.id] *contract only* Order id of previous response for pagination.
+         * @param {string} [params.type] *contract only* Order types, includes LIMIT, MARKET, IOC, FOK, POST_ONLY, ADL
+         * @param {string} [params.status] *contract only* Order status, includes NEW, PARTIALLY_FILLED, PARTIALLY_CANCELED, CANCELED, REJECTED, FILLED, UNTRIGGERED, PENDING_CANCEL, TRIGGERED, separated by comma
+         * @param {string} [params.opt] *contract only* TRIGGERED or LIQUIDATE
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         if (symbol === undefined) {
@@ -1520,13 +1629,26 @@ export default class bigone extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'asset_pair_name': market['id'],
-            // 'page_token': 'dxzef', // request page after this page token
-            // 'side': 'ASK', // 'ASK' or 'BID', optional
-            // 'state': 'FILLED', // 'CANCELLED', 'FILLED', 'PENDING'
-            // 'limit' 20, // default 20, max 200
-        };
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const request = {};
+        if ((type === 'swap') || (type === 'future')) {
+            const until = this.safeInteger (params, 'until');
+            const state = this.safeString (params, 'state');
+            request['symbol'] = market['id'];
+            if (since !== undefined) {
+                request['start-time'] = since;
+            }
+            if (until !== undefined) {
+                request['end-time'] = until;
+            }
+            if (state === 'FILLED') {
+                request['status'] = 'FILLED';
+            }
+            params = this.omit (params, [ 'state', 'until' ]);
+        } else {
+            request['asset_pair_name'] = market['id'];
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 200
         }
@@ -1620,8 +1742,16 @@ export default class bigone extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             'PENDING': 'open',
+            'NEW': 'open',
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
+            'CANCELED': 'canceled',
+            'PARTIALLY_FILLED': 'open',
+            'PARTIALLY_CANCELED': 'open',
+            'REJECTED': 'canceled',
+            'UNTRIGGERED': 'open',
+            'PENDING_CANCEL': 'open',
+            'TRIGGERED': 'closed',
         };
         return this.safeString (statuses, status);
     }
@@ -1637,10 +1767,68 @@ export default class bigone extends Exchange {
          * @param {object} [params] extra parameters specific to the bigone api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        const request = {
-            'state': 'PENDING',
-        };
-        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        if ((type === 'swap') || (type === 'future')) {
+            const request = {};
+            if (market !== undefined) {
+                request['symbol'] = market['id'];
+            }
+            const until = this.safeInteger (params, 'until');
+            request['symbol'] = market['id'];
+            if (since !== undefined) {
+                request['start-time'] = since;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            if (until !== undefined) {
+                request['end-time'] = until;
+            }
+            params = this.omit (params, [ 'until' ]);
+            const response = await this.contractPrivateGetOrdersOpening (this.extend (request, params));
+            //
+            //    [
+            //        {
+            //            "liquidateUserId": null,
+            //            "ts": 1562125342068,
+            //            "size": 1,
+            //            "notional": 0,
+            //            "side": "BUY",
+            //            "userId": "5aec525e-335d-4724-0005-20153b361f89",
+            //            "filledNotional": 0,
+            //            "isLiquidate": false,
+            //            "reduceOnly": false,
+            //            "type": "LIMIT",
+            //            "symbol": "BTCUSD",
+            //            "seqNo": null,
+            //            "filled": 0,
+            //            "meta": null,
+            //            "status": "UNTRIGGERED",
+            //            "avgPrice": 0,
+            //            "price": 8000,
+            //            "conditional": {
+            //                "type": "REACH",
+            //                "price": 8000,
+            //                "priceType": "MARKET_PRICE",
+            //            },
+            //            "id": "5aed7b45-5d19-40f2-0005-ca49d01f33e3"
+            //        }
+            //        ...
+            //    ]
+            //
+            return this.parseOrders (response, market, since, limit, params);
+        } else {
+            const request = {
+                'state': 'PENDING',
+            };
+            return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        }
     }
 
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
