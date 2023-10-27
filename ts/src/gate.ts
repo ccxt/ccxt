@@ -5642,7 +5642,6 @@ export default class gate extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         let response = undefined;
-        params = this.omit (params, [ 'marginMode' ]);
         if (symbol === undefined) {
             response = await this.privateMarginPostCrossLoans (this.extend (request, params));
         } else {
