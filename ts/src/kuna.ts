@@ -1859,15 +1859,15 @@ export default class kuna extends Exchange {
                 }
             } else if (version === 'v4') {
                 let urlPath = '/' + version + '/' + this.implodeParams (path, params);
+                if (isGet) {
+                    const paramsList = Object.keys (params);
+                    const numParams = paramsList.length;
+                    if (numParams > 0) {
+                        urlPath += '?' + this.urlencode (params);
+                    }
+                }
                 params = this.omit (params, this.extractParams (urlPath));
                 if (access === 'private') {
-                    if (isGet) {
-                        const paramsList = Object.keys (params);
-                        const numParams = paramsList.length;
-                        if (numParams > 0) {
-                            urlPath += '?' + this.urlencode (params);
-                        }
-                    }
                     const nonce = this.nonce ().toString ();
                     let auth = urlPath + nonce;
                     if (isGet) {
