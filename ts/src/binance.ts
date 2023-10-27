@@ -1522,13 +1522,13 @@ export default class binance extends Exchange {
                         '-2016': ExchangeError, // undocumented
                         '-2027': InsufficientFunds, // OPTION_MARGIN_NOT_SUFFICIENT
                         '-3029': ExchangeError, // {"code":-3029,"msg":"Transfer failed."}
-                        '-4006': ExchangeError, // undocumented
-                        '-4007': ExchangeError, // undocumented
-                        '-4008': ExchangeError, // undocumented
-                        '-4009': ExchangeError, // undocumented
-                        '-4010': ExchangeError, // undocumented
-                        '-4011': ExchangeError, // undocumented
-                        '-4012': ExchangeError, // undocumented
+                        '-4001': BadRequest, // PRICE_LESS_THAN_ZERO
+                        '-4002': BadRequest, // PRICE_GREATER_THAN_MAX_PRICE
+                        '-4003': BadRequest, // QTY_LESS_THAN_ZERO
+                        '-4004': BadRequest, // QTY_LESS_THAN_MIN_QTY
+                        '-4005': BadRequest, // QTY_GREATER_THAN_MAX_QTY
+                        '-4013': BadRequest, // PRICE_LESS_THAN_MIN_PRICE
+                        '-4029': BadRequest, // INVALID_TICK_SIZE_PRECISION
                         '-4030': BadRequest, // INVALID_QTY_PRECISION
                         '-4055': BadRequest, // AMOUNT_MUST_BE_POSITIVE
                     },
@@ -1557,6 +1557,108 @@ export default class binance extends Exchange {
                         '-2027': InvalidOrder, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
                         '-2028': InsufficientFunds, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
                         '-4000': InvalidOrder, // INVALID_ORDER_STATUS
+                        '-4001': BadRequest, // PRICE_LESS_THAN_ZERO
+                        '-4002': BadRequest, // PRICE_GREATER_THAN_MAX_PRICE
+                        '-4003': BadRequest, // QTY_LESS_THAN_ZERO
+                        '-4004': BadRequest, // QTY_LESS_THAN_MIN_QTY
+                        '-4005': BadRequest, // QTY_GREATER_THAN_MAX_QTY
+                        '-4006': BadRequest, // STOP_PRICE_LESS_THAN_ZERO
+                        '-4007': BadRequest, // STOP_PRICE_GREATER_THAN_MAX_PRICE
+                        '-4008': BadRequest, // TICK_SIZE_LESS_THAN_ZERO
+                        '-4009': BadRequest, // MAX_PRICE_LESS_THAN_MIN_PRICE
+                        '-4010': BadRequest, // MAX_QTY_LESS_THAN_MIN_QTY
+                        '-4011': BadRequest, // STEP_SIZE_LESS_THAN_ZERO
+                        '-4012': BadRequest, // MAX_NUM_ORDERS_LESS_THAN_ZERO
+                        '-4013': BadRequest, // PRICE_LESS_THAN_MIN_PRICE
+                        '-4014': BadRequest, // PRICE_NOT_INCREASED_BY_TICK_SIZE
+                        '-4015': BadRequest, // Client order id is not valid
+                        '-4016': BadRequest, // Price is higher than mark price multiplier cap.
+                        '-4017': BadRequest, // MULTIPLIER_UP_LESS_THAN_ZERO
+                        '-4018': BadRequest, // MULTIPLIER_DOWN_LESS_THAN_ZERO
+                        '-4019': BadRequest, // COMPOSITE_SCALE_OVERFLOW
+                        '-4020': BadRequest, // TARGET_STRATEGY_INVALID
+                        '-4021': BadRequest, // INVALID_DEPTH_LIMIT
+                        '-4022': BadRequest, // WRONG_MARKET_STATUS
+                        '-4023': BadRequest, // QTY_NOT_INCREASED_BY_STEP_SIZE
+                        '-4024': BadRequest, // PRICE_LOWER_THAN_MULTIPLIER_DOWN
+                        '-4025': BadRequest, // MULTIPLIER_DECIMAL_LESS_THAN_ZERO
+                        '-4026': BadRequest, // COMMISSION_INVALID
+                        '-4027': BadRequest, // INVALID_ACCOUNT_TYPE
+                        '-4028': BadRequest, // INVALID_LEVERAGE
+                        '-4029': BadRequest, // INVALID_TICK_SIZE_PRECISION
+                        '-4030': BadRequest, // INVALID_STEP_SIZE_PRECISION
+                        '-4031': BadRequest, // INVALID_WORKING_TYPE
+                        '-4032': BadRequest, // EXCEED_MAX_CANCEL_ORDER_SIZE
+                        '-4033': BadRequest, // INSURANCE_ACCOUNT_NOT_FOUND
+                        '-4044': BadRequest, // INVALID_BALANCE_TYPE
+                        '-4045': BadRequest, // MAX_STOP_ORDER_EXCEEDED
+                        '-4046': BadRequest, // NO_NEED_TO_CHANGE_MARGIN_TYPE
+                        '-4047': BadRequest, // THERE_EXISTS_OPEN_ORDERS
+                        '-4048': BadRequest, // THERE_EXISTS_QUANTITY
+                        '-4049': BadRequest, // ADD_ISOLATED_MARGIN_REJECT
+                        '-4050': BadRequest, // CROSS_BALANCE_INSUFFICIENT
+                        '-4051': InsufficientFunds, // ISOLATED_BALANCE_INSUFFICIENT
+                        '-4052': BadRequest, // NO_NEED_TO_CHANGE_AUTO_ADD_MARGIN
+                        '-4053': BadRequest, // AUTO_ADD_CROSSED_MARGIN_REJECT
+                        '-4054': BadRequest, // ADD_ISOLATED_MARGIN_NO_POSITION_REJECT
+                        '-4055': BadRequest, // AMOUNT_MUST_BE_POSITIVE
+                        '-4056': BadRequest, // INVALID_API_KEY_TYPE
+                        '-4057': BadRequest, // INVALID_RSA_PUBLIC_KEY
+                        '-4058': BadRequest, // MAX_PRICE_TOO_LARGE
+                        '-4059': BadRequest, // NO_NEED_TO_CHANGE_POSITION_SIDE
+                        '-4060': BadRequest, // INVALID_POSITION_SIDE
+                        '-4061': BadRequest, // POSITION_SIDE_NOT_MATCH
+                        '-4062': BadRequest, // REDUCE_ONLY_CONFLICT
+                        '-4063': BadRequest, // INVALID_OPTIONS_REQUEST_TYPE
+                        '-4064': BadRequest, // INVALID_OPTIONS_TIME_FRAME
+                        '-4065': BadRequest, // INVALID_OPTIONS_AMOUNT
+                        '-4066': BadRequest, // INVALID_OPTIONS_EVENT_TYPE
+                        '-4067': BadRequest, // Position side cannot be changed if there exists open orders.
+                        '-4068': BadRequest, // Position side cannot be changed if there exists position.
+                        '-4069': BadRequest, // Position INVALID_OPTIONS_PREMIUM_FEE
+                        '-4070': BadRequest, // INVALID_CL_OPTIONS_ID_LEN
+                        '-4071': BadRequest, // INVALID_OPTIONS_DIRECTION
+                        '-4072': BadRequest, // premium fee is not updated, reject order
+                        '-4073': BadRequest, // OPTIONS_PREMIUM_INPUT_LESS_THAN_ZERO
+                        '-4074': BadRequest, // Order amount is bigger than upper boundary or less than 0, reject order
+                        '-4075': BadRequest, // output premium fee is less than 0, reject order
+                        '-4076': BadRequest, // original fee is too much higher than last fee
+                        '-4077': BadRequest, // place order amount has reached to limit, reject order
+                        '-4078': BadRequest, // options internal error
+                        '-4079': BadRequest, // invalid options id
+                        '-4080': BadRequest, // OPTIONS_USER_NOT_FOUND
+                        '-4081': BadRequest, // OPTIONS_NOT_FOUND
+                        '-4082': BadRequest, // INVALID_BATCH_PLACE_ORDER_SIZE
+                        '-4083': BadRequest, // Fail to place batch orders.
+                        '-4084': BadRequest, // UPCOMING_METHOD
+                        '-4085': BadRequest, // INVALID_NOTIONAL_LIMIT_COEF 
+                        '-4086': BadRequest, // Invalid price spread threshold
+                        '-4087': PermissionDenied, // User can only place reduce only order 
+                        '-4088': PermissionDenied, // User can not place order currently
+                        '-4104': BadRequest, // INVALID_CONTRACT_TYPE
+                        '-4114': BadRequest, // INVALID_CLIENT_TRAN_ID_LEN
+                        '-4115': BadRequest, // DUPLICATED_CLIENT_TRAN_ID
+                        '-4118': BadRequest, // REDUCE_ONLY_MARGIN_CHECK_FAILED
+                        '-4131': BadRequest, // MARKET_ORDER_REJECT
+                        '-4135': BadRequest, // INVALID_ACTIVATION_PRICE
+                        '-4137': BadRequest, // Quantity must be zero with closePosition equals true
+                        '-4138': BadRequest, // Reduce only must be true with closePosition equals true
+                        '-4139': BadRequest, // Order type can not be market if it's unable to cancel
+                        '-4140': BadRequest, // Invalid symbol status for opening position
+                        '-4141': BadRequest, // Symbol is closed
+                        '-4142': BadRequest, // REJECT: take profit or stop order will be triggered immediately
+                        '-4144': BadRequest, // Invalid pair
+                        '-4164': BadRequest, // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                        '-4165': BadRequest, // Invalid time interval
+                        '-4167': BadRequest, // Unable to adjust to Multi-Assets mode with symbols of USDⓈ-M Futures under isolated-margin mode.
+                        '-4168': BadRequest, // Unable to adjust to isolated-margin mode under the Multi-Assets mode.
+                        '-4169': BadRequest, // Unable to adjust Multi-Assets Mode with insufficient margin balance in USDⓈ-M Futures.
+                        '-4170': BadRequest, // Unable to adjust Multi-Assets Mode with open orders in USDⓈ-M Futures. 
+                        '-xxx': BadRequest, // 
+                        '-xxx': BadRequest, // 
+                        '-xxx': BadRequest, // 
+                        '-xxx': BadRequest, // 
+                        '-xxx': BadRequest, // 
                     },
                 },
                 'inverse': {
@@ -1579,6 +1681,69 @@ export default class binance extends Exchange {
                         '-2027': InvalidOrder, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
                         '-2028': InsufficientFunds, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
                         '-4000': InvalidOrder, // INVALID_ORDER_STATUS
+                        '-4001': BadRequest, // PRICE_LESS_THAN_ZERO
+                        '-4002': BadRequest, // PRICE_GREATER_THAN_MAX_PRICE
+                        '-4003': BadRequest, // QTY_LESS_THAN_ZERO
+                        '-4004': BadRequest, // QTY_LESS_THAN_MIN_QTY
+                        '-4005': BadRequest, // QTY_GREATER_THAN_MAX_QTY
+                        '-4006': BadRequest, // STOP_PRICE_LESS_THAN_ZERO
+                        '-4007': BadRequest, // STOP_PRICE_GREATER_THAN_MAX_PRICE
+                        '-4008': BadRequest, // TICK_SIZE_LESS_THAN_ZERO
+                        '-4009': BadRequest, // MAX_PRICE_LESS_THAN_MIN_PRICE
+                        '-4010': BadRequest, // MAX_QTY_LESS_THAN_MIN_QTY
+                        '-4011': BadRequest, // STEP_SIZE_LESS_THAN_ZERO
+                        '-4012': BadRequest, // MAX_NUM_ORDERS_LESS_THAN_ZERO
+                        '-4013': BadRequest, // PRICE_LESS_THAN_MIN_PRICE
+                        '-4014': BadRequest, // PRICE_NOT_INCREASED_BY_TICK_SIZE
+                        '-4015': BadRequest, // Client order id is not valid
+                        '-4016': BadRequest, // Price is higher than mark price multiplier cap.
+                        '-4017': BadRequest, // MULTIPLIER_UP_LESS_THAN_ZERO
+                        '-4018': BadRequest, // MULTIPLIER_DOWN_LESS_THAN_ZERO
+                        '-4019': BadRequest, // COMPOSITE_SCALE_OVERFLOW
+                        '-4020': BadRequest, // TARGET_STRATEGY_INVALID
+                        '-4021': BadRequest, // INVALID_DEPTH_LIMIT
+                        '-4022': BadRequest, // WRONG_MARKET_STATUS
+                        '-4023': BadRequest, // QTY_NOT_INCREASED_BY_STEP_SIZE
+                        '-4024': BadRequest, // PRICE_LOWER_THAN_MULTIPLIER_DOWN
+                        '-4025': BadRequest, // MULTIPLIER_DECIMAL_LESS_THAN_ZERO
+                        '-4026': BadRequest, // COMMISSION_INVALID
+                        '-4027': BadRequest, // INVALID_ACCOUNT_TYPE
+                        '-4028': BadRequest, // INVALID_LEVERAGE
+                        '-4029': BadRequest, // INVALID_TICK_SIZE_PRECISION
+                        '-4030': BadRequest, // INVALID_STEP_SIZE_PRECISION
+                        '-4031': BadRequest, // INVALID_WORKING_TYPE
+                        '-4032': BadRequest, // EXCEED_MAX_CANCEL_ORDER_SIZE
+                        '-4033': BadRequest, // INSURANCE_ACCOUNT_NOT_FOUND
+                        '-4044': BadRequest, // INVALID_BALANCE_TYPE
+                        '-4045': BadRequest, // MAX_STOP_ORDER_EXCEEDED
+                        '-4046': BadRequest, // NO_NEED_TO_CHANGE_MARGIN_TYPE
+                        '-4047': BadRequest, // THERE_EXISTS_OPEN_ORDERS
+                        '-4048': BadRequest, // THERE_EXISTS_QUANTITY
+                        '-4049': BadRequest, // ADD_ISOLATED_MARGIN_REJECT
+                        '-4050': BadRequest, // CROSS_BALANCE_INSUFFICIENT
+                        '-4051': InsufficientFunds, // ISOLATED_BALANCE_INSUFFICIENT
+                        '-4052': BadRequest, // NO_NEED_TO_CHANGE_AUTO_ADD_MARGIN
+                        '-4053': BadRequest, // AUTO_ADD_CROSSED_MARGIN_REJECT
+                        '-4054': BadRequest, // ADD_ISOLATED_MARGIN_NO_POSITION_REJECT
+                        '-4055': BadRequest, // AMOUNT_MUST_BE_POSITIVE
+                        '-4056': BadRequest, // INVALID_API_KEY_TYPE
+                        '-4057': BadRequest, // INVALID_RSA_PUBLIC_KEY
+                        '-4058': BadRequest, // MAX_PRICE_TOO_LARGE
+                        '-4059': BadRequest, // NO_NEED_TO_CHANGE_POSITION_SIDE
+                        '-4060': BadRequest, // INVALID_POSITION_SIDE
+                        '-4061': BadRequest, // POSITION_SIDE_NOT_MATCH
+                        '-4062': BadRequest, // REDUCE_ONLY_CONFLICT
+                        //
+                        '-4067': BadRequest, // Position side cannot be changed if there exists open orders.
+                        '-4068': BadRequest, // Position side cannot be changed if there exists position.
+                        '-4082': InvalidOrder, // Invalid number of batch place orders.
+                        '-4083': BadResponse, // PLACE_BATCH_ORDERS_FAIL
+                        '-4084': BadRequest, // Method is not allowed currently. Upcoming soon.
+                        '-4086': BadRequest, //  Invalid price spread threshold.
+                        '-4087': BadSymbol, // Invalid pair
+                        '-4088': BadRequest, // Invalid time interval
+                        '-4089': PermissionDenied, // User can only place reduce only order.
+                        '-4090': PermissionDenied, // User can not place order currently.
                     },
                 },
                 'exact': {
@@ -1651,20 +1816,6 @@ export default class binance extends Exchange {
                     '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                     '-2016': BadRequest, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
                     '-2018': InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
-                    '-4001': xxxx, // PRICE_LESS_THAN_ZERO
-                    '-4002': xxxx, // PRICE_GREATER_THAN_MAX_PRICE
-                    '-4003': xxxx, // QTY_LESS_THAN_ZERO
-                    '-4004': xxxx, // QTY_LESS_THAN_MIN_QTY
-                    '-4005': xxxx, // QTY_GREATER_THAN_MAX_QTY
-                    '-4006': xxxx, // STOP_PRICE_LESS_THAN_ZERO
-                    '-4007': xxxx, // STOP_PRICE_GREATER_THAN_MAX_PRICE
-                    '-4008': xxxx, // TICK_SIZE_LESS_THAN_ZERO
-                    '-4009': xxxx, // MAX_PRICE_LESS_THAN_MIN_PRICE
-                    '-4010': xxxx, // MAX_QTY_LESS_THAN_MIN_QTY
-                    '-4011': xxxx, // STEP_SIZE_LESS_THAN_ZERO
-                    '-4012': xxxx, // MAX_NUM_ORDERS_LESS_THAN_ZERO
-                    '-4013': xxxx, // PRICE_LESS_THAN_MIN_PRICE
-                    '-4029': xxxx, // INVALID_TICK_SIZE_PRECISION
                     '-5001': BadRequest, // {"code":-5001,"msg":"Don't allow transfer to micro assets."}
                     '-5002': InsufficientFunds, // {"code":-5002,"msg":"You have insufficient balance."}
                     '-5003': InsufficientFunds, // {"code":-5003,"msg":"You don't have this asset."}
