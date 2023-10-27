@@ -1968,20 +1968,12 @@ export default class binance extends Exchange {
                     '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                     '-2016': BadRequest, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
                     '-2018': InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
+                    //
                     // others
                     '-9000': InsufficientFunds, // {"code":-9000,"msg":"user have no avaliable amount"}" // undocumented markettype
                     '-10017': BadRequest, // {"code":-10017,"msg":"Repay amount should not be larger than liability."} // undocumented markettype
                     '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."} // undocumented  // undocumented markettype
-                    '-12014': RateLimitExceeded, // {"code":-12014,"msg":"More than 1 request in 3 seconds"}  // undocumented markettype
-                    '-13000': BadRequest, // {"code":-13000,"msg":"Redeption of the token is forbiden now"}  // undocumented markettype
-                    '-13001': BadRequest, // {"code":-13001,"msg":"Exceeds individual 24h redemption limit of the token"}  // undocumented markettype
-                    '-13002': BadRequest, // {"code":-13002,"msg":"Exceeds total 24h redemption limit of the token"}  // undocumented markettype
-                    '-13003': BadRequest, // {"code":-13003,"msg":"Subscription of the token is forbiden now"}  // undocumented markettype
-                    '-13004': BadRequest, // {"code":-13004,"msg":"Exceeds individual 24h subscription limit of the token"}  // undocumented markettype
-                    '-13005': BadRequest, // {"code":-13005,"msg":"Exceeds total 24h subscription limit of the token"}  // undocumented markettype
-                    '-13006': InvalidOrder, // {"code":-13006,"msg":"Subscription amount is too small"}  // undocumented markettype
-                    '-13007': AuthenticationError, // {"code":-13007,"msg":"The Agreement is not signed"}  // undocumented markettype
-                    // spot & futures algo (TBD for OPTION & PM)
+                    // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
                     '-20121': BadSymbol, // Invalid symbol.
                     '-20124': BadRequest, // Invalid algo id or it has been completed.
                     '-20130': BadRequest, // Invalid data sent for a parameter
