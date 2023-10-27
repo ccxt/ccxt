@@ -1652,13 +1652,37 @@ export default class binance extends Exchange {
                         '-4165': BadRequest, // Invalid time interval
                         '-4167': BadRequest, // Unable to adjust to Multi-Assets mode with symbols of USDⓈ-M Futures under isolated-margin mode.
                         '-4168': BadRequest, // Unable to adjust to isolated-margin mode under the Multi-Assets mode.
-                        '-4169': BadRequest, // Unable to adjust Multi-Assets Mode with insufficient margin balance in USDⓈ-M Futures.
-                        '-4170': BadRequest, // Unable to adjust Multi-Assets Mode with open orders in USDⓈ-M Futures. 
-                        '-xxx': BadRequest, // 
-                        '-xxx': BadRequest, // 
-                        '-xxx': BadRequest, // 
-                        '-xxx': BadRequest, // 
-                        '-xxx': BadRequest, // 
+                        '-4169': BadRequest, // Unable to adjust Multi-Assets Mode with insufficient margin balance in USDⓈ-M Futures
+                        '-4170': BadRequest, // Unable to adjust Multi-Assets Mode with open orders in USDⓈ-M Futures
+                        '-4171': BadRequest, // Adjusted asset mode is currently set and does not need to be adjusted repeatedly.NO_NEED_TO_CHANGE_JOINT_MARGIN
+                        '-4172 ': BadRequest, // Unable to adjust Multi-Assets Mode with a negative wallet balance of margin available asset in USDⓈ-M Futures account.
+                        '-4183': BadRequest, // Price is higher than stop price multiplier cap.
+                        '-4184': BadRequest, // Price is lower than stop price multiplier floor.
+                        '-4192': BadRequest, // Trade forbidden due to Cooling-off Period.
+                        '-4202': BadRequest, // Intermediate Personal Verification is required for adjusting leverage over 20x
+                        '-4203': BadRequest, // More than 20x leverage is available one month after account registration.
+                        '-4205': BadRequest, // More than 20x leverage is available %s days after Futures account registration.
+                        '-4206': BadRequest, // Users in this country has limited adjust leverage.
+                        '-4208': BadRequest, // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
+                        '-4209': BadRequest, // Leverage adjustment failed. Current symbol max leverage limit is %sx
+                        '-4210': BadRequest, // Stop price is higher than price multiplier cap
+                        '-4211': BadRequest, // Stop price is lower than price multiplier floor
+                        '-4400': BadRequest, // Futures Trading Quantitative Rules violated, only reduceOnly order is allowed, please try again later.
+                        '-4401': BadRequest, // Compliance restricted account permission: can only place reduceOnly order.
+                        '-4402': BadRequest, // Dear user, as per our Terms of Use and compliance with local regulations, this feature is currently not available in your region.
+                        '-4403': BadRequest, // Dear user, as per our Terms of Use and compliance with local regulations, the leverage can only up to %sx in your region
+                        '-5021': BadRequest, // Due to the order could not be filled immediately, the FOK order has been rejected.
+                        '-5022': BadRequest, // Due to the order could not be executed as maker, the Post Only order will be rejected.
+                        '-5024': BadRequest, // Symbol is not in trading status. Order amendment is not permitted.
+                        '-5025': BadRequest, // Only limit order is supported.
+                        '-5026': BadRequest, // Exceed maximum modify order limit.
+                        '-5027': BadRequest, // No need to modify the order.
+                        '-5028': BadRequest, // Timestamp for this request is outside of the ME recvWindow.
+                        '-5037': BadRequest, // Invalid price match
+                        '-5038': BadRequest, // Price match only supports order type: LIMIT, STOP AND TAKE_PROFIT
+                        '-5039': BadRequest, // Invalid self trade prevention mode
+                        '-5040': BadRequest, // FUTURE_GOOD_TILL_DATE
+                        '-5041': BadRequest, // No depth matches this BBO order
                     },
                 },
                 'inverse': {
@@ -1744,6 +1768,33 @@ export default class binance extends Exchange {
                         '-4088': BadRequest, // Invalid time interval
                         '-4089': PermissionDenied, // User can only place reduce only order.
                         '-4090': PermissionDenied, // User can not place order currently.
+                        '-4104': BadRequest, // Invalid contract type
+                        '-4110': BadRequest, // clientTranId is not valid
+                        '-4111': xxxx, // clientTranId is duplicated.
+                        '-4112': xxxx, // ReduceOnly Order Failed. Please check your existing position and open orders.
+                        '-4113': xxxx, // The counterparty's best price does not meet the PERCENT_PRICE filter limit.
+                        '-4135': xxxx, // Invalid activation price.
+                        '-4137': xxxx, // Quantity must be zero with closePosition equals true.
+                        '-4138': xxxx, // Reduce only must be true with closePosition equals true.
+                        '-4139': xxxx, // Order type can not be market if it's unable to cancel.
+                        '-4142': xxxx, // REJECT: take profit or stop order will be triggered immediately.
+                        '-4150': xxxx, // Leverage reduction is not supported in Isolated Margin Mode with open positions.
+                        '-4151': xxxx, // Price is higher than stop price multiplier cap.
+                        '-4152': xxxx, // Price is lower than stop price multiplier floor.
+                        '-4154': xxxx, // Stop price is higher than price multiplier cap.
+                        '-4155': xxxx, // PStop price is lower than price multiplier floor
+                        '-4178': xxxx, // Order's notional must be no smaller than one (unless you choose reduce only)
+                        '-4192': xxxx, // Trade forbidden due to Cooling-off Period.
+                        '-4194': xxxx, // Intermediate Personal Verification is required for adjusting leverage over 20x.
+                        '-4195': xxxx, // More than 20x leverage is available one month after account registration.
+                        '-4196': xxxx, // Only limit order is supported.
+                        '-4197': xxxx, // No need to modify the order.
+                        '-4198': xxxx, // Exceed maximum modify order limit.
+                        '-4199': xxxx, // Symbol is not in trading status. Order amendment is not permitted.
+                        '-4200': xxxx, // More than 20x leverage is available %s days after Futures account registration.
+                        '-4201': xxxx, // Users in your location/country can only access a maximum leverage of %s
+                        '-4202': xxxx, // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
+                        '-4188': xxxx, // Timestamp for this request is outside of the ME recvWindow.
                     },
                 },
                 'exact': {
