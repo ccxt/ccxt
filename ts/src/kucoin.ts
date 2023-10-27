@@ -20,11 +20,7 @@ export default class kucoin extends Exchange {
             'id': 'kucoin',
             'name': 'KuCoin',
             'countries': [ 'SC' ],
-            // note "only some endpoints are rate-limited"
-            // so I set the 'ratelimit' on those which supposedly 'arent ratelimited'
-            // to the limit of the cheapest endpoint
-            // 60 requests in 3 seconds = 20 requests per second => ( 1000ms / 20 ) = 50 ms between requests on average
-            'rateLimit': 50,
+            'rateLimit': 10, // 100 requests per second => ( 1000ms / 100 ) = 10 ms between requests on average
             'version': 'v2',
             'certified': true,
             'pro': true,
@@ -53,7 +49,7 @@ export default class kucoin extends Exchange {
                 'fetchBorrowInterest': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
-                'fetchBorrowRateHistory': true,
+                'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -125,142 +121,165 @@ export default class kucoin extends Exchange {
                 'password': true,
             },
             'api': {
+                // level VIP0
+                // Spot => 3000/30s => 100/s
+                // Weight = x => 100/(100/x) = x
+                // Futures Management Public => 2000/30s => 200/3/s
+                // Weight = x => 100/(200/3/x) = x*1.5
                 'public': {
                     'get': {
-                        'timestamp': 1,
-                        'status': 1,
-                        'symbols': 1,
-                        'markets': 1,
-                        'market/allTickers': 1,
-                        'market/orderbook/level{level}_{limit}': 1,
-                        'market/orderbook/level2_20': 1,
-                        'market/orderbook/level2_100': 1,
-                        'market/histories': 1,
-                        'market/candles': 1,
-                        'market/stats': 1,
-                        'currencies': 1,
-                        'currencies/{currency}': 1,
-                        'prices': 1,
-                        'mark-price/{symbol}/current': 1,
-                        'margin/config': 1,
-                        'margin/trade/last': 1,
+                        // spot trading
+                        'currencies': 4.5, // 3PW
+                        'currencies/{currency}': 4.5, // 3PW
+                        'symbols': 6, // 4PW
+                        'market/orderbook/level1': 3, // 2PW
+                        'market/allTickers': 22.5, // 15PW
+                        'market/stats': 22.5, // 15PW
+                        'markets': 4.5, // 3PW
+                        'market/orderbook/level{level}_{limit}': 6, // 4PW
+                        'market/orderbook/level2_20': 3, // 2PW
+                        'market/orderbook/level2_100': 6, // 4PW
+                        'market/histories': 4.5, // 3PW
+                        'market/candles': 4.5, // 3PW
+                        'prices': 4.5, // 3PW
+                        'timestamp': 4.5, // 3PW
+                        'status': 4.5, // 3PW
+                        // margin trading
+                        'mark-price/{symbol}/current': 3, // 2PW
+                        'margin/config': 25, // 25SW
                     },
                     'post': {
-                        'bullet-public': 1,
+                        // ws
+                        'bullet-public': 15, // 10PW
                     },
                 },
                 'private': {
                     'get': {
-                        'market/orderbook/level{level}': 1,
-                        'market/orderbook/level2': { 'v3': 2 }, // 30/3s = 10/s => cost = 20 / 10 = 2
-                        'market/orderbook/level3': 1,
-                        'accounts': 1,
-                        'accounts/{accountId}': 1,
-                        // 'accounts/{accountId}/ledgers': 1, Deprecated endpoint
-                        'accounts/ledgers': 3.333, // 18/3s = 6/s => cost = 20 / 6 = 3.333
-                        'accounts/{accountId}/holds': 1,
-                        'accounts/transferable': 1,
-                        'base-fee': 1,
-                        'sub/user': 1,
-                        'user-info': 1,
-                        'sub/api-key': 1,
-                        'sub-accounts': 1,
-                        'sub-accounts/{subUserId}': 1,
-                        'deposit-addresses': 1,
-                        'deposits': 10, // 6/3s = 2/s => cost = 20 / 2 = 10
-                        'hist-deposits': 10, // 6/3 = 2/s => cost = 20 / 2 = 10
-                        // 'hist-orders': 1, Deprecated endpoint
-                        'hist-withdrawals': 10, // 6/3 = 2/s => cost = 20 / 2 = 10
-                        'withdrawals': 10, // 6/3 = 2/s => cost = 20 / 2 = 10
-                        'withdrawals/quotas': 1,
-                        'orders': 2, // 30/3s =  10/s => cost  = 20 / 10 = 2
-                        'order/client-order/{clientOid}': 1,
-                        'orders/{orderId}': 1,
-                        'limit/orders': 1,
-                        'fills': 6.66667, // 9/3s = 3/s => cost  = 20 / 3 = 6.666667
-                        'limit/fills': 1,
-                        'isolated/accounts': 2, // 30/3s = 10/s => cost = 20 / 10 = 2
-                        'isolated/account/{symbol}': 2,
-                        'isolated/borrow/outstanding': 2,
-                        'isolated/borrow/repaid': 2,
-                        'isolated/symbols': 2,
-                        'margin/account': 1,
-                        'margin/borrow': 1,
-                        'margin/borrow/outstanding': 1,
-                        'margin/borrow/repaid': 1,
-                        'margin/lend/active': 1,
-                        'margin/lend/done': 1,
-                        'margin/lend/trade/unsettled': 1,
-                        'margin/lend/trade/settled': 1,
-                        'margin/lend/assets': 1,
-                        'margin/market': 1,
-                        'stop-order/{orderId}': 1,
-                        'stop-order': 1,
-                        'stop-order/queryOrderByClientOid': 1,
-                        'trade-fees': 1.3333, // 45/3s = 15/s => cost = 20 / 15 = 1.333
-                        'hf/accounts/ledgers': 3.33, // 18 times/3s = 6/s => cost = 20 / 6 = 3.33
-                        'hf/orders/active': 2, // 30 times/3s = 10/s => cost = 20 / 10 = 2
-                        'hf/orders/active/symbols': 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
-                        'hf/orders/done': 2, // 30 times/3s = 10/s => cost = 20 / 10 = 2
-                        'hf/orders/{orderId}': 1, // didn't find rate limit
-                        'hf/orders/client-order/{clientOid}': 2, // 30 times/3s = 10/s => cost = 20 / 10 = 2
-                        'hf/fills': 6.67, // 9 times/3s = 3/s => cost = 20 / 3 = 6.67
-                        'margin/repay': 1,
-                        'project/list': 1,
-                        'project/marketInterestRate': 1,
-                        'redeem/orders': 1,
-                        'purchase/orders': 1,
+                        // account
+                        'user-info': 30, // 20MW
+                        'accounts': 7.5, // 5MW
+                        'accounts/{accountId}': 7.5, // 5MW
+                        'accounts/ledgers': 3, // 2MW
+                        'hf/accounts/ledgers': 2, // 2SW
+                        'hf/margin/account/ledgers': 2, // 2SW
+                        'transaction-history': 3, // 2MW
+                        'sub/user': 30, // 20MW
+                        'sub-accounts/{subUserId}': 22.5, // 15MW
+                        'sub-accounts': 30, // 20MW
+                        'sub/api-key': 30, // 20MW
+                        // funding
+                        'margin/account': 40, // 40SW
+                        'margin/accounts': 15, // 15SW
+                        'isolated/accounts': 15, // 15SW
+                        'account-overview': 7.5, // 5FW
+                        'account-overview-all': 9, // 6FW
+                        'deposit-addresses': 7.5, // 5MW
+                        'deposits': 7.5, // 5MW
+                        'hist-deposits': 7.5, // 5MW
+                        'withdrawals': 30, // 20MW
+                        'hist-withdrawals': 30, // 20MW
+                        'withdrawals/quotas': 30, // 20MW
+                        'accounts/transferable': 30, // 20MW
+                        'transfer-list': 30, // 20MW
+                        'base-fee': 3, // 3SW
+                        'trade-fees': 3, // 3SW
+                        // spot trading
+                        'market/orderbook/level{level}': 3, // 3SW
+                        'market/orderbook/level2': 3, // 3SW
+                        'market/orderbook/level3': 3, // 3SW
+                        'hf/orders/active': 2, // 2SW
+                        'hf/orders/active/symbols': 2, // 2SW
+                        'hf/orders/done': 2, // 2SW
+                        'hf/orders/{orderId}': 2, // 2SW
+                        'hf/orders/client-order/{clientOid}': 2, // 2SW
+                        'hf/orders/dead-cancel-all/query': 2, // 2SW
+                        'hf/fills': 2, // 2SW
+                        'orders': 2, // 2SW
+                        'limit/orders': 3, // 3SW
+                        'orders/{orderId}': 2, // 2SW
+                        'order/client-order/{clientOid}': 3, // 3SW
+                        'fills': 10, // 10SW
+                        'limit/fills': 20, // 20SW
+                        'stop-order': 8, // 8SW
+                        'stop-order/{orderId}': 3, // 3SW
+                        'stop-order/queryOrderByClientOid': 3, // 3SW
+                        // margin trading
+                        'hf/margin/orders/active': 4, // 4SW
+                        'hf/margin/orders/done': 10, // 10SW
+                        'hf/margin/orders/{orderId}': 4, // 4SW
+                        'hf/margin/orders/client-order/{clientOid}': 5, // 5SW
+                        'hf/margin/fills': 5, // 5SW
+                        'etf/info': 25, // 25SW
+                        'risk/limit/strategy': 20, // 20SW
+                        'isolated/symbols': 20, // 20SW
+                        'isolated/account/{symbol}': 50, // 50SW
+                        'margin/borrow': 15, // 15SW
+                        'margin/repay': 15, // 15SW
+                        'project/list': 10, // 10SW
+                        'project/marketInterestRate': 7.5, // 5PW
+                        'redeem/orders': 10, // 10SW
+                        'purchase/orders': 10, // 10SW
                     },
                     'post': {
-                        'accounts': 1,
-                        'accounts/inner-transfer': { 'v2': 1 },
-                        'accounts/sub-transfer': { 'v2': 25 }, // bad docs
-                        'deposit-addresses': 1,
-                        'withdrawals': 1,
-                        'orders': 4, // 45/3s = 15/s => cost = 20 / 15 = 1.333333
-                        'orders/test': 4, // 45/3s = 15/s => cost = 20 / 15 = 1.333333
-                        'orders/multi': 20, // 3/3s = 1/s => cost = 20 / 1 = 20
-                        'isolated/borrow': 2, // 30 requests per 3 seconds = 10 requests per second => cost = 20/10 = 2
-                        'isolated/repay/all': 2,
-                        'isolated/repay/single': 2,
-                        'margin/borrow': 1,
-                        'margin/order': 1,
-                        'margin/order/test': 1,
-                        'margin/repay/all': 1,
-                        'margin/repay/single': 1,
-                        'margin/lend': 1,
-                        'margin/toggle-auto-lend': 1,
-                        'bullet-private': 1,
-                        'stop-order': 1,
-                        'sub/user': 1,
-                        'sub/api-key': 1,
-                        'sub/api-key/update': 1,
-                        'hf/orders': 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
-                        'hf/orders/sync': 1.33, // 45 times/3s = 15/s => cost = 20/15 = 1.33
-                        'hf/orders/multi': 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
-                        'hf/orders/multi/sync': 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
-                        'hf/orders/alter': 1, // 60 times/3s = 20/s => cost = 20/20 = 1
-                        'margin/repay': 1,
-                        'purchase': 1,
-                        'redeem': 1,
-                        'lend/purchase/update': 1,
+                        // account
+                        'sub/user/created': 22.5, // 15MW
+                        'sub/api-key': 30, // 20MW
+                        'sub/api-key/update': 45, // 30MW
+                        // funding
+                        'deposit-addresses': 30, // 20MW
+                        'withdrawals': 7.5, // 5MW
+                        'accounts/universal-transfer': 6, // 4MW
+                        'accounts/sub-transfer': 45, // 30MW
+                        'accounts/inner-transfer': 15, // 10MW
+                        'transfer-out': 30, // 20MW
+                        'transfer-in': 30, // 20MW
+                        // spot trading
+                        'hf/orders': 1, // 1SW
+                        'hf/orders/test': 1, // 1SW
+                        'hf/orders/sync': 1, // 1SW
+                        'hf/orders/multi': 1, // 1SW
+                        'hf/orders/multi/sync': 1, // 1SW
+                        'hf/orders/alter': 3, // 3SW
+                        'hf/orders/dead-cancel-all': 2, // 2SW
+                        'orders': 2, // 2SW
+                        'orders/test': 2, // 2SW
+                        'orders/multi': 3, // 3SW
+                        'stop-order': 2, // 2SW
+                        // margin trading
+                        'hf/margin/order': 5, // 5SW
+                        'hf/margin/order/test': 5, // 5SW
+                        'margin/order': 5, // 5SW
+                        'margin/order/test': 5, // 5SW
+                        'margin/borrow': 15, // 15SW
+                        'margin/repay': 10, // 10SW
+                        'purchase': 15, // 15SW
+                        'redeem': 15, // 15SW
+                        'lend/purchase/update': 10, // 10SW
+                        // ws
+                        'bullet-private': 15, // 10SW or 10FW
                     },
                     'delete': {
-                        'withdrawals/{withdrawalId}': 1,
-                        'orders': 20, // 3/3s = 1/s => cost = 20/1
-                        'order/client-order/{clientOid}': 1,
-                        'orders/{orderId}': 1, // rateLimit: 60/3s = 20/s => cost = 1
-                        'margin/lend/{orderId}': 1,
-                        'stop-order/cancelOrderByClientOid': 1,
-                        'stop-order/{orderId}': 1,
-                        'stop-order/cancel': 1,
-                        'sub/api-key': 1,
-                        'hf/orders/{orderId}': 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
-                        'hf/orders/sync/{orderId}': 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
-                        'hf/orders/client-order/{clientOid}': 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
-                        'hf/orders/sync/client-order/{clientOid}': 0.4, // 150 times/3s = 50/s => cost = 20/50 = 0.4
-                        'hf/orders/cancel/{orderId}': 1, // 60 times/3s = 20/s => cost = 20/20 = 1
-                        'hf/orders': 20, // 3 times/3s = 1/s => cost = 20 / 1 = 20
+                        // account
+                        'sub/api-key': 45, // 30MW
+                        // funding
+                        'withdrawals/{withdrawalId}': 30, // 20MW
+                        // spot trading
+                        'hf/orders/{orderId}': 1, // 1SW
+                        'hf/orders/sync/{orderId}': 1, // 1SW
+                        'hf/orders/client-order/{clientOid}': 1, // 1SW
+                        'hf/orders/sync/client-order/{clientOid}': 1, // 1SW
+                        'hf/orders/cancel/{orderId}': 2, // 2SW
+                        'hf/orders': 2, // 2SW
+                        'orders/{orderId}': 3, // 3SW
+                        'order/client-order/{clientOid}': 5, // 5SW
+                        'orders': 20, // 20SW
+                        'stop-order/{orderId}': 3, // 3SW
+                        'stop-order/cancelOrderByClientOid': 5, // 5SW
+                        'stop-order/cancel': 3, // 3SW
+                        // margin trading
+                        'hf/margin/orders/{orderId}': 5, // 5SW
+                        'hf/margin/orders/client-order/{clientOid}': 5, // 5SW
+                        'hf/margin/orders': 10, // 10SW
                     },
                 },
                 'futuresPublic': {
@@ -490,27 +509,35 @@ export default class kucoin extends Exchange {
                 'versions': {
                     'public': {
                         'GET': {
+                            // spot trading
                             'currencies': 'v3',
-                            'currencies/{currency}': 'v2',
-                            'status': 'v1',
-                            'market/orderbook/level2_20': 'v1',
-                            'market/orderbook/level2_100': 'v1',
-                            'market/orderbook/level{level}_{limit}': 'v1',
+                            'currencies/{currency}': 'v3',
+                            'symbols': 'v2',
                         },
                     },
                     'private': {
                         'GET': {
+                            // account
+                            'user-info': 'v2',
+                            'hf/margin/account/ledgers': 'v3',
+                            'sub/user': 'v2',
+                            'sub-accounts': 'v2',
+                            // funding
+                            'margin/accounts': 'v3',
+                            'isolated/accounts': 'v3',
+                            // 'deposit-addresses': 'v2',
+                            'deposit-addresses': 'v1', // 'v1' for fetchDepositAddress, 'v2' for fetchDepositAddressesByNetwork
+                            // spot trading
                             'market/orderbook/level2': 'v3',
                             'market/orderbook/level3': 'v3',
                             'market/orderbook/level{level}': 'v3',
-                            'deposit-addresses': 'v1', // 'v1' for fetchDepositAddress, 'v2' for fetchDepositAddressesByNetwork
-                            'hf/accounts/ledgers': 'v1',
-                            'hf/orders/active': 'v1',
-                            'hf/orders/active/symbols': 'v1',
-                            'hf/orders/done': 'v1',
-                            'hf/orders/{orderId}': 'v1',
-                            'hf/orders/client-order/{clientOid}': 'v1',
-                            'hf/fills': 'v1',
+                            // margin trading
+                            'hf/margin/orders/active': 'v3',
+                            'hf/margin/orders/done': 'v3',
+                            'hf/margin/orders/{orderId}': 'v3',
+                            'hf/margin/orders/client-order/{clientOid}': 'v3',
+                            'hf/margin/fills': 'v3',
+                            'etf/info': 'v3',
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
                             'project/list': 'v3',
@@ -519,14 +546,17 @@ export default class kucoin extends Exchange {
                             'purchase/orders': 'v3',
                         },
                         'POST': {
-                            'accounts/inner-transfer': 'v2',
+                            // account
+                            'sub/user/created': 'v2',
+                            // funding
+                            'accounts/universal-transfer': 'v3',
                             'accounts/sub-transfer': 'v2',
-                            'accounts': 'v1',
-                            'hf/orders': 'v1',
-                            'hf/orders/sync': 'v1',
-                            'hf/orders/multi': 'v1',
-                            'hf/orders/multi/sync': 'v1',
-                            'hf/orders/alter': 'v1',
+                            'accounts/inner-transfer': 'v2',
+                            'transfer-out': 'v3',
+                            // spot trading
+                            // margin trading
+                            'hf/margin/order': 'v3',
+                            'hf/margin/order/test': 'v3',
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
                             'purchase': 'v3',
@@ -534,12 +564,13 @@ export default class kucoin extends Exchange {
                             'lend/purchase/update': 'v3',
                         },
                         'DELETE': {
-                            'hf/orders/{orderId}': 'v1',
-                            'hf/orders/sync/{orderId}': 'v1',
-                            'hf/orders/client-order/{clientOid}': 'v1',
-                            'hf/orders/sync/client-order/{clientOid}': 'v1',
-                            'hf/orders/cancel/{orderId}': 'v1',
-                            'hf/orders': 'v1',
+                            // account
+                            // funding
+                            // spot trading
+                            'hf/margin/orders/{orderId}': 'v3',
+                            'hf/margin/orders/client-order/{clientOid}': 'v3',
+                            'hf/margin/orders': 'v3',
+                            // margin trading
                         },
                     },
                     'futuresPrivate': {
@@ -3873,42 +3904,42 @@ export default class kucoin extends Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name kucoin#fetchBorrowRateHistory
-         * @description retrieves a history of a currencies borrow interest rate at specific time slots
-         * @see https://docs.kucoin.com/#margin-trade-data
-         * @param {string} code unified currency code
-         * @param {int} [since] timestamp for the earliest borrow rate
-         * @param {int} [limit] the maximum number of [borrow rate structures]
-         * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object[]} an array of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
-         */
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.publicGetMarginTradeLast (this.extend (request, params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": [
-        //             {
-        //                 "tradeId": "62db2dcaff219600012b56cd",
-        //                 "currency": "USDT",
-        //                 "size": "10",
-        //                 "dailyIntRate": "0.00003",
-        //                 "term": 7,
-        //                 "timestamp": 1658531274508488480
-        //             },
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseBorrowRateHistory (data, code, since, limit);
-    }
+    // async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    //     /**
+    //      * @method
+    //      * @name kucoin#fetchBorrowRateHistory
+    //      * @description retrieves a history of a currencies borrow interest rate at specific time slots
+    //      * @see https://docs.kucoin.com/#margin-trade-data
+    //      * @param {string} code unified currency code
+    //      * @param {int} [since] timestamp for the earliest borrow rate
+    //      * @param {int} [limit] the maximum number of [borrow rate structures]
+    //      * @param {object} [params] extra parameters specific to the kucoin api endpoint
+    //      * @returns {object[]} an array of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+    //      */
+    //     await this.loadMarkets ();
+    //     const currency = this.currency (code);
+    //     const request = {
+    //         'currency': currency['id'],
+    //     };
+    //     const response = await this.publicGetMarginTradeLast (this.extend (request, params));
+    //     //
+    //     //     {
+    //     //         "code": "200000",
+    //     //         "data": [
+    //     //             {
+    //     //                 "tradeId": "62db2dcaff219600012b56cd",
+    //     //                 "currency": "USDT",
+    //     //                 "size": "10",
+    //     //                 "dailyIntRate": "0.00003",
+    //     //                 "term": 7,
+    //     //                 "timestamp": 1658531274508488480
+    //     //             },
+    //     //         ]
+    //     //     }
+    //     //
+    //     const data = this.safeValue (response, 'data', {});
+    //     return this.parseBorrowRateHistory (data, code, since, limit);
+    // }
 
     parseBorrowRateHistory (response, code, since, limit) {
         const result = [];
