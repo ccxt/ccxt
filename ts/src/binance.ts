@@ -1401,7 +1401,7 @@ export default class binance extends Exchange {
                         '-1004': ExchangeNotAvailable, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
                         '-1005': ExchangeError, // undocumented
                         '-1008': ExchangeNotAvailable, // -1008 SERVER_BUSY: Server is currently overloaded with other requests. Please try again in a few minutes.
-                        '-1010': ExchangeError, // undocumented
+                        '-1010': ExchangeError, // undocumented | ERROR_MSG_RECEIVED
                         '-1011': ExchangeError, // undocumented
                         '-1013': ExchangeError, // undocumented
                         '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
@@ -1411,6 +1411,8 @@ export default class binance extends Exchange {
                         '-1145': BadRequest, // INVALID_CANCEL_RESTRICTIONS
                         '-1151': BadRequest, // DUPLICATE_SYMBOLS
                         '-2018': ExchangeError, // undocumented
+                        '-2021': ExchangeError, // This code is sent when either the cancellation of the order failed or the new order placement failed but not both.
+                        '-2022': ExchangeError, // This code is sent when both the cancellation of the order failed and the new order placement failed.
                         '-2026': InvalidOrder, // Order was canceled or expired with no executed qty over 90 days ago and has been archived.
                         // 3xxx errors are available only for spot
                         '-3000': ExchangeError, // {"code":-3000,"msg":"Internal server error."}
@@ -1499,6 +1501,104 @@ export default class binance extends Exchange {
                         '-4046': AuthenticationError, // {"code":-4046,"msg":"Agreement not confirmed."}
                         '-4047': BadRequest, // {"code":-4047,"msg":"Time interval must be within 0-90 days"}
                         '-4060': BadRequest, // As your deposit has not reached the required block confirmations, we have temporarily locked {0} asset
+                        '-5001': xxxx, // Don't allow transfer to micro assets.
+                        '-5002': xxxx, // You have insufficient balance.
+                        '-5003': xxxx, // You don't have this asset.
+                        '-5004': xxxx, // The residual balances of %s have exceeded 0.001BTC, Please re-choose.
+                        '-5005': xxxx, // The residual balances of %s is too low, Please re-choose.
+                        '-5006': xxxx, // Only transfer once in 24 hours.
+                        '-5007': xxxx, // Quantity must be greater than zero.
+                        '-5008': xxxx, // Insufficient amount of returnable assets.
+                        '-5009': xxxx, // Product does not exist.
+                        '-5010': xxxx, // Asset transfer fail.
+                        '-5011': xxxx, // future account not exists.
+                        '-5012': xxxx, // Asset transfer is in pending.
+                        '-5013': InsufficientFunds, // {"code":-5013,"msg":"Asset transfer failed: insufficient balance""} // undocumented
+                        '-5021': xxxx, // This parent sub have no relation
+                        '-5022': xxxx, // future account or sub relation not exists.
+                        '-6001': xxxx, // Daily product not exists.
+                        '-6003': xxxx, // Product not exist or you don't have permission
+                        '-6004': xxxx, // Product not in purchase status
+                        '-6005': xxxx, // Smaller than min purchase limit
+                        '-6006': xxxx, // Redeem amount error
+                        '-6007': xxxx, // Not in redeem time
+                        '-6008': xxxx, // Product not in redeem status
+                        '-6009': xxxx, // Request frequency too high
+                        '-6011': xxxx, // Exceeding the maximum num allowed to purchase per user
+                        '-6012': xxxx, // Balance not enough
+                        '-6013': xxxx, // Purchasing failed
+                        '-6014': xxxx, // Exceed up-limit allowed to purchased
+                        '-6015': xxxx, // Empty request body
+                        '-6016': xxxx, // Parameter err
+                        '-6017': xxxx, // Not in whitelist
+                        '-6018': xxxx, // Asset not enough
+                        '-6019': xxxx, // Need confirm
+                        '-6020': xxxx, // Project not exists
+                        '-7001': xxxx, // Date range is not supported.
+                        '-7002': xxxx, // Data request type is not supported.
+                        '-10001': xxxx, // The system is under maintenance, please try again later.
+                        '-10002': xxxx, // Invalid input parameters.
+                        '-10005': xxxx, // No records found.
+                        '-10007': xxxx, // This coin is not loanable.
+                        '-10008': xxxx, // This coin is not loanable
+                        '-10009': xxxx, // This coin can not be used as collateral.
+                        '-10010': xxxx, // This coin can not be used as collateral.
+                        '-10011': xxxx, // Insufficient spot assets.
+                        '-10012': xxxx, // Invalid repayment amount.
+                        '-10013': xxxx, // Insufficient collateral amount.
+                        '-10015': xxxx, // Collateral deduction failed.
+                        '-10016': xxxx, // Failed to provide loan.
+                        '-10017': xxxx, // Repayment amount exceeds debt.
+                        '-10018': xxxx, // Invalid repayment amount.
+                        '-10019': xxxx, // Configuration does not exists.
+                        '-10020': xxxx, // User ID does not exist.
+                        '-10021': xxxx, // Order does not exist.
+                        '-10022': xxxx, // Invalid adjustment amount.
+                        '-10023': xxxx, // Failed to adjust LTV.
+                        '-10024': xxxx, // LTV adjustment not supported.
+                        '-10025': xxxx, // Repayment failed.
+                        '-10026': xxxx, // Invalid parameter.
+                        '-10028': xxxx, // Invalid parameter.
+                        '-10029': xxxx, // Loan amount is too small.
+                        '-10030': xxxx, // Loan amount is too much.
+                        '-10031': xxxx, // Individual loan quota reached.
+                        '-10032': xxxx, // Repayment is temporarily unavailable.
+                        '-10034': xxxx, // Repay with collateral is not available currently, please try to repay with borrowed coin.
+                        '-10039': xxxx, // Repayment amount is too small.
+                        '-10040': xxxx, // Repayment amount is too large.
+                        '-10041': xxxx, // Due to high demand, there are currently insufficient loanable assets for {0}. Please adjust your borrow amount or try again tomorrow.
+                        '-10042': xxxx, // asset %s is not supported
+                        '-10043': xxxx, // {0} borrowing is currently not supported.
+                        '-10044': xxxx, // Collateral amount has reached the limit. Please reduce your collateral amount or try with other collaterals.
+                        '-10045': xxxx, // The loan coin does not support collateral repayment. Please try again later.
+                        '-10046': xxxx, // Collateral Adjustment exceeds the maximum limit. Please try again.
+                        '-10047': xxxx, // This coin is currently not supported in your location due to local regulations.
+                        '-12014': xxxx, // More than 1 request in 2 seconds
+                        // BLVT
+                        '-13000': xxxx, // Redeption of the token is forbiden now
+                        '-13001': xxxx, // Exceeds individual 24h redemption limit of the token
+                        '-13002': xxxx, // Exceeds total 24h redemption limit of the token
+                        '-13003': xxxx, // Subscription of the token is forbiden now
+                        '-13004': xxxx, // Exceeds individual 24h subscription limit of the token
+                        '-13005': xxxx, // Exceeds total 24h subscription limit of the token
+                        '-13006': xxxx, // Subscription amount is too small
+                        '-13007': xxxx, // The Agreement is not signed
+                        // 18xxx - BINANCE CODE
+                        '-18002': xxxx, // The total amount of codes you created has exceeded the 24-hour limit, please try again after UTC 0
+                        '-18003': xxxx, // Too many codes created in 24 hours, please try again after UTC 0
+                        '-18004': xxxx, // Too many invalid redeem attempts in 24 hours, please try again after UTC 0
+                        '-18005': xxxx, // Too many invalid verify attempts, please try later
+                        '-18006': xxxx, // The amount is too small, please re-enter
+                        '-18007': xxxx, // This token is not currently supported, please re-enter
+                        // 20xxx - PORTFOLIO MARGIN
+                        '-21001': xxxx, // Request ID is not a Portfolio Margin Account.
+                        '-21002': xxxx, // Portfolio Margin Account doesn't support transfer from margin to futures.
+                        '-21003': xxxx, // Fail to retrieve margin assets.
+                        '-21004': xxxx, // User doesn’t have portfolio margin bankruptcy loan
+                        '-21005': xxxx, // User’s spot wallet doesn’t have enough BUSD to repay portfolio margin bankruptcy loan
+                        '-21006': xxxx, // User had portfolio margin bankruptcy loan repayment in process
+                        '-21007': xxxx, // User failed to repay portfolio margin bankruptcy loan since liquidation was in process
+                        '-xxxx': xxxx, // 
                     },
                 },
                 'option': {
@@ -1507,7 +1607,7 @@ export default class binance extends Exchange {
                         '-1003': ExchangeError, // undocumented
                         '-1004': ExchangeError, // undocumented
                         '-1005': ExchangeError, // undocumented
-                        '-1006': ExchangeError, // undocumented
+                        '1006': ExchangeError, // undocumented
                         '-1008': RateLimitExceeded, // -1008 TOO_MANY_REQUESTS
                         '-1010': ExchangeError, // undocumented
                         '-1011': ExchangeError, // undocumented
@@ -1817,6 +1917,7 @@ export default class binance extends Exchange {
                     'This type of sub-account exceeds the maximum number limit': BadRequest, // {"code":-9000,"msg":"This type of sub-account exceeds the maximum number limit"}
                     'This symbol is restricted for this account.': PermissionDenied,
                     'This symbol is not permitted for this account.': PermissionDenied, // {"code":-2010,"msg":"This symbol is not permitted for this account."}
+                    // below are documented codes
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
                     '-1002': AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
@@ -1867,57 +1968,35 @@ export default class binance extends Exchange {
                     '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                     '-2016': BadRequest, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
                     '-2018': InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
-                    '-5001': BadRequest, // {"code":-5001,"msg":"Don't allow transfer to micro assets."}
-                    '-5002': InsufficientFunds, // {"code":-5002,"msg":"You have insufficient balance."}
-                    '-5003': InsufficientFunds, // {"code":-5003,"msg":"You don't have this asset."}
-                    '-5004': BadRequest, // {"code":-5004,"msg":"The residual balances of %s have exceeded 0.001BTC, Please re-choose."}
-                    '-5005': InsufficientFunds, // {"code":-5005,"msg":"The residual balances of %s is too low, Please re-choose."}
-                    '-5006': BadRequest, // {"code":-5006,"msg":"Only transfer once in 24 hours."}
-                    '-5007': BadRequest, // {"code":-5007,"msg":"Quantity must be greater than zero."}
-                    '-5008': InsufficientFunds, // {"code":-5008,"msg":"Insufficient amount of returnable assets."}
-                    '-5009': BadRequest, // {"code":-5009,"msg":"Product does not exist."}
-                    '-5010': ExchangeError, // {"code":-5010,"msg":"Asset transfer fail."}
-                    '-5011': BadRequest, // {"code":-5011,"msg":"future account not exists."}
-                    '-5012': ExchangeError, // {"code":-5012,"msg":"Asset transfer is in pending."}
-                    '-5013': InsufficientFunds, // {"code":-5013,"msg":"Asset transfer failed: insufficient balance""} // undocumented
-                    '-5021': BadRequest, // {"code":-5021,"msg":"This parent sub have no relation"}
-                    '-6001': BadRequest, // {"code":-6001,"msg":"Daily product not exists."}
-                    '-6003': BadRequest, // {"code":-6003,"msg":"Product not exist or you don't have permission"}
-                    '-6004': ExchangeError, // {"code":-6004,"msg":"Product not in purchase status"}
-                    '-6005': InvalidOrder, // {"code":-6005,"msg":"Smaller than min purchase limit"}
-                    '-6006': BadRequest, // {"code":-6006,"msg":"Redeem amount error"}
-                    '-6007': BadRequest, // {"code":-6007,"msg":"Not in redeem time"}
-                    '-6008': BadRequest, // {"code":-6008,"msg":"Product not in redeem status"}
-                    '-6009': RateLimitExceeded, // {"code":-6009,"msg":"Request frequency too high"}
-                    '-6011': BadRequest, // {"code":-6011,"msg":"Exceeding the maximum num allowed to purchase per user"}
-                    '-6012': InsufficientFunds, // {"code":-6012,"msg":"Balance not enough"}
-                    '-6013': ExchangeError, // {"code":-6013,"msg":"Purchasing failed"}
-                    '-6014': BadRequest, // {"code":-6014,"msg":"Exceed up-limit allowed to purchased"}
-                    '-6015': BadRequest, // {"code":-6015,"msg":"Empty request body"}
-                    '-6016': BadRequest, // {"code":-6016,"msg":"Parameter err"}
-                    '-6017': BadRequest, // {"code":-6017,"msg":"Not in whitelist"}
-                    '-6018': BadRequest, // {"code":-6018,"msg":"Asset not enough"}
-                    '-6019': AuthenticationError, // {"code":-6019,"msg":"Need confirm"}
-                    '-6020': BadRequest, // {"code":-6020,"msg":"Project not exists"}
-                    '-7001': BadRequest, // {"code":-7001,"msg":"Date range is not supported."}
-                    '-7002': BadRequest, // {"code":-7002,"msg":"Data request type is not supported."}
-                    '-9000': InsufficientFunds, // {"code":-9000,"msg":"user have no avaliable amount"}"
-                    '-10017': BadRequest, // {"code":-10017,"msg":"Repay amount should not be larger than liability."}
-                    '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."} // undocumented
-                    '-12014': RateLimitExceeded, // {"code":-12014,"msg":"More than 1 request in 3 seconds"}
-                    '-13000': BadRequest, // {"code":-13000,"msg":"Redeption of the token is forbiden now"}
-                    '-13001': BadRequest, // {"code":-13001,"msg":"Exceeds individual 24h redemption limit of the token"}
-                    '-13002': BadRequest, // {"code":-13002,"msg":"Exceeds total 24h redemption limit of the token"}
-                    '-13003': BadRequest, // {"code":-13003,"msg":"Subscription of the token is forbiden now"}
-                    '-13004': BadRequest, // {"code":-13004,"msg":"Exceeds individual 24h subscription limit of the token"}
-                    '-13005': BadRequest, // {"code":-13005,"msg":"Exceeds total 24h subscription limit of the token"}
-                    '-13006': InvalidOrder, // {"code":-13006,"msg":"Subscription amount is too small"}
-                    '-13007': AuthenticationError, // {"code":-13007,"msg":"The Agreement is not signed"}
-                    '-21001': BadRequest, // {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}
-                    '-21002': BadRequest, // {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}
-                    '-21003': BadRequest, // {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}
-                    '100001003': AuthenticationError, // {"code":100001003,"msg":"Verification failed"} // undocumented
-                    '200003903': AuthenticationError, // {"code":200003903,"msg":"Your identity verification has been rejected. Please complete identity verification again."}
+                    // others
+                    '-9000': InsufficientFunds, // {"code":-9000,"msg":"user have no avaliable amount"}" // undocumented markettype
+                    '-10017': BadRequest, // {"code":-10017,"msg":"Repay amount should not be larger than liability."} // undocumented markettype
+                    '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."} // undocumented  // undocumented markettype
+                    '-12014': RateLimitExceeded, // {"code":-12014,"msg":"More than 1 request in 3 seconds"}  // undocumented markettype
+                    '-13000': BadRequest, // {"code":-13000,"msg":"Redeption of the token is forbiden now"}  // undocumented markettype
+                    '-13001': BadRequest, // {"code":-13001,"msg":"Exceeds individual 24h redemption limit of the token"}  // undocumented markettype
+                    '-13002': BadRequest, // {"code":-13002,"msg":"Exceeds total 24h redemption limit of the token"}  // undocumented markettype
+                    '-13003': BadRequest, // {"code":-13003,"msg":"Subscription of the token is forbiden now"}  // undocumented markettype
+                    '-13004': BadRequest, // {"code":-13004,"msg":"Exceeds individual 24h subscription limit of the token"}  // undocumented markettype
+                    '-13005': BadRequest, // {"code":-13005,"msg":"Exceeds total 24h subscription limit of the token"}  // undocumented markettype
+                    '-13006': InvalidOrder, // {"code":-13006,"msg":"Subscription amount is too small"}  // undocumented markettype
+                    '-13007': AuthenticationError, // {"code":-13007,"msg":"The Agreement is not signed"}  // undocumented markettype
+                    // spot & futures algo (TBD for OPTION & PM)
+                    '-20121': BadSymbol, // Invalid symbol.
+                    '-20124': BadRequest, // Invalid algo id or it has been completed.
+                    '-20130': BadRequest, // Invalid data sent for a parameter
+                    '-20132': BadRequest, // The client algo id is duplicated
+                    '-20194': BadRequest, // Duration is too short to execute all required quantity.
+                    '-20195': BadRequest, // The total size is too small.
+                    '-20196': BadRequest, // The total size is too large.
+                    '-20198': InvalidOrder, // Reach the max open orders allowed.
+                    '-20204': BadRequest, // The notional of USD is less or more than the limit.
+                    // others
+                    '-21001': BadRequest, // {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}  // undocumented markettype
+                    '-21002': BadRequest, // {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}  // undocumented markettype
+                    '-21003': BadRequest, // {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}  // undocumented markettype
+                    '100001003': AuthenticationError, // {"code":100001003,"msg":"Verification failed"} // undocumented  // undocumented markettype
+                    '200003903': AuthenticationError, // {"code":200003903,"msg":"Your identity verification has been rejected. Please complete identity verification again."}  // undocumented markettype
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
