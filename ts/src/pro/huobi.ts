@@ -1404,8 +1404,8 @@ export default class huobi extends huobiRest {
                 // Example: topic = 'accounts'
                 // client.subscription hash = 'accounts.usdt'
                 // we do 'accounts' + '.' + data[0]]['margin_asset'] to get it
-                const marginAsset = this.safeString (first, 'margin_asset');
-                messageHash += '.' + marginAsset.toLowerCase ();
+                const currencyId = this.safeString2 (first, 'margin_asset', 'symbol');
+                messageHash += '.' + currencyId.toLowerCase ();
                 subscription = this.safeValue (client.subscriptions, messageHash);
             }
             const type = this.safeString (subscription, 'type');
