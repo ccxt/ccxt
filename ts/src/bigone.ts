@@ -667,7 +667,7 @@ export default class bigone extends Exchange {
                 'contract': true,
                 'linear': !inverse,
                 'inverse': inverse,
-                'contractSize': undefined,
+                'contractSize': 1,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
