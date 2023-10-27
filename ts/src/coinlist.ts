@@ -120,7 +120,7 @@ export default class coinlist extends Exchange {
                 '30m': '30m',
             },
             'urls': {
-                'logo': '',
+                'logo': '', // todo
                 'api': {
                     'public': 'https://trade-api.coinlist.co',
                     'private': 'https://trade-api.coinlist.co',
@@ -173,10 +173,10 @@ export default class coinlist extends Exchange {
                     'post': {
                         'v1/orders': { 'bulk': false },
                         'v1/transfers/internal-transfer': { 'bulk': false },
-                        // Not unified ----------------------------------
-                        'v1/transfers/to-wallet': { 'bulk': false }, // todo
-                        'v1/transfers/from-wallet': { 'bulk': false }, // todo
                         'v1/transfers/withdrawal-request': { 'bulk': false },
+                        // Not unified ----------------------------------
+                        'v1/transfers/to-wallet': { 'bulk': false }, // todo:
+                        'v1/transfers/from-wallet': { 'bulk': false }, // todo
                         'v1/keys': { 'bulk': false },
                         'v1/orders/cancel-all-after': { 'bulk': false },
                         'v1/orders/bulk': { 'bulk': true },
@@ -369,7 +369,7 @@ export default class coinlist extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': true, // todo: check
+                'active': true,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -506,7 +506,6 @@ export default class coinlist extends Exchange {
         //         "lowest_price_24h":"0.55500000"
         //     }
         //
-        // todo: check for open price and volumes
         const lastTrade = this.safeValue (ticker, 'last_trade');
         const timestamp = this.parse8601 (this.safeString (lastTrade, 'logicalTime'));
         const bid = this.safeString (ticker, 'highest_bid');
@@ -573,7 +572,7 @@ export default class coinlist extends Exchange {
         //         "logical_time": "2023-10-23T18:40:51.000Z"
         //     }
         //
-        const logical_time = this.parse8601 (this.safeString (response, 'logical_time')); // todo: check what time to use
+        const logical_time = this.parse8601 (this.safeString (response, 'logical_time'));
         const call_time = this.parse8601 (this.safeString (response, 'call_time'));
         const orderbook = this.parseOrderBook (response, symbol, logical_time);
         orderbook['nonce'] = call_time;
@@ -740,7 +739,7 @@ export default class coinlist extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const id = this.safeString (trade, 'auction_code');
-        const timestamp = this.parse8601 (this.safeString (trade, 'logical_time')); // todo: find out what time is good
+        const timestamp = this.parse8601 (this.safeString (trade, 'logical_time'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString2 (trade, 'volume', 'quantity');
         const order = this.safeString (trade, 'order_id', undefined);
@@ -1455,7 +1454,7 @@ export default class coinlist extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            'pending': 'open', // todo: check
+            'pending': 'open', // todo: or 'pending'?
             'accepted': 'open',
             'rejected': 'rejected',
             'done': 'closed',
@@ -1505,7 +1504,7 @@ export default class coinlist extends Exchange {
         //         "message_details": {}
         //     }
         //
-        // todo: find out how to create additional account and check this method
+        // todo: find out how to create additional account and check this method or use another endpoint?
         const transfer = this.parseTransfer (response, currency);
         return transfer;
     }
@@ -1572,20 +1571,31 @@ export default class coinlist extends Exchange {
         //         "status": "confirmed"
         //     }
         //
-        // todo for transfer ()
+        // todo: check for transfer ()
         const currencyId = this.safeString (transfer, 'asset');
         const confirmedAt = this.safeString (transfer, 'confirmed_at');
         const timetstamp = this.parse8601 (confirmedAt);
         const status = this.safeString (transfer, 'status');
+        let amountString = this.safeString (transfer, 'amount');
+        let fromAccount = undefined;
+        let toAccount = undefined;
+        if (Precise.stringLe (amountString, '0')) {
+            fromAccount = 'Pro trading account';
+            toAccount = 'CoinList wallet';
+            amountString = Precise.stringMul (amountString, '-1');
+        } else {
+            fromAccount = 'CoinList wallet';
+            toAccount = 'Pro trading account';
+        }
         return {
             'info': transfer,
             'id': this.safeString (transfer, 'transfer_id'),
             'timestamp': timetstamp,
             'datetime': this.iso8601 (timetstamp),
             'currency': this.safeCurrencyCode (currencyId, currency),
-            'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': undefined,
-            'toAccount': undefined,
+            'amount': this.number (amountString),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
             'status': this.parseTransferStatus (status),
         };
     }
