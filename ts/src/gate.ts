@@ -5641,9 +5641,10 @@ export default class gate extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        let method = undefined;
+        let response = undefined;
+        params = this.omit (params, [ 'marginMode' ]);
         if (symbol === undefined) {
-            method = 'privateMarginPostCrossLoans';
+            response = await this.privateMarginPostCrossLoans (this.extend (request, params));
         } else {
             const market = this.market (symbol);
             request['currency_pair'] = market['id'];
@@ -5652,10 +5653,9 @@ export default class gate extends Exchange {
             // as it is the smallest tick size currently offered by gateio
             request['rate'] = this.safeString (params, 'rate', '0.0001');
             request['auto_renew'] = true;
-            method = 'privateMarginPostLoans';
+            params = this.omit (params, [ 'rate' ]);
+            response = await this.privateMarginPostLoans (this.extend (request, params));
         }
-        params = this.omit (params, [ 'marginMode', 'rate' ]);
-        const response = await this[method] (this.extend (request, params));
         //
         // Cross
         //
