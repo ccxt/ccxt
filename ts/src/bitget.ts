@@ -3342,13 +3342,16 @@ export default class bitget extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            let orderParams = this.safeValue (rawOrder, 'params', {});
-            [ marginMode, orderParams ] = this.handleMarginModeAndParams ('createOrders', params);
-            if (marginMode !== undefined) {
-                if (marginMode === 'isolated') {
-                    orderParams['marginMode'] = 'isolated';
-                } else if (marginMode === 'cross') {
-                    orderParams['marginMode'] = 'cross';
+            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const marginResult = this.handleMarginModeAndParams ('createOrders', params);
+            const currentMarginMode = marginResult[0];
+            if (currentMarginMode !== undefined) {
+                if (marginMode === undefined) {
+                    marginMode = currentMarginMode;
+                } else {
+                    if (marginMode !== currentMarginMode) {
+                        throw new BadRequest (this.id + ' createOrders() requires all orders to have the same margin mode (isolated or cross)');
+                    }
                 }
             }
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
