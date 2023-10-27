@@ -66,7 +66,7 @@ async function testCryptocom () {
     assert (spotOrderRequest['broker_id'] === id, 'id different from  broker_id');
 
     // swap test
-    const swapOrderRequest = cryptocom.createOrderRequest ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+    const swapOrderRequest = cryptocom.createOrderRequest ('BTC/USD:USD', 'limit', 'buy', 1, 20000);
     assert (swapOrderRequest['broker_id'] === id, 'id different from  broker_id');
 
     await cryptocom.close ();
