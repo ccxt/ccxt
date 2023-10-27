@@ -58,7 +58,8 @@ export default class coinlist extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
@@ -100,7 +101,7 @@ export default class coinlist extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
                 'repayMargin': false,
@@ -157,11 +158,11 @@ export default class coinlist extends Exchange {
                         'v1/orders': { 'bulk': false },
                         'v1/orders/{order_id}': { 'bulk': false },
                         'v1/transfers': { 'bulk': false },
+                        'v1/accounts/{trader_id}/wallet-ledger': { 'bulk': false },
                         // Not unified ----------------------------------
                         'v1/accounts/{trader_id}': { 'bulk': false },
                         'v1/accounts/{trader_id}/ledger': { 'bulk': false },
                         'v1/accounts/{trader_id}/wallets': { 'bulk': false },
-                        'v1/accounts/{trader_id}/wallet-ledger': { 'bulk': false },
                         'v1/accounts/{trader_id}/ledger-summary': { 'bulk': false },
                         'v1/keys': { 'bulk': false },
                         'v1/reports': { 'bulk': false },
@@ -175,7 +176,7 @@ export default class coinlist extends Exchange {
                         // Not unified ----------------------------------
                         'v1/transfers/to-wallet': { 'bulk': false }, // todo
                         'v1/transfers/from-wallet': { 'bulk': false }, // todo
-                        'v1/transfers/withdrawal-request': { 'bulk': false }, // todo
+                        'v1/transfers/withdrawal-request': { 'bulk': false },
                         'v1/keys': { 'bulk': false },
                         'v1/orders/cancel-all-after': { 'bulk': false },
                         'v1/orders/bulk': { 'bulk': true },
@@ -1193,7 +1194,8 @@ export default class coinlist extends Exchange {
         //         timestamp: '2023-10-26T10:29:28.652Z'
         //     }
         //
-        return response; // todo: what should it return?
+        const orders = [ response ];
+        return this.parseOrders (orders, market);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
@@ -1218,8 +1220,7 @@ export default class coinlist extends Exchange {
         //         timestamp: '2023-10-26T14:36:37.559Z'
         //     }
         //
-        // return this.parseOrder (response);
-        return response; // todo: check it
+        return this.parseOrder (response);
     }
 
     async cancelOrders (ids, symbol: string = undefined, params = {}) {
@@ -1398,6 +1399,12 @@ export default class coinlist extends Exchange {
         //         timestamp: '2023-10-26T10:29:28.652Z'
         //     }
         //
+        // cancelAllOrders
+        //     {
+        //         message: 'Order cancellation request received.',
+        //         timestamp: '2023-10-26T10:29:28.652Z'
+        //     }
+        //
         const id = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -1508,9 +1515,9 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchTransfers
          * @description fetch a history of internal transfers between CoinList.co and CoinList Pro. It does not return external deposits or withdrawals
-         * @param {string} code unified currency code of the currency transferred
+         * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch transfers for
-         * @param {int} [limit] the maximum number of  transfers structures to retrieve (default 200, max 500)
+         * @param {int} [limit] the maximum number of transfer structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
@@ -1554,6 +1561,7 @@ export default class coinlist extends Exchange {
     }
 
     parseTransfer (transfer, currency = undefined) {
+        //
         // fetchTransfers
         //     {
         //         "transfer_id": "890694db-156c-4e93-a3ef-4db61685aca7",
@@ -1587,6 +1595,231 @@ export default class coinlist extends Exchange {
             'confirmed': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal
+         * @param {int} [limit] max number of deposit/withdrawals to return (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         */
+        await this.loadMarkets ();
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositsWithdrawals() requires a code argument');
+        }
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+        };
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        let traderId = this.safeString2 (params, 'trader_id', 'traderId', undefined);
+        if (traderId === undefined) {
+            // todo: make this.options.defaultTraderId?
+            const accounts = await this.fetchAccounts ();
+            const account = accounts[0];
+            traderId = this.safeString (account, 'id');
+        }
+        request['trader_id'] = traderId;
+        const type = this.safeString (params, 'type');
+        params = this.omit (params, 'type');
+        const response = await this.privateGetV1AccountsTraderIdWalletLedger (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "2c02db25-e8f2-4271-8222-e110bfd0aa2a",
+        //             "asset": "ETH",
+        //             "amount": "0.01",
+        //             "created_at": "2023-10-20T13:15:37.000Z",
+        //             "description": "Transfer to CoinList Pro",
+        //             "type": "PRO_TRANSFER",
+        //             "delta": "-0.010000000000000000"
+        //         },
+        //         {
+        //             "id": "7139384d-6cec-479e-a19c-d498647ccb47",
+        //             "asset": "ETH",
+        //             "amount": "0.01",
+        //             "created_at": "2023-10-20T13:10:55.000Z",
+        //             "description": "CRYPTO_DEPOSIT",
+        //             "type": "CRYPTO_DEPOSIT",
+        //             "delta": "0.010000000000000000"
+        //         },
+        //
+        //         ...
+        //
+        //         {
+        //             "id": "91bbbb22-5ede-4e9a-81ef-3f9318aa83d2",
+        //             "asset": "USDT",
+        //             "amount": "4.169654",
+        //             "withdrawal_fee_amount": "8.830346000000000000",
+        //             "created_at": "2023-10-27T16:14:11.000Z",
+        //             "description": "CRYPTO_WITHDRAWAL",
+        //             "type": "CRYPTO_WITHDRAWAL",
+        //             "delta": "-4.169654000000000000"
+        //         },
+        //         {
+        //             "id": "830261bd-cda9-401f-b6df-105f4da3b37c",
+        //             "asset": "USDT",
+        //             "amount": "13",
+        //             "created_at": "2023-10-27T14:52:05.000Z",
+        //             "description": "Transfer from CoinList Pro",
+        //             "type": "PRO_TRANSFER",
+        //             "delta": "13.000000000000000000"
+        //         }
+        //     ]
+        //
+        let transactions = [];
+        if (type === undefined) {
+            transactions = this.filterByArray (response, 'type', [ 'CRYPTO_DEPOSIT', 'CRYPTO_WITHDRAWAL' ], false);
+        } else {
+            transactions = this.filterBy (response, 'type', type);
+        }
+        return this.parseTransactions (transactions, currency, since, limit);
+    }
+
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         */
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a code argument');
+        }
+        const request = {
+            'type': 'CRYPTO_DEPOSIT',
+        };
+        return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
+    }
+
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         */
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a code argument');
+        }
+        const request = {
+            'type': 'CRYPTO_WITHDRAWAL',
+        };
+        return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
+    }
+
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinlist#withdraw
+         * @description request a withdrawal from CoinList wallet. (Disabled by default. Contact CoinList to apply for an exception.)
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'destination_address': address,
+        };
+        const response = await this.privatePostV1TransfersWithdrawalRequest (this.extend (request, params));
+        //
+        //     {
+        //         "transfer_id": "d4a2d8dd-7def-4545-a062-761683b9aa05"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransaction (data, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        // withdraw
+        //
+        //     {
+        //         "transfer_id": "d4a2d8dd-7def-4545-a062-761683b9aa05"
+        //     }
+        //
+        // fetchDepositsWithdrawals
+        //     {
+        //         "id": "91bbbb22-5ede-4e9a-81ef-3f9318aa83d2",
+        //         "asset": "USDT",
+        //         "amount": "4.169654",
+        //         "withdrawal_fee_amount": "8.830346000000000000",
+        //         "created_at": "2023-10-27T16:14:11.000Z",
+        //         "description": "CRYPTO_WITHDRAWAL",
+        //         "type": "CRYPTO_WITHDRAWAL",
+        //         "delta": "-4.169654000000000000"
+        //     },
+        //
+        const currencyId = this.safeString (transaction, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const id = this.safeString2 (transaction, 'id', 'transfer_id');
+        const amount = this.safeNumber (transaction, 'amount');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
+        let type = this.safeString (transaction, 'type', undefined);
+        if (type === undefined) {
+            type = 'withdrawal'; // undefined only in withdraw () method
+        } else {
+            type = this.parseTransactionType (type);
+        }
+        let fee = undefined;
+        const feeCost = this.safeValue (transaction, 'withdrawal_fee_amount');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': undefined, // todo: or code?
+            };
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': undefined,
+            'updated': undefined,
+            'fee': fee,
+        };
+    }
+
+    parseTransactionType (type) {
+        const types = {
+            'deposit': 'deposit',
+            'withdrawal': 'withdrawal',
+            'CRYPTO_DEPOSIT': 'deposit',
+            'CRYPTO_WITHDRAWAL': 'withdrawal',
+        };
+        return this.safeString (types, type, type);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
