@@ -3896,43 +3896,6 @@ export default class kucoin extends Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    // async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-    //     /**
-    //      * @method
-    //      * @name kucoin#fetchBorrowRateHistory
-    //      * @description retrieves a history of a currencies borrow interest rate at specific time slots
-    //      * @see https://docs.kucoin.com/#margin-trade-data
-    //      * @param {string} code unified currency code
-    //      * @param {int} [since] timestamp for the earliest borrow rate
-    //      * @param {int} [limit] the maximum number of [borrow rate structures]
-    //      * @param {object} [params] extra parameters specific to the kucoin api endpoint
-    //      * @returns {object[]} an array of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
-    //      */
-    //     await this.loadMarkets ();
-    //     const currency = this.currency (code);
-    //     const request = {
-    //         'currency': currency['id'],
-    //     };
-    //     const response = await this.publicGetMarginTradeLast (this.extend (request, params));
-    //     //
-    //     //     {
-    //     //         "code": "200000",
-    //     //         "data": [
-    //     //             {
-    //     //                 "tradeId": "62db2dcaff219600012b56cd",
-    //     //                 "currency": "USDT",
-    //     //                 "size": "10",
-    //     //                 "dailyIntRate": "0.00003",
-    //     //                 "term": 7,
-    //     //                 "timestamp": 1658531274508488480
-    //     //             },
-    //     //         ]
-    //     //     }
-    //     //
-    //     const data = this.safeValue (response, 'data', {});
-    //     return this.parseBorrowRateHistory (data, code, since, limit);
-    // }
-
     parseBorrowRateHistory (response, code, since, limit) {
         const result = [];
         for (let i = 0; i < response.length; i++) {
