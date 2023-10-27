@@ -1712,6 +1712,15 @@ export default class huobi extends huobiRest {
         //         id: '2'
         //     }
         //
+        //     {
+        //         op: 'sub',
+        //         cid: '1',
+        //         topic: 'accounts_unify.USDT',
+        //         'err-code': 4007,
+        //         'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface',
+        //         ts: 1698419490189
+        //     }
+        //
         const status = this.safeString (message, 'status');
         if (status === 'error') {
             const id = this.safeString (message, 'id');
@@ -1732,8 +1741,8 @@ export default class huobi extends huobiRest {
             }
             return false;
         }
-        const code = this.safeInteger (message, 'code');
-        if (code !== undefined && code !== 200) {
+        const code = this.safeInteger2 (message, 'code', 'err-code');
+        if (code !== undefined && ((code !== 200) && (code !== 0))) {
             const feedback = this.id + ' ' + this.json (message);
             try {
                 this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, feedback);
