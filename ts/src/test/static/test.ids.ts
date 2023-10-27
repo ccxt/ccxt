@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 import assert from 'assert';
+import log from 'ololog';
 import ccxt from '../../../ccxt.js';
-
 // test statically (without API requests) that the ccxt id
 // is available inside the order request object
 // for now only in Ts/JS to avoid overloading the Rate-limiter
@@ -15,6 +15,7 @@ async function main () {
         // add huobi
     ];
     await Promise.all (promises);
+    log.bright.green ('Static Ids test passed');
 }
 
 async function testBinance () {
