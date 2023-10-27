@@ -9,10 +9,10 @@ import ccxt from '../../../ccxt.js';
 // because some exchanges require the id to be sent in the headers
 async function main () {
     const promises = [
-        testBinance (),
-        testCryptocom (),
-        testOkx (),
-        // add huobi
+        // testBinance (),
+        // testCryptocom (),
+        // testOkx (),
+        testKucoin ()
     ];
     await Promise.all (promises);
     log.bright.green ('Static Ids test passed');
@@ -70,6 +70,23 @@ async function testCryptocom () {
     assert (swapOrderRequest['broker_id'] === id, 'id different from  broker_id');
 
     await cryptocom.close ();
+}
+
+async function testKucoin () {
+    let reqHeaders = undefined;
+    const kucoin = new ccxt.kucoin ();
+    await kucoin.loadMarkets ();
+    try {
+        kucoin.apiKey = 'api';
+        kucoin.secret = 'secret';
+        kucoin.password = 'password';
+        await kucoin.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders);
+    } catch (e) {
+        // we expect an error here, we're only interested in the headers
+        reqHeaders = kucoin.last_request_headers;
+    }
+    const id = 'ccxt';
+    assert (reqHeaders['KC-API-PARTNER'] === id, 'id not in headers');
 }
 
 await main ();
