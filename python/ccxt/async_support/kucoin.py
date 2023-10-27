@@ -10,6 +10,7 @@ import hashlib
 import math
 import json
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderRequest
 from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
@@ -61,6 +62,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createOrders': True,
                 'createPostOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -243,12 +245,14 @@ class kucoin(Exchange, ImplicitAPI):
                         'deposit-addresses': 1,
                         'withdrawals': 1,
                         'orders': 4,  # 45/3s = 15/s => cost = 20 / 15 = 1.333333
+                        'orders/test': 4,  # 45/3s = 15/s => cost = 20 / 15 = 1.333333
                         'orders/multi': 20,  # 3/3s = 1/s => cost = 20 / 1 = 20
                         'isolated/borrow': 2,  # 30 requests per 3 seconds = 10 requests per second => cost = 20/10 = 2
                         'isolated/repay/all': 2,
                         'isolated/repay/single': 2,
                         'margin/borrow': 1,
                         'margin/order': 1,
+                        'margin/order/test': 1,
                         'margin/repay/all': 1,
                         'margin/repay/single': 1,
                         'margin/lend': 1,
@@ -1783,6 +1787,8 @@ class kucoin(Exchange, ImplicitAPI):
         :see: https://docs.kucoin.com/spot#place-a-new-order-2
         :see: https://docs.kucoin.com/spot#place-a-margin-order
         :see: https://docs.kucoin.com/spot-hf/#place-hf-order
+        :see: https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test
+        :see: https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test
         :param str symbol: Unified CCXT market symbol
         :param str type: 'limit' or 'market'
         :param str side: 'buy' or 'sell'
@@ -1812,9 +1818,124 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.stp]: '',  # self trade prevention, CN, CO, CB or DC
         :param bool [params.autoBorrow]: False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
         :param bool [params.hf]: False,  # True for hf order
+        :param bool [params.test]: set to True to test an order, no order will be created but the request will be validated
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
+        market = self.market(symbol)
+        testOrder = self.safe_value(params, 'test', False)
+        params = self.omit(params, 'test')
+        isHf = self.safe_value(params, 'hf', False)
+        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
+        tradeType = self.safe_string(params, 'tradeType')  # keep it for backward compatibility
+        isTriggerOrder = (triggerPrice or stopLossPrice or takeProfitPrice)
+        marginResult = self.handle_margin_mode_and_params('createOrder', params)
+        marginMode = self.safe_string(marginResult, 0)
+        isMarginOrder = tradeType == 'MARGIN_TRADE' or marginMode is not None
+        # don't omit anything before calling createOrderRequest
+        orderRequest = self.create_order_request(symbol, type, side, amount, price, params)
+        response = None
+        if testOrder:
+            if isMarginOrder:
+                response = await self.privatePostMarginOrderTest(orderRequest)
+            else:
+                response = await self.privatePostOrdersTest(orderRequest)
+        elif isHf:
+            response = await self.privatePostHfOrders(orderRequest)
+        elif isTriggerOrder:
+            response = await self.privatePostStopOrder(orderRequest)
+        elif isMarginOrder:
+            response = await self.privatePostMarginOrder(orderRequest)
+        else:
+            response = await self.privatePostOrders(orderRequest)
+        #
+        #     {
+        #         code: '200000',
+        #         data: {
+        #             "orderId": "5bd6e9286d99522a52e458de"
+        #         }
+        #    }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_order(data, market)
+
+    async def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :see: https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders
+        :see: https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders
+        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]:  Extra parameters specific to the exchange API endpoint
+        :param bool [params.hf]: False,  # True for hf orders
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        await self.load_markets()
+        ordersRequests = []
+        symbol = None
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            if symbol is None:
+                symbol = marketId
+            else:
+                if symbol != marketId:
+                    raise BadRequest(self.id + ' createOrders() requires all orders to have the same symbol')
+            type = self.safe_string(rawOrder, 'type')
+            if type != 'limit':
+                raise BadRequest(self.id + ' createOrders() only supports limit orders')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'orderList': ordersRequests,
+        }
+        hf = self.safe_value(params, 'hf', False)
+        params = self.omit(params, 'hf')
+        response = None
+        if hf:
+            response = await self.privatePostHfOrdersMulti(self.extend(request, params))
+        else:
+            response = await self.privatePostOrdersMulti(self.extend(request, params))
+        #
+        # {
+        #     "code": "200000",
+        #     "data": {
+        #        "data": [
+        #           {
+        #              "symbol": "LTC-USDT",
+        #              "type": "limit",
+        #              "side": "sell",
+        #              "price": "90",
+        #              "size": "0.1",
+        #              "funds": null,
+        #              "stp": "",
+        #              "stop": "",
+        #              "stopPrice": null,
+        #              "timeInForce": "GTC",
+        #              "cancelAfter": 0,
+        #              "postOnly": False,
+        #              "hidden": False,
+        #              "iceberge": False,
+        #              "iceberg": False,
+        #              "visibleSize": null,
+        #              "channel": "API",
+        #              "id": "6539148443fcf500079d15e5",
+        #              "status": "success",
+        #              "failMsg": null,
+        #              "clientOid": "5c4c5398-8ab2-4b4e-af8a-e2d90ad2488f"
+        #           },
+        # }
+        #
+        data = self.safe_value(response, 'data', {})
+        data = self.safe_value(data, 'data', [])
+        return self.parse_orders(data)
+
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         market = self.market(symbol)
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
@@ -1843,14 +1964,12 @@ class kucoin(Exchange, ImplicitAPI):
             amountString = self.amount_to_precision(symbol, amount)
             request['size'] = amountString
             request['price'] = self.price_to_precision(symbol, price)
-        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
-        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice'])
         tradeType = self.safe_string(params, 'tradeType')  # keep it for backward compatibility
-        method = 'privatePostOrders'
-        isHf = self.safe_value(params, 'hf', False)
-        if isHf:
-            method = 'privatePostHfOrders'
-        elif triggerPrice or stopLossPrice or takeProfitPrice:
+        triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
+        isTriggerOrder = (triggerPrice or stopLossPrice or takeProfitPrice)
+        isMarginOrder = tradeType == 'MARGIN_TRADE' or marginMode is not None
+        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice'])
+        if isTriggerOrder:
             if triggerPrice:
                 request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             elif stopLossPrice or takeProfitPrice:
@@ -1860,30 +1979,18 @@ class kucoin(Exchange, ImplicitAPI):
                 else:
                     request['stop'] = 'loss' if (side == 'buy') else 'entry'
                     request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
-            method = 'privatePostStopOrder'
             if marginMode == 'isolated':
                 raise BadRequest(self.id + ' createOrder does not support isolated margin for stop orders')
             elif marginMode == 'cross':
                 request['tradeType'] = self.options['marginModes'][marginMode]
-        elif tradeType == 'MARGIN_TRADE' or marginMode is not None:
-            method = 'privatePostMarginOrder'
+        elif isMarginOrder:
             if marginMode == 'isolated':
                 request['marginModel'] = 'isolated'
         postOnly = None
         postOnly, params = self.handle_post_only(type == 'market', False, params)
         if postOnly:
             request['postOnly'] = True
-        response = await getattr(self, method)(self.extend(request, params))
-        #
-        #     {
-        #         code: '200000',
-        #         data: {
-        #             "orderId": "5bd6e9286d99522a52e458de"
-        #         }
-        #    }
-        #
-        data = self.safe_value(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.extend(request, params)
 
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
@@ -2355,6 +2462,7 @@ class kucoin(Exchange, ImplicitAPI):
         stop = responseStop is not None
         stopTriggered = self.safe_value(order, 'stopTriggered', False)
         isActive = self.safe_value_2(order, 'isActive', 'active')
+        responseStatus = self.safe_string(order, 'status')
         status = None
         if isActive is not None:
             if isActive is True:
@@ -2362,13 +2470,14 @@ class kucoin(Exchange, ImplicitAPI):
             else:
                 status = 'closed'
         if stop:
-            responseStatus = self.safe_string(order, 'status')
             if responseStatus == 'NEW':
                 status = 'open'
             elif not isActive and not stopTriggered:
                 status = 'cancelled'
         if cancelExist:
             status = 'canceled'
+        if responseStatus == 'fail':
+            status = 'rejected'
         stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'info': order,

@@ -41,6 +41,7 @@ class mexc extends Exchange {
                 'cancelOrders' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createReduceOnlyOrder' => true,
                 'deposit' => null,
                 'editOrder' => null,
@@ -2097,54 +2098,63 @@ class mexc extends Exchange {
         }) ();
     }
 
+    public function create_spot_order_request($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
+        $symbol = $market['symbol'];
+        $orderSide = ($side === 'buy') ? 'BUY' : 'SELL';
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => $orderSide,
+            'type' => strtoupper($type),
+        );
+        if ($orderSide === 'BUY' && $type === 'market') {
+            $quoteOrderQty = $this->safe_number($params, 'quoteOrderQty');
+            if ($quoteOrderQty !== null) {
+                $amount = $quoteOrderQty;
+            } elseif ($this->options['createMarketBuyOrderRequiresPrice']) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                } else {
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $quoteAmount = Precise::string_mul($amountString, $priceString);
+                    $amount = $this->parse_number($quoteAmount);
+                }
+            }
+            $request['quoteOrderQty'] = $amount;
+        } else {
+            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['newClientOrderId'] = $clientOrderId;
+            $params = $this->omit($params, array( 'type', 'clientOrderId' ));
+        }
+        if ($marginMode !== null) {
+            if ($marginMode !== 'isolated') {
+                throw new BadRequest($this->id . ' createOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+            }
+        }
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'LIMIT_MAKER', $params);
+        if ($postOnly) {
+            $request['type'] = 'LIMIT_MAKER';
+        }
+        return array_merge($request, $params);
+    }
+
     public function create_spot_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
         return Async\async(function () use ($market, $type, $side, $amount, $price, $marginMode, $params) {
-            $symbol = $market['symbol'];
-            $orderSide = ($side === 'buy') ? 'BUY' : 'SELL';
-            $request = array(
-                'symbol' => $market['id'],
-                'side' => $orderSide,
-                'type' => strtoupper($type),
-            );
-            if ($orderSide === 'BUY' && $type === 'market') {
-                $quoteOrderQty = $this->safe_number($params, 'quoteOrderQty');
-                if ($quoteOrderQty !== null) {
-                    $amount = $quoteOrderQty;
-                } elseif ($this->options['createMarketBuyOrderRequiresPrice']) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
-                    } else {
-                        $amountString = $this->number_to_string($amount);
-                        $priceString = $this->number_to_string($price);
-                        $quoteAmount = Precise::string_mul($amountString, $priceString);
-                        $amount = $this->parse_number($quoteAmount);
-                    }
-                }
-                $request['quoteOrderQty'] = $amount;
-            } else {
-                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-            }
-            if ($price !== null) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $request['newClientOrderId'] = $clientOrderId;
-                $params = $this->omit($params, array( 'type', 'clientOrderId' ));
-            }
-            $method = 'spotPrivatePostOrder';
+            Async\await($this->load_markets());
+            $request = $this->create_spot_order_request($market, $type, $side, $amount, $price, $marginMode, $params);
+            $response = null;
             if ($marginMode !== null) {
-                if ($marginMode !== 'isolated') {
-                    throw new BadRequest($this->id . ' createOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
-                }
-                $method = 'spotPrivatePostMarginOrder';
+                $response = Async\await($this->spotPrivatePostMarginOrder (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->spotPrivatePostOrder (array_merge($request, $params)));
             }
-            $postOnly = null;
-            list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'LIMIT_MAKER', $params);
-            if ($postOnly) {
-                $request['type'] = 'LIMIT_MAKER';
-            }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // spot
             //
@@ -2273,6 +2283,70 @@ class mexc extends Exchange {
             //
             $data = $this->safe_string($response, 'data');
             return $this->parse_order($data, $market);
+        }) ();
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * *spot only*  *all $orders must have the same $symbol* create a list of trade $orders
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-$orders
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to api endpoint
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $symbol = null;
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $market = $this->market($marketId);
+                if (!$market['spot']) {
+                    throw new NotSupported($this->id . ' createOrders() is only supported for spot markets');
+                }
+                if ($symbol === null) {
+                    $symbol = $marketId;
+                } else {
+                    if ($symbol !== $marketId) {
+                        throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                    }
+                }
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $marginMode = null;
+                list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+                $orderRequest = $this->create_spot_order_request($market, $type, $side, $amount, $price, $marginMode, $orderParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $request = array(
+                'batchOrders' => $ordersRequests,
+            );
+            $response = Async\await($this->spotPrivatePostBatchOrders ($request));
+            //
+            // array(
+            //     array(
+            //       "symbol" => "BTCUSDT",
+            //       "orderId" => "1196315350023612316",
+            //       "newClientOrderId" => "hio8279hbdsds",
+            //       "orderListId" => -1
+            //     ),
+            //     array(
+            //       "newClientOrderId" => "123456",
+            //       "msg" => "The minimum transaction volume cannot be less than:0.5USDT",
+            //       "code" => 30002
+            //     ),
+            //     {
+            //       "symbol" => "BTCUSDT",
+            //       "orderId" => "1196315350023612318",
+            //       "orderListId" => -1
+            //     }
+            // )
+            //
+            return $this->parse_orders($response);
         }) ();
     }
 
@@ -3139,6 +3213,23 @@ class mexc extends Exchange {
         //         "updateTime" => "1648984276000",
         //     }
         //
+        // createOrders error
+        //
+        //     {
+        //         "newClientOrderId" => "123456",
+        //         "msg" => "The minimum transaction volume cannot be less than:0.5USDT",
+        //         "code" => 30002
+        //     }
+        //
+        $code = $this->safe_integer($order, 'code');
+        if ($code !== null) {
+            // error upon placing multiple orders
+            return $this->safe_order(array(
+                'info' => $order,
+                'status' => 'rejected',
+                'clientOrderId' => $this->safe_string($order, 'newClientOrderId'),
+            ));
+        }
         $id = null;
         if (gettype($order) === 'string') {
             $id = $order;

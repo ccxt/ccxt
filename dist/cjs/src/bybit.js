@@ -616,6 +616,7 @@ class bybit extends bybit$1 {
                         'v5/position/trading-stop': 5,
                         'v5/position/set-auto-add-margin': 2.5,
                         'v5/position/add-margin': 2.5,
+                        'v5/position/confirm-pending-mmr': 2.5,
                         // account
                         'v5/account/upgrade-to-uta': 2.5,
                         'v5/account/set-margin-mode': 2.5,
@@ -3189,8 +3190,11 @@ class bybit extends bybit$1 {
         //         "time": 1672125441042
         //     }
         //
+        const timestamp = this.safeInteger(response, 'time');
         const result = {
             'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
         };
         const responseResult = this.safeValue(response, 'result', {});
         const currencyList = this.safeValueN(responseResult, ['loanAccountList', 'list', 'balance']);

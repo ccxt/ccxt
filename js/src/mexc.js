@@ -39,6 +39,7 @@ export default class mexc extends Exchange {
                 'cancelOrders': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createReduceOnlyOrder': true,
                 'deposit': undefined,
                 'editOrder': undefined,
@@ -2083,7 +2084,7 @@ export default class mexc extends Exchange {
             return await this.createSwapOrder(market, type, side, amount, price, marginMode, query);
         }
     }
-    async createSpotOrder(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
+    createSpotOrderRequest(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         const symbol = market['symbol'];
         const orderSide = (side === 'buy') ? 'BUY' : 'SELL';
         const request = {
@@ -2120,19 +2121,28 @@ export default class mexc extends Exchange {
             request['newClientOrderId'] = clientOrderId;
             params = this.omit(params, ['type', 'clientOrderId']);
         }
-        let method = 'spotPrivatePostOrder';
         if (marginMode !== undefined) {
             if (marginMode !== 'isolated') {
                 throw new BadRequest(this.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
             }
-            method = 'spotPrivatePostMarginOrder';
         }
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(type === 'market', type === 'LIMIT_MAKER', params);
         if (postOnly) {
             request['type'] = 'LIMIT_MAKER';
         }
-        const response = await this[method](this.extend(request, params));
+        return this.extend(request, params);
+    }
+    async createSpotOrder(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, params);
+        let response = undefined;
+        if (marginMode !== undefined) {
+            response = await this.spotPrivatePostMarginOrder(this.extend(request, params));
+        }
+        else {
+            response = await this.spotPrivatePostOrder(this.extend(request, params));
+        }
         //
         // spot
         //
@@ -2264,6 +2274,70 @@ export default class mexc extends Exchange {
         //
         const data = this.safeString(response, 'data');
         return this.parseOrder(data, market);
+    }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name mexc#createOrders
+         * @description *spot only*  *all orders must have the same symbol* create a list of trade orders
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-orders
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to api endpoint
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        let symbol = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            const market = this.market(marketId);
+            if (!market['spot']) {
+                throw new NotSupported(this.id + ' createOrders() is only supported for spot markets');
+            }
+            if (symbol === undefined) {
+                symbol = marketId;
+            }
+            else {
+                if (symbol !== marketId) {
+                    throw new BadRequest(this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            let marginMode = undefined;
+            [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+            const orderRequest = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, orderParams);
+            ordersRequests.push(orderRequest);
+        }
+        const request = {
+            'batchOrders': ordersRequests,
+        };
+        const response = await this.spotPrivatePostBatchOrders(request);
+        //
+        // [
+        //     {
+        //       "symbol": "BTCUSDT",
+        //       "orderId": "1196315350023612316",
+        //       "newClientOrderId": "hio8279hbdsds",
+        //       "orderListId": -1
+        //     },
+        //     {
+        //       "newClientOrderId": "123456",
+        //       "msg": "The minimum transaction volume cannot be less than:0.5USDT",
+        //       "code": 30002
+        //     },
+        //     {
+        //       "symbol": "BTCUSDT",
+        //       "orderId": "1196315350023612318",
+        //       "orderListId": -1
+        //     }
+        // ]
+        //
+        return this.parseOrders(response);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -3125,6 +3199,23 @@ export default class mexc extends Exchange {
         //         "updateTime": "1648984276000",
         //     }
         //
+        // createOrders error
+        //
+        //     {
+        //         "newClientOrderId": "123456",
+        //         "msg": "The minimum transaction volume cannot be less than:0.5USDT",
+        //         "code": 30002
+        //     }
+        //
+        const code = this.safeInteger(order, 'code');
+        if (code !== undefined) {
+            // error upon placing multiple orders
+            return this.safeOrder({
+                'info': order,
+                'status': 'rejected',
+                'clientOrderId': this.safeString(order, 'newClientOrderId'),
+            });
+        }
         let id = undefined;
         if (typeof order === 'string') {
             id = order;

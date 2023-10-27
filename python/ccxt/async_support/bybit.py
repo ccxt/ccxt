@@ -635,6 +635,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/position/trading-stop': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/position/set-auto-add-margin': 2.5,
                         'v5/position/add-margin': 2.5,
+                        'v5/position/confirm-pending-mmr': 2.5,
                         # account
                         'v5/account/upgrade-to-uta': 2.5,
                         'v5/account/set-margin-mode': 2.5,
@@ -3072,8 +3073,11 @@ class bybit(Exchange, ImplicitAPI):
         #         "time": 1672125441042
         #     }
         #
+        timestamp = self.safe_integer(response, 'time')
         result = {
             'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }
         responseResult = self.safe_value(response, 'result', {})
         currencyList = self.safe_value_n(responseResult, ['loanAccountList', 'list', 'balance'])

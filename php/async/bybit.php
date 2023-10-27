@@ -622,6 +622,7 @@ class bybit extends Exchange {
                         'v5/position/trading-stop' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/set-auto-add-margin' => 2.5,
                         'v5/position/add-margin' => 2.5,
+                        'v5/position/confirm-pending-mmr' => 2.5,
                         // account
                         'v5/account/upgrade-to-uta' => 2.5,
                         'v5/account/set-margin-mode' => 2.5,
@@ -3199,8 +3200,11 @@ class bybit extends Exchange {
         //         "time" => 1672125441042
         //     }
         //
+        $timestamp = $this->safe_integer($response, 'time');
         $result = array(
             'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
         $responseResult = $this->safe_value($response, 'result', array());
         $currencyList = $this->safe_value_n($responseResult, array( 'loanAccountList', 'list', 'balance' ));
