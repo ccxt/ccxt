@@ -3037,8 +3037,14 @@ export default class huobi extends Exchange {
                 request['account-id'] = accountId;
                 response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance (this.extend (request, params));
             }
-        } else if (isUnifiedAccount || linear) {
+        } else if (isUnifiedAccount) {
             response = await this.contractPrivateGetLinearSwapApiV3UnifiedAccountInfo (this.extend (request, params));
+        } else if (linear) {
+            if (isolated) {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapAccountInfo (this.extend (request, params));
+            } else {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo (this.extend (request, params));
+            }
         } else if (inverse) {
             if (future) {
                 response = await this.contractPrivatePostApiV1ContractAccountInfo (this.extend (request, params));
