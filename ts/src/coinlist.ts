@@ -741,18 +741,19 @@ export default class coinlist extends Exchange {
         const id = this.safeString (trade, 'auction_code');
         const timestamp = this.parse8601 (this.safeString (trade, 'logical_time'));
         const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString2 (trade, 'volume', 'quantity');
+        let amountString = this.safeString2 (trade, 'volume', 'quantity');
         const order = this.safeString (trade, 'order_id', undefined);
         let fee = undefined;
         let side = undefined;
         const feeCost = this.safeString (trade, 'fee', undefined);
         if (feeCost !== undefined) {
             // only in fetchMyTrades
-            const amountIsPositive = Precise.stringGt (amountString, '0');
-            if (amountIsPositive) {
-                side = 'buy';
-            } else {
+            const amountIsNegative = Precise.stringLt (amountString, '0');
+            if (amountIsNegative) {
                 side = 'sell';
+                amountString = Precise.stringMul (amountString, '-1');
+            } else {
+                side = 'buy';
             }
             fee = {
                 'cost': feeCost,
@@ -1579,7 +1580,8 @@ export default class coinlist extends Exchange {
         let amountString = this.safeString (transfer, 'amount');
         let fromAccount = undefined;
         let toAccount = undefined;
-        if (Precise.stringLe (amountString, '0')) {
+        const amountIsNegative = Precise.stringLt (amountString, '0');
+        if (amountIsNegative) {
             fromAccount = 'Pro trading account';
             toAccount = 'CoinList wallet';
             amountString = Precise.stringMul (amountString, '-1');
