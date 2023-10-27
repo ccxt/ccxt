@@ -27,7 +27,7 @@ export default class bitget extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': true,
                 'swap': true,
                 'future': true,
                 'option': false,
