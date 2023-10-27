@@ -550,67 +550,154 @@ export default class bigone extends Exchange {
         //         ]
         //     }
         //
+        const contractResponse = await this.contractPublicGetInstruments (params);
+        //
+        //    [
+        //        {
+        //            "usdtPrice": 1.00031998,
+        //            "symbol": "BTCUSD",
+        //            "btcPrice": 34700.4,
+        //            "ethPrice": 1787.83,
+        //            "nextFundingRate": 0.00010,
+        //            "fundingRate": 0.00010,
+        //            "latestPrice": 34708.5,
+        //            "last24hPriceChange": 0.0321,
+        //            "indexPrice": 34700.4,
+        //            "volume24h": 261319063,
+        //            "turnover24h": 8204.129380685496,
+        //            "nextFundingTime": 1698285600000,
+        //            "markPrice": 34702.4646738,
+        //            "last24hMaxPrice": 35127.5,
+        //            "volume24hInUsd": 0.0,
+        //            "openValue": 32.88054722085945,
+        //            "last24hMinPrice": 33552.0,
+        //            "openInterest": 1141372.0
+        //        }
+        //        ...
+        //    ]
+        //
         const markets = this.safeValue (response, 'data', []);
-        return this.parseMarkets (markets);
-    }
-
-    parseMarket (market): Market {
-        const id = this.safeString (market, 'name');
-        const baseAsset = this.safeValue (market, 'base_asset', {});
-        const quoteAsset = this.safeValue (market, 'quote_asset', {});
-        const baseId = this.safeString (baseAsset, 'symbol');
-        const quoteId = this.safeString (quoteAsset, 'symbol');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        return {
-            'id': id,
-            'symbol': base + '/' + quote,
-            'base': base,
-            'quote': quote,
-            'settle': undefined,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'settleId': undefined,
-            'type': 'spot',
-            'spot': true,
-            'margin': false,
-            'swap': false,
-            'future': false,
-            'option': false,
-            'active': true,
-            'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
-            'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'strike': undefined,
-            'optionType': undefined,
-            'precision': {
-                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_scale'))),
-                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_scale'))),
-            },
-            'limits': {
-                'leverage': {
-                    'min': undefined,
-                    'max': undefined,
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const baseAsset = this.safeValue (market, 'base_asset', {});
+            const quoteAsset = this.safeValue (market, 'quote_asset', {});
+            const baseId = this.safeString (baseAsset, 'symbol');
+            const quoteId = this.safeString (quoteAsset, 'symbol');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const entry = {
+                'id': this.safeString (market, 'name'),
+                'uuid': this.safeString (market, 'id'),
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_scale'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_scale'))),
                 },
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_quote_value'),
+                        'max': this.safeNumber (market, 'max_quote_value'),
+                    },
                 },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
+                'created': undefined,
+                'info': market,
+            };
+            result.push (entry);
+        }
+        for (let i = 0; i < contractResponse.length; i++) {
+            const market = contractResponse[i];
+            const marketId = this.safeString (market, 'symbol');
+            const baseId = marketId.slice (0, 3);
+            const quoteId = marketId.slice (3);
+            const inverse = (quoteId === 'USD');
+            const settleId = inverse ? baseId : quoteId;
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            result.push ({
+                'id': marketId,
+                'symbol': base + '/' + quote + ':' + settle,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': inverse ? 'future' : 'swap',
+                'spot': false,
+                'margin': false,
+                'swap': !inverse,
+                'future': inverse,
+                'option': false,
+                'active': true,
+                'contract': true,
+                'linear': !inverse,
+                'inverse': inverse,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': undefined,
+                    'price': undefined,
                 },
-                'cost': {
-                    'min': this.safeNumber (market, 'min_quote_value'),
-                    'max': this.safeNumber (market, 'max_quote_value'),
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
-            },
-            'created': undefined,
-            'info': market,
-        };
+                'info': market,
+            });
+        }
+        return result;
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {
