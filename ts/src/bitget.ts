@@ -3319,12 +3319,15 @@ export default class bitget extends Exchange {
          * @description create a list of trade orders (all orders should be of the same symbol)
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#batch-order
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#batch-order
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-order
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-order
          * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const ordersRequests = [];
         let symbol = undefined;
+        let marginMode = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -3339,22 +3342,37 @@ export default class bitget extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            let orderParams = this.safeValue (rawOrder, 'params', {});
+            [ marginMode, orderParams ] = this.handleMarginModeAndParams ('createOrders', params);
+            if (marginMode !== undefined) {
+                if (marginMode === 'isolated') {
+                    orderParams['marginMode'] = 'isolated';
+                } else if (marginMode === 'cross') {
+                    orderParams['marginMode'] = 'cross';
+                }
+            }
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
         const market = this.market (symbol);
+        const symbolRequest = (marginMode !== undefined) ? (market['info']['symbolName']) : (market['id']);
         const request = {
-            'symbol': market['id'],
+            'symbol': symbolRequest,
         };
         let response = undefined;
         if (market['spot']) {
             request['orderList'] = ordersRequests;
-            response = await this.privateSpotPostTradeBatchOrders (request);
-        } else {
+        }
+        if ((market['swap']) || (market['future'])) {
             request['orderDataList'] = ordersRequests;
             request['marginCoin'] = market['settleId'];
             response = await this.privateMixPostOrderBatchOrders (request);
+        } else if (marginMode === 'isolated') {
+            response = await this.privateMarginPostIsolatedOrderBatchPlaceOrder (request);
+        } else if (marginMode === 'cross') {
+            response = await this.privateMarginPostCrossOrderBatchPlaceOrder (request);
+        } else {
+            response = await this.privateSpotPostTradeBatchOrders (request);
         }
         //
         // {
