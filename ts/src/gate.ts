@@ -5602,11 +5602,11 @@ export default class gate extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        let method = undefined;
+        let response = undefined;
+        params = this.omit (params, [ 'marginMode' ]);
         if (symbol === undefined) {
-            method = 'privateMarginPostCrossRepayments';
+            response = await this.privateMarginPostCrossRepayments (this.extend (request, params));
         } else {
-            method = 'privateMarginPostLoansLoanIdRepayment';
             const market = this.market (symbol);
             request['currency_pair'] = market['id'];
             request['mode'] = 'partial';
@@ -5615,9 +5615,9 @@ export default class gate extends Exchange {
                 throw new ArgumentsRequired (this.id + ' repayMargin() requires loan_id param for isolated margin');
             }
             request['loan_id'] = loanId;
+            params = this.omit (params, [ 'loan_id', 'id' ]);
+            response = await this.privateMarginPostLoansLoanIdRepayment (this.extend (request, params));
         }
-        params = this.omit (params, [ 'marginMode', 'loan_id', 'id' ]);
-        let response = await this[method] (this.extend (request, params));
         //
         // Cross
         //
@@ -5685,9 +5685,9 @@ export default class gate extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        let method = undefined;
+        let response = undefined;
         if (symbol === undefined) {
-            method = 'privateMarginPostCrossLoans';
+            response = await this.privateMarginPostCrossLoans (this.extend (request, params));
         } else {
             const market = this.market (symbol);
             request['currency_pair'] = market['id'];
@@ -5696,10 +5696,9 @@ export default class gate extends Exchange {
             // as it is the smallest tick size currently offered by gateio
             request['rate'] = this.safeString (params, 'rate', '0.0001');
             request['auto_renew'] = true;
-            method = 'privateMarginPostLoans';
+            params = this.omit (params, [ 'rate' ]);
+            response = await this.privateMarginPostLoans (this.extend (request, params));
         }
-        params = this.omit (params, [ 'marginMode', 'rate' ]);
-        const response = await this[method] (this.extend (request, params));
         //
         // Cross
         //
