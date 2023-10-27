@@ -171,8 +171,6 @@ export default class kucoin extends Exchange {
                         'margin/account': 40, // 40SW
                         'margin/accounts': 15, // 15SW
                         'isolated/accounts': 15, // 15SW
-                        'account-overview': 7.5, // 5FW
-                        'account-overview-all': 9, // 6FW
                         'deposit-addresses': 7.5, // 5MW
                         'deposits': 7.5, // 5MW
                         'hist-deposits': 7.5, // 5MW
@@ -256,7 +254,7 @@ export default class kucoin extends Exchange {
                         'redeem': 15, // 15SW
                         'lend/purchase/update': 10, // 10SW
                         // ws
-                        'bullet-private': 15, // 10SW or 10FW
+                        'bullet-private': 10, // 10SW
                     },
                     'delete': {
                         // account
@@ -283,66 +281,69 @@ export default class kucoin extends Exchange {
                     },
                 },
                 'futuresPublic': {
-                    // cheapest futures 'limited' endpoint is 40  requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.3953
                     'get': {
-                        'contracts/active': 1.3953,
-                        'contracts/{symbol}': 1.3953,
-                        'ticker': 1.3953,
-                        'level2/snapshot': 2, // 30 requests per 3 seconds = 10 requests per second => cost = 20/10 = 2
-                        'level2/depth20': 1.3953,
-                        'level2/depth100': 1.3953,
+                        'contracts/active': 4.5, // 3PW
+                        'contracts/{symbol}': 4.5, // 3PW
+                        'ticker': 3, // 2PW
+                        'level2/snapshot': 4.5, // 3PW
+                        'level2/depth20': 7.5, // 5PW
+                        'level2/depth100': 15, // 10PW
+                        'trade/history': 7.5, // 5PW
+                        'kline/query': 4.5, // 3PW
+                        'interest/query': 7.5, // 5PW
+                        'index/query': 3, // 2PW
+                        'mark-price/{symbol}/current': 4.5, // 3PW
+                        'premium/query': 4.5, // 3PW
+                        'funding-rate/{symbol}/current': 3, // 2PW
+                        'timestamp': 3, // 2PW
+                        'status': 6, // 4PW
+                        // ?
                         'level2/message/query': 1.3953,
-                        'level3/message/query': 1.3953, // deprecated，level3/snapshot is suggested
-                        'level3/snapshot': 1.3953, // v2
-                        'trade/history': 1.3953,
-                        'interest/query': 1.3953,
-                        'index/query': 1.3953,
-                        'mark-price/{symbol}/current': 1.3953,
-                        'premium/query': 1.3953,
-                        'funding-rate/{symbol}/current': 1.3953,
-                        'timestamp': 1.3953,
-                        'status': 1.3953,
-                        'kline/query': 1.3953,
                     },
                     'post': {
-                        'bullet-public': 1.3953,
+                        // ws
+                        'bullet-public': 15, // 10PW
                     },
                 },
                 'futuresPrivate': {
                     'get': {
-                        'account-overview': 2, // 30 requests per 3 seconds = 10 per second => cost = 20/10 = 2
-                        'transaction-history': 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
-                        'deposit-address': 1.3953,
-                        'deposit-list': 1.3953,
-                        'withdrawals/quotas': 1.3953,
-                        'withdrawal-list': 1.3953,
-                        'transfer-list': 1.3953,
-                        'orders': 1.3953,
-                        'stopOrders': 1.3953,
-                        'recentDoneOrders': 1.3953,
-                        'orders/{orderId}': 1.3953, // ?clientOid={client-orderId} // get order by orderId
-                        'orders/byClientOid': 1.3953, // ?clientOid=eresc138b21023a909e5ad59 // get order by clientOid
-                        'fills': 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
-                        'recentFills': 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
-                        'openOrderStatistics': 1.3953,
-                        'position': 1.3953,
-                        'positions': 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
-                        'funding-history': 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
+                        // account
+                        'transaction-history': 3, // 2MW
+                        // funding
+                        'account-overview': 7.5, // 5FW
+                        'account-overview-all': 9, // 6FW
+                        'transfer-list': 30, // 20MW
+                        // futures
+                        'orders': 3, // 2FW
+                        'stopOrders': 9, // 6FW
+                        'recentDoneOrders': 7.5, // 5FW
+                        'orders/{orderId}': 7.5, // 5FW
+                        'orders/byClientOid': 7.5, // 5FW
+                        'fills': 7.5, // 5FW
+                        'recentFills': 4.5, // 3FW
+                        'openOrderStatistics': 15, // 10FW
+                        'position': 3, // 2FW
+                        'positions': 3, // 2FW
+                        'contracts/risk-limit/{symbol}': 7.5, // 5FW
+                        'funding-history': 7.5, // 5FW
                     },
                     'post': {
-                        'withdrawals': 1.3953,
-                        'transfer-out': 1.3953, // v2
-                        'orders': 1.3953,
-                        'position/margin/auto-deposit-status': 1.3953,
-                        'position/margin/deposit-margin': 1.3953,
-                        'bullet-private': 1.3953,
+                        // funding
+                        'transfer-out': 30, // 20MW
+                        'transfer-in': 30, // 20MW
+                        // futures
+                        'orders': 3, // 2FW
+                        'orders/test': 3, // 2FW
+                        'position/margin/auto-deposit-status': 6, // 4FW
+                        'position/margin/deposit-margin': 6, // 4FW
+                        'position/risk-limit-level/change': 6, // 4FW
+                        // ws
+                        'bullet-private': 15, // 10FW
                     },
                     'delete': {
-                        'withdrawals/{withdrawalId}': 1.3953,
-                        'cancel/transfer-out': 1.3953,
-                        'orders/{orderId}': 1.3953, // 40 requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.395
-                        'orders': 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
-                        'stopOrders': 1.3953,
+                        'orders/{orderId}': 1.5, // 1FW
+                        'orders': 45, // 30FW
+                        'stopOrders': 22.5, // 15FW
                     },
                 },
                 'webExchange': {
@@ -574,17 +575,8 @@ export default class kucoin extends Exchange {
                         },
                     },
                     'futuresPrivate': {
-                        'GET': {
-                            'account-overview': 'v1',
-                            'positions': 'v1',
-                        },
                         'POST': {
-                            'transfer-out': 'v2',
-                        },
-                    },
-                    'futuresPublic': {
-                        'GET': {
-                            'level3/snapshot': 'v2',
+                            'transfer-out': 'v3',
                         },
                     },
                 },
