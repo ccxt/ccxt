@@ -1410,6 +1410,95 @@ export default class binance extends Exchange {
                         '-1134': BadRequest, // BAD_STRATEGY_TYPE
                         '-1145': BadRequest, // INVALID_CANCEL_RESTRICTIONS
                         '-1151': BadRequest, // DUPLICATE_SYMBOLS
+                        '-2018': ExchangeError, // undocumented
+                        '-2026': InvalidOrder, // Order was canceled or expired with no executed qty over 90 days ago and has been archived.
+                        // 3xxx errors are available only for spot
+                        '-3000': ExchangeError, // {"code":-3000,"msg":"Internal server error."}
+                        '-3001': AuthenticationError, // {"code":-3001,"msg":"Please enable 2FA first."}
+                        '-3002': BadSymbol, // {"code":-3002,"msg":"We don't have this asset."}
+                        '-3003': BadRequest, // {"code":-3003,"msg":"Margin account does not exist."}
+                        '-3004': ExchangeError, // {"code":-3004,"msg":"Trade not allowed."}
+                        '-3005': InsufficientFunds, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
+                        '-3006': InsufficientFunds, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
+                        '-3007': ExchangeError, // {"code":-3007,"msg":"You have pending transaction, please try again later.."}
+                        '-3008': InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
+                        '-3009': BadRequest, // {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
+                        '-3010': BadRequest, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                        '-3011': BadRequest, // {"code":-3011,"msg":"Your input date is invalid."}
+                        '-3012': InsufficientFunds, // {"code":-3012,"msg":"Borrow is banned for this asset."}
+                        '-3013': BadRequest, // {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
+                        '-3014': AccountSuspended, // {"code":-3014,"msg":"Borrow is banned for this account."}
+                        '-3015': BadRequest, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
+                        '-3016': BadRequest, // {"code":-3016,"msg":"Repay amount less than minimum repay amount."}
+                        '-3017': ExchangeError, // {"code":-3017,"msg":"This asset are not allowed to transfer into margin account currently."}
+                        '-3018': AccountSuspended, // {"code":-3018,"msg":"Transferring in has been banned for this account."}
+                        '-3019': AccountSuspended, // {"code":-3019,"msg":"Transferring out has been banned for this account."}
+                        '-3020': InsufficientFunds, // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
+                        '-3021': BadRequest, // {"code":-3021,"msg":"Margin account are not allowed to trade this trading pair."}
+                        '-3022': AccountSuspended, // {"code":-3022,"msg":"You account's trading is banned."}
+                        '-3023': BadRequest, // {"code":-3023,"msg":"You can't transfer out/place order under current margin level."}
+                        '-3024': ExchangeError, // {"code":-3024,"msg":"The unpaid debt is too small after this repayment."}
+                        '-3025': BadRequest, // {"code":-3025,"msg":"Your input date is invalid."}
+                        '-3026': BadRequest, // {"code":-3026,"msg":"Your input param is invalid."}
+                        '-3027': BadSymbol, // {"code":-3027,"msg":"Not a valid margin asset."}
+                        '-3028': BadSymbol, // {"code":-3028,"msg":"Not a valid margin pair."}
+                        '-3029': ExchangeError, // {"code":-3029,"msg":"Transfer failed."}
+                        '-3036': AccountSuspended, // {"code":-3036,"msg":"This account is not allowed to repay."}
+                        '-3037': ExchangeError, // {"code":-3037,"msg":"PNL is clearing. Wait a second."}
+                        '-3038': BadRequest, // {"code":-3038,"msg":"Listen key not found."}
+                        '-3041': InsufficientFunds, // {"code":-3041,"msg":"Balance is not enough"}
+                        '-3042': BadRequest, // {"code":-3042,"msg":"PriceIndex not available for this margin pair."}
+                        '-3043': BadRequest, // {"code":-3043,"msg":"Transferring in not allowed."}
+                        '-3044': DDoSProtection, // {"code":-3044,"msg":"System busy."}
+                        '-3045': ExchangeError, // {"code":-3045,"msg":"The system doesn't have enough asset now."}
+                        '-3999': ExchangeError, // {"code":-3999,"msg":"This function is only available for invited users."}
+                        '-4001': BadRequest, // {"code":-4001 ,"msg":"Invalid operation."}
+                        '-4002': BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
+                        '-4003': BadRequest, // {"code":-4003 ,"msg":"Your input email is invalid."}
+                        '-4004': AuthenticationError, // {"code":-4004,"msg":"You don't login or auth."}
+                        '-4005': RateLimitExceeded, // {"code":-4005 ,"msg":"Too many new requests."}
+                        '-4006': BadRequest, // {"code":-4006 ,"msg":"Support main account only."}
+                        '-4007': BadRequest, // {"code":-4007 ,"msg":"Address validation is not passed."}
+                        '-4008': BadRequest, // {"code":-4008 ,"msg":"Address tag validation is not passed."}
+                        '-4009': ExchangeError, // undocumented
+                        '-4010': BadRequest, // {"code":-4010 ,"msg":"White list mail has been confirmed."} // [TODO] possible bug: it should probably be "has not been confirmed"
+                        '-4011': BadRequest, // {"code":-4011 ,"msg":"White list mail is invalid."}
+                        '-4012': BadRequest, // {"code":-4012 ,"msg":"White list is not opened."}
+                        '-4013': AuthenticationError, // {"code":-4013 ,"msg":"2FA is not opened."}
+                        '-4014': PermissionDenied, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
+                        '-4015': ExchangeError, // {"code":-4015 ,"msg":"Withdraw is limited."}
+                        '-4016': PermissionDenied, // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
+                        '-4017': PermissionDenied, // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
+                        '-4018': BadSymbol, // {"code":-4018,"msg":"We don't have this asset."}
+                        '-4019': BadSymbol, // {"code":-4019,"msg":"Current asset is not open for withdrawal."}
+                        '-4021': BadRequest, // {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
+                        '-4022': BadRequest, // {"code":-4022,"msg":"Not less than the minimum pick-up quantity %s."}
+                        '-4023': ExchangeError, // {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
+                        '-4024': InsufficientFunds, // {"code":-4024,"msg":"You don't have this asset."}
+                        '-4025': InsufficientFunds, // {"code":-4025,"msg":"The number of hold asset is less than zero."}
+                        '-4026': InsufficientFunds, // {"code":-4026,"msg":"You have insufficient balance."}
+                        '-4027': ExchangeError, // {"code":-4027,"msg":"Failed to obtain tranId."}
+                        '-4028': BadRequest, // {"code":-4028,"msg":"The amount of withdrawal must be greater than the Commission."}
+                        '-4029': BadRequest, // {"code":-4029,"msg":"The withdrawal record does not exist."}
+                        '-4030': ExchangeError, // {"code":-4030,"msg":"Confirmation of successful asset withdrawal. [TODO] possible bug in docs"}
+                        '-4031': ExchangeError, // {"code":-4031,"msg":"Cancellation failed."}
+                        '-4032': ExchangeError, // {"code":-4032,"msg":"Withdraw verification exception."}
+                        '-4033': BadRequest, // {"code":-4033,"msg":"Illegal address."}
+                        '-4034': ExchangeError, // {"code":-4034,"msg":"The address is suspected of fake."}
+                        '-4035': PermissionDenied, // {"code":-4035,"msg":"This address is not on the whitelist. Please join and try again."}
+                        '-4036': BadRequest, // {"code":-4036,"msg":"The new address needs to be withdrawn in {0} hours."}
+                        '-4037': ExchangeError, // {"code":-4037,"msg":"Re-sending Mail failed."}
+                        '-4038': ExchangeError, // {"code":-4038,"msg":"Please try again in 5 minutes."}
+                        '-4039': BadRequest, // {"code":-4039,"msg":"The user does not exist."}
+                        '-4040': BadRequest, // {"code":-4040,"msg":"This address not charged."}
+                        '-4041': ExchangeError, // {"code":-4041,"msg":"Please try again in one minute."}
+                        '-4042': ExchangeError, // {"code":-4042,"msg":"This asset cannot get deposit address again."}
+                        '-4043': BadRequest, // {"code":-4043,"msg":"More than 100 recharge addresses were used in 24 hours."}
+                        '-4044': BadRequest, // {"code":-4044,"msg":"This is a blacklist country."}
+                        '-4045': ExchangeError, // {"code":-4045,"msg":"Failure to acquire assets."}
+                        '-4046': AuthenticationError, // {"code":-4046,"msg":"Agreement not confirmed."}
+                        '-4047': BadRequest, // {"code":-4047,"msg":"Time interval must be within 0-90 days"}
+                        '-4060': BadRequest, // As your deposit has not reached the required block confirmations, we have temporarily locked {0} asset
                     },
                 },
                 'option': {
@@ -1429,6 +1518,19 @@ export default class binance extends Exchange {
                         '-1128': BadSymbol, // BAD_CONTRACT
                         '-1129': BadSymbol, // BAD_CURRENCY
                         '-1131': BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
+                        '-2011': ExchangeError, // undocumented
+                        '-2016': ExchangeError, // undocumented
+                        '-2027': InsufficientFunds, // OPTION_MARGIN_NOT_SUFFICIENT
+                        '-3029': ExchangeError, // {"code":-3029,"msg":"Transfer failed."}
+                        '-4006': ExchangeError, // undocumented
+                        '-4007': ExchangeError, // undocumented
+                        '-4008': ExchangeError, // undocumented
+                        '-4009': ExchangeError, // undocumented
+                        '-4010': ExchangeError, // undocumented
+                        '-4011': ExchangeError, // undocumented
+                        '-4012': ExchangeError, // undocumented
+                        '-4030': BadRequest, // INVALID_QTY_PRECISION
+                        '-4055': BadRequest, // AMOUNT_MUST_BE_POSITIVE
                     },
                 },
                 'linear': {
@@ -1443,6 +1545,18 @@ export default class binance extends Exchange {
                         '-1122': BadRequest, // INVALID_SYMBOL_STATUS
                         '-1126': BadSymbol, // ASSET_NOT_SUPPORTED
                         '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
+                        '-2012': BadResponse, // CANCEL_ALL_FAIL
+                        '-2017': PermissionDenied, // API_KEYS_LOCKED'-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
+                        '-2020': OrderNotFillable, // {"code":-2020,"msg":"Unable to fill."}
+                        '-2021': OrderImmediatelyFillable, // {"code":-2021,"msg":"Order would immediately trigger."}
+                        '-2022': InvalidOrder, // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
+                        '-2023': InsufficientFunds, // {"code":-2023,"msg":"User in liquidation mode now."}
+                        '-2024': InsufficientFunds, // {"code":-2024,"msg":"Position is not sufficient."}
+                        '-2025': InvalidOrder, // {"code":-2025,"msg":"Reach max open order limit."}
+                        '-2026': InvalidOrder, // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
+                        '-2027': InvalidOrder, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
+                        '-2028': InsufficientFunds, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
+                        '-4000': InvalidOrder, // INVALID_ORDER_STATUS
                     },
                 },
                 'inverse': {
@@ -1454,7 +1568,17 @@ export default class binance extends Exchange {
                         '-1108': BadRequest, // {"code":-1108,"msg":"Invalid asset."}
                         '-1109': AuthenticationError, // {"code":-1109,"msg":"Invalid account."}
                         '-1110': BadRequest, // {"code":-1110,"msg":"Invalid symbolType."}
-                        '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
+                        '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}'-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
+                        '-2020': OrderNotFillable, // {"code":-2020,"msg":"Unable to fill."}
+                        '-2021': OrderImmediatelyFillable, // {"code":-2021,"msg":"Order would immediately trigger."}
+                        '-2022': InvalidOrder, // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
+                        '-2023': InsufficientFunds, // {"code":-2023,"msg":"User in liquidation mode now."}
+                        '-2024': InsufficientFunds, // {"code":-2024,"msg":"Position is not sufficient."}
+                        '-2025': InvalidOrder, // {"code":-2025,"msg":"Reach max open order limit."}
+                        '-2026': InvalidOrder, // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
+                        '-2027': InvalidOrder, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
+                        '-2028': InsufficientFunds, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
+                        '-4000': InvalidOrder, // INVALID_ORDER_STATUS
                     },
                 },
                 'exact': {
@@ -1527,101 +1651,20 @@ export default class binance extends Exchange {
                     '-2015': AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                     '-2016': BadRequest, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
                     '-2018': InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
-                    '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
-                    '-2020': OrderNotFillable, // {"code":-2020,"msg":"Unable to fill."}
-                    '-2021': OrderImmediatelyFillable, // {"code":-2021,"msg":"Order would immediately trigger."}
-                    '-2022': InvalidOrder, // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
-                    '-2023': InsufficientFunds, // {"code":-2023,"msg":"User in liquidation mode now."}
-                    '-2024': InsufficientFunds, // {"code":-2024,"msg":"Position is not sufficient."}
-                    '-2025': InvalidOrder, // {"code":-2025,"msg":"Reach max open order limit."}
-                    '-2026': InvalidOrder, // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
-                    '-2027': InvalidOrder, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
-                    '-2028': InsufficientFunds, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
-                    '-3000': ExchangeError, // {"code":-3000,"msg":"Internal server error."}
-                    '-3001': AuthenticationError, // {"code":-3001,"msg":"Please enable 2FA first."}
-                    '-3002': BadSymbol, // {"code":-3002,"msg":"We don't have this asset."}
-                    '-3003': BadRequest, // {"code":-3003,"msg":"Margin account does not exist."}
-                    '-3004': ExchangeError, // {"code":-3004,"msg":"Trade not allowed."}
-                    '-3005': InsufficientFunds, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
-                    '-3006': InsufficientFunds, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
-                    '-3007': ExchangeError, // {"code":-3007,"msg":"You have pending transaction, please try again later.."}
-                    '-3008': InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
-                    '-3009': BadRequest, // {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
-                    '-3010': BadRequest, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
-                    '-3011': BadRequest, // {"code":-3011,"msg":"Your input date is invalid."}
-                    '-3012': InsufficientFunds, // {"code":-3012,"msg":"Borrow is banned for this asset."}
-                    '-3013': BadRequest, // {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
-                    '-3014': AccountSuspended, // {"code":-3014,"msg":"Borrow is banned for this account."}
-                    '-3015': BadRequest, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
-                    '-3016': BadRequest, // {"code":-3016,"msg":"Repay amount less than minimum repay amount."}
-                    '-3017': ExchangeError, // {"code":-3017,"msg":"This asset are not allowed to transfer into margin account currently."}
-                    '-3018': AccountSuspended, // {"code":-3018,"msg":"Transferring in has been banned for this account."}
-                    '-3019': AccountSuspended, // {"code":-3019,"msg":"Transferring out has been banned for this account."}
-                    '-3020': InsufficientFunds, // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
-                    '-3021': BadRequest, // {"code":-3021,"msg":"Margin account are not allowed to trade this trading pair."}
-                    '-3022': AccountSuspended, // {"code":-3022,"msg":"You account's trading is banned."}
-                    '-3023': BadRequest, // {"code":-3023,"msg":"You can't transfer out/place order under current margin level."}
-                    '-3024': ExchangeError, // {"code":-3024,"msg":"The unpaid debt is too small after this repayment."}
-                    '-3025': BadRequest, // {"code":-3025,"msg":"Your input date is invalid."}
-                    '-3026': BadRequest, // {"code":-3026,"msg":"Your input param is invalid."}
-                    '-3027': BadSymbol, // {"code":-3027,"msg":"Not a valid margin asset."}
-                    '-3028': BadSymbol, // {"code":-3028,"msg":"Not a valid margin pair."}
-                    '-3029': ExchangeError, // {"code":-3029,"msg":"Transfer failed."}
-                    '-3036': AccountSuspended, // {"code":-3036,"msg":"This account is not allowed to repay."}
-                    '-3037': ExchangeError, // {"code":-3037,"msg":"PNL is clearing. Wait a second."}
-                    '-3038': BadRequest, // {"code":-3038,"msg":"Listen key not found."}
-                    '-3041': InsufficientFunds, // {"code":-3041,"msg":"Balance is not enough"}
-                    '-3042': BadRequest, // {"code":-3042,"msg":"PriceIndex not available for this margin pair."}
-                    '-3043': BadRequest, // {"code":-3043,"msg":"Transferring in not allowed."}
-                    '-3044': DDoSProtection, // {"code":-3044,"msg":"System busy."}
-                    '-3045': ExchangeError, // {"code":-3045,"msg":"The system doesn't have enough asset now."}
-                    '-3999': ExchangeError, // {"code":-3999,"msg":"This function is only available for invited users."}
-                    '-4001': BadRequest, // {"code":-4001 ,"msg":"Invalid operation."}
-                    '-4002': BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
-                    '-4003': BadRequest, // {"code":-4003 ,"msg":"Your input email is invalid."}
-                    '-4004': AuthenticationError, // {"code":-4004,"msg":"You don't login or auth."}
-                    '-4005': RateLimitExceeded, // {"code":-4005 ,"msg":"Too many new requests."}
-                    '-4006': BadRequest, // {"code":-4006 ,"msg":"Support main account only."}
-                    '-4007': BadRequest, // {"code":-4007 ,"msg":"Address validation is not passed."}
-                    '-4008': BadRequest, // {"code":-4008 ,"msg":"Address tag validation is not passed."}
-                    '-4010': BadRequest, // {"code":-4010 ,"msg":"White list mail has been confirmed."} // [TODO] possible bug: it should probably be "has not been confirmed"
-                    '-4011': BadRequest, // {"code":-4011 ,"msg":"White list mail is invalid."}
-                    '-4012': BadRequest, // {"code":-4012 ,"msg":"White list is not opened."}
-                    '-4013': AuthenticationError, // {"code":-4013 ,"msg":"2FA is not opened."}
-                    '-4014': PermissionDenied, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
-                    '-4015': ExchangeError, // {"code":-4015 ,"msg":"Withdraw is limited."}
-                    '-4016': PermissionDenied, // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."} | on swap: {"code":-4016,"msg":"Limit price can't be higher than 27330.52."}
-                    '-4017': PermissionDenied, // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
-                    '-4018': BadSymbol, // {"code":-4018,"msg":"We don't have this asset."}
-                    '-4019': BadSymbol, // {"code":-4019,"msg":"Current asset is not open for withdrawal."}
-                    '-4021': BadRequest, // {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
-                    '-4022': BadRequest, // {"code":-4022,"msg":"Not less than the minimum pick-up quantity %s."}
-                    '-4023': ExchangeError, // {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
-                    '-4024': InsufficientFunds, // {"code":-4024,"msg":"You don't have this asset."}
-                    '-4025': InsufficientFunds, // {"code":-4025,"msg":"The number of hold asset is less than zero."}
-                    '-4026': InsufficientFunds, // {"code":-4026,"msg":"You have insufficient balance."}
-                    '-4027': ExchangeError, // {"code":-4027,"msg":"Failed to obtain tranId."}
-                    '-4028': BadRequest, // {"code":-4028,"msg":"The amount of withdrawal must be greater than the Commission."}
-                    '-4029': BadRequest, // {"code":-4029,"msg":"The withdrawal record does not exist."}
-                    '-4030': ExchangeError, // {"code":-4030,"msg":"Confirmation of successful asset withdrawal. [TODO] possible bug in docs"}
-                    '-4031': ExchangeError, // {"code":-4031,"msg":"Cancellation failed."}
-                    '-4032': ExchangeError, // {"code":-4032,"msg":"Withdraw verification exception."}
-                    '-4033': BadRequest, // {"code":-4033,"msg":"Illegal address."}
-                    '-4034': ExchangeError, // {"code":-4034,"msg":"The address is suspected of fake."}
-                    '-4035': PermissionDenied, // {"code":-4035,"msg":"This address is not on the whitelist. Please join and try again."}
-                    '-4036': BadRequest, // {"code":-4036,"msg":"The new address needs to be withdrawn in {0} hours."}
-                    '-4037': ExchangeError, // {"code":-4037,"msg":"Re-sending Mail failed."}
-                    '-4038': ExchangeError, // {"code":-4038,"msg":"Please try again in 5 minutes."}
-                    '-4039': BadRequest, // {"code":-4039,"msg":"The user does not exist."}
-                    '-4040': BadRequest, // {"code":-4040,"msg":"This address not charged."}
-                    '-4041': ExchangeError, // {"code":-4041,"msg":"Please try again in one minute."}
-                    '-4042': ExchangeError, // {"code":-4042,"msg":"This asset cannot get deposit address again."}
-                    '-4043': BadRequest, // {"code":-4043,"msg":"More than 100 recharge addresses were used in 24 hours."}
-                    '-4044': BadRequest, // {"code":-4044,"msg":"This is a blacklist country."}
-                    '-4045': ExchangeError, // {"code":-4045,"msg":"Failure to acquire assets."}
-                    '-4046': AuthenticationError, // {"code":-4046,"msg":"Agreement not confirmed."}
-                    '-4047': BadRequest, // {"code":-4047,"msg":"Time interval must be within 0-90 days"}
-                    '-4054': BadRequest, // {"code":-4054,"msg":"Cannot add position margin: position is 0."}
+                    '-4001': xxxx, // PRICE_LESS_THAN_ZERO
+                    '-4002': xxxx, // PRICE_GREATER_THAN_MAX_PRICE
+                    '-4003': xxxx, // QTY_LESS_THAN_ZERO
+                    '-4004': xxxx, // QTY_LESS_THAN_MIN_QTY
+                    '-4005': xxxx, // QTY_GREATER_THAN_MAX_QTY
+                    '-4006': xxxx, // STOP_PRICE_LESS_THAN_ZERO
+                    '-4007': xxxx, // STOP_PRICE_GREATER_THAN_MAX_PRICE
+                    '-4008': xxxx, // TICK_SIZE_LESS_THAN_ZERO
+                    '-4009': xxxx, // MAX_PRICE_LESS_THAN_MIN_PRICE
+                    '-4010': xxxx, // MAX_QTY_LESS_THAN_MIN_QTY
+                    '-4011': xxxx, // STEP_SIZE_LESS_THAN_ZERO
+                    '-4012': xxxx, // MAX_NUM_ORDERS_LESS_THAN_ZERO
+                    '-4013': xxxx, // PRICE_LESS_THAN_MIN_PRICE
+                    '-4029': xxxx, // INVALID_TICK_SIZE_PRECISION
                     '-5001': BadRequest, // {"code":-5001,"msg":"Don't allow transfer to micro assets."}
                     '-5002': InsufficientFunds, // {"code":-5002,"msg":"You have insufficient balance."}
                     '-5003': InsufficientFunds, // {"code":-5003,"msg":"You don't have this asset."}
