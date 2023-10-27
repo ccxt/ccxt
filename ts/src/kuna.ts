@@ -1859,6 +1859,7 @@ export default class kuna extends Exchange {
                 }
             } else if (version === 'v4') {
                 let urlPath = '/' + version + '/' + this.implodeParams (path, params);
+                params = this.omit (params, this.extractParams (urlPath));
                 if (access === 'private') {
                     if (isGet) {
                         const paramsList = Object.keys (params);
