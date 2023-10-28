@@ -9,10 +9,14 @@ import ccxt from '../../../ccxt.js';
 // because some exchanges require the id to be sent in the headers
 async function main () {
     const promises = [
-        // testBinance (),
-        // testCryptocom (),
-        // testOkx (),
-        testKucoin ()
+        testBinance (),
+        testCryptocom (),
+        testOkx (),
+        testKucoin (),
+        testKucoinfutures (),
+        testBybit (),
+        testBitget (),
+        testMexc ()
     ];
     await Promise.all (promises);
     log.bright.green ('Static Ids test passed');
@@ -75,6 +79,8 @@ async function testCryptocom () {
 async function testKucoin () {
     let reqHeaders = undefined;
     const kucoin = new ccxt.kucoin ();
+    assert (kucoin.options['partner']['spot']['id'] === 'ccxt', 'id not in options');
+    assert (kucoin.options['partner']['spot']['key'] === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options');
     await kucoin.loadMarkets ();
     try {
         kucoin.apiKey = 'api';
@@ -87,6 +93,79 @@ async function testKucoin () {
     }
     const id = 'ccxt';
     assert (reqHeaders['KC-API-PARTNER'] === id, 'id not in headers');
+}
+
+async function testKucoinfutures () {
+    let reqHeaders = undefined;
+    const id = 'ccxtfutures';
+    const kucoin = new ccxt.kucoinfutures ();
+    assert (kucoin.options['partner']['future']['id'] === id, 'id not in options');
+    assert (kucoin.options['partner']['future']['key'] === '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options');
+    await kucoin.loadMarkets ();
+    try {
+        kucoin.apiKey = 'api';
+        kucoin.secret = 'secret';
+        kucoin.password = 'password';
+        await kucoin.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, reqHeaders);
+    } catch (e) {
+        // we expect an error here, we're only interested in the headers
+        reqHeaders = kucoin.last_request_headers;
+    }
+    assert (reqHeaders['KC-API-PARTNER'] === id, 'id not in headers');
+}
+
+async function testBybit () {
+    let reqHeaders = undefined;
+    const id = 'CCXT';
+    const bybit = new ccxt.bybit ();
+    assert (bybit.options['brokerId'] === id, 'id not in options');
+    await bybit.loadMarkets ();
+    try {
+        bybit.apiKey = 'api';
+        bybit.secret = 'secret';
+        bybit.options['enableUnifiedAccount'] = true; // avoid isUnifiedEnabled call
+        bybit.options['enableUnifiedMargin'] = false;
+        await bybit.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders);
+    } catch (e) {
+        // we expect an error here, we're only interested in the headers
+        reqHeaders = bybit.last_request_headers;
+    }
+    assert (reqHeaders['Referer'] === id, 'id not in headers');
+}
+
+async function testBitget () {
+    let reqHeaders = undefined;
+    const id = 'p4sve';
+    const bitget = new ccxt.bitget ();
+    assert (bitget.options['broker'] === id, 'id not in options');
+    await bitget.loadMarkets ();
+    try {
+        bitget.apiKey = 'api';
+        bitget.secret = 'secret';
+        bitget.password = 'password';
+        await bitget.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders);
+    } catch (e) {
+        // we expect an error here, we're only interested in the headers
+        reqHeaders = bitget.last_request_headers;
+    }
+    assert (reqHeaders['X-CHANNEL-API-CODE'] === id, 'id not in headers');
+}
+
+async function testMexc () {
+    let reqHeaders = undefined;
+    const id = 'CCXT';
+    const mexc = new ccxt.mexc ();
+    assert (mexc.options['broker'] === id, 'id not in options');
+    await mexc.loadMarkets ();
+    try {
+        mexc.apiKey = 'api';
+        mexc.secret = 'secret';
+        await mexc.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders);
+    } catch (e) {
+        // we expect an error here, we're only interested in the headers
+        reqHeaders = mexc.last_request_headers;
+    }
+    assert (reqHeaders['source'] === id, 'id not in headers');
 }
 
 await main ();
