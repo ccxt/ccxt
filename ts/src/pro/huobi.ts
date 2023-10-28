@@ -1201,8 +1201,8 @@ export default class huobi extends huobiRest {
         type = this.safeString (params, 'type', type);
         let subType = this.safeString2 (this.options, 'watchBalance', 'subType', 'linear');
         subType = this.safeString (params, 'subType', subType);
-        params = this.omit (params, [ 'type', 'subType' ]);
-        params = this.omit (params, 'type');
+        const isUnifiedAccount = this.safeValue2 (params, 'isUnifiedAccount', 'unified', false);
+        params = this.omit (params, [ 'type', 'subType', 'isUnifiedAccount', 'unified' ]);
         await this.loadMarkets ();
         let messageHash = undefined;
         let channel = undefined;
@@ -1222,10 +1222,35 @@ export default class huobi extends huobiRest {
             let prefix = 'accounts';
             messageHash = prefix;
             if (subType === 'linear') {
-                // usdt contracts account
-                prefix = 'accounts_unify';
-                messageHash = prefix;
-                channel = prefix + '.' + 'USDT';
+                if (isUnifiedAccount) {
+                    // usdt contracts account
+                    prefix = 'accounts_unify';
+                    messageHash = prefix;
+                    channel = prefix + '.' + 'USDT';
+                } else {
+                    // usdt contracts account
+                    prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+                    messageHash = prefix;
+                    if (marginMode === 'isolated') {
+                        // isolated margin only allows filtering by symbol3
+                        if (symbol !== undefined) {
+                            messageHash += '.' + market['id'];
+                            channel = messageHash;
+                        } else {
+                            // subscribe to all
+                            channel = prefix + '.' + '*';
+                        }
+                    } else {
+                        // cross margin
+                        if (currencyCode !== undefined) {
+                            channel = prefix + '.' + currencyCode['id'];
+                            messageHash = channel;
+                        } else {
+                            // subscribe to all
+                            channel = prefix + '.' + '*';
+                        }
+                    }
+                }
             } else if (type === 'future') {
                 // inverse futures account
                 if (currencyCode !== undefined) {
