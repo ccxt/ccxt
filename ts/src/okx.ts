@@ -3082,6 +3082,7 @@ export default class okx extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             'canceled': 'canceled',
+            'order_failed': 'canceled',
             'live': 'open',
             'partially_filled': 'open',
             'filled': 'closed',
