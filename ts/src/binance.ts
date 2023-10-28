@@ -1620,7 +1620,7 @@ export default class binance extends Exchange {
                         '-2011': ExchangeError, // undocumented
                         '-2016': ExchangeError, // undocumented
                         '-2027': InsufficientFunds, // OPTION_MARGIN_NOT_SUFFICIENT
-                        '-3029': ExchangeError, // {"code":-3029,"msg":"Transfer failed."}
+                        '-3029': BadResponse, // {"code":-3029,"msg":"Transfer failed."}
                         '-4001': BadRequest, // PRICE_LESS_THAN_ZERO
                         '-4002': BadRequest, // PRICE_GREATER_THAN_MAX_PRICE
                         '-4003': BadRequest, // QTY_LESS_THAN_ZERO
@@ -1638,23 +1638,24 @@ export default class binance extends Exchange {
                         '-1008': ExchangeNotAvailable, // -1008 SERVER_BUSY: Server is currently overloaded with other requests. Please try again in a few minutes.
                         '-1023': BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
                         '-1099': AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
-                        '-1108': BadRequest, // {"code":-1108,"msg":"Invalid asset."}
-                        '-1109': AuthenticationError, // {"code":-1109,"msg":"Invalid account."}
+                        '-1108': BadSymbol, // {"code":-1108,"msg":"Invalid asset."}
+                        '-1109': PermissionDenied, // {"code":-1109,"msg":"Invalid account."}
                         '-1110': BadRequest, // {"code":-1110,"msg":"Invalid symbolType."}
                         '-1122': BadRequest, // INVALID_SYMBOL_STATUS
                         '-1126': BadSymbol, // ASSET_NOT_SUPPORTED
                         '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
                         '-2012': BadResponse, // CANCEL_ALL_FAIL
-                        '-2017': PermissionDenied, // API_KEYS_LOCKED'-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
-                        '-2020': OrderNotFillable, // {"code":-2020,"msg":"Unable to fill."}
+                        '-2017': PermissionDenied, // API Keys are locked on this account.
+                        '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
+                        '-2020': BadResponse, // {"code":-2020,"msg":"Unable to fill."}
                         '-2021': OrderImmediatelyFillable, // {"code":-2021,"msg":"Order would immediately trigger."}
                         '-2022': InvalidOrder, // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
-                        '-2023': InsufficientFunds, // {"code":-2023,"msg":"User in liquidation mode now."}
+                        '-2023': PermissionDenied, // {"code":-2023,"msg":"User in liquidation mode now."}
                         '-2024': InsufficientFunds, // {"code":-2024,"msg":"Position is not sufficient."}
-                        '-2025': InvalidOrder, // {"code":-2025,"msg":"Reach max open order limit."}
+                        '-2025': PermissionDenied, // {"code":-2025,"msg":"Reach max open order limit."}
                         '-2026': InvalidOrder, // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
-                        '-2027': InvalidOrder, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
-                        '-2028': InsufficientFunds, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
+                        '-2027': PermissionDenied, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
+                        '-2028': BadRequest, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
                         '-4000': InvalidOrder, // INVALID_ORDER_STATUS
                         '-4001': BadRequest, // PRICE_LESS_THAN_ZERO
                         '-4002': BadRequest, // PRICE_GREATER_THAN_MAX_PRICE
@@ -1687,22 +1688,22 @@ export default class binance extends Exchange {
                         '-4029': BadRequest, // INVALID_TICK_SIZE_PRECISION
                         '-4030': BadRequest, // INVALID_STEP_SIZE_PRECISION
                         '-4031': BadRequest, // INVALID_WORKING_TYPE
-                        '-4032': BadRequest, // EXCEED_MAX_CANCEL_ORDER_SIZE
+                        '-4032': PermissionDenied, // EXCEED_MAX_CANCEL_ORDER_SIZE
                         '-4033': BadRequest, // INSURANCE_ACCOUNT_NOT_FOUND
                         '-4044': BadRequest, // INVALID_BALANCE_TYPE
-                        '-4045': BadRequest, // MAX_STOP_ORDER_EXCEEDED
+                        '-4045': PermissionDenied, // MAX_STOP_ORDER_EXCEEDED
                         '-4046': BadRequest, // NO_NEED_TO_CHANGE_MARGIN_TYPE
-                        '-4047': BadRequest, // THERE_EXISTS_OPEN_ORDERS
-                        '-4048': BadRequest, // THERE_EXISTS_QUANTITY
-                        '-4049': BadRequest, // ADD_ISOLATED_MARGIN_REJECT
-                        '-4050': BadRequest, // CROSS_BALANCE_INSUFFICIENT
-                        '-4051': InsufficientFunds, // ISOLATED_BALANCE_INSUFFICIENT
-                        '-4052': BadRequest, // NO_NEED_TO_CHANGE_AUTO_ADD_MARGIN
-                        '-4053': BadRequest, // AUTO_ADD_CROSSED_MARGIN_REJECT
-                        '-4054': BadRequest, // ADD_ISOLATED_MARGIN_NO_POSITION_REJECT
-                        '-4055': BadRequest, // AMOUNT_MUST_BE_POSITIVE
-                        '-4056': BadRequest, // INVALID_API_KEY_TYPE
-                        '-4057': BadRequest, // INVALID_RSA_PUBLIC_KEY
+                        '-4047': PermissionDenied, // Margin type cannot be changed if there exists open orders.
+                        '-4048': PermissionDenied, // Margin type cannot be changed if there exists position.
+                        '-4049': BadRequest, // Add margin only support for isolated position.
+                        '-4050': InsufficientFunds, // Cross balance insufficient
+                        '-4051': InsufficientFunds, // Isolated balance insufficient.
+                        '-4052': BadRequest, // No need to change auto add margin.
+                        '-4053': BadRequest, // Auto add margin only support for isolated position.
+                        '-4054': PermissionDenied, // Cannot add position margin: position is 0.
+                        '-4055': BadRequest, // Amount must be positive.
+                        '-4056': AuthenticationError, // Invalid api key type.
+                        '-4057': AuthenticationError, // Invalid api public key
                         '-4058': BadRequest, // MAX_PRICE_TOO_LARGE
                         '-4059': BadRequest, // NO_NEED_TO_CHANGE_POSITION_SIDE
                         '-4060': BadRequest, // INVALID_POSITION_SIDE
@@ -1712,76 +1713,76 @@ export default class binance extends Exchange {
                         '-4064': BadRequest, // INVALID_OPTIONS_TIME_FRAME
                         '-4065': BadRequest, // INVALID_OPTIONS_AMOUNT
                         '-4066': BadRequest, // INVALID_OPTIONS_EVENT_TYPE
-                        '-4067': BadRequest, // Position side cannot be changed if there exists open orders.
-                        '-4068': BadRequest, // Position side cannot be changed if there exists position.
+                        '-4067': PermissionDenied, // Position side cannot be changed if there exists open orders.
+                        '-4068': PermissionDenied, // Position side cannot be changed if there exists position.
                         '-4069': BadRequest, // Position INVALID_OPTIONS_PREMIUM_FEE
-                        '-4070': BadRequest, // INVALID_CL_OPTIONS_ID_LEN
-                        '-4071': BadRequest, // INVALID_OPTIONS_DIRECTION
-                        '-4072': BadRequest, // premium fee is not updated, reject order
+                        '-4070': BadRequest, // Client options id is not valid.
+                        '-4071': BadRequest, // Invalid options direction
+                        '-4072': BadResponse, // premium fee is not updated, reject order
                         '-4073': BadRequest, // OPTIONS_PREMIUM_INPUT_LESS_THAN_ZERO
                         '-4074': BadRequest, // Order amount is bigger than upper boundary or less than 0, reject order
                         '-4075': BadRequest, // output premium fee is less than 0, reject order
                         '-4076': BadRequest, // original fee is too much higher than last fee
                         '-4077': BadRequest, // place order amount has reached to limit, reject order
-                        '-4078': BadRequest, // options internal error
+                        '-4078': BadResponse, // options internal error
                         '-4079': BadRequest, // invalid options id
-                        '-4080': BadRequest, // OPTIONS_USER_NOT_FOUND
+                        '-4080': PermissionDenied, // user not found with id: %s
                         '-4081': BadRequest, // OPTIONS_NOT_FOUND
-                        '-4082': BadRequest, // INVALID_BATCH_PLACE_ORDER_SIZE
-                        '-4083': BadRequest, // Fail to place batch orders.
+                        '-4082': BadRequest, // Invalid number of batch place orders
+                        '-4083': BadResponse, // Fail to place batch orders.
                         '-4084': BadRequest, // UPCOMING_METHOD
-                        '-4085': BadRequest, // INVALID_NOTIONAL_LIMIT_COEF 
+                        '-4085': BadRequest, // Invalid notional limit coefficient
                         '-4086': BadRequest, // Invalid price spread threshold
-                        '-4087': PermissionDenied, // User can only place reduce only order 
+                        '-4087': PermissionDenied, // User can only place reduce only order
                         '-4088': PermissionDenied, // User can not place order currently
                         '-4104': BadRequest, // INVALID_CONTRACT_TYPE
                         '-4114': BadRequest, // INVALID_CLIENT_TRAN_ID_LEN
                         '-4115': BadRequest, // DUPLICATED_CLIENT_TRAN_ID
-                        '-4118': BadRequest, // REDUCE_ONLY_MARGIN_CHECK_FAILED
-                        '-4131': BadRequest, // MARKET_ORDER_REJECT
-                        '-4135': BadRequest, // INVALID_ACTIVATION_PRICE
+                        '-4118': PermissionDenied, // REDUCE_ONLY_MARGIN_CHECK_FAILED
+                        '-4131': BadResponse, // The counterparty's best price does not meet the PERCENT_PRICE filter limit
+                        '-4135': BadRequest, // Invalid activation price
                         '-4137': BadRequest, // Quantity must be zero with closePosition equals true
                         '-4138': BadRequest, // Reduce only must be true with closePosition equals true
                         '-4139': BadRequest, // Order type can not be market if it's unable to cancel
                         '-4140': BadRequest, // Invalid symbol status for opening position
                         '-4141': BadRequest, // Symbol is closed
                         '-4142': BadRequest, // REJECT: take profit or stop order will be triggered immediately
-                        '-4144': BadRequest, // Invalid pair
-                        '-4164': BadRequest, // Leverage reduction is not supported in Isolated Margin Mode with open positions
+                        '-4144': BadSymbol, // Invalid pair
+                        '-4164': PermissionDenied, // Leverage reduction is not supported in Isolated Margin Mode with open positions
                         '-4165': BadRequest, // Invalid time interval
                         '-4167': BadRequest, // Unable to adjust to Multi-Assets mode with symbols of USDⓈ-M Futures under isolated-margin mode.
                         '-4168': BadRequest, // Unable to adjust to isolated-margin mode under the Multi-Assets mode.
                         '-4169': BadRequest, // Unable to adjust Multi-Assets Mode with insufficient margin balance in USDⓈ-M Futures
                         '-4170': BadRequest, // Unable to adjust Multi-Assets Mode with open orders in USDⓈ-M Futures
-                        '-4171': BadRequest, // Adjusted asset mode is currently set and does not need to be adjusted repeatedly.NO_NEED_TO_CHANGE_JOINT_MARGIN
+                        '-4171': BadRequest, // Adjusted asset mode is currently set and does not need to be adjusted repeatedly
                         '-4172 ': BadRequest, // Unable to adjust Multi-Assets Mode with a negative wallet balance of margin available asset in USDⓈ-M Futures account.
                         '-4183': BadRequest, // Price is higher than stop price multiplier cap.
                         '-4184': BadRequest, // Price is lower than stop price multiplier floor.
-                        '-4192': BadRequest, // Trade forbidden due to Cooling-off Period.
-                        '-4202': BadRequest, // Intermediate Personal Verification is required for adjusting leverage over 20x
-                        '-4203': BadRequest, // More than 20x leverage is available one month after account registration.
-                        '-4205': BadRequest, // More than 20x leverage is available %s days after Futures account registration.
-                        '-4206': BadRequest, // Users in this country has limited adjust leverage.
-                        '-4208': BadRequest, // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
+                        '-4192': PermissionDenied, // Trade forbidden due to Cooling-off Period.
+                        '-4202': PermissionDenied, // Intermediate Personal Verification is required for adjusting leverage over 20x
+                        '-4203': PermissionDenied, // More than 20x leverage is available one month after account registration.
+                        '-4205': PermissionDenied, // More than 20x leverage is available %s days after Futures account registration.
+                        '-4206': PermissionDenied, // Users in this country has limited adjust leverage.
+                        '-4208': PermissionDenied, // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
                         '-4209': BadRequest, // Leverage adjustment failed. Current symbol max leverage limit is %sx
                         '-4210': BadRequest, // Stop price is higher than price multiplier cap
                         '-4211': BadRequest, // Stop price is lower than price multiplier floor
-                        '-4400': BadRequest, // Futures Trading Quantitative Rules violated, only reduceOnly order is allowed, please try again later.
-                        '-4401': BadRequest, // Compliance restricted account permission: can only place reduceOnly order.
-                        '-4402': BadRequest, // Dear user, as per our Terms of Use and compliance with local regulations, this feature is currently not available in your region.
-                        '-4403': BadRequest, // Dear user, as per our Terms of Use and compliance with local regulations, the leverage can only up to %sx in your region
-                        '-5021': BadRequest, // Due to the order could not be filled immediately, the FOK order has been rejected.
-                        '-5022': BadRequest, // Due to the order could not be executed as maker, the Post Only order will be rejected.
+                        '-4400': PermissionDenied, // Futures Trading Quantitative Rules violated, only reduceOnly order is allowed, please try again later.
+                        '-4401': PermissionDenied, // Compliance restricted account permission: can only place reduceOnly order.
+                        '-4402': PermissionDenied, // Dear user, as per our Terms of Use and compliance with local regulations, this feature is currently not available in your region.
+                        '-4403': PermissionDenied, // Dear user, as per our Terms of Use and compliance with local regulations, the leverage can only up to %sx in your region
+                        '-5021': OrderNotFillable, // Due to the order could not be filled immediately, the FOK order has been rejected.
+                        '-5022': OrderNotFillable, // Due to the order could not be executed as maker, the Post Only order will be rejected.
                         '-5024': BadRequest, // Symbol is not in trading status. Order amendment is not permitted.
                         '-5025': BadRequest, // Only limit order is supported.
-                        '-5026': BadRequest, // Exceed maximum modify order limit.
+                        '-5026': PermissionDenied, // Exceed maximum modify order limit.
                         '-5027': BadRequest, // No need to modify the order.
                         '-5028': BadRequest, // Timestamp for this request is outside of the ME recvWindow.
                         '-5037': BadRequest, // Invalid price match
                         '-5038': BadRequest, // Price match only supports order type: LIMIT, STOP AND TAKE_PROFIT
                         '-5039': BadRequest, // Invalid self trade prevention mode
-                        '-5040': BadRequest, // FUTURE_GOOD_TILL_DATE
-                        '-5041': BadRequest, // No depth matches this BBO order
+                        '-5040': BadRequest, // The goodTillDate timestamp must be greater than the current time plus 600 seconds and smaller than 253402300799000
+                        '-5041': BadResponse, // No depth matches this BBO order
                     },
                 },
                 'inverse': {
