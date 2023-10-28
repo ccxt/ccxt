@@ -1422,7 +1422,9 @@ export default class huobi extends huobiRest {
                 return;
             }
             const first = this.safeValue (data, 0, {});
-            let messageHash = this.safeString (message, 'topic');
+            const topic = this.safeString (message, 'topic');
+            const splitTopic = topic.split ('.');
+            let messageHash = this.safeString (splitTopic, 0);
             let subscription = this.safeValue2 (client.subscriptions, messageHash, messageHash + '.*');
             if (subscription === undefined) {
                 // if subscription not found means that we subscribed to a specific currency/symbol
