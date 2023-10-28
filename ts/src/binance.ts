@@ -1798,9 +1798,9 @@ export default class binance extends Exchange {
                         '-2020': OrderNotFillable, // {"code":-2020,"msg":"Unable to fill."}
                         '-2021': OrderImmediatelyFillable, // {"code":-2021,"msg":"Order would immediately trigger."}
                         '-2022': InvalidOrder, // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
-                        '-2023': InsufficientFunds, // {"code":-2023,"msg":"User in liquidation mode now."}
-                        '-2024': InsufficientFunds, // {"code":-2024,"msg":"Position is not sufficient."}
-                        '-2025': InvalidOrder, // {"code":-2025,"msg":"Reach max open order limit."}
+                        '-2023': PermissionDenied, // {"code":-2023,"msg":"User in liquidation mode now."}
+                        '-2024': BadRequest, // {"code":-2024,"msg":"Position is not sufficient."}
+                        '-2025': PermissionDenied, // {"code":-2025,"msg":"Reach max open order limit."}
                         '-2026': InvalidOrder, // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
                         '-2027': InvalidOrder, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
                         '-2028': InsufficientFunds, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
@@ -1836,88 +1836,71 @@ export default class binance extends Exchange {
                         '-4029': BadRequest, // INVALID_TICK_SIZE_PRECISION
                         '-4030': BadRequest, // INVALID_STEP_SIZE_PRECISION
                         '-4031': BadRequest, // INVALID_WORKING_TYPE
-                        '-4032': BadRequest, // EXCEED_MAX_CANCEL_ORDER_SIZE
+                        '-4032': PermissionDenied, // Exceed maximum cancel order size. | Invalid parameter working type: %s
                         '-4033': BadRequest, // INSURANCE_ACCOUNT_NOT_FOUND
                         '-4044': BadRequest, // INVALID_BALANCE_TYPE
-                        '-4045': BadRequest, // MAX_STOP_ORDER_EXCEEDED
+                        '-4045': PermissionDenied, // Reach max stop order limit.
                         '-4046': BadRequest, // NO_NEED_TO_CHANGE_MARGIN_TYPE
-                        '-4047': BadRequest, // THERE_EXISTS_OPEN_ORDERS
-                        '-4048': BadRequest, // THERE_EXISTS_QUANTITY
+                        '-4047': PermissionDenied, // Margin type cannot be changed if there exists open orders.
+                        '-4048': PermissionDenied, // Margin type cannot be changed if there exists position.
                         '-4049': BadRequest, // ADD_ISOLATED_MARGIN_REJECT
-                        '-4050': BadRequest, // CROSS_BALANCE_INSUFFICIENT
+                        '-4050': InsufficientFunds, // CROSS_BALANCE_INSUFFICIENT
                         '-4051': InsufficientFunds, // ISOLATED_BALANCE_INSUFFICIENT
                         '-4052': BadRequest, // NO_NEED_TO_CHANGE_AUTO_ADD_MARGIN
                         '-4053': BadRequest, // AUTO_ADD_CROSSED_MARGIN_REJECT
-                        '-4054': BadRequest, // ADD_ISOLATED_MARGIN_NO_POSITION_REJECT
+                        '-4054': PermissionDenied, // Cannot add position margin: position is 0.
                         '-4055': BadRequest, // AMOUNT_MUST_BE_POSITIVE
-                        '-4056': BadRequest, // INVALID_API_KEY_TYPE
-                        '-4057': BadRequest, // INVALID_RSA_PUBLIC_KEY
+                        '-4056': AuthenticationError, // INVALID_API_KEY_TYPE
+                        '-4057': AuthenticationError, // INVALID_RSA_PUBLIC_KEY
                         '-4058': BadRequest, // MAX_PRICE_TOO_LARGE
                         '-4059': BadRequest, // NO_NEED_TO_CHANGE_POSITION_SIDE
                         '-4060': BadRequest, // INVALID_POSITION_SIDE
-                        '-4061': BadRequest, // POSITION_SIDE_NOT_MATCH
-                        '-4062': BadRequest, // REDUCE_ONLY_CONFLICT
+                        '-4061': BadRequest, // Order's position side does not match user's setting.
+                        '-4062': BadRequest, // Invalid or improper reduceOnly value.
                         //
-                        '-4067': BadRequest, // Position side cannot be changed if there exists open orders.
-                        '-4068': BadRequest, // Position side cannot be changed if there exists position.
+                        '-4067': PermissionDenied, // Position side cannot be changed if there exists open orders.
+                        '-4068': PermissionDenied, // Position side cannot be changed if there exists position.
                         '-4082': InvalidOrder, // Invalid number of batch place orders.
                         '-4083': BadResponse, // PLACE_BATCH_ORDERS_FAIL
                         '-4084': BadRequest, // Method is not allowed currently. Upcoming soon.
-                        '-4086': BadRequest, //  Invalid price spread threshold.
+                        '-4086': BadRequest, // Invalid price spread threshold.
                         '-4087': BadSymbol, // Invalid pair
                         '-4088': BadRequest, // Invalid time interval
                         '-4089': PermissionDenied, // User can only place reduce only order.
                         '-4090': PermissionDenied, // User can not place order currently.
                         '-4104': BadRequest, // Invalid contract type
                         '-4110': BadRequest, // clientTranId is not valid
-                        '-4111': xxxx, // clientTranId is duplicated.
-                        '-4112': xxxx, // ReduceOnly Order Failed. Please check your existing position and open orders.
-                        '-4113': xxxx, // The counterparty's best price does not meet the PERCENT_PRICE filter limit.
-                        '-4135': xxxx, // Invalid activation price.
-                        '-4137': xxxx, // Quantity must be zero with closePosition equals true.
-                        '-4138': xxxx, // Reduce only must be true with closePosition equals true.
-                        '-4139': xxxx, // Order type can not be market if it's unable to cancel.
-                        '-4142': xxxx, // REJECT: take profit or stop order will be triggered immediately.
-                        '-4150': xxxx, // Leverage reduction is not supported in Isolated Margin Mode with open positions.
-                        '-4151': xxxx, // Price is higher than stop price multiplier cap.
-                        '-4152': xxxx, // Price is lower than stop price multiplier floor.
-                        '-4154': xxxx, // Stop price is higher than price multiplier cap.
-                        '-4155': xxxx, // PStop price is lower than price multiplier floor
-                        '-4178': xxxx, // Order's notional must be no smaller than one (unless you choose reduce only)
-                        '-4192': xxxx, // Trade forbidden due to Cooling-off Period.
-                        '-4194': xxxx, // Intermediate Personal Verification is required for adjusting leverage over 20x.
-                        '-4195': xxxx, // More than 20x leverage is available one month after account registration.
-                        '-4196': xxxx, // Only limit order is supported.
-                        '-4197': xxxx, // No need to modify the order.
-                        '-4198': xxxx, // Exceed maximum modify order limit.
-                        '-4199': xxxx, // Symbol is not in trading status. Order amendment is not permitted.
-                        '-4200': xxxx, // More than 20x leverage is available %s days after Futures account registration.
-                        '-4201': xxxx, // Users in your location/country can only access a maximum leverage of %s
-                        '-4202': xxxx, // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
-                        '-4188': xxxx, // Timestamp for this request is outside of the ME recvWindow.
+                        '-4111': BadRequest, // clientTranId is duplicated.
+                        '-4112': BadResponse, // ReduceOnly Order Failed. Please check your existing position and open orders.
+                        '-4113': BadResponse, // The counterparty's best price does not meet the PERCENT_PRICE filter limit.
+                        '-4135': BadRequest, // Invalid activation price.
+                        '-4137': BadRequest, // Quantity must be zero with closePosition equals true.
+                        '-4138': BadRequest, // Reduce only must be true with closePosition equals true.
+                        '-4139': BadRequest, // Order type can not be market if it's unable to cancel.
+                        '-4142': OrderImmediatelyFillable, // REJECT: take profit or stop order will be triggered immediately.
+                        '-4150': BadRequest, // Leverage reduction is not supported in Isolated Margin Mode with open positions.
+                        '-4151': BadRequest, // Price is higher than stop price multiplier cap.
+                        '-4152': BadRequest, // Price is lower than stop price multiplier floor.
+                        '-4154': BadRequest, // Stop price is higher than price multiplier cap.
+                        '-4155': BadRequest, // PStop price is lower than price multiplier floor
+                        '-4178': BadRequest, // Order's notional must be no smaller than one (unless you choose reduce only)
+                        '-4192': PermissionDenied, // Trade forbidden due to Cooling-off Period.
+                        '-4194': PermissionDenied, // Intermediate Personal Verification is required for adjusting leverage over 20x.
+                        '-4195': PermissionDenied, // More than 20x leverage is available one month after account registration.
+                        '-4196': InvalidNonce, // Only limit order is supported.
+                        '-4197': BadRequest, // No need to modify the order.
+                        '-4198': PermissionDenied, // Exceed maximum modify order limit.
+                        '-4199': PermissionDenied, // Symbol is not in trading status. Order amendment is not permitted.
+                        '-4200': PermissionDenied, // More than 20x leverage is available %s days after Futures account registration.
+                        '-4201': PermissionDenied, // Users in your location/country can only access a maximum leverage of %s
+                        '-4202': PermissionDenied, // Current symbol leverage cannot exceed 20 when using position limit adjustment service.
+                        '-4188': BadRequest, // Timestamp for this request is outside of the ME recvWindow.
                     },
                 },
                 'exact': {
-                    'System is under maintenance.': OnMaintenance, // {"code":1,"msg":"System is under maintenance."}
-                    'System abnormality': ExchangeError, // {"code":-1000,"msg":"System abnormality"}
-                    'You are not authorized to execute this request.': PermissionDenied, // {"msg":"You are not authorized to execute this request."}
-                    'API key does not exist': AuthenticationError,
-                    'Order would trigger immediately.': OrderImmediatelyFillable,
-                    'Stop price would trigger immediately.': OrderImmediatelyFillable, // {"code":-2010,"msg":"Stop price would trigger immediately."}
-                    'Order would immediately match and take.': OrderImmediatelyFillable, // {"code":-2010,"msg":"Order would immediately match and take."}
-                    'Account has insufficient balance for requested action.': InsufficientFunds,
-                    'Rest API trading is not enabled.': ExchangeNotAvailable,
-                    'This account may not place or cancel orders.': ExchangeNotAvailable,
-                    "You don't have permission.": PermissionDenied, // {"msg":"You don't have permission.","success":false}
-                    'Market is closed.': ExchangeNotAvailable, // {"code":-1013,"msg":"Market is closed."}
-                    'Too many requests. Please try again later.': DDoSProtection, // {"msg":"Too many requests. Please try again later.","success":false}
-                    'This action is disabled on this account.': AccountSuspended, // {"code":-2011,"msg":"This action is disabled on this account."}
-                    'Limit orders require GTC for this phase.': BadRequest,
-                    'This order type is not possible in this trading phase.': BadRequest,
-                    'This type of sub-account exceeds the maximum number limit': BadRequest, // {"code":-9000,"msg":"This type of sub-account exceeds the maximum number limit"}
-                    'This symbol is restricted for this account.': PermissionDenied,
-                    'This symbol is not permitted for this account.': PermissionDenied, // {"code":-2010,"msg":"This symbol is not permitted for this account."}
-                    // below are documented codes
+                    //
+                    // documented codes
+                    //
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
                     '-1002': AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
@@ -1969,11 +1952,17 @@ export default class binance extends Exchange {
                     '-2016': BadRequest, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
                     '-2018': InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
                     //
-                    // others
+                    // undocumented
+                    //
                     '-9000': InsufficientFunds, // {"code":-9000,"msg":"user have no avaliable amount"}" // undocumented markettype
                     '-10017': BadRequest, // {"code":-10017,"msg":"Repay amount should not be larger than liability."} // undocumented markettype
                     '-11008': InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."} // undocumented  // undocumented markettype
+                    '-21001': BadRequest, // {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}
+                    '-21002': BadRequest, // {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}
+                    '-21003': BadRequest, // {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}
+                    //
                     // spot & futures algo (TBD for OPTIONS & PORTFOLIO MARGIN)
+                    //
                     '-20121': BadSymbol, // Invalid symbol.
                     '-20124': BadRequest, // Invalid algo id or it has been completed.
                     '-20130': BadRequest, // Invalid data sent for a parameter
@@ -1983,12 +1972,30 @@ export default class binance extends Exchange {
                     '-20196': BadRequest, // The total size is too large.
                     '-20198': InvalidOrder, // Reach the max open orders allowed.
                     '-20204': BadRequest, // The notional of USD is less or more than the limit.
-                    // others
-                    '-21001': BadRequest, // {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}  // undocumented markettype
-                    '-21002': BadRequest, // {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}  // undocumented markettype
-                    '-21003': BadRequest, // {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}  // undocumented markettype
-                    '100001003': AuthenticationError, // {"code":100001003,"msg":"Verification failed"} // undocumented  // undocumented markettype
-                    '200003903': AuthenticationError, // {"code":200003903,"msg":"Your identity verification has been rejected. Please complete identity verification again."}  // undocumented markettype
+                    //
+                    // undocumented
+                    //
+                    '100001003': AuthenticationError, // {"code":100001003,"msg":"Verification failed"}
+                    '200003903': AuthenticationError, // {"code":200003903,"msg":"Your identity verification has been rejected. Please complete identity verification again."}
+                    'System is under maintenance.': OnMaintenance, // {"code":1,"msg":"System is under maintenance."}
+                    'System abnormality': ExchangeError, // {"code":-1000,"msg":"System abnormality"}
+                    'You are not authorized to execute this request.': PermissionDenied, // {"msg":"You are not authorized to execute this request."}
+                    'API key does not exist': AuthenticationError,
+                    'Order would trigger immediately.': OrderImmediatelyFillable,
+                    'Stop price would trigger immediately.': OrderImmediatelyFillable, // {"code":-2010,"msg":"Stop price would trigger immediately."}
+                    'Order would immediately match and take.': OrderImmediatelyFillable, // {"code":-2010,"msg":"Order would immediately match and take."}
+                    'Account has insufficient balance for requested action.': InsufficientFunds,
+                    'Rest API trading is not enabled.': ExchangeNotAvailable,
+                    'This account may not place or cancel orders.': ExchangeNotAvailable,
+                    "You don't have permission.": PermissionDenied, // {"msg":"You don't have permission.","success":false}
+                    'Market is closed.': ExchangeNotAvailable, // {"code":-1013,"msg":"Market is closed."}
+                    'Too many requests. Please try again later.': DDoSProtection, // {"msg":"Too many requests. Please try again later.","success":false}
+                    'This action is disabled on this account.': AccountSuspended, // {"code":-2011,"msg":"This action is disabled on this account."}
+                    'Limit orders require GTC for this phase.': BadRequest,
+                    'This order type is not possible in this trading phase.': BadRequest,
+                    'This type of sub-account exceeds the maximum number limit': BadRequest, // {"code":-9000,"msg":"This type of sub-account exceeds the maximum number limit"}
+                    'This symbol is restricted for this account.': PermissionDenied,
+                    'This symbol is not permitted for this account.': PermissionDenied, // {"code":-2010,"msg":"This symbol is not permitted for this account."}
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
