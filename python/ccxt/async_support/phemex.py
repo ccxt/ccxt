@@ -1756,6 +1756,8 @@ class phemex(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         method = 'privateGetSpotWallets'
         request = {}
+        if (type != 'spot') and (type != 'swap'):
+            raise BadRequest(self.id + ' does not support ' + type + ' markets, only spot and swap')
         if type == 'swap':
             code = self.safe_string(params, 'code')
             settle = None

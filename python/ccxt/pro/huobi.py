@@ -344,6 +344,7 @@ class huobi(ccxt.async_support.huobi):
         #         id: 1583473663565,
         #         rep: 'market.btcusdt.mbp.150',
         #         status: 'ok',
+        #         ts: 1698359289261,
         #         data: {
         #             seqNum: 104999417756,
         #             bids: [
@@ -372,6 +373,9 @@ class huobi(ccxt.async_support.huobi):
             sequence = self.safe_integer(tick, 'seqNum')
             nonce = self.safe_integer(data, 'seqNum')
             snapshot['nonce'] = nonce
+            timestamp = self.safe_integer(message, 'ts')
+            snapshot['timestamp'] = timestamp
+            snapshot['datetime'] = self.iso8601(timestamp)
             snapshotLimit = self.safe_integer(subscription, 'limit')
             snapshotOrderBook = self.order_book(snapshot, snapshotLimit)
             client.resolve(snapshotOrderBook, id)

@@ -1888,7 +1888,7 @@ class krakenfutures extends Exchange {
             $result[] = array(
                 'info' => $item,
                 'symbol' => $symbol,
-                'fundingRate' => $this->safe_number($item, 'fundingRate'),
+                'fundingRate' => $this->safe_number($item, 'relativeFundingRate'),
                 'timestamp' => $this->parse8601($datetime),
                 'datetime' => $datetime,
             );

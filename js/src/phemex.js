@@ -1817,6 +1817,9 @@ export default class phemex extends Exchange {
         [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         let method = 'privateGetSpotWallets';
         const request = {};
+        if ((type !== 'spot') && (type !== 'swap')) {
+            throw new BadRequest(this.id + ' does not support ' + type + ' markets, only spot and swap');
+        }
         if (type === 'swap') {
             const code = this.safeString(params, 'code');
             let settle = undefined;

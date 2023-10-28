@@ -1811,7 +1811,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             result.append({
                 'info': item,
                 'symbol': symbol,
-                'fundingRate': self.safe_number(item, 'fundingRate'),
+                'fundingRate': self.safe_number(item, 'relativeFundingRate'),
                 'timestamp': self.parse8601(datetime),
                 'datetime': datetime,
             })
