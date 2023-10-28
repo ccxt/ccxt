@@ -1,0 +1,137 @@
+{
+    "BTC/USDT": {
+        "id": "BTC-USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00001
+            },
+            "price": {},
+            "cost": {
+                "max": 1000000
+            },
+            "leverage": {
+                "min": 1,
+                "max": 10
+            }
+        },
+        "info": {
+            "alias": "",
+            "baseCcy": "BTC",
+            "category": "1",
+            "ctMult": "",
+            "ctType": "",
+            "ctVal": "",
+            "ctValCcy": "",
+            "expTime": "",
+            "instFamily": "",
+            "instId": "BTC-USDT",
+            "instType": "SPOT",
+            "lever": "10",
+            "listTime": "1548133413000",
+            "lotSz": "0.00000001",
+            "maxIcebergSz": "9999999999.0000000000000000",
+            "maxLmtSz": "9999999999",
+            "maxMktSz": "1000000",
+            "maxStopSz": "1000000",
+            "maxTriggerSz": "9999999999.0000000000000000",
+            "maxTwapSz": "9999999999.0000000000000000",
+            "minSz": "0.00001",
+            "optType": "",
+            "quoteCcy": "USDT",
+            "settleCcy": "",
+            "state": "live",
+            "stk": "",
+            "tickSz": "0.1",
+            "uly": ""
+        },
+        "taker": 0.0015,
+        "maker": 0.001,
+        "created": 1548133413000
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTC-USDT-SWAP",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0.01,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 125
+            }
+        },
+        "info": {
+            "alias": "",
+            "baseCcy": "",
+            "category": "1",
+            "ctMult": "1",
+            "ctType": "linear",
+            "ctVal": "0.01",
+            "ctValCcy": "BTC",
+            "expTime": "",
+            "instFamily": "BTC-USDT",
+            "instId": "BTC-USDT-SWAP",
+            "instType": "SWAP",
+            "lever": "125",
+            "listTime": "1611916828000",
+            "lotSz": "1",
+            "maxIcebergSz": "100000000.0000000000000000",
+            "maxLmtSz": "100000000",
+            "maxMktSz": "12000",
+            "maxStopSz": "12000",
+            "maxTriggerSz": "100000000.0000000000000000",
+            "maxTwapSz": "100000000.0000000000000000",
+            "minSz": "1",
+            "optType": "",
+            "quoteCcy": "",
+            "settleCcy": "USDT",
+            "state": "live",
+            "stk": "",
+            "tickSz": "0.1",
+            "uly": "BTC-USDT"
+        },
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "created": 1611916828000
+    }
+}

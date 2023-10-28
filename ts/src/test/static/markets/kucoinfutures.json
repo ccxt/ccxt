@@ -1,0 +1,223 @@
+{
+    "BTC/USDT:USDT": {
+        "id": "XBTUSDTM",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "XBT",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0.001,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 0.1,
+                "max": 1000000
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 125
+            }
+        },
+        "info": {
+            "symbol": "XBTUSDTM",
+            "rootSymbol": "USDT",
+            "type": "FFWCSX",
+            "firstOpenDate": 1585555200000,
+            "expireDate": null,
+            "settleDate": null,
+            "baseCurrency": "XBT",
+            "quoteCurrency": "USDT",
+            "settleCurrency": "USDT",
+            "maxOrderQty": 1000000,
+            "maxPrice": 1000000,
+            "lotSize": 1,
+            "tickSize": 0.1,
+            "indexPriceTickSize": 0.01,
+            "multiplier": 0.001,
+            "initialMargin": 0.008,
+            "maintainMargin": 0.004,
+            "maxRiskLimit": 25000,
+            "minRiskLimit": 25000,
+            "riskStep": 12500,
+            "makerFeeRate": 0.0002,
+            "takerFeeRate": 0.0006,
+            "takerFixFee": 0,
+            "makerFixFee": 0,
+            "settlementFee": null,
+            "isDeleverage": true,
+            "isQuanto": true,
+            "isInverse": false,
+            "markMethod": "FairPrice",
+            "fairMethod": "FundingRate",
+            "fundingBaseSymbol": ".XBTINT8H",
+            "fundingQuoteSymbol": ".USDTINT8H",
+            "fundingRateSymbol": ".XBTUSDTMFPI8H",
+            "indexSymbol": ".KXBTUSDT",
+            "settlementSymbol": "",
+            "status": "Open",
+            "fundingFeeRate": 0.000246,
+            "predictedFundingFeeRate": 0.00032,
+            "fundingRateGranularity": 28800000,
+            "openInterest": "10548094",
+            "turnoverOf24h": 564373250.4279175,
+            "volumeOf24h": 16634.064,
+            "markPrice": 34238.87,
+            "indexPrice": 34226.67,
+            "lastTradePrice": 34236.8,
+            "nextFundingRateTime": 990981,
+            "maxLeverage": 125,
+            "sourceExchanges": [
+                "okex",
+                "binance",
+                "kucoin",
+                "bybit",
+                "bitget",
+                "bitmart",
+                "gateio"
+            ],
+            "premiumsSymbol1M": ".XBTUSDTMPI",
+            "premiumsSymbol8H": ".XBTUSDTMPI8H",
+            "fundingBaseSymbol1M": ".XBTINT",
+            "fundingQuoteSymbol1M": ".USDTINT",
+            "lowPrice": 33365.8,
+            "highPrice": 34551.8,
+            "priceChgPct": 0.0065,
+            "priceChg": 221.9
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0006,
+        "maker": 0.0002,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.0006
+                ],
+                [
+                    50,
+                    0.0006
+                ],
+                [
+                    200,
+                    0.0006
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0004
+                ],
+                [
+                    2000,
+                    0.0004
+                ],
+                [
+                    4000,
+                    0.00038
+                ],
+                [
+                    8000,
+                    0.00035
+                ],
+                [
+                    15000,
+                    0.00032
+                ],
+                [
+                    25000,
+                    0.0003
+                ],
+                [
+                    40000,
+                    0.0003
+                ],
+                [
+                    60000,
+                    0.0003
+                ],
+                [
+                    80000,
+                    0.0003
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.02
+                ],
+                [
+                    50,
+                    0.015
+                ],
+                [
+                    200,
+                    0.01
+                ],
+                [
+                    500,
+                    0.01
+                ],
+                [
+                    1000,
+                    0.01
+                ],
+                [
+                    2000,
+                    0
+                ],
+                [
+                    4000,
+                    0
+                ],
+                [
+                    8000,
+                    0
+                ],
+                [
+                    15000,
+                    -0.003
+                ],
+                [
+                    25000,
+                    -0.006
+                ],
+                [
+                    40000,
+                    -0.009
+                ],
+                [
+                    60000,
+                    -0.012
+                ],
+                [
+                    80000,
+                    -0.015
+                ]
+            ]
+        },
+        "created": 1585555200000
+    }
+}

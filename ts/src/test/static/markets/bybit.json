@@ -1,0 +1,135 @@
+{
+    "BTC/USDT": {
+        "id": "BTCUSDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.000048,
+                "max": 71.73956243
+            },
+            "price": {},
+            "cost": {
+                "min": 1,
+                "max": 2000000
+            },
+            "leverage": {
+                "min": 1
+            }
+        },
+        "info": {
+            "symbol": "BTCUSDT",
+            "baseCoin": "BTC",
+            "quoteCoin": "USDT",
+            "innovation": "0",
+            "status": "Trading",
+            "marginTrading": "both",
+            "lotSizeFilter": {
+                "basePrecision": "0.000001",
+                "quotePrecision": "0.00000001",
+                "minOrderQty": "0.000048",
+                "maxOrderQty": "71.73956243",
+                "minOrderAmt": "1",
+                "maxOrderAmt": "2000000"
+            },
+            "priceFilter": {
+                "tickSize": "0.01"
+            }
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "feeSide": "get"
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTCUSDT",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 0.001,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001,
+                "max": 100
+            },
+            "price": {
+                "min": 0.1,
+                "max": 199999.8
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 100
+            }
+        },
+        "info": {
+            "symbol": "BTCUSDT",
+            "contractType": "LinearPerpetual",
+            "status": "Trading",
+            "baseCoin": "BTC",
+            "quoteCoin": "USDT",
+            "launchTime": "1584230400000",
+            "deliveryTime": "0",
+            "deliveryFeeRate": "",
+            "priceScale": "2",
+            "leverageFilter": {
+                "minLeverage": "1",
+                "maxLeverage": "100.00",
+                "leverageStep": "0.01"
+            },
+            "priceFilter": {
+                "minPrice": "0.10",
+                "maxPrice": "199999.80",
+                "tickSize": "0.10"
+            },
+            "lotSizeFilter": {
+                "maxOrderQty": "100.000",
+                "minOrderQty": "0.001",
+                "qtyStep": "0.001",
+                "postOnlyMaxOrderQty": "1000.000"
+            },
+            "unifiedMarginTrade": true,
+            "fundingInterval": "480",
+            "settleCoin": "USDT",
+            "copyTrading": "both"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0006,
+        "maker": 0.0001,
+        "feeSide": "get",
+        "created": 1584230400000
+    }
+}
