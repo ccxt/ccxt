@@ -86,6 +86,8 @@ class Exchange extends \ccxt\Exchange {
         // wrap this in as a promise so it executes asynchronously
         return React\Async\async(function () use ($url, $method, $headers, $body) {
 
+            $this->last_request_headers = $headers;
+
             // ##### PROXY & HEADERS #####
             $headers = array_merge($this->headers, $headers ? $headers : array());
 

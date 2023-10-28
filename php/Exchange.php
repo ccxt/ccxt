@@ -331,6 +331,7 @@ class Exchange {
     public $last_http_response = null;
     public $last_json_response = null;
     public $last_response_headers = null;
+    public $last_request_headers = null;
 
     public $requiresWeb3 = false;
     public $requiresEddsa = false;
@@ -1343,7 +1344,7 @@ class Exchange {
             $this->curl = curl_init();
         }
 
-
+        $this->last_request_headers = $headers;
         // ##### PROXY & HEADERS #####
         $headers = array_merge($this->headers, $headers ? $headers : array());
 
