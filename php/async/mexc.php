@@ -32,8 +32,8 @@ class mexc extends Exchange {
                 'spot' => true,
                 'margin' => true,
                 'swap' => true,
-                'future' => true,
-                'option' => null,
+                'future' => false,
+                'option' => false,
                 'addMargin' => true,
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
@@ -401,10 +401,6 @@ class mexc extends Exchange {
                 'fetchMarkets' => array(
                     'types' => array(
                         'spot' => true,
-                        'future' => array(
-                            'linear' => false,
-                            'inverse' => false,
-                        ),
                         'swap' => array(
                             'linear' => true,
                             'inverse' => false,
