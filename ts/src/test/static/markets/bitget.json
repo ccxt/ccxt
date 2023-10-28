@@ -114,5 +114,73 @@
         },
         "taker": 0.0006,
         "maker": 0.0002
+    },
+    "BTC/USD:BTC": {
+        "id": "BTCUSD_DMCBL",
+        "symbol": "BTC/USD:BTC",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "active": true,
+        "type": "swap",
+        "linear": false,
+        "inverse": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "BTC",
+        "settleId": "BTC",
+        "precision": {
+            "amount": 0.001,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "baseCoin": "BTC",
+            "buyLimitPriceRatio": "0.01",
+            "feeRateUpRatio": "0.005",
+            "limitOpenTime": "-1",
+            "maintainTime": "",
+            "makerFeeRate": "0.0002",
+            "maxOrderNum": "400",
+            "maxPositionNum": "150",
+            "minTradeNum": "0.001",
+            "minTradeUSDT": "5",
+            "offTime": "-1",
+            "openCostUpRatio": "0.01",
+            "priceEndStep": "1",
+            "pricePlace": "1",
+            "quoteCoin": "USD",
+            "sellLimitPriceRatio": "0.01",
+            "sizeMultiplier": "0.001",
+            "supportMarginCoins": [
+                "BTC",
+                "ETH",
+                "USDC",
+                "XRP",
+                "BGB",
+                "STETH"
+            ],
+            "symbol": "BTCUSD_DMCBL",
+            "symbolName": "BTCUSD",
+            "symbolStatus": "normal",
+            "symbolType": "perpetual",
+            "takerFeeRate": "0.0006",
+            "volumePlace": "3"
+        },
+        "taker": 0.0006,
+        "maker": 0.0002
     }
 }

@@ -131,5 +131,81 @@
         "maker": 0.0001,
         "feeSide": "get",
         "created": 1584230400000
+    },
+    "BTC/USD:BTC": {
+        "id": "BTCUSD",
+        "symbol": "BTC/USD:BTC",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "active": true,
+        "type": "swap",
+        "linear": false,
+        "inverse": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "BTC",
+        "settleId": "BTC",
+        "precision": {
+            "amount": 1,
+            "price": 0.5
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 0.5,
+                "max": 999999
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 100
+            }
+        },
+        "info": {
+            "symbol": "BTCUSD",
+            "contractType": "InversePerpetual",
+            "status": "Trading",
+            "baseCoin": "BTC",
+            "quoteCoin": "USD",
+            "launchTime": "1542211200000",
+            "deliveryTime": "0",
+            "deliveryFeeRate": "",
+            "priceScale": "2",
+            "leverageFilter": {
+                "minLeverage": "1",
+                "maxLeverage": "100.00",
+                "leverageStep": "0.01"
+            },
+            "priceFilter": {
+                "minPrice": "0.50",
+                "maxPrice": "999999.00",
+                "tickSize": "0.50"
+            },
+            "lotSizeFilter": {
+                "maxOrderQty": "1000000",
+                "minOrderQty": "1",
+                "qtyStep": "1",
+                "postOnlyMaxOrderQty": "5000000"
+            },
+            "unifiedMarginTrade": false,
+            "fundingInterval": "480",
+            "settleCoin": "BTC",
+            "copyTrading": "none"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0006,
+        "maker": 0.0001,
+        "feeSide": "get",
+        "created": 1542211200000
     }
 }

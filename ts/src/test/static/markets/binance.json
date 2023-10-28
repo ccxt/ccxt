@@ -226,21 +226,21 @@
             "filters": [
                 {
                     "maxPrice": "4529764",
-                    "tickSize": "0.10",
                     "minPrice": "556.80",
+                    "tickSize": "0.10",
                     "filterType": "PRICE_FILTER"
                 },
                 {
-                    "filterType": "LOT_SIZE",
-                    "maxQty": "1000",
                     "stepSize": "0.001",
-                    "minQty": "0.001"
+                    "minQty": "0.001",
+                    "maxQty": "1000",
+                    "filterType": "LOT_SIZE"
                 },
                 {
-                    "stepSize": "0.001",
                     "filterType": "MARKET_LOT_SIZE",
                     "maxQty": "120",
-                    "minQty": "0.001"
+                    "minQty": "0.001",
+                    "stepSize": "0.001"
                 },
                 {
                     "limit": "200",
@@ -251,14 +251,14 @@
                     "filterType": "MAX_NUM_ALGO_ORDERS"
                 },
                 {
-                    "filterType": "MIN_NOTIONAL",
-                    "notional": "5"
+                    "notional": "5",
+                    "filterType": "MIN_NOTIONAL"
                 },
                 {
                     "multiplierDecimal": "4",
+                    "multiplierUp": "1.0500",
                     "multiplierDown": "0.9500",
-                    "filterType": "PERCENT_PRICE",
-                    "multiplierUp": "1.0500"
+                    "filterType": "PERCENT_PRICE"
                 }
             ],
             "orderTypes": [
@@ -285,5 +285,131 @@
         "feeSide": "get",
         "lowercaseId": "btcusdt",
         "created": 1569398400000
+    },
+    "BTC/USD:BTC": {
+        "id": "BTCUSD_PERP",
+        "symbol": "BTC/USD:BTC",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "active": true,
+        "type": "swap",
+        "linear": false,
+        "inverse": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 100,
+        "settle": "BTC",
+        "settleId": "BTC",
+        "precision": {
+            "amount": 0,
+            "price": 1,
+            "base": 8,
+            "quote": 8
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 1000,
+                "max": 4520958
+            },
+            "cost": {},
+            "leverage": {},
+            "market": {
+                "min": 1,
+                "max": 60000
+            }
+        },
+        "info": {
+            "symbol": "BTCUSD_PERP",
+            "pair": "BTCUSD",
+            "contractType": "PERPETUAL",
+            "deliveryDate": "4133404800000",
+            "onboardDate": "1597042800000",
+            "contractStatus": "TRADING",
+            "contractSize": "100",
+            "marginAsset": "BTC",
+            "maintMarginPercent": "2.5000",
+            "requiredMarginPercent": "5.0000",
+            "baseAsset": "BTC",
+            "quoteAsset": "USD",
+            "pricePrecision": "1",
+            "quantityPrecision": "0",
+            "baseAssetPrecision": "8",
+            "quotePrecision": "8",
+            "equalQtyPrecision": "4",
+            "maxMoveOrderLimit": "10000",
+            "triggerProtect": "0.0500",
+            "underlyingType": "COIN",
+            "underlyingSubType": [
+                "PoW"
+            ],
+            "filters": [
+                {
+                    "minPrice": "1000",
+                    "maxPrice": "4520958",
+                    "filterType": "PRICE_FILTER",
+                    "tickSize": "0.1"
+                },
+                {
+                    "stepSize": "1",
+                    "filterType": "LOT_SIZE",
+                    "maxQty": "1000000",
+                    "minQty": "1"
+                },
+                {
+                    "stepSize": "1",
+                    "filterType": "MARKET_LOT_SIZE",
+                    "maxQty": "60000",
+                    "minQty": "1"
+                },
+                {
+                    "limit": "200",
+                    "filterType": "MAX_NUM_ORDERS"
+                },
+                {
+                    "limit": "20",
+                    "filterType": "MAX_NUM_ALGO_ORDERS"
+                },
+                {
+                    "multiplierDown": "0.9500",
+                    "multiplierUp": "1.0500",
+                    "multiplierDecimal": "4",
+                    "filterType": "PERCENT_PRICE"
+                }
+            ],
+            "orderTypes": [
+                "LIMIT",
+                "MARKET",
+                "STOP",
+                "STOP_MARKET",
+                "TAKE_PROFIT",
+                "TAKE_PROFIT_MARKET",
+                "TRAILING_STOP_MARKET"
+            ],
+            "timeInForce": [
+                "GTC",
+                "IOC",
+                "FOK",
+                "GTX"
+            ],
+            "liquidationFee": "0.015000",
+            "marketTakeBound": "0.05"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0005,
+        "maker": 0.0001,
+        "feeSide": "get",
+        "lowercaseId": "btcusd_perp",
+        "created": 1597042800000
     }
 }

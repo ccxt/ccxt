@@ -176,5 +176,114 @@
         "percentage": true,
         "taker": 0.0001,
         "maker": 0
+    },
+    "BTC/USD:BTC": {
+        "id": "BTC_USD",
+        "symbol": "BTC/USD:BTC",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 100,
+        "settle": "BTC",
+        "settleId": "BTC",
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 30000
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 125
+            }
+        },
+        "info": {
+            "symbol": "BTC_USD",
+            "displayName": "BTC_USD永续",
+            "displayNameEn": "BTC_USD PERPETUAL",
+            "positionOpenType": "3",
+            "baseCoin": "BTC",
+            "quoteCoin": "USD",
+            "baseCoinName": "BTC",
+            "quoteCoinName": "USD",
+            "futureType": "1",
+            "settleCoin": "BTC",
+            "contractSize": "100",
+            "minLeverage": "1",
+            "maxLeverage": "125",
+            "priceScale": "1",
+            "volScale": "0",
+            "amountScale": "8",
+            "priceUnit": "0.1",
+            "volUnit": "1",
+            "minVol": "1",
+            "maxVol": "30000",
+            "bidLimitPriceRate": "0.1",
+            "askLimitPriceRate": "0.1",
+            "takerFeeRate": "0.0001",
+            "makerFeeRate": "0",
+            "maintenanceMarginRate": "0.004",
+            "initialMarginRate": "0.008",
+            "riskBaseVol": "6000",
+            "riskIncrVol": "6000",
+            "riskIncrMmr": "0.004",
+            "riskIncrImr": "0.004",
+            "riskLevelLimit": "5",
+            "priceCoefficientVariation": "0.001",
+            "indexOrigin": [
+                "BITSTAMP",
+                "COINBASE",
+                "KRAKEN"
+            ],
+            "state": "0",
+            "isNew": false,
+            "isHot": false,
+            "isHidden": false,
+            "conceptPlate": [
+                "mc-trade-zone-pow"
+            ],
+            "riskLimitType": "BY_VOLUME",
+            "maxNumOrders": [
+                200,
+                50
+            ],
+            "marketOrderMaxLevel": "20",
+            "marketOrderPriceLimitRate1": "0.2",
+            "marketOrderPriceLimitRate2": "0.005",
+            "triggerProtect": "0.1",
+            "appraisal": "0",
+            "showAppraisalCountdown": "0",
+            "automaticDelivery": "0",
+            "apiAllowed": false,
+            "depthStepList": [
+                "0.1",
+                "1",
+                "10",
+                "100"
+            ],
+            "limitMaxVol": "30000",
+            "threshold": "0",
+            "baseCoinIconUrl": ""
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.0001,
+        "maker": 0
     }
 }
