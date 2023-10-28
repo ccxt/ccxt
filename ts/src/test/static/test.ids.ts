@@ -1,6 +1,7 @@
 // ----------------------------------------------------------------------------
 import assert from 'assert';
 import log from 'ololog';
+import fs from 'fs';
 import ccxt from '../../../ccxt.js';
 // test statically (without API requests) that the ccxt id
 // is available inside the order request object
@@ -22,8 +23,19 @@ async function main () {
     log.bright.green ('Static Ids test passed');
 }
 
+function loadMarkets (id) {
+    // load markets from file
+    // to make this test as fast as possible
+    // and basically independent from the exchange
+    // so we can run it offline
+    const filename = `./ts/src/test/static/markets/${id}.json`;
+    const content = JSON.parse (fs.readFileSync (filename, 'utf8'));
+    return content;
+}
+
 async function testBinance () {
-    const binance = new ccxt.binance ();
+    const markets = loadMarkets ('binance');
+    const binance = new ccxt.binance ({ 'markets': markets });
     await binance.loadMarkets ();
     // spot test
     const spotId = 'x-R4BD3S82';
@@ -43,7 +55,8 @@ async function testBinance () {
 }
 
 async function testOkx () {
-    const okx = new ccxt.okx ();
+    const markets = loadMarkets ('okx');
+    const okx = new ccxt.okx ({ 'markets': markets });
     const id = 'e847386590ce4dBC';
     await okx.loadMarkets ();
     // spot test
@@ -62,7 +75,8 @@ async function testOkx () {
 }
 
 async function testCryptocom () {
-    const cryptocom = new ccxt.cryptocom ();
+    const markets = loadMarkets ('cryptocom');
+    const cryptocom = new ccxt.cryptocom ({ 'markets': markets });
     const id = 'CCXT';
     await cryptocom.loadMarkets ();
     // spot test
@@ -70,15 +84,16 @@ async function testCryptocom () {
     assert (spotOrderRequest['broker_id'] === id, 'id different from  broker_id');
 
     // swap test
-    const swapOrderRequest = cryptocom.createOrderRequest ('BTC/USD:USD', 'limit', 'buy', 1, 20000);
+    const swapOrderRequest = cryptocom.createOrderRequest ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
     assert (swapOrderRequest['broker_id'] === id, 'id different from  broker_id');
 
     await cryptocom.close ();
 }
 
 async function testKucoin () {
+    const markets = loadMarkets ('kucoin');
     let reqHeaders = undefined;
-    const kucoin = new ccxt.kucoin ();
+    const kucoin = new ccxt.kucoin ({ 'markets': markets });
     assert (kucoin.options['partner']['spot']['id'] === 'ccxt', 'id not in options');
     assert (kucoin.options['partner']['spot']['key'] === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options');
     await kucoin.loadMarkets ();
@@ -96,9 +111,10 @@ async function testKucoin () {
 }
 
 async function testKucoinfutures () {
+    const markets = loadMarkets ('kucoinfutures');
     let reqHeaders = undefined;
     const id = 'ccxtfutures';
-    const kucoin = new ccxt.kucoinfutures ();
+    const kucoin = new ccxt.kucoinfutures ({ 'markets': markets });
     assert (kucoin.options['partner']['future']['id'] === id, 'id not in options');
     assert (kucoin.options['partner']['future']['key'] === '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options');
     await kucoin.loadMarkets ();
@@ -115,9 +131,10 @@ async function testKucoinfutures () {
 }
 
 async function testBybit () {
+    const markets = loadMarkets ('bybit');
     let reqHeaders = undefined;
     const id = 'CCXT';
-    const bybit = new ccxt.bybit ();
+    const bybit = new ccxt.bybit ({ 'markets': markets });
     assert (bybit.options['brokerId'] === id, 'id not in options');
     await bybit.loadMarkets ();
     try {
@@ -134,9 +151,10 @@ async function testBybit () {
 }
 
 async function testBitget () {
+    const markets = loadMarkets ('bitget');
     let reqHeaders = undefined;
     const id = 'p4sve';
-    const bitget = new ccxt.bitget ();
+    const bitget = new ccxt.bitget ({ 'markets': markets });
     assert (bitget.options['broker'] === id, 'id not in options');
     await bitget.loadMarkets ();
     try {
@@ -152,9 +170,10 @@ async function testBitget () {
 }
 
 async function testMexc () {
+    const markets = loadMarkets ('mexc');
     let reqHeaders = undefined;
     const id = 'CCXT';
-    const mexc = new ccxt.mexc ();
+    const mexc = new ccxt.mexc ({ 'markets': markets });
     assert (mexc.options['broker'] === id, 'id not in options');
     await mexc.loadMarkets ();
     try {
