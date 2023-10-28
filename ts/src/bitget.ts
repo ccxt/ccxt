@@ -5314,7 +5314,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    async fetchFundingHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchFundingHistory
@@ -5327,6 +5327,7 @@ export default class bitget extends Exchange {
          * @returns {object[]} a list of [funding history structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
         await this.loadMarkets ();
+        this.checkRequiredSymbol ('fetchFundingHistory', symbol);
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingHistory() supports swap contracts only');
