@@ -31,7 +31,7 @@ export default class ascendex extends Exchange {
                 'spot': true,
                 'margin': true,
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
@@ -267,7 +267,6 @@ export default class ascendex extends Exchange {
                 'accountsByType': {
                     'spot': 'cash',
                     'swap': 'futures',
-                    'future': 'futures',
                     'margin': 'margin',
                 },
                 'transfer': {
@@ -2794,22 +2793,21 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#setLeverage
          * @description set the level of leverage for a market
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-leverage
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the ascendex api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('setLeverage', symbol);
         if ((leverage < 1) || (leverage > 100)) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 100');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
-        if (market['type'] !== 'future') {
-            throw new BadSymbol (this.id + ' setLeverage() supports futures contracts only');
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
@@ -2826,11 +2824,13 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the ascendex api endpoint
          * @returns {object} response from the exchange
          */
+        this.checkRequiredSymbol ('setMarginMode', symbol);
         marginMode = marginMode.toLowerCase ();
         if (marginMode === 'cross') {
             marginMode = 'crossed';
@@ -2846,10 +2846,10 @@ export default class ascendex extends Exchange {
         const request = {
             'account-group': accountGroup,
             'symbol': market['id'],
-            'marginMode': marginMode,
+            'marginType': marginMode,
         };
-        if (market['type'] !== 'future') {
-            throw new BadSymbol (this.id + ' setMarginMode() supports futures contracts only');
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
         return await this.v2PrivateAccountGroupPostFuturesMarginType (this.extend (request, params));
     }
@@ -3035,7 +3035,7 @@ export default class ascendex extends Exchange {
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         if (fromId !== 'cash' && toId !== 'cash') {
-            throw new ExchangeError (this.id + ' transfer() only supports direct balance transfer between spot and future, spot and margin');
+            throw new ExchangeError (this.id + ' transfer() only supports direct balance transfer between spot and swap, spot and margin');
         }
         const request = {
             'account-group': accountGroup,
