@@ -3089,6 +3089,7 @@ class okx extends Exchange {
     public function parse_order_status($status) {
         $statuses = array(
             'canceled' => 'canceled',
+            'order_failed' => 'canceled',
             'live' => 'open',
             'partially_filled' => 'open',
             'filled' => 'closed',

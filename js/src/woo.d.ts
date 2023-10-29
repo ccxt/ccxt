@@ -160,7 +160,7 @@ export default class woo extends Exchange {
         amount: number;
         rate: number;
     };
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
     parseFundingRate(fundingRate: any, market?: any): {
         info: any;
         symbol: any;

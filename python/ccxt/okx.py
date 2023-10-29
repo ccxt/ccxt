@@ -2917,6 +2917,7 @@ class okx(Exchange, ImplicitAPI):
     def parse_order_status(self, status):
         statuses = {
             'canceled': 'canceled',
+            'order_failed': 'canceled',
             'live': 'open',
             'partially_filled': 'open',
             'filled': 'closed',

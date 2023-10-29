@@ -41,11 +41,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '4.1.30';
+$version = '4.1.31';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.30';
+    const VERSION = '4.1.31';
 
     public $browser;
     public $marketsLoading = null;
@@ -2084,6 +2084,7 @@ class Exchange extends \ccxt\Exchange {
             }
             $this->lastRestRequestTimestamp = $this->milliseconds ();
             $request = $this->sign ($path, $api, $method, $params, $headers, $body);
+            $this->last_request_headers = $request['headers'];
             return Async\await($this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']));
         }) ();
     }
@@ -2770,6 +2771,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchFundingRateHistory() is not supported yet');
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchFundingHistory() is not supported yet');
     }
 
     public function parse_last_price($price, $market = null) {

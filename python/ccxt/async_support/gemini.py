@@ -556,11 +556,10 @@ class gemini(Exchange, ImplicitAPI):
             marketIds = fetchDetailsForMarketIds
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            method = 'publicGetV1SymbolsDetailsSymbol'
             request = {
                 'symbol': marketId,
             }
-            promises.append(getattr(self, method)(self.extend(request, params)))
+            promises.append(self.publicGetV1SymbolsDetailsSymbol(self.extend(request, params)))
             #
             #     {
             #         "symbol": "BTCUSD",
