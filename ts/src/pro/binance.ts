@@ -2353,6 +2353,7 @@ export default class binance extends binanceRest {
         await this.authenticate (params);
         let market = undefined;
         let messageHash = '';
+        symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
@@ -2366,7 +2367,6 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        symbols = this.marketSymbols (symbols);
         messageHash = type + ':positions' + messageHash;
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);

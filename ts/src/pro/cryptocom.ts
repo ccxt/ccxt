@@ -493,6 +493,7 @@ export default class cryptocom extends cryptocomRest {
             'nonce': id,
         };
         let messageHash = 'positions';
+        symbols = this.marketSymbols (symbols);
         if (!this.isEmpty (symbols)) {
             messageHash = '::' + symbols.join (',');
         }
