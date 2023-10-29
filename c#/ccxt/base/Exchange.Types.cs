@@ -801,11 +801,37 @@ public partial class Exchange
         public OrderRequest(object request)
         {
             amount = SafeFloat(request, "amount");
-            price = SafeFloat(request, "amount");
-            type = SafeString(request, "status");
-            side = SafeString(request, "status");
-            symbol = SafeString(request, "status");
+            price = SafeFloat(request, "price");
+            type = SafeString(request, "type");
+            side = SafeString(request, "side");
+            symbol = SafeString(request, "symbol");
             parameters = SafeValue(request, "parameters") != null ? (Dictionary<string, object>)SafeValue(request, "parameters") : null;
+        }
+    }
+
+    public struct FundingHistory
+    {
+        public Dictionary<string, object>? info;
+
+        public string? id;
+        public Int64? timestamp;
+        public string? code;
+        public string? symbol;
+        public string? datetime;
+        public string? currency;
+        public double? amount;
+
+        public FundingHistory(object funding)
+        {
+            info = SafeValue(funding, "info") != null ? (Dictionary<string, object>)SafeValue(funding, "info") : null;
+            id = SafeString(funding, "id");
+            timestamp = SafeInteger(funding, "timestamp");
+            datetime = SafeString(funding, "datetime");
+            currency = SafeString(funding, "currency");
+            amount = SafeFloat(funding, "amount");
+            code = SafeString(funding, "code");
+            symbol = SafeString(funding, "symbol");
+            amount = SafeFloat(funding, "status");
         }
     }
 }
