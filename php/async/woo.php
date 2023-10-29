@@ -947,26 +947,24 @@ class woo extends Exchange {
             if ($stopPrice !== null) {
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
+            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice' ));
             $isStop = ($stopPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
-            $method = null;
+            $response = null;
             if ($isByClientOrder) {
+                $request['client_order_id'] = $clientOrderIdExchangeSpecific;
                 if ($isStop) {
-                    $method = 'v3PrivatePutAlgoOrderClientClientOrderId';
-                    $request['oid'] = $id;
+                    $response = Async\await($this->v3PrivatePutAlgoOrderClientClientOrderId (array_merge($request, $params)));
                 } else {
-                    $method = 'v3PrivatePutOrderClientClientOrderId';
-                    $request['client_order_id'] = $clientOrderIdExchangeSpecific;
+                    $response = Async\await($this->v3PrivatePutOrderClientClientOrderId (array_merge($request, $params)));
                 }
             } else {
-                if ($isStop) {
-                    $method = 'v3PrivatePutAlgoOrderOid';
-                } else {
-                    $method = 'v3PrivatePutOrderOid';
-                }
                 $request['oid'] = $id;
+                if ($isStop) {
+                    $response = Async\await($this->v3PrivatePutAlgoOrderOid (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->v3PrivatePutOrderOid (array_merge($request, $params)));
+                }
             }
-            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice' ));
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1003,30 +1001,29 @@ class woo extends Exchange {
                 $this->check_required_symbol('cancelOrder', $symbol);
             }
             Async\await($this->load_markets());
-            $request = array();
-            $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
-            $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
-            $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
-            $method = null;
-            if ($stop) {
-                $method = 'v3PrivateDeleteAlgoOrderOrderId';
-                $request['order_id'] = $id;
-            } elseif ($isByClientOrder) {
-                $method = 'v1PrivateDeleteClientOrder';
-                $request['client_order_id'] = $clientOrderIdExchangeSpecific;
-                $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-            } else {
-                $method = 'v1PrivateDeleteOrder';
-                $request['order_id'] = $id;
-            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            if (!$stop) {
+            $request = array();
+            $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
+            $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
+            $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
+            $response = null;
+            if ($stop) {
+                $request['order_id'] = $id;
+                $response = Async\await($this->v3PrivateDeleteAlgoOrderOrderId (array_merge($request, $params)));
+            } else {
                 $request['symbol'] = $market['id'];
+                if ($isByClientOrder) {
+                    $request['client_order_id'] = $clientOrderIdExchangeSpecific;
+                    $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
+                    $response = Async\await($this->v1PrivateDeleteClientOrder (array_merge($request, $params)));
+                } else {
+                    $request['order_id'] = $id;
+                    $response = Async\await($this->v1PrivateDeleteOrder (array_merge($request, $params)));
+                }
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // array( success => true, status => 'CANCEL_SENT' )
             //
@@ -1091,18 +1088,17 @@ class woo extends Exchange {
             $params = $this->omit($params, 'stop');
             $request = array();
             $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
-            $method = null;
+            $response = null;
             if ($stop) {
-                $method = 'v3PrivateGetAlgoOrderOid';
                 $request['oid'] = $id;
+                $response = Async\await($this->v3PrivateGetAlgoOrderOid (array_merge($request, $params)));
             } elseif ($clientOrderId) {
-                $method = 'v1PrivateGetClientOrderClientOrderId';
                 $request['client_order_id'] = $clientOrderId;
+                $response = Async\await($this->v1PrivateGetClientOrderClientOrderId (array_merge($request, $params)));
             } else {
-                $method = 'v1PrivateGetOrderOid';
                 $request['oid'] = $id;
+                $response = Async\await($this->v1PrivateGetOrderOid (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // {
             //     success => true,

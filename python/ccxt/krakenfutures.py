@@ -2206,6 +2206,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             query += '?' + postData
         url = self.urls['api'][api] + query
         if api == 'private' or access == 'private':
+            self.check_required_credentials()
             auth = postData + '/api/'
             if api != 'private':
                 auth += api + '/'

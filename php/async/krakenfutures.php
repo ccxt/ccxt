@@ -2361,6 +2361,7 @@ class krakenfutures extends Exchange {
         }
         $url = $this->urls['api'][$api] . $query;
         if ($api === 'private' || $access === 'private') {
+            $this->check_required_credentials();
             $auth = $postData . '/api/';
             if ($api !== 'private') {
                 $auth .= $api . '/';
