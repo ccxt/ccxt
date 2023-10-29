@@ -2089,7 +2089,8 @@ export default class hitbtc extends Exchange {
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         const isPostOnly = this.isPostOnly (type === 'market', undefined, params);
         const request = {
             'type': type,
@@ -2144,16 +2145,15 @@ export default class hitbtc extends Exchange {
         } else if ((type === 'stopLimit') || (type === 'stopMarket') || (type === 'takeProfitLimit') || (type === 'takeProfitMarket')) {
             throw new ExchangeError (this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
         }
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privatePostSpotOrder',
-            'swap': 'privatePostFuturesOrder',
-            'margin': 'privatePostMarginOrder',
-        });
-        if (marginMode !== undefined) {
-            method = 'privatePostMarginOrder';
-        }
         params = this.omit (params, [ 'triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly' ]);
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if ((marketType === 'margin') || (marginMode !== undefined)) {
+            response = await this.privatePostMarginOrder (this.extend (request, params));
+        } else if (marketType === 'spot') {
+            response = await this.privatePostSpotOrder (this.extend (request, params));
+        } else {
+            response = await this.privatePostFuturesOrder (this.extend (request, params));
+        }
         return this.parseOrder (response, market);
     }
 
