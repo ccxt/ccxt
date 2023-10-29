@@ -2074,7 +2074,7 @@ export default class hitbtc extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both
          * @param {bool} [params.margin] true for creating a margin order
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -2146,13 +2146,16 @@ export default class hitbtc extends Exchange {
             throw new ExchangeError (this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
         }
         params = this.omit (params, [ 'triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly' ]);
+        if ((marketType === 'swap') && (marginMode !== undefined)) {
+            request['margin_mode'] = marginMode;
+        }
         let response = undefined;
-        if ((marketType === 'margin') || (marginMode !== undefined)) {
-            response = await this.privatePostMarginOrder (this.extend (request, params));
-        } else if (marketType === 'spot') {
-            response = await this.privatePostSpotOrder (this.extend (request, params));
-        } else {
+        if (marketType === 'swap') {
             response = await this.privatePostFuturesOrder (this.extend (request, params));
+        } else if ((marketType === 'margin') || (marginMode !== undefined)) {
+            response = await this.privatePostMarginOrder (this.extend (request, params));
+        } else {
+            response = await this.privatePostSpotOrder (this.extend (request, params));
         }
         return this.parseOrder (response, market);
     }
