@@ -21,13 +21,10 @@ function test_order_book($exchange, $skipped_properties, $method, $entry, $symbo
     );
     $empty_allowed_for = ['symbol', 'nonce', 'datetime', 'timestamp']; // todo: make timestamp required
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
-    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry);
+    assert_timestamp($exchange, $skipped_properties, $method, $entry);
     assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
     $log_text = log_template($exchange, $method, $entry);
     //
-    if ((is_array($skipped_properties) && array_key_exists('bid', $skipped_properties)) || (is_array($skipped_properties) && array_key_exists('ask', $skipped_properties))) {
-        return;
-    }
     $bids = $entry['bids'];
     $bids_length = count($bids);
     for ($i = 0; $i < $bids_length; $i++) {
@@ -51,9 +48,6 @@ function test_order_book($exchange, $skipped_properties, $method, $entry, $symbo
         }
         assert_greater($exchange, $skipped_properties, $method, $asks[$i], 0, '0');
         assert_greater($exchange, $skipped_properties, $method, $asks[$i], 1, '0');
-    }
-    if (is_array($skipped_properties) && array_key_exists('spread', $skipped_properties)) {
-        return;
     }
     if ($bids_length && $asks_length) {
         $first_bid = $exchange->safe_string($bids[0], 0);

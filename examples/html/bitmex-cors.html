@@ -10,10 +10,11 @@
             alert ('ccxt version ' + ccxt.version);
 
             const exchange = new ccxt.bitmex ({
-                'proxyUrl': 'http://127.0.0.1:8080/',
+                'enableRateLimit': true,
+                'proxy': 'http://127.0.0.1:8080/',
             })
 
-            const symbol = 'BTC/USDT'
+            const symbol = 'BTC/USD'
 
             exchange.fetchTicker (symbol).then (ticker => {
 

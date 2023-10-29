@@ -1,9 +1,5 @@
 import Exchange from './abstract/coinsph.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
-/**
- * @class coinsph
- * @extends Exchange
- */
 export default class coinsph extends Exchange {
     describe(): any;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
@@ -16,7 +12,7 @@ export default class coinsph extends Exchange {
     }>;
     fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
@@ -120,20 +116,6 @@ export default class coinsph extends Exchange {
         fee: any;
     };
     parseTransactionStatus(status: any): string;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: any;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
-    parseDepositAddress(depositAddress: any, currency?: any): {
-        currency: any;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    };
     urlEncodeQuery(query?: {}): string;
     parseArrayParam(array: any, key: any): string;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

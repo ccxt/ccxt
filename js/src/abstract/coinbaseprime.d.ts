@@ -11,7 +11,6 @@ interface coinbasepro {
     publicGetProductsIdTrades(params?: {}): Promise<implicitReturnType>;
     publicGetTime(params?: {}): Promise<implicitReturnType>;
     publicGetProductsSparkLines(params?: {}): Promise<implicitReturnType>;
-    privateGetAddressBook(params?: {}): Promise<implicitReturnType>;
     privateGetAccounts(params?: {}): Promise<implicitReturnType>;
     privateGetAccountsId(params?: {}): Promise<implicitReturnType>;
     privateGetAccountsIdHolds(params?: {}): Promise<implicitReturnType>;

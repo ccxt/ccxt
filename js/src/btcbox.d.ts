@@ -1,9 +1,5 @@
 import Exchange from './abstract/btcbox.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
-/**
- * @class btcbox
- * @extends Exchange
- */
 export default class btcbox extends Exchange {
     describe(): any;
     parseBalance(response: any): import("./base/types.js").Balances;

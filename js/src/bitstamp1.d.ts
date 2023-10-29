@@ -1,9 +1,5 @@
 import Exchange from './abstract/bitstamp1.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
-/**
- * @class bitstamp1
- * @extends Exchange
- */
 export default class bitstamp1 extends Exchange {
     describe(): any;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;

@@ -7,9 +7,6 @@ namespace ccxt\async\abstract;
 
 
 abstract class gemini extends \ccxt\async\Exchange {
-    public function webexchange_get($params = array()) {
-        return $this->request('', 'webExchange', 'GET', $params, null, null, array());
-    }
     public function web_get_rest_api($params = array()) {
         return $this->request('rest-api', 'web', 'GET', $params, null, null, array());
     }
@@ -168,9 +165,6 @@ abstract class gemini extends \ccxt\async\Exchange {
     }
     public function private_post_v1_heartbeat($params = array()) {
         return $this->request('v1/heartbeat', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function webExchangeGet($params = array()) {
-        return $this->request('', 'webExchange', 'GET', $params, null, null, array());
     }
     public function webGetRestApi($params = array()) {
         return $this->request('rest-api', 'web', 'GET', $params, null, null, array());

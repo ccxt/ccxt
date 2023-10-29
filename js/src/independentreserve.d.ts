@@ -1,9 +1,5 @@
 import Exchange from './abstract/independentreserve.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
-/**
- * @class independentreserve
- * @extends Exchange
- */
 export default class independentreserve extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

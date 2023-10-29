@@ -7,7 +7,7 @@ use React\Promise\Promise;
 use React\EventLoop\Loop;
 use React\Async;
 
-class Throttler {
+class Throttle {
     public $config;
     public $queue;
     public $running;

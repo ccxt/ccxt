@@ -62,10 +62,10 @@ class bitfinex(ccxt.async_support.bitfinex):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the bitfinex api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -78,8 +78,8 @@ class bitfinex(ccxt.async_support.bitfinex):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the bitfinex api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         return await self.subscribe('ticker', symbol, params)
 
@@ -155,12 +155,15 @@ class bitfinex(ccxt.async_support.bitfinex):
         if event == 'tu':
             id = self.safe_string(trade, tradeLength - 4)
         timestamp = self.safe_timestamp(trade, tradeLength - 3)
-        price = self.safe_string(trade, tradeLength - 2)
-        amount = self.safe_string(trade, tradeLength - 1)
+        price = self.safe_float(trade, tradeLength - 2)
+        amount = self.safe_float(trade, tradeLength - 1)
         side = None
         if amount is not None:
-            side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
-            amount = Precise.string_abs(amount)
+            side = 'buy' if (amount > 0) else 'sell'
+            amount = abs(amount)
+        cost = None
+        if (price is not None) and (amount is not None):
+            cost = price * amount
         seq = self.safe_string(trade, 2)
         parts = seq.split('-')
         marketId = self.safe_string(parts, 1)
@@ -169,7 +172,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         symbol = self.safe_symbol(marketId, market)
         takerOrMaker = None
         orderId = None
-        return self.safe_trade({
+        return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -181,9 +184,9 @@ class bitfinex(ccxt.async_support.bitfinex):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': None,
+            'cost': cost,
             'fee': None,
-        })
+        }
 
     def handle_ticker(self, client: Client, message, subscription):
         #
@@ -240,9 +243,9 @@ class bitfinex(ccxt.async_support.bitfinex):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the bitfinex api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         if limit is not None:
             if (limit != 25) and (limit != 100):
@@ -325,13 +328,13 @@ class bitfinex(ccxt.async_support.bitfinex):
             orderbook = self.orderbooks[symbol]
             if isRaw:
                 id = self.safe_string(message, 1)
-                price = self.safe_string(message, 2)
+                price = self.safe_float(message, 2)
                 size = -message[3] if (message[3] < 0) else message[3]
                 side = 'asks' if (message[3] < 0) else 'bids'
                 bookside = orderbook[side]
                 # price = 0 means that you have to remove the order from your book
-                amount = size if Precise.string_gt(price, '0') else '0'
-                bookside.store(self.parse_number(price), self.parse_number(amount), id)
+                amount = size if (price > 0) else 0
+                bookside.store(price, amount, id)
             else:
                 size = -message[3] if (message[3] < 0) else message[3]
                 side = 'asks' if (message[3] < 0) else 'bids'
@@ -427,11 +430,11 @@ class bitfinex(ccxt.async_support.bitfinex):
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the bitfinex api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -441,7 +444,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         orders = await self.watch(url, 'os', None, 1)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_orders(self, client: Client, message, subscription):
         #

@@ -5,10 +5,6 @@ import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
 
-/**
- * @class coinsph
- * @extends Exchange
- */
 export default class coinsph extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -54,7 +50,7 @@ export default class coinsph extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchDeposit': undefined,
-                'fetchDepositAddress': true,
+                'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
@@ -110,7 +106,6 @@ export default class coinsph extends Exchange {
                 'signIn': false,
                 'transfer': false,
                 'withdraw': true,
-                'ws': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -167,10 +162,6 @@ export default class coinsph extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'openapi/wallet/v1/config/getall': 10,
-                        'openapi/wallet/v1/deposit/address': 10,
-                        'openapi/wallet/v1/deposit/history': 1,
-                        'openapi/wallet/v1/withdraw/history': 1,
                         'openapi/v1/account': 10,
                         // cost 3 for a single symbol; 40 when the symbol parameter is omitted
                         'openapi/v1/openOrders': { 'cost': 3, 'noSymbol': 40 },
@@ -181,37 +172,16 @@ export default class coinsph extends Exchange {
                         'openapi/v1/myTrades': 10,
                         'openapi/v1/capital/deposit/history': 1,
                         'openapi/v1/capital/withdraw/history': 1,
-                        'openapi/v3/payment-request/get-payment-request': 1,
-                        'merchant-api/v1/get-invoices': 1,
-                        'openapi/account/v3/crypto-accounts': 1,
-                        'openapi/transfer/v3/transfers/{id}': 1,
                     },
                     'post': {
-                        'openapi/wallet/v1/withdraw/apply': 600,
                         'openapi/v1/order/test': 1,
                         'openapi/v1/order': 1,
                         'openapi/v1/capital/withdraw/apply': 1,
                         'openapi/v1/capital/deposit/apply': 1,
-                        'openapi/v3/payment-request/payment-requests': 1,
-                        'openapi/v3/payment-request/delete-payment-request': 1,
-                        'openapi/v3/payment-request/payment-request-reminder': 1,
-                        'openapi/v1/userDataStream': 1,
-                        'merchant-api/v1/invoices': 1,
-                        'merchant-api/v1/invoices-cancel': 1,
-                        'openapi/convert/v1/get-supported-trading-pairs': 1,
-                        'openapi/convert/v1/get-quote': 1,
-                        'openapi/convert/v1/accpet-quote': 1,
-                        'openapi/fiat/v1/support-channel': 1,
-                        'openapi/fiat/v1/cash-out': 1,
-                        'openapi/fiat/v1/history': 1,
-                        'openapi/migration/v4/sellorder': 1,
-                        'openapi/migration/v4/validate-field': 1,
-                        'openapi/transfer/v3/transfers': 1,
                     },
                     'delete': {
                         'openapi/v1/order': 1,
                         'openapi/v1/openOrders': 1,
-                        'openapi/v1/userDataStream': 1,
                     },
                 },
             },
@@ -273,14 +243,6 @@ export default class coinsph extends Exchange {
                 },
                 'fetchTickers': {
                     'method': 'publicGetOpenapiQuoteV1Ticker24hr', // publicGetOpenapiQuoteV1TickerPrice, publicGetOpenapiQuoteV1TickerBookTicker
-                },
-                'networks': {
-                    // all networks: 'ETH', 'TRX', 'BSC', 'ARBITRUM', 'RON', 'BTC', 'XRP'
-                    // you can call api privateGetOpenapiWalletV1ConfigGetall to check which network is supported for the currency
-                    'TRC20': 'TRX',
-                    'ERC20': 'ETH',
-                    'BEP20': 'BSC',
-                    'ARB': 'ARBITRUM',
                 },
             },
             // https://coins-docs.github.io/errors/
@@ -435,8 +397,8 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchStatus
          * @description the latest known information on the availability of the exchange API
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a [status structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure}
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
         const response = await this.publicGetOpenapiV1Ping (params);
         return {
@@ -453,7 +415,7 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
+         * @param {object} params extra parameters specific to the coinsph api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetOpenapiV1Time (params);
@@ -468,8 +430,8 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchMarkets
          * @description retrieves data on all markets for coinsph
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object[]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const response = await this.publicGetOpenapiV1ExchangeInfo (params);
         //
@@ -540,6 +502,7 @@ export default class coinsph extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const isActive = this.safeString (market, 'status') === 'TRADING';
             const limits = this.indexBy (this.safeValue (market, 'filters'), 'filterType');
             const amountLimits = this.safeValue (limits, 'LOT_SIZE', {});
             const priceLimits = this.safeValue (limits, 'PRICE_FILTER', {});
@@ -559,7 +522,7 @@ export default class coinsph extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': this.safeStringLower (market, 'status') === 'trading',
+                'active': isActive,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -592,7 +555,6 @@ export default class coinsph extends Exchange {
                         'max': undefined,
                     },
                 },
-                'created': undefined,
                 'info': market,
             });
         }
@@ -605,9 +567,9 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -633,8 +595,8 @@ export default class coinsph extends Exchange {
          * @name coinsph#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -733,9 +695,9 @@ export default class coinsph extends Exchange {
          * @name coinsph#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {int|undefined} limit the maximum amount of order book entries to return (default 100, max 200)
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -771,10 +733,10 @@ export default class coinsph extends Exchange {
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch (default 500, max 1000)
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch (default 500, max 1000)
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -836,10 +798,10 @@ export default class coinsph extends Exchange {
          * @name coinsph#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch (default 500, max 1000)
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -877,10 +839,10 @@ export default class coinsph extends Exchange {
          * @name coinsph#fetchMyTrades
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve (default 500, max 1000)
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -908,10 +870,10 @@ export default class coinsph extends Exchange {
          * @description fetch all the trades made from a single order
          * @param {string} id order id
          * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades to retrieve
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
@@ -1014,8 +976,8 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetOpenapiV1Account (params);
@@ -1072,9 +1034,9 @@ export default class coinsph extends Exchange {
          * @param {string} type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // todo: add test order low priority
         await this.loadMarkets ();
@@ -1172,8 +1134,8 @@ export default class coinsph extends Exchange {
          * @description fetches information on an order made by the user
          * @param {int|string} id order id
          * @param {string} symbol not used by coinsph fetchOrder ()
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1193,11 +1155,11 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1215,11 +1177,11 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 500, max 1000)
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve (default 500, max 1000)
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
@@ -1246,9 +1208,9 @@ export default class coinsph extends Exchange {
          * @name coinsph#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string} symbol not used by coinsph cancelOrder ()
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {string|undefined} symbol not used by coinsph cancelOrder ()
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1268,9 +1230,9 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#cancelAllOrders
          * @description cancel open orders of market
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {string|undefined} symbol unified market symbol
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
@@ -1459,8 +1421,8 @@ export default class coinsph extends Exchange {
          * @name coinsph#fetchTradingFee
          * @description fetch the trading fees for a market
          * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1486,8 +1448,8 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.privateGetOpenapiV1AssetTradeFee (params);
@@ -1538,37 +1500,28 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#withdraw
          * @description make a withdrawal to coins_ph account
-         * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address not used by coinsph withdraw ()
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const options = this.safeValue (this.options, 'withdraw');
         const warning = this.safeValue (options, 'warning', true);
         if (warning) {
             throw new InvalidAddress (this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
-        const networkCode = this.safeString (params, 'network');
-        const networkId = this.networkCodeToId (networkCode, code);
-        if (networkId === undefined) {
-            throw new BadRequest (this.id + ' withdraw() require network parameter');
-        }
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'coin': currency['id'],
             'amount': this.numberToString (amount),
-            'network': networkId,
-            'address': address,
         };
         if (tag !== undefined) {
             request['withdrawOrderId'] = tag;
         }
-        params = this.omit (params, 'network');
-        const response = await this.privatePostOpenapiWalletV1WithdrawApply (this.extend (request, params));
+        const response = await this.privatePostOpenapiV1CapitalWithdrawApply (this.extend (request, params));
         return this.parseTransaction (response, currency);
     }
 
@@ -1580,9 +1533,9 @@ export default class coinsph extends Exchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to deposit
          * @param {string} address not used by coinsph deposit ()
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const options = this.safeValue (this.options, 'deposit');
         const warning = this.safeValue (options, 'warning', true);
@@ -1607,12 +1560,11 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchDeposits
          * @description fetch all deposits made to an account
-         * @see https://coins-docs.github.io/rest-api/#deposit-history-user_data
          * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch deposits for
-         * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // todo: returns an empty array - find out why
         await this.loadMarkets ();
@@ -1628,35 +1580,7 @@ export default class coinsph extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenapiWalletV1DepositHistory (this.extend (request, params));
-        //
-        // [
-        //     {
-        //         "id": "d_769800519366885376",
-        //         "amount": "0.001",
-        //         "coin": "BNB",
-        //         "network": "BNB",
-        //         "status": 0,
-        //         "address": "bnb136ns6lfw4zs5hg4n85vdthaad7hq5m4gtkgf23",
-        //         "addressTag": "101764890",
-        //         "txId": "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
-        //         "insertTime": 1661493146000,
-        //         "confirmNo": 10,
-        //     },
-        //     {
-        //         "id": "d_769754833590042625",
-        //         "amount":"0.5",
-        //         "coin":"IOTA",
-        //         "network":"IOTA",
-        //         "status":1,
-        //         "address":"SIZ9VLMHWATXKV99LH99CIGFJFUMLEHGWVZVNNZXRJJVWBPHYWPPBOSDORZ9EQSHCZAMPVAPGFYQAUUV9DROOXJLNW",
-        //         "addressTag":"",
-        //         "txId":"ESBFVQUTPIWQNJSPXFNHNYHSQNTGKRVKPRABQWTAXCDWOAKDKYWPTVG9BGXNVNKTLEJGESAVXIKIZ9999",
-        //         "insertTime":1599620082000,
-        //         "confirmNo": 20,
-        //     }
-        // ]
-        //
+        const response = await this.privateGetOpenapiV1CapitalDepositHistory (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -1665,12 +1589,11 @@ export default class coinsph extends Exchange {
          * @method
          * @name coinsph#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
          * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-         * @param {object} [params] extra parameters specific to the coinsph api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {object} params extra parameters specific to the coinsph api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // todo: returns an empty array - find out why
         await this.loadMarkets ();
@@ -1686,41 +1609,7 @@ export default class coinsph extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenapiWalletV1WithdrawHistory (this.extend (request, params));
-        //
-        // [
-        //     {
-        //         "id": "459890698271244288",
-        //         "amount": "0.01",
-        //         "transactionFee": "0",
-        //         "coin": "ETH",
-        //         "status": 1,
-        //         "address": "0x386AE30AE2dA293987B5d51ddD03AEb70b21001F",
-        //         "addressTag": "",
-        //         "txId": "0x4ae2fed36a90aada978fc31c38488e8b60d7435cfe0b4daed842456b4771fcf7",
-        //         "applyTime": 1673601139000,
-        //         "network": "ETH",
-        //         "withdrawOrderId": "thomas123",
-        //         "info": "",
-        //         "confirmNo": 100
-        //     },
-        //     {
-        //         "id": "451899190746456064",
-        //         "amount": "0.00063",
-        //         "transactionFee": "0.00037",
-        //         "coin": "ETH",
-        //         "status": 1,
-        //         "address": "0x386AE30AE2dA293987B5d51ddD03AEb70b21001F",
-        //         "addressTag": "",
-        //         "txId": "0x62690ca4f9d6a8868c258e2ce613805af614d9354dda7b39779c57b2e4da0260",
-        //         "applyTime": 1671695815000,
-        //         "network": "ETH",
-        //         "withdrawOrderId": "",
-        //         "info": "",
-        //         "confirmNo": 100
-        //     }
-        // ]
-        //
+        const response = await this.privateGetOpenapiV1CapitalWithdrawHistory (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -1821,64 +1710,14 @@ export default class coinsph extends Exchange {
     parseTransactionStatus (status) {
         const statuses = {
             '0': 'pending',
-            '1': 'ok',
-            '2': 'failed',
-            '3': 'pending',
+            '1': 'canceled',
+            '2': 'pending',
+            '3': 'failed',
+            '4': 'pending',
+            '5': 'failed',
+            '6': 'ok',
         };
         return this.safeString (statuses, status, status);
-    }
-
-    async fetchDepositAddress (code: string, params = {}) {
-        /**
-         * @method
-         * @name coinsph#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
-         * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @param {string} [params.network] network for fetch deposit address
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
-         */
-        const networkCode = this.safeString (params, 'network');
-        const networkId = this.networkCodeToId (networkCode, code);
-        if (networkId === undefined) {
-            throw new BadRequest (this.id + ' fetchDepositAddress() require network parameter');
-        }
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'coin': currency['id'],
-            'network': networkId,
-        };
-        params = this.omit (params, 'network');
-        const response = await this.privateGetOpenapiWalletV1DepositAddress (this.extend (request, params));
-        //
-        //     {
-        //         "coin": "ETH",
-        //         "address": "0xfe98628173830bf79c59f04585ce41f7de168784",
-        //         "addressTag": ""
-        //     }
-        //
-        return this.parseDepositAddress (response, currency);
-    }
-
-    parseDepositAddress (depositAddress, currency = undefined) {
-        //
-        //     {
-        //         "coin": "ETH",
-        //         "address": "0xfe98628173830bf79c59f04585ce41f7de168784",
-        //         "addressTag": ""
-        //     }
-        //
-        const currencyId = this.safeString (depositAddress, 'coin');
-        const parsedCurrency = this.safeCurrencyCode (currencyId, currency);
-        return {
-            'currency': parsedCurrency,
-            'address': this.safeString (depositAddress, 'address'),
-            'tag': this.safeString (depositAddress, 'addressTag'),
-            'network': null,
-            'info': depositAddress,
-        };
     }
 
     urlEncodeQuery (query = {}) {
@@ -1890,9 +1729,9 @@ export default class coinsph extends Exchange {
                 if (i !== 0) {
                     encodedArrayParams += '&';
                 }
-                const innerArray = query[key];
+                const array = query[key];
                 query = this.omit (query, key);
-                const encodedArrayParam = this.parseArrayParam (innerArray, key);
+                const encodedArrayParam = this.parseArrayParam (array, key);
                 encodedArrayParams += encodedArrayParam;
             }
         }

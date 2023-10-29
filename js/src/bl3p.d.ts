@@ -1,9 +1,5 @@
 import Exchange from './abstract/bl3p.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
-/**
- * @class bl3p
- * @extends Exchange
- */
 export default class bl3p extends Exchange {
     describe(): any;
     parseBalance(response: any): import("./base/types.js").Balances;

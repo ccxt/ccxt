@@ -86,12 +86,10 @@ const filterBy = (x, k, value = undefined, out = []) => {
     return out;
 };
 
-const sortBy = (array, key, descending = false, defaultValue:any = 0, direction = descending ? -1 : 1) => array.sort ((a, b) => {
-    const first = (key in a) ? a[key] : defaultValue;
-    const second = (key in b) ? b[key] : defaultValue;
-    if (first < second) {
+const sortBy = (array, key, descending = false, direction = descending ? -1 : 1) => array.sort ((a, b) => {
+    if (a[key] < b[key]) {
         return -direction;
-    } else if (first > second) {
+    } else if (a[key] > b[key]) {
         return direction;
     } else {
         return 0;

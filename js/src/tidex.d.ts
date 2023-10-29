@@ -1,20 +1,16 @@
 import Exchange from './abstract/tidex.js';
-import { Dictionary, Int, OrderBook, OrderSide, OrderType, Ticker } from './base/types.js';
-/**
- * @class tidex
- * @extends Exchange
- */
+import { Int, OrderSide, OrderType } from './base/types.js';
 export default class tidex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
-    parseTicker(ticker: any, market?: any): Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<{}>;
+    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTicker(symbol: string, params?: {}): Promise<any>;
     parseTrade(trade: any, market?: any): {
         id: string;
         order: string;

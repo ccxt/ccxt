@@ -56,8 +56,8 @@ class alpaca(ccxt.async_support.alpaca):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param dict params: extra parameters specific to the alpaca api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         url = self.urls['api']['ws']['crypto']
         await self.authenticate(url)
@@ -130,10 +130,10 @@ class alpaca(ccxt.async_support.alpaca):
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the alpaca api endpoint
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         url = self.urls['api']['ws']['crypto']
         await self.authenticate(url)
@@ -181,9 +181,9 @@ class alpaca(ccxt.async_support.alpaca):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return.
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param int|None limit: the maximum amount of order book entries to return.
+        :param dict params: extra parameters specific to the alpaca api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         url = self.urls['api']['ws']['crypto']
         await self.authenticate(url)
@@ -253,11 +253,11 @@ class alpaca(ccxt.async_support.alpaca):
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made in a market
-        :param str symbol: unified market symbol of the market trades were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of trade structures to retrieve
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the alpaca api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         url = self.urls['api']['ws']['crypto']
         await self.authenticate(url)
@@ -301,12 +301,12 @@ class alpaca(ccxt.async_support.alpaca):
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user
-        :param str symbol: unified market symbol of the market trades were made in
-        :param int [since]: the earliest time in ms to fetch trades for
-        :param int [limit]: the maximum number of trade structures to retrieve
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
-        :param boolean [params.unifiedMargin]: use unified margin account
-        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the alpaca api endpoint
+        :param boolean params['unifiedMargin']: use unified margin account
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         url = self.urls['api']['ws']['trading']
         await self.authenticate(url)
@@ -329,11 +329,11 @@ class alpaca(ccxt.async_support.alpaca):
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the alpaca api endpoint
-        :returns dict[]: a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the alpaca api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
         """
         url = self.urls['api']['ws']['trading']
         await self.authenticate(url)
@@ -352,7 +352,7 @@ class alpaca(ccxt.async_support.alpaca):
         orders = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def handle_trade_update(self, client: Client, message):
         self.handle_order(client, message)
@@ -543,9 +543,9 @@ class alpaca(ccxt.async_support.alpaca):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
-        authenticated = self.safe_value(client.subscriptions, messageHash)
-        if authenticated is None:
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
+            future = client.future('authenticated')
             request = {
                 'action': 'auth',
                 'key': self.apiKey,
@@ -560,8 +560,8 @@ class alpaca(ccxt.async_support.alpaca):
                         'secret_key': self.secret,
                     },
                 }
-            self.watch(url, messageHash, request, messageHash, future)
-        return future
+            self.spawn(self.watch, url, messageHash, request, messageHash, future)
+        return await future
 
     def handle_error_message(self, client: Client, message):
         #
@@ -652,8 +652,7 @@ class alpaca(ccxt.async_support.alpaca):
         data = self.safe_value(message, 'data', {})
         status = self.safe_string(data, 'status')
         if T == 'success' or status == 'authorized':
-            promise = client.futures['authenticated']
-            promise.resolve(message)
+            client.resolve(message, 'authenticated')
             return
         raise AuthenticationError(self.id + ' failed to authenticate.')
 

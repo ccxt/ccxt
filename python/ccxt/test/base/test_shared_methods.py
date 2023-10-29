@@ -22,6 +22,14 @@ def log_template(exchange, method, entry):
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json(entry) + ' >>> '
 
 
+def is_integer(value):
+    is_numeric = (isinstance(value, numbers.Real))
+    if is_numeric:
+        return (value % 1) == 0
+    else:
+        return False
+
+
 def string_value(value):
     string_val = None
     if isinstance(value, str):
@@ -104,23 +112,14 @@ def assert_timestamp(exchange, skipped_properties, method, entry, now_to_check=N
     ts = entry[key_name_or_index]
     if ts is not None:
         assert isinstance(ts, numbers.Real), 'timestamp is not numeric' + log_text
-        assert isinstance(ts, numbers.Integral), 'timestamp should be an integer' + log_text
+        assert is_integer(ts), 'timestamp should be an integer' + log_text
         min_ts = 1230940800000  # 03 Jan 2009 - first block
         max_ts = 2147483648000  # 03 Jan 2009 - first block
         assert ts > min_ts, 'timestamp is impossible to be before ' + str(min_ts) + ' (03.01.2009)' + log_text  # 03 Jan 2009 - first block
         assert ts < max_ts, 'timestamp more than ' + str(max_ts) + ' (19.01.2038)' + log_text  # 19 Jan 2038 - int32 overflows # 7258118400000  -> Jan 1 2200
         if now_to_check is not None:
             max_ms_offset = 60000  # 1 min
-            assert ts < now_to_check + max_ms_offset, 'returned item timestamp (' + exchange.iso8601(ts) + ') is ahead of the current time (' + exchange.iso8601(now_to_check) + ')' + log_text
-
-
-def assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, now_to_check=None, key_name_or_index='timestamp'):
-    log_text = log_template(exchange, method, entry)
-    skip_value = exchange.safe_value(skipped_properties, key_name_or_index)
-    if skip_value is not None:
-        return
-    assert_timestamp(exchange, skipped_properties, method, entry, now_to_check, key_name_or_index)
-    is_date_time_object = isinstance(key_name_or_index, str)
+            assert ts < now_to_check + max_ms_offset, 'returned trade timestamp (' + exchange.iso8601(ts) + ') is ahead of the current time (' + exchange.iso8601(now_to_check) + ')' + log_text
     # only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
     if is_date_time_object:
         # we also test 'datetime' here because it's certain sibling of 'timestamp'
@@ -128,20 +127,14 @@ def assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, n
         dt = entry['datetime']
         if dt is not None:
             assert isinstance(dt, str), '\"datetime\" key does not have a string value' + log_text
-            # there are exceptional cases, like getting microsecond-targeted string '2022-08-08T22:03:19.014680Z', so parsed unified timestamp, which carries only 13 digits (millisecond precision) can not be stringified back to microsecond accuracy, causing the bellow assertion to fail
-            #    assert (dt === exchange.iso8601 (entry['timestamp']))
-            # so, we have to compare with millisecond accururacy
-            dt_parsed = exchange.parse8601(dt)
-            assert exchange.iso8601(dt_parsed) == exchange.iso8601(entry['timestamp']), 'datetime is not iso8601 of timestamp' + log_text
+            assert dt == exchange.iso8601(entry['timestamp']), 'datetime is not iso8601 of timestamp' + log_text
 
 
 def assert_currency_code(exchange, skipped_properties, method, entry, actual_code, expected_code=None):
-    if 'currency' in skipped_properties:
-        return
     log_text = log_template(exchange, method, entry)
     if actual_code is not None:
         assert isinstance(actual_code, str), 'currency code should be either undefined or a string' + log_text
-        assert (actual_code in exchange.currencies), 'currency code (\"' + actual_code + '\") should be present in exchange.currencies' + log_text
+        assert (actual_code in exchange.currencies), 'currency code should be present in exchange.currencies' + log_text
         if expected_code is not None:
             assert actual_code == expected_code, 'currency code in response (\"' + string_value(actual_code) + '\") should be equal to expected code (\"' + string_value(expected_code) + '\")' + log_text
 
@@ -189,7 +182,7 @@ def assert_greater_or_equal(exchange, skipped_properties, method, entry, key, co
         return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
-    if value is not None and compare_to is not None:
+    if value is not None:
         assert Precise.string_ge(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be >= ' + string_value(compare_to) + log_text
 
 
@@ -198,7 +191,7 @@ def assert_less(exchange, skipped_properties, method, entry, key, compare_to):
         return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
-    if value is not None and compare_to is not None:
+    if value is not None:
         assert Precise.string_lt(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be < ' + string_value(compare_to) + log_text
 
 
@@ -207,7 +200,7 @@ def assert_less_or_equal(exchange, skipped_properties, method, entry, key, compa
         return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
-    if value is not None and compare_to is not None:
+    if value is not None:
         assert Precise.string_le(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be <= ' + string_value(compare_to) + log_text
 
 
@@ -216,7 +209,7 @@ def assert_equal(exchange, skipped_properties, method, entry, key, compare_to):
         return
     log_text = log_template(exchange, method, entry)
     value = exchange.safe_string(entry, key)
-    if value is not None and compare_to is not None:
+    if value is not None:
         assert Precise.string_eq(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be equal to ' + string_value(compare_to) + log_text
 
 
@@ -243,7 +236,7 @@ def assert_in_array(exchange, skipped_properties, method, entry, key, expected_a
 def assert_fee_structure(exchange, skipped_properties, method, entry, key):
     log_text = log_template(exchange, method, entry)
     key_string = string_value(key)
-    if isinstance(key, numbers.Integral):
+    if is_integer(key):
         assert isinstance(entry, list), 'fee container is expected to be an array' + log_text
         assert key < len(entry), 'fee key ' + key_string + ' was expected to be present in entry' + log_text
     else:
@@ -253,7 +246,7 @@ def assert_fee_structure(exchange, skipped_properties, method, entry, key):
     # todo: remove undefined check to make stricter
     if fee_object is not None:
         assert 'cost' in fee_object, key_string + ' fee object should contain \"cost\" key' + log_text
-        # assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); # fee might be negative in the case of a rebate or reward
+        assert_greater_or_equal(exchange, skipped_properties, method, fee_object, 'cost', '0')
         assert 'currency' in fee_object, '\"' + key_string + '\" fee object should contain \"currency\" key' + log_text
         assert_currency_code(exchange, skipped_properties, method, entry, fee_object['currency'])
 
@@ -264,10 +257,7 @@ def assert_timestamp_order(exchange, method, code_or_symbol, items, ascending=Fa
             ascending_or_descending = 'ascending' if ascending else 'descending'
             first_index = i - 1 if ascending else i
             second_index = i if ascending else i - 1
-            first_ts = items[first_index]['timestamp']
-            second_ts = items[second_index]['timestamp']
-            if first_ts is not None and second_ts is not None:
-                assert items[first_index]['timestamp'] >= items[second_index]['timestamp'], exchange.id + ' ' + method + ' ' + string_value(code_or_symbol) + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp. ' + exchange.json(items)
+            assert items[first_index]['timestamp'] >= items[second_index]['timestamp'], exchange.id + ' ' + method + ' ' + string_value(code_or_symbol) + ' must return a ' + ascending_or_descending + ' sorted array of items by timestamp. ' + exchange.json(items)
 
 
 def assert_integer(exchange, skipped_properties, method, entry, key):
@@ -275,10 +265,9 @@ def assert_integer(exchange, skipped_properties, method, entry, key):
         return
     log_text = log_template(exchange, method, entry)
     if entry is not None:
-        value = exchange.safe_value(entry, key)
+        value = exchange.safe_number(entry, key)
         if value is not None:
-            is_integer = isinstance(value, numbers.Integral)
-            assert is_integer, '\"' + string_value(key) + '\" key (value \"' + string_value(value) + '\") is not an integer' + log_text
+            assert is_integer(value), '\"' + string_value(key) + '\" key (value \"' + string_value(value) + '\") is not an integer' + log_text
 
 
 def check_precision_accuracy(exchange, skipped_properties, method, entry, key):

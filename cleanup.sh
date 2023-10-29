@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 git checkout HEAD package.json
 git checkout HEAD package-lock.json
 git checkout HEAD yarn.lock

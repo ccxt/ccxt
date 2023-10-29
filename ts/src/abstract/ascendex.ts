@@ -66,7 +66,6 @@ interface Exchange {
     v2PrivateAccountGroupGetFuturesPosition (params?: {}): Promise<implicitReturnType>;
     v2PrivateAccountGroupGetFuturesFreeMargin (params?: {}): Promise<implicitReturnType>;
     v2PrivateAccountGroupGetFuturesOrderHistCurrent (params?: {}): Promise<implicitReturnType>;
-    v2PrivateAccountGroupGetFuturesFundingPayments (params?: {}): Promise<implicitReturnType>;
     v2PrivateAccountGroupGetFuturesOrderOpen (params?: {}): Promise<implicitReturnType>;
     v2PrivateAccountGroupGetFuturesOrderStatus (params?: {}): Promise<implicitReturnType>;
     v2PrivateAccountGroupPostFuturesIsolatedPositionMargin (params?: {}): Promise<implicitReturnType>;

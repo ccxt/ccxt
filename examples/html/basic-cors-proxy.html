@@ -9,11 +9,9 @@
 
             alert ('ccxt version ' + ccxt.version);
 
-            const exchange = new ccxt.bittrex ({ 
-				'proxyUrl': 'https://cors-anywhere.herokuapp.com/' 
-			})
-
-            const symbol = 'BTC/USDT'
+            const proxy = 'https://cors-anywhere.herokuapp.com/'
+            const exchange = new ccxt.bittrex ({ 'proxy': proxy })
+            const symbol = 'ETH/BTC'
 
             exchange.fetchTicker (symbol).then (ticker => {
 
@@ -24,16 +22,6 @@
                 ]
 
                 document.getElementById ('content').innerHTML = text.join (' ')
-
-            }).catch (e => {
-
-                const text = [
-                    e.constructor.name,
-                    e.message,
-                ]
-
-                document.getElementById ('content').innerHTML = text.join (' ')
-
             })
 
         })

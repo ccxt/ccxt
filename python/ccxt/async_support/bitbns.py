@@ -29,6 +29,7 @@ class bitbns(Exchange, ImplicitAPI):
             'countries': ['IN'],  # India
             'rateLimit': 1000,
             'certified': False,
+            'pro': False,
             'version': 'v2',
             # new metainfo interface
             'has': {
@@ -162,8 +163,8 @@ class bitbns(Exchange, ImplicitAPI):
     async def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :param dict [params]: extra parameters specific to the bitbns api endpoint
-        :returns dict: a `status structure <https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure>`
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
         response = await self.v1GetPlatformStatus(params)
         #
@@ -190,8 +191,8 @@ class bitbns(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}):
         """
         retrieves data on all markets for bitbns
-        :param dict [params]: extra parameters specific to the exchange api endpoint
-        :returns dict[]: an array of objects representing market data
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
         """
         response = await self.wwwGetOrderFetchMarkets(params)
         #
@@ -280,7 +281,6 @@ class bitbns(Exchange, ImplicitAPI):
                         'max': self.safe_number(costLimits, 'max'),
                     },
                 },
-                'created': None,
                 'info': market,
             })
         return result
@@ -289,9 +289,9 @@ class bitbns(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the bitbns api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -382,9 +382,9 @@ class bitbns(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the bitbns api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         response = await self.wwwGetOrderFetchTickers(params)
@@ -438,20 +438,20 @@ class bitbns(Exchange, ImplicitAPI):
             if numParts > 1:
                 currencyId = self.safe_string(parts, 1)
                 # note that "Money" stands for INR - the only fiat in bitbns
-                account = self.account()
-                account['free'] = self.safe_string(data, key)
-                account['used'] = self.safe_string(data, 'inorder' + currencyId)
                 if currencyId == 'Money':
                     currencyId = 'INR'
                 code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(data, key)
+                account['used'] = self.safe_string(data, 'inorder' + currencyId)
                 result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the bitbns api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
         response = await self.v1PostCurrentCoinBalanceEVERYTHING(params)
@@ -474,12 +474,9 @@ class bitbns(Exchange, ImplicitAPI):
         # note that "Money" stands for INR - the only fiat in bitbns
         return self.parse_balance(response)
 
-    def parse_status(self, status):
+    def parse_order_status(self, status):
         statuses = {
-            '-1': 'cancelled',
             '0': 'open',
-            '1': 'open',
-            '2': 'done',
             # 'PARTIALLY_FILLED': 'open',
             # 'FILLED': 'closed',
             # 'CANCELED': 'canceled',
@@ -494,101 +491,106 @@ class bitbns(Exchange, ImplicitAPI):
         # createOrder
         #
         #     {
-        #         "data": "Successfully placed bid to purchase currency",
-        #         "status": 1,
-        #         "error": null,
-        #         "id": 5424475,
-        #         "code": 200
+        #         "data":"Successfully placed bid to purchase currency",
+        #         "status":1,
+        #         "error":null,
+        #         "id":5424475,
+        #         "code":200
         #     }
         #
-        # fetchOpenOrders, fetchOrder
+        # fetchOrder
         #
-        #    {
-        #        "entry_id": 5424475,
-        #        "btc": 0.01,
-        #        "rate": 2000,
-        #        "time": "2021-04-25T17:05:42.000Z",
-        #        "type": 0,
-        #        "status": 0
-        #        "t_rate": 0.45,                       # only stop orders
-        #        "trail": 0                            # only stop orders
-        #    }
+        #     {
+        #         "entry_id":5424475,
+        #         "btc":0.01,
+        #         "rate":2000,
+        #         "time":"2021-04-25T17:05:42.000Z",
+        #         "type":0,
+        #         "status":0,
+        #         "total":0.01,
+        #         "avg_cost":null,
+        #         "side":"BUY",
+        #         "amount":0.01,
+        #         "remaining":0.01,
+        #         "filled":0,
+        #         "cost":null,
+        #         "fee":0.05
+        #     }
         #
-        # cancelOrder
+        # fetchOpenOrders
         #
-        #    {
-        #        "data": "Successfully cancelled the order",
-        #        "status": 1,
-        #        "error": null,
-        #        "code": 200
-        #    }
+        #     {
+        #         "entry_id":5424475,
+        #         "btc":0.01,
+        #         "rate":2000,
+        #         "time":"2021-04-25T17:05:42.000Z",
+        #         "type":0,
+        #         "status":0
+        #     }
         #
         id = self.safe_string_2(order, 'id', 'entry_id')
-        datetime = self.safe_string(order, 'time')
-        triggerPrice = self.safe_string(order, 't_rate')
-        side = self.safe_string(order, 'type')
-        if side == '0':
-            side = 'buy'
-        elif side == '1':
-            side = 'sell'
-        data = self.safe_string(order, 'data')
-        status = self.safe_string(order, 'status')
-        if data == 'Successfully cancelled the order':
-            status = 'cancelled'
-        else:
-            status = self.parse_status(status)
+        marketId = self.safe_string(order, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        timestamp = self.parse8601(self.safe_string(order, 'time'))
+        price = self.safe_string(order, 'rate')
+        amount = self.safe_string_2(order, 'amount', 'btc')
+        filled = self.safe_string(order, 'filled')
+        remaining = self.safe_string(order, 'remaining')
+        average = self.safe_string(order, 'avg_cost')
+        cost = self.safe_string(order, 'cost')
+        type = self.safe_string_lower(order, 'type')
+        if type == '0':
+            type = 'limit'
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        side = self.safe_string_lower(order, 'side')
+        feeCost = self.safe_number(order, 'fee')
+        fee = None
+        if feeCost is not None:
+            feeCurrencyCode = None
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
         return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
-            'timestamp': self.parse8601(datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': self.safe_string(market, 'symbol'),
+            'symbol': symbol,
+            'type': type,
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': self.safe_string(order, 'rate'),
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
-            'amount': self.safe_string(order, 'btc'),
-            'cost': None,
-            'average': None,
-            'filled': None,
-            'remaining': None,
+            'price': price,
+            'stopPrice': None,
+            'triggerPrice': None,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
             'status': status,
-            'fee': {
-                'cost': None,
-                'currency': None,
-                'rate': None,
-            },
+            'fee': fee,
             'trades': None,
         }, market)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/place-orders
-        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/market-orders-quantity  # market orders
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the bitbns api endpoint
-        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-        :param float [params.target_rate]: *requires params.trail_rate when set, type must be 'limit'* a bracket order is placed when set
-        :param float [params.trail_rate]: *requires params.target_rate when set, type must be 'limit'* a bracket order is placed when set
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
+        if type != 'limit' and type != 'market':
+            raise ExchangeError(self.id + ' allows limit and market orders only')
         await self.load_markets()
         market = self.market(symbol)
-        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 't_rate'])
-        targetRate = self.safe_string(params, 'target_rate')
-        trailRate = self.safe_string(params, 'trail_rate')
-        params = self.omit(params, ['triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate'])
         request = {
             'side': side.upper(),
             'symbol': market['uppercaseId'],
@@ -596,19 +598,18 @@ class bitbns(Exchange, ImplicitAPI):
             # 'target_rate': self.price_to_precision(symbol, targetRate),
             # 't_rate': self.price_to_precision(symbol, stopPrice),
             # 'trail_rate': self.price_to_precision(symbol, trailRate),
+            # To Place Simple Buy or Sell Order use rate
+            # To Place Stoploss Buy or Sell Order use rate & t_rate
+            # To Place Bracket Buy or Sell Order use rate , t_rate, target_rate & trail_rate
         }
         method = 'v2PostOrders'
         if type == 'limit':
             request['rate'] = self.price_to_precision(symbol, price)
-        else:
+        elif type == 'market':
             method = 'v1PostPlaceMarketOrderQntySymbol'
             request['market'] = market['quoteId']
-        if triggerPrice is not None:
-            request['t_rate'] = self.price_to_precision(symbol, triggerPrice)
-        if targetRate is not None:
-            request['target_rate'] = self.price_to_precision(symbol, targetRate)
-        if trailRate is not None:
-            request['trail_rate'] = self.price_to_precision(symbol, trailRate)
+        else:
+            raise ExchangeError(self.id + ' allows limit and market orders only')
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -624,40 +625,30 @@ class bitbns(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
-        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/cancel-orders
-        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/cancel-stop-loss-orders
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the bitbns api endpoint
-        :param boolean [params.trigger]: True if cancelling a trigger order
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
-        params = self.omit(params, ['trigger', 'stop'])
+        quoteSide = 'usdtcancelOrder' if (market['quoteId'] == 'USDT') else 'cancelOrder'
         request = {
             'entry_id': id,
             'symbol': market['uppercaseId'],
+            'side': quoteSide,
         }
-        response = None
-        tail = 'StopLossOrder' if isTrigger else 'Order'
-        quoteSide = 'usdtcancel' if (market['quoteId'] == 'USDT') else 'cancel'
-        quoteSide += tail
-        request['side'] = quoteSide
         response = await self.v2PostCancel(self.extend(request, params))
         return self.parse_order(response, market)
 
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/order-status
-        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the bitbns api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -667,9 +658,6 @@ class bitbns(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'entry_id': id,
         }
-        trigger = self.safe_value_2(params, 'trigger', 'stop')
-        if trigger:
-            raise BadRequest(self.id + ' fetchOrder cannot fetch stop orders')
         response = await self.v1PostOrderStatusSymbol(self.extend(request, params))
         #
         #     {
@@ -703,26 +691,21 @@ class bitbns(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
-        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit
-        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit/order-status-stop-limit
         :param str symbol: unified market symbol
-        :param int [since]: the earliest time in ms to fetch open orders for
-        :param int [limit]: the maximum number of open orders structures to retrieve
-        :param dict [params]: extra parameters specific to the bitbns api endpoint
-        :param boolean [params.trigger]: True if fetching trigger orders
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
-        params = self.omit(params, ['trigger', 'stop'])
-        quoteSide = 'usdtListOpen' if (market['quoteId'] == 'USDT') else 'listOpen'
+        quoteSide = 'usdtListOpenOrders' if (market['quoteId'] == 'USDT') else 'listOpenOrders'
         request = {
             'symbol': market['uppercaseId'],
+            'side': quoteSide,
             'page': 0,
-            'side': (quoteSide + 'StopOrders') if isTrigger else (quoteSide + 'Orders'),
         }
         response = await self.v2PostGetordersnew(self.extend(request, params))
         #
@@ -735,9 +718,6 @@ class bitbns(Exchange, ImplicitAPI):
         #                 "time":"2021-04-25T17:05:42.000Z",
         #                 "type":0,
         #                 "status":0
-        #                 "t_rate":0.45,                       # only stop orders
-        #                 "type":1,                            # only stop orders
-        #                 "trail":0                            # only stop orders
         #             }
         #         ],
         #         "status":1,
@@ -828,10 +808,10 @@ class bitbns(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
-        :param int [since]: the earliest time in ms to fetch trades for
-        :param int [limit]: the maximum number of trades structures to retrieve
-        :param dict [params]: extra parameters specific to the bitbns api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -892,10 +872,10 @@ class bitbns(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the bitbns api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires a symbol argument')
@@ -919,10 +899,10 @@ class bitbns(Exchange, ImplicitAPI):
         """
         fetch all deposits made to an account
         :param str code: unified currency code
-        :param int [since]: the earliest time in ms to fetch deposits for
-        :param int [limit]: the maximum number of deposits structures to retrieve
-        :param dict [params]: extra parameters specific to the bitbns api endpoint
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
@@ -963,10 +943,10 @@ class bitbns(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
-        :param int [since]: the earliest time in ms to fetch withdrawals for
-        :param int [limit]: the maximum number of withdrawals structures to retrieve
-        :param dict [params]: extra parameters specific to the bitbns api endpoint
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
@@ -1069,8 +1049,8 @@ class bitbns(Exchange, ImplicitAPI):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the bitbns api endpoint
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :param dict params: extra parameters specific to the bitbns api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1129,7 +1109,7 @@ class bitbns(Exchange, ImplicitAPI):
                 'body': body,
             }
             payload = self.string_to_base64(self.json(auth))
-            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
+            signature = self.hmac(payload, self.encode(self.secret), hashlib.sha512)
             headers['X-BITBNS-PAYLOAD'] = payload
             headers['X-BITBNS-SIGNATURE'] = signature
             headers['Content-Type'] = 'application/x-www-form-urlencoded'

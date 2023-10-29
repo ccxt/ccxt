@@ -10,7 +10,6 @@ declare function ecdsa(request: Hex, secret: Hex, curve: CurveFn, prehash?: CHas
     s: string;
     v: number;
 };
-declare function axolotl(request: Hex, secret: Hex, curve: CurveFnEDDSA): string;
-declare function eddsa(request: Hex, secret: string, curve: CurveFnEDDSA): string;
+declare function eddsa(request: Hex, secret: Hex, curve: CurveFnEDDSA): string;
 declare function crc32(str: any, signed?: boolean): number;
-export { hash, hmac, crc32, ecdsa, eddsa, axolotl, };
+export { hash, hmac, crc32, ecdsa, eddsa, };

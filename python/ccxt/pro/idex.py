@@ -38,9 +38,6 @@ class idex(ccxt.async_support.idex):
                 'watchOrderBookLimit': 1000,  # default limit
                 'orderBookSubscriptions': {},
                 'token': None,
-                'watchOrderBook': {
-                    'maxRetries': 3,
-                },
                 'fetchOrderBookSnapshotMaxAttempts': 10,
                 'fetchOrderBookSnapshotMaxDelay': 10000,  # raise if there are no orders in 10 seconds
             },
@@ -72,8 +69,8 @@ class idex(ccxt.async_support.idex):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -141,10 +138,10 @@ class idex(ccxt.async_support.idex):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -201,17 +198,17 @@ class idex(ccxt.async_support.idex):
         marketId = self.safe_string(trade, 'm')
         symbol = self.safe_symbol(marketId)
         id = self.safe_string(trade, 'i')
-        price = self.safe_string(trade, 'p')
-        amount = self.safe_string(trade, 'q')
-        cost = self.safe_string(trade, 'Q')
+        price = self.safe_float(trade, 'p')
+        amount = self.safe_float(trade, 'q')
+        cost = self.safe_float(trade, 'Q')
         timestamp = self.safe_integer(trade, 't')
         side = self.safe_string(trade, 's')
         fee = {
             'currency': self.safe_string(trade, 'a'),
-            'cost': self.safe_string(trade, 'f'),
+            'cost': self.safe_float(trade, 'f'),
         }
         takerOrMarker = self.safe_string(trade, 'l')
-        return self.safe_trade({
+        return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -225,17 +222,17 @@ class idex(ccxt.async_support.idex):
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        })
+        }
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -336,7 +333,7 @@ class idex(ccxt.async_support.idex):
         try:
             limit = self.safe_integer(subscription, 'limit', 0)
             # 3. Request a level-2 order book snapshot for the market from the REST API Order Books endpoint with limit set to 0.
-            snapshot = await self.fetch_rest_order_book_safe(symbol, limit)
+            snapshot = await self.fetch_order_book(symbol, limit)
             firstBuffered = self.safe_value(orderbook.cache, 0)
             firstData = self.safe_value(firstBuffered, 'data')
             firstNonce = self.safe_integer(firstData, 'u')
@@ -383,9 +380,9 @@ class idex(ccxt.async_support.idex):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -477,11 +474,11 @@ class idex(ccxt.async_support.idex):
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the idex api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         name = 'orders'
@@ -543,17 +540,23 @@ class idex(ccxt.async_support.idex):
         marketId = self.safe_string(order, 'm')
         symbol = self.safe_symbol(marketId)
         timestamp = self.safe_integer(order, 't')
-        fills = self.safe_value(order, 'F', [])
+        fills = self.safe_value(order, 'F')
         trades = []
         for i in range(0, len(fills)):
             trades.append(self.parse_ws_trade(fills[i]))
         id = self.safe_string(order, 'i')
         side = self.safe_string(order, 's')
         orderType = self.safe_string(order, 'o')
-        amount = self.safe_string(order, 'q')
-        filled = self.safe_string(order, 'z')
-        average = self.safe_string(order, 'v')
-        price = self.safe_string(order, 'price', average)  # for market orders
+        amount = self.safe_float(order, 'q')
+        filled = self.safe_float(order, 'z')
+        remaining = None
+        if (amount is not None) and (filled is not None):
+            remaining = amount - filled
+        average = self.safe_float(order, 'v')
+        price = self.safe_float(order, 'price', average)  # for market orders
+        cost = None
+        if (amount is not None) and (price is not None):
+            cost = amount * price
         rawStatus = self.safe_string(order, 'X')
         status = self.parse_order_status(rawStatus)
         fee = {
@@ -564,10 +567,9 @@ class idex(ccxt.async_support.idex):
         for i in range(0, len(trades)):
             lastTrade = trades[i]
             fee['currency'] = lastTrade['fee']['currency']
-            stringLastTradeFee = lastTrade['fee']['cost']
-            fee['cost'] = Precise.string_add(fee['cost'], stringLastTradeFee)
+            fee['cost'] = self.sum(fee['cost'], lastTrade['fee']['cost'])
         lastTradeTimestamp = self.safe_integer(lastTrade, 'timestamp')
-        parsedOrder = self.safe_order({
+        parsedOrder = {
             'info': message,
             'id': id,
             'clientOrderId': None,
@@ -577,18 +579,18 @@ class idex(ccxt.async_support.idex):
             'symbol': symbol,
             'type': orderType,
             'side': side,
-            'price': self.parse_number(price),
+            'price': price,
             'stopPrice': None,
             'triggerPrice': None,
-            'amount': self.parse_number(amount),
-            'cost': None,
-            'average': self.parse_number(average),
-            'filled': self.parse_number(filled),
-            'remaining': None,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': remaining,
             'status': status,
             'fee': fee,
             'trades': trades,
-        })
+        }
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)

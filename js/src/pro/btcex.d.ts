@@ -1,0 +1,32 @@
+import btcexRest from '../btcex.js';
+import { Int } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+export default class btcex extends btcexRest {
+    describe(): any;
+    requestId(): any;
+    watchBalance(params?: {}): Promise<any>;
+    handleBalance(client: Client, message: any): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleOHLCV(client: Client, message: any): void;
+    watchTicker(symbol: string, params?: {}): Promise<any>;
+    handleTicker(client: Client, message: any): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleTrades(client: Client, message: any): void;
+    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleMyTrades(client: Client, message: any): void;
+    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handleOrder(client: Client, message: any): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    handleOrderBook(client: Client, message: any): void;
+    getCacheIndex(orderBook: any, cache: any): any;
+    handleDelta(orderbook: any, delta: any): void;
+    handleBidAsks(bookSide: any, bidAsks: any): void;
+    handleUser(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): void;
+    handleAuthenticate(client: Client, message: any): void;
+    handleSubscription(client: Client, message: any): void;
+    handlePong(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): any;
+    authenticate(params?: {}): any;
+    ping(client: any): string;
+}
