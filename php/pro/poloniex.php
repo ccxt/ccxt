@@ -133,8 +133,8 @@ class poloniex extends \ccxt\async\poloniex {
              * Connects to a websocket channel
              * @param {string} $name name of the channel
              * @param {boolean} $isPrivate true for the authenticated $url, false for the public $url
-             * @param {[string]|null} $symbols CCXT market $symbols
-             * @param {array} $params extra parameters specific to the poloniex api
+             * @param {string[]|null} $symbols CCXT market $symbols
+             * @param {array} [$params] extra parameters specific to the poloniex api
              * @return {array} data from the websocket stream
              */
             $publicOrPrivate = $isPrivate ? 'private' : 'public';
@@ -156,7 +156,7 @@ class poloniex extends \ccxt\async\poloniex {
                 $subscribe['symbols'] = $marketIds;
             }
             $request = array_merge($subscribe, $params);
-            return Async\await($this->watch($url, $messageHash, $request, $name));
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
 
@@ -167,10 +167,10 @@ class poloniex extends \ccxt\async\poloniex {
              * @see https://docs.poloniex.com/#public-channels-market-data-candlesticks
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return [[int]] A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $timeframes = $this->safe_value($this->options, 'timeframes', array());
@@ -192,8 +192,8 @@ class poloniex extends \ccxt\async\poloniex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://docs.poloniex.com/#public-channels-market-data-ticker
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -208,8 +208,8 @@ class poloniex extends \ccxt\async\poloniex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://docs.poloniex.com/#public-channels-market-data-ticker
              * @param {string} symbol unified symbol of the market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $name = 'ticker';
@@ -228,10 +228,10 @@ class poloniex extends \ccxt\async\poloniex {
              * get the list of most recent $trades for a particular $symbol
              * @see https://docs.poloniex.com/#public-channels-market-data-$trades
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -250,9 +250,9 @@ class poloniex extends \ccxt\async\poloniex {
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://docs.poloniex.com/#public-channels-market-data-book-level-2
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int|null} $limit not used by poloniex watchOrderBook
-             * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+             * @param {int} [$limit] not used by poloniex watchOrderBook
+             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
              */
             Async\await($this->load_markets());
             $watchOrderBookOptions = $this->safe_value($this->options, 'watchOrderBook');
@@ -268,11 +268,11 @@ class poloniex extends \ccxt\async\poloniex {
             /**
              * watches information on multiple $orders made by the user
              * @see https://docs.poloniex.com/#authenticated-channels-market-data-$orders
-             * @param {string|null} $symbol unified market $symbol of the market $orders were made in
-             * @param {int|null} $since not used by poloniex watchOrders
-             * @param {int|null} $limit not used by poloniex watchOrders
-             * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {string} $symbol unified market $symbol of the market $orders were made in
+             * @param {int} [$since] not used by poloniex watchOrders
+             * @param {int} [$limit] not used by poloniex watchOrders
+             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $name = 'orders';
@@ -294,11 +294,11 @@ class poloniex extends \ccxt\async\poloniex {
             /**
              * watches information on multiple $trades made by the user using orders stream
              * @see https://docs.poloniex.com/#authenticated-channels-market-data-orders
-             * @param {string|null} $symbol unified market $symbol of the market orders were made in
-             * @param {int|null} $since not used by poloniex watchMyTrades
-             * @param {int|null} $limit not used by poloniex watchMyTrades
-             * @param {array} $params extra parameters specific to the poloniex strean
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {int} [$since] not used by poloniex watchMyTrades
+             * @param {int} [$limit] not used by poloniex watchMyTrades
+             * @param {array} [$params] extra parameters specific to the poloniex strean
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
             $name = 'orders';
@@ -319,13 +319,10 @@ class poloniex extends \ccxt\async\poloniex {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * watches information on multiple orders made by the user
+             * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs.poloniex.com/#authenticated-channels-market-data-balances
-             * @param {string|null} symbol not used by poloniex watchBalance
-             * @param {int|null} since not used by poloniex watchBalance
-             * @param {int|null} limit not used by poloniex watchBalance
-             * @param {array} $params extra parameters specific to the poloniex api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $name = 'balances';
@@ -645,8 +642,8 @@ class poloniex extends \ccxt\async\poloniex {
                     $totalCost = '0';
                     $totalAmount = '0';
                     $previousOrderTrades = $previousOrder['trades'];
-                    for ($i = 0; $i < count($previousOrderTrades); $i++) {
-                        $previousOrderTrade = $previousOrderTrades[$i];
+                    for ($j = 0; $j < count($previousOrderTrades); $j++) {
+                        $previousOrderTrade = $previousOrderTrades[$j];
                         $cost = $this->number_to_string($previousOrderTrade['cost']);
                         $amount = $this->number_to_string($previousOrderTrade['amount']);
                         $totalCost = Precise::string_add($totalCost, $cost);
@@ -683,8 +680,8 @@ class poloniex extends \ccxt\async\poloniex {
                     $previousOrder['status'] = $state;
                     // update the newUpdates count
                     $orders->append ($previousOrder);
-                    $marketIds[] = $marketId;
                 }
+                $marketIds[] = $marketId;
             }
         }
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -692,7 +689,7 @@ class poloniex extends \ccxt\async\poloniex {
             $market = $this->market($marketId);
             $symbol = $market['symbol'];
             $messageHash = 'orders::' . $symbol;
-            $client->resolve ($orders[$symbol], $messageHash);
+            $client->resolve ($orders, $messageHash);
         }
         $client->resolve ($orders, 'orders');
         return $message;
@@ -889,16 +886,16 @@ class poloniex extends \ccxt\async\poloniex {
                 }
                 $orderbook = $this->orderbooks[$symbol];
                 if ($bids !== null) {
-                    for ($i = 0; $i < count($bids); $i++) {
-                        $bid = $this->safe_value($bids, $i);
+                    for ($j = 0; $j < count($bids); $j++) {
+                        $bid = $this->safe_value($bids, $j);
                         $price = $this->safe_number($bid, 0);
                         $amount = $this->safe_number($bid, 1);
                         $orderbook['bids'].store ($price, $amount);
                     }
                 }
                 if ($asks !== null) {
-                    for ($i = 0; $i < count($asks); $i++) {
-                        $ask = $this->safe_value($asks, $i);
+                    for ($j = 0; $j < count($asks); $j++) {
+                        $ask = $this->safe_value($asks, $j);
                         $price = $this->safe_number($ask, 0);
                         $amount = $this->safe_number($ask, 1);
                         $orderbook['asks'].store ($price, $amount);

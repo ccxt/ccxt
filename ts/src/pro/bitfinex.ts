@@ -63,10 +63,10 @@ export default class bitfinex extends bitfinexRest {
          * @name bitfinex#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the bitfinex api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -83,8 +83,8 @@ export default class bitfinex extends bitfinexRest {
          * @name bitfinex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @param {object} [params] extra parameters specific to the bitfinex api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         return await this.subscribe ('ticker', symbol, params);
     }
@@ -168,16 +168,12 @@ export default class bitfinex extends bitfinexRest {
             id = this.safeString (trade, tradeLength - 4);
         }
         const timestamp = this.safeTimestamp (trade, tradeLength - 3);
-        const price = this.safeFloat (trade, tradeLength - 2);
-        let amount = this.safeFloat (trade, tradeLength - 1);
+        const price = this.safeString (trade, tradeLength - 2);
+        let amount = this.safeString (trade, tradeLength - 1);
         let side = undefined;
         if (amount !== undefined) {
-            side = (amount > 0) ? 'buy' : 'sell';
-            amount = Math.abs (amount);
-        }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
+            side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
+            amount = Precise.stringAbs (amount);
         }
         const seq = this.safeString (trade, 2);
         const parts = seq.split ('-');
@@ -188,7 +184,7 @@ export default class bitfinex extends bitfinexRest {
         const symbol = this.safeSymbol (marketId, market);
         const takerOrMaker = undefined;
         const orderId = undefined;
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -200,9 +196,9 @@ export default class bitfinex extends bitfinexRest {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
-        };
+        });
     }
 
     handleTicker (client: Client, message, subscription) {
@@ -264,9 +260,9 @@ export default class bitfinex extends bitfinexRest {
          * @name bitfinex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the bitfinex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         if (limit !== undefined) {
             if ((limit !== 25) && (limit !== 100)) {
@@ -356,13 +352,13 @@ export default class bitfinex extends bitfinexRest {
             const orderbook = this.orderbooks[symbol];
             if (isRaw) {
                 const id = this.safeString (message, 1);
-                const price = this.safeFloat (message, 2);
+                const price = this.safeString (message, 2);
                 const size = (message[3] < 0) ? -message[3] : message[3];
                 const side = (message[3] < 0) ? 'asks' : 'bids';
                 const bookside = orderbook[side];
                 // price = 0 means that you have to remove the order from your book
-                const amount = (price > 0) ? size : 0;
-                bookside.store (price, amount, id);
+                const amount = Precise.stringGt (price, '0') ? size : '0';
+                bookside.store (this.parseNumber (price), this.parseNumber (amount), id);
             } else {
                 const size = (message[3] < 0) ? -message[3] : message[3];
                 const side = (message[3] < 0) ? 'asks' : 'bids';
@@ -472,11 +468,11 @@ export default class bitfinex extends bitfinexRest {
          * @method
          * @name bitfinex#watchOrders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bitfinex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitfinex api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         await this.authenticate ();
@@ -488,7 +484,7 @@ export default class bitfinex extends bitfinexRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     handleOrders (client: Client, message, subscription) {

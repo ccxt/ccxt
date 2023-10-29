@@ -115,22 +115,27 @@ class poloniexfutures(Exchange, ImplicitAPI):
                     'get': {
                         'account-overview': 1,
                         'transaction-history': 1,
+                        'maxActiveOrders': 1,
+                        'maxRiskLimit': 1,
+                        'userFeeRate': 1,
+                        'marginType/query': 1,
                         'orders': 1,
                         'stopOrders': 1,
                         'recentDoneOrders': 1,
                         'orders/{order-id}': 1,
+                        'clientOrderId/{clientOid}': 1,
                         'fills': 1,
                         'openOrderStatistics': 1,
                         'position': 1.5,
                         'positions': 1.5,
                         'funding-history': 1,
-                        'marginType/query': 1,
                     },
                     'post': {
                         'orders': 1.5,
                         'batchOrders': 1.5,
                         'position/margin/auto-deposit-status': 1.5,
                         'position/margin/deposit-margin': 1.5,
+                        'position/margin/withdraw-margin': 1.5,
                         'bullet-private': 1,
                         'marginType/change': 1,
                     },
@@ -211,9 +216,9 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for poloniexfutures
-        see https://futures-docs.poloniex.com/#symbol-2
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :see: https://futures-docs.poloniex.com/#symbol-2
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         response = self.publicGetContractsActive(params)
         #
@@ -346,6 +351,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.safe_integer(market, 'firstOpenDate'),
                 'info': market,
             })
         return result
@@ -405,10 +411,10 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
+        :see: https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -439,10 +445,10 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :see: https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         self.load_markets()
         response = self.publicGetTickers(params)
@@ -451,12 +457,12 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://futures-docs.poloniex.com/#get-full-order-book-level-2
-        see https://futures-docs.poloniex.com/#get-full-order-book-level-3
+        :see: https://futures-docs.poloniex.com/#get-full-order-book-level-2
+        :see: https://futures-docs.poloniex.com/#get-full-order-book-level-3
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the poloniexfuturesfutures api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the poloniexfuturesfutures api endpoint
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         level = self.safe_number(params, 'level')
@@ -531,11 +537,11 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def fetch_l3_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://futures-docs.poloniex.com/#get-full-order-book-level-3
+        :see: https://futures-docs.poloniex.com/#get-full-order-book-level-3
         :param str symbol: unified market symbol
-        :param int|None limit: max number of orders to return, default is None
-        :param dict params: extra parameters specific to the blockchaincom api endpoint
-        :returns dict: an `order book structure <https://docs.ccxt.com/#/?id=order-book-structure>`
+        :param int [limit]: max number of orders to return, default is None
+        :param dict [params]: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: an `order book structure <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -630,12 +636,12 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://futures-docs.poloniex.com/#historical-data
+        :see: https://futures-docs.poloniex.com/#historical-data
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -665,8 +671,8 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the poloniexfutures server
-        see https://futures-docs.poloniex.com/#time
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
+        :see: https://futures-docs.poloniex.com/#time
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :returns int: the current integer timestamp in milliseconds from the poloniexfutures server
         """
         response = self.publicGetTimestamp(params)
@@ -682,13 +688,13 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://futures-docs.poloniex.com/#k-chart
+        :see: https://futures-docs.poloniex.com/#k-chart
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -744,9 +750,9 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://futures-docs.poloniex.com/#get-account-overview
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :see: https://futures-docs.poloniex.com/#get-account-overview
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         self.load_markets()
         currencyId = self.safe_string(params, 'currency')
@@ -777,25 +783,25 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         Create an order on the exchange
-        see https://futures-docs.poloniex.com/#place-an-order
+        :see: https://futures-docs.poloniex.com/#place-an-order
         :param str symbol: Unified CCXT market symbol
         :param str type: 'limit' or 'market'
         :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
-        :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
-        :param dict params:  Extra parameters specific to the exchange API endpoint
-        :param float params['leverage']: Leverage size of the order
-        :param float params['stopPrice']: The price at which a trigger order is triggered at
-        :param bool params['reduceOnly']: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
-        :param str params['timeInForce']: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-        :param str params['postOnly']: Post only flag, invalid when timeInForce is IOC or FOK
-        :param str params['clientOid']: client order id, defaults to uuid if not passed
-        :param str params['remark']: remark for the order, length cannot exceed 100 utf8 characters
-        :param str params['stop']: 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
-        :param str params['stopPriceType']:  TP, IP or MP, defaults to TP
-        :param bool params['closeOrder']: set to True to close position
-        :param bool params['forceHold']: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param float [price]: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param dict [params]:  Extra parameters specific to the exchange API endpoint
+        :param float [params.leverage]: Leverage size of the order
+        :param float [params.stopPrice]: The price at which a trigger order is triggered at
+        :param bool [params.reduceOnly]: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
+        :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+        :param str [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
+        :param str [params.clientOid]: client order id, defaults to uuid if not passed
+        :param str [params.remark]: remark for the order, length cannot exceed 100 utf8 characters
+        :param str [params.stop]: 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
+        :param str [params.stopPriceType]:  TP, IP or MP, defaults to TP
+        :param bool [params.closeOrder]: set to True to close position
+        :param bool [params.forceHold]: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -847,7 +853,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data', {})
-        return {
+        return self.safe_order({
             'id': self.safe_string(data, 'orderId'),
             'clientOrderId': None,
             'timestamp': None,
@@ -869,16 +875,16 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'postOnly': None,
             'stopPrice': None,
             'info': response,
-        }
+        }, market)
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
-        see https://futures-docs.poloniex.com/#cancel-an-order
+        :see: https://futures-docs.poloniex.com/#cancel-an-order
         :param str id: order id
-        :param str|None symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         request = {
@@ -911,10 +917,10 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
-        see https://futures-docs.poloniex.com/#get-position-list
-        :param [str]|None symbols: list of unified market symbols
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :see: https://futures-docs.poloniex.com/#get-position-list
+        :param str[]|None symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict[]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
         """
         self.load_markets()
         response = self.privateGetPositions(params)
@@ -1054,17 +1060,19 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'marginMode': marginMode,
             'side': side,
             'percentage': self.parse_number(Precise.string_div(unrealisedPnl, initialMargin)),
+            'stopLossPrice': None,
+            'takeProfitPrice': None,
         }
 
     def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
-        see https://futures-docs.poloniex.com/#get-funding-history
+        :see: https://futures-docs.poloniex.com/#get-funding-history
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch funding history for
-        :param int|None limit: the maximum number of funding history structures to retrieve
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict: a `funding history structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
@@ -1126,10 +1134,10 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
-        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :param dict params['stop']: When True, all the trigger orders will be cancelled
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :param dict [params.stop]: When True, all the trigger orders will be cancelled
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         request = {}
@@ -1182,18 +1190,18 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def fetch_orders_by_status(self, status, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches a list of orders placed on the exchange
-        see https://futures-docs.poloniex.com/#get-order-list
-        see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
+        :see: https://futures-docs.poloniex.com/#get-order-list
+        :see: https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
         :param str status: 'active' or 'closed', only 'active' is valid for stop orders
-        :param str|None symbol: unified symbol for the market to retrieve orders from
-        :param int|None since: timestamp in ms of the earliest order to retrieve
-        :param int|None limit: The maximum number of orders to retrieve
-        :param dict params: exchange specific parameters
-        :param bool|None params['stop']: set to True to retrieve untriggered stop orders
-        :param int|None params['until']: End time in ms
-        :param str|None params['side']: buy or sell
-        :param str|None params['type']: limit or market
-        :returns: An `array of order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified symbol for the market to retrieve orders from
+        :param int [since]: timestamp in ms of the earliest order to retrieve
+        :param int [limit]: The maximum number of orders to retrieve
+        :param dict [params]: exchange specific parameters
+        :param bool [params.stop]: set to True to retrieve untriggered stop orders
+        :param int [params.until]: End time in ms
+        :param str [params.side]: buy or sell
+        :param str [params.type]: limit or market
+        :returns: An `array of order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         stop = self.safe_value(params, 'stop')
@@ -1203,7 +1211,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             status = 'done'
         request = {}
         if not stop:
-            request['status'] = status == 'active' if 'open' else 'done'
+            request['status'] = 'active' if (status == 'open') else 'done'
         elif status != 'open':
             raise BadRequest(self.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders')
         market = None
@@ -1277,43 +1285,43 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
-        see https://futures-docs.poloniex.com/#get-order-list
-        see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :param int|None params['till']: end time in ms
-        :param str|None params['side']: buy or sell
-        :param str|None params['type']: limit, or market
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :see: https://futures-docs.poloniex.com/#get-order-list
+        :see: https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :param int [params.till]: end time in ms
+        :param str [params.side]: buy or sell
+        :param str [params.type]: limit, or market
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
-        see https://futures-docs.poloniex.com/#get-order-list
-        see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :param int|None params['till']: end time in ms
-        :param str|None params['side']: buy or sell
-        :param str|None params['type']: limit, or market
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :see: https://futures-docs.poloniex.com/#get-order-list
+        :see: https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :param int [params.till]: end time in ms
+        :param str [params.side]: buy or sell
+        :param str [params.type]: limit, or market
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         return self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
     def fetch_order(self, id=None, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        see https://futures-docs.poloniex.com/#get-details-of-a-single-order
-        see https://futures-docs.poloniex.com/#get-single-order-by-clientoid
-        :param str|None symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :see: https://futures-docs.poloniex.com/#get-details-of-a-single-order
+        :see: https://futures-docs.poloniex.com/#get-single-order-by-clientoid
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         request = {}
@@ -1500,10 +1508,10 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
-        see https://futures-docs.poloniex.com/#get-premium-index
+        :see: https://futures-docs.poloniex.com/#get-premium-index
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :returns dict: a `funding rate structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1546,16 +1554,16 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
-        see https://futures-docs.poloniex.com/#get-fills
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
-        :param str|None orderIdFills: filles for a specific order(other parameters can be ignored if specified)
-        :param str|None side: buy or sell
-        :param str|None type:  limit, market, limit_stop or market_stop
-        :param int|None endAt: end time(milisecond)
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :see: https://futures-docs.poloniex.com/#get-fills
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
+        :param str orderIdFills: filles for a specific order(other parameters can be ignored if specified)
+        :param str side: buy or sell
+        :param str type:  limit, market, limit_stop or market_stop
+        :param int endAt: end time(milisecond)
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         self.load_markets()
         request = {
@@ -1607,10 +1615,10 @@ class poloniexfutures(Exchange, ImplicitAPI):
     def set_margin_mode(self, marginMode, symbol, params={}):
         """
         set margin mode to 'cross' or 'isolated'
-        see https://futures-docs.poloniex.com/#change-margin-mode
+        :see: https://futures-docs.poloniex.com/#change-margin-mode
         :param int marginMode: 0(isolated) or 1(cross)
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the poloniexfutures api endpoint
+        :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :returns dict: response from the exchange
         """
         if symbol is None:

@@ -16,8 +16,6 @@ function test_trading_fee($exchange, $skipped_properties, $method, $symbol, $ent
         'symbol' => 'ETH/BTC',
         'maker' => $exchange->parse_number('0.002'),
         'taker' => $exchange->parse_number('0.003'),
-        'percentage' => false,
-        'tierBased' => false,
     );
     $empty_allowed_for = ['tierBased', 'percentage', 'symbol'];
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);

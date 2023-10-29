@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import coinbaseproRest from '../coinbasepro.js';
-import { AuthenticationError, ExchangeError, BadSymbol } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
@@ -17,17 +17,24 @@ export default class coinbasepro extends coinbaseproRest {
                 'ws': true,
                 'watchOHLCV': false, // missing on the exchange side
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchTicker': true,
-                'watchTickers': false, // for now
+                'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
+                'watchMyTradesForSymbols': true,
                 'watchBalance': false,
                 'watchStatus': false, // for now
                 'watchOrders': true,
+                'watchOrdersForSymbols': true,
                 'watchMyTrades': true,
             },
             'urls': {
                 'api': {
                     'ws': 'wss://ws-feed.pro.coinbase.com',
+                },
+                'test': {
+                    'ws': 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
                 },
             },
             'options': {
@@ -52,10 +59,16 @@ export default class coinbasepro extends coinbaseproRest {
         };
     }
 
-    async subscribe (name, symbol, messageHashStart, params = {}) {
+    async subscribe (name, symbol = undefined, messageHashStart = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const messageHash = messageHashStart + ':' + market['id'];
+        let market = undefined;
+        let messageHash = messageHashStart;
+        const productIds = [];
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            messageHash += ':' + market['id'];
+            productIds.push (market['id']);
+        }
         let url = this.urls['api']['ws'];
         if ('signature' in params) {
             // need to distinguish between public trades and user trades
@@ -63,9 +76,34 @@ export default class coinbasepro extends coinbaseproRest {
         }
         const subscribe = {
             'type': 'subscribe',
-            'product_ids': [
-                market['id'],
+            'product_ids': productIds,
+            'channels': [
+                name,
             ],
+        };
+        const request = this.extend (subscribe, params);
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    async subscribeMultiple (name, symbols = [], messageHashStart = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        symbols = this.marketSymbols (symbols);
+        const messageHash = messageHashStart + symbols.join (',');
+        const productIds = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            market = this.market (symbol);
+            productIds.push (market['id']);
+        }
+        let url = this.urls['api']['ws'];
+        if ('signature' in params) {
+            // need to distinguish between public trades and user trades
+            url = url + '?';
+        }
+        const subscribe = {
+            'type': 'subscribe',
+            'product_ids': productIds,
             'channels': [
                 name,
             ],
@@ -80,11 +118,36 @@ export default class coinbasepro extends coinbaseproRest {
          * @name coinbasepro#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         const name = 'ticker';
         return await this.subscribe (name, symbol, name, params);
+    }
+
+    async watchTickers (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchTickers
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new BadSymbol (this.id + ' watchTickers requires a non-empty symbols array');
+        }
+        const channel = 'ticker';
+        const messageHash = 'tickers::';
+        const newTickers = await this.subscribeMultiple (channel, symbols, messageHash, params);
+        if (this.newUpdates) {
+            return newTickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -93,10 +156,10 @@ export default class coinbasepro extends coinbaseproRest {
          * @name coinbasepro#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -108,20 +171,46 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#watchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new BadRequest (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const name = 'matches';
+        const messageHash = 'multipleTrades::';
+        const trades = await this.subscribeMultiple (name, symbols, messageHash, params);
+        if (this.newUpdates) {
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
     async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchMyTrades
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
-        if (symbol === undefined) {
-            throw new BadSymbol (this.id + ' watchMyTrades requires a symbol');
-        }
+        this.checkRequiredSymbol ('watchMyTrades', symbol);
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const name = 'user';
@@ -134,16 +223,66 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    async watchMyTradesForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#watchMyTradesForSymbols
+         * @description watches information on multiple trades made by the user
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         */
+        symbols = this.marketSymbols (symbols, undefined, false);
+        await this.loadMarkets ();
+        const name = 'user';
+        const messageHash = 'multipleMyTrades::';
+        const authentication = this.authenticate ();
+        const trades = await this.subscribeMultiple (name, symbols, messageHash, this.extend (params, authentication));
+        if (this.newUpdates) {
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async watchOrdersForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#watchOrdersForSymbols
+         * @description watches information on multiple orders made by the user
+         * @param {string[]} symbols unified symbol of the market to fetch orders for
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        symbols = this.marketSymbols (symbols, undefined, false);
+        await this.loadMarkets ();
+        const name = 'user';
+        const messageHash = 'multipleOrders::';
+        const authentication = this.authenticate ();
+        const orders = await this.subscribeMultiple (name, symbols, messageHash, this.extend (params, authentication));
+        if (this.newUpdates) {
+            const first = this.safeValue (orders, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = orders.getLimit (tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+    }
+
     async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchOrders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         if (symbol === undefined) {
             throw new BadSymbol (this.id + ' watchMyTrades requires a symbol');
@@ -166,9 +305,9 @@ export default class coinbasepro extends coinbaseproRest {
          * @name coinbasepro#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         const name = 'level2';
         await this.loadMarkets ();
@@ -192,7 +331,47 @@ export default class coinbasepro extends coinbaseproRest {
             'marketId': market['id'],
             'limit': limit,
         };
-        const orderbook = await this.watch (url, messageHash, request, messageHash, subscription);
+        const authentication = this.authenticate ();
+        const orderbook = await this.watch (url, messageHash, this.extend (request, authentication), messageHash, subscription);
+        return orderbook.limit ();
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new BadRequest (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        const name = 'level2';
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbols);
+        const messageHash = 'multipleOrderbooks' + '::' + symbols.join (',');
+        const url = this.urls['api']['ws'];
+        const subscribe = {
+            'type': 'subscribe',
+            'product_ids': marketIds,
+            'channels': [
+                name,
+            ],
+        };
+        const request = this.extend (subscribe, params);
+        const subscription = {
+            'messageHash': messageHash,
+            'symbols': symbols,
+            'marketIds': marketIds,
+            'limit': limit,
+        };
+        const authentication = this.authenticate ();
+        const orderbook = await this.watch (url, messageHash, this.extend (request, authentication), messageHash, subscription);
         return orderbook.limit ();
     }
 
@@ -228,6 +407,7 @@ export default class coinbasepro extends coinbaseproRest {
             }
             tradesArray.append (trade);
             client.resolve (tradesArray, messageHash);
+            this.resolvePromiseIfMessagehashMatches (client, 'multipleTrades::', symbol, tradesArray);
         }
         return message;
     }
@@ -236,6 +416,7 @@ export default class coinbasepro extends coinbaseproRest {
         const marketId = this.safeString (message, 'product_id');
         if (marketId !== undefined) {
             const trade = this.parseWsTrade (message);
+            const symbol = trade['symbol'];
             const type = 'myTrades';
             const messageHash = type + ':' + marketId;
             let tradesArray = this.myTrades;
@@ -246,6 +427,7 @@ export default class coinbasepro extends coinbaseproRest {
             }
             tradesArray.append (trade);
             client.resolve (tradesArray, messageHash);
+            this.resolvePromiseIfMessagehashMatches (client, 'multipleMyTrades::', symbol, tradesArray);
         }
         return message;
     }
@@ -303,13 +485,24 @@ export default class coinbasepro extends coinbaseproRest {
         // }
         const parsed = super.parseTrade (trade);
         let feeRate = undefined;
+        let isMaker = false;
         if ('maker_fee_rate' in trade) {
+            isMaker = true;
             parsed['takerOrMaker'] = 'maker';
             feeRate = this.safeNumber (trade, 'maker_fee_rate');
         } else {
             parsed['takerOrMaker'] = 'taker';
             feeRate = this.safeNumber (trade, 'taker_fee_rate');
+            // side always represents the maker side of the trade
+            // so if we're taker, we invert it
+            const currentSide = parsed['side'];
+            parsed['side'] = this.safeString ({
+                'buy': 'sell',
+                'sell': 'buy',
+            }, currentSide, currentSide);
         }
+        const idKey = isMaker ? 'maker_order_id' : 'taker_order_id';
+        parsed['order'] = this.safeString (trade, idKey);
         market = this.market (parsed['symbol']);
         const feeCurrency = market['quote'];
         let feeCost = undefined;
@@ -413,11 +606,11 @@ export default class coinbasepro extends coinbaseproRest {
         //         reason: 'filled'
         //     }
         //
-        let orders = this.orders;
-        if (orders === undefined) {
+        let currentOrders = this.orders;
+        if (currentOrders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            orders = new ArrayCacheBySymbolById (limit);
-            this.orders = orders;
+            currentOrders = new ArrayCacheBySymbolById (limit);
+            this.orders = currentOrders;
         }
         const type = this.safeString (message, 'type');
         const marketId = this.safeString (message, 'product_id');
@@ -437,6 +630,7 @@ export default class coinbasepro extends coinbaseproRest {
                 const parsed = this.parseWsOrder (message);
                 orders.append (parsed);
                 client.resolve (orders, messageHash);
+                this.resolvePromiseIfMessagehashMatches (client, 'multipleOrders::', symbol, orders);
             } else {
                 const sequence = this.safeInteger (message, 'sequence');
                 const previousInfo = this.safeValue (previousOrder, 'info', {});
@@ -453,9 +647,9 @@ export default class coinbasepro extends coinbaseproRest {
                         let totalAmount = 0;
                         const trades = previousOrder['trades'];
                         for (let i = 0; i < trades.length; i++) {
-                            const trade = trades[i];
-                            totalCost = this.sum (totalCost, trade['cost']);
-                            totalAmount = this.sum (totalAmount, trade['amount']);
+                            const tradeEntry = trades[i];
+                            totalCost = this.sum (totalCost, tradeEntry['cost']);
+                            totalAmount = this.sum (totalAmount, tradeEntry['amount']);
                         }
                         if (totalAmount > 0) {
                             previousOrder['average'] = totalCost / totalAmount;
@@ -479,6 +673,7 @@ export default class coinbasepro extends coinbaseproRest {
                         // update the newUpdates count
                         orders.append (previousOrder);
                         client.resolve (orders, messageHash);
+                        this.resolvePromiseIfMessagehashMatches (client, 'multipleOrders::', symbol, orders);
                     } else if ((type === 'received') || (type === 'done')) {
                         const info = this.extend (previousOrder['info'], message);
                         const order = this.parseWsOrder (info);
@@ -493,6 +688,7 @@ export default class coinbasepro extends coinbaseproRest {
                         // update the newUpdates count
                         orders.append (previousOrder);
                         client.resolve (orders, messageHash);
+                        this.resolvePromiseIfMessagehashMatches (client, 'multipleOrders::', symbol, orders);
                     }
                 }
             }
@@ -523,11 +719,7 @@ export default class coinbasepro extends coinbaseproRest {
                 remaining = amount - filled;
             }
         }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
-        return {
+        return this.safeOrder ({
             'info': order,
             'symbol': symbol,
             'id': id,
@@ -543,14 +735,14 @@ export default class coinbasepro extends coinbaseproRest {
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': undefined,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     handleTicker (client: Client, message) {
@@ -581,6 +773,16 @@ export default class coinbasepro extends coinbaseproRest {
             const type = this.safeString (message, 'type');
             const messageHash = type + ':' + marketId;
             client.resolve (ticker, messageHash);
+            const messageHashes = this.findMessageHashes (client, 'tickers::');
+            for (let i = 0; i < messageHashes.length; i++) {
+                const currentMessageHash = messageHashes[i];
+                const parts = currentMessageHash.split ('::');
+                const symbolsString = parts[1];
+                const symbols = symbolsString.split (',');
+                if (this.inArray (symbol, symbols)) {
+                    client.resolve (ticker, currentMessageHash);
+                }
+            }
         }
         return message;
     }
@@ -614,29 +816,29 @@ export default class coinbasepro extends coinbaseproRest {
         const marketId = this.safeString (ticker, 'product_id');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
-        const last = this.safeNumber (ticker, 'price');
-        return {
+        const last = this.safeString (ticker, 'price');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high_24h'),
-            'low': this.safeNumber (ticker, 'low_24h'),
-            'bid': this.safeNumber (ticker, 'best_bid'),
-            'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
-            'ask': this.safeNumber (ticker, 'best_ask'),
-            'askVolume': this.safeNumber (ticker, 'best_ask_size'),
+            'high': this.safeString (ticker, 'high_24h'),
+            'low': this.safeString (ticker, 'low_24h'),
+            'bid': this.safeString (ticker, 'best_bid'),
+            'bidVolume': this.safeString (ticker, 'best_bid_size'),
+            'ask': this.safeString (ticker, 'best_ask'),
+            'askVolume': this.safeString (ticker, 'best_ask_size'),
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open_24h'),
+            'open': this.safeString (ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume_24h'),
+            'baseVolume': this.safeString (ticker, 'volume_24h'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        });
     }
 
     handleDelta (bookside, delta) {
@@ -694,6 +896,7 @@ export default class coinbasepro extends coinbaseproRest {
             orderbook['datetime'] = undefined;
             orderbook['symbol'] = symbol;
             client.resolve (orderbook, messageHash);
+            this.resolvePromiseIfMessagehashMatches (client, 'multipleOrderbooks::', symbol, orderbook);
         } else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];
             const timestamp = this.parse8601 (this.safeString (message, 'time'));
@@ -714,6 +917,7 @@ export default class coinbasepro extends coinbaseproRest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
             client.resolve (orderbook, messageHash);
+            this.resolvePromiseIfMessagehashMatches (client, 'multipleOrderbooks::', symbol, orderbook);
         }
     }
 

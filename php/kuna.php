@@ -65,6 +65,7 @@ class kuna extends Exchange {
                 'api' => array(
                     'xreserve' => 'https://api.xreserve.fund',
                     'v3' => 'https://api.kuna.io',
+                    'v4' => 'https://api.kuna.io',
                     'public' => 'https://kuna.io', // v2
                     'private' => 'https://kuna.io', // v2
                 ),
@@ -81,6 +82,54 @@ class kuna extends Exchange {
                     ),
                     'post' => array(
                         'delegate-transfer' => 1,
+                    ),
+                ),
+                'v4' => array(
+                    'private' => array(
+                        'get' => array(
+                            'me' => 1,
+                            'getBalance' => 1,
+                            'active' => 1,
+                            'order/history' => 1,
+                            'order/private/{id}/trades' => 1,
+                            'order/details/{id}?withTrades={withTrades}' => 1,
+                            'trade/history' => 1,
+                            'transaction/{hash}' => 1,
+                            'deposit/preRequest' => 1,
+                            'deposit/crypto/address' => 1,
+                            'deposit/crypto/getMerchantAddress' => 1,
+                            'deposit/history' => 1,
+                            'deposit/details/{depositId}' => 1,
+                            'withdraw/preRequest' => 1,
+                            'withdraw/history' => 1,
+                            'withdraw/details/{withdrawId}' => 1,
+                            'kuna-code/{id}' => 1,
+                            'kuna-code/{code}/check' => 1,
+                            'kuna-code/issued-by-me' => 1,
+                            'kuna-code/redeemed-by-me' => 1,
+                        ),
+                        'post' => array(
+                            'order/create' => 1,
+                            'order/cancel' => 1,
+                            'order/cancel/multi' => 1,
+                            'deposit/crypto/generateAddress' => 1,
+                            'deposit/crypto/generateMerchantAddress' => 1,
+                            'withdraw/create' => 1,
+                            'kuna-code' => 1,
+                        ),
+                        'put' => array(
+                            'kuna-code/redeem' => 1,
+                        ),
+                    ),
+                    'public' => array(
+                        'get' => array(
+                            'timestamp' => 1,
+                            'fees' => 1,
+                            'currencies?type={type}' => 1,
+                            'markets/getAll' => 1,
+                            'markets/tickers?pairs={pairs}' => 1,
+                            'order/book/{pairs}' => 1,
+                        ),
                     ),
                 ),
                 'v3' => array(
@@ -290,13 +339,16 @@ class kuna extends Exchange {
                 '2002' => '\\ccxt\\InsufficientFunds',
                 '2003' => '\\ccxt\\OrderNotFound',
             ),
+            'options' => array(
+                // 'account' => 'pro'      // Only for pro accounts
+            ),
         ));
     }
 
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {array} $params extra parameters specific to the kuna api endpoint
+         * @param {array} [$params] extra parameters specific to the kuna api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $response = $this->publicGetTimestamp ($params);
@@ -309,8 +361,8 @@ class kuna extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for kuna
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing market data
+         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @return {array[]} an array of objects representing market data
          */
         $quotes = array( 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' );
         $markets = array();
@@ -393,6 +445,7 @@ class kuna extends Exchange {
                                 'max' => null,
                             ),
                         ),
+                        'created' => null,
                         'info' => null,
                     );
                 }
@@ -405,9 +458,9 @@ class kuna extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the kuna api endpoint
+         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -454,9 +507,9 @@ class kuna extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=ticker-structure ticker structures~
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the kuna api endpoint
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -469,15 +522,15 @@ class kuna extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($response[$id], $market);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @param {array} [$params] extra parameters specific to the kuna api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -492,9 +545,9 @@ class kuna extends Exchange {
         /**
          * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified market $symbol
-         * @param {int|null} $limit max number of orders to return, default is null
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
+         * @param {int} [$limit] max number of orders to return, default is null
+         * @param {array} [$params] extra parameters specific to the kuna api endpoint
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structure}
          */
         return $this->fetch_order_book($symbol, $limit, $params);
     }
@@ -503,10 +556,10 @@ class kuna extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the kuna api endpoint
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -600,10 +653,10 @@ class kuna extends Exchange {
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the kuna api endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $trades = $this->fetch_trades($symbol, $since, $limit, $params);
@@ -641,8 +694,8 @@ class kuna extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @param {array} [$params] extra parameters specific to the kuna api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $this->load_markets();
         $response = $this->privateGetMembersMe ($params);
@@ -656,9 +709,9 @@ class kuna extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the kuna api endpoint
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -679,9 +732,9 @@ class kuna extends Exchange {
         /**
          * cancels an open $order
          * @param {string} $id $order $id
-         * @param {string|null} $symbol not used by kuna cancelOrder ()
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @param {string} $symbol not used by kuna cancelOrder ()
+         * @param {array} [$params] extra parameters specific to the kuna api endpoint
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
         $this->load_markets();
         $request = array(
@@ -742,9 +795,9 @@ class kuna extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
-         * @param {string|null} $symbol not used by kuna fetchOrder
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @param {string} $symbol not used by kuna fetchOrder
+         * @param {array} [$params] extra parameters specific to the kuna api endpoint
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $request = array(
@@ -758,10 +811,10 @@ class kuna extends Exchange {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the kuna api endpoint
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -782,10 +835,10 @@ class kuna extends Exchange {
         /**
          * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the kuna api endpoint
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -840,18 +893,49 @@ class kuna extends Exchange {
         $url = null;
         if (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api))) {
             list($version, $access) = $api;
-            $url = $this->urls['api'][$version] . '/' . $version . '/' . $this->implode_params($path, $params);
-            if ($access === 'public') {
-                if ($method === 'GET') {
-                    if ($params) {
-                        $url .= '?' . $this->urlencode($params);
+            if ($version === 'v3') {
+                $url = $this->urls['api'][$version] . '/' . $version . '/' . $this->implode_params($path, $params);
+                if ($access === 'public') {
+                    if ($method === 'GET') {
+                        if ($params) {
+                            $url .= '?' . $this->urlencode($params);
+                        }
+                    } elseif (($method === 'POST') || ($method === 'PUT')) {
+                        $headers = array( 'Content-Type' => 'application/json' );
+                        $body = $this->json($params);
                     }
-                } elseif (($method === 'POST') || ($method === 'PUT')) {
-                    $headers = array( 'Content-Type' => 'application/json' );
-                    $body = $this->json($params);
+                } elseif ($access === 'private') {
+                    throw new NotSupported($this->id . ' private v3 API is not supported yet');
                 }
-            } elseif ($access === 'private') {
-                throw new NotSupported($this->id . ' private v3 API is not supported yet');
+            } elseif ($version === 'v4') {
+                $splitPath = explode('/', $path);
+                $splitPathLength = count($splitPath);
+                $urlPath = '';
+                if (($splitPathLength > 1) && ($splitPath[0] !== 'kuna-code')) {
+                    $pathTail = '';
+                    for ($i = 1; $i < $splitPathLength; $i++) {
+                        $pathTail .= $splitPath[$i];
+                    }
+                    $urlPath = '/' . $version . '/' . $splitPath[0] . '/' . $access . '/' . $this->implode_params($pathTail, $params);
+                } else {
+                    $urlPath = '/' . $version . '/' . $access . '/' . $this->implode_params($path, $params);
+                }
+                $url = $this->urls['api'][$version] . $urlPath;
+                if ($access === 'private') {
+                    $nonce = $this->nonce();
+                    $auth = $urlPath . $nonce . $this->json($params);
+                    $headers = array(
+                        'content-type' => 'application/json',
+                        'accept' => 'application/json',
+                        'nonce' => $nonce,
+                        'public-key' => $this->apiKey,
+                        'signature' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha384', 'hex'),
+                    );
+                    $account = $this->safe_string($this->options, 'account');
+                    if ($account === 'pro') {
+                        $headers['account'] = 'pro';
+                    }
+                }
             }
         } else {
             $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);

@@ -31,7 +31,7 @@ export default class huobi extends huobiRest {
     handleSubject(client: Client, message: any): any;
     pong(client: any, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;
-    handleAuthenticate(client: Client, message: any): any;
+    handleAuthenticate(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): any;
     handleMessage(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any, extendParams?: {}): void;

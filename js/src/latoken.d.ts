@@ -1,5 +1,9 @@
 import Exchange from './abstract/latoken.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class latoken
+ * @extends Exchange
+ */
 export default class latoken extends Exchange {
     describe(): any;
     nonce(): number;
@@ -11,7 +15,7 @@ export default class latoken extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTradingFee(symbol: string, params?: {}): Promise<any>;
@@ -57,7 +61,12 @@ export default class latoken extends Exchange {
         currency: any;
         status: string;
         updated: any;
-        fee: any;
+        comment: any;
+        fee: {
+            currency: any;
+            cost: any;
+            rate: any;
+        };
     };
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;

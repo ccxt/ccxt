@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitforex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class bitforex
+ * @extends Exchange
+ */
 export default class bitforex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;

@@ -7,21 +7,7 @@ export default class bitfinex extends bitfinexRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any, subscription: any): any;
-    parseTrade(trade: any, market?: any): import("../base/types.js").Trade | {
-        info: any[];
-        timestamp: number;
-        datetime: string;
-        symbol: any;
-        id: any;
-        order: any;
-        type: any;
-        takerOrMaker: any;
-        side: any;
-        price: number;
-        amount: number;
-        cost: any;
-        fee: any;
-    };
+    parseTrade(trade: any, market?: any): import("../base/types.js").Trade;
     handleTicker(client: Client, message: any, subscription: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any, subscription: any): void;

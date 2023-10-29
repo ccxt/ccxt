@@ -29,7 +29,7 @@ with open(package_json, encoding='utf-8') as f:
 
 project_urls = {
     'Homepage': 'https://ccxt.com',
-    'Documentation': 'https://docs.ccxt.com',
+    'Documentation': 'https://github.com/ccxt/ccxt/wiki',
     'Discord': 'https://discord.gg/ccxt',
     'Twitter': 'https://twitter.com/ccxt_official',
     'Funding': 'https://opencollective.com/ccxt',
@@ -92,7 +92,7 @@ setup(
             'yarl>=1.7.2',
         ],
         'qa': [
-            'flake8==3.7.9',
+            'ruff==0.0.292',
         ],
     },
     project_urls=project_urls,

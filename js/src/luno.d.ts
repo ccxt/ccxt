@@ -1,5 +1,9 @@
 import Exchange from './abstract/luno.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+/**
+ * @class luno
+ * @extends Exchange
+ */
 export default class luno extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -15,7 +19,7 @@ export default class luno extends Exchange {
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
@@ -43,10 +47,10 @@ export default class luno extends Exchange {
         type: string;
         currency: any;
         amount: number;
-        timestamp: any;
+        timestamp: number;
         datetime: string;
-        before: string;
-        after: string;
+        before: number;
+        after: number;
         status: any;
         fee: any;
         info: any;

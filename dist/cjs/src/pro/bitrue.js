@@ -56,10 +56,10 @@ class bitrue extends bitrue$1 {
         /**
          * @method
          * @name bitrue#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-         * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the bitrue api endpoint
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         const url = await this.authenticate();
         const messageHash = 'balance';
@@ -170,11 +170,11 @@ class bitrue extends bitrue$1 {
          * @name bitrue#watchOrders
          * @description watches information on user orders
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-         * @param {[string]} symbols unified symbols of the market to watch the orders for
-         * @param {int|undefined} since timestamp in ms of the earliest order
-         * @param {int|undefined} limit the maximum amount of orders to return
-         * @param {object} params extra parameters specific to the bitrue api endpoint
-         * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
+         * @param {string[]} symbols unified symbols of the market to watch the orders for
+         * @param {int} [since] timestamp in ms of the earliest order
+         * @param {int} [limit] the maximum amount of orders to return
+         * @param {object} [params] extra parameters specific to the bitrue api endpoint
+         * @returns {object} A dictionary of [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure} indexed by market symbols
          */
         await this.loadMarkets();
         if (symbol !== undefined) {
@@ -194,7 +194,7 @@ class bitrue extends bitrue$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrder(client, message) {
         //

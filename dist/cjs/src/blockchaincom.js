@@ -7,6 +7,10 @@ var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
+/**
+ * @class blockchaincom
+ * @extends Exchange
+ */
 class blockchaincom extends blockchaincom$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -164,6 +168,49 @@ class blockchaincom extends blockchaincom$1 {
                 'apiKey': false,
                 'secret': true,
             },
+            'options': {
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'ALGO': 'ALGO',
+                    'ADA': 'ADA',
+                    'AR': 'AR',
+                    'ATOM': 'ATOM',
+                    'AVAXC': 'AVAX',
+                    'BCH': 'BCH',
+                    'BSV': 'BSV',
+                    'BTC': 'BTC',
+                    // 'BEP20': 'BNB', // todo
+                    'DCR': 'DCR',
+                    'DESO': 'DESO',
+                    'DASH': 'DASH',
+                    'CELO': 'CELO',
+                    'CHZ': 'CHZ',
+                    'MATIC': 'MATIC',
+                    'SOL': 'SOL',
+                    'DOGE': 'DOGE',
+                    'DOT': 'DOT',
+                    'EOS': 'EOS',
+                    'ETC': 'ETC',
+                    'FIL': 'FIL',
+                    'KAVA': 'KAVA',
+                    'LTC': 'LTC',
+                    'IOTA': 'MIOTA',
+                    'NEAR': 'NEAR',
+                    'STX': 'STX',
+                    'XLM': 'XLM',
+                    'XMR': 'XMR',
+                    'XRP': 'XRP',
+                    'XTZ': 'XTZ',
+                    'ZEC': 'ZEC',
+                    'ZIL': 'ZIL',
+                    // 'THETA': 'THETA', // todo: possible TFUEL THETA FUEL is also same, but API might have a mistake
+                    // todo: uncomment below after consensus
+                    // 'MOBILECOIN': 'MOB',
+                    // 'KIN': 'KIN',
+                    // 'DIGITALGOLD': 'DGLD',
+                },
+            },
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -179,8 +226,8 @@ class blockchaincom extends blockchaincom$1 {
          * @method
          * @name blockchaincom#fetchMarkets
          * @description retrieves data on all markets for blockchaincom
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
          */
         //
         //     "USDC-GBP": {
@@ -299,6 +346,7 @@ class blockchaincom extends blockchaincom$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
             });
         }
         return result;
@@ -309,9 +357,9 @@ class blockchaincom extends blockchaincom$1 {
          * @name blockchaincom#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         return await this.fetchL3OrderBook(symbol, limit, params);
     }
@@ -321,9 +369,9 @@ class blockchaincom extends blockchaincom$1 {
          * @name blockchaincom#fetchL3OrderBook
          * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified market symbol
-         * @param {int|undefined} limit max number of orders to return, default is undefined
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+         * @param {int} [limit] max number of orders to return, default is undefined
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} an [order book structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -391,8 +439,8 @@ class blockchaincom extends blockchaincom$1 {
          * @name blockchaincom#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -407,9 +455,9 @@ class blockchaincom extends blockchaincom$1 {
          * @method
          * @name blockchaincom#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const tickers = await this.publicGetTickers(params);
@@ -491,9 +539,9 @@ class blockchaincom extends blockchaincom$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -550,9 +598,9 @@ class blockchaincom extends blockchaincom$1 {
          * @name blockchaincom#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const request = {
             'orderId': id,
@@ -568,9 +616,9 @@ class blockchaincom extends blockchaincom$1 {
          * @method
          * @name blockchaincom#cancelAllOrders
          * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         // cancels all open orders if no symbol specified
         // cancels all open orders of specified symbol, if symbol is specified
@@ -593,8 +641,8 @@ class blockchaincom extends blockchaincom$1 {
          * @method
          * @name blockchaincom#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.privateGetFees(params);
@@ -624,11 +672,11 @@ class blockchaincom extends blockchaincom$1 {
          * @method
          * @name blockchaincom#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
-         * @param {int|undefined} limit max number of orders to return, default is undefined
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+         * @param {int} [limit] max number of orders to return, default is undefined
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const state = 'CANCELED';
         return await this.fetchOrdersByState(state, symbol, since, limit, params);
@@ -638,11 +686,11 @@ class blockchaincom extends blockchaincom$1 {
          * @method
          * @name blockchaincom#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const state = 'FILLED';
         return await this.fetchOrdersByState(state, symbol, since, limit, params);
@@ -652,11 +700,11 @@ class blockchaincom extends blockchaincom$1 {
          * @method
          * @name blockchaincom#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const state = 'OPEN';
         return await this.fetchOrdersByState(state, symbol, since, limit, params);
@@ -728,11 +776,11 @@ class blockchaincom extends blockchaincom$1 {
          * @method
          * @name blockchaincom#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -753,8 +801,8 @@ class blockchaincom extends blockchaincom$1 {
          * @name blockchaincom#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -863,7 +911,7 @@ class blockchaincom extends blockchaincom$1 {
          * @method
          * @name blockchaincom#fetchWithdrawalWhitelist
          * @description fetch the list of withdrawal addresses on the whitelist
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
          * @returns {object} dictionary with keys beneficiaryId, name, currency
          */
         await this.loadMarkets();
@@ -907,9 +955,9 @@ class blockchaincom extends blockchaincom$1 {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -938,11 +986,11 @@ class blockchaincom extends blockchaincom$1 {
          * @method
          * @name blockchaincom#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -965,9 +1013,9 @@ class blockchaincom extends blockchaincom$1 {
          * @name blockchaincom#fetchWithdrawal
          * @description fetch data on a currency withdrawal via the withdrawal id
          * @param {string} id withdrawal id
-         * @param {string|undefined} code not used by blockchaincom.fetchWithdrawal
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {string} code not used by blockchaincom.fetchWithdrawal
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -981,11 +1029,11 @@ class blockchaincom extends blockchaincom$1 {
          * @method
          * @name blockchaincom#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1008,9 +1056,9 @@ class blockchaincom extends blockchaincom$1 {
          * @name blockchaincom#fetchDeposit
          * @description fetch information on a deposit
          * @param {string} id deposit id
-         * @param {string|undefined} code not used by blockchaincom fetchDeposit ()
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @param {string} code not used by blockchaincom fetchDeposit ()
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
         const depositId = this.safeString(params, 'depositId', id);
@@ -1025,8 +1073,8 @@ class blockchaincom extends blockchaincom$1 {
          * @method
          * @name blockchaincom#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         const accountName = this.safeString(params, 'account', 'primary');
@@ -1071,9 +1119,9 @@ class blockchaincom extends blockchaincom$1 {
          * @method
          * @name blockchaincom#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol not used by blockchaincom fetchOrder
-         * @param {object} params extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol not used by blockchaincom fetchOrder
+         * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         // note: only works with exchange-order-id
         // does not work with clientOrderId

@@ -1,0 +1,10 @@
+{
+    "url": "ws://127.0.0.1:9002"
+  , "options": {
+        "failByDrop": false
+    }
+  , "outdir": "./reports/clients"
+  , "cases": ["*"]
+  , "exclude-cases": ["12.*", "13.*"]
+  , "exclude-agent-cases": {}
+}
