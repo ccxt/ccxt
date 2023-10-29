@@ -786,4 +786,26 @@ public partial class Exchange
             status = SafeString(transfer, "status");
         }
     }
+
+    public struct OrderRequest
+    {
+
+        public string? symbol;
+        public string? type;
+        public string? side;
+        public double? amount;
+        public double? price;
+        public Dictionary<string, object>? parameters;
+
+
+        public OrderRequest(object request)
+        {
+            amount = SafeFloat(request, "amount");
+            price = SafeFloat(request, "amount");
+            type = SafeString(request, "status");
+            side = SafeString(request, "status");
+            symbol = SafeString(request, "status");
+            parameters = SafeValue(request, "parameters") != null ? (Dictionary<string, object>)SafeValue(request, "parameters") : null;
+        }
+    }
 }
