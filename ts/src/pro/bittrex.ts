@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bittrexRest from '../bittrex.js';
-import { InvalidNonce, BadRequest } from '../base/errors.js';
+import { InvalidNonce, BadRequest, ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { inflateSync as inflate } from '../static_dependencies/fflake/browser.js';
@@ -47,6 +47,12 @@ export default class bittrex extends bittrexRest {
                 'I': this.milliseconds (),
                 'watchOrderBook': {
                     'maxRetries': 3,
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'INVALID_APIKEY': AuthenticationError,
+                    'UNAUTHORIZED_USER': AuthenticationError,
                 },
             },
         });
@@ -106,6 +112,7 @@ export default class bittrex extends bittrexRest {
     }
 
     async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const request = await this.negotiate ();
         return await this.sendRequestToAuthenticate (request, false, params);
@@ -127,7 +134,7 @@ export default class bittrex extends bittrexRest {
                 'negotiation': negotiation,
                 'method': this.handleAuthenticate,
             };
-            this.spawn (this.watch, url, messageHash, request, requestId, subscription);
+            this.watch (url, messageHash, request, requestId, subscription);
         }
         return await future;
     }
@@ -832,6 +839,59 @@ export default class bittrex extends bittrexRest {
         return message;
     }
 
+    handleErrorMessage (client: Client, message) {
+        //
+        //    {
+        //        R: [{ Success: false, ErrorCode: 'UNAUTHORIZED_USER' }, ... ],
+        //        I: '1698601759267'
+        //    }
+        //    {
+        //        R: { Success: false, ErrorCode: 'INVALID_APIKEY' },
+        //        I: '1698601759266'
+        //    }
+        //
+        const R = this.safeValue (message, 'R');
+        if (R === undefined) {
+            // Return there is no error
+            return false;
+        }
+        const I = this.safeString (message, 'I');
+        let errorCode = undefined;
+        if (Array.isArray (R)) {
+            for (let i = 0; i < R.length; i++) {
+                const response = this.safeValue (R, i);
+                const success = this.safeValue (response, 'Success', true);
+                if (!success) {
+                    errorCode = this.safeString (response, 'ErrorCode');
+                    break;
+                }
+            }
+        } else {
+            const success = this.safeValue (R, 'Success', true);
+            if (!success) {
+                errorCode = this.safeString (R, 'ErrorCode');
+            }
+        }
+        if (errorCode === undefined) {
+            // Return there is no error
+            return false;
+        }
+        const feedback = this.id + ' ' + errorCode;
+        try {
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            if (message !== undefined) {
+                this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
+            }
+            throw new ExchangeError (feedback);
+        } catch (e) {
+            if (e instanceof AuthenticationError) {
+                client.reject (e, 'authenticate');
+            }
+            client.reject (e, I);
+        }
+        return true;
+    }
+
     handleMessage (client: Client, message) {
         //
         // subscription confirmation
@@ -878,6 +938,9 @@ export default class bittrex extends bittrexRest {
         //         M: [ { H: 'C3', M: 'authenticationExpiring', A: [] } ]
         //     }
         //
+        if (this.handleErrorMessage (client, message)) {
+            return;
+        }
         const methods = {
             'authenticationExpiring': this.handleAuthenticationExpiring,
             'order': this.handleOrder,
