@@ -28,12 +28,10 @@ def test_order_book(exchange, skipped_properties, method, entry, symbol):
     }
     empty_allowed_for = ['symbol', 'nonce', 'datetime', 'timestamp']  # todo: make timestamp required
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
-    test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry)
+    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry)
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)
     log_text = test_shared_methods.log_template(exchange, method, entry)
     #
-    if ('bid' in skipped_properties) or ('ask' in skipped_properties):
-        return
     bids = entry['bids']
     bids_length = len(bids)
     for i in range(0, bids_length):
@@ -54,8 +52,6 @@ def test_order_book(exchange, skipped_properties, method, entry, symbol):
             assert Precise.string_lt(current_ask_string, next_ask_string), 'current ask should be < than the next one: ' + current_ask_string + '<' + next_ask_string + log_text
         test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 0, '0')
         test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 1, '0')
-    if 'spread' in skipped_properties:
-        return
     if bids_length and asks_length:
         first_bid = exchange.safe_string(bids[0], 0)
         first_ask = exchange.safe_string(asks[0], 0)

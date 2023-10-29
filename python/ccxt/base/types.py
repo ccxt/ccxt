@@ -44,7 +44,6 @@ class Balance(TypedDict):
 
 
 IndexType = Union[str, int]
-Numeric = Union[None, str, float, int]
 
 
 class Trade(TypedDict):
@@ -61,42 +60,3 @@ class Trade(TypedDict):
     takerOrMaker: str
     cost: Union[None, str, float]
     fee: TypedDict
-
-
-class Position(TypedDict):
-    symbol: str
-    id: str
-    timestamp: int
-    datetime: str
-    contracts: Numeric
-    contractSize: Numeric
-    side: str
-    notional: Numeric
-    leverage: Numeric
-    unrealizedPnl: Numeric
-    realizedPnl: Numeric
-    collateral: Numeric
-    entryPrice: Numeric
-    markPrice: Numeric
-    liquidationPrice: Numeric
-    hedged: bool
-    maintenanceMargin: Numeric
-    initialMargin: Numeric
-    initialMarginPercentage: Numeric
-    marginMode: str
-    marginRatio: Numeric
-    lastUpdateTimestamp: int
-    lastPrice: Numeric
-    percentage: Numeric
-    stopLossPrice: Numeric
-    takeProfitPrice: Numeric
-    info: TypedDict
-
-
-class OrderRequest(TypedDict):
-    symbol: str
-    type: str
-    side: str
-    amount: Union[None, float]
-    price: Union[None, float]
-    params: TypedDict

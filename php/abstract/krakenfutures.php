@@ -43,12 +43,6 @@ abstract class krakenfutures extends \ccxt\Exchange {
     public function private_get_transfers($params = array()) {
         return $this->request('transfers', 'private', 'GET', $params, null, null, array());
     }
-    public function private_get_leveragepreferences($params = array()) {
-        return $this->request('leveragepreferences', 'private', 'GET', $params, null, null, array());
-    }
-    public function private_get_pnlpreferences($params = array()) {
-        return $this->request('pnlpreferences', 'private', 'GET', $params, null, null, array());
-    }
     public function private_post_sendorder($params = array()) {
         return $this->request('sendorder', 'private', 'POST', $params, null, null, array());
     }
@@ -72,12 +66,6 @@ abstract class krakenfutures extends \ccxt\Exchange {
     }
     public function private_post_withdrawal($params = array()) {
         return $this->request('withdrawal', 'private', 'POST', $params, null, null, array());
-    }
-    public function private_put_leveragepreferences($params = array()) {
-        return $this->request('leveragepreferences', 'private', 'PUT', $params, null, null, array());
-    }
-    public function private_put_pnlpreferences($params = array()) {
-        return $this->request('pnlpreferences', 'private', 'PUT', $params, null, null, array());
     }
     public function charts_get_price_type_symbol_interval($params = array()) {
         return $this->request('{price_type}/{symbol}/{interval}', 'charts', 'GET', $params, null, null, array());
@@ -139,12 +127,6 @@ abstract class krakenfutures extends \ccxt\Exchange {
     public function privateGetTransfers($params = array()) {
         return $this->request('transfers', 'private', 'GET', $params, null, null, array());
     }
-    public function privateGetLeveragepreferences($params = array()) {
-        return $this->request('leveragepreferences', 'private', 'GET', $params, null, null, array());
-    }
-    public function privateGetPnlpreferences($params = array()) {
-        return $this->request('pnlpreferences', 'private', 'GET', $params, null, null, array());
-    }
     public function privatePostSendorder($params = array()) {
         return $this->request('sendorder', 'private', 'POST', $params, null, null, array());
     }
@@ -168,12 +150,6 @@ abstract class krakenfutures extends \ccxt\Exchange {
     }
     public function privatePostWithdrawal($params = array()) {
         return $this->request('withdrawal', 'private', 'POST', $params, null, null, array());
-    }
-    public function privatePutLeveragepreferences($params = array()) {
-        return $this->request('leveragepreferences', 'private', 'PUT', $params, null, null, array());
-    }
-    public function privatePutPnlpreferences($params = array()) {
-        return $this->request('pnlpreferences', 'private', 'PUT', $params, null, null, array());
     }
     public function chartsGetPriceTypeSymbolInterval($params = array()) {
         return $this->request('{price_type}/{symbol}/{interval}', 'charts', 'GET', $params, null, null, array());

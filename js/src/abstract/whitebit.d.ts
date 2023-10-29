@@ -32,7 +32,6 @@ interface Exchange {
     v4PublicGetTime(params?: {}): Promise<implicitReturnType>;
     v4PublicGetPing(params?: {}): Promise<implicitReturnType>;
     v4PublicGetMarkets(params?: {}): Promise<implicitReturnType>;
-    v4PublicGetFutures(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountBalance(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountPositionsHistory(params?: {}): Promise<implicitReturnType>;
     v4PrivatePostCollateralAccountLeverage(params?: {}): Promise<implicitReturnType>;

@@ -2,10 +2,9 @@
 
 namespace ccxt\pro;
 
-use ccxt\async\Throttler;
+use ccxt\async\Throttle;
 use ccxt\BaseError;
 use ccxt\ExchangeError;
-use Exception;
 use React\Async;
 use React\EventLoop\Loop;
 
@@ -57,7 +56,7 @@ trait ClientTrait {
             $options = array_replace_recursive(array(
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
-                'throttle' => new Throttler($this->tokenBucket),
+                'throttle' => new Throttle($this->tokenBucket),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
         }
@@ -99,7 +98,7 @@ trait ClientTrait {
         $connected = $client->connect($backoff_delay);
         if (!$subscribed) {
             $connected->then(
-                function($result) use ($client, $message, $message_hash, $subscribe_hash) {
+                function($result) use ($client, $message_hash, $message, $subscribe_hash, $subscription, $subscribed) {
                     // todo: add PHP async rate-limiting
                     // todo: decouple signing from subscriptions
                     $options = $this->safe_value($this->options, 'ws');
@@ -109,27 +108,17 @@ trait ClientTrait {
                             // add cost here |
                             //               |
                             //               V
-                            \call_user_func($client->throttle, $cost)->then(function ($result) use ($client, $message, $message_hash, $subscribe_hash) {
-                                try {
-                                    Async\await($client->send($message));
-                                } catch (Exception $error) {
-                                    $client->reject($error, $message_hash);
-                                    unset($client->subscriptions[$subscribe_hash]);
-                                }
+                            \call_user_func($client->throttle, $cost)->then(function ($result) use ($client, $message) {
+                                Async\await($client->send($message));
                             });
                         } else {
-                            try {
-                                Async\await($client->send($message));
-                            } catch (Exception $error) {
-                                $client->reject($error, $message_hash);
-                                unset($client->subscriptions[$subscribe_hash]);
-                            }
+                            Async\await($client->send($message));
                         }
                     }
                 },
-                function($error) use ($client, $subscribe_hash, $message_hash) {
-                    $client->reject($error, $message_hash);
+                function($error) use ($client, $subscribe_hash) {
                     unset($client->subscriptions[$subscribe_hash]);
+                    throw new ExchangeError($error);
                 }
             );
         }
@@ -171,6 +160,18 @@ trait ClientTrait {
         $this->close();
     }
 
+    public function find_timeframe($timeframe, $timeframes = null) {
+        $timeframes = $timeframes ? $timeframes : $this->timeframes;
+        $keys = array_keys($timeframes);
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($timeframes[$key] === $timeframe) {
+                return $key;
+            }
+        }
+        return null;
+    }
+
     public function load_order_book($client, $messageHash, $symbol, $limit = null, $params = array()) {
         return Async\async(function () use ($client, $messageHash, $symbol, $limit, $params) {
             if (!array_key_exists($symbol, $this->orderbooks)) {
@@ -200,5 +201,11 @@ trait ClientTrait {
                 Async\await($this->load_order_book($client, $messageHash, $symbol, $limit, $params));
             }
         }) ();
+    }
+
+    public function handle_deltas($orderbook, $deltas) {
+        foreach ($deltas as $delta) {
+            $this->handle_delta($orderbook, $delta);
+        }
     }
 }

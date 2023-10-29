@@ -1,9 +1,5 @@
 import Exchange from './abstract/paymium.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
-/**
- * @class paymium
- * @extends Exchange
- */
 export default class paymium extends Exchange {
     describe(): any;
     parseBalance(response: any): import("./base/types.js").Balances;

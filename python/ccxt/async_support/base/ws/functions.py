@@ -9,7 +9,7 @@ import datetime
 
 
 def inflate(data):
-    return decompress(data, -MAX_WBITS)
+    return decompress(data, -MAX_WBITS).decode('utf-8')
 
 
 def inflate64(data):

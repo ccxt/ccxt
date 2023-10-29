@@ -84,9 +84,9 @@ export default class bitpanda extends bitpandaRest {
          * @method
          * @name bitpanda#watchBalance
          * @see https://developers.bitpanda.com/exchange/#account-history-channel
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the bitpanda api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
@@ -147,8 +147,8 @@ export default class bitpanda extends bitpandaRest {
          * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the bitpanda api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -174,8 +174,8 @@ export default class bitpanda extends bitpandaRest {
          * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
          * @description watches price tickers, a statistical calculation with the information for all markets or those specified.
          * @param {string} symbols unified symbols of the markets to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the bitpanda api endpoint
-         * @returns {object} an array of [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -273,10 +273,10 @@ export default class bitpanda extends bitpandaRest {
          * @see https://developers.bitpanda.com/exchange/#account-history-channel
          * @description get the list of trades associated with the user
          * @param {string} symbol unified symbol of the market to fetch trades for. Use 'any' to watch all trades
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the bitpanda api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         let messageHash = 'myTrades';
@@ -318,9 +318,9 @@ export default class bitpanda extends bitpandaRest {
          * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the bitpanda api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -435,11 +435,11 @@ export default class bitpanda extends bitpandaRest {
          * @see https://developers.bitpanda.com/exchange/#account-history-channel
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the bitpanda api endpoint
-         * @param {string} [params.channel] can listen to orders using ACCOUNT_HISTORY or TRADING
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @param {string} params.channel can listen to orders using ACCOUNT_HISTORY or TRADING
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let messageHash = 'orders';
@@ -524,8 +524,7 @@ export default class bitpanda extends bitpandaRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const order = this.parseTradingOrder (message);
-        const orders = this.orders;
-        orders.append (order);
+        this.orders.append (order);
         client.resolve (this.orders, 'orders:' + order['symbol']);
         client.resolve (this.orders, 'orders');
     }
@@ -725,11 +724,10 @@ export default class bitpanda extends bitpandaRest {
         if (rawOrdersLength === 0) {
             return;
         }
-        const orders = this.orders;
         for (let i = 0; i < rawOrders.length; i++) {
             const order = this.parseOrder (rawOrders[i]);
             let symbol = this.safeString (order, 'symbol', '');
-            orders.append (order);
+            this.orders.append (order);
             client.resolve (this.orders, 'orders:' + symbol);
             const rawTrades = this.safeValue (rawOrders[i], 'trades', []);
             for (let ii = 0; ii < rawTrades.length; ii++) {
@@ -974,7 +972,6 @@ export default class bitpanda extends bitpandaRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         let symbol = undefined;
-        const orders = this.orders;
         const update = this.safeValue (message, 'update', {});
         const updateType = this.safeString (update, 'type');
         if (updateType === 'ORDER_REJECTED' || updateType === 'ORDER_CLOSED' || updateType === 'STOP_ORDER_TRIGGERED') {
@@ -988,7 +985,7 @@ export default class bitpanda extends bitpandaRest {
             if (updateType === 'ORDER_CLOSED' && filled === 0) {
                 status = 'canceled';
             }
-            orders.append ({
+            this.orders.append ({
                 'id': orderId,
                 'symbol': symbol,
                 'status': status,
@@ -998,7 +995,7 @@ export default class bitpanda extends bitpandaRest {
         } else {
             const parsed = this.parseOrder (update);
             symbol = this.safeString (parsed, 'symbol', '');
-            orders.append (parsed);
+            this.orders.append (parsed);
         }
         client.resolve (this.orders, 'orders:' + symbol);
         client.resolve (this.orders, 'orders');
@@ -1056,10 +1053,10 @@ export default class bitpanda extends bitpandaRest {
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the bitpanda api endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);

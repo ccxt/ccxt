@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\async\abstract\bitbns as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
-use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
 
@@ -22,6 +21,7 @@ class bitbns extends Exchange {
             'countries' => array( 'IN' ), // India
             'rateLimit' => 1000,
             'certified' => false,
+            'pro' => false,
             'version' => 'v2',
             // new metainfo interface
             'has' => array(
@@ -157,8 +157,8 @@ class bitbns extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure status structure}
+             * @param {array} $params extra parameters specific to the bitbns api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
              */
             $response = Async\await($this->v1GetPlatformStatus ($params));
             //
@@ -188,8 +188,8 @@ class bitbns extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for bitbns
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market data
              */
             $response = Async\await($this->wwwGetOrderFetchMarkets ($params));
             //
@@ -278,7 +278,6 @@ class bitbns extends Exchange {
                             'max' => $this->safe_number($costLimits, 'max'),
                         ),
                     ),
-                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -291,9 +290,9 @@ class bitbns extends Exchange {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the bitbns api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -389,9 +388,9 @@ class bitbns extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the bitbns api endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->wwwGetOrderFetchTickers ($params));
@@ -447,13 +446,13 @@ class bitbns extends Exchange {
             if ($numParts > 1) {
                 $currencyId = $this->safe_string($parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
-                $account = $this->account();
-                $account['free'] = $this->safe_string($data, $key);
-                $account['used'] = $this->safe_string($data, 'inorder' . $currencyId);
                 if ($currencyId === 'Money') {
                     $currencyId = 'INR';
                 }
                 $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($data, $key);
+                $account['used'] = $this->safe_string($data, 'inorder' . $currencyId);
                 $result[$code] = $account;
             }
         }
@@ -464,8 +463,8 @@ class bitbns extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @param {array} $params extra parameters specific to the bitbns api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->v1PostCurrentCoinBalanceEVERYTHING ($params));
@@ -490,12 +489,9 @@ class bitbns extends Exchange {
         }) ();
     }
 
-    public function parse_status($status) {
+    public function parse_order_status($status) {
         $statuses = array(
-            '-1' => 'cancelled',
             '0' => 'open',
-            '1' => 'open',
-            '2' => 'done',
             // 'PARTIALLY_FILLED' => 'open',
             // 'FILLED' => 'closed',
             // 'CANCELED' => 'canceled',
@@ -511,76 +507,90 @@ class bitbns extends Exchange {
         // createOrder
         //
         //     {
-        //         "data" => "Successfully placed bid to purchase currency",
-        //         "status" => 1,
-        //         "error" => null,
-        //         "id" => 5424475,
-        //         "code" => 200
+        //         "data":"Successfully placed bid to purchase currency",
+        //         "status":1,
+        //         "error":null,
+        //         "id":5424475,
+        //         "code":200
         //     }
         //
-        // fetchOpenOrders, fetchOrder
+        // fetchOrder
         //
-        //    {
-        //        "entry_id" => 5424475,
-        //        "btc" => 0.01,
-        //        "rate" => 2000,
-        //        "time" => "2021-04-25T17:05:42.000Z",
-        //        "type" => 0,
-        //        "status" => 0
-        //        "t_rate" => 0.45,                       // only stop orders
-        //        "trail" => 0                            // only stop orders
-        //    }
+        //     {
+        //         "entry_id":5424475,
+        //         "btc":0.01,
+        //         "rate":2000,
+        //         "time":"2021-04-25T17:05:42.000Z",
+        //         "type":0,
+        //         "status":0,
+        //         "total":0.01,
+        //         "avg_cost":null,
+        //         "side":"BUY",
+        //         "amount":0.01,
+        //         "remaining":0.01,
+        //         "filled":0,
+        //         "cost":null,
+        //         "fee":0.05
+        //     }
         //
-        // cancelOrder
+        // fetchOpenOrders
         //
-        //    {
-        //        "data" => "Successfully cancelled the $order",
-        //        "status" => 1,
-        //        "error" => null,
-        //        "code" => 200
-        //    }
+        //     {
+        //         "entry_id":5424475,
+        //         "btc":0.01,
+        //         "rate":2000,
+        //         "time":"2021-04-25T17:05:42.000Z",
+        //         "type":0,
+        //         "status":0
+        //     }
         //
         $id = $this->safe_string_2($order, 'id', 'entry_id');
-        $datetime = $this->safe_string($order, 'time');
-        $triggerPrice = $this->safe_string($order, 't_rate');
-        $side = $this->safe_string($order, 'type');
-        if ($side === '0') {
-            $side = 'buy';
-        } elseif ($side === '1') {
-            $side = 'sell';
+        $marketId = $this->safe_string($order, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $timestamp = $this->parse8601($this->safe_string($order, 'time'));
+        $price = $this->safe_string($order, 'rate');
+        $amount = $this->safe_string_2($order, 'amount', 'btc');
+        $filled = $this->safe_string($order, 'filled');
+        $remaining = $this->safe_string($order, 'remaining');
+        $average = $this->safe_string($order, 'avg_cost');
+        $cost = $this->safe_string($order, 'cost');
+        $type = $this->safe_string_lower($order, 'type');
+        if ($type === '0') {
+            $type = 'limit';
         }
-        $data = $this->safe_string($order, 'data');
-        $status = $this->safe_string($order, 'status');
-        if ($data === 'Successfully cancelled the order') {
-            $status = 'cancelled';
-        } else {
-            $status = $this->parse_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $side = $this->safe_string_lower($order, 'side');
+        $feeCost = $this->safe_number($order, 'fee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrencyCode = null;
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+            );
         }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
-            'timestamp' => $this->parse8601($datetime),
-            'datetime' => $datetime,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $symbol,
+            'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
-            'price' => $this->safe_string($order, 'rate'),
-            'stopPrice' => $triggerPrice,
-            'triggerPrice' => $triggerPrice,
-            'amount' => $this->safe_string($order, 'btc'),
-            'cost' => null,
-            'average' => null,
-            'filled' => null,
-            'remaining' => null,
+            'price' => $price,
+            'stopPrice' => null,
+            'triggerPrice' => null,
+            'amount' => $amount,
+            'cost' => $cost,
+            'average' => $average,
+            'filled' => $filled,
+            'remaining' => $remaining,
             'status' => $status,
-            'fee' => array(
-                'cost' => null,
-                'currency' => null,
-                'rate' => null,
-            ),
+            'fee' => $fee,
             'trades' => null,
         ), $market);
     }
@@ -589,50 +599,38 @@ class bitbns extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
-             * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/place-orders
-             * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/market-orders-quantity  // $market orders
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
-             * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
-             *
-             * EXCHANGE SPECIFIC PARAMETERS
-             * @param {float} [$params->target_rate] *requires $params->trail_rate when set, $type must be 'limit'* a bracket order is placed when set
-             * @param {float} [$params->trail_rate] *requires $params->target_rate when set, $type must be 'limit'* a bracket order is placed when set
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the bitbns api endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
+            if ($type !== 'limit' && $type !== 'market') {
+                throw new ExchangeError($this->id . ' allows limit and $market orders only');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 't_rate' ));
-            $targetRate = $this->safe_string($params, 'target_rate');
-            $trailRate = $this->safe_string($params, 'trail_rate');
-            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate' ));
             $request = array(
                 'side' => strtoupper($side),
                 'symbol' => $market['uppercaseId'],
                 'quantity' => $this->amount_to_precision($symbol, $amount),
-                // 'target_rate' => $this->price_to_precision($symbol, $targetRate),
+                // 'target_rate' => $this->price_to_precision($symbol, targetRate),
                 // 't_rate' => $this->price_to_precision($symbol, stopPrice),
-                // 'trail_rate' => $this->price_to_precision($symbol, $trailRate),
+                // 'trail_rate' => $this->price_to_precision($symbol, trailRate),
+                // To Place Simple Buy or Sell Order use rate
+                // To Place Stoploss Buy or Sell Order use rate & t_rate
+                // To Place Bracket Buy or Sell Order use rate , t_rate, target_rate & trail_rate
             );
             $method = 'v2PostOrders';
             if ($type === 'limit') {
                 $request['rate'] = $this->price_to_precision($symbol, $price);
-            } else {
+            } elseif ($type === 'market') {
                 $method = 'v1PostPlaceMarketOrderQntySymbol';
                 $request['market'] = $market['quoteId'];
-            }
-            if ($triggerPrice !== null) {
-                $request['t_rate'] = $this->price_to_precision($symbol, $triggerPrice);
-            }
-            if ($targetRate !== null) {
-                $request['target_rate'] = $this->price_to_precision($symbol, $targetRate);
-            }
-            if ($trailRate !== null) {
-                $request['trail_rate'] = $this->price_to_precision($symbol, $trailRate);
+            } else {
+                throw new ExchangeError($this->id . ' allows limit and $market orders only');
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
@@ -652,30 +650,22 @@ class bitbns extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
-             * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/cancel-orders
-             * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/cancel-stop-loss-orders
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
-             * @param {boolean} [$params->trigger] true if cancelling a trigger order
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} $params extra parameters specific to the bitbns api endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
-            $params = $this->omit($params, array( 'trigger', 'stop' ));
+            $quoteSide = ($market['quoteId'] === 'USDT') ? 'usdtcancelOrder' : 'cancelOrder';
             $request = array(
                 'entry_id' => $id,
                 'symbol' => $market['uppercaseId'],
+                'side' => $quoteSide,
             );
-            $response = null;
-            $tail = $isTrigger ? 'StopLossOrder' : 'Order';
-            $quoteSide = ($market['quoteId'] === 'USDT') ? 'usdtcancel' : 'cancel';
-            $quoteSide .= $tail;
-            $request['side'] = $quoteSide;
             $response = Async\await($this->v2PostCancel (array_merge($request, $params)));
             return $this->parse_order($response, $market);
         }) ();
@@ -685,11 +675,9 @@ class bitbns extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
-             * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/order-status
-             * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} $params extra parameters specific to the bitbns api endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
@@ -700,10 +688,6 @@ class bitbns extends Exchange {
                 'symbol' => $market['id'],
                 'entry_id' => $id,
             );
-            $trigger = $this->safe_value_2($params, 'trigger', 'stop');
-            if ($trigger) {
-                throw new BadRequest($this->id . ' fetchOrder cannot fetch stop orders');
-            }
             $response = Async\await($this->v1PostOrderStatusSymbol (array_merge($request, $params)));
             //
             //     {
@@ -740,27 +724,22 @@ class bitbns extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
-             * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-$limit
-             * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit/order-status-stop-$limit
              * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
-             * @param {boolean} [$params->trigger] true if fetching trigger orders
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the bitbns api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
-            $params = $this->omit($params, array( 'trigger', 'stop' ));
-            $quoteSide = ($market['quoteId'] === 'USDT') ? 'usdtListOpen' : 'listOpen';
+            $quoteSide = ($market['quoteId'] === 'USDT') ? 'usdtListOpenOrders' : 'listOpenOrders';
             $request = array(
                 'symbol' => $market['uppercaseId'],
+                'side' => $quoteSide,
                 'page' => 0,
-                'side' => $isTrigger ? ($quoteSide . 'StopOrders') : ($quoteSide . 'Orders'),
             );
             $response = Async\await($this->v2PostGetordersnew (array_merge($request, $params)));
             //
@@ -773,9 +752,6 @@ class bitbns extends Exchange {
             //                 "time":"2021-04-25T17:05:42.000Z",
             //                 "type":0,
             //                 "status":0
-            //                 "t_rate":0.45,                       // only stop orders
-            //                 "type":1,                            // only stop orders
-            //                 "trail":0                            // only stop orders
             //             }
             //         ),
             //         "status":1,
@@ -874,10 +850,10 @@ class bitbns extends Exchange {
             /**
              * fetch all trades made by the user
              * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades structures to retrieve
+             * @param {array} $params extra parameters specific to the bitbns api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -943,10 +919,10 @@ class bitbns extends Exchange {
             /**
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the bitbns api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchTrades() requires a $symbol argument');
@@ -974,10 +950,10 @@ class bitbns extends Exchange {
             /**
              * fetch all deposits made to an account
              * @param {string} $code unified $currency $code
-             * @param {int} [$since] the earliest time in ms to fetch deposits for
-             * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+             * @param {int|null} $since the earliest time in ms to fetch deposits for
+             * @param {int|null} $limit the maximum number of deposits structures to retrieve
+             * @param {array} $params extra parameters specific to the bitbns api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
@@ -1022,10 +998,10 @@ class bitbns extends Exchange {
             /**
              * fetch all withdrawals made from an account
              * @param {string} $code unified $currency $code
-             * @param {int} [$since] the earliest time in ms to fetch withdrawals for
-             * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+             * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+             * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+             * @param {array} $params extra parameters specific to the bitbns api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
@@ -1137,8 +1113,8 @@ class bitbns extends Exchange {
             /**
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the bitbns api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
+             * @param {array} $params extra parameters specific to the bitbns api endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1204,7 +1180,7 @@ class bitbns extends Exchange {
                 'body' => $body,
             );
             $payload = base64_encode($this->json($auth));
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha512');
+            $signature = $this->hmac($payload, $this->encode($this->secret), 'sha512');
             $headers['X-BITBNS-PAYLOAD'] = $payload;
             $headers['X-BITBNS-SIGNATURE'] = $signature;
             $headers['Content-Type'] = 'application/x-www-form-urlencoded';

@@ -25,10 +25,7 @@ declare class BadRequest extends ExchangeError {
 declare class BadSymbol extends BadRequest {
     constructor(message: any);
 }
-declare class NoChange extends BadRequest {
-    constructor(message: any);
-}
-declare class MarginModeAlreadySet extends NoChange {
+declare class MarginModeAlreadySet extends BadRequest {
     constructor(message: any);
 }
 declare class BadResponse extends ExchangeError {
@@ -47,9 +44,6 @@ declare class AddressPending extends InvalidAddress {
     constructor(message: any);
 }
 declare class InvalidOrder extends ExchangeError {
-    constructor(message: any);
-}
-declare class ContractUnavailable extends InvalidOrder {
     constructor(message: any);
 }
 declare class OrderNotFound extends InvalidOrder {
@@ -125,8 +119,6 @@ declare const errors: {
     RequestTimeout: typeof RequestTimeout;
     AuthenticationError: typeof AuthenticationError;
     AddressPending: typeof AddressPending;
-    ContractUnavailable: typeof ContractUnavailable;
-    NoChange: typeof NoChange;
 };
-export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange };
+export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending };
 export default errors;

@@ -75,7 +75,7 @@ export default async (exchange, symbol) => {
                 ohlcv[5],
             ]);
 
-            if (response.length) {
+            if (response.length > 0) {
                 console.log (exchange.iso8601 (now), exchange.id, timeframe, symbol, response.length, 'candles', JSON.stringify (response[response.length - 1]));
             }
 

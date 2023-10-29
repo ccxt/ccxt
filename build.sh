@@ -82,10 +82,12 @@ fi
 diff=$(git diff origin/master --name-only)
 # temporarily remove the below scripts from diff
 diff=$(echo "$diff" | sed -e "s/^build\.sh//")
-diff=$(echo "$diff" | sed -e "s/^skip\-tests\.json//")
-# diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
-# diff=$(echo "$diff" | sed -e "s/^package\-lock\.json//")
-# diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
+diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
+diff=$(echo "$diff" | sed -e "s/^appveyor\.yml//")
+diff=$(echo "$diff" | sed -e "s/^package\.json//")
+diff=$(echo "$diff" | sed -e "s/^package\-lock\.json//")
+diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
+diff=$(echo "$diff" | sed -e "s/python\/tox\.ini//")
 #echo $diff
 
 critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
@@ -117,8 +119,6 @@ done
 # faster version of pre-transpile (without bundle and atomic linting)
 npm run export-exchanges && npm run tsBuild && npm run emitAPI
 
-# check return types
-npm run validate-types ${REST_EXCHANGES[*]}
 
 echo "$msgPrefix REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
 PYTHON_FILES=()
@@ -136,9 +136,7 @@ for exchange in "${WS_EXCHANGES[@]}"; do
 done
 # faster version of post-transpile
 npm run check-php-syntax
-
-echo "$msgPrefix Linting python files: ${PYTHON_FILES[@]}"
-ruff ${PYTHON_FILES[*]}
+cd python && tox -e qa -- ${PYTHON_FILES[*]} && cd ..
 
 
 ### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###

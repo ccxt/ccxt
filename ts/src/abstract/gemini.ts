@@ -9,7 +9,6 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    webExchangeGet (params?: {}): Promise<implicitReturnType>;
     webGetRestApi (params?: {}): Promise<implicitReturnType>;
     publicGetV1Symbols (params?: {}): Promise<implicitReturnType>;
     publicGetV1SymbolsDetailsSymbol (params?: {}): Promise<implicitReturnType>;

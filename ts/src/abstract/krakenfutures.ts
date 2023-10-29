@@ -21,8 +21,6 @@ interface Exchange {
     privateGetRecentorders (params?: {}): Promise<implicitReturnType>;
     privateGetFills (params?: {}): Promise<implicitReturnType>;
     privateGetTransfers (params?: {}): Promise<implicitReturnType>;
-    privateGetLeveragepreferences (params?: {}): Promise<implicitReturnType>;
-    privateGetPnlpreferences (params?: {}): Promise<implicitReturnType>;
     privatePostSendorder (params?: {}): Promise<implicitReturnType>;
     privatePostEditorder (params?: {}): Promise<implicitReturnType>;
     privatePostCancelorder (params?: {}): Promise<implicitReturnType>;
@@ -31,8 +29,6 @@ interface Exchange {
     privatePostCancelallorders (params?: {}): Promise<implicitReturnType>;
     privatePostCancelallordersafter (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePutLeveragepreferences (params?: {}): Promise<implicitReturnType>;
-    privatePutPnlpreferences (params?: {}): Promise<implicitReturnType>;
     chartsGetPriceTypeSymbolInterval (params?: {}): Promise<implicitReturnType>;
     historyGetOrders (params?: {}): Promise<implicitReturnType>;
     historyGetExecutions (params?: {}): Promise<implicitReturnType>;

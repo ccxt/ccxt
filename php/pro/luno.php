@@ -43,10 +43,10 @@ class luno extends \ccxt\async\luno {
              * get the list of most recent $trades for a particular $symbol
              * @see https://www.luno.com/en/developers/api#tag/Streaming-API
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of    $trades to fetch
-             * @param {array} [$params] extra parameters specific to the luno api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of    $trades to fetch
+             * @param {array} $params extra parameters specific to the luno api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->check_required_credentials());
             Async\await($this->load_markets());
@@ -143,10 +143,10 @@ class luno extends \ccxt\async\luno {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {arrayConstructor} [$params] extra parameters specific to the luno api endpoint
-             * @param {string} [$params->type] accepts l2 or l3 for level 2 or level 3 order book
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {arrayConstructor} $params extra parameters specific to the luno api endpoint
+             * @param {string|null} $params->type accepts l2 or l3 for level 2 or level 3 order book
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->check_required_credentials());
             Async\await($this->load_markets());
@@ -259,8 +259,8 @@ class luno extends \ccxt\async\luno {
         //  create
         //     {
         //         sequence => '110980825',
-        //         trade_updates => array(),
-        //         create_update => array(
+        //         trade_updates => $array(),
+        //         create_update => $array(
         //             order_id => 'BXHSYXAUMH8C2RW',
         //             $type => 'ASK',
         //             price => '24081.09000000',
@@ -273,9 +273,9 @@ class luno extends \ccxt\async\luno {
         //  delete
         //     {
         //         sequence => '110980825',
-        //         trade_updates => array(),
+        //         trade_updates => $array(),
         //         create_update => null,
-        //         delete_update => array(
+        //         delete_update => $array(
         //             "order_id" => "BXMC2CJ7HNB88U4"
         //         ),
         //         status_update => null,
@@ -284,7 +284,7 @@ class luno extends \ccxt\async\luno {
         //  trade
         //     {
         //         sequence => '110980825',
-        //         trade_updates => array(
+        //         trade_updates => $array(
         //             {
         //                 "base" => "0.1",
         //                 "counter" => "5232.00",
@@ -302,12 +302,12 @@ class luno extends \ccxt\async\luno {
         $asksOrderSide = $orderbook['asks'];
         $bidsOrderSide = $orderbook['bids'];
         if ($createUpdate !== null) {
-            $bidAskArray = $this->custom_parse_bid_ask($createUpdate, 'price', 'volume', 'order_id');
+            $array = $this->custom_parse_bid_ask($createUpdate, 'price', 'volume', 'order_id');
             $type = $this->safe_string($createUpdate, 'type');
             if ($type === 'ASK') {
-                $asksOrderSide->storeArray ($bidAskArray);
+                $asksOrderSide->storeArray ($array);
             } elseif ($type === 'BID') {
-                $bidsOrderSide->storeArray ($bidAskArray);
+                $bidsOrderSide->storeArray ($array);
             }
         }
         $deleteUpdate = $this->safe_value($message, 'delete_update');

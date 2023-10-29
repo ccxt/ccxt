@@ -7,6 +7,15 @@ function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
 }
 
+function isInteger (value) {
+    const isNumeric = (typeof value === 'number');
+    if (isNumeric) {
+        return (value % 1) === 0;
+    } else {
+        return false;
+    }
+}
+
 function stringValue (value) {
     let stringVal = undefined;
     if (typeof value === 'string') {
@@ -100,26 +109,16 @@ function assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck
     const ts = entry[keyNameOrIndex];
     if (ts !== undefined) {
         assert (typeof ts === 'number', 'timestamp is not numeric' + logText);
-        assert (Number.isInteger (ts), 'timestamp should be an integer' + logText);
+        assert (isInteger (ts), 'timestamp should be an integer' + logText);
         const minTs = 1230940800000; // 03 Jan 2009 - first block
         const maxTs = 2147483648000; // 03 Jan 2009 - first block
         assert (ts > minTs, 'timestamp is impossible to be before ' + minTs.toString () + ' (03.01.2009)' + logText); // 03 Jan 2009 - first block
         assert (ts < maxTs, 'timestamp more than ' + maxTs.toString () + ' (19.01.2038)' + logText); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
         if (nowToCheck !== undefined) {
             const maxMsOffset = 60000; // 1 min
-            assert (ts < nowToCheck + maxMsOffset, 'returned item timestamp (' + exchange.iso8601 (ts) + ') is ahead of the current time (' + exchange.iso8601 (nowToCheck) + ')' + logText);
+            assert (ts < nowToCheck + maxMsOffset, 'returned trade timestamp (' + exchange.iso8601 (ts) + ') is ahead of the current time (' + exchange.iso8601 (nowToCheck) + ')' + logText);
         }
     }
-}
-
-function assertTimestampAndDatetime (exchange, skippedProperties, method, entry, nowToCheck = undefined, keyNameOrIndex : any = 'timestamp') {
-    const logText = logTemplate (exchange, method, entry);
-    const skipValue = exchange.safeValue (skippedProperties, keyNameOrIndex);
-    if (skipValue !== undefined) {
-        return;
-    }
-    assertTimestamp (exchange, skippedProperties, method, entry, nowToCheck, keyNameOrIndex);
-    const isDateTimeObject = typeof keyNameOrIndex === 'string';
     // only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
     if (isDateTimeObject) {
         // we also test 'datetime' here because it's certain sibling of 'timestamp'
@@ -127,23 +126,16 @@ function assertTimestampAndDatetime (exchange, skippedProperties, method, entry,
         const dt = entry['datetime'];
         if (dt !== undefined) {
             assert (typeof dt === 'string', '"datetime" key does not have a string value' + logText);
-            // there are exceptional cases, like getting microsecond-targeted string '2022-08-08T22:03:19.014680Z', so parsed unified timestamp, which carries only 13 digits (millisecond precision) can not be stringified back to microsecond accuracy, causing the bellow assertion to fail
-            //    assert (dt === exchange.iso8601 (entry['timestamp']))
-            // so, we have to compare with millisecond accururacy
-            const dtParsed = exchange.parse8601 (dt);
-            assert (exchange.iso8601 (dtParsed) === exchange.iso8601 (entry['timestamp']), 'datetime is not iso8601 of timestamp' + logText);
+            assert (dt === exchange.iso8601 (entry['timestamp']), 'datetime is not iso8601 of timestamp' + logText);
         }
     }
 }
 
 function assertCurrencyCode (exchange, skippedProperties, method, entry, actualCode, expectedCode = undefined) {
-    if ('currency' in skippedProperties) {
-        return;
-    }
     const logText = logTemplate (exchange, method, entry);
     if (actualCode !== undefined) {
         assert (typeof actualCode === 'string', 'currency code should be either undefined or a string' + logText);
-        assert ((actualCode in exchange.currencies), 'currency code ("' + actualCode + '") should be present in exchange.currencies' + logText);
+        assert ((actualCode in exchange.currencies), 'currency code should be present in exchange.currencies' + logText);
         if (expectedCode !== undefined) {
             assert (actualCode === expectedCode, 'currency code in response ("' + stringValue (actualCode) + '") should be equal to expected code ("' + stringValue (expectedCode) + '")' + logText);
         }
@@ -201,7 +193,7 @@ function assertGreaterOrEqual (exchange, skippedProperties, method, entry, key, 
     }
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
-    if (value !== undefined && compareTo !== undefined) {
+    if (value !== undefined) {
         assert (Precise.stringGe (value, compareTo), stringValue (key) + ' key (with a value of ' + stringValue (value) + ') was expected to be >= ' + stringValue (compareTo) + logText);
     }
 }
@@ -212,7 +204,7 @@ function assertLess (exchange, skippedProperties, method, entry, key, compareTo)
     }
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
-    if (value !== undefined && compareTo !== undefined) {
+    if (value !== undefined) {
         assert (Precise.stringLt (value, compareTo), stringValue (key) + ' key (with a value of ' + stringValue (value) + ') was expected to be < ' + stringValue (compareTo) + logText);
     }
 }
@@ -223,7 +215,7 @@ function assertLessOrEqual (exchange, skippedProperties, method, entry, key, com
     }
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
-    if (value !== undefined && compareTo !== undefined) {
+    if (value !== undefined) {
         assert (Precise.stringLe (value, compareTo), stringValue (key) + ' key (with a value of ' + stringValue (value) + ') was expected to be <= ' + stringValue (compareTo) + logText);
     }
 }
@@ -234,7 +226,7 @@ function assertEqual (exchange, skippedProperties, method, entry, key, compareTo
     }
     const logText = logTemplate (exchange, method, entry);
     const value = exchange.safeString (entry, key);
-    if (value !== undefined && compareTo !== undefined) {
+    if (value !== undefined) {
         assert (Precise.stringEq (value, compareTo), stringValue (key) + ' key (with a value of ' + stringValue (value) + ') was expected to be equal to ' + stringValue (compareTo) + logText);
     }
 }
@@ -266,7 +258,7 @@ function assertInArray (exchange, skippedProperties, method, entry, key, expecte
 function assertFeeStructure (exchange, skippedProperties, method, entry, key) {
     const logText = logTemplate (exchange, method, entry);
     const keyString = stringValue (key);
-    if (Number.isInteger (key)) {
+    if (isInteger (key)) {
         assert (Array.isArray (entry), 'fee container is expected to be an array' + logText);
         assert (key < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
     } else {
@@ -277,7 +269,7 @@ function assertFeeStructure (exchange, skippedProperties, method, entry, key) {
     // todo: remove undefined check to make stricter
     if (feeObject !== undefined) {
         assert ('cost' in feeObject, keyString + ' fee object should contain "cost" key' + logText);
-        // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
+        assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0');
         assert ('currency' in feeObject, '"' + keyString + '" fee object should contain "currency" key' + logText);
         assertCurrencyCode (exchange, skippedProperties, method, entry, feeObject['currency']);
     }
@@ -289,11 +281,7 @@ function assertTimestampOrder (exchange, method, codeOrSymbol, items, ascending 
             const ascendingOrDescending = ascending ? 'ascending' : 'descending';
             const firstIndex = ascending ? i - 1 : i;
             const secondIndex = ascending ? i : i - 1;
-            const firstTs = items[firstIndex]['timestamp'];
-            const secondTs = items[secondIndex]['timestamp'];
-            if (firstTs !== undefined && secondTs !== undefined) {
-                assert (items[firstIndex]['timestamp'] >= items[secondIndex]['timestamp'], exchange.id + ' ' + method + ' ' + stringValue (codeOrSymbol) + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp. ' + exchange.json (items));
-            }
+            assert (items[firstIndex]['timestamp'] >= items[secondIndex]['timestamp'], exchange.id + ' ' + method + ' ' + stringValue (codeOrSymbol) + ' must return a ' + ascendingOrDescending + ' sorted array of items by timestamp. ' + exchange.json (items));
         }
     }
 }
@@ -304,10 +292,9 @@ function assertInteger (exchange, skippedProperties, method, entry, key) {
     }
     const logText = logTemplate (exchange, method, entry);
     if (entry !== undefined) {
-        const value = exchange.safeValue (entry, key);
+        const value = exchange.safeNumber (entry, key);
         if (value !== undefined) {
-            const isInteger = Number.isInteger (value);
-            assert (isInteger, '"' + stringValue (key) + '" key (value "' + stringValue (value) + '") is not an integer' + logText);
+            assert (isInteger (value), '"' + stringValue (key) + '" key (value "' + stringValue (value) + '") is not an integer' + logText);
         }
     }
 }
@@ -337,7 +324,6 @@ function checkPrecisionAccuracy (exchange, skippedProperties, method, entry, key
 export default {
     logTemplate,
     assertTimestamp,
-    assertTimestampAndDatetime,
     assertStructure,
     assertSymbol,
     assertCurrencyCode,

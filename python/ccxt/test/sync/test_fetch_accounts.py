@@ -19,6 +19,7 @@ from ccxt.test.base import test_account  # noqa E402
 def test_fetch_accounts(exchange, skipped_properties):
     method = 'fetchAccounts'
     accounts = exchange.fetch_accounts()
-    assert isinstance(accounts, list), exchange.id + ' ' + method + ' must return an object. ' + exchange.json(accounts)
-    for i in range(0, len(accounts)):
+    assert isinstance(accounts, dict), exchange.id + ' ' + method + ' must return an object. ' + exchange.json(accounts)
+    account_values = list(accounts.values())
+    for i in range(0, len(account_values)):
         test_account(exchange, skipped_properties, method, accounts[i])

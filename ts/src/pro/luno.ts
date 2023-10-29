@@ -42,10 +42,10 @@ export default class luno extends lunoRest {
          * @description get the list of most recent trades for a particular symbol
          * @see https://www.luno.com/en/developers/api#tag/Streaming-API
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of    trades to fetch
-         * @param {object} [params] extra parameters specific to the luno api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of    trades to fetch
+         * @param {object} params extra parameters specific to the luno api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.checkRequiredCredentials ();
         await this.loadMarkets ();
@@ -142,10 +142,10 @@ export default class luno extends lunoRest {
          * @name luno#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {objectConstructor} [params] extra parameters specific to the luno api endpoint
-         * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {objectConstructor} params extra parameters specific to the luno api endpoint
+         * @param {string|undefined} params.type accepts l2 or l3 for level 2 or level 3 order book
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.checkRequiredCredentials ();
         await this.loadMarkets ();
@@ -300,12 +300,12 @@ export default class luno extends lunoRest {
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
         if (createUpdate !== undefined) {
-            const bidAskArray = this.customParseBidAsk (createUpdate, 'price', 'volume', 'order_id');
+            const array = this.customParseBidAsk (createUpdate, 'price', 'volume', 'order_id');
             const type = this.safeString (createUpdate, 'type');
             if (type === 'ASK') {
-                asksOrderSide.storeArray (bidAskArray);
+                asksOrderSide.storeArray (array);
             } else if (type === 'BID') {
-                bidsOrderSide.storeArray (bidAskArray);
+                bidsOrderSide.storeArray (array);
             }
         }
         const deleteUpdate = this.safeValue (message, 'delete_update');

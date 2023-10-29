@@ -1,9 +1,5 @@
 import Exchange from './abstract/upbit.js';
-import { Dictionary, Int, OrderBook, OrderSide, OrderType, Ticker } from './base/types.js';
-/**
- * @class upbit
- * @extends Exchange
- */
+import { Int, OrderSide, OrderType } from './base/types.js';
 export default class upbit extends Exchange {
     describe(): any;
     fetchCurrency(code: string, params?: {}): Promise<{
@@ -139,11 +135,11 @@ export default class upbit extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: any): Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<{}>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTicker(symbol: string, params?: {}): Promise<any>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTradingFee(symbol: string, params?: {}): Promise<{
@@ -156,8 +152,54 @@ export default class upbit extends Exchange {
     }>;
     parseOHLCV(ohlcv: any, market?: any): number[];
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<{
+        info: any;
+        id: string;
+        clientOrderId: any;
+        timestamp: number;
+        datetime: string;
+        lastTradeTimestamp: any;
+        symbol: any;
+        type: string;
+        timeInForce: any;
+        postOnly: any;
+        side: string;
+        price: number;
+        stopPrice: any;
+        triggerPrice: any;
+        cost: any;
+        average: any;
+        amount: number;
+        filled: number;
+        remaining: number;
+        status: string;
+        fee: any;
+        trades: any;
+    }>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<{
+        info: any;
+        id: string;
+        clientOrderId: any;
+        timestamp: number;
+        datetime: string;
+        lastTradeTimestamp: any;
+        symbol: any;
+        type: string;
+        timeInForce: any;
+        postOnly: any;
+        side: string;
+        price: number;
+        stopPrice: any;
+        triggerPrice: any;
+        cost: any;
+        average: any;
+        amount: number;
+        filled: number;
+        remaining: number;
+        status: string;
+        fee: any;
+        trades: any;
+    }>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
@@ -185,12 +227,58 @@ export default class upbit extends Exchange {
         };
     };
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    parseOrder(order: any, market?: any): {
+        info: any;
+        id: string;
+        clientOrderId: any;
+        timestamp: number;
+        datetime: string;
+        lastTradeTimestamp: any;
+        symbol: any;
+        type: string;
+        timeInForce: any;
+        postOnly: any;
+        side: string;
+        price: number;
+        stopPrice: any;
+        triggerPrice: any;
+        cost: any;
+        average: any;
+        amount: number;
+        filled: number;
+        remaining: number;
+        status: string;
+        fee: any;
+        trades: any;
+    };
     fetchOrdersByState(state: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<{
+        info: any;
+        id: string;
+        clientOrderId: any;
+        timestamp: number;
+        datetime: string;
+        lastTradeTimestamp: any;
+        symbol: any;
+        type: string;
+        timeInForce: any;
+        postOnly: any;
+        side: string;
+        price: number;
+        stopPrice: any;
+        triggerPrice: any;
+        cost: any;
+        average: any;
+        amount: number;
+        filled: number;
+        remaining: number;
+        status: string;
+        fee: any;
+        trades: any;
+    }>;
     fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: any;

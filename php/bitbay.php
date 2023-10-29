@@ -13,7 +13,6 @@ class bitbay extends zonda {
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitbay',
-            'name' => 'BitBay',
             'alias' => true,
         ));
     }

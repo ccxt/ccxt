@@ -161,8 +161,8 @@ class wazirx extends Exchange {
             /**
              * @see https://docs.wazirx.com/#exchange-info
              * retrieves data on all $markets for wazirx
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market data
              */
             $response = Async\await($this->publicGetExchangeInfo ($params));
             //
@@ -264,7 +264,6 @@ class wazirx extends Exchange {
                             'max' => null,
                         ),
                     ),
-                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -279,11 +278,11 @@ class wazirx extends Exchange {
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents. Available values [1m,5m,15m,30m,1h,2h,4h,6h,12h,1d,1w]
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @param {int} [$params->until] timestamp in s of the latest candle to fetch
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the wazirx api endpoint
+             * @param {int|null} $params->until timestamp in s of the latest candle to fetch
+             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -333,9 +332,9 @@ class wazirx extends Exchange {
              * @see https://docs.wazirx.com/#order-book
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the wazirx api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -370,8 +369,8 @@ class wazirx extends Exchange {
              * @see https://docs.wazirx.com/#24hr-$ticker-price-change-statistics
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
+             * @param {array} $params extra parameters specific to the wazirx api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -403,9 +402,9 @@ class wazirx extends Exchange {
             /**
              * @see https://docs.wazirx.com/#24hr-$tickers-price-change-statistics
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the wazirx api endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $tickers = Async\await($this->publicGetTickers24hr ());
@@ -433,7 +432,7 @@ class wazirx extends Exchange {
                 $symbol = $parsedTicker['symbol'];
                 $result[$symbol] = $parsedTicker;
             }
-            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+            return $result;
         }) ();
     }
 
@@ -443,10 +442,10 @@ class wazirx extends Exchange {
              * @see https://docs.wazirx.com/#recent-trades-list
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the wazirx api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -454,7 +453,7 @@ class wazirx extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 1000); // Default 500; max 1000.
+                $request['limit'] = $limit; // Default 500; max 1000.
             }
             $method = $this->safe_string($this->options, 'fetchTradesMethod', 'publicGetTrades');
             $response = Async\await($this->$method (array_merge($request, $params)));
@@ -514,8 +513,8 @@ class wazirx extends Exchange {
             /**
              * @see https://docs.wazirx.com/#system-$status
              * the latest known information on the availability of the exchange API
-             * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-$status-structure $status structure}
+             * @param {array} $params extra parameters specific to the wazirx api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
              */
             $response = Async\await($this->publicGetSystemStatus ($params));
             //
@@ -540,7 +539,7 @@ class wazirx extends Exchange {
             /**
              * @see https://docs.wazirx.com/#check-server-time
              * fetches the current integer timestamp in milliseconds from the exchange server
-             * @param {array} [$params] extra parameters specific to the wazirx api endpoint
+             * @param {array} $params extra parameters specific to the wazirx api endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
             $response = Async\await($this->publicGetTime ($params));
@@ -605,7 +604,7 @@ class wazirx extends Exchange {
     }
 
     public function parse_balance($response) {
-        $result = array( 'info' => $response );
+        $result = array( );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $id = $this->safe_string($balance, 'asset');
@@ -623,8 +622,8 @@ class wazirx extends Exchange {
             /**
              * @see https://docs.wazirx.com/#fund-details-user_data
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @param {array} $params extra parameters specific to the wazirx api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetFunds ($params));
@@ -647,10 +646,10 @@ class wazirx extends Exchange {
              * @see https://docs.wazirx.com/#all-$orders-user_data
              * fetches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {int|null} $since the earliest time in ms to fetch $orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the wazirx api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
@@ -707,11 +706,11 @@ class wazirx extends Exchange {
             /**
              * @see https://docs.wazirx.com/#current-open-$orders-user_data
              * fetch all unfilled currently open $orders
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch open $orders for
-             * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open $orders for
+             * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+             * @param {array} $params extra parameters specific to the wazirx api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -759,8 +758,8 @@ class wazirx extends Exchange {
              * @see https://docs.wazirx.com/#cancel-all-open-orders-on-a-$symbol-trade
              * cancel all open orders in a $market
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
-             * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {array} $params extra parameters specific to the wazirx api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a `$symbol` argument');
@@ -781,8 +780,8 @@ class wazirx extends Exchange {
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {array} $params extra parameters specific to the wazirx api endpoint
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
@@ -807,9 +806,9 @@ class wazirx extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the wazirx api endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             $type = strtolower($type);
             if (($type !== 'limit') && ($type !== 'stop_limit')) {
@@ -830,7 +829,6 @@ class wazirx extends Exchange {
             $stopPrice = $this->safe_string($params, 'stopPrice');
             if ($stopPrice !== null) {
                 $request['type'] = 'stop_limit';
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
             }
             $response = Async\await($this->privatePostOrder (array_merge($request, $params)));
             // {

@@ -1,12 +1,11 @@
 import binanceRest from '../binance.js';
-import { Int, OrderSide, OrderType } from '../base/types.js';
+import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class binance extends binanceRest {
     describe(): any;
     requestId(url: any): any;
     stream(type: any, subscriptionHash: any): string;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<any>;
     fetchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
@@ -14,7 +13,6 @@ export default class binance extends binanceRest {
     handleOrderBook(client: Client, message: any): void;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTrade(trade: any, market?: any): import("../base/types.js").Trade | {
         id: any;
@@ -36,7 +34,6 @@ export default class binance extends binanceRest {
     };
     handleTrade(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<import("../base/types.js").OHLCV[]>>>;
     handleOHLCV(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: string[], params?: {}): Promise<any>;
@@ -64,34 +61,17 @@ export default class binance extends binanceRest {
     };
     handleTicker(client: Client, message: any): void;
     handleTickers(client: Client, message: any): void;
-    signParams(params?: {}): any;
     authenticate(params?: {}): Promise<void>;
     keepAliveListenKey(params?: {}): Promise<void>;
     setBalanceCache(client: Client, type: any): any;
     loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
-    fetchBalanceWs(params?: {}): Promise<any>;
-    handleBalanceWs(client: Client, message: any): void;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
-    checkIsSpot(method: string, symbol: string, params?: {}): void;
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<any>;
-    handleOrderWs(client: Client, message: any): void;
-    handleOrdersWs(client: Client, message: any): void;
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<any>;
-    handleEditOrderWs(client: Client, message: any): void;
-    cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<any>;
-    cancelAllOrdersWs(symbol?: string, params?: {}): Promise<any>;
-    fetchOrderWs(id: string, symbol?: string, params?: {}): Promise<any>;
-    fetchOrdersWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchOpenOrdersWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleOrderUpdate(client: Client, message: any): void;
-    fetchMyTradesWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    handleTradesWs(client: Client, message: any): void;
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrade(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
-    handleWsError(client: Client, message: any): void;
     handleMessage(client: Client, message: any): any;
 }

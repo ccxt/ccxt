@@ -30,7 +30,7 @@ const langKeys = {
     '--php-async': false,    // run php async tests only,
 }
 
-const debugKeys = {
+const optionKeys = {
     '--warnings': false,
     '--info': false,
 }
@@ -55,8 +55,8 @@ for (const arg of args) {
     else if (arg.startsWith ('--'))          {
         if (arg in langKeys) {
             langKeys[arg] = true
-        } else if (arg in debugKeys) {
-            debugKeys[arg] = true
+        } else if (arg in optionKeys) {
+            optionKeys[arg] = true
         } else {
             log.bright.red ('\nUnknown option', arg.white, '\n');
         }
@@ -107,9 +107,10 @@ const exec = (bin, ...args) =>
 
         let output = ''
         let stderr = ''
+        let hasWarnings = false
 
         psSpawn.stdout.on ('data', data => { output += data.toString () })
-        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); })
+        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
 
         psSpawn.on ('exit', code => {
             // keep this commented code for a while (just in case), as the below avoids vscode false positive warnings from output: https://github.com/nodejs/node/issues/34799 during debugging
@@ -118,8 +119,20 @@ const exec = (bin, ...args) =>
             // output = removeDebuger(output);
             // if (stderr === '') { hasWarnings = false; }
 
-            let hasWarnings = stderr.length > 0;
             output = ansi.strip (output.trim ())
+            stderr = ansi.strip (stderr)
+
+            const infoRegex = /\[INFO:([\w_-]+)].+$\n*/gmi
+            const regex = /\[[a-z]+?\]/gmi
+
+            let match = undefined
+            const warnings = []
+            const info = []
+
+            let outputInfo = '';
+
+            match = regex.exec (output)
+            let matchInfo = infoRegex.exec (output)
 
             // detect error
             let hasFailed = false;
@@ -138,32 +151,24 @@ const exec = (bin, ...args) =>
                 hasFailed = true;
             }
 
-            // Infos
-            const info = []
-            let outputInfo = '';
-            if (output.length) {
-                // check output for pattern like `[INFO: whatever]`
-                const infoRegex = /\[INFO:([\w_-]+)].+$\n*/gmi
-                let matchInfo;
-                while ((matchInfo = infoRegex.exec (output))) {
-                    info.push ('[' + matchInfo[1] + ']')
-                    outputInfo += matchInfo[0]
-                }
+            if (match) {
+                warnings.push (match[0])
+                do {
+                    if (match = regex.exec (output)) {
+                        warnings.push (match[0])
+                    }
+                } while (match);
             }
-
-            // Warnings
-            const warnings = []
-            if (hasWarnings) {
-                // check output for pattern like `[XYZ_WARNING: whatever]`
-                const warningRegex = /\[[a-zA-Z]+?\]/gmi
-                let matchWarnings; 
-                while (matchWarnings = warningRegex.exec (stderr)) {
-                    warnings.push (matchWarnings[0])
-                }
-                // if pattern not found, then add the whole stderr to warning
-                if (!warnings.length) {
-                    warnings.push (stderr)
-                }
+            if (matchInfo) {
+                info.push ('[' + matchInfo[1] + ']')
+                outputInfo += matchInfo[0]
+                do {
+                    if (matchInfo = infoRegex.exec (output)) {
+                        info.push ('[' + matchInfo[1] + ']')
+                        outputInfo += matchInfo[0]
+                    }
+                } while (matchInfo);
+                output = output.replace (infoRegex, '')
             }
             return_ ({
                 failed: hasFailed || code !== 0,
@@ -213,28 +218,12 @@ const sequentialMap = async (input, fn) => {
 
 const testExchange = async (exchange) => {
 
-    const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
-
-    // no need to test alias classes
-    if (exchange.alias) {
-        numExchangesTested++;
-        log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
-        return [];
-    }
+    numExchangesTested++
+    const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
 
     if (skipSettings[exchange] && skipSettings[exchange].skip) {
-        if (!('until' in skipSettings[exchange])) {
-            // if until not specified, skip forever
-            numExchangesTested++;
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
-            return [];
-        }
-        if (new Date(skipSettings[exchange].until) > new Date()) {
-            numExchangesTested++;
-            // if untilDate has not been yet reached, skip test for exchange
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
-            return [];
-        }
+        log.bright (('[' + percentsDone + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
+        return [];
     }
 
 /*  Run tests for all/selected languages (in parallel)     */
@@ -286,7 +275,7 @@ const testExchange = async (exchange) => {
     if (failed) {
         logMessage+= 'FAIL'.red;
     } else if (hasWarnings) {
-        logMessage = ('WARN: ' + (warnings.length ? warnings.join (' ') : '')).yellow;
+        logMessage = (warnings.length ? warnings.join (' ') : 'WARN').yellow;
     } else {
         logMessage = 'OK'.green;
     }
@@ -299,8 +288,7 @@ const testExchange = async (exchange) => {
             logMessage += infoMessages.blue;
         }
     }
-    numExchangesTested++;
-    log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, logMessage)
+    log.bright (('[' + percentsDone + ']').dim, 'Tested', exchange.cyan, logMessage)
 
 /*  Return collected data to main loop     */
 
@@ -386,8 +374,9 @@ async function testAllExchanges () {
 
 (async function () {
 
+    const allKeys = Object.assign (optionKeys, langKeys)
     log.bright.magenta.noPretty ('Testing'.white, Object.assign (
-                                                            { exchanges, symbol, debugKeys, langKeys, exchangeSpecificFlags },
+                                                            { exchanges, symbol, allKeys, exchangeSpecificFlags },
                                                             maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency }))
 
     const tested    = await testAllExchanges ()

@@ -1,10 +1,5 @@
 import Exchange from './abstract/wavesexchange.js';
-import { Precise } from './base/Precise.js';
-import { Int, OrderBook, OrderSide, OrderType } from './base/types.js';
-/**
- * @class wavesexchange
- * @extends Exchange
- */
+import { Int, OrderSide, OrderType } from './base/types.js';
 export default class wavesexchange extends Exchange {
     describe(): any;
     setSandboxMode(enabled: any): void;
@@ -17,7 +12,7 @@ export default class wavesexchange extends Exchange {
     }>;
     getQuotes(): Promise<any>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     parseOrderBookSide(bookSide: any, market?: any, limit?: Int): any[];
     checkRequiredKeys(): void;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
@@ -29,7 +24,7 @@ export default class wavesexchange extends Exchange {
     signIn(params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
     filterFutureCandles(ohlcvs: any): any[];
     parseOHLCV(ohlcv: any, market?: any): number[];
@@ -48,7 +43,7 @@ export default class wavesexchange extends Exchange {
     customAmountToPrecision(symbol: any, amount: any): number;
     currencyToPrecision(code: any, amount: any, networkCode?: any): number;
     fromPrecision(amount: any, scale: any): string;
-    toPrecision(amount: any, scale: any): Precise;
+    toPrecision(amount: any, scale: any): string;
     currencyFromPrecision(currency: any, amount: any): string;
     priceFromPrecision(symbol: any, price: any): string;
     safeGetDynamic(settings: any): any;
@@ -86,8 +81,6 @@ export default class wavesexchange extends Exchange {
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    parseDepositWithdrawFees(response: any, codes?: string[], currencyIdKey?: any): any;
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: any;

@@ -1,9 +1,5 @@
 import Exchange from './abstract/timex.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
-/**
- * @class timex
- * @extends Exchange
- */
 export default class timex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -31,7 +27,7 @@ export default class timex extends Exchange {
         updated: any;
         fee: any;
     };
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
@@ -106,7 +102,6 @@ export default class timex extends Exchange {
                 max: any;
             };
         };
-        created: any;
         info: any;
     };
     parseCurrency(currency: any): {

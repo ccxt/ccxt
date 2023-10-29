@@ -21,9 +21,7 @@ export default async (exchange, symbol) => {
         'ripio',
         'gopax',
         'woo',
-        'alpaca',
-        'coinbasepro',
-        'coinbaseprime', // requires auth
+        'alpaca', // requires auth
     ];
     if (skippedExchanges.includes(exchange.id)) {
         console.log(exchange.id, method, '() test skipped');
