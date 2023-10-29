@@ -3100,12 +3100,7 @@ export default class hitbtc extends Exchange {
         const isMargin = this.safeValue (params, 'margin', false);
         let marginMode = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
-        if (marginMode !== undefined) {
-            // not true for swaps
-            // if (marginMode !== 'isolated') {
-            //     throw new NotSupported (this.id + ' only isolated margin is supported');
-            // }
-        } else {
+        if (marginMode === undefined) {
             if ((defaultType === 'margin') || (isMargin === true)) {
                 marginMode = 'isolated';
             }
