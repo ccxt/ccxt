@@ -586,7 +586,7 @@ export default class bigone extends Exchange {
             const quoteId = this.safeString (quoteAsset, 'symbol');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            result.push (this.safeMarketStructure ({
+            result.push ({
                 'id': this.safeString (market, 'name'),
                 'uuid': this.safeString (market, 'id'),
                 'symbol': base + '/' + quote,
@@ -635,7 +635,7 @@ export default class bigone extends Exchange {
                 },
                 'created': undefined,
                 'info': market,
-            }));
+            });
         }
         for (let i = 0; i < contractResponse.length; i++) {
             const market = contractResponse[i];
@@ -647,7 +647,7 @@ export default class bigone extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
-            result.push (this.safeMarketStructure ({
+            result.push ({
                 'id': marketId,
                 'symbol': base + '/' + quote + ':' + settle,
                 'base': base,
@@ -694,7 +694,7 @@ export default class bigone extends Exchange {
                     },
                 },
                 'info': market,
-            }));
+            });
         }
         return result;
     }
