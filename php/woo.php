@@ -120,7 +120,10 @@ class woo extends Exchange {
                 'fees' => array(
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ),
-                'referral' => 'https://referral.woo.org/BAJS6oNmZb3vi3RGA',
+                'referral' => array(
+                    'url' => 'https://x.woo.org/register?ref=YWOWC96B',
+                    'discount' => 0.35,
+                ),
             ),
             'api' => array(
                 'v1' => array(

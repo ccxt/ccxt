@@ -1035,7 +1035,7 @@ export default class ace extends Exchange {
                 'timeStamp': nonce,
             }, params);
             const dataKeys = Object.keys (data);
-            const sortedDataKeys = this.sortBy (dataKeys, 0);
+            const sortedDataKeys = this.sortBy (dataKeys, 0, false, '');
             for (let i = 0; i < sortedDataKeys.length; i++) {
                 const key = sortedDataKeys[i];
                 auth += this.safeString (data, key);

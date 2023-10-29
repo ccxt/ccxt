@@ -22,7 +22,7 @@ class bitget extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
+                'margin' => true,
                 'swap' => true,
                 'future' => true,
                 'option' => false,
@@ -32,11 +32,13 @@ class bitget extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createReduceOnlyOrder' => false,
                 'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
+                'fetchBorrowInterest' => true,
+                'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
@@ -1483,20 +1485,44 @@ class bitget extends Exchange {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-position-tier
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-tier-data
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-tier-data
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {string} [$params->marginMode] for spot margin 'cross' or 'isolated', default is 'isolated'
+         * @param {string} [$params->code] required for cross spot margin
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure leverage tiers structure}
          */
         $this->load_markets();
         $request = array();
-        $market = null;
         $market = $this->market($symbol);
-        if ($market['spot']) {
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMarketLeverageTiers', $market, $params);
+        $response = null;
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMarketLeverageTiers', $params, 'isolated');
+        if (($type === 'swap') || ($type === 'future')) {
+            $marketId = $market['id'];
+            $parts = explode('_', $marketId);
+            $productType = $this->safe_string_upper($parts, 1);
+            $request['symbol'] = $marketId;
+            $request['productType'] = $productType;
+            $response = $this->publicMixGetMarketQueryPositionLever (array_merge($request, $params));
+        } elseif ($marginMode === 'isolated') {
+            $request['symbol'] = $market['info']['symbolName'];
+            $response = $this->publicMarginGetIsolatedPublicTierData (array_merge($request, $params));
+        } elseif ($marginMode === 'cross') {
+            $code = $this->safe_string($params, 'code');
+            $this->check_required_argument('fetchMarketLeverageTiers', $code, 'code');
+            $params = $this->omit($params, 'code');
+            $currency = $this->currency($code);
+            $request['coin'] = $currency['code'];
+            $response = $this->publicMarginGetCrossPublicTierData (array_merge($request, $params));
+        } else {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() $symbol does not support $market ' . $symbol);
         }
-        $request['symbol'] = $market['id'];
-        $request['productType'] = 'UMCBL';
-        $response = $this->publicMixGetMarketQueryPositionLever (array_merge($request, $params));
+        //
+        // swap and future
         //
         //     {
         //         "code":"00000",
@@ -1513,11 +1539,51 @@ class bitget extends Exchange {
         //         "requestTime":1627292076687
         //     }
         //
-        $result = $this->safe_value($response, 'data');
+        // isolated
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1698352496622,
+        //         "data" => array(
+        //             array(
+        //                 "tier" => "1",
+        //                 "symbol" => "BTCUSDT",
+        //                 "leverage" => "10",
+        //                 "baseCoin" => "BTC",
+        //                 "quoteCoin" => "USDT",
+        //                 "baseMaxBorrowableAmount" => "3",
+        //                 "quoteMaxBorrowableAmount" => "30000",
+        //                 "maintainMarginRate" => "0.05",
+        //                 "initRate" => "0.1111"
+        //             ),
+        //         )
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1698352997077,
+        //         "data" => array(
+        //             {
+        //                 "tier" => "1",
+        //                 "leverage" => "3",
+        //                 "coin" => "BTC",
+        //                 "maxBorrowableAmount" => "26",
+        //                 "maintainMarginRate" => "0.1"
+        //             }
+        //         )
+        //     }
+        //
+        $result = $this->safe_value($response, 'data', array());
         return $this->parse_market_leverage_tiers($result, $market);
     }
 
     public function parse_market_leverage_tiers($info, $market = null) {
+        //
+        // swap and future
         //
         //     array(
         //         {
@@ -1527,22 +1593,57 @@ class bitget extends Exchange {
         //             "leverage" => 125,
         //             "keepMarginRate" => "0.004"
         //         }
-        //     ),
+        //     )
+        //
+        // isolated
+        //
+        //     array(
+        //         {
+        //             "tier" => "1",
+        //             "symbol" => "BTCUSDT",
+        //             "leverage" => "10",
+        //             "baseCoin" => "BTC",
+        //             "quoteCoin" => "USDT",
+        //             "baseMaxBorrowableAmount" => "3",
+        //             "quoteMaxBorrowableAmount" => "30000",
+        //             "maintainMarginRate" => "0.05",
+        //             "initRate" => "0.1111"
+        //         }
+        //     )
+        //
+        // cross
+        //
+        //     array(
+        //         {
+        //             "tier" => "1",
+        //             "leverage" => "3",
+        //             "coin" => "BTC",
+        //             "maxBorrowableAmount" => "26",
+        //             "maintainMarginRate" => "0.1"
+        //         }
+        //     )
         //
         $tiers = array();
+        $minNotional = 0;
         for ($i = 0; $i < count($info); $i++) {
             $item = $info[$i];
-            $minNotional = $this->safe_number($item, 'startUnit');
-            $maxNotional = $this->safe_number($item, 'endUnit');
+            $minimumNotional = $this->safe_number($item, 'startUnit');
+            if ($minimumNotional !== null) {
+                $minNotional = $minimumNotional;
+            }
+            $maxNotional = $this->safe_number_n($item, array( 'endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount' ));
+            $marginCurrency = $this->safe_string_2($item, 'coin', 'baseCoin');
+            $currencyId = ($marginCurrency !== null) ? $marginCurrency : $market['base'];
             $tiers[] = array(
-                'tier' => $this->sum($i, 1),
-                'currency' => $market['base'],
+                'tier' => $this->safe_integer_2($item, 'level', 'tier'),
+                'currency' => $this->safe_currency_code($currencyId),
                 'minNotional' => $minNotional,
                 'maxNotional' => $maxNotional,
-                'maintenanceMarginRate' => $this->safe_number($item, 'keepMarginRate'),
+                'maintenanceMarginRate' => $this->safe_number_2($item, 'keepMarginRate', 'maintainMarginRate'),
                 'maxLeverage' => $this->safe_number($item, 'leverage'),
                 'info' => $item,
             );
+            $minNotional = $maxNotional;
         }
         return $tiers;
     }
@@ -2955,7 +3056,23 @@ class bitget extends Exchange {
         //         "fillTotalAmount" => "0",
         //         "ctime" => "1697773902588"
         //     }
+        // cancelOrders failing
         //
+        //         {
+        //           "orderId" => "1627293504611",
+        //           "clientOid" => "BITGET#1627293504611",
+        //           "errorMsg":"Duplicate clientOid"
+        //         }
+        //
+        $errorMessage = $this->safe_string($order, 'errorMsg');
+        if ($errorMessage !== null) {
+            return $this->safe_order(array(
+                'info' => $order,
+                'id' => $this->safe_string($order, 'orderId'),
+                'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
+                'status' => 'rejected',
+            ), $market);
+        }
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($order, 'cTime', 'ctime');
@@ -3033,9 +3150,9 @@ class bitget extends Exchange {
          * @param {float} [$params->triggerPrice] *swap only* The $price at which a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] *swap only* The $price at which a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] *swap only* The $price at which a take profit order is triggered at
-         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
          * @param {float} [$params->takeProfit.triggerPrice] *swap only* take profit trigger $price
-         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] *swap only* stop loss trigger $price
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {string} [$params->marginMode] 'isolated' or 'cross' for spot margin trading
@@ -3044,9 +3161,55 @@ class bitget extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
+        $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+        $isTriggerOrder = $triggerPrice !== null;
+        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
+        $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
+        $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $response = null;
+        if ($market['spot']) {
+            if ($isTriggerOrder) {
+                $response = $this->privateSpotPostPlanPlacePlan ($request);
+            } elseif ($marginMode === 'isolated') {
+                $response = $this->privateMarginPostIsolatedOrderPlaceOrder ($request);
+            } elseif ($marginMode === 'cross') {
+                $response = $this->privateMarginPostCrossOrderPlaceOrder ($request);
+            } else {
+                $response = $this->privateSpotPostTradeOrders ($request);
+            }
+        } else {
+            if ($isTriggerOrder) {
+                $response = $this->privateMixPostPlanPlacePlan ($request);
+            } elseif ($isStopLossOrTakeProfitTrigger) {
+                $response = $this->privateMixPostPlanPlacePositionsTPSL ($request);
+            } else {
+                $response = $this->privateMixPostOrderPlaceOrder ($request);
+            }
+        }
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1645932209602,
+        //         "data" => {
+        //             "orderId" => "881669078313766912",
+        //             "clientOrderId" => "iauIBf#a45b595f96474d888d0ada"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_order($data, $market);
+    }
+
+    public function create_order_request($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
         $marketType = null;
         $marginMode = null;
-        $response = null;
         list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
         list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
         $marketId = $market['id'];
@@ -3136,7 +3299,6 @@ class bitget extends Exchange {
                 if ($price !== null) {
                     $request['executePrice'] = $this->price_to_precision($symbol, $price);
                 }
-                $response = $this->privateMixPostPlanPlacePlan (array_merge($request, $params));
             } elseif ($isStopLossOrTakeProfitTrigger) {
                 if ($isStopLossTriggerOrder) {
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
@@ -3145,7 +3307,6 @@ class bitget extends Exchange {
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                     $request['planType'] = 'pos_profit';
                 }
-                $response = $this->privateMixPostPlanPlacePositionsTPSL (array_merge($request, $params));
             } else {
                 if ($isStopLoss) {
                     $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
@@ -3155,7 +3316,6 @@ class bitget extends Exchange {
                     $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
                     $request['presetTakeProfitPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                 }
-                $response = $this->privateMixPostOrderPlaceOrder (array_merge($request, $params));
             }
         } elseif ($marketType === 'spot') {
             if ($isStopLossOrTakeProfitTrigger || $isStopLossOrTakeProfit) {
@@ -3188,7 +3348,6 @@ class bitget extends Exchange {
                 if ($clientOrderId !== null) {
                     $request['clientOrderId'] = $clientOrderId;
                 }
-                $response = $this->privateSpotPostPlanPlacePlan (array_merge($request, $params));
             } elseif ($marginMode !== null) {
                 $request['loanType'] = 'normal';
                 if ($clientOrderId !== null) {
@@ -3199,11 +3358,6 @@ class bitget extends Exchange {
                 } else {
                     $request['baseQuantity'] = $quantity;
                 }
-                if ($marginMode === 'isolated') {
-                    $response = $this->privateMarginPostIsolatedOrderPlaceOrder (array_merge($request, $params));
-                } elseif ($marginMode === 'cross') {
-                    $response = $this->privateMarginPostCrossOrderPlaceOrder (array_merge($request, $params));
-                }
             } else {
                 if ($clientOrderId !== null) {
                     $request['clientOrderId'] = $clientOrderId;
@@ -3211,24 +3365,104 @@ class bitget extends Exchange {
                 if ($quantity !== null) {
                     $request['quantity'] = $quantity;
                 }
-                $response = $this->privateSpotPostTradeOrders (array_merge($request, $params));
             }
         } else {
             throw new NotSupported($this->id . ' createOrder() does not support ' . $marketType . ' orders');
         }
+        return array_merge($request, $params);
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        /**
+         * create a list of trade $orders (all $orders should be of the same $symbol)
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#batch-order
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#batch-order
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-order
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-order
+         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params] extra parameters specific to the api endpoint
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         */
+        $this->load_markets();
+        $ordersRequests = array();
+        $symbol = null;
+        $marginMode = null;
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $marketId = $this->safe_string($rawOrder, 'symbol');
+            if ($symbol === null) {
+                $symbol = $marketId;
+            } else {
+                if ($symbol !== $marketId) {
+                    throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                }
+            }
+            $type = $this->safe_string($rawOrder, 'type');
+            $side = $this->safe_string($rawOrder, 'side');
+            $amount = $this->safe_value($rawOrder, 'amount');
+            $price = $this->safe_value($rawOrder, 'price');
+            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $marginResult = $this->handle_margin_mode_and_params('createOrders', $params);
+            $currentMarginMode = $marginResult[0];
+            if ($currentMarginMode !== null) {
+                if ($marginMode === null) {
+                    $marginMode = $currentMarginMode;
+                } else {
+                    if ($marginMode !== $currentMarginMode) {
+                        throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same margin mode (isolated or cross)');
+                    }
+                }
+            }
+            $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+            $ordersRequests[] = $orderRequest;
+        }
+        $market = $this->market($symbol);
+        $symbolRequest = ($marginMode !== null) ? ($market['info']['symbolName']) : ($market['id']);
+        $request = array(
+            'symbol' => $symbolRequest,
+        );
+        $response = null;
+        if ($market['spot']) {
+            $request['orderList'] = $ordersRequests;
+        }
+        if (($market['swap']) || ($market['future'])) {
+            $request['orderDataList'] = $ordersRequests;
+            $request['marginCoin'] = $market['settleId'];
+            $response = $this->privateMixPostOrderBatchOrders ($request);
+        } elseif ($marginMode === 'isolated') {
+            $response = $this->privateMarginPostIsolatedOrderBatchPlaceOrder ($request);
+        } elseif ($marginMode === 'cross') {
+            $response = $this->privateMarginPostCrossOrderBatchPlaceOrder ($request);
+        } else {
+            $response = $this->privateSpotPostTradeBatchOrders ($request);
+        }
         //
-        //     {
-        //         "code" => "00000",
-        //         "msg" => "success",
-        //         "requestTime" => 1645932209602,
-        //         "data" => {
-        //             "orderId" => "881669078313766912",
-        //             "clientOrderId" => "iauIBf#a45b595f96474d888d0ada"
+        // {
+        //     "code" => "00000",
+        //     "data" => {
+        //       "orderInfo" => array(
+        //         {
+        //           "orderId" => "1627293504612",
+        //           "clientOid" => "BITGET#1627293504612"
         //         }
-        //     }
+        //       ),
+        //       "failure":array(
+        //         array(
+        //           "orderId" => "1627293504611",
+        //           "clientOid" => "BITGET#1627293504611",
+        //           "errorMsg":"Duplicate clientOid"
+        //         }
+        //       )
+        //     ),
+        //     "msg" => "success",
+        //     "requestTime" => 1627293504612
+        //   }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_order($data, $market);
+        $failure = $this->safe_value($data, 'failure', array());
+        $orderInfo = $this->safe_value_2($data, 'orderInfo', 'resultList', array());
+        $both = $this->array_concat($orderInfo, $failure);
+        return $this->parse_orders($both);
     }
 
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
@@ -5949,6 +6183,337 @@ class bitget extends Exchange {
             'quoteValue' => $this->parse_number($quoteValueString),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function fetch_borrow_rate(string $code, $params = array ()) {
+        /**
+         * fetch the rate of interest to borrow a $currency for margin trading
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-margin-interest-rate-and-max-borrowable-amount
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-margin-interest-rate-and-borrowable
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @param {string} [$params->symbol] required for isolated margin
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structure}
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $market = null;
+        $symbol = $this->safe_string($params, 'symbol');
+        $params = $this->omit($params, 'symbol');
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array();
+        $response = null;
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowRate', $params, 'cross');
+        if (($symbol !== null) || ($marginMode === 'isolated')) {
+            $this->check_required_symbol('fetchBorrowRate', $symbol);
+            $request['symbol'] = $market['info']['symbolName'];
+            $response = $this->publicMarginGetIsolatedPublicInterestRateAndLimit (array_merge($request, $params));
+        } elseif ($marginMode === 'cross') {
+            $request['coin'] = $currency['code'];
+            $response = $this->publicMarginGetCrossPublicInterestRateAndLimit (array_merge($request, $params));
+        }
+        //
+        // isolated
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1698208075332,
+        //         "data" => array(
+        //             {
+        //                 "symbol" => "BTCUSDT",
+        //                 "leverage" => "10",
+        //                 "baseCoin" => "BTC",
+        //                 "baseTransferInAble" => true,
+        //                 "baseBorrowAble" => true,
+        //                 "baseDailyInterestRate" => "0.00007",
+        //                 "baseYearlyInterestRate" => "0.02555",
+        //                 "baseMaxBorrowableAmount" => "35",
+        //                 "baseVips" => array(
+        //                     array(
+        //                         "level" => "0",
+        //                         "dailyInterestRate" => "0.00007",
+        //                         "yearlyInterestRate" => "0.02555",
+        //                         "discountRate" => "1"
+        //                     ),
+        //                 ),
+        //                 "quoteCoin" => "USDT",
+        //                 "quoteTransferInAble" => true,
+        //                 "quoteBorrowAble" => true,
+        //                 "quoteDailyInterestRate" => "0.00012627",
+        //                 "quoteYearlyInterestRate" => "0.04608855",
+        //                 "quoteMaxBorrowableAmount" => "300000",
+        //                 "quoteVips" => array(
+        //                     array(
+        //                         "level" => "0",
+        //                         "dailyInterestRate" => "0.000126279",
+        //                         "yearlyInterestRate" => "0.046091835",
+        //                         "discountRate" => "1"
+        //                     ),
+        //                 )
+        //             }
+        //         )
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1698208150986,
+        //         "data" => array(
+        //             {
+        //                 "coin" => "BTC",
+        //                 "leverage" => "3",
+        //                 "transferInAble" => true,
+        //                 "borrowAble" => true,
+        //                 "dailyInterestRate" => "0.00007",
+        //                 "yearlyInterestRate" => "0.02555",
+        //                 "maxBorrowableAmount" => "26",
+        //                 "vips" => array(
+        //                     array(
+        //                         "level" => "0",
+        //                         "dailyInterestRate" => "0.00007",
+        //                         "yearlyInterestRate" => "0.02555",
+        //                         "discountRate" => "1"
+        //                     ),
+        //                 )
+        //             }
+        //         )
+        //     }
+        //
+        $timestamp = $this->safe_integer($response, 'requestTime');
+        $data = $this->safe_value($response, 'data', array());
+        $first = $this->safe_value($data, 0, array());
+        $first['timestamp'] = $timestamp;
+        return $this->parse_borrow_rate($first, $currency);
+    }
+
+    public function parse_borrow_rate($info, $currency = null) {
+        //
+        // isolated
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "leverage" => "10",
+        //         "baseCoin" => "BTC",
+        //         "baseTransferInAble" => true,
+        //         "baseBorrowAble" => true,
+        //         "baseDailyInterestRate" => "0.00007",
+        //         "baseYearlyInterestRate" => "0.02555",
+        //         "baseMaxBorrowableAmount" => "35",
+        //         "baseVips" => array(
+        //             array(
+        //                 "level" => "0",
+        //                 "dailyInterestRate" => "0.00007",
+        //                 "yearlyInterestRate" => "0.02555",
+        //                 "discountRate" => "1"
+        //             ),
+        //         ),
+        //         "quoteCoin" => "USDT",
+        //         "quoteTransferInAble" => true,
+        //         "quoteBorrowAble" => true,
+        //         "quoteDailyInterestRate" => "0.00012627",
+        //         "quoteYearlyInterestRate" => "0.04608855",
+        //         "quoteMaxBorrowableAmount" => "300000",
+        //         "quoteVips" => array(
+        //             array(
+        //                 "level" => "0",
+        //                 "dailyInterestRate" => "0.000126279",
+        //                 "yearlyInterestRate" => "0.046091835",
+        //                 "discountRate" => "1"
+        //             ),
+        //         )
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "coin" => "BTC",
+        //         "leverage" => "3",
+        //         "transferInAble" => true,
+        //         "borrowAble" => true,
+        //         "dailyInterestRate" => "0.00007",
+        //         "yearlyInterestRate" => "0.02555",
+        //         "maxBorrowableAmount" => "26",
+        //         "vips" => array(
+        //             array(
+        //                 "level" => "0",
+        //                 "dailyInterestRate" => "0.00007",
+        //                 "yearlyInterestRate" => "0.02555",
+        //                 "discountRate" => "1"
+        //             ),
+        //         )
+        //     }
+        //
+        $code = $currency['code'];
+        $baseCoin = $this->safe_string($info, 'baseCoin');
+        $quoteCoin = $this->safe_string($info, 'quoteCoin');
+        $currencyId = null;
+        $interestRate = null;
+        if ($baseCoin !== null) {
+            if ($code === $baseCoin) {
+                $currencyId = $baseCoin;
+                $interestRate = $this->safe_number($info, 'baseDailyInterestRate');
+            } elseif ($code === $quoteCoin) {
+                $currencyId = $quoteCoin;
+                $interestRate = $this->safe_number($info, 'quoteDailyInterestRate');
+            }
+        } else {
+            $currencyId = $this->safe_string($info, 'coin');
+            $interestRate = $this->safe_number($info, 'dailyInterestRate');
+        }
+        $timestamp = $this->safe_integer($info, 'timestamp');
+        return array(
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'rate' => $interestRate,
+            'period' => 86400000, // 1-Day
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the $interest owed by the user for borrowing $currency for margin trading
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-$interest-records
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-$interest-records
+         * @param {string} [$code] unified $currency $code
+         * @param {string} [$symbol] unified $market $symbol when fetching $interest in isolated markets
+         * @param {int} [$since] the earliest time in ms to fetch borrow $interest for
+         * @param {int} [$limit] the maximum number of structures to retrieve
+         * @param {array} [$params] extra parameters specific to the bitget api endpoint
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-$interest-structure borrow $interest structures}
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['coin'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        } else {
+            $request['startTime'] = $this->milliseconds() - 7776000000;
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $response = null;
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params, 'cross');
+        if ($marginMode === 'isolated') {
+            $this->check_required_symbol('fetchBorrowInterest', $symbol);
+            $request['symbol'] = $market['info']['symbolName'];
+            $response = $this->privateMarginGetIsolatedInterestList (array_merge($request, $params));
+        } elseif ($marginMode === 'cross') {
+            $response = $this->privateMarginGetCrossInterestList (array_merge($request, $params));
+        }
+        //
+        // isolated
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1698282523888,
+        //         "data" => {
+        //             "resultList" => array(
+        //                 array(
+        //                     "interestId" => "1100560904468705284",
+        //                     "interestCoin" => "USDT",
+        //                     "interestRate" => "0.000126279",
+        //                     "loanCoin" => "USDT",
+        //                     "amount" => "0.00000298",
+        //                     "type" => "scheduled",
+        //                     "symbol" => "BTCUSDT",
+        //                     "ctime" => "1698120000000"
+        //                 ),
+        //             ),
+        //             "maxId" => "1100560904468705284",
+        //             "minId" => "1096915487398965249"
+        //         }
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1698282552126,
+        //         "data" => {
+        //             "resultList" => array(
+        //                 array(
+        //                     "interestId" => "1099126154352799744",
+        //                     "interestCoin" => "USDT",
+        //                     "interestRate" => "0.000126279",
+        //                     "loanCoin" => "USDT",
+        //                     "amount" => "0.00002631",
+        //                     "type" => "scheduled",
+        //                     "ctime" => "1697778000000"
+        //                 ),
+        //             ),
+        //             "maxId" => "1099126154352799744",
+        //             "minId" => "1096917004629716993"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $rows = $this->safe_value($data, 'resultList', array());
+        $interest = $this->parse_borrow_interests($rows, $market);
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        //
+        // isolated
+        //
+        //     {
+        //         "interestId" => "1100560904468705284",
+        //         "interestCoin" => "USDT",
+        //         "interestRate" => "0.000126279",
+        //         "loanCoin" => "USDT",
+        //         "amount" => "0.00000298",
+        //         "type" => "scheduled",
+        //         "symbol" => "BTCUSDT",
+        //         "ctime" => "1698120000000"
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "interestId" => "1099126154352799744",
+        //         "interestCoin" => "USDT",
+        //         "interestRate" => "0.000126279",
+        //         "loanCoin" => "USDT",
+        //         "amount" => "0.00002631",
+        //         "type" => "scheduled",
+        //         "ctime" => "1697778000000"
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $marginMode = ($marketId !== null) ? 'isolated' : 'cross';
+        $timestamp = $this->safe_integer($info, 'ctime');
+        return array(
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'marginMode' => $marginMode,
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'interestCoin')),
+            'interest' => $this->safe_number($info, 'amount'),
+            'interestRate' => $this->safe_number($info, 'interestRate'),
+            'amountBorrowed' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
         );
     }
 

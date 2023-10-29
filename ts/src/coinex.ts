@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import { FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3610,7 +3610,7 @@ export default class coinex extends Exchange {
                 'amount': this.safeNumber (entry, 'funding'),
             });
         }
-        return result;
+        return result as FundingHistory[];
     }
 
     async fetchFundingRate (symbol: string, params = {}) {

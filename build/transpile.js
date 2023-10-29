@@ -915,6 +915,9 @@ class Transpiler {
         if (bodyAsString.match (/: OrderSide/)) {
             libraries.push ('from ccxt.base.types import OrderSide')
         }
+        if (bodyAsString.match (/: List\[OrderRequest\]/)) {
+            libraries.push ('from ccxt.base.types import OrderRequest')
+        }
         if (bodyAsString.match (/: OrderType/)) {
             libraries.push ('from ccxt.base.types import OrderType')
         }
@@ -2610,7 +2613,8 @@ class Transpiler {
             // , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder }
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, jsFolder, exchanges }
 
-        if (!child) {
+        const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
+        if (!transpilingSingleExchange && !child) {
             createFolderRecursively (python2Folder)
             createFolderRecursively (python3Folder)
             createFolderRecursively (phpFolder)
@@ -2628,19 +2632,21 @@ class Transpiler {
             return
         }
 
-        this.transpileBaseMethods ()
+        if (!transpilingSingleExchange) {
+            this.transpileBaseMethods ()
 
-        //*/
+            //*/
 
-        this.transpileErrorHierarchy ()
+            this.transpileErrorHierarchy ()
 
-        this.transpileTests ()
+            this.transpileTests ()
 
-        // this.transpilePhpBaseClassMethods ()
+            // this.transpilePhpBaseClassMethods ()
 
-        this.transpileExamples ()
+            this.transpileExamples ()
 
-        this.addGeneratedHeaderToJs ('./js/')
+            this.addGeneratedHeaderToJs ('./js/')
+        }
 
         log.bright.green ('Transpiled successfully.')
     }

@@ -9,6 +9,7 @@ import asyncio
 import hashlib
 import json
 from ccxt.base.types import OrderSide
+from ccxt.base.types import OrderRequest
 from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
@@ -63,6 +64,7 @@ class binance(Exchange, ImplicitAPI):
                 'cancelOrders': True,  # contract only
                 'createDepositAddress': False,
                 'createOrder': True,
+                'createOrders': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -4069,7 +4071,16 @@ class binance(Exchange, ImplicitAPI):
         #         "lastTrade": {"id":"69","time":"1676084430567","price":"24.9","qty":"1.00"},
         #         "mmp": False
         #     }
+        #     {
+        # cancelOrders/createOrders
+        #          "code": -4005,
+        #          "msg": "Quantity greater than max quantity."
+        #       },
         #
+        code = self.safe_string(order, 'code')
+        if code is not None:
+            # cancelOrders/createOrders might have a partial success
+            return self.safe_order({'info': order, 'status': 'rejected'}, market)
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'symbol')
         marketType = 'contract' if ('closePosition' in order) else 'spot'
@@ -4136,6 +4147,78 @@ class binance(Exchange, ImplicitAPI):
             },
             'trades': fills,
         }, market)
+
+    async def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        *contract only* create a list of trade orders
+        :see: https://binance-docs.github.io/apidocs/futures/en/#place-multiple-orders-trade
+        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        await self.load_markets()
+        ordersRequests = []
+        orderSymbols = []
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            orderSymbols.append(marketId)
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(orderSymbols[0])
+        if market['spot']:
+            raise NotSupported(self.id + ' createOrders() does not support ' + market['type'] + ' orders')
+        response = None
+        request = {
+            'batchOrders': ordersRequests,
+        }
+        request = self.extend(request, params)
+        if market['linear']:
+            response = await self.fapiPrivatePostBatchOrders(request)
+        elif market['option']:
+            response = await self.eapiPrivatePostBatchOrders(request)
+        else:
+            response = await self.dapiPrivatePostBatchOrders(request)
+        #
+        #   [
+        #       {
+        #          "code": -4005,
+        #          "msg": "Quantity greater than max quantity."
+        #       },
+        #       {
+        #          "orderId": 650640530,
+        #          "symbol": "LTCUSDT",
+        #          "status": "NEW",
+        #          "clientOrderId": "x-xcKtGhcu32184eb13585491289bbaf",
+        #          "price": "54.00",
+        #          "avgPrice": "0.00",
+        #          "origQty": "0.100",
+        #          "executedQty": "0.000",
+        #          "cumQty": "0.000",
+        #          "cumQuote": "0.00000",
+        #          "timeInForce": "GTC",
+        #          "type": "LIMIT",
+        #          "reduceOnly": False,
+        #          "closePosition": False,
+        #          "side": "BUY",
+        #          "positionSide": "BOTH",
+        #          "stopPrice": "0.00",
+        #          "workingType": "CONTRACT_PRICE",
+        #          "priceProtect": False,
+        #          "origType": "LIMIT",
+        #          "priceMatch": "NONE",
+        #          "selfTradePreventionMode": "NONE",
+        #          "goodTillDate": 0,
+        #          "updateTime": 1698073926929
+        #       }
+        #   ]
+        #
+        return self.parse_orders(response)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
@@ -7794,6 +7877,11 @@ class binance(Exchange, ImplicitAPI):
                     brokerId = self.safe_string(broker, marketType, defaultId)
                     params['newClientOrderId'] = brokerId + self.uuid22()
             query = None
+            # handle batchOrders
+            if (path == 'batchOrders') and (method == 'POST'):
+                batchOrders = self.safe_value(params, 'batchOrders')
+                queryBatch = (self.json(batchOrders))
+                params['batchOrders'] = queryBatch
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({
                 'timestamp': self.nonce(),
@@ -7823,7 +7911,10 @@ class binance(Exchange, ImplicitAPI):
                 query = self.urlencode(extendedParams)
             signature = None
             if self.secret.find('PRIVATE KEY') > -1:
-                signature = self.encode_uri_component(self.rsa(query, self.secret, 'sha256'))
+                if len(self.secret) > 120:
+                    signature = self.encode_uri_component(self.rsa(query, self.secret, 'sha256'))
+                else:
+                    signature = self.encode_uri_component(self.eddsa(self.encode(query), self.secret, 'ed25519'))
             else:
                 signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
             query += '&' + 'signature=' + signature
@@ -7898,10 +7989,10 @@ class binance(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         if isinstance(response, list):
             # cancelOrders returns an array like self: [{"code":-2011,"msg":"Unknown order sent."}]
-            numElements = len(response)
-            if numElements > 0:
-                firstElement = response[0]
-                errorCode = self.safe_string(firstElement, 'code')
+            arrayLength = len(response)
+            if arrayLength == 1:  # when there's a single error we can throw, otherwise we have a partial success
+                element = response[0]
+                errorCode = self.safe_string(element, 'code')
                 if errorCode is not None:
                     self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.id + ' ' + body)
         return None

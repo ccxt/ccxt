@@ -22,7 +22,7 @@ export default class bitget extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': true,
                 'swap': true,
                 'future': true,
                 'option': false,
@@ -32,11 +32,13 @@ export default class bitget extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createReduceOnlyOrder': false,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
+                'fetchBorrowInterest': true,
+                'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
@@ -1487,20 +1489,47 @@ export default class bitget extends Exchange {
          * @name bitget#fetchMarketLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-position-tier
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-tier-data
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-tier-data
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.marginMode] for spot margin 'cross' or 'isolated', default is 'isolated'
+         * @param {string} [params.code] required for cross spot margin
          * @returns {object} a [leverage tiers structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}
          */
         await this.loadMarkets();
         const request = {};
-        let market = undefined;
-        market = this.market(symbol);
-        if (market['spot']) {
+        const market = this.market(symbol);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchMarketLeverageTiers', market, params);
+        let response = undefined;
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchMarketLeverageTiers', params, 'isolated');
+        if ((type === 'swap') || (type === 'future')) {
+            const marketId = market['id'];
+            const parts = marketId.split('_');
+            const productType = this.safeStringUpper(parts, 1);
+            request['symbol'] = marketId;
+            request['productType'] = productType;
+            response = await this.publicMixGetMarketQueryPositionLever(this.extend(request, params));
+        }
+        else if (marginMode === 'isolated') {
+            request['symbol'] = market['info']['symbolName'];
+            response = await this.publicMarginGetIsolatedPublicTierData(this.extend(request, params));
+        }
+        else if (marginMode === 'cross') {
+            const code = this.safeString(params, 'code');
+            this.checkRequiredArgument('fetchMarketLeverageTiers', code, 'code');
+            params = this.omit(params, 'code');
+            const currency = this.currency(code);
+            request['coin'] = currency['code'];
+            response = await this.publicMarginGetCrossPublicTierData(this.extend(request, params));
+        }
+        else {
             throw new BadRequest(this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol);
         }
-        request['symbol'] = market['id'];
-        request['productType'] = 'UMCBL';
-        const response = await this.publicMixGetMarketQueryPositionLever(this.extend(request, params));
+        //
+        // swap and future
         //
         //     {
         //         "code":"00000",
@@ -1517,10 +1546,50 @@ export default class bitget extends Exchange {
         //         "requestTime":1627292076687
         //     }
         //
-        const result = this.safeValue(response, 'data');
+        // isolated
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1698352496622,
+        //         "data": [
+        //             {
+        //                 "tier": "1",
+        //                 "symbol": "BTCUSDT",
+        //                 "leverage": "10",
+        //                 "baseCoin": "BTC",
+        //                 "quoteCoin": "USDT",
+        //                 "baseMaxBorrowableAmount": "3",
+        //                 "quoteMaxBorrowableAmount": "30000",
+        //                 "maintainMarginRate": "0.05",
+        //                 "initRate": "0.1111"
+        //             },
+        //         ]
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1698352997077,
+        //         "data": [
+        //             {
+        //                 "tier": "1",
+        //                 "leverage": "3",
+        //                 "coin": "BTC",
+        //                 "maxBorrowableAmount": "26",
+        //                 "maintainMarginRate": "0.1"
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue(response, 'data', []);
         return this.parseMarketLeverageTiers(result, market);
     }
     parseMarketLeverageTiers(info, market = undefined) {
+        //
+        // swap and future
         //
         //     [
         //         {
@@ -1530,22 +1599,57 @@ export default class bitget extends Exchange {
         //             "leverage": 125,
         //             "keepMarginRate": "0.004"
         //         }
-        //     ],
+        //     ]
+        //
+        // isolated
+        //
+        //     [
+        //         {
+        //             "tier": "1",
+        //             "symbol": "BTCUSDT",
+        //             "leverage": "10",
+        //             "baseCoin": "BTC",
+        //             "quoteCoin": "USDT",
+        //             "baseMaxBorrowableAmount": "3",
+        //             "quoteMaxBorrowableAmount": "30000",
+        //             "maintainMarginRate": "0.05",
+        //             "initRate": "0.1111"
+        //         }
+        //     ]
+        //
+        // cross
+        //
+        //     [
+        //         {
+        //             "tier": "1",
+        //             "leverage": "3",
+        //             "coin": "BTC",
+        //             "maxBorrowableAmount": "26",
+        //             "maintainMarginRate": "0.1"
+        //         }
+        //     ]
         //
         const tiers = [];
+        let minNotional = 0;
         for (let i = 0; i < info.length; i++) {
             const item = info[i];
-            const minNotional = this.safeNumber(item, 'startUnit');
-            const maxNotional = this.safeNumber(item, 'endUnit');
+            const minimumNotional = this.safeNumber(item, 'startUnit');
+            if (minimumNotional !== undefined) {
+                minNotional = minimumNotional;
+            }
+            const maxNotional = this.safeNumberN(item, ['endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount']);
+            const marginCurrency = this.safeString2(item, 'coin', 'baseCoin');
+            const currencyId = (marginCurrency !== undefined) ? marginCurrency : market['base'];
             tiers.push({
-                'tier': this.sum(i, 1),
-                'currency': market['base'],
+                'tier': this.safeInteger2(item, 'level', 'tier'),
+                'currency': this.safeCurrencyCode(currencyId),
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
-                'maintenanceMarginRate': this.safeNumber(item, 'keepMarginRate'),
+                'maintenanceMarginRate': this.safeNumber2(item, 'keepMarginRate', 'maintainMarginRate'),
                 'maxLeverage': this.safeNumber(item, 'leverage'),
                 'info': item,
             });
+            minNotional = maxNotional;
         }
         return tiers;
     }
@@ -2980,7 +3084,23 @@ export default class bitget extends Exchange {
         //         "fillTotalAmount": "0",
         //         "ctime": "1697773902588"
         //     }
+        // cancelOrders failing
         //
+        //         {
+        //           "orderId": "1627293504611",
+        //           "clientOid": "BITGET#1627293504611",
+        //           "errorMsg":"Duplicate clientOid"
+        //         }
+        //
+        const errorMessage = this.safeString(order, 'errorMsg');
+        if (errorMessage !== undefined) {
+            return this.safeOrder({
+                'info': order,
+                'id': this.safeString(order, 'orderId'),
+                'clientOrderId': this.safeString(order, 'clientOrderId'),
+                'status': 'rejected',
+            }, market);
+        }
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger2(order, 'cTime', 'ctime');
@@ -3071,9 +3191,60 @@ export default class bitget extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
+        const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
+        const isTriggerOrder = triggerPrice !== undefined;
+        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
+        const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
+        const request = this.createOrderRequest(symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (market['spot']) {
+            if (isTriggerOrder) {
+                response = await this.privateSpotPostPlanPlacePlan(request);
+            }
+            else if (marginMode === 'isolated') {
+                response = await this.privateMarginPostIsolatedOrderPlaceOrder(request);
+            }
+            else if (marginMode === 'cross') {
+                response = await this.privateMarginPostCrossOrderPlaceOrder(request);
+            }
+            else {
+                response = await this.privateSpotPostTradeOrders(request);
+            }
+        }
+        else {
+            if (isTriggerOrder) {
+                response = await this.privateMixPostPlanPlacePlan(request);
+            }
+            else if (isStopLossOrTakeProfitTrigger) {
+                response = await this.privateMixPostPlanPlacePositionsTPSL(request);
+            }
+            else {
+                response = await this.privateMixPostOrderPlaceOrder(request);
+            }
+        }
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1645932209602,
+        //         "data": {
+        //             "orderId": "881669078313766912",
+        //             "clientOrderId": "iauIBf#a45b595f96474d888d0ada"
+        //         }
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        return this.parseOrder(data, market);
+    }
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        const market = this.market(symbol);
         let marketType = undefined;
         let marginMode = undefined;
-        let response = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
         [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
         const marketId = market['id'];
@@ -3171,7 +3342,6 @@ export default class bitget extends Exchange {
                 if (price !== undefined) {
                     request['executePrice'] = this.priceToPrecision(symbol, price);
                 }
-                response = await this.privateMixPostPlanPlacePlan(this.extend(request, params));
             }
             else if (isStopLossOrTakeProfitTrigger) {
                 if (isStopLossTriggerOrder) {
@@ -3182,7 +3352,6 @@ export default class bitget extends Exchange {
                     request['triggerPrice'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                     request['planType'] = 'pos_profit';
                 }
-                response = await this.privateMixPostPlanPlacePositionsTPSL(this.extend(request, params));
             }
             else {
                 if (isStopLoss) {
@@ -3193,7 +3362,6 @@ export default class bitget extends Exchange {
                     const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
                     request['presetTakeProfitPrice'] = this.priceToPrecision(symbol, tpTriggerPrice);
                 }
-                response = await this.privateMixPostOrderPlaceOrder(this.extend(request, params));
             }
         }
         else if (marketType === 'spot') {
@@ -3229,7 +3397,6 @@ export default class bitget extends Exchange {
                 if (clientOrderId !== undefined) {
                     request['clientOrderId'] = clientOrderId;
                 }
-                response = await this.privateSpotPostPlanPlacePlan(this.extend(request, params));
             }
             else if (marginMode !== undefined) {
                 request['loanType'] = 'normal';
@@ -3242,12 +3409,6 @@ export default class bitget extends Exchange {
                 else {
                     request['baseQuantity'] = quantity;
                 }
-                if (marginMode === 'isolated') {
-                    response = await this.privateMarginPostIsolatedOrderPlaceOrder(this.extend(request, params));
-                }
-                else if (marginMode === 'cross') {
-                    response = await this.privateMarginPostCrossOrderPlaceOrder(this.extend(request, params));
-                }
             }
             else {
                 if (clientOrderId !== undefined) {
@@ -3256,25 +3417,111 @@ export default class bitget extends Exchange {
                 if (quantity !== undefined) {
                     request['quantity'] = quantity;
                 }
-                response = await this.privateSpotPostTradeOrders(this.extend(request, params));
             }
         }
         else {
             throw new NotSupported(this.id + ' createOrder() does not support ' + marketType + ' orders');
         }
+        return this.extend(request, params);
+    }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name bitget#createOrders
+         * @description create a list of trade orders (all orders should be of the same symbol)
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#batch-order
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#batch-order
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-order
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-order
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to the api endpoint
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        let symbol = undefined;
+        let marginMode = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            if (symbol === undefined) {
+                symbol = marketId;
+            }
+            else {
+                if (symbol !== marketId) {
+                    throw new BadRequest(this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const marginResult = this.handleMarginModeAndParams('createOrders', params);
+            const currentMarginMode = marginResult[0];
+            if (currentMarginMode !== undefined) {
+                if (marginMode === undefined) {
+                    marginMode = currentMarginMode;
+                }
+                else {
+                    if (marginMode !== currentMarginMode) {
+                        throw new BadRequest(this.id + ' createOrders() requires all orders to have the same margin mode (isolated or cross)');
+                    }
+                }
+            }
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            ordersRequests.push(orderRequest);
+        }
+        const market = this.market(symbol);
+        const symbolRequest = (marginMode !== undefined) ? (market['info']['symbolName']) : (market['id']);
+        const request = {
+            'symbol': symbolRequest,
+        };
+        let response = undefined;
+        if (market['spot']) {
+            request['orderList'] = ordersRequests;
+        }
+        if ((market['swap']) || (market['future'])) {
+            request['orderDataList'] = ordersRequests;
+            request['marginCoin'] = market['settleId'];
+            response = await this.privateMixPostOrderBatchOrders(request);
+        }
+        else if (marginMode === 'isolated') {
+            response = await this.privateMarginPostIsolatedOrderBatchPlaceOrder(request);
+        }
+        else if (marginMode === 'cross') {
+            response = await this.privateMarginPostCrossOrderBatchPlaceOrder(request);
+        }
+        else {
+            response = await this.privateSpotPostTradeBatchOrders(request);
+        }
         //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1645932209602,
-        //         "data": {
-        //             "orderId": "881669078313766912",
-        //             "clientOrderId": "iauIBf#a45b595f96474d888d0ada"
+        // {
+        //     "code": "00000",
+        //     "data": {
+        //       "orderInfo": [
+        //         {
+        //           "orderId": "1627293504612",
+        //           "clientOid": "BITGET#1627293504612"
         //         }
-        //     }
+        //       ],
+        //       "failure":[
+        //         {
+        //           "orderId": "1627293504611",
+        //           "clientOid": "BITGET#1627293504611",
+        //           "errorMsg":"Duplicate clientOid"
+        //         }
+        //       ]
+        //     },
+        //     "msg": "success",
+        //     "requestTime": 1627293504612
+        //   }
         //
         const data = this.safeValue(response, 'data', {});
-        return this.parseOrder(data, market);
+        const failure = this.safeValue(data, 'failure', []);
+        const orderInfo = this.safeValue2(data, 'orderInfo', 'resultList', []);
+        const both = this.arrayConcat(orderInfo, failure);
+        return this.parseOrders(both);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
@@ -6055,6 +6302,342 @@ export default class bitget extends Exchange {
             'quoteValue': this.parseNumber(quoteValueString),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+        };
+    }
+    async fetchBorrowRate(code, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchBorrowRate
+         * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-margin-interest-rate-and-max-borrowable-amount
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-margin-interest-rate-and-borrowable
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.symbol] required for isolated margin
+         * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        let market = undefined;
+        const symbol = this.safeString(params, 'symbol');
+        params = this.omit(params, 'symbol');
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const request = {};
+        let response = undefined;
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchBorrowRate', params, 'cross');
+        if ((symbol !== undefined) || (marginMode === 'isolated')) {
+            this.checkRequiredSymbol('fetchBorrowRate', symbol);
+            request['symbol'] = market['info']['symbolName'];
+            response = await this.publicMarginGetIsolatedPublicInterestRateAndLimit(this.extend(request, params));
+        }
+        else if (marginMode === 'cross') {
+            request['coin'] = currency['code'];
+            response = await this.publicMarginGetCrossPublicInterestRateAndLimit(this.extend(request, params));
+        }
+        //
+        // isolated
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1698208075332,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "leverage": "10",
+        //                 "baseCoin": "BTC",
+        //                 "baseTransferInAble": true,
+        //                 "baseBorrowAble": true,
+        //                 "baseDailyInterestRate": "0.00007",
+        //                 "baseYearlyInterestRate": "0.02555",
+        //                 "baseMaxBorrowableAmount": "35",
+        //                 "baseVips": [
+        //                     {
+        //                         "level": "0",
+        //                         "dailyInterestRate": "0.00007",
+        //                         "yearlyInterestRate": "0.02555",
+        //                         "discountRate": "1"
+        //                     },
+        //                 ],
+        //                 "quoteCoin": "USDT",
+        //                 "quoteTransferInAble": true,
+        //                 "quoteBorrowAble": true,
+        //                 "quoteDailyInterestRate": "0.00012627",
+        //                 "quoteYearlyInterestRate": "0.04608855",
+        //                 "quoteMaxBorrowableAmount": "300000",
+        //                 "quoteVips": [
+        //                     {
+        //                         "level": "0",
+        //                         "dailyInterestRate": "0.000126279",
+        //                         "yearlyInterestRate": "0.046091835",
+        //                         "discountRate": "1"
+        //                     },
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1698208150986,
+        //         "data": [
+        //             {
+        //                 "coin": "BTC",
+        //                 "leverage": "3",
+        //                 "transferInAble": true,
+        //                 "borrowAble": true,
+        //                 "dailyInterestRate": "0.00007",
+        //                 "yearlyInterestRate": "0.02555",
+        //                 "maxBorrowableAmount": "26",
+        //                 "vips": [
+        //                     {
+        //                         "level": "0",
+        //                         "dailyInterestRate": "0.00007",
+        //                         "yearlyInterestRate": "0.02555",
+        //                         "discountRate": "1"
+        //                     },
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        const timestamp = this.safeInteger(response, 'requestTime');
+        const data = this.safeValue(response, 'data', []);
+        const first = this.safeValue(data, 0, {});
+        first['timestamp'] = timestamp;
+        return this.parseBorrowRate(first, currency);
+    }
+    parseBorrowRate(info, currency = undefined) {
+        //
+        // isolated
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "leverage": "10",
+        //         "baseCoin": "BTC",
+        //         "baseTransferInAble": true,
+        //         "baseBorrowAble": true,
+        //         "baseDailyInterestRate": "0.00007",
+        //         "baseYearlyInterestRate": "0.02555",
+        //         "baseMaxBorrowableAmount": "35",
+        //         "baseVips": [
+        //             {
+        //                 "level": "0",
+        //                 "dailyInterestRate": "0.00007",
+        //                 "yearlyInterestRate": "0.02555",
+        //                 "discountRate": "1"
+        //             },
+        //         ],
+        //         "quoteCoin": "USDT",
+        //         "quoteTransferInAble": true,
+        //         "quoteBorrowAble": true,
+        //         "quoteDailyInterestRate": "0.00012627",
+        //         "quoteYearlyInterestRate": "0.04608855",
+        //         "quoteMaxBorrowableAmount": "300000",
+        //         "quoteVips": [
+        //             {
+        //                 "level": "0",
+        //                 "dailyInterestRate": "0.000126279",
+        //                 "yearlyInterestRate": "0.046091835",
+        //                 "discountRate": "1"
+        //             },
+        //         ]
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "coin": "BTC",
+        //         "leverage": "3",
+        //         "transferInAble": true,
+        //         "borrowAble": true,
+        //         "dailyInterestRate": "0.00007",
+        //         "yearlyInterestRate": "0.02555",
+        //         "maxBorrowableAmount": "26",
+        //         "vips": [
+        //             {
+        //                 "level": "0",
+        //                 "dailyInterestRate": "0.00007",
+        //                 "yearlyInterestRate": "0.02555",
+        //                 "discountRate": "1"
+        //             },
+        //         ]
+        //     }
+        //
+        const code = currency['code'];
+        const baseCoin = this.safeString(info, 'baseCoin');
+        const quoteCoin = this.safeString(info, 'quoteCoin');
+        let currencyId = undefined;
+        let interestRate = undefined;
+        if (baseCoin !== undefined) {
+            if (code === baseCoin) {
+                currencyId = baseCoin;
+                interestRate = this.safeNumber(info, 'baseDailyInterestRate');
+            }
+            else if (code === quoteCoin) {
+                currencyId = quoteCoin;
+                interestRate = this.safeNumber(info, 'quoteDailyInterestRate');
+            }
+        }
+        else {
+            currencyId = this.safeString(info, 'coin');
+            interestRate = this.safeNumber(info, 'dailyInterestRate');
+        }
+        const timestamp = this.safeInteger(info, 'timestamp');
+        return {
+            'currency': this.safeCurrencyCode(currencyId, currency),
+            'rate': interestRate,
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'info': info,
+        };
+    }
+    async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchBorrowInterest
+         * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-interest-records
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-interest-records
+         * @param {string} [code] unified currency code
+         * @param {string} [symbol] unified market symbol when fetching interest in isolated markets
+         * @param {int} [since] the earliest time in ms to fetch borrow interest for
+         * @param {int} [limit] the maximum number of structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @returns {object[]} a list of [borrow interest structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-interest-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        else {
+            request['startTime'] = this.milliseconds() - 7776000000;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        let response = undefined;
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchBorrowInterest', params, 'cross');
+        if (marginMode === 'isolated') {
+            this.checkRequiredSymbol('fetchBorrowInterest', symbol);
+            request['symbol'] = market['info']['symbolName'];
+            response = await this.privateMarginGetIsolatedInterestList(this.extend(request, params));
+        }
+        else if (marginMode === 'cross') {
+            response = await this.privateMarginGetCrossInterestList(this.extend(request, params));
+        }
+        //
+        // isolated
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1698282523888,
+        //         "data": {
+        //             "resultList": [
+        //                 {
+        //                     "interestId": "1100560904468705284",
+        //                     "interestCoin": "USDT",
+        //                     "interestRate": "0.000126279",
+        //                     "loanCoin": "USDT",
+        //                     "amount": "0.00000298",
+        //                     "type": "scheduled",
+        //                     "symbol": "BTCUSDT",
+        //                     "ctime": "1698120000000"
+        //                 },
+        //             ],
+        //             "maxId": "1100560904468705284",
+        //             "minId": "1096915487398965249"
+        //         }
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1698282552126,
+        //         "data": {
+        //             "resultList": [
+        //                 {
+        //                     "interestId": "1099126154352799744",
+        //                     "interestCoin": "USDT",
+        //                     "interestRate": "0.000126279",
+        //                     "loanCoin": "USDT",
+        //                     "amount": "0.00002631",
+        //                     "type": "scheduled",
+        //                     "ctime": "1697778000000"
+        //                 },
+        //             ],
+        //             "maxId": "1099126154352799744",
+        //             "minId": "1096917004629716993"
+        //         }
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        const rows = this.safeValue(data, 'resultList', []);
+        const interest = this.parseBorrowInterests(rows, market);
+        return this.filterByCurrencySinceLimit(interest, code, since, limit);
+    }
+    parseBorrowInterest(info, market = undefined) {
+        //
+        // isolated
+        //
+        //     {
+        //         "interestId": "1100560904468705284",
+        //         "interestCoin": "USDT",
+        //         "interestRate": "0.000126279",
+        //         "loanCoin": "USDT",
+        //         "amount": "0.00000298",
+        //         "type": "scheduled",
+        //         "symbol": "BTCUSDT",
+        //         "ctime": "1698120000000"
+        //     }
+        //
+        // cross
+        //
+        //     {
+        //         "interestId": "1099126154352799744",
+        //         "interestCoin": "USDT",
+        //         "interestRate": "0.000126279",
+        //         "loanCoin": "USDT",
+        //         "amount": "0.00002631",
+        //         "type": "scheduled",
+        //         "ctime": "1697778000000"
+        //     }
+        //
+        const marketId = this.safeString(info, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const marginMode = (marketId !== undefined) ? 'isolated' : 'cross';
+        const timestamp = this.safeInteger(info, 'ctime');
+        return {
+            'symbol': this.safeString(market, 'symbol'),
+            'marginMode': marginMode,
+            'currency': this.safeCurrencyCode(this.safeString(info, 'interestCoin')),
+            'interest': this.safeNumber(info, 'amount'),
+            'interestRate': this.safeNumber(info, 'interestRate'),
+            'amountBorrowed': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'info': info,
         };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

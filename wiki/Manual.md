@@ -158,7 +158,7 @@ The CCXT library currently supports the following 97 cryptocurrency exchange mar
 | [![wavesexchange](https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg)](https://wx.network)                                                                     | wavesexchange      | [Waves.Exchange](https://wx.network)                                                                    | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.wx.network)                                                              | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
 | [![wazirx](https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg)](https://wazirx.com/invite/k7rrnks5)                                                          | wazirx             | [WazirX](https://wazirx.com/invite/k7rrnks5)                                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.wazirx.com/#public-rest-api-for-wazirx)                                  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                          | whitebit           | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                          | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://referral.woo.org/BAJS6oNmZb3vi3RGA)                                                      | woo                | [WOO X](https://referral.woo.org/BAJS6oNmZb3vi3RGA)                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                                | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://x.woo.org/register?ref=YWOWC96B)                                                         | woo                | [WOO X](https://x.woo.org/register?ref=YWOWC96B)                                                        | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                                | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)](https://www.yobit.net)                                                                          | yobit              | [YoBit](https://www.yobit.net)                                                                          | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.yobit.net/en/api/)                                                        |                                                                                                                             |                                                                              |
 | [![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)](https://zaif.jp)                                                                                 | zaif               | [Zaif](https://zaif.jp)                                                                                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://techbureau-api-document.readthedocs.io/ja/latest/index.html)                  |                                                                                                                             |                                                                              |
 | [![zonda](https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg)](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                                 | zonda              | [Zonda](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                                  | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.zonda.exchange/)                                                         |                                                                                                                             |                                                                              |
@@ -1601,30 +1601,31 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchMarkets ()`: Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as `symbol`, `base`, `quote` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
 - `fetchCurrencies ()`: Fetches  all available currencies an exchange and returns an associative dictionary of currencies (objects with properties such as `code`, `name`, etc.). Some exchanges do not have means for obtaining currencies via their online API. For those, the currencies will be extracted from market pairs or hardcoded.
 - `loadMarkets ([reload])`: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the `reload = true` flag is forced.
-- `fetchOrderBook (symbol[, limit = undefined[, params = {}]])`: Fetch L2/L3 order book for a particular market trading symbol.
-- `fetchStatus ([, params = {}])`: Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
-- `fetchL2OrderBook (symbol[, limit = undefined[, params]])`: Level 2 (price-aggregated) order book for a particular symbol.
-- `fetchTrades (symbol[, since[, [limit, [params]]]])`: Fetch recent trades for a particular trading symbol.
+- `fetchOrderBook (symbol, limit = undefined, params = {})`: Fetch L2/L3 order book for a particular market trading symbol.
+- `fetchStatus (params = {})`: Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
+- `fetchL2OrderBook (symbol, limit = undefined, params)`: Level 2 (price-aggregated) order book for a particular symbol.
+- `fetchTrades (symbol, since, limit, params)`: Fetch recent trades for a particular trading symbol.
 - `fetchTicker (symbol)`: Fetch latest ticker data by trading symbol.
 - `fetchBalance ()`: Fetch Balance.
-- `createOrder (symbol, type, side, amount[, price[, params]])`
-- `createLimitBuyOrder (symbol, amount, price[, params])`
-- `createLimitSellOrder (symbol, amount, price[, params])`
-- `createMarketBuyOrder (symbol, amount[, params])`
-- `createMarketSellOrder (symbol, amount[, params])`
-- `cancelOrder (id[, symbol[, params]])`
-- `fetchOrder (id[, symbol[, params]])`
-- `fetchOrders ([symbol[, since[, limit[, params]]]])`
-- `fetchOpenOrders ([symbol[, since, limit, params]]]])`
-- `fetchCanceledOrders ([symbol[, since[, limit[, params]]]])`
-- `fetchClosedOrders ([symbol[, since[, limit[, params]]]])`
-- `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
-- `fetchOpenInterest ([symbol[, params]])`
-- `fetchVolatilityHistory ([code[, params]])`
+- `createOrder (symbol, type, side, amount, price, params)`
+- `createOrders(orders, params)`
+- `createLimitBuyOrder (symbol, amount, price, param)`
+- `createLimitSellOrder (symbol, amount, price, param)`
+- `createMarketBuyOrder (symbol, amount, param)`
+- `createMarketSellOrder (symbol, amount, param)`
+- `cancelOrder (id, symbol, params)`
+- `fetchOrder (id, symbol, params)`
+- `fetchOrders (symbol, since, limit, params)`
+- `fetchOpenOrders (symbol, since, limit, params)`
+- `fetchCanceledOrders (symbol, since, limit, params)`
+- `fetchClosedOrders (symbol, since, limit, params)`
+- `fetchMyTrades (symbol, since, limit, params)`
+- `fetchOpenInterest (symbol, params)`
+- `fetchVolatilityHistory (code, params)`
 - `fetchUnderlyingAssets ()`
-- `fetchSettlementHistory ([symbol[, since[, limit[, params]]]])`
-- `fetchLiquidations ([symbol[, since[, limit[, params]]]])`
-- `fetchMyLiquidations ([symbol[, since[, limit[, params]]]])`
+- `fetchSettlementHistory (symbol, since, limit, params)`
+- `fetchLiquidations (symbol, since, limit, params)`
+- `fetchMyLiquidations (symbol, since, limit, params)`
 - ...
 
 ```text
@@ -3601,7 +3602,10 @@ The exchanges' order management APIs differ by design. The user has to understan
 - `fetchOrder()` – fetches a single order (open or closed) by order `id`.
 - `fetchOrders()` – fetches a list of all orders (either open or closed/canceled).
 - `createOrder()` – used for placing orders
-- `cancelOrder()` – used for canceling orders
+- `createOrders()` – used for placing multiple orders within the same request
+- `cancelOrder()` – used for canceling a single order
+- `cancelOrders()` - used for canceling multiple orders
+- `cancelAllOrders()` - used for canceling all orders
 
 The majority of the exchanges will have a way of fetching currently-open orders. Thus, the `exchange.has['fetchOpenOrders']`. If that method is not available, then most likely the `exchange.has['fetchOrders']` that will provide a list of all orders. The exchange will return a list of open orders either from `fetchOpenOrders()` or from `fetchOrders()`. One of the two methods is usually available from any exchange.
 
@@ -3785,10 +3789,14 @@ There are different types of orders that a user can send to the exchange, regula
 
 Placing an order always requires a `symbol` that the user has to specify (which market you want to trade).
 
-To place an order use the `createOrder` method. You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later.
+To place an order use the `createOrder` method. You can use the `id` from the returned unified [order structure](#order-structure) to query the status and the state of the order later. If you need to place multiple orders simultaneously, you can check the availability of the `createOrders` method.
 
 ```javascript
 createOrder (symbol, type, side, amount, price = undefined, params = {})
+```
+
+```javascript
+createOrders (orders, params = {}) // orders is a list in which each element contains a symbol, type, side, amount, price and params
 ```
 
 Parameters

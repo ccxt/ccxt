@@ -363,6 +363,7 @@ export default class huobi extends huobiRest {
         //         id: 1583473663565,
         //         rep: 'market.btcusdt.mbp.150',
         //         status: 'ok',
+        //         ts: 1698359289261,
         //         data: {
         //             seqNum: 104999417756,
         //             bids: [
@@ -391,6 +392,9 @@ export default class huobi extends huobiRest {
             const sequence = this.safeInteger (tick, 'seqNum');
             const nonce = this.safeInteger (data, 'seqNum');
             snapshot['nonce'] = nonce;
+            const timestamp = this.safeInteger (message, 'ts');
+            snapshot['timestamp'] = timestamp;
+            snapshot['datetime'] = this.iso8601 (timestamp);
             const snapshotLimit = this.safeInteger (subscription, 'limit');
             const snapshotOrderBook = this.orderBook (snapshot, snapshotLimit);
             client.resolve (snapshotOrderBook, id);

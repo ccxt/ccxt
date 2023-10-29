@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -42,6 +42,7 @@ export default class kucoin extends Exchange {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -224,12 +225,14 @@ export default class kucoin extends Exchange {
                         'deposit-addresses': 1,
                         'withdrawals': 1,
                         'orders': 4, // 45/3s = 15/s => cost = 20 / 15 = 1.333333
+                        'orders/test': 4, // 45/3s = 15/s => cost = 20 / 15 = 1.333333
                         'orders/multi': 20, // 3/3s = 1/s => cost = 20 / 1 = 20
                         'isolated/borrow': 2, // 30 requests per 3 seconds = 10 requests per second => cost = 20/10 = 2
                         'isolated/repay/all': 2,
                         'isolated/repay/single': 2,
                         'margin/borrow': 1,
                         'margin/order': 1,
+                        'margin/order/test': 1,
                         'margin/repay/all': 1,
                         'margin/repay/single': 1,
                         'margin/lend': 1,
@@ -1846,6 +1849,8 @@ export default class kucoin extends Exchange {
          * @see https://docs.kucoin.com/spot#place-a-new-order-2
          * @see https://docs.kucoin.com/spot#place-a-margin-order
          * @see https://docs.kucoin.com/spot-hf/#place-hf-order
+         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test
+         * @see https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} type 'limit' or 'market'
          * @param {string} side 'buy' or 'sell'
@@ -1875,9 +1880,135 @@ export default class kucoin extends Exchange {
          * @param {string} [params.stp] '', // self trade prevention, CN, CO, CB or DC
          * @param {bool} [params.autoBorrow] false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
          * @param {bool} [params.hf] false, // true for hf order
+         * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const testOrder = this.safeValue (params, 'test', false);
+        params = this.omit (params, 'test');
+        const isHf = this.safeValue (params, 'hf', false);
+        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
+        const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
+        const isTriggerOrder = (triggerPrice || stopLossPrice || takeProfitPrice);
+        const marginResult = this.handleMarginModeAndParams ('createOrder', params);
+        const marginMode = this.safeString (marginResult, 0);
+        const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
+        // don't omit anything before calling createOrderRequest
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (testOrder) {
+            if (isMarginOrder) {
+                response = await this.privatePostMarginOrderTest (orderRequest);
+            } else {
+                response = await this.privatePostOrdersTest (orderRequest);
+            }
+        } else if (isHf) {
+            response = await this.privatePostHfOrders (orderRequest);
+        } else if (isTriggerOrder) {
+            response = await this.privatePostStopOrder (orderRequest);
+        } else if (isMarginOrder) {
+            response = await this.privatePostMarginOrder (orderRequest);
+        } else {
+            response = await this.privatePostOrders (orderRequest);
+        }
+        //
+        //     {
+        //         code: '200000',
+        //         data: {
+        //             "orderId": "5bd6e9286d99522a52e458de"
+        //         }
+        //    }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
+    async createOrders (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name kucoin#createOrders
+         * @description create a list of trade orders
+         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders
+         * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params]  Extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.hf] false, // true for hf orders
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        let symbol = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            if (symbol === undefined) {
+                symbol = marketId;
+            } else {
+                if (symbol !== marketId) {
+                    throw new BadRequest (this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString (rawOrder, 'type');
+            if (type !== 'limit') {
+                throw new BadRequest (this.id + ' createOrders() only supports limit orders');
+            }
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            ordersRequests.push (orderRequest);
+        }
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'orderList': ordersRequests,
+        };
+        const hf = this.safeValue (params, 'hf', false);
+        params = this.omit (params, 'hf');
+        let response = undefined;
+        if (hf) {
+            response = await this.privatePostHfOrdersMulti (this.extend (request, params));
+        } else {
+            response = await this.privatePostOrdersMulti (this.extend (request, params));
+        }
+        //
+        // {
+        //     "code": "200000",
+        //     "data": {
+        //        "data": [
+        //           {
+        //              "symbol": "LTC-USDT",
+        //              "type": "limit",
+        //              "side": "sell",
+        //              "price": "90",
+        //              "size": "0.1",
+        //              "funds": null,
+        //              "stp": "",
+        //              "stop": "",
+        //              "stopPrice": null,
+        //              "timeInForce": "GTC",
+        //              "cancelAfter": 0,
+        //              "postOnly": false,
+        //              "hidden": false,
+        //              "iceberge": false,
+        //              "iceberg": false,
+        //              "visibleSize": null,
+        //              "channel": "API",
+        //              "id": "6539148443fcf500079d15e5",
+        //              "status": "success",
+        //              "failMsg": null,
+        //              "clientOid": "5c4c5398-8ab2-4b4e-af8a-e2d90ad2488f"
+        //           },
+        // }
+        //
+        let data = this.safeValue (response, 'data', {});
+        data = this.safeValue (data, 'data', []);
+        return this.parseOrders (data);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         const market = this.market (symbol);
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
@@ -1908,14 +2039,12 @@ export default class kucoin extends Exchange {
             request['size'] = amountString;
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
-        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ]);
         const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
-        let method = 'privatePostOrders';
-        const isHf = this.safeValue (params, 'hf', false);
-        if (isHf) {
-            method = 'privatePostHfOrders';
-        } else if (triggerPrice || stopLossPrice || takeProfitPrice) {
+        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
+        const isTriggerOrder = (triggerPrice || stopLossPrice || takeProfitPrice);
+        const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
+        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ]);
+        if (isTriggerOrder) {
             if (triggerPrice) {
                 request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             } else if (stopLossPrice || takeProfitPrice) {
@@ -1927,14 +2056,12 @@ export default class kucoin extends Exchange {
                     request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
                 }
             }
-            method = 'privatePostStopOrder';
             if (marginMode === 'isolated') {
                 throw new BadRequest (this.id + ' createOrder does not support isolated margin for stop orders');
             } else if (marginMode === 'cross') {
                 request['tradeType'] = this.options['marginModes'][marginMode];
             }
-        } else if (tradeType === 'MARGIN_TRADE' || marginMode !== undefined) {
-            method = 'privatePostMarginOrder';
+        } else if (isMarginOrder) {
             if (marginMode === 'isolated') {
                 request['marginModel'] = 'isolated';
             }
@@ -1944,17 +2071,7 @@ export default class kucoin extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     {
-        //         code: '200000',
-        //         data: {
-        //             "orderId": "5bd6e9286d99522a52e458de"
-        //         }
-        //    }
-        //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data, market);
+        return this.extend (request, params);
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -2479,6 +2596,7 @@ export default class kucoin extends Exchange {
         const stop = responseStop !== undefined;
         const stopTriggered = this.safeValue (order, 'stopTriggered', false);
         const isActive = this.safeValue2 (order, 'isActive', 'active');
+        const responseStatus = this.safeString (order, 'status');
         let status = undefined;
         if (isActive !== undefined) {
             if (isActive === true) {
@@ -2488,7 +2606,6 @@ export default class kucoin extends Exchange {
             }
         }
         if (stop) {
-            const responseStatus = this.safeString (order, 'status');
             if (responseStatus === 'NEW') {
                 status = 'open';
             } else if (!isActive && !stopTriggered) {
@@ -2497,6 +2614,9 @@ export default class kucoin extends Exchange {
         }
         if (cancelExist) {
             status = 'canceled';
+        }
+        if (responseStatus === 'fail') {
+            status = 'rejected';
         }
         const stopPrice = this.safeNumber (order, 'stopPrice');
         return this.safeOrder ({

@@ -6,6 +6,8 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
+var crypto = require('./base/functions/crypto.js');
+var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -37,6 +39,7 @@ class binance extends binance$1 {
                 'cancelOrders': true,
                 'createDepositAddress': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -4265,7 +4268,17 @@ class binance extends binance$1 {
         //         "lastTrade": {"id":"69","time":"1676084430567","price":"24.9","qty":"1.00"},
         //         "mmp": false
         //     }
+        //     {
+        // cancelOrders/createOrders
+        //          "code": -4005,
+        //          "msg": "Quantity greater than max quantity."
+        //       },
         //
+        const code = this.safeString(order, 'code');
+        if (code !== undefined) {
+            // cancelOrders/createOrders might have a partial success
+            return this.safeOrder({ 'info': order, 'status': 'rejected' }, market);
+        }
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const marketId = this.safeString(order, 'symbol');
         const marketType = ('closePosition' in order) ? 'contract' : 'spot';
@@ -4338,6 +4351,85 @@ class binance extends binance$1 {
             },
             'trades': fills,
         }, market);
+    }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name binance#createOrders
+         * @description *contract only* create a list of trade orders
+         * @see https://binance-docs.github.io/apidocs/futures/en/#place-multiple-orders-trade
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        let orderSymbols = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            orderSymbols.push(marketId);
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            ordersRequests.push(orderRequest);
+        }
+        orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        const market = this.market(orderSymbols[0]);
+        if (market['spot']) {
+            throw new errors.NotSupported(this.id + ' createOrders() does not support ' + market['type'] + ' orders');
+        }
+        let response = undefined;
+        let request = {
+            'batchOrders': ordersRequests,
+        };
+        request = this.extend(request, params);
+        if (market['linear']) {
+            response = await this.fapiPrivatePostBatchOrders(request);
+        }
+        else if (market['option']) {
+            response = await this.eapiPrivatePostBatchOrders(request);
+        }
+        else {
+            response = await this.dapiPrivatePostBatchOrders(request);
+        }
+        //
+        //   [
+        //       {
+        //          "code": -4005,
+        //          "msg": "Quantity greater than max quantity."
+        //       },
+        //       {
+        //          "orderId": 650640530,
+        //          "symbol": "LTCUSDT",
+        //          "status": "NEW",
+        //          "clientOrderId": "x-xcKtGhcu32184eb13585491289bbaf",
+        //          "price": "54.00",
+        //          "avgPrice": "0.00",
+        //          "origQty": "0.100",
+        //          "executedQty": "0.000",
+        //          "cumQty": "0.000",
+        //          "cumQuote": "0.00000",
+        //          "timeInForce": "GTC",
+        //          "type": "LIMIT",
+        //          "reduceOnly": false,
+        //          "closePosition": false,
+        //          "side": "BUY",
+        //          "positionSide": "BOTH",
+        //          "stopPrice": "0.00",
+        //          "workingType": "CONTRACT_PRICE",
+        //          "priceProtect": false,
+        //          "origType": "LIMIT",
+        //          "priceMatch": "NONE",
+        //          "selfTradePreventionMode": "NONE",
+        //          "goodTillDate": 0,
+        //          "updateTime": 1698073926929
+        //       }
+        //   ]
+        //
+        return this.parseOrders(response);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -8434,6 +8526,12 @@ class binance extends binance$1 {
                 }
             }
             let query = undefined;
+            // handle batchOrders
+            if ((path === 'batchOrders') && (method === 'POST')) {
+                const batchOrders = this.safeValue(params, 'batchOrders');
+                const queryBatch = (this.json(batchOrders));
+                params['batchOrders'] = queryBatch;
+            }
             const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
             let extendedParams = this.extend({
                 'timestamp': this.nonce(),
@@ -8472,7 +8570,12 @@ class binance extends binance$1 {
             }
             let signature = undefined;
             if (this.secret.indexOf('PRIVATE KEY') > -1) {
-                signature = this.encodeURIComponent(rsa.rsa(query, this.secret, sha256.sha256));
+                if (this.secret.length > 120) {
+                    signature = this.encodeURIComponent(rsa.rsa(query, this.secret, sha256.sha256));
+                }
+                else {
+                    signature = this.encodeURIComponent(crypto.eddsa(this.encode(query), this.secret, ed25519.ed25519));
+                }
             }
             else {
                 signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
@@ -8571,10 +8674,10 @@ class binance extends binance$1 {
         }
         if (Array.isArray(response)) {
             // cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
-            const numElements = response.length;
-            if (numElements > 0) {
-                const firstElement = response[0];
-                const errorCode = this.safeString(firstElement, 'code');
+            const arrayLength = response.length;
+            if (arrayLength === 1) { // when there's a single error we can throw, otherwise we have a partial success
+                const element = response[0];
+                const errorCode = this.safeString(element, 'code');
                 if (errorCode !== undefined) {
                     this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, this.id + ' ' + body);
                 }
