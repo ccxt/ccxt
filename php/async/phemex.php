@@ -1828,6 +1828,9 @@ class phemex extends Exchange {
             list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
             $method = 'privateGetSpotWallets';
             $request = array();
+            if (($type !== 'spot') && ($type !== 'swap')) {
+                throw new BadRequest($this->id . ' does not support ' . $type . ' markets, only spot and swap');
+            }
             if ($type === 'swap') {
                 $code = $this->safe_string($params, 'code');
                 $settle = null;

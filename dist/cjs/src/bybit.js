@@ -1198,9 +1198,6 @@ class bybit extends bybit$1 {
                     'deposit': {},
                 },
             },
-            'commonCurrencies': {
-                'GAS': 'GASDAO',
-            },
         });
     }
     nonce() {

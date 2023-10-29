@@ -1917,7 +1917,7 @@ class krakenfutures extends krakenfutures$1 {
             result.push({
                 'info': item,
                 'symbol': symbol,
-                'fundingRate': this.safeNumber(item, 'fundingRate'),
+                'fundingRate': this.safeNumber(item, 'relativeFundingRate'),
                 'timestamp': this.parse8601(datetime),
                 'datetime': datetime,
             });

@@ -1201,9 +1201,6 @@ export default class bybit extends Exchange {
                     'deposit': {},
                 },
             },
-            'commonCurrencies': {
-                'GAS': 'GASDAO',
-            },
         });
     }
     nonce() {

@@ -45,8 +45,8 @@ class mexc(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': True,
                 'swap': True,
-                'future': True,
-                'option': None,
+                'future': False,
+                'option': False,
                 'addMargin': True,
                 'borrowMargin': True,
                 'cancelAllOrders': True,
@@ -414,10 +414,6 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchMarkets': {
                     'types': {
                         'spot': True,
-                        'future': {
-                            'linear': False,
-                            'inverse': False,
-                        },
                         'swap': {
                             'linear': True,
                             'inverse': False,

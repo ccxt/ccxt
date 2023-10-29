@@ -1217,9 +1217,6 @@ class bybit(Exchange, ImplicitAPI):
                     'deposit': {},
                 },
             },
-            'commonCurrencies': {
-                'GAS': 'GASDAO',
-            },
         })
 
     def nonce(self):

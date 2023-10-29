@@ -1071,13 +1071,13 @@ class bitopro(Exchange, ImplicitAPI):
         request = {
             # 'pair': market['id'],  # optional
         }
-        # privateDeleteOrdersAll or privateDeleteOrdersPair
-        method = self.safe_string(self.options, 'privateDeleteOrdersPair', 'privateDeleteOrdersAll')
+        response = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-            method = 'privateDeleteOrdersPair'
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateDeleteOrdersPair(self.extend(request, params))
+        else:
+            response = await self.privateDeleteOrdersAll(self.extend(request, params))
         result = self.safe_value(response, 'data', {})
         #
         #     {

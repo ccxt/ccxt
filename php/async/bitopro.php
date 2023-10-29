@@ -1135,14 +1135,14 @@ class bitopro extends Exchange {
             $request = array(
                 // 'pair' => $market['id'], // optional
             );
-            // privateDeleteOrdersAll or privateDeleteOrdersPair
-            $method = $this->safe_string($this->options, 'privateDeleteOrdersPair', 'privateDeleteOrdersAll');
+            $response = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['pair'] = $market['id'];
-                $method = 'privateDeleteOrdersPair';
+                $response = Async\await($this->privateDeleteOrdersPair (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateDeleteOrdersAll (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             $result = $this->safe_value($response, 'data', array());
             //
             //     {

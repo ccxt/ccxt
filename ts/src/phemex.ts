@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { FundingRateHistory, Int, OrderBook, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, FundingRateHistory, Int, OrderBook, OrderSide, OrderType } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1825,6 +1825,9 @@ export default class phemex extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let method = 'privateGetSpotWallets';
         const request = {};
+        if ((type !== 'spot') && (type !== 'swap')) {
+            throw new BadRequest (this.id + ' does not support ' + type + ' markets, only spot and swap');
+        }
         if (type === 'swap') {
             const code = this.safeString (params, 'code');
             let settle = undefined;
@@ -3672,7 +3675,7 @@ export default class phemex extends Exchange {
                 'amount': this.fromEv (this.safeString (entry, 'execFeeEv'), market),
             });
         }
-        return result;
+        return result as FundingHistory[];
     }
 
     async fetchFundingRate (symbol: string, params = {}) {
