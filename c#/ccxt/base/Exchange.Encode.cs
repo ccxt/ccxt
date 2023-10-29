@@ -172,9 +172,10 @@ public partial class Exchange
         return queryString.ToString();
     }
 
-    public string encodeURIComponent(string str)
+    public string encodeURIComponent(object str2)
     {
         // check this later
+        var str = (string)str2;
         var result = new StringBuilder();
         var unreserved = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~";
         foreach (char symbol in str)
