@@ -32,6 +32,7 @@ export default class hitbtc extends Exchange {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -2076,11 +2077,20 @@ export default class hitbtc extends Exchange {
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
          * @param {bool} [params.margin] true for creating a margin order
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const isLimit = (type === 'limit');
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
+        const isPostOnly = this.isPostOnly (type === 'market', undefined, params);
         const request = {
             'type': type,
             'side': side,
@@ -2098,7 +2108,6 @@ export default class hitbtc extends Exchange {
             // 'take_rate': 0.001, // Optional
             // 'make_rate': 0.001, // Optional
         };
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             if ((market['type'] !== 'swap') && (market['type'] !== 'margin')) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only');
@@ -2107,8 +2116,12 @@ export default class hitbtc extends Exchange {
         if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
         }
-        const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
-        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        if (isPostOnly) {
+            request['post_only'] = true;
+        }
+        if (timeInForce !== undefined) {
+            request['time_in_force'] = timeInForce;
+        }
         if (isLimit || (type === 'stopLimit') || (type === 'takeProfitLimit')) {
             if (price === undefined) {
                 throw new ExchangeError (this.id + ' createOrder() requires a price argument for limit orders');
@@ -2131,18 +2144,15 @@ export default class hitbtc extends Exchange {
         } else if ((type === 'stopLimit') || (type === 'stopMarket') || (type === 'takeProfitLimit') || (type === 'takeProfitMarket')) {
             throw new ExchangeError (this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
         }
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         let method = this.getSupportedMapping (marketType, {
             'spot': 'privatePostSpotOrder',
             'swap': 'privatePostFuturesOrder',
             'margin': 'privatePostMarginOrder',
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (marginMode !== undefined) {
             method = 'privatePostMarginOrder';
         }
-        params = this.omit (params, [ 'triggerPrice', 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'reduceOnly' ]);
+        params = this.omit (params, [ 'triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly' ]);
         const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
