@@ -213,6 +213,8 @@ public partial class Exchange
         this.client.DefaultRequestHeaders.Clear();
 
         var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
+        this.last_response_headers = responseHeaders;
+        this.last_request_headers = headers;
         var httpStatusCode = (int)response?.StatusCode;
         var httpStatusText = response?.ReasonPhrase;
 

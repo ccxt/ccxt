@@ -458,4 +458,9 @@ public partial class Exchange
         binr.BaseStream.Seek(-1, SeekOrigin.Current);       //last ReadByte wasn't a removed zero, so back up a byte
         return count;
     }
+
+    public static object axolotl(object a, object b, object c)
+    {
+        return ""; // to be implemented
+    }
 }
