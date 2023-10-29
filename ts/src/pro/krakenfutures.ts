@@ -2,7 +2,7 @@
 
 import krakenfuturesRest from '../krakenfutures.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
@@ -267,7 +267,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolBySide ();
+            this.positions = new ArrayCacheBySymbolById ();
         }
         const cache = this.positions;
         const rawPositions = this.safeValue (message, 'positions', []);
@@ -316,6 +316,8 @@ export default class krakenfutures extends krakenfuturesRest {
         //
         const marketId = this.safeString (position, 'instrument');
         const hedged = 'both';
+        const balance = this.safeNumber (position, 'balance');
+        const side = (balance > 0) ? 'long' : 'short';
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -326,10 +328,10 @@ export default class krakenfutures extends krakenfuturesRest {
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'unrealizedPnl': this.safeNumber (position, 'pnl'),
             'percentage': this.safeNumber (position, 'return_on_equity'),
-            'contracts': this.safeNumber (position, 'balance'),
+            'contracts': this.parseNumber (Precise.stringAbs (this.numberToString (balance))),
             'contractSize': undefined,
             'markPrice': this.safeNumber (position, 'mark_price'),
-            'side': undefined,
+            'side': side,
             'hedged': hedged,
             'timestamp': undefined,
             'datetime': undefined,
