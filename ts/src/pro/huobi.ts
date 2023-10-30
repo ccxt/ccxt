@@ -1197,12 +1197,12 @@ export default class huobi extends huobiRest {
          * @param {object} [params] extra parameters specific to the huobi api endpoint
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
-        let type = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
-        type = this.safeString (params, 'type', type);
-        let subType = this.safeString2 (this.options, 'watchBalance', 'subType', 'linear');
-        subType = this.safeString (params, 'subType', subType);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params, 'linear');
         const isUnifiedAccount = this.safeValue2 (params, 'isUnifiedAccount', 'unified', false);
-        params = this.omit (params, [ 'type', 'subType', 'isUnifiedAccount', 'unified' ]);
+        params = this.omit (params, [ 'isUnifiedAccount', 'unified' ]);
         await this.loadMarkets ();
         let messageHash = undefined;
         let channel = undefined;
