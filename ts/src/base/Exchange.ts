@@ -427,7 +427,6 @@ export default class Exchange {
     urlencodeNested = urlencodeNested
     parseDate = parseDate
     ymd = ymd
-    isArray = inArrayFunc
     base64ToString = base64ToString
     crc32 = crc32
 
