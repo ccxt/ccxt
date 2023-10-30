@@ -17,6 +17,9 @@ import { Precise } from './Precise.js';
 import WsClient from './ws/WsClient.js';
 import { createFuture } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
+// ----------------------------------------------------------------------------
+//
+import { axolotl } from './functions/crypto.js';
 import totp from './functions/totp.js';
 // ----------------------------------------------------------------------------
 /**
@@ -1073,6 +1076,9 @@ export default class Exchange {
     }
     getProperty(obj, property, defaultValue = undefined) {
         return (property in obj ? obj[property] : defaultValue);
+    }
+    axolotl(payload, hexKey, ed25519) {
+        return axolotl(payload, hexKey, ed25519);
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------

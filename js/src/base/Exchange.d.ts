@@ -522,6 +522,7 @@ export default class Exchange {
     valueIsDefined(value: any): boolean;
     arraySlice(array: any, first: any, second?: any): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
+    axolotl(payload: any, hexKey: any, ed25519: any): string;
     handleDeltas(orderbook: any, deltas: any): void;
     handleDelta(bookside: any, delta: any): void;
     getCacheIndex(orderbook: any, deltas: any): number;

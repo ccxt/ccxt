@@ -8,6 +8,7 @@ var Precise = require('./Precise.js');
 var WsClient = require('./ws/WsClient.js');
 var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
+var crypto = require('./functions/crypto.js');
 var totp = require('./functions/totp.js');
 var generic = require('./functions/generic.js');
 var misc = require('./functions/misc.js');
@@ -1079,6 +1080,9 @@ class Exchange {
     }
     getProperty(obj, property, defaultValue = undefined) {
         return (property in obj ? obj[property] : defaultValue);
+    }
+    axolotl(payload, hexKey, ed25519) {
+        return crypto.axolotl(payload, hexKey, ed25519);
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------
