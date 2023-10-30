@@ -949,23 +949,18 @@ export default class huobi extends Exchange {
                     'BTC': 'BTC',
                     'ERC20': 'ETH', // ETH for mainnet
                     'SOL': 'SOLANA',
-                    'OP': 'OPTIMISM',
                     'HRC20': 'HECO',
                     'BEP20': 'BSC',
                     'XMR': 'XMR',
                     'LTC': 'LTC',
-                    'ARB': 'ARB',
                     'XRP': 'XRP',
-                    'CHZ': 'CHZ',
                     'XLM': 'XLM',
                     'CRONOS': 'CRO',
                     'CRO': 'CRO',
                     'GLMR': 'GLMR',
                     'POLYGON': 'MATIC',
                     'MATIC': 'MATIC',
-                    // AVAXCCHAIN  CCHAIN AVAX
-                    'ALGO': 'ALGO',
-                    'BTT': 'BTT', // idk chain
+                    'BTT': 'BTT',
                     'CUBE': 'CUBE',
                     'IOST': 'IOST',
                     'NEO': 'NEO',
@@ -980,15 +975,13 @@ export default class huobi extends Exchange {
                     'DOGE': 'DOGE',
                     'DOGECHAIN': 'DOGECHAIN',
                     'NEAR': 'NEAR',
-                    'STEP': 'STEP', // step
+                    'STEP': 'STEP',
                     'BITCI': 'BITCI',
                     'CARDANO': 'ADA',
                     'ADA': 'ADA',
                     'ETC': 'ETC',
-                    'ONT': 'ONT',
                     'LUK': 'LUK',
                     'MINEPLEX': 'MINEPLEX',
-                    // 'BCC': 'BCC', BCH's somewhat chain
                     'DASH': 'DASH',
                     'ZEC': 'ZEC',
                     'IOTA': 'IOTA',
@@ -1009,10 +1002,8 @@ export default class huobi extends Exchange {
                     'ACT': 'ACT',
                     'SMT': 'SMT',
                     'BCD': 'BCD',
-                    // 'WAX': 'WAX1',
-                    // 'OPTIMISMETH': 'OPTIMISMETH',
+                    'WAX': 'WAX1',
                     'WICC': 'WICC',
-                    // 'DBC1': 'DBC1',
                     'ELF': 'ELF',
                     'ZIL': 'ZIL',
                     'ELA': 'ELA',
@@ -1020,7 +1011,6 @@ export default class huobi extends Exchange {
                     'SBTC': 'SBTC',
                     'BIFI': 'BIFI',
                     'CTXC': 'CTXC',
-                    // 'ONTOLOGY': 'ONTOLOGY',
                     'WAN': 'WAN',
                     'POLYX': 'POLYX',
                     'PAI': 'PAI',
@@ -1048,11 +1038,8 @@ export default class huobi extends Exchange {
                     'TOP': 'TOP',
                     'IRIS': 'IRIS',
                     'UGAS': 'UGAS',
-                    // 'COSMOS': 'ATOM1',
-                    // 'ATOM': 'ATOM1',
                     'TT': 'TT',
                     'NEWTON': 'NEWTON',
-                    // 'CRO': 'CRO',
                     'VSYS': 'VSYS',
                     'FSN': 'FSN',
                     'BHD': 'BHD',
@@ -1071,7 +1058,6 @@ export default class huobi extends Exchange {
                     'AR': 'AR',
                     'HBAR': 'HBAR',
                     'FIL': 'FIL',
-                    // FIL-0X ?
                     'MASS': 'MASS',
                     'KAVA': 'KAVA',
                     'XYM': 'XYM',
@@ -1103,15 +1089,11 @@ export default class huobi extends Exchange {
                     'ETHF': 'ETHFAIR',
                     'ETHW': 'ETHW',
                     'EVMOS': 'EVMOS',
-                    // 'FCT2': 'FCT2',
                     'FIO': 'FIO',
                     'FLR': 'FLR',
                     'FINSCHIA': 'FINSCHIA',
                     'KMA': 'KMA',
                     'KYVE': 'KYVE',
-                    // 'LUNC': 'LUNC',
-                    // 'TERRA': 'TERRA', // tbd
-                    // 'LUNA': 'LUNA', tbd
                     'MEV': 'MEV',
                     'MOVR': 'MOVR',
                     'NODL': 'NODL',
@@ -1135,6 +1117,23 @@ export default class huobi extends Exchange {
                     'WEMIX': 'WEMIX',
                     'XDC': 'XDC',
                     'XPLA': 'XPLA',
+                    // todo: below
+                    // 'LUNC': 'LUNC',
+                    // 'TERRA': 'TERRA', // tbd
+                    // 'LUNA': 'LUNA', tbd
+                    // 'FCT2': 'FCT2',
+                    // FIL-0X ?
+                    // 'COSMOS': 'ATOM1',
+                    // 'ATOM': 'ATOM1',
+                    // 'CRO': 'CRO',
+                    // 'OP': [ 'OPTIMISM', 'OPTIMISMETH' ]
+                    // 'ARB': ['ARB', 'ARBITRUMETH']
+                    // 'CHZ': [ 'CHZ', 'CZH' ],
+                    // todo: AVAXCCHAIN CCHAIN AVAX
+                    // 'ALGO': ['ALGO', 'ALGOUSDT']
+                    // 'ONT': [ 'ONT', 'ONTOLOGY' ],
+                    // 'BCC': 'BCC', BCH's somewhat chain
+                    // 'DBC1': 'DBC1',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
@@ -3055,10 +3054,7 @@ export default class huobi extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chainEntry = chains[j];
                 const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
-                let title = this.safeString (chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-                title = (title === 'CZH' ? 'CHZ' : title); // minor bug
-                title = (title === 'ALGOUSDT' ? 'ALGO' : title); // minor bug
-                title = (title === 'ARBITRUMETH' ? 'ARB' : title); // minor bug
+                let title = this.safeString2 (chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
                 const networkCode = super.networkIdToCode (title);
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
                 this.options['networkNamesByChainIds'][uniqueChainId] = title;
