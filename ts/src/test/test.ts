@@ -27,6 +27,7 @@ const NotSupported = ccxt.NotSupported;
 
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
+    staticTestsFailed = false;
     staticTests = false;
     info = false;
     verbose = false;
@@ -85,8 +86,8 @@ function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice (0, LOG_CHARS_LENGTH);
 }
 
-function exitScript () {
-    process.exit (0);
+function exitScript (code = 0) {
+    process.exit (code);
 }
 
 function getExchangeProp (exchange, prop, defaultValue = undefined) {
@@ -844,7 +845,13 @@ export default class testMainClass extends baseMainTestClass {
             output = exchange.last_request_body;
             requestUrl = exchange.last_request_url;
         }
-        this.assertStaticOutput (type, skipKeys, data['url'], requestUrl, data['output'], output);
+        try {
+            this.assertStaticOutput (type, skipKeys, data['url'], requestUrl, data['output'], output);
+        }
+        catch (e) {
+            this.staticTestsFailed = true;
+            dump ('[STATIC_TEST_FAILURE]', '[' + exchange.id + ']', '[' + method + ']', '[' + data['description'] + ']', e);
+        }
     }
 
     async testExchangeStatically (exchangeName: string, exchangeData: object) {
@@ -863,6 +870,7 @@ export default class testMainClass extends baseMainTestClass {
                 await this.testMethodStatically (exchange, method, result, type, skipKeys);
             }
         }
+        await exchange.close ();
     }
 
     getNumberOfTestsFromExchange (exchangeData: object) {
@@ -889,7 +897,11 @@ export default class testMainClass extends baseMainTestClass {
             promises.push (this.testExchangeStatically (exchangeName, exchangeData));
         }
         await Promise.all (promises);
-        dump ('[TEST_SUCCESS]', count.toString (), 'static tests passed');
+        if (this.staticTestsFailed) {
+            exitScript (1);
+        } else {
+            dump ('[TEST_SUCCESS]', count.toString (), 'static tests passed');
+        }
     }
 
 }

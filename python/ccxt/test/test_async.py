@@ -26,6 +26,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 class Argv(object):
     staticTests = False
+    staticTestsFailed = False
     token_bucket = False
     sandbox = False
     privateOnly = False
@@ -768,6 +769,8 @@ class testMainClass(baseMainTestClass):
         return result
 
     def remove_hostnamefrom_url(self, url: str):
+        if url is None:
+            return None
         urlParts = url.split('/')
         return '/'.join(urlParts[3:])
 
@@ -804,7 +807,11 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             output = exchange.last_request_body
             requestUrl = exchange.last_request_url
-        self.assert_static_output(type, skipKeys, data['url'], requestUrl, data['output'], output)
+        try:
+            self.assert_static_output(type, skipKeys, data['url'], requestUrl, data['output'], output)
+        except Exception as e:
+            self.staticTestsFailed = True
+            dump('[STATIC_TEST_FAILURE]', '[' + exchange.id + ']', '[' + method + ']', '[' + data['description'] + ']', e)
 
     async def test_exchange_statically(self, exchangeName: str, exchangeData: object):
         markets = self.load_markets_from_file(exchangeName)
@@ -820,6 +827,7 @@ class testMainClass(baseMainTestClass):
                 type = exchange.safe_string(exchangeData, 'outputType')
                 skipKeys = exchange.safe_value(exchangeData, 'skipKeys', [])
                 await self.test_method_statically(exchange, method, result, type, skipKeys)
+        await exchange.close()
 
     def get_number_of_tests_from_exchange(self, exchangeData: object):
         count = 0
@@ -842,7 +850,10 @@ class testMainClass(baseMainTestClass):
             count += self.get_number_of_tests_from_exchange(exchangeData)
             promises.append(self.test_exchange_statically(exchangeName, exchangeData))
         await asyncio.gather(*promises)
-        dump('[TEST_SUCCESS]', str(count), 'static tests passed')
+        if self.staticTestsFailed:
+            exit_script(1)
+        else:
+            dump('[TEST_SUCCESS]', str(count), 'static tests passed')
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************
