@@ -26,7 +26,6 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 class Argv(object):
     staticTests = False
-    staticTestsFailed = False
     token_bucket = False
     sandbox = False
     privateOnly = False
@@ -83,6 +82,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 
 class baseMainTestClass():
+    staticTestsFailed = False
     skippedMethods = {}
     checkedPublicTests = {}
     testFiles = {}
@@ -152,8 +152,8 @@ def exception_message(exc):
     return message
 
 
-def exit_script():
-    exit(0)
+def exit_script(code=0):
+    exit(code)
 
 
 def get_exchange_prop(exchange, prop, defaultValue=None):
@@ -790,9 +790,9 @@ class testMainClass(baseMainTestClass):
             self.assert_static_error(len(storedOutputKeys) == len(newOutputKeys), 'output length mismatch', storedOutput, newOutput)
             for i in range(0, len(storedOutputKeys)):
                 key = storedOutputKeys[i]
-                if skipKeys.includes(key):
+                if key in skipKeys:
                     continue
-                if not newOutputKeys.includes(key):
+                if not (key in newOutputKeys):
                     self.assert_static_error(False, 'output key mismatch', storedOutput, newOutput)
                 storedValue = storedOutput[key]
                 newValue = newOutput[key]
