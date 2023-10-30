@@ -3160,7 +3160,7 @@ class Exchange(object):
         request = self.sign(path, api, method, params, headers, body)
         self.last_request_headers = request['headers']
         self.last_request_body = request['body']
-        self.last_request_path = path
+        self.last_request_url = request['url']
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
     def request(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}):
