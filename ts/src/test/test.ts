@@ -825,7 +825,7 @@ export default class testMainClass extends baseMainTestClass {
                 if (key in skipKeys) {
                     continue;
                 }
-                if (!newOutputKeys.includes (key)) {
+                if (!(key in newOutputKeys)) {
                     this.assertStaticError (false, 'output key mismatch', storedOutput, newOutput);
                 }
                 const storedValue = storedOutput[key];
