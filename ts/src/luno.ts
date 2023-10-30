@@ -825,13 +825,12 @@ export default class luno extends Exchange {
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        let method = 'privatePost';
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
         };
+        let response = undefined;
         if (type === 'market') {
-            method += 'Marketorder';
             request['type'] = side.toUpperCase ();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side === 'buy') {
@@ -839,13 +838,13 @@ export default class luno extends Exchange {
             } else {
                 request['base_volume'] = this.amountToPrecision (market['symbol'], amount);
             }
+            response = await this.privatePostMarketorder (this.extend (request, params));
         } else {
-            method += 'Postorder';
             request['volume'] = this.amountToPrecision (market['symbol'], amount);
             request['price'] = this.priceToPrecision (market['symbol'], price);
             request['type'] = (side === 'buy') ? 'BID' : 'ASK';
+            response = await this.privatePostPostorder (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         return this.safeOrder ({
             'info': response,
             'id': response['order_id'],
