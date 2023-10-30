@@ -129,6 +129,10 @@ def io_file_read(path, decode=True):
         return content
 
 
+def io_dir_read(path):
+    return os.listdir(path)
+
+
 async def call_method(testFiles, methodName, exchange, skippedProperties, args):
     return await getattr(testFiles[methodName], methodName)(exchange, skippedProperties, *args)
 
