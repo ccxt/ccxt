@@ -1,7 +1,8 @@
 import Exchange from './abstract/lnmarkets.js';
 import { DECIMAL_PLACES, TRUNCATE } from './base/functions/number.js';
-import { ArgumentsRequired, BadRequest, BadSymbol, InvalidAddress, InvalidOrder } from './base/errors.js';
-import { OrderSide, OrderType } from './base/types.js';
+import { ArgumentsRequired, BadRequest, BadSymbol, InvalidOrder } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { Int, OrderSide, OrderType, Order, Ticker, Position } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 export default class lnmarkets extends Exchange {
@@ -79,6 +80,7 @@ export default class lnmarkets extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchL2OrderBook': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOpenOrders': true,
@@ -118,34 +120,22 @@ export default class lnmarkets extends Exchange {
         }
         const request = {
             'id': params['id'],
-            'amount': this.costToPrecision (symbol, amount),
+            'amount': this.parseNumber (this.bitcoinToSatoshi (this.costToPrecision (symbol, amount))),
         };
         const response = await this.privatePostFuturesAddMargin (request);
         return this.parseMargin (response, amount);
     }
 
-    amountAndInvoiceMatch (amount: number, invoice: string) {
+    bitcoinToSatoshi (amount: string) {
         /**
-         * @description Checks if the amount and invoice match
-         * @param {number} amount - The amount in satoshis
-         * @param {string} invoice - The invoice to check
-         * @returns {boolean} True if the amount and invoice match, false otherwise
+         * @method
+         * @name lnmarkets#bitcoinToSatoshi
+         * @description Utility to convert a bitcoin-denominated amount to satoshis
+         * @param {string} amount - The amount to convert
+         * @returns {string} The converted amount
+         * @example bitcoinToSatoshi ('0.0001') // '10000'
          */
-        const scale = this.parseNumber (this.currencies['BTC']['precision']);
-        const multipliers = {
-            'm': 3,
-            'u': 6,
-            'n': 9,
-            'p': 12,
-        };
-        const pattern = /^(lnbc|lntb|lntbs|lnbcrt)(\d+)([munp])1/;
-        const matches = invoice.match (pattern);
-        if (matches === null) {
-            return false;
-        }
-        const invoiceAmount = this.parseNumber (matches[2]);
-        const invoiceMultiplier = this.parseNumber (multipliers[matches[3]]);
-        return amount === invoiceAmount * Math.pow (10, scale - invoiceMultiplier);
+        return Precise.stringMul (amount, '100000000');
     }
 
     async createDepositAddress (code = 'BTC', params = {}) {
@@ -172,7 +162,7 @@ export default class lnmarkets extends Exchange {
             if (!amount) {
                 throw new ArgumentsRequired ('Missing amount parameter');
             }
-            params['amount'] = this.currencyToPrecision ('BTC', amount);
+            params['amount'] = this.parseNumber (this.bitcoinToSatoshi (this.currencyToPrecision ('BTC', amount)));
             const response = await this.privatePostUserDeposit (params);
             return {
                 'currency': 'BTC',
@@ -222,13 +212,13 @@ export default class lnmarkets extends Exchange {
         if (!amount && !margin) {
             throw new ArgumentsRequired ('Either amount or margin must be provided');
         }
-        const safeAmount = amount ? this.amountToPrecision ('BTC/USD:BTC', amount) : undefined;
-        const safeLeverage = leverage ? this.parseNumber (leverage) : undefined;
-        const safeMargin = margin ? this.costToPrecision ('BTC/USD:BTC', margin) : undefined;
-        const safePrice = price ? this.priceToPrecision ('BTC/USD:BTC', price) : undefined;
+        const safeAmount = (amount === undefined) ? amount : this.amountToPrecision ('BTC/USD:BTC', amount);
+        const safeLeverage = (leverage === undefined) ? leverage : this.parseNumber (leverage);
+        const safeMargin = (margin === undefined) ? margin : this.parseNumber (this.bitcoinToSatoshi (this.costToPrecision ('BTC/USD:BTC', margin)));
+        const safePrice = (price === undefined) ? price : this.priceToPrecision ('BTC/USD:BTC', price);
         const request = {
-            'type': type === 'limit' ? 'l' : 'm',
-            'side': side === 'buy' ? 'b' : 's',
+            'type': (type === 'limit') ? 'l' : 'm',
+            'side': (side === 'buy') ? 'b' : 's',
             'quantity': safeAmount,
             'leverage': safeLeverage,
             'margin': safeMargin,
@@ -263,7 +253,7 @@ export default class lnmarkets extends Exchange {
         return this.parseOrder (response, symbol);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name lnmarkets#createOrder
@@ -283,9 +273,7 @@ export default class lnmarkets extends Exchange {
          * @throws {BadSymbol} If the symbol is not supported
          */
         await this.loadMarkets ();
-        if (!this.symbols.includes (symbol)) {
-            throw new BadSymbol ('Symbol ' + symbol + ' is not supported');
-        }
+        symbol = this.safeSymbol (symbol);
         if (symbol === 'BTC/USD:BTC') {
             return this.createFuturesOrder (type, side, params['leverage'], amount, params['margin'], price, params);
         } else {
@@ -293,39 +281,17 @@ export default class lnmarkets extends Exchange {
         }
     }
 
-    // for some reason the super method users price precision instead of cost precision
-    costToPrecision (symbol: string, cost: number) {
+    costToPrecision (symbol: string, cost) {
         /**
          * @method
          * @name lnmarkets#costToPrecision
-         * @description Converts a cost from bitcoins to satoshis, with the correct precision
-         * @param {string} symbol - The symbol of the cost to convert.
-         * @param {number} cost - The cost to convert.
-         * @returns {number} The converted cost
-         * @example costToPrecision ('BTC/USD:BTC', 0.0001) // 10000
+         * @description Overrides the default costToPrecision method to use the cost precision instead of the price precision
          */
         const market = this.market (symbol);
-        const decimalCost = this.decimalToPrecision (cost, TRUNCATE, market['precision']['cost'], this.precisionMode, this.paddingMode);
-        return decimalCost * Math.pow (10, this.markets[symbol]['precision']['cost']);
+        return this.decimalToPrecision (cost, TRUNCATE, market['precision']['cost'], this.precisionMode, this.paddingMode);
     }
 
-    currencyToPrecision (code: string, fee, networkCode = undefined) {
-        /**
-         * @method
-         * @name lnmarkets#currencyToPrecision
-         * @description Converts a currency amount from bitcoins to satoshis, with the correct precision
-         * @param {string} code - The currency code of the amount to convert.
-         * @param {number} fee - The amount to convert.
-         * @param {string} [networkCode] - The network code of the amount to convert.
-         * @returns {number} The converted amount
-         * @example currencyToPrecision ('BTC', 0.0001) // 10000
-         */
-        const decimalAmount = super.currencyToPrecision (code, fee, networkCode);
-        const scale = this.safeNumber (this.currencies[code], 'precision');
-        return parseInt (this.numberToString (decimalAmount * Math.pow (10, scale)));
-    }
-
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name lnmarkets#editOrder
@@ -348,9 +314,7 @@ export default class lnmarkets extends Exchange {
          * @throws {BadRequest} If trying to change settlement value to something else than "cash" or "physical"
          */
         await this.loadMarkets ();
-        if (!this.symbols.includes (symbol)) {
-            throw new BadSymbol ('Symbol ' + symbol + ' is not supported');
-        }
+        symbol = this.safeSymbol (symbol);
         // in swaps we can edit takeProfit and stopLoss
         if (symbol === 'BTC/USD:BTC') {
             if (params['type'] !== 'stopLoss' && params['type'] !== 'takeProfit') {
@@ -359,10 +323,13 @@ export default class lnmarkets extends Exchange {
             if (!params['value']) {
                 throw new ArgumentsRequired ('Value must be provided');
             }
+            if (amount !== undefined) {
+                throw new BadRequest ('Amount must not be provided');
+            }
             const request = {
-                id,
-                'type': this.unCamelCase (params['type']),
-                'value': this.parseNumber (params['value']),
+                'id': id,
+                'type': this.unCamelCase (this.safeString (params, 'type')),
+                'value': this.parseNumber (this.priceToPrecision (symbol, this.safeNumber (params, 'value'))),
             };
             const response = await this.privatePutFutures (request);
             return this.parseOrder (response, symbol);
@@ -375,7 +342,7 @@ export default class lnmarkets extends Exchange {
                 throw new BadRequest ('Only cash and physical settlements are supported');
             }
             const request = {
-                id,
+                'id': id,
                 'type': 'settlement',
                 'value': params['value'],
             };
@@ -395,43 +362,57 @@ export default class lnmarkets extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privateGetUser (params);
-        const now = this.now ();
-        const { 'balance': balanceString, synthetic_usd_balance, metrics } = response;
-        const balance = this.parseNumber (balanceString, 0);
-        const usedMargin = this.parseNumber (metrics['futures']['running_margin'], 0)
-            + this.parseNumber (metrics['futures']['open_margin'], 0)
-            + this.parseNumber (metrics['options']['call']['running_margin'], 0)
-            + this.parseNumber (metrics['options']['put']['running_margin'], 0);
+        const now = this.milliseconds ();
+        // const balanceString = response['balance'];
+        // const synthetic_usd_balance = response['synthetic_usd_balance'];
+        // const metrics = response['metrics'];
+        // const balance = this.parseNumber (balanceString, 0);
+        const balance = this.safeString (response, 'balance', '0');
+        const synthetic_usd_balance = this.safeNumber (response, 'synthetic_usd_balance', 0);
+        const metrics = this.safeValue (response, 'metrics', { 'futures': {}, 'options': { 'call': {}, 'put': {}}});
+        const futuresRunningMargin = this.safeString (metrics['futures'], 'running_margin', '0');
+        const futuresOpenMargin = this.safeString (metrics['futures'], 'open_margin', '0');
+        const optionsCallRunningMargin = this.safeString (metrics['options']['call'], 'running_margin', '0');
+        const optionsCallOpenMargin = this.safeString (metrics['options']['call'], 'open_margin', '0');
+        const optionsPutRunningMargin = this.safeString (metrics['options']['put'], 'running_margin', '0');
+        const optionsPutOpenMargin = this.safeString (metrics['options']['put'], 'open_margin', '0');
+        const futuresUsedMargin = Precise.stringAdd (futuresRunningMargin, futuresOpenMargin);
+        const callUsedMargin = Precise.stringAdd (optionsCallRunningMargin, optionsCallOpenMargin);
+        const putUsedMargin = Precise.stringAdd (optionsPutRunningMargin, optionsPutOpenMargin);
+        const usedMargin = Precise.stringAdd (futuresUsedMargin, Precise.stringAdd (callUsedMargin, putUsedMargin));
+        const totalBtcBalance = this.parseNumber (this.satoshiToBitcoin (Precise.stringAdd (balance, usedMargin)));
+        const freeBtcBalance = this.parseNumber (this.satoshiToBitcoin (balance));
+        const usedBtcBalance = this.parseNumber (this.satoshiToBitcoin (usedMargin));
         return this.safeBalance ({
             'info': response,
             'timestamp': now,
             'datetime': this.iso8601 (now),
             'total': {
-                'BTC': this.precisionToCurrency ('BTC', balance + usedMargin),
-                'USD': this.precisionToCurrency ('USD', synthetic_usd_balance),
+                'BTC': this.currencyToPrecision ('BTC', totalBtcBalance),
+                'USD': this.currencyToPrecision ('USD', synthetic_usd_balance),
             },
             'free': {
-                'BTC': this.precisionToCurrency ('BTC', balance),
-                'USD': this.precisionToCurrency ('USD', synthetic_usd_balance),
+                'BTC': this.currencyToPrecision ('BTC', freeBtcBalance),
+                'USD': this.currencyToPrecision ('USD', synthetic_usd_balance),
             },
             'used': {
-                'BTC': this.precisionToCurrency ('BTC', usedMargin),
+                'BTC': this.currencyToPrecision ('BTC', usedBtcBalance),
                 'USD': 0,
             },
             'BTC': {
-                'total': this.precisionToCurrency ('BTC', balance + usedMargin),
-                'free': this.precisionToCurrency ('BTC', balance),
-                'used': this.precisionToCurrency ('BTC', usedMargin),
+                'total': this.currencyToPrecision ('BTC', totalBtcBalance),
+                'free': this.currencyToPrecision ('BTC', freeBtcBalance),
+                'used': this.currencyToPrecision ('BTC', usedBtcBalance),
             },
             'USD': {
-                'total': this.precisionToCurrency ('USD', synthetic_usd_balance),
-                'free': this.precisionToCurrency ('USD', synthetic_usd_balance),
+                'total': this.currencyToPrecision ('USD', synthetic_usd_balance),
+                'free': this.currencyToPrecision ('USD', synthetic_usd_balance),
                 'used': 0,
             },
         });
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name lnmarkets#fetchClosedOrders
@@ -445,10 +426,13 @@ export default class lnmarkets extends Exchange {
          * @returns {Promise<object[]>} An array of order structures
          */
         await this.loadMarkets ();
-        const baseRequest = this.extend ({
-            'from': since,
-            limit,
-        }, params);
+        const baseRequest = this.extend (params);
+        if (since) {
+            baseRequest['from'] = since;
+        }
+        if (limit) {
+            baseRequest['limit'] = limit;
+        }
         const orders = [];
         if (symbol === 'BTC/USD:BTC' || symbol === undefined) {
             const futuresClosedOrders = await this.privateGetFutures (this.extend (baseRequest, { 'type': 'closed' }));
@@ -471,7 +455,7 @@ export default class lnmarkets extends Exchange {
             }
         }
         // return orders.sort ((a, b) => b['timestamp'] - a['timestamp']);
-        return orders.sort ((a, b) => a['timestamp'] - b['timestamp']);
+        return this.sortBy (orders, 'timestamp');
     }
 
     async fetchCurrencies (params = {}) {
@@ -580,7 +564,7 @@ export default class lnmarkets extends Exchange {
                 return {
                     'currency': 'BTC',
                     'network': [ 'bitcoin' ],
-                    address,
+                    'address': address,
                     'tag': undefined,
                     'info': currentAddressResponse,
                 };
@@ -590,7 +574,7 @@ export default class lnmarkets extends Exchange {
         }
     }
 
-    async fetchDeposits (code?: string, since?: number, limit?: number, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lnmarkets#fetchDeposits
@@ -603,14 +587,19 @@ export default class lnmarkets extends Exchange {
          * @returns {Promise<object[]>} An array of transaction structures
          */
         await this.loadMarkets ();
-        // todo: fetch by type or filter to remove transfers
+        if (since) {
+            params['from'] = since;
+        }
+        if (limit) {
+            params['limit'] = limit;
+        }
         const response = await this.privateGetUserDeposit (params);
         const deposits = [];
         for (let i = 0; i < response.length; i++) {
             const deposit = response[i];
             deposits.push (this.parseTransaction (deposit, undefined));
         }
-        return deposits.sort ((a, b) => a['timestamp'] - b['timestamp']);
+        return this.sortBy (deposits, 'timestamp');
     }
 
     async fetchMarkets (params = {}) {
@@ -624,9 +613,11 @@ export default class lnmarkets extends Exchange {
          * @returns {Promise<object[]>} An array of market structures
          */
         const markets = [];
+        const now = this.milliseconds ();
         const swapMarket = {
             'id': 'btc_usd',
             'symbol': 'BTC/USD:BTC',
+            'created': now,
             'base': 'BTC',
             'baseId': 'BTC',
             'quote': 'USD',
@@ -644,7 +635,9 @@ export default class lnmarkets extends Exchange {
             'inverse': true,
             'tierBased': true,
             'percentage': true,
-            'limits': {},
+            'limits': {
+                'cost': {},
+            },
             'precision': {
                 'amount': 0,
                 'cost': 8,
@@ -653,19 +646,21 @@ export default class lnmarkets extends Exchange {
         };
         const swapMarketDetails = await this.publicGetFuturesMarket ();
         swapMarket['info'] = swapMarketDetails;
-        swapMarket['taker'] = this.parseNumber (swapMarketDetails['fees']['trading']['tiers'][0]['fees']);
-        swapMarket['maker'] = this.parseNumber (swapMarketDetails['fees']['trading']['tiers'][0]['fees']);
-        swapMarket['limits']['cost'] = swapMarketDetails['limits']['margin'];
+        swapMarket['taker'] = this.safeNumber (swapMarketDetails['fees']['trading']['tiers'][0], 'fees', 0);
+        swapMarket['maker'] = this.safeNumber (swapMarketDetails['fees']['trading']['tiers'][0], 'fees', 0);
+        const costLimits = this.safeValue (swapMarketDetails['limits'], 'margin', {});
+        swapMarket['limits']['cost']['min'] = this.parseNumber (this.satoshiToBitcoin (this.safeString (costLimits, 'min', '0')));
+        swapMarket['limits']['cost']['max'] = this.parseNumber (this.satoshiToBitcoin (this.safeString (costLimits, 'max', '0')));
         swapMarket['active'] = swapMarketDetails['active'];
         markets.push (this.safeMarket ('btc_usd', swapMarket));
         const optionMarketTemplate = {
             'base': 'BTC',
             'baseId': 'BTC',
+            'created': now,
             'quote': 'USD',
             'quoteId': 'USD',
             'type': 'option',
             'spot': false,
-            // 'margin': true,
             'future': false,
             'swap': false,
             'option': true,
@@ -677,7 +672,9 @@ export default class lnmarkets extends Exchange {
             'inverse': true,
             'percentage': true,
             'tierBased': false,
-            'limits': {},
+            'limits': {
+                'cost': {},
+            },
             'precision': {
                 'amount': 0,
                 'cost': 8,
@@ -686,15 +683,16 @@ export default class lnmarkets extends Exchange {
         };
         const optionMarketDetails = await this.publicGetOptionsMarket ();
         optionMarketTemplate['info'] = optionMarketDetails;
-        optionMarketTemplate['taker'] = this.parseNumber (optionMarketDetails['fees']['trading']);
-        optionMarketTemplate['maker'] = this.parseNumber (optionMarketDetails['fees']['trading']);
-        optionMarketTemplate['limits']['amount'] = optionMarketDetails['limits']['quantity'];
-        optionMarketTemplate['limits']['cost'] = optionMarketDetails['limits']['margin'];
+        optionMarketTemplate['taker'] = this.safeNumber (optionMarketDetails['fees'], 'trading', 0);
+        optionMarketTemplate['maker'] = this.safeNumber (optionMarketDetails['fees'], 'trading', 0);
+        optionMarketTemplate['limits']['amount'] = this.safeNumber (optionMarketDetails['limits'], 'quantity', 0);
+        optionMarketTemplate['limits']['cost']['min'] = this.parseNumber (this.satoshiToBitcoin (this.safeString (optionMarketDetails['limits']['margin'], 'min', '0')));
+        optionMarketTemplate['limits']['cost']['max'] = this.parseNumber (this.satoshiToBitcoin (this.safeString (optionMarketDetails['limits']['margin'], 'max', '0')));
         optionMarketTemplate['active'] = optionMarketDetails['active'];
         const optionsInstruments = await this.publicGetOptionsInstruments ();
         for (let i = 0; i < optionsInstruments.length; i++) {
             const optionInstrument = optionsInstruments[i];
-            const optionMarket = { ...optionMarketTemplate };
+            const optionMarket = this.deepExtend ({}, optionMarketTemplate);
             optionMarket['id'] = optionInstrument;
             optionMarket['symbol'] = this.parseSymbol (optionInstrument);
             optionMarket['expiryDatetime'] = this.parseOptionsExpiryDate (optionInstrument);
@@ -706,7 +704,7 @@ export default class lnmarkets extends Exchange {
         return markets;
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name lnmarkets#fetchOpenOrders
@@ -720,10 +718,13 @@ export default class lnmarkets extends Exchange {
          * @returns {Promise<object[]>} An array of order structures
          */
         await this.loadMarkets ();
-        const baseRequest = this.extend ({
-            'from': since,
-            limit,
-        }, params);
+        const baseRequest = this.extend (params);
+        if (since) {
+            baseRequest['from'] = since;
+        }
+        if (limit) {
+            baseRequest['limit'] = limit;
+        }
         const orders = [];
         if (symbol === 'BTC/USD:BTC' || symbol === undefined) {
             const futuresOpenOrders = await this.privateGetFutures (this.extend (baseRequest, { 'type': 'open' }));
@@ -741,10 +742,10 @@ export default class lnmarkets extends Exchange {
                 orders.push (this.parseOrder (order, symbol, 'open'));
             }
         }
-        return orders.sort ((a, b) => a['timestamp'] - b['timestamp']);
+        return this.sortBy (orders, 'timestamp');
     }
 
-    async fetchOrder (id: string, symbol = undefined, params = {}) {
+    async fetchOrder (id: string, symbol = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name lnmarkets#fetchOrder
@@ -761,13 +762,16 @@ export default class lnmarkets extends Exchange {
         if (!symbol) {
             throw new ArgumentsRequired ('Symbol must be provided');
         }
-        const response = symbol === 'BTC/USD:BTC'
-            ? await this.privateGetFuturesTradesId ({ 'id': id })
-            : await this.privateGetOptionsTradesId ({ 'id': id });
+        let response = {};
+        if (symbol === 'BTC/USD:BTC') {
+            response = await this.privateGetFuturesTradesId ({ 'id': id });
+        } else {
+            response = await this.privateGetOptionsTradesId ({ 'id': id });
+        }
         return this.parseOrder (response, symbol);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name lnmarkets#fetchOrders
@@ -784,10 +788,10 @@ export default class lnmarkets extends Exchange {
         const openOrders = await this.fetchOpenOrders (symbol, since, limit, params);
         const closedOrders = await this.fetchClosedOrders (symbol, since, limit, params);
         const orders = this.arrayConcat (openOrders, closedOrders);
-        return orders.sort ((a, b) => a['timestamp'] - b['timestamp']);
+        return this.sortBy (orders, 'timestamp');
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name lnmarkets#fetchPositions
@@ -799,16 +803,17 @@ export default class lnmarkets extends Exchange {
          * @returns {Promise<object[]>} An array of position structures
          */
         await this.loadMarkets ();
-        if (symbols === undefined || symbols.length === 0 || !this.isArray (symbols)) {
+        if (symbols === undefined) {
             symbols = [ 'BTC/USD:BTC' ];
-        }
-        if (Object.keys (params).length === 0) {
-            params['type'] = 'running';
         }
         const positions = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             if (symbol === 'BTC/USD:BTC') {
+                const type = this.safeString (params, 'type');
+                if (type !== 'running' && type !== 'open' && type !== 'closed') {
+                    params['type'] = 'running';
+                }
                 const response = await this.privateGetFutures (params);
                 for (let j = 0; j < response.length; j++) {
                     const position = response[j];
@@ -840,7 +845,7 @@ export default class lnmarkets extends Exchange {
         };
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name lnmarkets#fetchTicker
@@ -853,11 +858,13 @@ export default class lnmarkets extends Exchange {
         await this.loadMarkets ();
         if (symbol === 'BTC/USD:BTC') {
             const response = await this.publicGetFuturesTicker ();
-            return this.parseTicker (response, symbol);
+            const market = this.safeMarket (symbol);
+            return this.parseTicker (response, market);
         } else {
             const instrumentName = this.parseInstrumentName (symbol);
+            const market = this.safeMarket (symbol);
             const response = await this.publicGetOptionsVolatility ({ 'instrument_name': instrumentName });
-            return this.parseTicker (response, symbol);
+            return this.parseTicker (response, market);
         }
     }
 
@@ -890,13 +897,19 @@ export default class lnmarkets extends Exchange {
          * @returns {Promise<object[]>} An array of transaction structures
          */
         await this.loadMarkets ();
+        if (since) {
+            params['from'] = since;
+        }
+        if (limit) {
+            params['limit'] = limit;
+        }
         const response = await this.privateGetUserWithdraw (params);
         const withdrawals = [];
         for (let i = 0; i < response.length; i++) {
             const withdrawal = response[i];
             withdrawals.push (this.parseTransaction (withdrawal, undefined));
         }
-        return withdrawals.sort ((a, b) => a['timestamp'] - b['timestamp']);
+        return this.sortBy (withdrawals, 'timestamp');
     }
 
     instrumentNameToSymbol (instrumentName: string) {
@@ -907,9 +920,10 @@ export default class lnmarkets extends Exchange {
          * @returns {string} A CCXT symbol
          * @example instrumentNameToSymbol ('BTC.2021-03-26.50000.C') => 'BTC/USD:BTC-210326-50000-C'
          */
-        const [ , expiryDate, strike, type ] = instrumentName.split ('.');
+        const [ currency, expiryDate, strike, type ] = instrumentName.split ('.');
+        const symbol = currency + 'USD/' + ':' + currency;
         const [ year, month, day ] = expiryDate.split ('-');
-        return 'BTC/USD:BTC-' + year.slice (-2) + month + day + '-' + strike + '-' + type;
+        return symbol + '-' + year.slice (-2) + month + day + '-' + strike + '-' + type;
     }
 
     optionToSymbol (expiry_ts: number, strike: number, type: string) {
@@ -934,29 +948,32 @@ export default class lnmarkets extends Exchange {
          * @returns {string} An LN Markets instrument name
          * @example parseInstrumentName ('BTC/USD:BTC-210326-50000-C') => 'BTC.2021-03-26.50000.C'
          */
-        const [ , expiryDate, strike, type ] = symbol.split ('-');
-        const [ year, month, day ] = expiryDate.match (/.{2}/g);
+        const [ symbolString, expiryDate, strike, type ] = symbol.split ('-');
+        const currency = symbolString.split ('/')[0];
+        const year = expiryDate.slice (0, 2);
+        const month = expiryDate.slice (2, 4);
+        const day = expiryDate.slice (4, 6);
         const expiry = '20' + year + '-' + month + '-' + day;
-        return 'BTC.' + expiry + '.' + strike + '.' + type.toUpperCase ();
+        return currency + '.' + expiry + '.' + strike + '.' + type.toUpperCase ();
     }
 
     parseLimits (limits) {
         return {
             'amount': undefined,
             'withdraw': {
-                'min': limits['min_withdraw_amount'],
-                'max': limits['max_withdraw_amount'],
+                'min': this.satoshiToBitcoin (this.safeString (limits, 'min_withdraw_amount')),
+                'max': this.satoshiToBitcoin (this.safeString (limits, 'max_withdraw_amount')),
             },
             'deposit': {
-                'min': limits['min_deposit_amount'],
-                'max': limits['max_deposit_amount'],
+                'min': this.satoshiToBitcoin (this.safeString (limits, 'min_deposit_amount')),
+                'max': this.satoshiToBitcoin (this.safeString (limits, 'max_deposit_amount')),
             },
         };
     }
 
     parseMargin (info, addedAmount) {
         return {
-            info,
+            'info': info,
             'type': 'add',
             'amount': addedAmount,
             'total': info['margin'],
@@ -970,16 +987,16 @@ export default class lnmarkets extends Exchange {
         // LN Markets offers a 24H option which doesn't expire at a fixed hours each day
         // But expires 24 hours after the creation of the option
         // How should we include that with CCXT's consistent naming?
-        const [ , expiryDate ] = instrument.split ('.');
+        const expiryDate = instrument.split ('.')[1];
         if (expiryDate === '24H') {
-            return this.iso8601 (this.now () + 24 * 60 * 60 * 1000);
+            return this.iso8601 (this.milliseconds () + 24 * 60 * 60 * 1000);
         } else {
             return expiryDate + 'T08:00:00.000Z';
         }
     }
 
     parseOptionType (instrument: string) {
-        const [ , , , optionType ] = instrument.split ('.');
+        const optionType = instrument.split ('.')[3];
         if (optionType === 'C') {
             return 'call';
         } else if (optionType === 'P') {
@@ -1001,74 +1018,77 @@ export default class lnmarkets extends Exchange {
         let timestamp = 0;
         let price = 0;
         let safeSymbol = 'BTC/USD:BTC';
-        if (Object.keys (info).includes ('strike')) {
+        const strike = this.safeNumber (info, 'strike');
+        if (strike !== undefined) {
             safeSymbol = this.optionToSymbol (info['expiry_ts'], info['strike'], info['type']);
         }
         if (safeSymbol === 'BTC/USD:BTC') {
             if (status === 'open') {
-                timestamp = this.parseNumber (info.creation_ts);
+                timestamp = this.safeInteger (info, 'creation_ts');
             } else {
-                const filled_ts = this.parseNumber (info.market_filled_ts);
+                const filled_ts = this.safeInteger (info, 'market_filled_ts');
                 if (filled_ts) {
                     timestamp = filled_ts;
                 } else {
-                    timestamp = this.parseNumber (info.closed_ts); // cancelled orders
+                    timestamp = this.safeInteger (info, 'closed_ts'); // cancelled orders
                 }
             }
             price = this.safeNumber (info, 'price');
         } else {
-            timestamp = this.parseNumber (info.creation_ts);
+            timestamp = this.safeInteger (info, 'creation_ts');
             price = this.safeNumber (info, 'forward');
         }
         const id = this.safeString (info, 'id');
         const datetime = this.iso8601 (timestamp);
-        const type = this.parseType (info.type);
-        const side = this.parseSide (info.side);
-        const cost = this.precisionToCost (safeSymbol, this.safeNumber (info, 'margin'));
+        const type = this.parseType (this.safeString (info, 'type'));
+        const side = this.parseSide (this.safeString (info, 'side'));
+        const cost = this.parseNumber (this.costToPrecision (safeSymbol, this.satoshiToBitcoin (this.safeString (info, 'margin'))));
         const fee = {
             'currency': 'BTC',
-            'cost': this.precisionToCost (safeSymbol, this.safeNumber (info, 'opening_fee', 0) + this.safeNumber (info, 'closing_fee', 0) + this.safeNumber (info, 'sum_carry_fees', 0)),
+            'cost': this.parseNumber (this.costToPrecision (safeSymbol, this.satoshiToBitcoin (Precise.stringAdd (Precise.stringAdd (this.safeString (info, 'opening_fee', '0'), this.safeString (info, 'closing_fee', '0')), this.safeString (info, 'sum_carry_fees', '0'))))),
             'rate': undefined,
         };
         const amount = this.safeNumber (info, 'quantity');
-        return {
-            id,
-            'clientOrderId': undefined,
-            timestamp,
-            datetime,
-            'lastTradeTimestamp': undefined,
-            status,
+        const trades = [];
+        trades.push ({
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
             'symbol': safeSymbol,
-            type,
+            'order': id,
+            'type': type,
+            'side': side,
+            'takerOrMaker': 'taker',
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+            'fees': [ fee ],
+            'info': info,
+        });
+        return {
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': safeSymbol,
+            'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
-            side,
-            price,
+            'side': side,
+            'price': price,
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'average': price,
-            amount,
+            'amount': amount,
             'filled': amount,
             'remaining': 0,
-            cost,
-            'trades': [ {
-                id,
-                timestamp,
-                datetime,
-                'symbol': safeSymbol,
-                'order': id,
-                type,
-                side,
-                'takerOrMaker': 'taker',
-                price,
-                amount,
-                cost,
-                fee,
-                'fees': [ fee ],
-                info,
-            } ],
-            fee,
-            info,
+            'cost': cost,
+            'trades': trades,
+            'fee': fee,
+            'info': info,
         };
     }
 
@@ -1084,42 +1104,41 @@ export default class lnmarkets extends Exchange {
         let timestamp = 0;
         let price = 0;
         let safeSymbol = 'BTC/USD:BTC';
-        if (Object.keys (info).includes ('strike')) {
+        const strike = this.safeNumber (info, 'strike');
+        if (strike !== undefined) {
             safeSymbol = this.optionToSymbol (info['expiry_ts'], info['strike'], info['type']);
         }
         if (safeSymbol === 'BTC/USD:BTC') {
-            timestamp = status === 'open'
-                ? this.parseNumber (info.creation_ts)
-                : this.parseNumber (info.market_filled_ts);
+            timestamp = (status === 'open') ? this.safeInteger (info, 'creation_ts') : this.safeInteger (info, 'market_filled_ts');
             price = this.safeNumber (info, 'price');
         } else {
-            timestamp = this.parseNumber (info.creation_ts);
+            timestamp = this.safeInteger (info, 'creation_ts');
             price = this.safeNumber (info, 'forward');
         }
         const datetime = this.iso8601 (timestamp);
         return {
-            info,
+            'info': info,
             'id': this.safeString (info, 'id'),
             'symbol': safeSymbol,
-            timestamp,
-            datetime,
+            'timestamp': timestamp,
+            'datetime': datetime,
             'isolated': true,
             'hedged': false,
-            'side': this.parsePositionSide (info.side, info.type),
+            'side': this.parsePositionSide (this.safeString (info, 'side'), this.safeString (info, 'type')),
             'contracts': this.safeNumber (info, 'quantity'),
             'contractSize': 1,
             'entryPrice': price,
             'markPrice': price,
             'notional': undefined,
             'leverage': this.safeNumber (info, 'leverage'),
-            'initialMargin': this.precisionToCost (safeSymbol, this.safeNumber (info, 'margin')),
-            'maintenanceMargin': this.precisionToCost (safeSymbol, this.safeNumber (info, 'maintenance_margin')),
+            'initialMargin': this.costToPrecision (safeSymbol, this.satoshiToBitcoin (this.safeString (info, 'margin'))),
+            'maintenanceMargin': this.costToPrecision (safeSymbol, this.satoshiToBitcoin (this.safeString (info, 'maintenance_margin'))),
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
-            'unrealizedPnl': this.precisionToCost (safeSymbol, this.safeNumber (info, 'pl')),
-            'liquidationPrice': this.safeNumber (info, 'liquidation'),
+            'unrealizedPnl': this.costToPrecision (safeSymbol, this.satoshiToBitcoin (this.safeString (info, 'pl'))),
+            'liquidationPrice': this.priceToPrecision (symbol, this.safeNumber (info, 'liquidation')),
             'marginMode': 'isolated',
-            'percentage': this.safeNumber (info, 'pnl') / this.safeNumber (info, 'margin') * 100,
+            'percentage': Precise.stringMul (Precise.stringDiv (this.safeString (info, 'pnl'), this.safeString (info, 'margin')), '100'),
         };
     }
 
@@ -1140,7 +1159,7 @@ export default class lnmarkets extends Exchange {
     }
 
     parseSide (side: string) {
-        return side === 'b' ? 'buy' : 'sell';
+        return (side === 'b') ? 'buy' : 'sell';
     }
 
     parseStrike (instrument: string) {
@@ -1152,7 +1171,7 @@ export default class lnmarkets extends Exchange {
          * @returns {number} The strike price
          * @example parseStrike ('BTC.2021-03-26.50000.C') => 50000
          */
-        const [ , , strike ] = instrument.split ('.');
+        const strike = instrument.split ('.')[2];
         return this.parseNumber (strike);
     }
 
@@ -1168,19 +1187,22 @@ export default class lnmarkets extends Exchange {
         if (instrument === undefined || instrument === 'BTC/USD:BTC') {
             return 'BTC/USD:BTC';
         }
-        const [ , expiryDate, strike, type ] = instrument.split ('.');
+        const [ currency, expiryDate, strike, type ] = instrument.split ('.');
+        const symbol = currency + 'USD/' + ':' + currency;
+        if (expiryDate === '24H') {
+            return symbol + '-24H-' + strike + '-' + type;
+        }
         const [ year, month, day ] = expiryDate.split ('-');
-        return 'BTC/USD:BTC-' + year.slice (-2) + month + day + '-' + strike + '-' + type;
+        return symbol + '-' + year.slice (-2) + month + day + '-' + strike + '-' + type;
     }
 
-    parseTicker (info, symbol: string) {
-        const now = this.now ();
-        const price = (symbol === 'BTC/USD:BTC')
-            ? this.safeNumber (info, 'lastPrice')
-            : this.safeNumber (info, 'volatility');
+    parseTicker (ticker, market = undefined) {
+        const now = this.milliseconds ();
+        const symbol = this.safeSymbol (undefined, market);
+        const price = (symbol === 'BTC/USD:BTC') ? this.safeNumber (ticker, 'lastPrice') : this.safeNumber (ticker, 'volatility');
         return {
-            symbol,
-            info,
+            'symbol': symbol,
+            'info': ticker,
             'timestamp': now,
             'datetime': this.iso8601 (now),
             'high': undefined,
@@ -1204,21 +1226,26 @@ export default class lnmarkets extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         currency = this.safeCurrency (currency, 'BTC');
+        let amount = this.safeString (transaction, 'amount');
+        if (currency === 'BTC') {
+            amount = this.satoshiToBitcoin (amount);
+        }
         const timestamp = this.safeInteger (transaction, 'ts');
+        const destination = this.safeString (transaction, 'destination');
         return {
             'info': transaction,
             'id': transaction['id'],
             'txid': this.parseTxId (transaction),
-            timestamp,
+            'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'addressFrom': undefined,
-            'address': transaction['destination'], // only for Lightning withdrawals
-            'addressTo': transaction['destination'], // otherwise undefined
+            'address': destination, // only for Lightning withdrawals
+            'addressTo': destination, // otherwise undefined
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
             'type': this.parseTransactionType (transaction),
-            'amount': this.precisionToCurrency (currency, transaction['amount']),
+            'amount': this.parseNumber (amount),
             'currency': 'BTC',
             'network': this.safeString (transaction, 'type', 'unknown'),
             'status': this.parseTransactionStatus (transaction),
@@ -1231,7 +1258,7 @@ export default class lnmarkets extends Exchange {
     parseTransactionFee (transaction) {
         return {
             'currency': 'BTC',
-            'cost': this.precisionToCurrency ('BTC', this.safeNumber (transaction, 'fee', 0)),
+            'cost': this.parseNumber (this.satoshiToBitcoin (this.safeString (transaction, 'fee', '0'))),
             'rate': undefined,
         };
     }
@@ -1247,70 +1274,39 @@ export default class lnmarkets extends Exchange {
     }
 
     parseTransactionType (transaction) {
-        if (transaction['type'] === 'internal') {
-            return transaction['from_username']
-                ? 'deposit'
-                : 'withdrawal';
+        const transactionType = this.safeString (transaction, 'type');
+        const transactionFee = this.safeNumber (transaction, 'fee');
+        if (transactionType === 'internal') {
+            return transaction['from_username'] ? 'deposit' : 'withdrawal';
         } else {
-            return transaction['fee']
-                ? 'withdrawal'
-                : 'deposit';
+            return transactionFee ? 'withdrawal' : 'deposit';
         }
     }
 
     parseTxId (transaction) {
-        switch (transaction['type']) {
-        case 'bitcoin':
+        if (transaction['type'] === 'bitcoin') {
             return transaction['transaction_id'];
-        case 'lightning':
+        } else if (transaction['type'] === 'lightning') {
             return transaction['payment_hash'];
-        default:
+        } else {
             return transaction['id'];
         }
     }
 
     parseType (type: string) {
-        return type === 'l' ? 'limit' : 'market';
+        return (type === 'l') ? 'limit' : 'market';
     }
 
-    // converts from satoshis to bitcoins
-    precisionToCost (symbol: string, cost: number) {
+    satoshiToBitcoin (satoshis: string) {
         /**
          * @method
-         * @name lnmarkets#precisionToCost
-         * @description Utility to convert LN Markets cost to CCXT cost
-         * @param {string} symbol - The CCXT symbol of the cost to convert.
-         * @param {number} cost - The LN Markets cost to convert.
-         * @returns {number} The cost in bitcoins with the appropriate precision
-         * @example precisionToCost ('BTC/USD:BTC', 10000000) => 0.1
+         * @name lnmarkets#satoshiToBitcoin
+         * @description Utility to convert a satoshi-denominated amount to bitcoin
+         * @param {string} satoshis - The amount to convert.
+         * @returns {string} The amount in bitcoin
+         * @example satoshiToBitcoin ('10000000') => '0.1'
          */
-        // precision defaults to 8 when no symbol is specified
-        const market = this.safeValue (this.markets, symbol);
-        if (market === undefined) {
-            return 8;
-        }
-        const precision = symbol
-            ? this.markets[symbol]['precision']['cost']
-            : 8;
-        return cost / Math.pow (10, precision);
-    }
-
-    precisionToCurrency (code: string, amount: number) {
-        /**
-         * @method
-         * @name lnmarkets#precisionToCurrency
-         * @description Utility to convert LN Markets currency amounts to CCXT currency amounts
-         * @param {string} code - The CCXT code of the currency to convert.
-         * @param {number} amount - The amount to convert.
-         * @returns {number} The amount in bitcoin with the appropriate precision
-         * @example precisionToCurrency ('BTC', 10000000) => 0.1
-         */
-        const currency = this.safeValue (this.currencies, code);
-        let precision = 8;
-        if (currency) {
-            precision = this.currencies[code]['precision'];
-        }
-        return amount / Math.pow (10, precision);
+        return Precise.stringDiv (satoshis, '100000000');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1325,7 +1321,7 @@ export default class lnmarkets extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const nonce = this.milliseconds ();
         if (api === 'public') {
-            return { url, method, params, headers };
+            return { 'url': url, 'method': method, 'body': body, 'headers': headers };
         } else if (api === 'private') {
             let payload = nonce.toString () + method + '/' + this.version + '/' + implodedParams;
             if (method === 'GET' || method === 'DELETE') {
@@ -1335,11 +1331,11 @@ export default class lnmarkets extends Exchange {
             } else {
                 payload += this.json (params);
             }
-            const signature = this.hmac (payload, this.secret, sha256, 'base64');
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             headers = {
                 'LNM-ACCESS-KEY': this.apiKey,
                 'LNM-ACCESS-PASSPHRASE': this.password,
-                'LNM-ACCESS-TIMESTAMP': nonce,
+                'LNM-ACCESS-TIMESTAMP': nonce.toString (),
                 'LNM-ACCESS-SIGNATURE': signature,
             };
             if (method === 'GET' || method === 'DELETE') {
@@ -1354,7 +1350,7 @@ export default class lnmarkets extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
          * @name lnmarkets#transfer
@@ -1371,44 +1367,39 @@ export default class lnmarkets extends Exchange {
             throw new BadRequest ('Only BTC transfers are supported');
         }
         const info = await this.privatePostUserTransfer (this.extend ({
-            'amount': amount,
+            'amount': this.currencyToPrecision ('BTC', this.bitcoinToSatoshi (this.numberToString (amount))),
             'toUsername': toAccount,
         }, params));
         return {
-            info,
+            'info': info,
             'id': undefined,
             'timestamp': undefined,
             'datetime': undefined,
             'currency': 'BTC',
-            'amount': info.amount,
+            'amount': this.satoshiToBitcoin (this.safeString (info, 'amount')),
             'fromAccount': undefined,
-            'toAccount': info.to,
+            'toAccount': this.safeString (info, 'to'),
             'status': 'ok',
         };
     }
 
-    async withdraw (code: string, amount, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
          * @method
          * @name lnmarkets#withdraw
          * @description Withdraws funds. Lightning only.
          * @see https://docs.lnmarkets.com/api/v2#tag/Wallet/operation/wallet-withdraw
          * @param {string} code - The currency code of the withdrawal. Only BTC is supported.
-         * @param {number} amount - The amount to withdraw.
+         * @param {number} amount - The amount to withdraw. Not used since it is already included in the Lightning invoice.
          * @param {string} address - The Lightning invoice to withdraw to.
          * @param {string} [tag] - Not used.
          * @param {object} [params] - Additional parameters
          * @returns {Promise<object>} A transaction structure
          * @throws {BadRequest} If the currency is not BTC
-         * @throws {InvalidAddress} If the amount and invoice do not match
          */
         await this.loadMarkets ();
         if (code !== 'BTC') {
             throw new BadRequest ('Only BTC withdrawals are supported');
-        }
-        const safeAmount = this.currencyToPrecision (code, amount);
-        if (!this.amountAndInvoiceMatch (safeAmount, address)) {
-            throw new InvalidAddress ('Amount and invoice do not match');
         }
         const request = {
             'invoice': address,
@@ -1427,14 +1418,14 @@ export default class lnmarkets extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'type': 'withdrawal',
-            'amount': this.precisionToCurrency (code, response['amount']),
+            'amount': this.satoshiToBitcoin (this.safeString (response, 'amount')),
             'currency': 'BTC',
             'status': response['successTime'] ? 'ok' : 'failed',
             'updated': undefined,
             'comment': undefined,
             'fee': {
                 'currency': 'BTC',
-                'cost': this.precisionToCurrency (code, response['fee']),
+                'cost': this.satoshiToBitcoin (this.safeString (response, 'fee')),
                 'rate': undefined,
             },
         };
