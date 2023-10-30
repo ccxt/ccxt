@@ -942,15 +942,16 @@ class upbit(Exchange, ImplicitAPI):
             'timeframe': timeframeValue,
             'count': limit,
         }
-        method = 'publicGetCandlesTimeframe'
-        if timeframeValue == 'minutes':
-            numMinutes = int(round(timeframePeriod / 60))
-            request['unit'] = numMinutes
-            method += 'Unit'
+        response = None
         if since is not None:
             # convert `since` to `to` value
             request['to'] = self.iso8601(self.sum(since, timeframePeriod * limit * 1000))
-        response = getattr(self, method)(self.extend(request, params))
+        if timeframeValue == 'minutes':
+            numMinutes = int(round(timeframePeriod / 60))
+            request['unit'] = numMinutes
+            response = self.publicGetCandlesTimeframeUnit(self.extend(request, params))
+        else:
+            response = self.publicGetCandlesTimeframe(self.extend(request, params))
         #
         #     [
         #         {

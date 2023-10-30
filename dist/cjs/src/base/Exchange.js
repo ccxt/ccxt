@@ -208,7 +208,6 @@ class Exchange {
         this.urlencodeNested = urlencodeNested;
         this.parseDate = parseDate;
         this.ymd = ymd;
-        this.isArray = generic.inArray;
         this.base64ToString = base64ToString;
         this.crc32 = crc32;
         Object.assign(this, functions);
