@@ -38,9 +38,9 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
 
 //-----------------------------------------------------------------------------
 
-console.log (new Date ())
-console.log ('Node.js:', process.version)
-console.log ('CCXT v' + ccxt.version)
+log ((new Date ()).toISOString())
+log ('Node.js:', process.version)
+log ('CCXT v' + ccxt.version)
 
 //-----------------------------------------------------------------------------
 
