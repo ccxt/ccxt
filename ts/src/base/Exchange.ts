@@ -3171,7 +3171,7 @@ export default class Exchange {
         const request = this.sign (path, api, method, params, headers, body);
         this.last_request_headers = request['headers'];
         this.last_request_body = request['body'];
-        this.last_request_path = path;
+        this.last_request_url = request['url'];
         return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
     }
 
