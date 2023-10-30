@@ -137,6 +137,10 @@ async def call_method(testFiles, methodName, exchange, skippedProperties, args):
     return await getattr(testFiles[methodName], methodName)(exchange, skippedProperties, *args)
 
 
+async def call_exchange_method_dynamically(exchange, methodName, args):
+    return await getattr(exchange, methodName)(*args)
+
+
 def exception_message(exc):
     message = '[' + type(exc).__name__ + '] ' + "".join(format_exception(type(exc), exc, exc.__traceback__, limit=6))
     if len(message) > LOG_CHARS_LENGTH:
