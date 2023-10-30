@@ -1226,7 +1226,7 @@ export default class huobi extends huobiRest {
                     // usdt contracts account
                     prefix = 'accounts_unify';
                     messageHash = prefix;
-                    channel = prefix + '.' + 'USDT';
+                    channel = prefix + '.' + 'usdt';
                 } else {
                     // usdt contracts account
                     prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
@@ -1438,7 +1438,30 @@ export default class huobi extends huobiRest {
             }
             const type = this.safeString (subscription, 'type');
             const subType = this.safeString (subscription, 'subType');
-            if (subType === 'linear') {
+            if (topic === 'accounts_unify') {
+                // {
+                //     margin_asset: 'USDT',
+                //     margin_static: 10,
+                //     cross_margin_static: 10,
+                //     margin_balance: 10,
+                //     cross_profit_unreal: 0,
+                //     margin_frozen: 0,
+                //     withdraw_available: 10,
+                //     cross_risk_rate: null,
+                //     cross_swap: [],
+                //     cross_future: [],
+                //     isolated_swap: []
+                // }
+                const marginAsset = this.safeString (first, 'margin_asset');
+                const code = this.safeCurrencyCode (marginAsset);
+                const marginFrozen = this.safeString (first, 'margin_frozen');
+                const unifiedAccount = this.account ();
+                unifiedAccount['free'] = this.safeString (first, 'withdraw_available');
+                unifiedAccount['used'] = marginFrozen;
+                this.balance[code] = unifiedAccount;
+                this.balance = this.safeBalance (this.balance);
+                client.resolve (this.balance, 'accounts_unify');
+            } else if (subType === 'linear') {
                 const margin = this.safeString (subscription, 'margin');
                 if (margin === 'cross') {
                     const fieldName = (type === 'future') ? 'futures_contract_detail' : 'contract_detail';
