@@ -1,8 +1,9 @@
 // ----------------------------------------------------------------------------
-
-import fs from 'fs';
+/* eslint-disable max-classes-per-file */
+import fs, { readFile } from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
-import ccxt from '../../ccxt.js';
+import assert from 'assert';
+import ccxt, { Exchange } from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
 
 
@@ -26,6 +27,7 @@ const NotSupported = ccxt.NotSupported;
 
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
+    staticTests = false;
     info = false;
     verbose = false;
     debug = false;
@@ -64,8 +66,19 @@ function ioFileRead (path, decode = true) {
     return decode ? JSON.parse (content) : content;
 }
 
+function ioDirRead (path) {
+    const files = fs.readdirSync (path);
+    return files;
+}
+
 async function callMethod (testFiles, methodName, exchange, skippedProperties, args) {
+    // used for calling methods from test files
     return await testFiles[methodName] (exchange, skippedProperties, ...args);
+}
+
+async function callExchangeMethodDynamically (exchange: Exchange, methodName: string, args) {
+    // used for calling actual exchange methods
+    return await exchange[methodName] (...args);
 }
 
 function exceptionMessage (exc) {
@@ -124,6 +137,7 @@ async function close (exchange) {
 
 export default class testMainClass extends baseMainTestClass {
     parseCliArgs () {
+        this.staticTests = getCliArgValue ('--static');
         this.info = getCliArgValue ('--info');
         this.verbose = getCliArgValue ('--verbose');
         this.debug = getCliArgValue ('--debug');
@@ -134,6 +148,9 @@ export default class testMainClass extends baseMainTestClass {
 
     async init (exchangeId, symbol) {
         this.parseCliArgs ();
+        if (this.staticTests) {
+            return await this.runStaticTests ();
+        }
         const symbolStr = symbol !== undefined ? symbol : 'all';
         dump ('\nTESTING ', ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
         const exchangeArgs = {
@@ -743,6 +760,135 @@ export default class testMainClass extends baseMainTestClass {
             throw e;
         }
     }
+    //----------------------------------------------------------------------------------------------------
+    // --- Init of static tests functions-----------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------
+
+    assertStaticError (cond:boolean, message: string, calculatedOutput, storedOutput) {
+        const calculatedString = JSON.stringify (calculatedOutput);
+        const outputString = JSON.stringify (storedOutput);
+        const errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString;
+        assert (cond, errorMessage);
+    }
+
+    loadMarketsFromFile (id: string) {
+        // load markets from file
+        // to make this test as fast as possible
+        // and basically independent from the exchange
+        // so we can run it offline
+        const filename = './ts/src/test/static/markets/' + id + '.json';
+        const content = ioFileRead (filename);
+        return content;
+    }
+
+    loadStaticData () {
+        const folder = './ts/src/test/static/data/';
+        const files = ioDirRead (folder);
+        const result = {};
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const exchangeName = file.replace ('.json', '');
+            const content = ioFileRead (folder + file);
+            result[exchangeName] = content;
+        }
+        return result;
+    }
+
+    removeHostnamefromUrl (url: string) {
+        const urlParts = url.split ('/');
+        return urlParts.slice (3).join ('/');
+    }
+
+    assertStaticOutput (type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
+        if (storedUrl !== requestUrl) {
+            // remove the host part from the url
+            const firstPath = this.removeHostnamefromUrl (storedUrl);
+            const secondPath = this.removeHostnamefromUrl (requestUrl);
+            this.assertStaticError (firstPath === secondPath, 'url mismatch', firstPath, secondPath);
+        }
+        if (type === 'json') {
+            if (typeof storedOutput === 'string') {
+                storedOutput = JSON.parse (storedOutput);
+            }
+            if (typeof newOutput === 'string') {
+                newOutput = JSON.parse (newOutput);
+            }
+            const storedOutputKeys = Object.keys (storedOutput);
+            const newOutputKeys = Object.keys (newOutput);
+            this.assertStaticError (storedOutputKeys.length === newOutputKeys.length, 'output length mismatch', storedOutput, newOutput);
+            for (let i = 0; i < storedOutputKeys.length; i++) {
+                const key = storedOutputKeys[i];
+                if (skipKeys.includes (key)) {
+                    continue;
+                }
+                if (!newOutputKeys.includes (key)) {
+                    this.assertStaticError (false, 'output key mismatch', storedOutput, newOutput);
+                }
+                const storedValue = storedOutput[key];
+                const newValue = newOutput[key];
+                this.assertStaticError (storedValue === newValue, 'output value mismatch', storedOutput, newOutput);
+            }
+        }
+    }
+
+    async testMethodStatically (exchange, method: string, data: object, type: string, skipKeys: string[]) {
+        let output = undefined;
+        let requestUrl = undefined;
+        try {
+            const inputArgs = Object.values (data['input']);
+            const _res = await callExchangeMethodDynamically (exchange, method, inputArgs);
+        } catch (e) {
+            output = exchange.last_request_body;
+            requestUrl = exchange.last_request_url;
+        }
+        this.assertStaticOutput (type, skipKeys, data['url'], requestUrl, data['output'], output);
+    }
+
+    async testExchangeStatically (exchangeName: string, exchangeData: object) {
+        const markets = this.loadMarketsFromFile (exchangeName);
+        // instantiate the exchange and make sure that we sink the requests to avoid an actual request
+        const exchange = initExchange (exchangeName, { 'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secret', 'password': 'password', 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false }});
+        const methods = exchange.safeValue (exchangeData, 'methods');
+        const methodsNames = Object.keys (methods);
+        for (let i = 0; i < methodsNames.length; i++) {
+            const method = methodsNames[i];
+            const results = methods[method];
+            for (let j = 0; j < results.length; j++) {
+                const result = results[j];
+                const type = exchange.safeString (exchangeData, 'outputType');
+                const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
+                await this.testMethodStatically (exchange, method, result, type, skipKeys);
+            }
+        }
+    }
+
+    getNumberOfTestsFromExchange (exchangeData: object) {
+        let count = 0;
+        const methods = exchangeData['methods'];
+        const methodsNames = Object.keys (methods);
+        for (let i = 0; i < methodsNames.length; i++) {
+            const method = methodsNames[i];
+            const results = methods[method];
+            count += results.length;
+        }
+        return count;
+    }
+
+    async runStaticTests () {
+        const staticData = this.loadStaticData ();
+        const exchanges = Object.keys (staticData);
+        const promises = [];
+        let count = 0;
+        for (let i = 0; i < exchanges.length; i++) {
+            const exchangeName = exchanges[i];
+            const exchangeData = staticData[exchangeName];
+            count += this.getNumberOfTestsFromExchange (exchangeData);
+            promises.push (this.testExchangeStatically (exchangeName, exchangeData));
+        }
+        await Promise.all (promises);
+        dump ('[TEST_SUCCESS]', count.toString (), 'static tests passed');
+    }
+
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************

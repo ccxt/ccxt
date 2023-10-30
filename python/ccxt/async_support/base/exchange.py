@@ -1957,6 +1957,9 @@ class Exchange(BaseExchange):
             await self.throttle(cost)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
+        self.last_request_headers = request['headers']
+        self.last_request_body = request['body']
+        self.last_request_path = path
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
     async def request(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}):
@@ -2474,6 +2477,9 @@ class Exchange(BaseExchange):
 
     async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported yet')
+
+    async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
 
     def parse_last_price(self, price, market=None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
