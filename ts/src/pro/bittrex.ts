@@ -567,7 +567,9 @@ export default class bittrex extends bittrexRest {
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         await this.loadMarkets ();
-        symbol = this.symbol (symbol);
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+        }
         const authentication = await this.authenticate ();
         const trades = await this.subscribeToMyTrades (authentication, params);
         if (this.newUpdates) {
