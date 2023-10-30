@@ -3577,17 +3577,18 @@ class phemex extends Exchange {
             // 'limit' => 20, // Page size default 20, max 200
             // 'offset' => 0, // Page start default 0
         );
-        if ($limit > 200) {
-            throw new BadRequest($this->id . ' fetchFundingHistory() $limit argument cannot exceed 200');
-        }
         if ($limit !== null) {
+            if ($limit > 200) {
+                throw new BadRequest($this->id . ' fetchFundingHistory() $limit argument cannot exceed 200');
+            }
             $request['limit'] = $limit;
         }
-        $method = 'privateGetApiDataFuturesFundingFees';
+        $response = null;
         if ($market['settle'] === 'USDT') {
-            $method = 'privateGetApiDataGFuturesFundingFees';
+            $response = $this->privateGetApiDataGFuturesFundingFees (array_merge($request, $params));
+        } else {
+            $response = $this->privateGetApiDataFuturesFundingFees (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "code" => 0,

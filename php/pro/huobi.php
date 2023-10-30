@@ -111,6 +111,7 @@ class huobi extends \ccxt\async\huobi {
                         '2001' => '\\ccxt\\BadSymbol', // array( action => 'sub', code => 2001, ch => 'orders#2ltcusdt', message => 'invalid.symbol')
                         '2011' => '\\ccxt\\BadSymbol', // array( op => 'sub', cid => '1649149285', topic => 'orders_cross.hereltc-usdt', 'err-code' => 2011, 'err-msg' => "Contract doesn't exist.", ts => 1649149287637 )
                         '2040' => '\\ccxt\\BadRequest', // array( op => 'sub', cid => '1649152947', 'err-code' => 2040, 'err-msg' => 'Missing required parameter.', ts => 1649152948684 )
+                        '4007' => '\\ccxt\\BadRequest', // array( op => 'sub', cid => '1', topic => 'accounts_unify.USDT', 'err-code' => 4007, 'err-msg' => 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts => 1698419318540 )
                     ),
                 ),
             ),
@@ -1206,12 +1207,12 @@ class huobi extends \ccxt\async\huobi {
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
-            $type = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
-            $type = $this->safe_string($params, 'type', $type);
-            $subType = $this->safe_string_2($this->options, 'watchBalance', 'subType', 'linear');
-            $subType = $this->safe_string($params, 'subType', $subType);
-            $params = $this->omit($params, array( 'type', 'subType' ));
-            $params = $this->omit($params, 'type');
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('watchBalance', null, $params, 'linear');
+            $isUnifiedAccount = $this->safe_value_2($params, 'isUnifiedAccount', 'unified', false);
+            $params = $this->omit($params, array( 'isUnifiedAccount', 'unified' ));
             Async\await($this->load_markets());
             $messageHash = null;
             $channel = null;
@@ -1231,26 +1232,33 @@ class huobi extends \ccxt\async\huobi {
                 $prefix = 'accounts';
                 $messageHash = $prefix;
                 if ($subType === 'linear') {
-                    // usdt contracts account
-                    $prefix = ($marginMode === 'cross') ? $prefix . '_cross' : $prefix;
-                    $messageHash = $prefix;
-                    if ($marginMode === 'isolated') {
-                        // isolated margin only allows filtering by symbol3
-                        if ($symbol !== null) {
-                            $messageHash .= '.' . $market['id'];
-                            $channel = $messageHash;
-                        } else {
-                            // subscribe to all
-                            $channel = $prefix . '.' . '*';
-                        }
+                    if ($isUnifiedAccount) {
+                        // usdt contracts account
+                        $prefix = 'accounts_unify';
+                        $messageHash = $prefix;
+                        $channel = $prefix . '.' . 'usdt';
                     } else {
-                        // cross margin
-                        if ($currencyCode !== null) {
-                            $channel = $prefix . '.' . $currencyCode['id'];
-                            $messageHash = $channel;
+                        // usdt contracts account
+                        $prefix = ($marginMode === 'cross') ? $prefix . '_cross' : $prefix;
+                        $messageHash = $prefix;
+                        if ($marginMode === 'isolated') {
+                            // isolated margin only allows filtering by symbol3
+                            if ($symbol !== null) {
+                                $messageHash .= '.' . $market['id'];
+                                $channel = $messageHash;
+                            } else {
+                                // subscribe to all
+                                $channel = $prefix . '.' . '*';
+                            }
                         } else {
-                            // subscribe to all
-                            $channel = $prefix . '.' . '*';
+                            // cross margin
+                            if ($currencyCode !== null) {
+                                $channel = $prefix . '.' . $currencyCode['id'];
+                                $messageHash = $channel;
+                            } else {
+                                // subscribe to all
+                                $channel = $prefix . '.' . '*';
+                            }
                         }
                     }
                 } elseif ($type === 'future') {
@@ -1425,21 +1433,46 @@ class huobi extends \ccxt\async\huobi {
                 return;
             }
             $first = $this->safe_value($data, 0, array());
-            $messageHash = $this->safe_string($message, 'topic');
+            $topic = $this->safe_string($message, 'topic');
+            $splitTopic = explode('.', $topic);
+            $messageHash = $this->safe_string($splitTopic, 0);
             $subscription = $this->safe_value_2($client->subscriptions, $messageHash, $messageHash . '.*');
             if ($subscription === null) {
                 // if $subscription not found means that we subscribed to a specific currency/symbol
                 // and we use the $first $data entry to find it
-                // Example => topic = 'accounts'
+                // Example => $topic = 'accounts'
                 // $client->subscription hash = 'accounts.usdt'
                 // we do 'accounts' . '.' . $data[0]]['margin_asset'] to get it
-                $marginAsset = $this->safe_string($first, 'margin_asset');
-                $messageHash .= '.' . strtolower($marginAsset);
+                $currencyId = $this->safe_string_2($first, 'margin_asset', 'symbol');
+                $messageHash .= '.' . strtolower($currencyId);
                 $subscription = $this->safe_value($client->subscriptions, $messageHash);
             }
             $type = $this->safe_string($subscription, 'type');
             $subType = $this->safe_string($subscription, 'subType');
-            if ($subType === 'linear') {
+            if ($topic === 'accounts_unify') {
+                // {
+                //     margin_asset => 'USDT',
+                //     margin_static => 10,
+                //     cross_margin_static => 10,
+                //     margin_balance => 10,
+                //     cross_profit_unreal => 0,
+                //     margin_frozen => 0,
+                //     withdraw_available => 10,
+                //     cross_risk_rate => null,
+                //     cross_swap => array(),
+                //     cross_future => array(),
+                //     isolated_swap => array()
+                // }
+                $marginAsset = $this->safe_string($first, 'margin_asset');
+                $code = $this->safe_currency_code($marginAsset);
+                $marginFrozen = $this->safe_string($first, 'margin_frozen');
+                $unifiedAccount = $this->account();
+                $unifiedAccount['free'] = $this->safe_string($first, 'withdraw_available');
+                $unifiedAccount['used'] = $marginFrozen;
+                $this->balance[$code] = $unifiedAccount;
+                $this->balance = $this->safe_balance($this->balance);
+                $client->resolve ($this->balance, 'accounts_unify');
+            } elseif ($subType === 'linear') {
                 $margin = $this->safe_string($subscription, 'margin');
                 if ($margin === 'cross') {
                     $fieldName = ($type === 'future') ? 'futures_contract_detail' : 'contract_detail';
@@ -1742,6 +1775,15 @@ class huobi extends \ccxt\async\huobi {
         //         $id => '2'
         //     }
         //
+        //     {
+        //         op => 'sub',
+        //         cid => '1',
+        //         topic => 'accounts_unify.USDT',
+        //         'err-code' => 4007,
+        //         'err-msg' => 'Non - single account user is not available, please check through the cross and isolated account asset interface',
+        //         ts => 1698419490189
+        //     }
+        //
         $status = $this->safe_string($message, 'status');
         if ($status === 'error') {
             $id = $this->safe_string($message, 'id');
@@ -1762,8 +1804,8 @@ class huobi extends \ccxt\async\huobi {
             }
             return false;
         }
-        $code = $this->safe_integer($message, 'code');
-        if ($code !== null && $code !== 200) {
+        $code = $this->safe_integer_2($message, 'code', 'err-code');
+        if ($code !== null && (($code !== 200) && ($code !== 0))) {
             $feedback = $this->id . ' ' . $this->json($message);
             try {
                 $this->throw_exactly_matched_exception($this->exceptions['ws']['exact'], $code, $feedback);
