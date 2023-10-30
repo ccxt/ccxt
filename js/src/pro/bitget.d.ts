@@ -1,11 +1,17 @@
 import bitgetRest from '../bitget.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+/**
+ * @class bitget
+ * @extends Exchange
+ * @description watching delivery future markets is not yet implemented (perpertual future / swap is implemented)
+ */
 export default class bitget extends bitgetRest {
     describe(): any;
     getWsMarketId(market: any): any;
     getMarketIdFromArg(arg: any): string;
     watchTicker(symbol: string, params?: {}): Promise<any>;
+    watchTickers(symbols?: string[], params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): any;
     parseWsTicker(message: any, market?: any): import("../base/types.js").Ticker;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

@@ -45,7 +45,7 @@ class coinbase(ccxt.async_support.coinbase):
         """
          * @ignore
         subscribes to a websocket channel
-        see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
         :param str name: the name of the channel
         :param string|str[] [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the cex api endpoint
@@ -81,7 +81,7 @@ class coinbase(ccxt.async_support.coinbase):
     async def watch_ticker(self, symbol, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
         :param str [symbol]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -92,7 +92,7 @@ class coinbase(ccxt.async_support.coinbase):
     async def watch_tickers(self, symbols=None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -224,7 +224,7 @@ class coinbase(ccxt.async_support.coinbase):
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -242,7 +242,7 @@ class coinbase(ccxt.async_support.coinbase):
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         """
         watches information on multiple orders made by the user
-        see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -259,7 +259,7 @@ class coinbase(ccxt.async_support.coinbase):
     async def watch_order_book(self, symbol, limit=None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint

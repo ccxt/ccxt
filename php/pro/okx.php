@@ -895,8 +895,8 @@ class okx extends \ccxt\async\okx {
             $type = null;
             // By default, receive order updates from any instrument $type
             list($type, $params) = $this->handle_option_and_params($params, 'watchOrders', 'type', 'ANY');
-            $isStop = $this->safe_value($params, 'stop', false);
-            $params = $this->omit($params, array( 'stop' ));
+            $isStop = $this->safe_value_2($params, 'stop', 'trigger', false);
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             Async\await($this->load_markets());
             Async\await($this->authenticate(array( 'access' => $isStop ? 'business' : 'private' )));
             $market = null;
@@ -985,8 +985,9 @@ class okx extends \ccxt\async\okx {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             if ($this->orders === null) {
                 $this->orders = new ArrayCacheBySymbolById ($limit);
+                $this->triggerOrders = new ArrayCacheBySymbolById ($limit);
             }
-            $stored = $this->orders;
+            $stored = ($channel === 'orders-algo') ? $this->triggerOrders : $this->orders;
             $marketIds = array();
             $parsed = $this->parse_orders($orders);
             for ($i = 0; $i < count($parsed); $i++) {
@@ -996,10 +997,10 @@ class okx extends \ccxt\async\okx {
                 $market = $this->market($symbol);
                 $marketIds[] = $market['id'];
             }
-            $client->resolve ($this->orders, $channel);
+            $client->resolve ($stored, $channel);
             for ($i = 0; $i < count($marketIds); $i++) {
                 $messageHash = $channel . ':' . $marketIds[$i];
-                $client->resolve ($this->orders, $messageHash);
+                $client->resolve ($stored, $messageHash);
             }
         }
     }
@@ -1066,8 +1067,8 @@ class okx extends \ccxt\async\okx {
         // filter orders with no last $trade id
         for ($i = 0; $i < count($rawOrders); $i++) {
             $rawOrder = $rawOrders[$i];
-            $tradeId = $this->safe_string($rawOrder, 'tradeId');
-            if (!$this->is_empty($tradeId)) {
+            $tradeId = $this->safe_string($rawOrder, 'tradeId', '');
+            if (strlen($tradeId) > 0) {
                 $order = $this->parse_order($rawOrder);
                 $filteredOrders[] = $order;
             }

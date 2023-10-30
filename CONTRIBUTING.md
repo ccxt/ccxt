@@ -43,6 +43,8 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
   **↑ This is the most important rule of all!!!**
 
+- **BEFORE ANY PUSH MAKE SURE YOU RUN THIS COMMAND LOCALLY: `git config core.hooksPath .git-templates/hooks`**
+
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
   - `/build/*` (these are generated automatically)
@@ -140,6 +142,7 @@ This way you can keep the build tools and processes isolated, not having to work
 - [Python](https://www.python.org/downloads/) 3.5.3+
   - requests (`pip install requests`)
   - [aiohttp](https://docs.aiohttp.org/) (`pip install aiohttp`)
+  - [ruff](https://docs.astral.sh/ruff/) (`pip install ruff`)
   - [tox](https://tox.readthedocs.io)
     - via pip: `pip install tox`
     - MacOS with [brew](https://brew.sh): `brew install tox`

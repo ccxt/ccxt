@@ -1,5 +1,5 @@
 import Exchange from './abstract/phemex.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, FundingRateHistory, Int, OrderBook, OrderSide, OrderType } from './base/types.js';
 /**
  * @class phemex
  * @extends Exchange
@@ -58,6 +58,7 @@ export default class phemex extends Exchange {
                 max: number;
             };
         };
+        created: any;
         info: any;
     };
     parseSpotMarket(market: any): {
@@ -111,18 +112,14 @@ export default class phemex extends Exchange {
                 max: any;
             };
         };
+        created: any;
         info: any;
     };
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     customParseBidAsk(bidask: any, priceKey?: number, amountKey?: number, market?: any): number[];
-    customParseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number, market?: any): {
-        symbol: any;
-        timestamp: any;
-        datetime: string;
-        nonce: any;
-    };
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    customParseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number, market?: any): any;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     toEn(n: any, scale: any): number;
     toEv(amount: any, market?: any): any;
     toEp(price: any, market?: any): any;
@@ -188,7 +185,7 @@ export default class phemex extends Exchange {
     };
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: any;
@@ -263,6 +260,6 @@ export default class phemex extends Exchange {
         status: string;
     };
     parseTransferStatus(status: any): string;
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

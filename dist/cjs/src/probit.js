@@ -334,6 +334,7 @@ class probit extends probit$1 {
                         'max': this.safeNumber(market, 'max_cost'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1495,6 +1496,9 @@ class probit extends probit$1 {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        else {
+            request['limit'] = 100;
         }
         const response = await this.privateGetTransferPayment(this.extend(request, params));
         //

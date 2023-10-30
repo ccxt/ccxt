@@ -307,6 +307,7 @@ export default class alpaca extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': asset,
             });
         }

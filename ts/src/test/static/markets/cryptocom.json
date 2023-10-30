@@ -1,0 +1,128 @@
+{
+    "BTC/USDT": {
+        "id": "BTC_USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "price": 0.01,
+            "amount": 0.00001
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "symbol": "BTC_USDT",
+            "inst_type": "CCY_PAIR",
+            "display_name": "BTC/USDT",
+            "base_ccy": "BTC",
+            "quote_ccy": "USDT",
+            "quote_decimals": 2,
+            "quantity_decimals": 5,
+            "price_tick_size": "0.01",
+            "qty_tick_size": "0.00001",
+            "max_leverage": "50",
+            "tradable": true,
+            "expiry_timestamp_ms": 0,
+            "beta_product": false,
+            "margin_buy_enabled": false,
+            "margin_sell_enabled": true
+        },
+        "taker": 0.004,
+        "maker": 0.004,
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0015
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    250000,
+                    0.0009
+                ],
+                [
+                    1000000,
+                    0.0008
+                ],
+                [
+                    20000000,
+                    0.0007
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    200000000,
+                    0.0004
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    25000,
+                    0.0035
+                ],
+                [
+                    50000,
+                    0.0025
+                ],
+                [
+                    100000,
+                    0.0016
+                ],
+                [
+                    250000,
+                    0.00015
+                ],
+                [
+                    1000000,
+                    0.00014
+                ],
+                [
+                    20000000,
+                    0.00013
+                ],
+                [
+                    100000000,
+                    0.00012
+                ],
+                [
+                    200000000,
+                    0.0001
+                ]
+            ]
+        }
+    }
+}

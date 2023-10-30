@@ -28,7 +28,7 @@ class bitget extends \ccxt\async\bitget {
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
                 'watchTicker' => true,
-                'watchTickers' => false,
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
             ),
@@ -87,9 +87,9 @@ class bitget extends \ccxt\async\bitget {
             return $market['info']['symbolName'];
         } else {
             if (!$sandboxMode) {
-                return str_replace('_UMCBL', '', $market['id']);
+                return str_replace('_CMCBL', '', $market['id'].replace ('_UMCBL', '').replace ('_DMCBL', ''));
             } else {
-                return str_replace('_SUMCBL', '', $market['id']);
+                return str_replace('_SCMCBL', '', $market['id'].replace ('_SUMCBL', '').replace ('_SDMCBL', ''));
             }
         }
     }
@@ -102,13 +102,21 @@ class bitget extends \ccxt\async\bitget {
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $marketId = $this->safe_string($arg, 'instId');
         if ($instType === 'sp') {
-            $marketId .= '_SPBL';
+            $marketId = $marketId . '_SPBL';
         } else {
-            if (!$sandboxMode) {
-                $marketId .= '_UMCBL';
+            $extension = $sandboxMode ? '_S' : '_';
+            $splitByUSDT = explode('USDT', $marketId);
+            $splitByPERP = explode('PERP', $marketId);
+            $splitByUSDTLength = count($splitByUSDT);
+            $splitByPERPLength = count($splitByPERP);
+            if ($splitByUSDTLength > 1) {
+                $extension .= 'UMCBL';
+            } elseif ($splitByPERPLength > 1) {
+                $extension .= 'CMCBL';
             } else {
-                $marketId .= '_SUMCBL';
+                $extension .= 'DMCBL';
             }
+            $marketId = $marketId . $extension;
         }
         return $marketId;
     }
@@ -132,6 +140,39 @@ class bitget extends \ccxt\async\bitget {
                 'instId' => $this->get_ws_market_id($market),
             );
             return Async\await($this->watch_public($messageHash, $args, $params));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $market = $this->market($symbols[0]);
+            $instType = $market['spot'] ? 'sp' : 'mc';
+            $messageHash = 'tickers::' . implode(',', $symbols);
+            $marketIds = $this->market_ids($symbols);
+            $topics = [ ];
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $marketInner = $this->market($marketId);
+                $args = array(
+                    'instType' => $instType,
+                    'channel' => 'ticker',
+                    'instId' => $this->get_ws_market_id($marketInner),
+                );
+                $topics[] = $args;
+            }
+            $tickers = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
+            if ($this->newUpdates) {
+                return $tickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -162,6 +203,17 @@ class bitget extends \ccxt\async\bitget {
         $this->tickers[$symbol] = $ticker;
         $messageHash = 'ticker:' . $symbol;
         $client->resolve ($ticker, $messageHash);
+        // watchTickers part
+        $messageHashes = $this->find_message_hashes($client, 'tickers::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHashTicker = $messageHashes[$i];
+            $parts = explode('::', $messageHashTicker);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            if ($this->in_array($symbol, $symbols)) {
+                $client->resolve ($ticker, $messageHashTicker);
+            }
+        }
         return $message;
     }
 
@@ -577,6 +629,8 @@ class bitget extends \ccxt\async\bitget {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#$trades-channel
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#$trades-channel
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch

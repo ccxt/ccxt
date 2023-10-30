@@ -126,7 +126,10 @@ export default class woo extends Exchange {
                 'fees': [
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
-                'referral': 'https://referral.woo.org/BAJS6oNmZb3vi3RGA',
+                'referral': {
+                    'url': 'https://x.woo.org/register?ref=YWOWC96B',
+                    'discount': 0.35,
+                },
             },
             'api': {
                 'v1': {
@@ -403,6 +406,7 @@ export default class woo extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.safeTimestamp(market, 'created_time'),
                 'info': market,
             });
         }
@@ -902,7 +906,9 @@ export default class woo extends Exchange {
             const rows = this.safeValue(data, 'rows', []);
             return this.parseOrder(rows[0], market);
         }
-        return this.extend(this.parseOrder(response, market), { 'type': type });
+        const order = this.parseOrder(response, market);
+        order['type'] = type;
+        return order;
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
@@ -944,29 +950,27 @@ export default class woo extends Exchange {
         if (stopPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
         }
+        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice']);
         const isStop = (stopPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
-        let method = undefined;
+        let response = undefined;
         if (isByClientOrder) {
+            request['client_order_id'] = clientOrderIdExchangeSpecific;
             if (isStop) {
-                method = 'v3PrivatePutAlgoOrderClientClientOrderId';
-                request['oid'] = id;
+                response = await this.v3PrivatePutAlgoOrderClientClientOrderId(this.extend(request, params));
             }
             else {
-                method = 'v3PrivatePutOrderClientClientOrderId';
-                request['client_order_id'] = clientOrderIdExchangeSpecific;
+                response = await this.v3PrivatePutOrderClientClientOrderId(this.extend(request, params));
             }
         }
         else {
+            request['oid'] = id;
             if (isStop) {
-                method = 'v3PrivatePutAlgoOrderOid';
+                response = await this.v3PrivatePutAlgoOrderOid(this.extend(request, params));
             }
             else {
-                method = 'v3PrivatePutOrderOid';
+                response = await this.v3PrivatePutOrderOid(this.extend(request, params));
             }
-            request['oid'] = id;
         }
-        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice']);
-        const response = await this[method](this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -1002,32 +1006,31 @@ export default class woo extends Exchange {
             this.checkRequiredSymbol('cancelOrder', symbol);
         }
         await this.loadMarkets();
-        const request = {};
-        const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
-        const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
-        const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let method = undefined;
-        if (stop) {
-            method = 'v3PrivateDeleteAlgoOrderOrderId';
-            request['order_id'] = id;
-        }
-        else if (isByClientOrder) {
-            method = 'v1PrivateDeleteClientOrder';
-            request['client_order_id'] = clientOrderIdExchangeSpecific;
-            params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-        }
-        else {
-            method = 'v1PrivateDeleteOrder';
-            request['order_id'] = id;
-        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        if (!stop) {
-            request['symbol'] = market['id'];
+        const request = {};
+        const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
+        const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        let response = undefined;
+        if (stop) {
+            request['order_id'] = id;
+            response = await this.v3PrivateDeleteAlgoOrderOrderId(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            request['symbol'] = market['id'];
+            if (isByClientOrder) {
+                request['client_order_id'] = clientOrderIdExchangeSpecific;
+                params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
+                response = await this.v1PrivateDeleteClientOrder(this.extend(request, params));
+            }
+            else {
+                request['order_id'] = id;
+                response = await this.v1PrivateDeleteOrder(this.extend(request, params));
+            }
+        }
         //
         // { success: true, status: 'CANCEL_SENT' }
         //
@@ -1091,20 +1094,19 @@ export default class woo extends Exchange {
         params = this.omit(params, 'stop');
         const request = {};
         const clientOrderId = this.safeString2(params, 'clOrdID', 'clientOrderId');
-        let method = undefined;
+        let response = undefined;
         if (stop) {
-            method = 'v3PrivateGetAlgoOrderOid';
             request['oid'] = id;
+            response = await this.v3PrivateGetAlgoOrderOid(this.extend(request, params));
         }
         else if (clientOrderId) {
-            method = 'v1PrivateGetClientOrderClientOrderId';
             request['client_order_id'] = clientOrderId;
+            response = await this.v1PrivateGetClientOrderClientOrderId(this.extend(request, params));
         }
         else {
-            method = 'v1PrivateGetOrderOid';
             request['oid'] = id;
+            response = await this.v1PrivateGetOrderOid(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         // {
         //     success: true,
@@ -1400,6 +1402,7 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#fetchOHLCV
+         * @see https://docs.woo.org/#kline-public
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -2366,8 +2369,26 @@ export default class woo extends Exchange {
         return this.filterByArray(result, 'symbol', symbols);
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @see https://docs.woo.org/#get-funding-rate-history-for-one-market-public
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
+         * @param {object} [params] extra parameters specific to the woo api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest funding rate
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
+         */
         await this.loadMarkets();
-        const request = {};
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25);
+        }
+        let request = {};
         if (symbol !== undefined) {
             const market = this.market(symbol);
             symbol = market['symbol'];
@@ -2376,6 +2397,7 @@ export default class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = this.parseToInt(since / 1000);
         }
+        [request, params] = this.handleUntilOption('end_t', request, params, 0.001);
         const response = await this.v1PublicGetFundingRateHistory(this.extend(request, params));
         //
         //     {

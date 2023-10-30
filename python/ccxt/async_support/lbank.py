@@ -10,6 +10,7 @@ from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import AuthenticationError
@@ -229,6 +230,7 @@ class lbank(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': id,
             })
         return result
@@ -324,7 +326,7 @@ class lbank(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol: str, limit=60, params={}):
         """
@@ -635,7 +637,7 @@ class lbank(Exchange, ImplicitAPI):
         if numOrders == 1:
             return orders[0]
         else:
-            return orders
+            raise BadRequest(self.id + ' fetchOrder() can only return one order at a time. Found ' + numOrders + ' orders.')
 
     async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

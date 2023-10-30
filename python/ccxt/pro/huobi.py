@@ -305,9 +305,9 @@ class huobi(ccxt.async_support.huobi):
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
-        see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -344,6 +344,7 @@ class huobi(ccxt.async_support.huobi):
         #         id: 1583473663565,
         #         rep: 'market.btcusdt.mbp.150',
         #         status: 'ok',
+        #         ts: 1698359289261,
         #         data: {
         #             seqNum: 104999417756,
         #             bids: [
@@ -372,6 +373,9 @@ class huobi(ccxt.async_support.huobi):
             sequence = self.safe_integer(tick, 'seqNum')
             nonce = self.safe_integer(data, 'seqNum')
             snapshot['nonce'] = nonce
+            timestamp = self.safe_integer(message, 'ts')
+            snapshot['timestamp'] = timestamp
+            snapshot['datetime'] = self.iso8601(timestamp)
             snapshotLimit = self.safe_integer(subscription, 'limit')
             snapshotOrderBook = self.order_book(snapshot, snapshotLimit)
             client.resolve(snapshotOrderBook, id)

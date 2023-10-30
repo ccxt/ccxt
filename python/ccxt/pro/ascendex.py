@@ -445,7 +445,7 @@ class ascendex(ccxt.async_support.ascendex):
 
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
+        :see: https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for

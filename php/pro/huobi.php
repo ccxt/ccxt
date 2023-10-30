@@ -368,6 +368,7 @@ class huobi extends \ccxt\async\huobi {
         //         $id => 1583473663565,
         //         rep => 'market.btcusdt.mbp.150',
         //         status => 'ok',
+        //         ts => 1698359289261,
         //         $data => {
         //             seqNum => 104999417756,
         //             bids => [
@@ -396,6 +397,9 @@ class huobi extends \ccxt\async\huobi {
             $sequence = $this->safe_integer($tick, 'seqNum');
             $nonce = $this->safe_integer($data, 'seqNum');
             $snapshot['nonce'] = $nonce;
+            $timestamp = $this->safe_integer($message, 'ts');
+            $snapshot['timestamp'] = $timestamp;
+            $snapshot['datetime'] = $this->iso8601($timestamp);
             $snapshotLimit = $this->safe_integer($subscription, 'limit');
             $snapshotOrderBook = $this->order_book($snapshot, $snapshotLimit);
             $client->resolve ($snapshotOrderBook, $id);

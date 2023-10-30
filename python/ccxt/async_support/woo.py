@@ -132,7 +132,10 @@ class woo(Exchange, ImplicitAPI):
                 'fees': [
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
-                'referral': 'https://referral.woo.org/BAJS6oNmZb3vi3RGA',
+                'referral': {
+                    'url': 'https://x.woo.org/register?ref=YWOWC96B',
+                    'discount': 0.35,
+                },
             },
             'api': {
                 'v1': {
@@ -406,6 +409,7 @@ class woo(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.safe_timestamp(market, 'created_time'),
                 'info': market,
             })
         return result
@@ -536,7 +540,7 @@ class woo(Exchange, ImplicitAPI):
     async def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        see https://docs.woo.org/#get-account-information-new
+        :see: https://docs.woo.org/#get-account-information-new
         :param dict [params]: extra parameters specific to the woo api endpoint
         :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
         """
@@ -719,8 +723,8 @@ class woo(Exchange, ImplicitAPI):
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        see https://docs.woo.org/#send-order
-        see https://docs.woo.org/#send-algo-order
+        :see: https://docs.woo.org/#send-order
+        :see: https://docs.woo.org/#send-algo-order
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -863,17 +867,16 @@ class woo(Exchange, ImplicitAPI):
         if data is not None:
             rows = self.safe_value(data, 'rows', [])
             return self.parse_order(rows[0], market)
-        return self.extend(
-            self.parse_order(response, market),
-            {'type': type}
-        )
+        order = self.parse_order(response, market)
+        order['type'] = type
+        return order
 
     async def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
-        see https://docs.woo.org/#edit-order
-        see https://docs.woo.org/#edit-order-by-client_order_id
-        see https://docs.woo.org/#edit-algo-order
-        see https://docs.woo.org/#edit-algo-order-by-client_order_id
+        :see: https://docs.woo.org/#edit-order
+        :see: https://docs.woo.org/#edit-order-by-client_order_id
+        :see: https://docs.woo.org/#edit-algo-order
+        :see: https://docs.woo.org/#edit-algo-order-by-client_order_id
         edit a trade order
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -903,23 +906,21 @@ class woo(Exchange, ImplicitAPI):
         stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
         if stopPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
-        isStop = (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
-        method = None
-        if isByClientOrder:
-            if isStop:
-                method = 'v3PrivatePutAlgoOrderClientClientOrderId'
-                request['oid'] = id
-            else:
-                method = 'v3PrivatePutOrderClientClientOrderId'
-                request['client_order_id'] = clientOrderIdExchangeSpecific
-        else:
-            if isStop:
-                method = 'v3PrivatePutAlgoOrderOid'
-            else:
-                method = 'v3PrivatePutOrderOid'
-            request['oid'] = id
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice'])
-        response = await getattr(self, method)(self.extend(request, params))
+        isStop = (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        response = None
+        if isByClientOrder:
+            request['client_order_id'] = clientOrderIdExchangeSpecific
+            if isStop:
+                response = await self.v3PrivatePutAlgoOrderClientClientOrderId(self.extend(request, params))
+            else:
+                response = await self.v3PrivatePutOrderClientClientOrderId(self.extend(request, params))
+        else:
+            request['oid'] = id
+            if isStop:
+                response = await self.v3PrivatePutAlgoOrderOid(self.extend(request, params))
+            else:
+                response = await self.v3PrivatePutOrderOid(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -937,9 +938,9 @@ class woo(Exchange, ImplicitAPI):
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.woo.org/#cancel-algo-order
-        see https://docs.woo.org/#cancel-order
-        see https://docs.woo.org/#cancel-order-by-client_order_id
+        :see: https://docs.woo.org/#cancel-algo-order
+        :see: https://docs.woo.org/#cancel-order
+        :see: https://docs.woo.org/#cancel-order-by-client_order_id
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -952,27 +953,26 @@ class woo(Exchange, ImplicitAPI):
         if not stop:
             self.check_required_symbol('cancelOrder', symbol)
         await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         request = {}
         clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
-        method = None
+        response = None
         if stop:
-            method = 'v3PrivateDeleteAlgoOrderOrderId'
             request['order_id'] = id
-        elif isByClientOrder:
-            method = 'v1PrivateDeleteClientOrder'
-            request['client_order_id'] = clientOrderIdExchangeSpecific
-            params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+            response = await self.v3PrivateDeleteAlgoOrderOrderId(self.extend(request, params))
         else:
-            method = 'v1PrivateDeleteOrder'
-            request['order_id'] = id
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        if not stop:
             request['symbol'] = market['id']
-        response = await getattr(self, method)(self.extend(request, params))
+            if isByClientOrder:
+                request['client_order_id'] = clientOrderIdExchangeSpecific
+                params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+                response = await self.v1PrivateDeleteClientOrder(self.extend(request, params))
+            else:
+                request['order_id'] = id
+                response = await self.v1PrivateDeleteOrder(self.extend(request, params))
         #
         # {success: True, status: 'CANCEL_SENT'}
         #
@@ -985,9 +985,9 @@ class woo(Exchange, ImplicitAPI):
 
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.woo.org/#cancel-all-pending-orders
-        see https://docs.woo.org/#cancel-orders
-        see https://docs.woo.org/#cancel-all-pending-algo-orders
+        :see: https://docs.woo.org/#cancel-all-pending-orders
+        :see: https://docs.woo.org/#cancel-orders
+        :see: https://docs.woo.org/#cancel-all-pending-algo-orders
         cancel all open orders in a market
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the woo api endpoint
@@ -1015,8 +1015,8 @@ class woo(Exchange, ImplicitAPI):
 
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.woo.org/#get-algo-order
-        see https://docs.woo.org/#get-order
+        :see: https://docs.woo.org/#get-algo-order
+        :see: https://docs.woo.org/#get-order
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the woo api endpoint
@@ -1029,17 +1029,16 @@ class woo(Exchange, ImplicitAPI):
         params = self.omit(params, 'stop')
         request = {}
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
-        method = None
+        response = None
         if stop:
-            method = 'v3PrivateGetAlgoOrderOid'
             request['oid'] = id
+            response = await self.v3PrivateGetAlgoOrderOid(self.extend(request, params))
         elif clientOrderId:
-            method = 'v1PrivateGetClientOrderClientOrderId'
             request['client_order_id'] = clientOrderId
+            response = await self.v1PrivateGetClientOrderClientOrderId(self.extend(request, params))
         else:
-            method = 'v1PrivateGetOrderOid'
             request['oid'] = id
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.v1PrivateGetOrderOid(self.extend(request, params))
         #
         # {
         #     success: True,
@@ -1080,8 +1079,8 @@ class woo(Exchange, ImplicitAPI):
 
     async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.woo.org/#get-orders
-        see https://docs.woo.org/#get-algo-orders
+        :see: https://docs.woo.org/#get-orders
+        :see: https://docs.woo.org/#get-algo-orders
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1318,6 +1317,7 @@ class woo(Exchange, ImplicitAPI):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.woo.org/#kline-public
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1508,7 +1508,7 @@ class woo(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://docs.woo.org/#get-current-holding-get-balance-new
+        :see: https://docs.woo.org/#get-current-holding-get-balance-new
         :param dict [params]: extra parameters specific to the woo api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -1955,7 +1955,7 @@ class woo(Exchange, ImplicitAPI):
     async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
-        see https://docs.woo.org/#repay-interest
+        :see: https://docs.woo.org/#repay-interest
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str symbol: not used by woo.repayMargin()
@@ -2220,7 +2220,22 @@ class woo(Exchange, ImplicitAPI):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetches historical funding rate prices
+        :see: https://docs.woo.org/#get-funding-rate-history-for-one-market-public
+        :param str symbol: unified symbol of the market to fetch the funding rate history for
+        :param int [since]: timestamp in ms of the earliest funding rate to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
+        :param dict [params]: extra parameters specific to the woo api endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
+        """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25)
         request = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -2228,6 +2243,7 @@ class woo(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['start_t'] = self.parse_to_int(since / 1000)
+        request, params = self.handle_until_option('end_t', request, params, 0.001)
         response = await self.v1PublicGetFundingRateHistory(self.extend(request, params))
         #
         #     {

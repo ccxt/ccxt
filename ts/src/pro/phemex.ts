@@ -27,10 +27,10 @@ export default class phemex extends phemexRest {
             },
             'urls': {
                 'test': {
-                    'ws': 'wss://testnet.phemex.com/ws',
+                    'ws': 'wss://testnet-api.phemex.com/ws',
                 },
                 'api': {
-                    'ws': 'wss://phemex.com/ws',
+                    'ws': 'wss://ws.phemex.com',
                 },
             },
             'options': {
