@@ -85,7 +85,7 @@ Welcome to the ccxt wiki!
 
 ## Examples
 
-- [Usage Examples](https://github.com/ccxt/ccxt/tree/master/examples) (work in progress)
+- [Usage Examples](https://docs.ccxt.com/#/Examples)
 
 ## New Exchanges
 
