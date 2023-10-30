@@ -301,11 +301,11 @@ async function run () {
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
                         if (!isWsMethod) {
-                            console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
+                            log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
                         }
                         printHumanReadable (exchange, result)
                         if (!isWsMethod) {
-                            console.log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                            log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
                         }
                         start = end
                     } catch (e) {
@@ -326,7 +326,7 @@ async function run () {
                         const keys = Object.keys (httpsAgent.freeSockets)
                         const firstKey = keys[0]
                         let httpAgent = httpsAgent.freeSockets[firstKey] as any;
-                        console.log (firstKey, httpAgent.length)
+                        log (firstKey, httpAgent.length)
                     }
 
                     if (!poll && !isWsMethod){
@@ -340,7 +340,7 @@ async function run () {
                 printHumanReadable (exchange, exchange[methodName])
             }
         } else {
-            console.log (exchange)
+            log (exchange)
         }
     }
 
