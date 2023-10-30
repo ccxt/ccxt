@@ -822,7 +822,7 @@ export default class testMainClass extends baseMainTestClass {
             this.assertStaticError (storedOutputKeys.length === newOutputKeys.length, 'output length mismatch', storedOutput, newOutput);
             for (let i = 0; i < storedOutputKeys.length; i++) {
                 const key = storedOutputKeys[i];
-                if (skipKeys.includes (key)) {
+                if (key in skipKeys) {
                     continue;
                 }
                 if (!newOutputKeys.includes (key)) {
