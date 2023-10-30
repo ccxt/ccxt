@@ -72,7 +72,6 @@ const {
     , safeTimestamp2
     , rawencode
     , keysort
-    , isArray
     , inArray
     , isEmpty
     , ordered
@@ -111,7 +110,6 @@ import {
     keys as keysFunc,
     values as valuesFunc,
     inArray as inArrayFunc,
-    isArray as isArrayFunc,
     vwap as vwapFunc
 } from './functions.js'
 // import exceptions from "./errors.js"
@@ -407,7 +405,6 @@ export default class Exchange {
     rawencode = rawencode
     keysort = keysort
     inArray = inArray
-    isArray = isArray
     safeStringLower2 = safeStringLower2
     safeStringUpper2 = safeStringUpper2
     isEmpty = isEmpty
@@ -2095,11 +2092,11 @@ export default class Exchange {
             }
             this.number = oldNumber;
             let tradesLength = 0;
-            const valueIsArray = Array.isArray (trades);
-            if (valueIsArray) {
+            const isArray = Array.isArray (trades);
+            if (isArray) {
                 tradesLength = trades.length;
             }
-            if (valueIsArray && (tradesLength > 0)) {
+            if (isArray && (tradesLength > 0)) {
                 // move properties that are defined in trades up into the order
                 if (order['symbol'] === undefined) {
                     order['symbol'] = trades[0]['symbol'];
@@ -4515,15 +4512,15 @@ export default class Exchange {
          */
         const depositWithdrawFees = {};
         codes = this.marketCodes (codes);
-        const valueIsArray = Array.isArray (response);
+        const isArray = Array.isArray (response);
         let responseKeys = response;
-        if (!valueIsArray) {
+        if (!isArray) {
             responseKeys = Object.keys (response);
         }
         for (let i = 0; i < responseKeys.length; i++) {
             const entry = responseKeys[i];
-            const dictionary = valueIsArray ? entry : response[entry];
-            const currencyId = valueIsArray ? this.safeString (dictionary, currencyIdKey) : entry;
+            const dictionary = isArray ? entry : response[entry];
+            const currencyId = isArray ? this.safeString (dictionary, currencyIdKey) : entry;
             const currency = this.safeValue (this.currencies_by_id, currencyId);
             const code = this.safeString (currency, 'code', currencyId);
             if ((codes === undefined) || (this.inArray (code, codes))) {
