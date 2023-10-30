@@ -178,8 +178,6 @@ export default class alpaca extends Exchange {
                 'APCA-PARTNER-ID': 'ccxt',
             },
             'options': {
-                'fetchTradesMethod': 'cryptoPublicGetCryptoTrades', // or cryptoPublicGetCryptoLatestTrades
-                'fetchOHLCVMethod': 'cryptoPublicGetCryptoBars', // or cryptoPublicGetCryptoLatestBars
                 'versions': {
                     'public': 'v2',
                     'private': 'v2',
@@ -337,8 +335,7 @@ export default class alpaca extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const method = this.safeString (this.options, 'fetchTradesMethod', 'cryptoPublicGetCryptoTrades');
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.cryptoPublicGetCryptoTrades (this.extend (request, params));
         //
         // {
         //     "next_page_token":null,
@@ -444,8 +441,7 @@ export default class alpaca extends Exchange {
         if (since !== undefined) {
             request['start'] = this.yyyymmdd (since);
         }
-        const method = this.safeString (this.options, 'fetchOHLCVMethod', 'cryptoPublicGetCryptoBars');
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.cryptoPublicGetCryptoBars (this.extend (request, params));
         //
         //    {
         //        "bars":{
