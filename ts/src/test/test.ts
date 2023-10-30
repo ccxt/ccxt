@@ -795,6 +795,9 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     removeHostnamefromUrl (url: string) {
+        if (url === undefined) {
+            return undefined;
+        }
         const urlParts = url.split ('/');
         return urlParts.slice (3).join ('/');
     }
