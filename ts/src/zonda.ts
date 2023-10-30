@@ -1368,7 +1368,6 @@ export default class zonda extends Exchange {
         const isStopLimit = (type === 'stop-limit') || (isLimitOrder && isStopLossPrice);
         const isStopMarket = type === 'stop-market' || (isMarketOrder && isStopLossPrice);
         const isStopOrder = isStopLimit || isStopMarket;
-        const method = isStopOrder ? 'v1_01PrivatePostTradingStopOfferSymbol' : 'v1_01PrivatePostTradingOfferSymbol';
         if (isLimitOrder || isStopLimit) {
             request['rate'] = this.priceToPrecision (symbol, price);
             request['mode'] = isStopLimit ? 'stop-limit' : 'limit';
@@ -1377,14 +1376,17 @@ export default class zonda extends Exchange {
         } else {
             throw new ExchangeError (this.id + ' createOrder() invalid type');
         }
+        params = this.omit (params, [ 'stopPrice', 'stopLossPrice' ]);
+        let response = undefined;
         if (isStopOrder) {
             if (!isStopLossPrice) {
                 throw new ExchangeError (this.id + ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-market orders');
             }
             request['stopRate'] = this.priceToPrecision (symbol, stopLossPrice);
+            response = await this.v1_01PrivatePostTradingStopOfferSymbol (this.extend (request, params));
+        } else {
+            response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
         }
-        params = this.omit (params, [ 'stopPrice', 'stopLossPrice' ]);
-        const response = await this[method] (this.extend (request, params));
         //
         // unfilled (open order)
         //
@@ -1724,25 +1726,24 @@ export default class zonda extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
-        let method = undefined;
+        let response = undefined;
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
             'quantity': amount,
         };
         if (this.isFiat (code)) {
-            method = 'privatePostWithdraw';
             // request['account'] = params['account']; // they demand an account number
             // request['express'] = params['express']; // whatever it means, they don't explain
             // request['bic'] = '';
+            response = await this.privatePostWithdraw (this.extend (request, params));
         } else {
-            method = 'privatePostTransfer';
             if (tag !== undefined) {
                 address += '?dt=' + tag.toString ();
             }
             request['address'] = address;
+            response = await this.privatePostTransfer (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "status": "Ok",
