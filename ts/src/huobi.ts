@@ -945,6 +945,54 @@ export default class huobi extends Exchange {
                 },
                 'networks': {
                     // by displaynames
+                    'TRC20': 'TRX',
+                    'BTC': 'BTC',
+                    'ERC20': 'ETH',
+                    'ETH': 'ETH',
+                    'SOL': 'SOLANA',
+                    'OP': 'OPTIMISM',
+                    'HRC20': 'HECO',
+                    'BEP20': 'BSC',
+                    'ARB': 'ARB',
+                    'XRP': 'XRP',
+                    'CHZ': 'CHZ',
+                    'XLM': 'XLM',
+                    'CRONOS': 'CRO',
+                    'CRO': 'CRO',
+                    'GLMR': 'GLMR',
+                    'POLYGON': 'MATIC',
+                    'MATIC': 'MATIC',
+                    'AVAXC': 'AVAXCCHAIN',
+                    'ALGO': 'ALGO',
+                    'BTT': 'BTT', // idk chain
+                    'CUBE': 'CUBE',
+                    'IOST': 'IOST',
+                    'NEO': 'NEO',
+                    'KLAY': 'KLAY',
+                    'EOS': 'EOS',
+                    'THETA': 'THETA',
+                    'NAS': 'NAS',
+                    'NULS': 'NULS',
+                    'QTUM': 'QTUM',
+                    // 'TERRA': 'TERRA', // tbd
+                    'FTM': 'FTM',
+                    'CELO': 'CELO',
+                    // 'DOGECHAIN': 'DOGECHAIN', // tbd DOGE
+                    'NEAR': 'NEAR',
+                    // 'STEP': 'STEP', // step
+                    'BITCI': 'BITCI',
+                    'CARDANO': 'ADA',
+                    'ADA': 'ADA',
+                    'ONT': 'ONT',
+                    'LUK': 'LUK',
+                    'MINEPLEX': 'MINEPLEX',
+                    'xxx': 'xxxx',
+                    'xxx': 'xxxx',
+                    'xxx': 'xxxx',
+
+
+
+
                     'ALGO': 'ALGO',
                     'ALGORAND': 'ALGO',
                     'BEP20': 'BEP20',
@@ -2900,10 +2948,11 @@ export default class huobi extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chainEntry = chains[j];
                 const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
-                const title = this.safeString (chainEntry, 'displayName');
+                let title = this.safeString (chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
+                title = (title === 'CZH' ? 'CHZ' : title); // minor bug for chiliz
+                const networkCode = super.networkIdToCode (title);
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
                 this.options['networkNamesByChainIds'][uniqueChainId] = title;
-                const networkCode = this.networkIdToCode (title, code);
                 minWithdraw = this.safeNumber (chainEntry, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber (chainEntry, 'maxWithdrawAmt');
                 const withdrawStatus = this.safeString (chainEntry, 'withdrawStatus');
@@ -2923,6 +2972,10 @@ export default class huobi extends Exchange {
                     'id': uniqueChainId,
                     'network': networkCode,
                     'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                         'withdraw': {
                             'min': minWithdraw,
                             'max': maxWithdraw,
@@ -2952,6 +3005,10 @@ export default class huobi extends Exchange {
                     'withdraw': {
                         'min': minWithdraw,
                         'max': maxWithdraw,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
                     },
                 },
                 'precision': this.parseNumber (minPrecision),
