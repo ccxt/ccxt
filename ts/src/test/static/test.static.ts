@@ -10,18 +10,50 @@ async function main () {
     // ];
     // await Promise.all (promises);
     const data = loadData ();
+    await testExchangeStatically ('bybit', data['bybit']);
     const exchanges = Object.keys (data);
 
     log.bright.green ('Orders test passed');
 }
 
-function assertOutput (storedOutput, newOutput) {
-    // to do
+async function callMethodDynamically (exchange, methodName, args) {
+    return await exchange[methodName] (...args);
+}
+
+function assertOutput (type: string, skipKeys: string[], storedUrl, requestUrl, storedOutput, newOutput) {
+    if (storedUrl !== requestUrl) {
+        // improve error message
+        // assert (false, 'url mismatch');
+    }
+    if (type === 'json') {
+        if (typeof storedOutput === 'string') {
+            storedOutput = JSON.parse (storedOutput);
+        }
+        if (typeof newOutput === 'string') {
+            newOutput = JSON.parse (newOutput);
+        }
+        const storedOutputKeys = Object.keys (storedOutput);
+        const newOutputKeys = Object.keys (newOutput);
+        assert (storedOutputKeys.length === newOutputKeys.length, 'output length mismatch');
+        for (let i = 0; i < storedOutputKeys.length; i++) {
+            const key = storedOutputKeys[i];
+            if (skipKeys.includes (key)) {
+                continue;
+            }
+            if (!newOutputKeys.includes (key)) {
+                assert (false, 'output key mismatch');
+            }
+            const storedValue = storedOutput[key];
+            const newValue = newOutput[key];
+            assert (storedValue === newValue, 'output value mismatch');
+        }
+    }
+
 }
 
 async function testExchangeStatically (exchangeName, exchangeData) {
     const markets = loadMarkets (exchangeName);
-    const exchange = new ccxt[exchangeName] ({ 'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secret', 'password': 'password' });
+    const exchange = new ccxt[exchangeName] ({ 'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secret', 'password': 'password', 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false }});
     const methods = exchange.safeValue (exchangeData, 'methods');
     const methodsNames = Object.keys (methods);
     for (let i = 0; i < methodsNames.length; i++) {
@@ -29,23 +61,25 @@ async function testExchangeStatically (exchangeName, exchangeData) {
         const results = methods[method];
         for (let j = 0; j < results.length; j++) {
             const result = results[j];
-            const input = result[0];
-            const storedOutput = result[1];
-            await testMethod (exchange, method, input, storedOutput);
+            const type = exchange.safeString (exchangeData, 'outputType');
+            const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
+            await testMethod (exchange, method, result, type, skipKeys);
         }
     }
 }
 
-async function testMethod (exchange, method, input, storedOutput) {
+async function testMethod (exchange, method, data, type, skipKeys) {
     let output = undefined;
+    let requestUrl = undefined;
     try {
-        const inputArgs = Object.values (input);
-        const _res = await exchange[method] (inputArgs);
+        const inputArgs = Object.values (data['input']);
+        const _res = await callMethodDynamically (exchange, method, inputArgs);
 
     } catch (e) {
         output = exchange.last_request_body;
+        requestUrl = exchange.last_request_url;
     }
-    assertOutput (storedOutput, output);
+    assertOutput (type, skipKeys, data['url'], requestUrl, data['output'], output);
 }
 
 function loadData () {
@@ -55,7 +89,7 @@ function loadData () {
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const exchangeName = file.replace ('.json', '');
-        const content = JSON.parse (fs.readFileSync (exchangeName, 'utf8'));
+        const content = JSON.parse (fs.readFileSync (folder + file, 'utf8'));
         result[exchangeName] = content;
     }
     return result;
@@ -66,7 +100,7 @@ function loadMarkets (id) {
     // to make this test as fast as possible
     // and basically independent from the exchange
     // so we can run it offline
-    const filename = `./ts/src/test/static/markets/${id}.json`;
+    const filename = './ts/src/test/static/markets/' + id + '.json';
     const content = JSON.parse (fs.readFileSync (filename, 'utf8'));
     return content;
 }
