@@ -40,3 +40,4 @@ __pycache__
 
 # docs
 wiki/spec.md
+wiki/examples/**/*.md
