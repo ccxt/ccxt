@@ -941,6 +941,7 @@ export default class testMainClass extends baseMainTestClass {
         } else {
             const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString () + ' static tests passed.';
             dump (successMessage);
+            exitScript (0);
         }
     }
 }
