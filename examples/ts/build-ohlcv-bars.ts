@@ -1,4 +1,4 @@
-import ccxt from '../../ts/ccxt.js';
+import ccxt from '../../js/ccxt.js';
 
 // AUTO-TRANSPILE //
 
