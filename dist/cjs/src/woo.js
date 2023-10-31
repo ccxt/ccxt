@@ -243,6 +243,7 @@ class woo extends woo$1 {
                 },
             },
             'options': {
+                'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 // these network aliases require manual mapping here
                 'network-aliases-for-tokens': {
@@ -2149,14 +2150,17 @@ class woo extends woo$1 {
         else {
             this.checkRequiredCredentials();
             if (method === 'POST' && (path === 'algo/order' || path === 'order')) {
-                const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
-                const brokerId = this.safeString(this.options, 'brokerId', applicationId);
-                const isStop = path.indexOf('algo') > -1;
-                if (isStop) {
-                    params['brokerId'] = brokerId;
-                }
-                else {
-                    params['broker_id'] = brokerId;
+                const isSandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+                if (!isSandboxMode) {
+                    const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+                    const brokerId = this.safeString(this.options, 'brokerId', applicationId);
+                    const isStop = path.indexOf('algo') > -1;
+                    if (isStop) {
+                        params['brokerId'] = brokerId;
+                    }
+                    else {
+                        params['broker_id'] = brokerId;
+                    }
                 }
                 params = this.keysort(params);
             }
@@ -2611,6 +2615,10 @@ class woo extends woo$1 {
         }
         // if it was not returned according to above options, then return the first network of currency
         return this.safeValue(networkKeys, 0);
+    }
+    setSandboxMode(enable) {
+        super.setSandboxMode(enable);
+        this.options['sandboxMode'] = enable;
     }
 }
 

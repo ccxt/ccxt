@@ -240,6 +240,7 @@ class woo extends Exchange {
                 ),
             ),
             'options' => array(
+                'sandboxMode' => false,
                 'createMarketBuyOrderRequiresPrice' => true,
                 // these network aliases require manual mapping here
                 'network-aliases-for-tokens' => array(
@@ -2118,13 +2119,16 @@ class woo extends Exchange {
         } else {
             $this->check_required_credentials();
             if ($method === 'POST' && ($path === 'algo/order' || $path === 'order')) {
-                $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
-                $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
-                $isStop = mb_strpos($path, 'algo') > -1;
-                if ($isStop) {
-                    $params['brokerId'] = $brokerId;
-                } else {
-                    $params['broker_id'] = $brokerId;
+                $isSandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+                if (!$isSandboxMode) {
+                    $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+                    $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
+                    $isStop = mb_strpos($path, 'algo') > -1;
+                    if ($isStop) {
+                        $params['brokerId'] = $brokerId;
+                    } else {
+                        $params['broker_id'] = $brokerId;
+                    }
                 }
                 $params = $this->keysort($params);
             }
@@ -2586,5 +2590,10 @@ class woo extends Exchange {
         }
         // if it was not returned according to above options, then return the first $network of currency
         return $this->safe_value($networkKeys, 0);
+    }
+
+    public function set_sandbox_mode($enable) {
+        parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
     }
 }
