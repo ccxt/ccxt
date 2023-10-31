@@ -161,6 +161,33 @@ export default class bitrue extends Exchange {
                         'public': {
                             'get': {
                                 'ping': 1,
+                                'time': 1,
+                                'contracts': 1,
+                                'depth': 1,
+                                'ticker': 1,
+                                'klines': 1,
+                            },
+                        },
+                    },
+                    'v2': {
+                        'private': {
+                            'get': {
+                                'myTrades': 1,
+                                'openOrders': 1,
+                                'order': 1,
+                                'account': 1,
+                                'leverageBracket': 1,
+                                'commissionRate': 1,
+                                'futures_transfer_history': 1,
+                                'forceOrdersHistory': 1,
+                            },
+                            'post': {
+                                'positionMargin': 1,
+                                'level_edit': 1,
+                                'cancel': 1,
+                                'order': 1,
+                                'allOpenOrders': 1,
+                                'futures_transfer': 1,
                             },
                         },
                     },
@@ -2025,20 +2052,54 @@ export default class bitrue extends Exchange {
         if (access === 'private') {
             this.checkRequiredCredentials ();
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
-            let query = this.urlencode (this.extend ({
-                'timestamp': this.nonce (),
-                'recvWindow': recvWindow,
-            }, params));
-            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
-            query += '&' + 'signature=' + signature;
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-            };
-            if ((method === 'GET') || (method === 'DELETE')) {
-                url += '?' + query;
+            if (type === 'spot') {
+                let query = this.urlencode (this.extend ({
+                    'timestamp': this.nonce (),
+                    'recvWindow': recvWindow,
+                }, params));
+                const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+                query += '&' + 'signature=' + signature;
+                headers = {
+                    'X-MBX-APIKEY': this.apiKey,
+                };
+                if ((method === 'GET') || (method === 'DELETE')) {
+                    url += '?' + query;
+                } else {
+                    body = query;
+                    headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                }
             } else {
-                body = query;
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                const timestamp = this.nonce ();
+                let signPath = undefined;
+                if (type === 'fapi') {
+                    signPath = '/fapi';
+                } else if (type === 'dapi') {
+                    signPath = '/dapi';
+                }
+                signPath = signPath + '/' + version + '/' + path;
+                let signMessage = timestamp + method + signPath;
+                if (method === 'GET') {
+                    const signature = this.hmac (this.encode (signMessage), this.encode (this.secret), sha256);
+                    headers = {
+                        'X-CH-APIKEY': this.apiKey,
+                        'X-CH-SIGN': signature,
+                        'X-CH-TS': timestamp,
+                    };
+                    url += '?' + this.urlencode (params);
+                } else {
+                    const query = this.extend ({
+                        'recvWindow': recvWindow,
+                    }, params);
+                    body = this.json (query);
+                    signMessage = signMessage + JSON.stringify (body);
+                    const signature = this.hmac (this.encode (signMessage), this.encode (this.secret), sha256);
+                    headers = {
+                        'Content-Type': 'application/json',
+                        'X-CH-APIKEY': this.apiKey,
+                        'X-CH-SIGN': signature,
+                        'X-CH-TS': timestamp,
+                    };
+                }
             }
         } else {
             if (Object.keys (params).length) {
