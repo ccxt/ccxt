@@ -26,7 +26,7 @@ async function example_watch_trades () {
         // Note: first bar would carry incomplete values, please read comment in "buildOHLCVCFromWatchTrades" method definition for further explanation
         console.log ('[WS] Constructed', constructedBars.length, 'bars from', symbol, 'trades: ', constructedBars);
     }
-    myex.buildOHLCVCFromWatchTrades (symbol, timeframe, since, limit, callbackFunction);
+    await myex.buildOHLCVCUsingWatchTrades (symbol, timeframe, since, limit, callbackFunction);
 }
 
 

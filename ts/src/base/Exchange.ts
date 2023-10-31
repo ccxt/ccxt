@@ -3234,7 +3234,7 @@ export default class Exchange {
         return ohlcvs;
     }
 
-    async buildOHLCVCFromWatchTrades (symbol, timeframe: string = '1m', since: number = 0, limit: number = 2147483647, callbackFunction = null, params = {}) {
+    async buildOHLCVCUsingWatchTrades (symbol, timeframe: string = '1m', since: number = 0, limit: number = 2147483647, callbackFunction = null, params = {}) {
         let collectedTrades = [];
         const collectedBars = [];
         while (true) {
