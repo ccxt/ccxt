@@ -877,8 +877,7 @@ export default class testMainClass extends baseMainTestClass {
         let output = undefined;
         let requestUrl = undefined;
         try {
-            const inputArgs = Object.values (data['input']);
-            await callExchangeMethodDynamically (exchange, method, inputArgs);
+            await callExchangeMethodDynamically (exchange, method, data['input']);
         } catch (e) {
             if (!(e instanceof NetworkError)) {
                 // if it's not a network error, it means our request was not created succesfully

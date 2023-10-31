@@ -126,25 +126,14 @@ try {
 //-----------------------------------------------------------------------------
 
 function createTemplate(exchange, methodName, args, result) {
-    if (methodName !== 'createOrder' && methodName !== 'create_order') {
-        log.yellow ('createTemplate is only available for createOrder/create_order method')
-    }
-    const input = {
-        'symbol': args[0],
-        'type': args[1],
-        'side': args[2],
-        'amount': args[3],
-        'price': args[4] ?? undefined,
-        'params': args[5] ?? {},
-    }
     const final = {
-        'description': 'Fill this with the order description',
+        'description': 'Fill this with a description of the method call',
         'method': methodName,
         'url': exchange.last_request_url ?? '',
-        'input': input,
+        'input': args,
         'output': exchange.last_request_body
     }
-    log('Order report: (paste inside static/data/' + exchange.id + '.json -> createOrder)')
+    log('Report: (paste inside static/data/' + exchange.id + '.json ->' + methodName + ')')
     log.green('-------------------------------------------')
     log (JSON.stringify (final, null, 2))
     log.green('-------------------------------------------')
