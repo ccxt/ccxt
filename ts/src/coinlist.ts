@@ -206,8 +206,19 @@ export default class coinlist extends Exchange {
             // exchange-specific options
             'options': {
                 'accountsByType': {
-                    'funding': 'funding',
+                    // todo: check
+                    'CoinList Pro': 'trading',
+                    'CoinList Pro trading account': 'trading',
+                    'Pro': 'trading',
+                    'pro': 'trading',
+                    'trade': 'trading',
                     'trading': 'trading',
+                    'CoinList': 'funding',
+                    'CoinList wallet': 'funding',
+                    'Wallet': 'funding',
+                    'wallet': 'funding',
+                    'fund': 'funding',
+                    'funding': 'funding',
                 },
             },
             'exceptions': {
@@ -1496,13 +1507,26 @@ export default class coinlist extends Exchange {
         const currency = this.currency (code);
         amount = this.currencyToPrecision (code, amount);
         const request = {
-            'from_trader_id': fromAccount,
-            'to_trader_id': toAccount,
             'asset': currency['id'],
             'amount': amount,
         };
-        const response = await this.privatePostV1TransfersInternalTransfer (this.extend (request, params));
+        let method = 'privatePostV1TransfersInternalTransfer';
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromAcc = this.safeString (accountsByType, fromAccount);
+        const toAcc = this.safeString (accountsByType, toAccount);
+        // todo: check for account names are good
+        if (fromAcc === 'funding' && toAcc === 'trading') {
+            method = 'privatePostV1TransfersFromWallet';
+        } else if (fromAcc === 'trading' && toAcc === 'funding') {
+            method = 'privatePostV1TransfersToWallet';
+        } else {
+            request['from_trader_id'] = fromAccount;
+            request['to_trader_id'] = toAccount;
+        }
+        const response = await this[method] (this.extend (request, params));
         //
+        // privatePostV1TransfersInternalTransfer
+        // todo: find out how to create additional account and check
         //     {
         //         "from_trader_id": "1f494ace-b3ed-4324-b202-55526ed06381",
         //         "to_trader_id": "d32c7a40-cc24-44b0-8597-f9edb3da989f",
@@ -1510,7 +1534,6 @@ export default class coinlist extends Exchange {
         //         "amount": "string"
         //     }
         //
-        // todo: find out how to create additional account and check this method or use another endpoint?
         const transfer = this.parseTransfer (response, currency);
         return transfer;
     }
@@ -1582,18 +1605,20 @@ export default class coinlist extends Exchange {
         const confirmedAt = this.safeString (transfer, 'confirmed_at');
         const timetstamp = this.parse8601 (confirmedAt);
         const status = this.safeString (transfer, 'status');
-        let amountString = this.safeString (transfer, 'amount');
+        let amountString = this.safeString (transfer, 'amount', undefined);
         let fromAccount = undefined;
         let toAccount = undefined;
-        const amountIsNegative = Precise.stringLt (amountString, '0');
-        if (amountIsNegative) {
-            // todo: check for account names are good
-            fromAccount = 'Pro trading account';
-            toAccount = 'CoinList wallet';
-            amountString = Precise.stringNeg (amountString);
-        } else {
-            fromAccount = 'CoinList wallet';
-            toAccount = 'Pro trading account';
+        if (amountString !== undefined) {
+            const amountIsNegative = Precise.stringLt (amountString, '0');
+            if (amountIsNegative) {
+                // todo: check for account names are good
+                fromAccount = 'trading';
+                toAccount = 'funding';
+                amountString = Precise.stringNeg (amountString);
+            } else {
+                fromAccount = 'funding';
+                toAccount = 'trading';
+            }
         }
         return {
             'info': transfer,
