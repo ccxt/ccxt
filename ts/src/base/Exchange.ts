@@ -3234,6 +3234,33 @@ export default class Exchange {
         return ohlcvs;
     }
 
+    async buildOHLCVCFromWatchTrades (symbol, timeframe: string = '1m', since: number = 0, limit: number = 2147483647, callbackFunction = null, params = {}) {
+        let collectedTrades = [];
+        const collectedBars = [];
+        while (true) {
+            const wsTrades = await this.watchTrades (symbol, since, limit, params);
+            collectedTrades = collectedTrades.concat (wsTrades);
+            const generatedBars = this.buildOHLCVC (collectedTrades, timeframe, since, limit);
+            // Note: first bar would be partially constructed bar and its 'open' & 'high' & 'low' prices (except 'close' price) would probably have different values compared to real bar on chart, because the first obtained trade timestamp might be somewhere in the middle of timeframe period, so the pre-period would be missing because we would not have trades data. To fix that, you can get older data with `fetchTrades` to fill up bars till start bar.
+            for (let i = 0; i < generatedBars.length; i++) {
+                const bar = generatedBars[i];
+                const barTimestamp = bar[0];
+                const collectedBarsLength = collectedBars.length;
+                const lastCollectedBarTimestamp = collectedBarsLength > 0 ? collectedBars[collectedBarsLength - 1][0] : 0;
+                if (barTimestamp === lastCollectedBarTimestamp) {
+                    // if timestamps are same, just updarte the last bar
+                    collectedBars[collectedBarsLength - 1] = bar;
+                } else if (barTimestamp > lastCollectedBarTimestamp) {
+                    collectedBars.push (bar);
+                    // remove the trades from saved array, which were till last collected bar's open timestamp
+                    const clearBeforeTimestamp = collectedBars[collectedBars.length - 1][0];
+                    collectedTrades = this.filterBySinceLimit (collectedTrades, clearBeforeTimestamp);
+                }
+            }
+            callbackFunction (collectedBars);
+        }
+    }
+
     parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
         const result = this.convertTradingViewToOHLCV (ohlcvs);
         return this.parseOHLCVs (result, market, timeframe, since, limit);

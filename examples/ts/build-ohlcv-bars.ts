@@ -1,4 +1,4 @@
-import ccxt from '../../js/ccxt.js';
+import ccxt from '../../ts/ccxt.js';
 
 // AUTO-TRANSPILE //
 
@@ -22,31 +22,13 @@ async function example_watch_trades () {
     const symbol = 'DOGE/USDT';
     const limit = 1000;
     const since = myex.milliseconds () - 10 * 60 * 1000 * 1000; // last 10 hrs
-    let collectedTrades = [];
-    const collectedBars = [];
-    while (true) {
-        const wsTrades = await myex.watchTrades (symbol, since, limit);
-        collectedTrades = collectedTrades.concat (wsTrades);
-        const generatedBars = myex.buildOHLCVC (collectedTrades, timeframe, since, limit);
-        // Note: first bar would be partially constructed bar and its 'open' & 'high' & 'low' prices (except 'close' price) would probably have different values compared to real bar on chart, because the first obtained trade timestamp might be somewhere in the middle of timeframe period, so the pre-period would be missing because we would not have trades data. To fix that, you can get older data with `fetchTrades` to fill up bars till start bar.
-        for (let i = 0; i < generatedBars.length; i++) {
-            const bar = generatedBars[i];
-            const barTimestamp = bar[0];
-            const collectedBarsLength = collectedBars.length;
-            const lastCollectedBarTimestamp = collectedBarsLength > 0 ? collectedBars[collectedBarsLength - 1][0] : 0;
-            if (barTimestamp === lastCollectedBarTimestamp) {
-                // if timestamps are same, just updarte the last bar
-                collectedBars[collectedBarsLength - 1] = bar;
-            } else if (barTimestamp > lastCollectedBarTimestamp) {
-                collectedBars.push (bar);
-                // remove the trades from saved array, which were till last collected bar's open timestamp
-                const clearBeforeTimestamp = collectedBars[collectedBars.length - 1][0];
-                collectedTrades = myex.filterBySinceLimit (collectedTrades, clearBeforeTimestamp);
-            }
-        }
-        console.log ('[WS] Constructed', collectedBars.length, 'bars from', symbol, 'trades: ', collectedBars);
+    function callbackFunction (constructedBars) {
+        // Note: first bar would carry incomplete values, please read comment in "buildOHLCVCFromWatchTrades" method definition
+        console.log ('[WS] Constructed', constructedBars.length, 'bars from', symbol, 'trades: ', constructedBars);
     }
+    myex.buildOHLCVCFromWatchTrades (symbol, timeframe, since, limit, callbackFunction);
 }
+
 
 await example_fetch_trades ();
 await example_watch_trades ();
