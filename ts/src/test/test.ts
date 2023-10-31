@@ -876,7 +876,8 @@ export default class testMainClass extends baseMainTestClass {
         }
         catch (e) {
             this.staticTestsFailed = true;
-            dump ('[STATIC_TEST_FAILURE]', '[' + exchange.id + ']', '[' + method + ']', '[' + data['description'] + ']', e);
+            const errorMessage = '[' + this.lang + '][STATIC_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e;
+            dump (errorMessage);
         }
     }
 
@@ -926,7 +927,7 @@ export default class testMainClass extends baseMainTestClass {
         if (this.staticTestsFailed) {
             exitScript (1);
         } else {
-            const successMessage = '[' + this.lang + '] + [TEST_SUCCESS]' + count.toString () + 'static tests passed';
+            const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + count.toString () + ' static tests passed.';
             dump (successMessage);
         }
     }
