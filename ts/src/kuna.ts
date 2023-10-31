@@ -1858,7 +1858,9 @@ export default class kuna extends Exchange {
                     throw new NotSupported (this.id + ' private v3 API is not supported yet');
                 }
             } else if (version === 'v4') {
+                const extractedParams = this.extractParams (path);
                 let urlPath = '/' + version + '/' + this.implodeParams (path, params);
+                params = this.omit (params, extractedParams);
                 if (isGet) {
                     const paramsList = Object.keys (params);
                     const numParams = paramsList.length;
@@ -1866,7 +1868,6 @@ export default class kuna extends Exchange {
                         urlPath += '?' + this.urlencode (params);
                     }
                 }
-                params = this.omit (params, this.extractParams (urlPath));
                 if (access === 'private') {
                     const nonce = this.nonce ().toString ();
                     let auth = urlPath + nonce;
