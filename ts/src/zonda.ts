@@ -103,7 +103,7 @@ export default class zonda extends Exchange {
                 '3d': '259200',
                 '1w': '604800',
             },
-            'hostname': 'zonda.exchange',
+            'hostname': 'zondacrypto.exchange',
             'urls': {
                 'referral': 'https://auth.zondaglobal.com/ref/jHlbB4mIkdS1',
                 'logo': 'https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg',
@@ -176,6 +176,8 @@ export default class zonda extends Exchange {
                         'balances/BITBAY/balance',
                         'balances/BITBAY/balance/transfer/{source}/{destination}',
                         'fiat_cantor/exchange',
+                        'api_payments/withdrawals/crypto',
+                        'api_payments/withdrawals/fiat',
                     ],
                     'delete': [
                         'trading/offer/{symbol}/{id}/{side}/{price}',
@@ -284,6 +286,10 @@ export default class zonda extends Exchange {
                 'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
                 'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
                 'INVALID_STOP_RATE': InvalidOrder,
+                'TIMEOUT': ExchangeError,
+                'RESPONSE_TIMEOUT': ExchangeError,
+                'ACTION_BLOCKED': PermissionDenied,
+                'INVALID_HASH_SIGNATURE': AuthenticationError,
             },
             'commonCurrencies': {
                 'GGC': 'Global Game Coin',
@@ -1730,19 +1736,18 @@ export default class zonda extends Exchange {
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
-            'quantity': amount,
+            'amount': amount,
+            'address': address,
+            // request['balanceId'] = params['balanceId']; // Wallet id used for withdrawal. If not provided, any BITBAY wallet with sufficient funds is used. If BITBAYPAY wallet should be used parameter must be explicitly specified.
         };
         if (this.isFiat (code)) {
-            // request['account'] = params['account']; // they demand an account number
-            // request['express'] = params['express']; // whatever it means, they don't explain
-            // request['bic'] = '';
-            response = await this.privatePostWithdraw (this.extend (request, params));
+            // request['swift'] = params['swift']; // Bank identifier, if required.
+            response = await this.v1_01PrivatePostApiPaymentsWithdrawalsFiat (this.extend (request, params));
         } else {
             if (tag !== undefined) {
-                address += '?dt=' + tag.toString ();
+                request['tag'] = tag;
             }
-            request['address'] = address;
-            response = await this.privatePostTransfer (this.extend (request, params));
+            response = await this.v1_01PrivatePostApiPaymentsWithdrawalsCrypto (this.extend (request, params));
         }
         //
         //     {
