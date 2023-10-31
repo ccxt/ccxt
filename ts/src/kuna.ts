@@ -623,7 +623,7 @@ export default class kuna extends Exchange {
             'pairs': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['level'] = limit;
         }
         const response = await this.v4PublicGetOrderPublicBookPairs (this.extend (request, params));
         //
