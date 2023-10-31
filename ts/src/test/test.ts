@@ -768,7 +768,6 @@ export default class testMainClass extends baseMainTestClass {
     //----------------------------------------------------------------------------------------------------
     // --- Init of static tests functions-----------------------------------------------------------------
     //----------------------------------------------------------------------------------------------------
-
     assertStaticError (cond:boolean, message: string, calculatedOutput, storedOutput) {
         const calculatedString = JSON.stringify (calculatedOutput);
         const outputString = JSON.stringify (storedOutput);
