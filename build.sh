@@ -59,6 +59,7 @@ build_and_test_all () {
   npm run force-build
   if [[ "$IS_TRAVIS" == "TRUE" ]]; then
     npm run test-base
+    npm run static-tests
     npm run test-base-ws
     run_tests
   fi
