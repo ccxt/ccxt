@@ -1698,13 +1698,14 @@ export default class bitmex extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const qty = this.safeString (order, 'orderQty');
         let cost = undefined;
         let amount = undefined;
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
         let isInverse = false;
-        if (market === undefined) {
+        if (marketId === undefined) {
+            const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
             isInverse = (defaultSubType === 'inverse');
         } else {
             isInverse = this.safeValue (market, 'inverse', false);
