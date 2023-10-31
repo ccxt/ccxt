@@ -83,7 +83,16 @@ function io_file_read($path, $decode = true) {
 }
 
 function io_dir_read($path) {
-    return scandir($path);
+    $files = scandir($path);
+    $cleanFiles = array();
+
+    foreach ($files as $file) {
+        if ($file !== '.' && $file !== '..') {
+            $cleanFiles[] = $file;
+        }
+    }
+
+    return $cleanFiles;
 }
 
 function call_method($testFiles, $methodName, $exchange, $skippedProperties, $args) {
@@ -822,13 +831,13 @@ class testMainClass extends baseMainTestClass {
                 Async\await(close ($exchange));
                 throw $e;
             }
-        }
-        //----------------------------------------------------------------------------------------------------
-        // --- Init of static tests functions-----------------------------------------------------------------
         }) ();
     }
 
     public function assert_static_error(bool $cond, string $message, $calculatedOutput, $storedOutput) {
+        //-----------------------------------------------------------------------------
+        // --- Init of static tests functions------------------------------------------
+        //-----------------------------------------------------------------------------
         $calculatedString = json_encode ($calculatedOutput);
         $outputString = json_encode ($storedOutput);
         $errorMessage = $message . ' expected ' . $outputString . ' received => ' . $calculatedString;
@@ -879,7 +888,7 @@ class testMainClass extends baseMainTestClass {
         return $result;
     }
 
-    public function assert_static_output(Exchange $exchange, string $type, array $skipKeys, string $storedUrl, string $requestUrl, $storedOutput, $newOutput) {
+    public function assert_static_output($exchange, string $type, array $skipKeys, string $storedUrl, string $requestUrl, $storedOutput, $newOutput) {
         if ($storedUrl !== $requestUrl) {
             // remove the host part from the url
             $firstPath = $this->remove_hostnamefrom_url($storedUrl);
@@ -935,7 +944,8 @@ class testMainClass extends baseMainTestClass {
                 $this->assert_static_output($exchange, $type, $skipKeys, $data['url'], $requestUrl, $data['output'], $output);
             } catch (Exception $e) {
                 $this->staticTestsFailed = true;
-                dump ('[STATIC_TEST_FAILURE]', '[' . $exchange->id . ']', '[' . $method . ']', '[' . $data['description'] . ']', $e);
+                $errorMessage = '[' . $this->lang . '][STATIC_TEST_FAILURE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . $e;
+                dump ($errorMessage);
             }
         }) ();
     }
@@ -962,15 +972,15 @@ class testMainClass extends baseMainTestClass {
     }
 
     public function get_number_of_tests_from_exchange(array $exchangeData) {
-        $count = 0;
+        $sum = 0;
         $methods = $exchangeData['methods'];
         $methodsNames = is_array($methods) ? array_keys($methods) : array();
-        for ($i = 0; $i < $count($methodsNames); $i++) {
+        for ($i = 0; $i < count($methodsNames); $i++) {
             $method = $methodsNames[$i];
             $results = $methods[$method];
-            $count .= $count($results);
+            $sum .= count($results);
         }
-        return $count;
+        return $sum;
     }
 
     public function run_static_tests() {
@@ -978,18 +988,18 @@ class testMainClass extends baseMainTestClass {
             $staticData = $this->load_static_data();
             $exchanges = is_array($staticData) ? array_keys($staticData) : array();
             $promises = array();
-            $count = 0;
-            for ($i = 0; $i < $count($exchanges); $i++) {
+            $sum = 0;
+            for ($i = 0; $i < count($exchanges); $i++) {
                 $exchangeName = $exchanges[$i];
                 $exchangeData = $staticData[$exchangeName];
-                $count .= $this->get_number_of_tests_from_exchange($exchangeData);
+                $sum .= $this->get_number_of_tests_from_exchange($exchangeData);
                 $promises[] = $this->test_exchange_statically($exchangeName, $exchangeData);
             }
             Async\await(Promise\all($promises));
             if ($this->staticTestsFailed) {
                 exit_script (1);
             } else {
-                $successMessage = '[' . $this->lang . '] . [TEST_SUCCESS]' . (string) $count . 'static tests passed';
+                $successMessage = '[' . $this->lang . '][TEST_SUCCESS] ' . (string) $sum . ' static tests passed.';
                 dump ($successMessage);
             }
         }) ();

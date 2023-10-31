@@ -765,10 +765,11 @@ export default class testMainClass extends baseMainTestClass {
             throw e;
         }
     }
-    //----------------------------------------------------------------------------------------------------
-    // --- Init of static tests functions-----------------------------------------------------------------
-    //----------------------------------------------------------------------------------------------------
+
     assertStaticError (cond:boolean, message: string, calculatedOutput, storedOutput) {
+        //-----------------------------------------------------------------------------
+        // --- Init of static tests functions------------------------------------------
+        //-----------------------------------------------------------------------------
         const calculatedString = JSON.stringify (calculatedOutput);
         const outputString = JSON.stringify (storedOutput);
         const errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString;
@@ -900,33 +901,33 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     getNumberOfTestsFromExchange (exchangeData: object) {
-        let count = 0;
+        let sum = 0;
         const methods = exchangeData['methods'];
         const methodsNames = Object.keys (methods);
         for (let i = 0; i < methodsNames.length; i++) {
             const method = methodsNames[i];
             const results = methods[method];
-            count += results.length;
+            sum += results.length;
         }
-        return count;
+        return sum;
     }
 
     async runStaticTests () {
         const staticData = this.loadStaticData ();
         const exchanges = Object.keys (staticData);
         const promises = [];
-        let count = 0;
+        let sum = 0;
         for (let i = 0; i < exchanges.length; i++) {
             const exchangeName = exchanges[i];
             const exchangeData = staticData[exchangeName];
-            count += this.getNumberOfTestsFromExchange (exchangeData);
+            sum += this.getNumberOfTestsFromExchange (exchangeData);
             promises.push (this.testExchangeStatically (exchangeName, exchangeData));
         }
         await Promise.all (promises);
         if (this.staticTestsFailed) {
             exitScript (1);
         } else {
-            const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + count.toString () + ' static tests passed.';
+            const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString () + ' static tests passed.';
             dump (successMessage);
         }
     }
