@@ -35,6 +35,7 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , isSwap = process.argv.includes ('--swap')
     , isFuture = process.argv.includes ('--future')
     , isOption = process.argv.includes ('--option')
+    , shouldCreateReport = process.argv.includes ('--report')
 
 //-----------------------------------------------------------------------------
 
@@ -120,6 +121,33 @@ try {
     log.red (e)
     printUsage ()
     process.exit ()
+}
+
+//-----------------------------------------------------------------------------
+
+function createTemplate(exchange, methodName, args, result) {
+    if (methodName !== 'createOrder' && methodName !== 'create_order') {
+        log.yellow ('createTemplate is only available for createOrder/create_order method')
+    }
+    const input = {
+        'symbol': args[0],
+        'type': args[1],
+        'side': args[2],
+        'amount': args[3],
+        'price': args[4] ?? undefined,
+        'params': args[5] ?? {},
+    }
+    const final = {
+        'description': 'Fill this with the order description',
+        'method': methodName,
+        'url': exchange.last_request_url ?? '',
+        'input': input,
+        'output': exchange.last_request_body
+    }
+    log('Order report: (paste inside static/data/' + exchange.id + '.json -> createOrder)')
+    log.green('-------------------------------------------')
+    log (JSON.stringify (final, null, 2))
+    log.green('-------------------------------------------')
 }
 
 //-----------------------------------------------------------------------------
@@ -303,6 +331,9 @@ async function run () {
                         printHumanReadable (exchange, result)
                         if (!isWsMethod) {
                             console.log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                        }
+                        if (shouldCreateReport) {
+                            createTemplate(exchange, methodName, args, result)
                         }
                         start = end
                     } catch (e) {
