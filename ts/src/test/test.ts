@@ -882,7 +882,7 @@ export default class testMainClass extends baseMainTestClass {
         const markets = this.loadMarketsFromFile (exchangeName);
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = initExchange (exchangeName, { 'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secret', 'password': 'password', 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false }});
-        const methods = exchange.safeValue (exchangeData, 'methods');
+        const methods = exchange.safeValue (exchangeData, 'methods', {});
         const methodsNames = Object.keys (methods);
         for (let i = 0; i < methodsNames.length; i++) {
             const method = methodsNames[i];
