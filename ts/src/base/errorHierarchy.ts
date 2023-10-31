@@ -16,8 +16,8 @@ const errorHierarchy = {
             },
             'BadResponse': {
                 'NullResponse': {},
-                'OperationFailed': {},
             },
+            'OperationFailed': {},
             'InsufficientFunds': {},
             'InvalidAddress': {
                 'AddressPending': {},
