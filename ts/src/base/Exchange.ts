@@ -3253,8 +3253,7 @@ export default class Exchange {
                 } else if (barTimestamp > lastCollectedBarTimestamp) {
                     collectedBars.push (bar);
                     // remove the trades from saved array, which were till last collected bar's open timestamp
-                    const clearBeforeTimestamp = collectedBars[collectedBars.length - 1][0];
-                    collectedTrades = this.filterBySinceLimit (collectedTrades, clearBeforeTimestamp);
+                    collectedTrades = this.filterBySinceLimit (collectedTrades, barTimestamp);
                 }
             }
             callbackFunction (collectedBars);
