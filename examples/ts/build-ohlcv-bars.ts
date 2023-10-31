@@ -23,7 +23,7 @@ async function example_watch_trades () {
     const limit = 1000;
     const since = myex.milliseconds () - 10 * 60 * 1000 * 1000; // last 10 hrs
     function callbackFunction (constructedBars) {
-        // Note: first bar would carry incomplete values, please read comment in "buildOHLCVCFromWatchTrades" method definition
+        // Note: first bar would carry incomplete values, please read comment in "buildOHLCVCFromWatchTrades" method definition for further explanation
         console.log ('[WS] Constructed', constructedBars.length, 'bars from', symbol, 'trades: ', constructedBars);
     }
     myex.buildOHLCVCFromWatchTrades (symbol, timeframe, since, limit, callbackFunction);
