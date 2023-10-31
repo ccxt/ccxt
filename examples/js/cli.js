@@ -39,9 +39,9 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
 
 //-----------------------------------------------------------------------------
 
-console.log (new Date ())
-console.log ('Node.js:', process.version)
-console.log ('CCXT v' + ccxt.version)
+log ((new Date ()).toISOString())
+log ('Node.js:', process.version)
+log ('CCXT v' + ccxt.version)
 
 //-----------------------------------------------------------------------------
 
@@ -326,11 +326,11 @@ async function run () {
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
                         if (!isWsMethod) {
-                            console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
+                            log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
                         }
                         printHumanReadable (exchange, result)
                         if (!isWsMethod) {
-                            console.log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                            log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
                         }
                         if (shouldCreateReport) {
                             createTemplate(exchange, methodName, args, result)
@@ -353,7 +353,7 @@ async function run () {
                     if (debug) {
                         const keys = Object.keys (httpsAgent.freeSockets)
                         const firstKey = keys[0]
-                        console.log (firstKey, httpsAgent.freeSockets[firstKey].length)
+                        log (firstKey, httpsAgent.freeSockets[firstKey].length)
                     }
 
                     if (!poll && !isWsMethod){
@@ -367,7 +367,7 @@ async function run () {
                 printHumanReadable (exchange, exchange[methodName])
             }
         } else {
-            console.log (exchange)
+            log (exchange)
         }
     }
 

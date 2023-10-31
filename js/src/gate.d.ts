@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory } from './base/types.js';
 /**
  * @class gate
  * @extends Exchange
@@ -192,8 +192,8 @@ export default class gate extends Exchange {
         };
         networks: {};
     };
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseFundingHistories(response: any, symbol: any, since: any, limit: any): any;
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
+    parseFundingHistories(response: any, symbol: any, since: any, limit: any): FundingHistory[];
     parseFundingHistory(info: any, market?: any): {
         info: any;
         symbol: string;

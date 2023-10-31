@@ -12,7 +12,6 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
-use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 
@@ -40,6 +39,7 @@ class hitbtc extends Exchange {
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -2084,14 +2084,24 @@ class hitbtc extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
+             * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both
              * @param {bool} [$params->margin] true for creating a margin order
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+             * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
+             * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $isLimit = ($type === 'limit');
+            $reduceOnly = $this->safe_value($params, 'reduceOnly');
+            $timeInForce = $this->safe_string($params, 'timeInForce');
+            $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+            $isPostOnly = $this->is_post_only($type === 'market', null, $params);
             $request = array(
                 'type' => $type,
                 'side' => $side,
@@ -2109,7 +2119,6 @@ class hitbtc extends Exchange {
                 // 'take_rate' => 0.001, // Optional
                 // 'make_rate' => 0.001, // Optional
             );
-            $reduceOnly = $this->safe_value($params, 'reduceOnly');
             if ($reduceOnly !== null) {
                 if (($market['type'] !== 'swap') && ($market['type'] !== 'margin')) {
                     throw new InvalidOrder($this->id . ' createOrder() does not support reduce_only for ' . $market['type'] . ' orders, reduce_only orders are supported for swap and margin markets only');
@@ -2118,8 +2127,12 @@ class hitbtc extends Exchange {
             if ($reduceOnly === true) {
                 $request['reduce_only'] = $reduceOnly;
             }
-            $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
-            $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
+            if ($isPostOnly) {
+                $request['post_only'] = true;
+            }
+            if ($timeInForce !== null) {
+                $request['time_in_force'] = $timeInForce;
+            }
             if ($isLimit || ($type === 'stopLimit') || ($type === 'takeProfitLimit')) {
                 if ($price === null) {
                     throw new ExchangeError($this->id . ' createOrder() requires a $price argument for limit orders');
@@ -2142,19 +2155,18 @@ class hitbtc extends Exchange {
             } elseif (($type === 'stopLimit') || ($type === 'stopMarket') || ($type === 'takeProfitLimit') || ($type === 'takeProfitMarket')) {
                 throw new ExchangeError($this->id . ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
             }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privatePostSpotOrder',
-                'swap' => 'privatePostFuturesOrder',
-                'margin' => 'privatePostMarginOrder',
-            ));
-            list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
-            if ($marginMode !== null) {
-                $method = 'privatePostMarginOrder';
+            $params = $this->omit($params, array( 'triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly' ));
+            if (($marketType === 'swap') && ($marginMode !== null)) {
+                $request['margin_mode'] = $marginMode;
             }
-            $params = $this->omit($params, array( 'triggerPrice', 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'reduceOnly' ));
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($marketType === 'swap') {
+                $response = Async\await($this->privatePostFuturesOrder (array_merge($request, $params)));
+            } elseif (($marketType === 'margin') || ($marginMode !== null)) {
+                $response = Async\await($this->privatePostMarginOrder (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostSpotOrder (array_merge($request, $params)));
+            }
             return $this->parse_order($response, $market);
         }) ();
     }
@@ -3102,11 +3114,7 @@ class hitbtc extends Exchange {
         $isMargin = $this->safe_value($params, 'margin', false);
         $marginMode = null;
         list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
-        if ($marginMode !== null) {
-            if ($marginMode !== 'isolated') {
-                throw new NotSupported($this->id . ' only isolated margin is supported');
-            }
-        } else {
+        if ($marginMode === null) {
             if (($defaultType === 'margin') || ($isMargin === true)) {
                 $marginMode = 'isolated';
             }

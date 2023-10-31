@@ -879,6 +879,7 @@ class huobi extends Exchange {
                     '1220' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1220,"err_msg":"You don’t have access permission have not opened contracts trading.","ts":1645096660718)
                     '1303' => '\\ccxt\\BadRequest', // array("code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true)
                     '1461' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits (5000USDT). Please modify.","ts":1652554651234)
+                    '4007' => '\\ccxt\\BadRequest', // array("code":"4007","msg":"Unified account special interface, non - one account is not available","data":null,"ts":"1698413427651")'
                     'bad-request' => '\\ccxt\\BadRequest',
                     'validation-format-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-format-error","err-msg":"Format Error => order-id.","data":null)
                     'validation-constraints-required' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing => client-order-id.","data":null)
@@ -3005,6 +3006,13 @@ class huobi extends Exchange {
     public function fetch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#get-$account-$balance-of-a-specific-$account
+             * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
+             * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-$account-information
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#$isolated-query-user-s-$account-information
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#$cross-query-user-39-s-$account-information
              * query for $balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
              * @param {bool} [$params->unified] provide this parameter if you have a recent $account with unified $cross+$isolated $margin $account
@@ -3017,10 +3025,8 @@ class huobi extends Exchange {
             $isUnifiedAccount = $this->safe_value_2($params, 'isUnifiedAccount', 'unified', false);
             $params = $this->omit($params, array( 'isUnifiedAccount', 'unified' ));
             $request = array();
-            $method = null;
             $spot = ($type === 'spot');
             $future = ($type === 'future');
-            $swap = ($type === 'swap');
             $defaultSubType = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'linear');
             $subType = $this->safe_string_2($options, 'defaultSubType', 'subType', $defaultSubType);
             $subType = $this->safe_string_2($params, 'defaultSubType', 'subType', $subType);
@@ -3032,35 +3038,35 @@ class huobi extends Exchange {
             $isolated = ($marginMode === 'isolated');
             $cross = ($marginMode === 'cross');
             $margin = ($type === 'margin') || ($spot && ($cross || $isolated));
+            $response = null;
             if ($spot || $margin) {
                 if ($margin) {
                     if ($isolated) {
-                        $method = 'spotPrivateGetV1MarginAccountsBalance';
+                        $response = Async\await($this->spotPrivateGetV1MarginAccountsBalance (array_merge($request, $params)));
                     } else {
-                        $method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+                        $response = Async\await($this->spotPrivateGetV1CrossMarginAccountsBalance (array_merge($request, $params)));
                     }
                 } else {
                     Async\await($this->load_accounts());
                     $accountId = Async\await($this->fetch_account_id_by_type($type, null, null, $params));
                     $request['account-id'] = $accountId;
-                    $method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
+                    $response = Async\await($this->spotPrivateGetV1AccountAccountsAccountIdBalance (array_merge($request, $params)));
                 }
             } elseif ($isUnifiedAccount) {
-                $method = 'contractPrivateGetLinearSwapApiV3UnifiedAccountInfo';
+                $response = Async\await($this->contractPrivateGetLinearSwapApiV3UnifiedAccountInfo (array_merge($request, $params)));
             } elseif ($linear) {
                 if ($isolated) {
-                    $method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+                    $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapAccountInfo (array_merge($request, $params)));
                 } else {
-                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+                    $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo (array_merge($request, $params)));
                 }
             } elseif ($inverse) {
                 if ($future) {
-                    $method = 'contractPrivatePostApiV1ContractAccountInfo';
-                } elseif ($swap) {
-                    $method = 'contractPrivatePostSwapApiV1SwapAccountInfo';
+                    $response = Async\await($this->contractPrivatePostApiV1ContractAccountInfo (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->contractPrivatePostSwapApiV1SwapAccountInfo (array_merge($request, $params)));
                 }
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // $spot
             //
@@ -3132,7 +3138,7 @@ class huobi extends Exchange {
             //         )
             //     }
             //
-            // $future, $swap $isolated
+            // $future, swap $isolated
             //
             //     {
             //         "status" => "ok",
@@ -3152,7 +3158,7 @@ class huobi extends Exchange {
             //                 "adjust_factor" => 0.025000000000000000,
             //                 "margin_static" => 0,
             //                 "is_debit" => 0, // $future only
-            //                 "contract_code" => "BTC-USD", // $swap only
+            //                 "contract_code" => "BTC-USD", // swap only
             //                 "margin_asset" => "USDT", // $linear only
             //                 "margin_mode" => "isolated", // $linear only
             //                 "margin_account" => "BTC-USDT" // $linear only
@@ -3162,7 +3168,7 @@ class huobi extends Exchange {
             //         "ts" => 1637644827566
             //     }
             //
-            // $linear $cross futures and $linear $cross $swap
+            // $linear $cross futures and $linear $cross swap
             //
             //     {
             //         "status" => "ok",
@@ -3216,7 +3222,7 @@ class huobi extends Exchange {
             //         "ts" => 1640915104870
             //     }
             //
-            // TODO add $balance parsing for $linear $swap
+            // TODO add $balance parsing for $linear swap
             //
             $result = array( 'info' => $response );
             $data = $this->safe_value($response, 'data');

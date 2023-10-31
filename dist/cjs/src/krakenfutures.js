@@ -2343,6 +2343,7 @@ class krakenfutures extends krakenfutures$1 {
         }
         const url = this.urls['api'][api] + query;
         if (api === 'private' || access === 'private') {
+            this.checkRequiredCredentials();
             let auth = postData + '/api/';
             if (api !== 'private') {
                 auth += api + '/';

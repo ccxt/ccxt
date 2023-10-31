@@ -140,7 +140,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 
 // ----------------------------------------------------------------------------
 //
-
+import { axolotl } from './functions/crypto.js';
 // import types
 import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory } from './types.js';
 export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
@@ -430,7 +430,6 @@ export default class Exchange {
     urlencodeNested = urlencodeNested
     parseDate = parseDate
     ymd = ymd
-    isArray = inArrayFunc
     base64ToString = base64ToString
     crc32 = crc32
 
@@ -1348,6 +1347,10 @@ export default class Exchange {
 
     getProperty (obj, property, defaultValue = undefined) {
         return (property in obj ? obj[property] : defaultValue);
+    }
+
+    axolotl(payload, hexKey, ed25519) {
+        return axolotl(payload, hexKey, ed25519);
     }
 
     /* eslint-enable */

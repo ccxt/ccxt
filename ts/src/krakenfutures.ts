@@ -2359,6 +2359,7 @@ export default class krakenfutures extends Exchange {
         }
         const url = this.urls['api'][api] + query;
         if (api === 'private' || access === 'private') {
+            this.checkRequiredCredentials ();
             let auth = postData + '/api/';
             if (api !== 'private') {
                 auth += api + '/';

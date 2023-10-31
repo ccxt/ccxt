@@ -554,11 +554,10 @@ class gemini extends Exchange {
         }
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $method = 'publicGetV1SymbolsDetailsSymbol';
             $request = array(
                 'symbol' => $marketId,
             );
-            $promises[] = $this->$method (array_merge($request, $params));
+            $promises[] = $this->publicGetV1SymbolsDetailsSymbol (array_merge($request, $params));
             //
             //     {
             //         "symbol" => "BTCUSD",
