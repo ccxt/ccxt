@@ -63,6 +63,14 @@ function dump(...$s) {
     echo implode(' ', $args) . "\n";
 }
 
+function json_parse($s) {
+    return json_decode($s, true);
+}
+
+function json_stringify($s) {
+    return json_encode($s);
+}
+
 function get_cli_arg_value ($arg) {
     return in_array($arg, $GLOBALS['argv']);
 }
@@ -835,11 +843,11 @@ class testMainClass extends baseMainTestClass {
     }
 
     public function assert_static_error(bool $cond, string $message, $calculatedOutput, $storedOutput) {
-        //-----------------------------------------------------------------------------
-        // --- Init of static tests functions------------------------------------------
-        //-----------------------------------------------------------------------------
-        $calculatedString = json_encode ($calculatedOutput);
-        $outputString = json_encode ($storedOutput);
+        //  -----------------------------------------------------------------------------
+        //  --- Init of static tests functions------------------------------------------
+        //  -----------------------------------------------------------------------------
+        $calculatedString = json_stringify ($calculatedOutput);
+        $outputString = json_stringify ($storedOutput);
         $errorMessage = $message . ' expected ' . $outputString . ' received => ' . $calculatedString;
         assert ($cond, $errorMessage);
     }
@@ -872,7 +880,14 @@ class testMainClass extends baseMainTestClass {
             return null;
         }
         $urlParts = explode('/', $url);
-        return mb_substr($urlParts, implode('/', 3));
+        $res = '';
+        for ($i = 0; $i < count($urlParts); $i++) {
+            if ($i > 2) {
+                $res .= '/';
+                $res .= $urlParts[$i];
+            }
+        }
+        return $res;
     }
 
     public function urlencoded_to_dict(string $url) {
@@ -897,10 +912,10 @@ class testMainClass extends baseMainTestClass {
         }
         if ($type === 'json') {
             if (gettype($storedOutput) === 'string') {
-                $storedOutput = json_decode($storedOutput, $as_associative_array = true);
+                $storedOutput = json_parse ($storedOutput);
             }
             if (gettype($newOutput) === 'string') {
-                $newOutput = json_decode($newOutput, $as_associative_array = true);
+                $newOutput = json_parse ($newOutput);
             }
         } elseif ($type === 'urlencoded') {
             $storedOutput = $this->urlencoded_to_dict($storedOutput);
@@ -908,7 +923,9 @@ class testMainClass extends baseMainTestClass {
         }
         $storedOutputKeys = is_array($storedOutput) ? array_keys($storedOutput) : array();
         $newOutputKeys = is_array($newOutput) ? array_keys($newOutput) : array();
-        $this->assert_static_error(strlen($storedOutputKeys) === strlen($newOutputKeys), 'output length mismatch', $storedOutput, $newOutput);
+        $storedLenght = count($storedOutputKeys);
+        $newLength = count($newOutputKeys);
+        $this->assert_static_error($storedLenght === $newLength, 'output length mismatch', $storedOutput, $newOutput);
         for ($i = 0; $i < count($storedOutputKeys); $i++) {
             $key = $storedOutputKeys[$i];
             if ($exchange->in_array($key, $skipKeys)) {
@@ -967,18 +984,19 @@ class testMainClass extends baseMainTestClass {
                     Async\await($this->test_method_statically($exchange, $method, $result, $type, $skipKeys));
                 }
             }
-            Async\await($exchange->close ());
+            Async\await(close ($exchange));
         }) ();
     }
 
-    public function get_number_of_tests_from_exchange(array $exchangeData) {
+    public function get_number_of_tests_from_exchange($exchange, array $exchangeData) {
         $sum = 0;
         $methods = $exchangeData['methods'];
         $methodsNames = is_array($methods) ? array_keys($methods) : array();
         for ($i = 0; $i < count($methodsNames); $i++) {
             $method = $methodsNames[$i];
             $results = $methods[$method];
-            $sum .= count($results);
+            $resultsLength = count($results);
+            $sum = $exchange->sum ($sum, $resultsLength);
         }
         return $sum;
     }
@@ -987,12 +1005,14 @@ class testMainClass extends baseMainTestClass {
         return Async\async(function ()  {
             $staticData = $this->load_static_data();
             $exchanges = is_array($staticData) ? array_keys($staticData) : array();
+            $exchange = init_exchange ('Exchange', array()); // tmp to do the calculations until we have the ast-transpiler transpiling this code
             $promises = array();
             $sum = 0;
             for ($i = 0; $i < count($exchanges); $i++) {
                 $exchangeName = $exchanges[$i];
                 $exchangeData = $staticData[$exchangeName];
-                $sum .= $this->get_number_of_tests_from_exchange($exchangeData);
+                $numberOfTests = $this->get_number_of_tests_from_exchange($exchange, $exchangeData);
+                $sum = $exchange->sum ($sum, $numberOfTests);
                 $promises[] = $this->test_exchange_statically($exchangeName, $exchangeData);
             }
             Async\await(Promise\all($promises));
@@ -1001,6 +1021,7 @@ class testMainClass extends baseMainTestClass {
             } else {
                 $successMessage = '[' . $this->lang . '][TEST_SUCCESS] ' . (string) $sum . ' static tests passed.';
                 dump ($successMessage);
+                exit_script (0);
             }
         }) ();
     }

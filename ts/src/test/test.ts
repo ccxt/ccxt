@@ -54,6 +54,14 @@ function dump (...args) {
     console.log (...args);
 }
 
+function jsonParse (elem) {
+    return JSON.parse (elem);
+}
+
+function jsonStringify (elem) {
+    return JSON.stringify (elem);
+}
+
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
 }
@@ -767,11 +775,11 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     assertStaticError (cond:boolean, message: string, calculatedOutput, storedOutput) {
-        //-----------------------------------------------------------------------------
-        // --- Init of static tests functions------------------------------------------
-        //-----------------------------------------------------------------------------
-        const calculatedString = JSON.stringify (calculatedOutput);
-        const outputString = JSON.stringify (storedOutput);
+        //  -----------------------------------------------------------------------------
+        //  --- Init of static tests functions------------------------------------------
+        //  -----------------------------------------------------------------------------
+        const calculatedString = jsonStringify (calculatedOutput);
+        const outputString = jsonStringify (storedOutput);
         const errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString;
         assert (cond, errorMessage);
     }
@@ -836,10 +844,10 @@ export default class testMainClass extends baseMainTestClass {
         }
         if (type === 'json') {
             if (typeof storedOutput === 'string') {
-                storedOutput = JSON.parse (storedOutput);
+                storedOutput = jsonParse (storedOutput);
             }
             if (typeof newOutput === 'string') {
-                newOutput = JSON.parse (newOutput);
+                newOutput = jsonParse (newOutput);
             }
         } else if (type === 'urlencoded') {
             storedOutput = this.urlencodedToDict (storedOutput);
