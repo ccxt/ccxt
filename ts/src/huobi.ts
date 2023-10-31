@@ -3144,8 +3144,12 @@ export default class huobi extends Exchange {
             throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
         }
         const uniqueNetworkIds = this.safeValue (this.options['networkChainIdsByNames'], currencyCode, {});
-        const networkTitle = super.networkCodeToId (networkCode);
-        return this.safeValue (uniqueNetworkIds, networkTitle, networkTitle);
+        if (networkCode in uniqueNetworkIds) {
+            return uniqueNetworkIds[networkCode];
+        } else {
+            const networkTitle = super.networkCodeToId (networkCode);
+            return this.safeValue (uniqueNetworkIds, networkTitle, networkTitle);
+        }
     }
 
     async fetchBalance (params = {}) {
