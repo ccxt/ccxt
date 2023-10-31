@@ -137,8 +137,11 @@ done
 # faster version of post-transpile
 npm run check-php-syntax
 
-echo "$msgPrefix Linting python files: ${PYTHON_FILES[@]}"
-ruff ${PYTHON_FILES[*]}
+# only run the python linter if exchange related files are changed
+if [ ${#REST_EXCHANGES[@]} -gt 0 ] || [ ${#WS_EXCHANGES[@]} -gt 0 ]; then
+  echo "$msgPrefix Linting python files: ${PYTHON_FILES[@]}"
+  ruff ${PYTHON_FILES[*]}
+fi
 
 
 ### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###
