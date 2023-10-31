@@ -10,10 +10,13 @@ import errorsHierarchy from '../base/errorHierarchy.js';
 // js specific codes //
 const DIR_NAME = fileURLToPath (new URL ('.', import.meta.url));
 process.on ('uncaughtException', (e) => {
-    exceptionMessage (e); process.exit (1);
+    throw new Error (exceptionMessage (e));
+    // process.exit (1);
 });
 process.on ('unhandledRejection', (e: any) => {
-    exceptionMessage (e); process.exit (1);
+    exceptionMessage (e);
+    throw new Error (exceptionMessage (e));
+    // process.exit (1);
 });
 const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 const AuthenticationError = ccxt.AuthenticationError;
